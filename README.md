@@ -19,7 +19,7 @@ A simple React, Vite, and Node.js monorepo built with Yarn workspaces. Uses Fire
 
 ### 2. Install dependencies
 
-Install [Node.js, (version 18.20.4)](https://nodejs.org/en/download/package-manager). 
+Install [Node.js, (version 18.20.4)](https://nodejs.org/en/download/package-manager).
 
 > [!TIP]
 > On MacOS and Linux, installing Node with `nvm` is recommended!
@@ -38,12 +38,12 @@ Now, install packages:
 
 > [!TIP]
 > This monorepo uses [Yarn Workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/) to manage dependencies across repositories. Unless you know what you're doing, you should install dependencies (`yarn install`) at the root of the repository (i.e. not in `/client` or `/server`).
-> 
+>
 > However, you should add _new_ dependencies (`yarn add`) in the directory which actually uses them.
 
 ### 3. Get environment secrets
 
-Both the `client` and `server` directories have their own `.env.local` and `.env` files, respectively. These secrets should be provided to you by your tech leads. 
+Both the `client` and `server` directories have their own `.env.local` and `.env` files, respectively. These secrets should be provided to you by your tech leads.
 
 **Client**
 
@@ -70,3 +70,5 @@ Start the development server by running this command:
 ```shell
   yarn run dev
 ```
+
+Hello World
