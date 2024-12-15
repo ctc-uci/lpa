@@ -12,7 +12,7 @@ eventRouter.get("/events", async (req, res) => {
   try {
     const event = await db.query(`SELECT * FROM events ORDER BY id ASC`);
 
-    if(event.length == 0){
+    if(event.length === 0){
         return res.status(404).json({ error: "No events found." });
     }
 
@@ -31,7 +31,7 @@ eventRouter.get("/events/:id", async (req, res) => {
       id,
     ]);
     
-    if(event.length == 0){
+    if(event.length === 0){
         return res.status(404).json({ error: "Event does not exist." });
     }
 
