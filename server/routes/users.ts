@@ -34,16 +34,34 @@ usersRouter.get("/:firebaseUid", async (req, res) => {
 });
 
 // Delete a user by ID, both in Firebase and NPO DB
-usersRouter.delete("/:firebaseUid", async (req, res) => {
+usersRouter.delete("/users/:firebaseUid", async (req, res) => {
   try {
     const { firebaseUid } = req.params;
 
-    await admin.auth().deleteUser(firebaseUid);
+    if (firebaseUid) {
+      await admin.auth().deleteUser(firebaseUid);
+    } else {
+      throw new Error("firebaseUid is undefined");
+    }
+    
     const user = await db.query("DELETE FROM users WHERE firebase_uid = $1", [
       firebaseUid,
     ]);
 
     res.status(200).json(keysToCamel(user));
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
+// Delete a user by their account ID (not based on Firebase Uid)
+usersRouter.delete("/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await db.query("DELETE FROM users WHERE id = $1", [id]);
+
+    res.status(200).send(`ID ${id} deleted from the users table`);
   } catch (err) {
     res.status(400).send(err.message);
   }
