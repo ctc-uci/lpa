@@ -28,3 +28,14 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
     }
 });
 
+// GET        /comments/booking/:id
+// Returns all comments that much up that invoice ID
+commentsRouter.get("/booking/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const data = await db.query("SELECT * FROM comments WHERE booking_id = $1", [id]);
+        res.status(200).json(keysToCamel(data));
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
