@@ -24,7 +24,7 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
         const data = await db.query("SELECT * FROM comments WHERE invoice_id = $1", [id]);
         res.status(200).json(keysToCamel(data));
     } catch (err) {
-        res.status(404).send(err.message);
+        res.status(500).send(err.message);
     }
 });
 
