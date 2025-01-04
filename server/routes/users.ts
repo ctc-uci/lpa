@@ -5,10 +5,10 @@ import { admin } from "../config/firebase";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
 import { verifyRole } from "../src/middleware";
 
-export const usersRouter = Router();
+export const userRouter = Router();
 
 // Get all users
-usersRouter.get("/", async (req, res) => {
+userRouter.get("/", async (req, res) => {
   try {
     const users = await db.query(`SELECT * FROM users ORDER BY id ASC`);
 
@@ -19,7 +19,7 @@ usersRouter.get("/", async (req, res) => {
 });
 
 // Get a user by ID
-usersRouter.get("/:firebaseUid", async (req, res) => {
+userRouter.get("/:firebaseUid", async (req, res) => {
   try {
     const { firebaseUid } = req.params;
 
@@ -34,7 +34,7 @@ usersRouter.get("/:firebaseUid", async (req, res) => {
 });
 
 // Delete a user by ID, both in Firebase and NPO DB
-usersRouter.delete("/:firebaseUid", async (req, res) => {
+userRouter.delete("/:firebaseUid", async (req, res) => {
   try {
     const { firebaseUid } = req.params;
 
@@ -50,7 +50,7 @@ usersRouter.delete("/:firebaseUid", async (req, res) => {
 });
 
 // Create user
-usersRouter.post("/create", async (req, res) => {
+userRouter.post("/create", async (req, res) => {
   try {
     const { email, firebaseUid } = req.body;
 
@@ -66,7 +66,7 @@ usersRouter.post("/create", async (req, res) => {
 });
 
 // Update a user by ID
-usersRouter.put("/update", async (req, res) => {
+userRouter.put("/update", async (req, res) => {
   try {
     const { email, firebaseUid } = req.body;
 
@@ -82,7 +82,7 @@ usersRouter.put("/update", async (req, res) => {
 });
 
 // Get all users (as admin)
-usersRouter.get("/admin/all", verifyRole("admin"), async (req, res) => {
+userRouter.get("/admin/all", verifyRole("admin"), async (req, res) => {
   try {
     const users = await db.query(`SELECT * FROM users`);
 
@@ -93,7 +93,7 @@ usersRouter.get("/admin/all", verifyRole("admin"), async (req, res) => {
 });
 
 // Update a user's role
-usersRouter.put("/update/set-role", verifyRole("admin"), async (req, res) => {
+userRouter.put("/update/set-role", verifyRole("admin"), async (req, res) => {
   try {
     const { role, firebaseUid } = req.body;
 
