@@ -61,9 +61,25 @@ bookingsRouter.post("/", async (req, res) => {
 bookingsRouter.put("/:id", async (req, res) => {
     try {
       const { id } = req.params;
+
+      const { event_id, room_id, start_time, end_time, date, archived } = req.body;
       
-      // TODO: Update booking in database
-      const data = {};
+      // Update booking in database
+      const data = await db.query(
+        `
+        UPDATE bookings
+        SET 
+            event_id = COALESCE($1, event_id), 
+            room_id = COALESCE($2, room_id), 
+            start_time = COALESCE($3, start_time), 
+            end_time = COALESCE($4, end_time),
+            date = COALESCE($5, date),
+            archived = COALESCE($6, archived)
+        WHERE id = $7
+        RETURNING *;
+        `,
+        [event_id, room_id, start_time, end_time, date, archived, id]
+    );
   
       res.status(200).json(keysToCamel(data));
     } catch (err) {
