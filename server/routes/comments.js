@@ -69,12 +69,21 @@ commentsRouter.post("/", async (req, res) => {
     const { user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value } = req.body;
 
     // Insertnew
-    const user = await db.query(
-      `INSERT INTO comments (user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value]
+    const inserted_row = await db.query(
+      `INSERT INTO comments (user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;`,
+      [user_id, booking_id ?? null, invoice_id, datetime, comment, adjustment_type, adjustment_value]
     );
 
-    res.status(200).json(keysToCamel(user));
+    res.status(200).json(keysToCamel(inserted_row));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+commentsRouter.get("/", async (req, res) => {
+  try {
+    const comments = await db.query("SELECT * FROM comments");
+    res.status(200).json(keysToCamel(comments));
   } catch (err) {
     res.status(500).send(err.message);
   }
