@@ -9,6 +9,7 @@ import {
 import { Admin } from "./components/admin/Admin";
 import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
+//@ts-expect-error - Allow import of JSX page into App.tsx base
 import { Playground } from "./components/playground/Playground";
 import { Login } from "./components/login/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
