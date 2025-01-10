@@ -29,8 +29,6 @@ const signupSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
-type SignupFormValues = z.infer<typeof signupSchema>;
-
 export const Signup = () => {
   const navigate = useNavigate();
   const toast = useToast();
@@ -41,12 +39,12 @@ export const Signup = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupFormValues>({
+  } = useForm({
     resolver: zodResolver(signupSchema),
     mode: "onBlur",
   });
 
-  const handleSignup = async (data: SignupFormValues) => {
+  const handleSignup = async (data) => {
     try {
       const user = await signup({
         email: data.email,

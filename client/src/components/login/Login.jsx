@@ -29,8 +29,6 @@ const signinSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
-type SigninFormValues = z.infer<typeof signinSchema>;
-
 export const Login = () => {
   const navigate = useNavigate();
   const toast = useToast();
@@ -42,13 +40,13 @@ export const Login = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SigninFormValues>({
+  } = useForm({
     resolver: zodResolver(signinSchema),
     mode: "onBlur",
   });
 
   const toastLoginError = useCallback(
-    (msg: string) => {
+    (msg) => {
       toast({
         title: "An error occurred while signing in",
         description: msg,
@@ -59,7 +57,7 @@ export const Login = () => {
     [toast]
   );
 
-  const handleLogin = async (data: SigninFormValues) => {
+  const handleLogin = async (data) => {
     try {
       await login({
         email: data.email,
