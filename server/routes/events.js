@@ -5,10 +5,10 @@ import { admin } from "../config/firebase";
 import { db } from "../db/db-pgp";
 import { verifyRole } from "../src/middleware";
 
-export const eventRouter = Router();
+const eventRouter = Router();
 
 // Return all events
-eventRouter.get("/events", async (req, res) => {
+eventRouter.get("/", async (req, res) => {
   try {
     const event = await db.query(`SELECT * FROM events ORDER BY id ASC`);
 
@@ -23,7 +23,7 @@ eventRouter.get("/events", async (req, res) => {
 });
 
 // Return event by ID
-eventRouter.get("/events/:id", async (req, res) => {
+eventRouter.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -42,7 +42,7 @@ eventRouter.get("/events/:id", async (req, res) => {
 });
 
 // Create event, return event ID
-eventRouter.post("/events", async (req, res) => {
+eventRouter.post("/", async (req, res) => {
   try {
     const eventData = req.body;
 
@@ -52,16 +52,16 @@ eventRouter.post("/events", async (req, res) => {
 
     const result = await db.query(
         "INSERT INTO events (name, description, archived) VALUES ($1, $2, $3) RETURNING id",
-        [eventData.name, eventData.description, eventData.archived]
+        [eventData.name, eventData.description || null, eventData.archived]
       );
-    res.status(200).json(keysToCamel(result));
+    res.status(201).json({ id: result[0].id });
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
 
 // Return all data of updated event
-eventRouter.put("/events/:id", async (req, res) => {
+eventRouter.put("/:id", async (req, res) => {
   try {
     const eventData = req.body;
     const { id } = req.params;
@@ -70,9 +70,24 @@ eventRouter.put("/events/:id", async (req, res) => {
         return res.status(404).json({ error: "Event data is required" });
     }
 
+    const existingEvent = await db.query(
+      "SELECT * FROM events WHERE id = $1",
+      [id]
+    );
+
+    if (existingEvent.length === 0) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+    
+    const updatedData = {
+      name: eventData.name === undefined ? existingEvent[0].name : eventData.name,
+      description: eventData.description === undefined ? existingEvent[0].description : eventData.description,
+      archived: eventData.archived === undefined ? existingEvent[0].archived : eventData.archived
+  };
+
     const event = await db.query(
       "UPDATE events SET name = $1, description = $2, archived = $3 WHERE id = $4 RETURNING *",
-      [eventData.name, eventData.description, eventData.archived, id]
+      [updatedData.name, updatedData.description, updatedData.archived, id]
     );
 
     res.status(200).json(keysToCamel(event));
@@ -83,3 +98,4 @@ eventRouter.put("/events/:id", async (req, res) => {
 
 
 
+export default eventRouter;
