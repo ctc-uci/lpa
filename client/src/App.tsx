@@ -9,6 +9,7 @@ import {
 import { Admin } from "./components/admin/Admin";
 import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
+import { Playground } from "./components/playground/Playground";
 import { Login } from "./components/login/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Signup } from "./components/signup/Signup";
@@ -31,6 +32,10 @@ const App = () => {
                 <Route
                   path="/signup"
                   element={<Signup />}
+                />
+                <Route
+                  path="/playground"
+                  element={<Playground />}
                 />
                 <Route
                   path="/dashboard"
