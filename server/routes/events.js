@@ -10,13 +10,13 @@ const eventRouter = Router();
 // Return all events
 eventRouter.get("/", async (req, res) => {
   try {
-    const event = await db.query(`SELECT * FROM events ORDER BY id ASC`);
+    const events = await db.any(`SELECT * FROM events ORDER BY id ASC`);
 
-    if(event.length === 0){
+    if(events.length === 0){
         return res.status(404).json({ error: "No events found." });
     }
 
-    res.status(200).json(keysToCamel(event));
+    res.status(200).json(keysToCamel(events));
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -80,9 +80,9 @@ eventRouter.put("/:id", async (req, res) => {
     }
     
     const updatedData = {
-      name: eventData.name === undefined ? existingEvent[0].name : eventData.name,
-      description: eventData.description === undefined ? existingEvent[0].description : eventData.description,
-      archived: eventData.archived === undefined ? existingEvent[0].archived : eventData.archived
+      name: eventData.name === null ? existingEvent[0].name : eventData.name,
+      description: eventData.description === null ? existingEvent[0].description : eventData.description,
+      archived: eventData.archived === null ? existingEvent[0].archived : eventData.archived
   };
 
     const event = await db.query(
