@@ -9,13 +9,17 @@ commentsRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const comment = await db.query(`DELETE FROM comments WHERE id = $1`, [
+    const comment = await db.query(`DELETE FROM comments WHERE id = $1 RETURNING *`, [
       id,
     ]);
 
-    res.status(200).json(keysToCamel(comment));
+    if (comment.length === 0) {
+      return res.status(404).json({result: 'error'});
+    }
+
+    res.status(200).json({result: 'success', deletedComment: comment});
   } catch (err) {
-    res.status(400).send(err.message);
+    res.status(500).json({result: 'error', message: err.message});
   }
 });
 
@@ -80,11 +84,12 @@ commentsRouter.post("/", async (req, res) => {
   }
 });
 
-commentsRouter.get("/", async (req, res) => {
-  try {
-    const comments = await db.query("SELECT * FROM comments");
-    res.status(200).json(keysToCamel(comments));
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
+// Get endpoint for testing purpose only
+// commentsRouter.get("/", async (req, res) => {
+//   try {
+//     const comments = await db.query("SELECT * FROM comments");
+//     res.status(200).json(keysToCamel(comments));
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// });
