@@ -48,7 +48,7 @@ bookingsRouter.post("/", async (req, res) => {
 
     // Insert new booking into database
     const data = await db.query(
-        `INSERT INTO bookings (event_id, room_id, start_time, end_time, date, archived) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        `INSERT INTO bookings (event_id, room_id, start_time, end_time, date, archived) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
         [ event_id, room_id, start_time, end_time, date, archived ]
       );
 
