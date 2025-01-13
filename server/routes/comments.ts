@@ -39,3 +39,5 @@ commentsRouter.get("/booking/:id", async (req, res) => {
         res.status(500).send(err.message);
     }
 });
+
+export { commentsRouter };
