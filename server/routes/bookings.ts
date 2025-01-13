@@ -23,13 +23,27 @@ bookingsRouter.get("/event/:id", async (req, res) => {
         const { id } = req.params;
         const { start, end } = req.query;
 
+        
         let data;
         if (start && end) 
-        {
-            data = await db.query(`SELECT * FROM bookings WHERE event_id = $1 AND start_time = $2 AND end_time = $3`, [
+            {
+            const startTimeDateArray = start.split("T");
+            const endTimeDateArray = end.split("T");
+            
+            //if start and end dates are different days
+            if(startTimeDateArray[0] !== endTimeDateArray[0]) {
+                throw new Error("start and end dates are different");
+            }
+
+            const date = startTimeDateArray[0];
+            const startTime = startTimeDateArray[1].substring(0, startTimeDateArray[1].length-1);
+            const endTime = endTimeDateArray[1].substring(0, endTimeDateArray[1].length-1);
+
+            data = await db.query(`SELECT * FROM bookings WHERE event_id = $1 AND date = $2 AND start_time = $3 AND end_time = $4`, [
                 id,
-                start,
-                end
+                date,
+                startTime,
+                endTime,
             ]);
         }
         else if (!(start && end))

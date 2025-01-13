@@ -17,8 +17,12 @@ eventsRouter.use(express.json());
 eventsRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await db.query(`DELETE FROM events WHERE id = $1`, [id]);
-    res.status(200).json(keysToCamel(data));
+    const data = await db.query(`DELETE FROM events WHERE id = $1 RETURNING *`, [id]);
+
+    if(data.length > 0)
+      res.status(200).json({"result" : "success", "deletedData" : keysToCamel(data)});
+    else
+      res.status(404).json({"result" : "error"});
   } catch (err) {
     res.status(500).send(err.message);
   }
