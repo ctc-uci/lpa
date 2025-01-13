@@ -46,7 +46,7 @@ usersRouter.get("/", async (req, res) => {
 //     } else {
 //       throw new Error("firebaseUid is undefined");
 //     }
-    
+
 //     const user = await db.query("DELETE FROM users WHERE firebase_uid = $1", [
 //       firebaseUid,
 //     ]);
@@ -61,7 +61,7 @@ usersRouter.get("/", async (req, res) => {
 usersRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // first delete all associated comments
     await db.query("DELETE FROM comments WHERE user_id = $1", [id]); // theres a foreign key constraint, comments requires a user_id to exist, so must delete all comments associated first
     // then delete the user
@@ -69,11 +69,7 @@ usersRouter.delete("/:id", async (req, res) => {
 
     res.status(200).json({ result: "success" });
   } catch (err) {
-    console.error('Delete user error:', err);
-    res.status(400).json({ 
-      result: "error",
-      message: err.message 
-    });
+    res.status(400).json({ result: "error" });
   }
 });
 
