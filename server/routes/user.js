@@ -57,7 +57,7 @@ usersRouter.post("/", async (req, res) => {
         VALUES ($1, $2, $3, $4, $5)
         RETURNING id;
       `,
-      [email, firebaseUid, firstName, lastName, editPerms]);
+      [email, firebaseUid, firstName, lastName, editPerms ?? false]);
     res.status(200).json(keysToCamel(user[0]));
 
   } catch (err) {
