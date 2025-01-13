@@ -8,7 +8,6 @@ bookingsRouter.use(express.json());
 bookingsRouter.get("/", async (req, res) => {
   try {
     const { start, end } = req.query;
-    let data;
 
     let query = `SELECT * FROM bookings`;
     const params = [];
@@ -29,7 +28,7 @@ bookingsRouter.get("/", async (req, res) => {
       params.push(endDate, endTime);
     }
 
-    data = await db.query(query, params);
+    const data = await db.query(query, params);
 
     res.status(200).json(keysToCamel(data));
   } catch (err) {
