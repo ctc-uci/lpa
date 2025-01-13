@@ -7,39 +7,36 @@ bookingsRouter.use(express.json());
 
 bookingsRouter.get("/", async (req, res) => {
   try {
-    // Get bookings from database
     const { start, end } = req.query;
-
     let data;
-    // If start and end are not provided, get bookings for whatever we have, or just return all bookings if no query params
-    if (start && end) 
-    {
-        data = await db.query(`SELECT * FROM bookings WHERE start_time = $1 AND end_time = $2`, 
-            [ start, end ]
-          );
+
+    let query = `SELECT * FROM bookings`;
+    const params = [];
+
+    if (start) {
+      const [startDate, startTime] = start.split("T");
+      query += ` WHERE (date > $1 OR (date = $1 AND start_time >= $2))`;
+      params.push(startDate, startTime);
     }
-    else if (start)
-    {
-        data = await db.query(`SELECT * FROM bookings WHERE start_time = $1`, 
-            [ start ]
-          );
+
+    if (end) {
+      const [endDate, endTime] = end.split("T");
+      if (params.length === 0) {
+        query += ` WHERE (date < $1 OR (date = $1 AND end_time <= $2))`;
+      } else {
+        query += ` AND (date < $3 OR (date = $3 AND end_time <= $4))`;
+      }
+      params.push(endDate, endTime);
     }
-    else if (end)
-    {
-        data = await db.query(`SELECT * FROM bookings WHERE end_time = $1`, 
-            [ end ]
-        );
-    }
-    else
-    {
-        data = await db.query(`SELECT * FROM bookings`);
-    }
+
+    data = await db.query(query, params);
 
     res.status(200).json(keysToCamel(data));
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
+
 
 bookingsRouter.post("/", async (req, res) => {
   try {
@@ -93,10 +90,14 @@ bookingsRouter.delete("/:id", async (req, res) => {
       const { id } = req.params;
 
       // Delete booking from database
-      const data = db.query("DELETE FROM bookings WHERE id = $1", 
+      const data = db.query("DELETE FROM bookings WHERE id = $1 RETURNING *", 
         [ id ]);
+      
+      if (!data) {
+        return res.status(404).json({result: 'error'});
+      }
   
-      res.status(200).json(keysToCamel(data));
+      res.status(200).json({result: 'success'});
     } catch (err) {
       res.status(500).send(err.message);
     }
