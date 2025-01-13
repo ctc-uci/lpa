@@ -49,6 +49,9 @@ export const Signup = () => {
       const user = await signup({
         email: data.email,
         password: data.password,
+        // add:
+        // first_name: ...
+        // last_name: ...
       });
 
       if (user) {

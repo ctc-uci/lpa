@@ -35,6 +35,8 @@ export const AuthContext = createContext<AuthContextProps | null>(null);
 interface EmailPassword {
   email: string;
   password: string;
+  first_name: string;
+  last_name: string;
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -43,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const signup = async ({ email, password }: EmailPassword) => {
+  const signup = async ({ email, password, first_name, last_name }: EmailPassword) => {
     if (currentUser) {
       signOut(auth);
     }
@@ -57,6 +59,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await backend.post("/users/create", {
       email: email,
       firebaseUid: userCredential.user.uid,
+      first_name: first_name,
+      last_name: last_name
     });
 
     return userCredential;
