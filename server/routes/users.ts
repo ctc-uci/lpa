@@ -8,15 +8,15 @@ import { verifyRole } from "../src/middleware";
 export const usersRouter = Router();
 
 // Get all users
-// usersRouter.get("/", async (req, res) => {
-//   try {
-//     const users = await db.query(`SELECT * FROM users ORDER BY id ASC`);
+usersRouter.get("/", async (req, res) => {
+  try {
+    const users = await db.query(`SELECT * FROM users ORDER BY id ASC`);
 
-//     res.status(200).json(keysToCamel(users));
-//   } catch (err) {
-//     res.status(400).send(err.message);
-//   }
-// });
+    res.status(200).json(keysToCamel(users));
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
 
 // Get a user by ID
 // usersRouter.get("/:firebaseUid", async (req, res) => {
@@ -58,15 +58,22 @@ export const usersRouter = Router();
 // });
 
 // Delete a user by their account ID (not based on Firebase Uid)
-usersRouter.delete("/users/:id", async (req, res) => {
+usersRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
+    
+    // first delete all associated comments
+    await db.query("DELETE FROM comments WHERE user_id = $1", [id]); // theres a foreign key constraint, comments requires a user_id to exist, so must delete all comments associated first
+    // then delete the user
     await db.query("DELETE FROM users WHERE id = $1", [id]);
 
-    res.status(200).send(`ID ${id} deleted from the users table`);
+    res.status(200).json({ result: "success" });
   } catch (err) {
-    res.status(400).send(err.message);
+    console.error('Delete user error:', err);
+    res.status(400).json({ 
+      result: "error",
+      message: err.message 
+    });
   }
 });
 
