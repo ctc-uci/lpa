@@ -9,7 +9,6 @@ import { commentsRouter } from '../routes/comments';
 import { eventsRouter } from "../routes/events";
 import { bookingsRouter } from "../routes/bookings";
 import { verifyToken } from "./middleware";
-import { commentsRouter } from "../routes/comments";
 import { clientsRouter } from "../routes/clients";
 
 dotenv.config();

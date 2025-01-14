@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import {
   Button,
@@ -24,51 +24,79 @@ import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { authenticateGoogleUser } from "../../utils/auth/providers";
 
-const signupSchema = z.object({
+const signinSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
-type SignupFormValues = z.infer<typeof signupSchema>;
-
-export const Signup = () => {
+export const Login = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const { signup, handleRedirectResult } = useAuthContext();
+
+  const { login, handleRedirectResult } = useAuthContext();
   const { backend } = useBackendContext();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema),
+  } = useForm({
+    resolver: zodResolver(signinSchema),
     mode: "onBlur",
   });
 
-  const handleSignup = async (data: SignupFormValues) => {
+  const toastLoginError = useCallback(
+    (msg) => {
+      toast({
+        title: "An error occurred while signing in",
+        description: msg,
+        status: "error",
+        variant: "subtle",
+      });
+    },
+    [toast]
+  );
+
+  const handleLogin = async (data) => {
     try {
-      const user = await signup({
+      await login({
         email: data.email,
         password: data.password,
       });
 
-      if (user) {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     } catch (err) {
-      if (err instanceof Error) {
-        toast({
-          title: "An error occurred",
-          description: err.message,
-          status: "error",
-          variant: "subtle",
-        });
+      const errorCode = err.code;
+      const firebaseErrorMsg = err.message;
+
+      switch (errorCode) {
+        case "auth/wrong-password":
+        case "auth/invalid-credential":
+        case "auth/invalid-email":
+        case "auth/user-not-found":
+          toastLoginError(
+            "Email address or password does not match our records!"
+          );
+          break;
+        case "auth/unverified-email":
+          toastLoginError("Please verify your email address.");
+          break;
+        case "auth/user-disabled":
+          toastLoginError("This account has been disabled.");
+          break;
+        case "auth/too-many-requests":
+          toastLoginError("Too many attempts. Please try again later.");
+          break;
+        case "auth/user-signed-out":
+          toastLoginError("You have been signed out. Please sign in again.");
+          break;
+        default:
+          toastLoginError(firebaseErrorMsg);
       }
     }
   };
 
-  const handleGoogleSignup = async () => {
+  const handleGoogleLogin = async () => {
     await authenticateGoogleUser();
   };
 
@@ -81,10 +109,10 @@ export const Signup = () => {
       spacing={8}
       sx={{ width: 300, marginX: "auto" }}
     >
-      <Heading>Signup</Heading>
+      <Heading>Login</Heading>
 
       <form
-        onSubmit={handleSubmit(handleSignup)}
+        onSubmit={handleSubmit(handleLogin)}
         style={{ width: "100%" }}
       >
         <Stack spacing={2}>
@@ -116,7 +144,7 @@ export const Signup = () => {
                 {...register("password")}
                 name="password"
                 isRequired
-                autoComplete="password"
+                autoComplete="current-password"
               />
             </Center>
             <FormErrorMessage>
@@ -124,9 +152,9 @@ export const Signup = () => {
             </FormErrorMessage>
             <ChakraLink
               as={Link}
-              to="/login"
+              to="/signup"
             >
-              <FormHelperText>Click here to login</FormHelperText>
+              <FormHelperText>Click here to sign up</FormHelperText>
             </ChakraLink>
           </FormControl>
 
@@ -136,7 +164,7 @@ export const Signup = () => {
             sx={{ width: "100%" }}
             isDisabled={Object.keys(errors).length > 0}
           >
-            Signup
+            Login
           </Button>
         </Stack>
       </form>
@@ -145,10 +173,10 @@ export const Signup = () => {
         leftIcon={<FaGoogle />}
         variant={"solid"}
         size={"lg"}
-        onClick={handleGoogleSignup}
+        onClick={handleGoogleLogin}
         sx={{ width: "100%" }}
       >
-        Signup with Google
+        Login with Google
       </Button>
     </VStack>
   );
