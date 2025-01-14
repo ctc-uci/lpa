@@ -23,21 +23,27 @@ bookingsRouter.get("/event/:id", async (req, res) => {
         const { id } = req.params;
         const { start, end } = req.query;
 
-        let data;
-        if (start && end) 
-        {
-            data = await db.query(`SELECT * FROM bookings WHERE event_id = $1 AND start_time = $2 AND end_time = $3`, [
-                id,
-                start,
-                end
-            ]);
+        let query = `SELECT * FROM bookings WHERE event_id = $1`;
+        const params = [id];
+
+        if (start) {
+            const [startDate, startTime] = start.split("T");
+            query += ` AND (date > $2 OR (date = $2 AND start_time >= $3))`;
+            params.push(startDate, startTime);
         }
-        else if (!(start && end))
-        {
-            data = await db.query(`SELECT * FROM bookings WHERE event_id = $1`, [
-                id
-            ]);
-        } 
+
+        if (end) {
+            const [endDate, endTime] = end.split("T");
+            if (params.length === 0) {
+                query += ` AND (date < $2 OR (date = $2 AND end_time <= $3))`;
+            } else {
+                query += ` AND (date < $4 OR (date = $4 AND end_time <= $5))`;
+            }
+            params.push(endDate, endTime);
+        }
+
+        const data = await db.query(query, params);
+        
         res.status(200).json(keysToCamel(data));
     } catch (err) {
         res.status(500).send(err.message);
