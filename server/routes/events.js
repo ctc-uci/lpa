@@ -3,10 +3,10 @@ import { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
 
-const eventRouter = Router();
+const eventsRouter = Router();
 
 // Return all events
-eventRouter.get("/", async (req, res) => {
+eventsRouter.get("/", async (req, res) => {
   try {
     const events = await db.any(`SELECT * FROM events ORDER BY id ASC`);
 
@@ -21,7 +21,7 @@ eventRouter.get("/", async (req, res) => {
 });
 
 // Return event by ID
-eventRouter.get("/:id", async (req, res) => {
+eventsRouter.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -40,7 +40,7 @@ eventRouter.get("/:id", async (req, res) => {
 });
 
 // Create event, return event ID
-eventRouter.post("/", async (req, res) => {
+eventsRouter.post("/", async (req, res) => {
   try {
     const eventData = req.body;
 
@@ -59,7 +59,7 @@ eventRouter.post("/", async (req, res) => {
 });
 
 // Return all data of updated event
-eventRouter.put("/:id", async (req, res) => {
+eventsRouter.put("/:id", async (req, res) => {
   try {
     const eventData = req.body;
     const { id } = req.params;
@@ -85,4 +85,20 @@ eventRouter.put("/:id", async (req, res) => {
   }
 });
 
-export {eventRouter};
+
+eventsRouter.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await db.query(`DELETE FROM events WHERE id = $1 RETURNING *`, [id]);
+
+    if(data.length > 0)
+      res.status(200).json({"result" : "success", "deletedData" : keysToCamel(data)});
+    else
+      res.status(404).json({"result" : "error"});
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+
+export { eventsRouter };
