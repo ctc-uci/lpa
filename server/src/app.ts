@@ -4,10 +4,13 @@ import dotenv from "dotenv";
 import express from "express";
 import schedule from "node-schedule"; // TODO: Keep only if scheduling cronjobs
 
-import { sampleRouter } from "../routes/sample"; // TODO: delete sample router
 import { usersRouter } from "../routes/users";
 import { commentsRouter } from '../routes/comments';
+import { eventsRouter } from "../routes/events";
+import { bookingsRouter } from "../routes/bookings";
 import { verifyToken } from "./middleware";
+import { commentsRouter } from "../routes/comments";
+import { clientsRouter } from "../routes/clients";
 
 dotenv.config();
 
@@ -37,9 +40,13 @@ if (process.env.NODE_ENV === "production") {
   app.use(verifyToken);
 }
 
-app.use("/", sampleRouter); // TODO: delete sample endpoint
 app.use("/users", usersRouter);
 app.use('/comments', commentsRouter);
+app.use("/bookings", bookingsRouter);
+app.use("/events", eventsRouter);
+app.use("/bookings", bookingsRouter);
+app.use("/comments", commentsRouter);
+app.use("/clients", clientsRouter);
 
 app.listen(SERVER_PORT, () => {
   console.info(`Server listening on ${SERVER_PORT}`);
