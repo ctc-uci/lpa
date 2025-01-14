@@ -1,9 +1,7 @@
 import { Router } from "express";
 
 import { keysToCamel } from "../common/utils";
-import { admin } from "../config/firebase";
 import { db } from "../db/db-pgp";
-import { verifyRole } from "../src/middleware";
 
 const eventRouter = Router();
 
@@ -30,7 +28,7 @@ eventRouter.get("/:id", async (req, res) => {
     const event = await db.query("SELECT * FROM events WHERE id = $1", [
       id,
     ]);
-    
+
     if(event.length === 0){
         return res.status(404).json({ error: "Event does not exist." });
     }
@@ -46,13 +44,13 @@ eventRouter.post("/", async (req, res) => {
   try {
     const eventData = req.body;
 
-    if (!eventData){ 
+    if (!eventData){
         return res.status(404).json({ error: "Event data is required" });
     }
 
     const result = await db.query(
         "INSERT INTO events (name, description, archived) VALUES ($1, $2, $3) RETURNING id",
-        [eventData.name, eventData.description || null, eventData.archived]
+        [eventData.name, eventData.description || null, eventData.archived ?? false]
       );
     res.status(201).json({ id: result[0].id });
   } catch (err) {
@@ -66,28 +64,19 @@ eventRouter.put("/:id", async (req, res) => {
     const eventData = req.body;
     const { id } = req.params;
 
-    if (!eventData){ 
+    if (!eventData){
         return res.status(404).json({ error: "Event data is required" });
     }
 
-    const existingEvent = await db.query(
-      "SELECT * FROM events WHERE id = $1",
-      [id]
-    );
-
-    if (existingEvent.length === 0) {
-      return res.status(404).json({ error: "Event not found" });
-    }
-    
-    const updatedData = {
-      name: eventData.name === null ? existingEvent[0].name : eventData.name,
-      description: eventData.description === null ? existingEvent[0].description : eventData.description,
-      archived: eventData.archived === null ? existingEvent[0].archived : eventData.archived
-  };
-
     const event = await db.query(
-      "UPDATE events SET name = $1, description = $2, archived = $3 WHERE id = $4 RETURNING *",
-      [updatedData.name, updatedData.description, updatedData.archived, id]
+      `UPDATE events
+       SET
+           name = COALESCE($1, name),
+           description = COALESCE($2, description),
+           archived = COALESCE($3, archived)
+       WHERE id = $4
+       RETURNING *`,
+      [eventData.name, eventData.description, eventData.archived, id]
     );
 
     res.status(200).json(keysToCamel(event));
@@ -96,6 +85,4 @@ eventRouter.put("/:id", async (req, res) => {
   }
 });
 
-
-
-export default eventRouter;
+export {eventRouter};
