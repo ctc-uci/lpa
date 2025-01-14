@@ -6,6 +6,8 @@ import schedule from "node-schedule"; // TODO: Keep only if scheduling cronjobs
 
 import { sampleRouter } from "../routes/sample"; // TODO: delete sample router
 import { usersRouter } from "../routes/users";
+import { eventsRouter } from "../routes/events";
+import { bookingsRouter } from "../routes/bookings";
 import { verifyToken } from "./middleware";
 import { commentsRouter } from "../routes/comments";
 import { clientsRouter } from "../routes/clients";
@@ -40,6 +42,8 @@ if (process.env.NODE_ENV === "production") {
 
 app.use("/", sampleRouter); // TODO: delete sample endpoint
 app.use("/users", usersRouter);
+app.use("/events", eventsRouter);
+app.use("/bookings", bookingsRouter);
 app.use("/comments", commentsRouter);
 app.use("/clients", clientsRouter);
 
