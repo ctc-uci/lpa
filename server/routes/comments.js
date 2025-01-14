@@ -2,7 +2,41 @@ import { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
 
-export const commentsRouter = Router();
+const commentsRouter = Router();
+commentsRouter.use(express.json());
+
+commentsRouter.get("/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const data = await db.query("SELECT * FROM comments WHERE id = $1", [id]);
+
+        res.status(200).json(keysToCamel(data));
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+commentsRouter.get("/invoice/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const data = await db.query("SELECT * FROM comments WHERE invoice_id = $1", [id]);
+
+        res.status(200).json(keysToCamel(data));
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+commentsRouter.get("/booking/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const data = await db.query("SELECT * FROM comments WHERE booking_id = $1", [id]);
+        
+        res.status(200).json(keysToCamel(data));
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
 
 // Delete comment with ID
 commentsRouter.delete("/:id", async (req, res) => {
@@ -84,12 +118,4 @@ commentsRouter.post("/", async (req, res) => {
   }
 });
 
-// Get endpoint for testing purpose only
-// commentsRouter.get("/", async (req, res) => {
-//   try {
-//     const comments = await db.query("SELECT * FROM comments");
-//     res.status(200).json(keysToCamel(comments));
-//   } catch (err) {
-//     res.status(500).send(err.message);
-//   }
-// });
+export { commentsRouter };

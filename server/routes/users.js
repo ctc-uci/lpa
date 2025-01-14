@@ -49,6 +49,22 @@ usersRouter.delete("/:firebaseUid", async (req, res) => {
   }
 });
 
+// Delete a user by their account ID (not based on Firebase Uid)
+usersRouter.delete("/id/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // first delete all associated comments
+    await db.query("DELETE FROM comments WHERE user_id = $1", [id]); // theres a foreign key constraint, comments requires a user_id to exist, so must delete all comments associated first
+    // then delete the user
+    await db.query("DELETE FROM users WHERE id = $1", [id]);
+
+    res.status(200).json({ result: "success" });
+  } catch (err) {
+    res.status(400).json({ result: "error" });
+  }
+});
+
 // Create user
 usersRouter.post("/create", async (req, res) => {
   try {

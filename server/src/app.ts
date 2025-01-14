@@ -5,6 +5,7 @@ import express from "express";
 import schedule from "node-schedule"; // TODO: Keep only if scheduling cronjobs
 
 import { usersRouter } from "../routes/users";
+import { commentsRouter } from '../routes/comments';
 import { eventsRouter } from "../routes/events";
 import { bookingsRouter } from "../routes/bookings";
 import { verifyToken } from "./middleware";
@@ -40,6 +41,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.use("/users", usersRouter);
+app.use('/comments', commentsRouter);
 app.use("/bookings", bookingsRouter);
 app.use("/events", eventsRouter);
 app.use("/bookings", bookingsRouter);
