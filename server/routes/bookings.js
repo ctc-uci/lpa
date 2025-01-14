@@ -34,7 +34,7 @@ bookingsRouter.get("/event/:id", async (req, res) => {
 
         if (end) {
             const [endDate, endTime] = end.split("T");
-            if (params.length === 0) {
+            if (params.length === 1) {
                 query += ` AND (date < $2 OR (date = $2 AND end_time <= $3))`;
             } else {
                 query += ` AND (date < $4 OR (date = $4 AND end_time <= $5))`;
