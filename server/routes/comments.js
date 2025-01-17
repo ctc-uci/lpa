@@ -1,4 +1,4 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
 
@@ -6,36 +6,42 @@ const commentsRouter = Router();
 commentsRouter.use(express.json());
 
 commentsRouter.get("/:id", async (req, res) => {
-    try {
-        const {id} = req.params;
-        const data = await db.query("SELECT * FROM comments WHERE id = $1", [id]);
+  try {
+    const { id } = req.params;
+    const data = await db.query("SELECT * FROM comments WHERE id = $1", [id]);
 
-        res.status(200).json(keysToCamel(data));
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 commentsRouter.get("/invoice/:id", async (req, res) => {
-    try {
-        const {id} = req.params;
-        const data = await db.query("SELECT * FROM comments WHERE invoice_id = $1", [id]);
+  try {
+    const { id } = req.params;
+    const data = await db.query(
+      "SELECT * FROM comments WHERE invoice_id = $1",
+      [id]
+    );
 
-        res.status(200).json(keysToCamel(data));
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 commentsRouter.get("/booking/:id", async (req, res) => {
-    try {
-        const {id} = req.params;
-        const data = await db.query("SELECT * FROM comments WHERE booking_id = $1", [id]);
-        
-        res.status(200).json(keysToCamel(data));
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
+  try {
+    const { id } = req.params;
+    const data = await db.query(
+      "SELECT * FROM comments WHERE booking_id = $1",
+      [id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 // Delete comment with ID
@@ -43,17 +49,18 @@ commentsRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const comment = await db.query(`DELETE FROM comments WHERE id = $1 RETURNING *`, [
-      id,
-    ]);
+    const comment = await db.query(
+      `DELETE FROM comments WHERE id = $1 RETURNING *`,
+      [id]
+    );
 
     if (comment.length === 0) {
-      return res.status(404).json({result: 'error'});
+      return res.status(404).json({ result: "error" });
     }
 
-    res.status(200).json({result: 'success', deletedComment: comment});
+    res.status(200).json({ result: "success", deletedComment: comment });
   } catch (err) {
-    res.status(500).json({result: 'error', message: err.message});
+    res.status(500).json({ result: "error", message: err.message });
   }
 });
 
@@ -61,7 +68,15 @@ commentsRouter.delete("/:id", async (req, res) => {
 commentsRouter.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value } = req.body;
+    const {
+      user_id,
+      booking_id,
+      invoice_id,
+      datetime,
+      comment,
+      adjustment_type,
+      adjustment_value,
+    } = req.body;
 
     const fields = [];
     if (user_id) fields.push(`user_id = $(user_id)`);
@@ -77,22 +92,31 @@ commentsRouter.put("/:id", async (req, res) => {
 
     // If no fields are set, return a 400 error
     if (!setClause) {
-      return res.status(400).send("No fields provided to update" );
+      return res.status(400).send("No fields provided to update");
     }
 
     const data = await db.query(
       `UPDATE comments
-        SET ` + setClause + `
+        SET ` +
+        setClause +
+        `
         WHERE id = $(id)
         RETURNING *`,
       {
         id,
-        user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value
-      });
+        user_id,
+        booking_id,
+        invoice_id,
+        datetime,
+        comment,
+        adjustment_type,
+        adjustment_value,
+      }
+    );
 
     // Verify the comment is valid
     if (data.length === 0) {
-        return res.status(404).send("Comment not found");
+      return res.status(404).send("Comment not found");
     }
 
     res.status(200).json(keysToCamel(data));
@@ -104,12 +128,28 @@ commentsRouter.put("/:id", async (req, res) => {
 // Create comment
 commentsRouter.post("/", async (req, res) => {
   try {
-    const { user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value } = req.body;
+    const {
+      user_id,
+      booking_id,
+      invoice_id,
+      datetime,
+      comment,
+      adjustment_type,
+      adjustment_value,
+    } = req.body;
 
     // Insertnew
     const inserted_row = await db.query(
       `INSERT INTO comments (user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;`,
-      [user_id, booking_id ?? null, invoice_id, datetime, comment, adjustment_type, adjustment_value]
+      [
+        user_id,
+        booking_id ?? null,
+        invoice_id,
+        datetime,
+        comment,
+        adjustment_type,
+        adjustment_value,
+      ]
     );
 
     res.status(200).json(keysToCamel(inserted_row));
