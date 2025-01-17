@@ -4,7 +4,6 @@ import { db } from "../db/db-pgp"; // TODO: replace this db with
 
 const invoicesRouter = Router();
 
-
 // Get all invoices
 invoicesRouter.get("/", async (req, res) => {
   try {
