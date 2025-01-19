@@ -18,9 +18,9 @@ assignmentsRouter.get("/event/:event_id", async (req, res) => {
     );
 
     // Check if assignments exist
-    if (assignments.length === 0) {
-      return res.status(404).json(keysToCamel({error: "No assignments found for this event"}));
-    }
+    // if (assignments.length === 0) {
+    //   return res.status(404).json(keysToCamel({error: "No assignments found for this event"}));
+    // }
 
     res.status(200).json(keysToCamel(assignments));
   } catch (err) {
