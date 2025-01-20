@@ -5,10 +5,11 @@ import { db } from "../db/db-pgp"; // TODO: replace this db with
 const roomsRouter = Router();
 roomsRouter.use(express.json());
 
+// Get room by ID
 roomsRouter.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await db.query("SELECT * FROM rooms WHERE id = $1", [id]);
+    const data = await db.query(`SELECT * FROM rooms WHERE id = $1`, [id]);
 
     res.status(200).json(keysToCamel(data));
   } catch (err) {
@@ -16,6 +17,21 @@ roomsRouter.get("/:id", async (req, res) => {
   }
 });
 
+// Add new room, returning ID of new room
+roomsRouter.post("/", async (req, res) => {
+  try {
+    const { name, description, rate } = req.body;
+    const data = await db.query(
+      `INSERT INTO rooms (name, description, rate) VALUES ($1, $2, $3) RETURNING id`,
+       [name, description || null, rate]
+    );
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Update room data
 roomsRouter.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -41,7 +57,7 @@ roomsRouter.put("/:id", async (req, res) => {
         `
         WHERE id = $(id)
         RETURNING *`,
-        [id, name, description, rate]
+        {id, name, description, rate}
     );
 
     // Verify the Room is valid
@@ -54,3 +70,24 @@ roomsRouter.put("/:id", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+
+// Delete room with ID
+roomsRouter.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const data = await db.query(
+      `DELETE FROM rooms WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    if (!data) {
+      return res.status(404).json({ result: "error" });
+    }
+    res.status(200).json({ result: "success" });
+  } catch (err) {
+    res.status(500).json({ result: "error" });
+  }
+});
+
+export { roomsRouter };
