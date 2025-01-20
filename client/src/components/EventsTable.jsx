@@ -11,7 +11,6 @@ import {
     MenuItem,
     Button,
 } from '@chakra-ui/react';
-import { ChevronDownIcon } from '@chakra-ui/icons';
 import React, { useState, useEffect } from 'react';
 import { useBackendContext } from "../contexts/hooks/useBackendContext";
 
@@ -64,13 +63,11 @@ export const EventsTable = () => {
         }
     }
 
-
     useEffect(() => {
         // call the fetch event here to fetch all events
         fetchEvents();
     }, []);
 
-    
     return (
         <Table variant="striped" colorScheme="teal">
           <Thead>
@@ -93,7 +90,6 @@ export const EventsTable = () => {
                   <Menu>
                     <MenuButton
                       as={Button}
-                      rightIcon={<ChevronDownIcon />}
                       size="sm"
                       variant="outline"
                     >
