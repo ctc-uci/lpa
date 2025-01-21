@@ -8,6 +8,7 @@ import { usersRouter } from "../routes/users";
 import { commentsRouter } from '../routes/comments';
 import { eventsRouter } from "../routes/events";
 import { bookingsRouter } from "../routes/bookings";
+import { assignmentsRouter } from "../routes/assignments";
 import { verifyToken } from "./middleware";
 import { clientsRouter } from "../routes/clients";
 
@@ -46,6 +47,7 @@ app.use("/events", eventsRouter);
 app.use("/bookings", bookingsRouter);
 app.use("/comments", commentsRouter);
 app.use("/clients", clientsRouter);
+app.use("/assignments", assignmentsRouter);
 
 app.listen(SERVER_PORT, () => {
   console.info(`Server listening on ${SERVER_PORT}`);
