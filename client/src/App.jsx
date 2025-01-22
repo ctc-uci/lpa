@@ -16,6 +16,8 @@ import { Signup } from "./components/signup/Signup";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
+import { PDFViewer } from "@react-pdf/renderer";
+import PDFButton from "./components/PDFButton";
 
 const App = () => {
   return (
@@ -50,6 +52,17 @@ const App = () => {
                     />
                   }
                 />
+                <Route 
+                  path = "/pdf-viewer"
+                  element = {
+                    <ProtectedRoute element = {
+                      <PDFViewer>
+                        <PDFButton />
+                      </PDFViewer>
+                    } />
+                  }
+                />
+                
 
                 <Route
                   path="/"

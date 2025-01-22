@@ -2,6 +2,8 @@ import {
     Heading,
     VStack,
   } from "@chakra-ui/react";
+  import React from 'react';
+  import PDFButton from "../PDFButton";
 
 export const Playground = () => {
   return (
@@ -10,6 +12,7 @@ export const Playground = () => {
       sx={{ width: 300, marginX: "auto" }}
     >
       <Heading>Playground</Heading>
+      <PDFButton/>
     </VStack>
   );
 };
