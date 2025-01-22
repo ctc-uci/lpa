@@ -67,8 +67,6 @@ export const AddClassModal = () => {
 
   const handleSubmit = async () => {
     try {
-        //if any of the attributes of bookingsForm or eventsForm is empty
-        // if(bookingsForm.event_id == "", )
 
         const eventResponse = await backend.post("/events", eventsForm);
 
@@ -193,7 +191,6 @@ export const AddClassModal = () => {
               }}>
               Submit
             </Button>
-            {/* <Button onClick={onClose}>Cancel</Button> */}
           </ModalFooter>
         </ModalContent>
       </Modal>

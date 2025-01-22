@@ -1,5 +1,4 @@
 import express from "express";
-import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
 
 const invoicesRouter = express.Router();
@@ -13,7 +12,7 @@ invoicesRouter.delete("/:id", async (req, res) => {
     const data = db.query("DELETE FROM invoices WHERE id = $1 RETURNING *", 
       [ id ]);
     
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({result: 'error'});
     }
 
