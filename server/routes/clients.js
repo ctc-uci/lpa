@@ -37,15 +37,17 @@ clientsRouter.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email } = req.body;
+
+    // Update just the name or just the email, without having to provide both fields
     const updatedClient = await db.query(
       `
       UPDATE clients 
       SET 
-        name = $1, 
-        email = $2 
+        name = COALESCE($1, name), 
+        email = COALESCE($2, email)
       WHERE id = $3 
       RETURNING *
-      `, 
+      `,
       [name, email, id]);
 
     if (updatedClient.length === 0) {
