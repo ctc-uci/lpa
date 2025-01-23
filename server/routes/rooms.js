@@ -81,7 +81,7 @@ roomsRouter.delete("/:id", async (req, res) => {
       [id]
     );
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ result: "error" });
     }
     res.status(200).json({ result: "success" });

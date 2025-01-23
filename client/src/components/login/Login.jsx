@@ -23,7 +23,6 @@ import { z } from "zod";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { authenticateGoogleUser } from "../../utils/auth/providers";
-// import { ForgotPassword } from "../../components/login/ForgotPassword";
 
 const signinSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -100,10 +99,6 @@ export const Login = () => {
   const handleGoogleLogin = async () => {
     await authenticateGoogleUser();
   };
-
-  // const handleForgotPassword = async () => {
-  //   await forgotPassword();
-  // };
 
   useEffect(() => {
     handleRedirectResult(backend, navigate, toast);
