@@ -60,9 +60,6 @@ export const Navbar = () => {
             color="gray.700"
             _hover={{ bg: "gray.100" }}
             rounded="lg"
-            transition="colors 0.2s"
-            target={item.external ? "_blank" : "_self"}
-            rel={item.external ? "noopener noreferrer" : ""}
           >
             <Text>{item.name}</Text>
           </Link>
