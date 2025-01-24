@@ -2,6 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
+import { useBackendContext } from "../contexts/hooks/useBackendContext";
 
 const styles = StyleSheet.create({
   page: {
@@ -47,30 +48,19 @@ const styles = StyleSheet.create({
   }
 });
 
-const getBookingData = async () => {
-  try {
-    const response = await fetch("http://localhost:3001/bookings", {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      method: "GET"
-    })
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.log('Fetch error:', error);
-    return [];
-  }
 
-}
-
-const MyDocument = () => {  // Add curly brace here
+const MyDocument = () => { 
+  const { backend } = useBackendContext();
   const [bookingData, setBookingData] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await getBookingData();
-      setBookingData(response);
+      try {
+        const response = await backend.get("/bookings");
+        setBookingData(response);
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+      }
     }
     fetchData();
   }, []);
@@ -79,7 +69,7 @@ const MyDocument = () => {  // Add curly brace here
   return ( 
     <Document>
       <Page size="A4" style={styles.page}>
-        {bookingData && bookingData.map((element) => (  // Add parentheses after map, add null check
+        {bookingData && bookingData.map((element) => (
           <View style={styles.section} key={element.id}>
             <Text>Archived: {element.archived}</Text>
             <Text>Date: {element.date}</Text>
