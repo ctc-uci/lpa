@@ -1,7 +1,7 @@
 import {
-    Heading,
-    VStack,
-  } from "@chakra-ui/react";
+  Heading,
+  VStack,
+} from "@chakra-ui/react";
 
 export const Playground = () => {
   return (
