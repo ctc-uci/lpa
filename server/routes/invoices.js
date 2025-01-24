@@ -44,17 +44,19 @@ invoicesRouter.get("/event/:event_id", async (req, res) => {
     const params = [event_id];
 
     if (start) {
+      const [startDate, startTime] = start.split("T");
       query += ` AND (start_date >= $2)`;
-      params.push(start);
+      params.push(startDate);
     }
 
     if (end) {
+      const [endDate, endTime] = end.split("T");
       if (params.length === 1) {
         query += ` AND (end_date <= $2)`;
       } else {
         query += ` AND (end_date <= $3)`;
       }
-      params.push(end);
+      params.push(endDate);
     }
 
     const data = await db.query(query, params);
