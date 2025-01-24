@@ -9,17 +9,27 @@ invoicesRouter.get("/event/:event_id", async (req, res) => {
     try {
       const { event_id } = req.params;
       const { date } = req.query;
-      console.log("invoices");
+
       let query = "SELECT * FROM invoices WHERE event_id = $1";
       const params = [event_id];
       
       if (date) {
-        query += " AND start_date = $2";  // Changed from date to start_date
-        params.push(date);
+        query += " AND start_date >= $2 AND end_date <= $3";  // Changed from date to start_date
+        const parsedDate = new Date(date);
+
+        if (isNaN(parsedDate.getTime())) {
+            res.status(400).send("Invalid date format. Please use ISO 8601 (YYYY-MM-DD) format.");
+            return;
+        }
+
+        const startOfMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
+        const endOfMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth() + 1, 0);
+
+        params.push(startOfMonth.toISOString().split("T")[0], endOfMonth.toISOString().split("T")[0]);
       }
-      
-      
+
       const invoices = await db.any(query, params);
+
       console.log(invoices);
       res.status(200).json(keysToCamel(invoices));
     } catch (err) {
