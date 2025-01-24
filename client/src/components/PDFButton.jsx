@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { useBackendContext } from '../contexts/hooks/useBackendContext'
+import { useBackendContext } from '../contexts/hooks/useBackendContext';
 
 
 const styles = StyleSheet.create({
@@ -49,22 +49,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const MyDocument = () => { 
-  const { backend } = useBackendContext();
-  const [bookingData, setBookingData] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await backend.get("/bookings");
-        setBookingData(response);
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-      }
-    }
-    fetchData();
-  }, []);
-
+const MyDocument = ({ bookingData }) => { 
   return ( 
     <Document>
       <Page size="A4" style={styles.page}>
@@ -85,16 +70,36 @@ const MyDocument = () => {
 };
 
 const PDFButton = () => {
-    return (
-      <div>
-        <PDFDownloadLink
-          document={<MyDocument />}
-          fileName="bookingdata.pdf"
-        >
-        <button>Download PDF</button>
-        </PDFDownloadLink>
-      </div>
-    );
-  };
+  const { backend } = useBackendContext();
+  const [bookingData, setBookingData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await backend.get("/bookings");
+        setBookingData(Array.isArray(response.data) ? response.data : []);
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [backend]);
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <PDFDownloadLink
+        document={<MyDocument bookingData={bookingData} />}
+        fileName="bookingdata.pdf"
+      >
+      <button>Download PDF</button>
+      </PDFDownloadLink>
+    </div>
+  );
+};
   
 export default PDFButton;
