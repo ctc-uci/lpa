@@ -11,8 +11,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint",
     "format": "npx prettier --write .",
-    "preview": "vite preview",
-    "postinstall": "patch-package"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
@@ -23,7 +22,6 @@
     "firebase": "10.12.5",
     "framer-motion": "^11.3.27",
     "patch-package": "^8.0.0",
-    "postinstall-postinstall": "^2.1.0",
     "react": "^18.3.1",
     "react-cookie": "^7.2.0",
     "react-dom": "^18.3.1",
