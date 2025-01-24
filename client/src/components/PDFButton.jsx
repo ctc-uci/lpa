@@ -2,7 +2,10 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
+import { useBackendContext } from '../contexts/hooks/useBackendContext'
 
+
+const { backend } = useBackendContext();
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -49,13 +52,7 @@ const styles = StyleSheet.create({
 
 const getBookingData = async () => {
   try {
-    const response = await fetch("http://localhost:3001/bookings", {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      method: "GET"
-    })
-    const result = await response.json();
+    const result = await backend.get("/endpoint");
     return result;
   } catch (error) {
     console.log('Fetch error:', error);
