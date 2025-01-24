@@ -2,7 +2,8 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { useBackendContext } from "../contexts/hooks/useBackendContext";
+import { useBackendContext } from '../contexts/hooks/useBackendContext'
+
 
 const styles = StyleSheet.create({
   page: {
@@ -48,7 +49,6 @@ const styles = StyleSheet.create({
   }
 });
 
-
 const MyDocument = () => { 
   const { backend } = useBackendContext();
   const [bookingData, setBookingData] = useState(null);
@@ -64,7 +64,6 @@ const MyDocument = () => {
     }
     fetchData();
   }, []);
-  console.log(bookingData);
 
   return ( 
     <Document>
