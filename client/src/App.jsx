@@ -52,18 +52,6 @@ const App = () => {
                     />
                   }
                 />
-                <Route 
-                  path = "/pdf-viewer"
-                  element = {
-                    <ProtectedRoute element = {
-                      <PDFViewer>
-                        <PDFButton />
-                      </PDFViewer>
-                    } />
-                  }
-                />
-                
-
                 <Route
                   path="/"
                   element={
