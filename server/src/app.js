@@ -52,10 +52,11 @@ app.use("/events", eventsRouter);
 app.use("/bookings", bookingsRouter);
 app.use("/comments", commentsRouter);
 app.use("/clients", clientsRouter);
+app.use("/invoices", invoicesRouter);
 app.use("/rooms", roomsRouter)
 app.use("/assignments", assignmentsRouter)
-app.use("/invoices", invoicesRouter)
 
 app.listen(SERVER_PORT, () => {
   console.info(`Server listening on ${SERVER_PORT}`);
 });
+
