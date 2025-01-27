@@ -6,10 +6,14 @@ import schedule from "node-schedule"; // TODO: Keep only if scheduling cronjobs
 
 import { usersRouter } from "../routes/users";
 import { commentsRouter } from '../routes/comments';
+import { roomsRouter } from '../routes/rooms';
 import { eventsRouter } from "../routes/events";
 import { bookingsRouter } from "../routes/bookings";
+import { assignmentsRouter } from "../routes/assignments";
 import { verifyToken } from "./middleware";
 import { clientsRouter } from "../routes/clients";
+import { roomsRouter } from "../routes/rooms";
+import { assignmentsRouter } from "../routes/assignments";
 import { invoicesRouter } from "../routes/invoices";
 
 dotenv.config();
@@ -42,12 +46,15 @@ if (process.env.NODE_ENV === "production") {
 
 app.use("/users", usersRouter);
 app.use('/comments', commentsRouter);
+app.use("/rooms", roomsRouter);
 app.use("/bookings", bookingsRouter);
 app.use("/events", eventsRouter);
 app.use("/bookings", bookingsRouter);
 app.use("/comments", commentsRouter);
 app.use("/clients", clientsRouter);
 app.use("/invoices", invoicesRouter);
+app.use("/rooms", roomsRouter)
+app.use("/assignments", assignmentsRouter)
 
 app.listen(SERVER_PORT, () => {
   console.info(`Server listening on ${SERVER_PORT}`);
