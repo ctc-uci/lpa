@@ -1,6 +1,6 @@
 import { Box, Flex, Link, Text, VStack } from "@chakra-ui/react";
 
-export const Navbar = () => {
+export const Navbar = ({ children }) => {
   const menuItems = [
     { name: "Home", path: "/home" },
     { name: "Events", path: "/events" },
@@ -14,11 +14,16 @@ export const Navbar = () => {
   ];
 
   return (
+    <div style={{
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "space-between",
+    }}
+    >
     <Box
       w="64"
       bg="white"
       boxShadow="lg"
-      h="100vh"
     >
       {/* Logo Section */}
       <Flex
@@ -66,6 +71,8 @@ export const Navbar = () => {
         ))}
       </VStack>
     </Box>
+    {children}
+    </div>
   );
 };
 
