@@ -17,6 +17,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { ForgotPassword } from "./components/login/ForgotPassword";
+import { PDFViewer } from "@react-pdf/renderer";
+import PDFButton from "./components/PDFButton";
 
 const App = () => {
   return (
@@ -51,7 +53,6 @@ const App = () => {
                     />
                   }
                 />
-
                 <Route
                   path="/"
                   element={

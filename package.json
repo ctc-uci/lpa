@@ -12,7 +12,7 @@
     "prepare": "husky install",
     "lint": "eslint",
     "format": "npx prettier --write .",
-    "postinstall": "cd client && npx patch-package"
+    "postinstall": "cd client && patch-package"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": "yarn run eslint"
