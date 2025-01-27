@@ -1,8 +1,9 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
 
 const clientsRouter = Router();
+clientsRouter.use(express.json());
 
 // Get all clients
 clientsRouter.get("/", async (req, res) => {

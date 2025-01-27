@@ -1,8 +1,9 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
 
 const assignmentsRouter = Router();
+assignmentsRouter.use(express.json());
 
 // Get all assignments
 assignmentsRouter.get("/", async (req, res) => {

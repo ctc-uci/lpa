@@ -1,8 +1,9 @@
+import express, { Router } from "express";
 import { db } from "../db/db-pgp";
-import { Router } from "express";
 import { keysToCamel } from "../common/utils";
 
 const invoicesRouter = Router();
+invoicesRouter.use(express.json());
 
 // Get all invoices
 invoicesRouter.get("/", async (req, res) => {

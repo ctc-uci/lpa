@@ -1,8 +1,9 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
 
 const eventsRouter = Router();
+eventsRouter.use(express.json());
 
 // Return all events
 eventsRouter.get("/", async (req, res) => {

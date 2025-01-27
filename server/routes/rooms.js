@@ -1,8 +1,9 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import { db } from "../db/db-pgp";
 import { keysToCamel } from "../common/utils";
 
 const roomsRouter = Router();
+roomsRouter.use(express.json());
 
 roomsRouter.get("/", async (req, res) => {
   try {
