@@ -12,6 +12,7 @@ import { bookingsRouter } from "../routes/bookings";
 import { assignmentsRouter } from "../routes/assignments";
 import { verifyToken } from "./middleware";
 import { clientsRouter } from "../routes/clients";
+import { assignmentsRouter } from "../routes/assignments";
 import { invoicesRouter } from "../routes/invoices";
 
 dotenv.config();
