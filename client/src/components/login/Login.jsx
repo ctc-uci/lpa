@@ -178,6 +178,15 @@ export const Login = () => {
       >
         Login with Google
       </Button>
+
+
+      <ChakraLink
+        as={Link}
+        to="/forgotpassword"
+      >
+        Forgot Password?
+      </ChakraLink>
+
     </VStack>
   );
 };
