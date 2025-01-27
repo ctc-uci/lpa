@@ -3,7 +3,7 @@ import { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
 
-export const assignmentsRouter = Router();
+const assignmentsRouter = Router();
 assignmentsRouter.use(express.json());
 
 // Get all assignments
