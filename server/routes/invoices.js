@@ -188,4 +188,34 @@ invoicesRouter.put("/:id", async (req, res) => {
     }
   });
 
+invoicesRouter.get("/total/:id", async (req, res) => {
+  // DUMMY ENDPONT for testing
+  try {
+    const { id } = req.params;
+
+    const result = {
+      total: 100
+    }
+    
+    res.status(200).json(keysToCamel(result));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+invoicesRouter.get("/paid/:id", async (req, res) => {
+  // DUMMY ENDPONT for testing
+  try {
+    const { id } = req.params;
+
+    const result = {
+      paid: 50
+    }
+    
+    res.status(200).json(keysToCamel(result));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 export { invoicesRouter };
