@@ -77,3 +77,17 @@ clientsRouter.delete("/:id", async (req, res) => {
   }
 });
 
+// Create new client
+clientsRouter.post("/", async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    const users = await db.query(
+      `INSERT INTO clients (name, email) VALUES ($1, $2) RETURNING id`,
+      [name, email]
+    );
+    res.status(200).json(keysToCamel(users));
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
