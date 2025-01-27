@@ -1,10 +1,8 @@
-import express from "express";
 import { db } from "../db/db-pgp";
 import { Router } from "express";
 import { keysToCamel } from "../common/utils";
 
-const invoicesRouter = express.Router();
-invoicesRouter.use(express.json());
+const invoicesRouter = Router();
 
 // Get all invoices
 invoicesRouter.get("/", async (req, res) => {
@@ -27,11 +25,11 @@ invoicesRouter.get("/:id", async (req, res) => {
     ]);
 
     if(invoice.length === 0){
-        return res.status(404).json({ error: "Invoice does not exist." });
+      return res.status(404).json({ error: "Invoice does not exist." });
     }
 
     res.status(200).json(keysToCamel(invoice));
-  catch (err) {
+  } catch (err) {
     res.status(500).send(err.message);
   }
 });
@@ -68,8 +66,8 @@ invoicesRouter.get("/event/:event_id", async (req, res) => {
         const parsedDate = new Date(date);
 
         if (isNaN(parsedDate.getTime())) {
-            res.status(400).send("Invalid date format. Please use ISO 8601 (YYYY-MM-DD) format.");
-            return;
+          res.status(400).send("Invalid date format. Please use ISO 8601 (YYYY-MM-DD) format.");
+          return;
         }
 
         const startOfMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
