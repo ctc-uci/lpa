@@ -6,6 +6,32 @@ import { db } from "../db/db-pgp";
 export const assignmentsRouter = Router();
 assignmentsRouter.use(express.json());
 
+// Get all assignments
+assignmentsRouter.get("/", async (req, res) => {
+  try {
+    const users = await db.query(`SELECT * FROM assignments`);
+
+    res.status(200).json(keysToCamel(users));
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
+// Get an assignment by ID
+assignmentsRouter.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await db.query("SELECT * FROM assignments WHERE id = $1", [
+      id,
+    ]);
+
+    res.status(200).json(keysToCamel(user));
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
 // Get assignments for a specific event
 assignmentsRouter.get("/event/:event_id", async (req, res) => {
   try {

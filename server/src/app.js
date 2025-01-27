@@ -12,6 +12,7 @@ import { bookingsRouter } from "../routes/bookings";
 import { assignmentsRouter } from "../routes/assignments";
 import { verifyToken } from "./middleware";
 import { clientsRouter } from "../routes/clients";
+import { roomsRouter } from "../routes/rooms";
 import { assignmentsRouter } from "../routes/assignments";
 import { invoicesRouter } from "../routes/invoices";
 
@@ -51,7 +52,8 @@ app.use("/events", eventsRouter);
 app.use("/bookings", bookingsRouter);
 app.use("/comments", commentsRouter);
 app.use("/clients", clientsRouter);
-app.use("/assignments", assignmentsRouter);
+app.use("/rooms", roomsRouter)
+app.use("/assignments", assignmentsRouter)
 app.use("/invoices", invoicesRouter)
 
 app.listen(SERVER_PORT, () => {

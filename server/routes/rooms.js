@@ -1,9 +1,18 @@
-import express, { Router } from "express";
+import express from "express";
+import { db } from "../db/db-pgp";
 import { keysToCamel } from "../common/utils";
-import { db } from "../db/db-pgp"; // TODO: replace this db with
 
-const roomsRouter = Router();
+const roomsRouter = express.Router();
 roomsRouter.use(express.json());
+
+roomsRouter.get("/", async (req, res) => {
+  try {
+    const data = await db.query(`SELECT * FROM rooms`);
+    res.status(200).json(keysToCamel(data));
+} catch (err) {
+    res.status(500).send(err.message);
+}
+});
 
 // Get room by ID
 roomsRouter.get("/:id", async (req, res) => {
