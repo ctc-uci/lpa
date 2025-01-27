@@ -1,9 +1,8 @@
-import express, { Router } from "express";
+import { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
 
 const commentsRouter = Router();
-commentsRouter.use(express.json());
 
 commentsRouter.get("/:id", async (req, res) => {
   try {
