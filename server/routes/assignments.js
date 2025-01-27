@@ -1,10 +1,8 @@
-import express from "express";
 import { Router } from "express";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
 
 const assignmentsRouter = Router();
-assignmentsRouter.use(express.json());
 
 // Get all assignments
 assignmentsRouter.get("/", async (req, res) => {
@@ -104,6 +102,9 @@ assignmentsRouter.delete("/:id", async (req, res) => {
     try {
         const {id} = req.params;
         const data = await db.query("DELETE FROM assignments WHERE id = $1", [id]);
+        if (data.length === 0) {
+            return res.status(404).json({result: "error", message: "Assignment not found"});
+        }
         res.status(200).json({result: "success"});
     } catch (err) {
         res.status(500).json({result: "error"});
