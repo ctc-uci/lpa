@@ -17,6 +17,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { ForgotPassword } from "./components/login/ForgotPassword";
+import { Home } from "./components/home/Home";
 import { PDFViewer } from "@react-pdf/renderer";
 import PDFButton from "./components/PDFButton";
 
@@ -43,6 +44,10 @@ const App = () => {
                 <Route
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
+                />
+                <Route
+                  path ="/home"
+                  element={<Home />}
                 />
                 <Route
                   path="/admin"
