@@ -1,3 +1,9 @@
+// notes::
+// idk if we ned to remove a program if theres no upcoming bookings
+// also if there's multiple instructors this only does 1 unfortunately
+// also do fuzzy search on name or nah?
+
+
 import React, { useState, useEffect } from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td, TableContainer, Menu, MenuButton, MenuList, MenuItem, IconButton, Input, Button } from "@chakra-ui/react";
 import { useNavigate } from 'react-router-dom';
@@ -14,8 +20,15 @@ export const ProgramsTable = () => {
     try {
       const eventsResponse = await backend.get('/events');
       const bookingsResponse = await backend.get('/bookings');
+      const roomsResponse = await backend.get('/rooms');
+      const assignmentsResponse = await backend.get('/assignments');
+      const clientsResponse = await backend.get('/clients');
+      
       const eventsData = eventsResponse.data;
       const bookingsData = bookingsResponse.data;
+      const roomsData = roomsResponse.data;
+      const assignmentsData = assignmentsResponse.data;
+      const clientsData = clientsResponse.data;
   
       const currentDate = new Date();
   
@@ -34,24 +47,53 @@ export const ProgramsTable = () => {
       const programsData = eventsData.map(event => {
         const eventBookings = bookingsData.filter(booking => booking.eventId === event.id);
         const upcomingBookings = eventBookings.filter(booking => new Date(booking.date) > currentDate);
-        const upcomingBooking = upcomingBookings.length > 0 
-          ? upcomingBookings.reduce((earliest, current) => 
-              new Date(current.date) < new Date(earliest.date) ? current : earliest
-            )
+        const pastBookings = eventBookings.filter(booking => new Date(booking.date) <= currentDate);
+        
+        let relevantBooking;
+        let status;
+  
+        if (upcomingBookings.length > 0) {
+          relevantBooking = upcomingBookings.reduce((earliest, current) => 
+            new Date(current.date) < new Date(earliest.date) ? current : earliest
+          );
+          status = 'Active';
+        } else if (pastBookings.length > 0) {
+          relevantBooking = pastBookings.reduce((latest, current) => 
+            new Date(current.date) > new Date(latest.date) ? current : latest
+          );
+          status = 'Past';
+        } else {
+          status = 'No bookings';
+        }
+  
+        const room = relevantBooking 
+          ? roomsData.find(room => room.id === relevantBooking.roomId)
+          : null;
+  
+        const eventAssignments = assignmentsData.filter(assignment => assignment.eventId === event.id);
+        const instructorAssignment = eventAssignments.find(assignment => assignment.role === 'instructor');
+        const payeeAssignment = eventAssignments.find(assignment => assignment.role === 'payee');
+  
+        const instructor = instructorAssignment
+          ? clientsData.find(client => client.id === instructorAssignment.clientId)
+          : null;
+  
+        const payee = payeeAssignment
+          ? clientsData.find(client => client.id === payeeAssignment.clientId)
           : null;
   
         return {
           id: event.id,
           name: event.name,
           description: event.description,
-          status: upcomingBooking ? 'Active' : (eventBookings.length > 0 ? 'Past' : 'No bookings'),
-          upcomingDate: upcomingBooking ? formatDate(upcomingBooking.date) : 'No upcoming bookings',
-          upcomingTime: upcomingBooking 
-            ? `${formatTime(upcomingBooking.startTime)} - ${formatTime(upcomingBooking.endTime)}` 
+          status: status,
+          upcomingDate: relevantBooking ? formatDate(relevantBooking.date) : 'No bookings',
+          upcomingTime: relevantBooking 
+            ? `${formatTime(relevantBooking.startTime)} - ${formatTime(relevantBooking.endTime)}` 
             : 'N/A',
-          room: 'TBD',
-          instructor: 'TBD',
-          payee: 'TBD'
+          room: room ? room.name : 'N/A',
+          instructor: instructor ? instructor.name : 'N/A',
+          payee: payee ? payee.name : 'N/A'
         };
       });
   
@@ -84,6 +126,7 @@ export const ProgramsTable = () => {
     }
   };
 
+  // Filter programs by search term with the includes method
   const filteredPrograms = programs.filter(program =>
     program.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
