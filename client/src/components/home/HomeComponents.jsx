@@ -4,19 +4,28 @@
 // also do fuzzy search on name or nah?
 
 
-import React, { useState, useEffect } from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, TableContainer, Menu, MenuButton, MenuList, MenuItem, IconButton, Input, Button } from "@chakra-ui/react";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Table, Thead, Tbody, Tr, Th, Td, TableContainer, Menu, MenuButton, MenuList, MenuItem, IconButton, Input, Button, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, useDisclosure, useToast } from "@chakra-ui/react";
 import { useNavigate } from 'react-router-dom';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { FiMoreVertical, FiFilter } from 'react-icons/fi';
+import { ProgramFiltersModal } from './ProgramFiltersModal';
 
 export const ProgramsTable = () => {
   const [programs, setPrograms] = useState([]);
+  const [filteredPrograms, setFilteredPrograms] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const { backend } = useBackendContext();
-  const navigate = useNavigate();
+  const [programToDelete, setProgramToDelete] = useState(null);
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+  const [filters, setFilters] = useState({});
 
-  const fetchPrograms = async () => {
+  const { backend } = useBackendContext();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const cancelRef = useRef();
+
+  const fetchPrograms = useCallback(async () => {
     try {
       const eventsResponse = await backend.get('/events');
       const bookingsResponse = await backend.get('/bookings');
@@ -101,11 +110,78 @@ export const ProgramsTable = () => {
     } catch (error) {
       console.error('Failed to fetch programs:', error);
     }
-  };
+  }, [backend]);
 
   useEffect(() => {
     fetchPrograms();
-  }, []);
+  }, [fetchPrograms]);
+
+  const applyFilters = useCallback(() => {
+    let result = programs;
+  
+    if (filters.dateRange && (filters.dateRange.start || filters.dateRange.end)) {
+      result = result.filter(program => {
+        if (program.upcomingDate === 'No bookings') return false;
+        const bookingDate = new Date(program.upcomingDate);
+        return (!filters.dateRange.start || bookingDate >= new Date(filters.dateRange.start)) &&
+               (!filters.dateRange.end || bookingDate <= new Date(filters.dateRange.end));
+      });
+    }
+  
+    if (filters.timeRange && (filters.timeRange.start || filters.timeRange.end)) {
+      result = result.filter(program => {
+        if (program.upcomingTime === 'N/A') return false;
+        const [startTime] = program.upcomingTime.split(' - ');
+        return (!filters.timeRange.start || startTime >= filters.timeRange.start) &&
+               (!filters.timeRange.end || startTime <= filters.timeRange.end);
+      });
+    }
+  
+    if (filters.status && filters.status !== 'all') {
+      result = result.filter(program => program.status.toLowerCase() === filters.status.toLowerCase());
+    }
+  
+    if (filters.room && filters.room !== 'all') {
+      console.log('Filtering by room:', filters.room);
+      result = result.filter(program => {
+        console.log(`Program ${program.id} room:`, program.room);
+        return program.room === filters.room;
+      });
+      console.log('Filtered programs by room:', result);
+    }
+  
+    if (filters.instructor && filters.instructor !== 'all') {
+      console.log('Filtering by instructor:', filters.instructor);
+      result = result.filter(program => {
+        console.log(`Program ${program.id} instructor:`, program.instructor);
+        return program.instructor && program.instructor.toLowerCase() === filters.instructor.toLowerCase();
+      });
+      console.log('Filtered programs by instructor:', result);
+    }
+    
+    if (filters.payee && filters.payee !== 'all') {
+      console.log('Filtering by payee:', filters.payee);
+      result = result.filter(program => {
+        console.log(`Program ${program.id} payee:`, program.payee);
+        return program.payee && program.payee.toLowerCase() === filters.payee.toLowerCase();
+      });
+      console.log('Filtered programs by payee:', result);
+    }
+  
+    result = result.filter(program =>
+      program.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  
+    setFilteredPrograms(result);
+  }, [programs, filters, searchTerm]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+  };
 
   const handleRowClick = (id) => {
     navigate(`/programs/${id}`);
@@ -116,25 +192,51 @@ export const ProgramsTable = () => {
     navigate(`/programs/${id}`);
   };
 
-  const handleDelete = async (id, e) => {
+  const handleDeleteClick = (id, e) => {
     e.stopPropagation();
-    try {
-      await backend.delete(`/events/${id}`);
-      setPrograms(programs.filter(program => program.id !== id));
-    } catch (error) {
-      console.error('Failed to delete program:', error);
+    setProgramToDelete(id);
+    onOpen();
+  };
+
+  const handleDelete = async () => {
+    if (programToDelete) {
+      try {
+        const response = await backend.delete(`/events/${programToDelete}`);
+        if (response.data.result === "success") {
+          setPrograms(programs.filter(program => program.id !== programToDelete));
+          toast({
+            title: "Program deleted",
+            description: "The program and all related records have been successfully deleted.",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        } else {
+          throw new Error("Failed to delete program");
+        }
+      } catch (error) {
+        console.error('Failed to delete program:', error);
+        toast({
+          title: "Delete failed",
+          description: error.response?.data?.message || "An error occurred while deleting the program.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     }
+    onClose();
   };
 
   // Filter programs by search term with the includes method
-  const filteredPrograms = programs.filter(program =>
-    program.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredPrograms = programs.filter(program =>
+  //   program.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   return (
     <>
       <div>
-        <Button leftIcon={<FiFilter />}>Filters</Button>
+        <Button leftIcon={<FiFilter />} onClick={() => setIsFiltersModalOpen(true)}>Filters</Button>
         <Input 
           placeholder="Search programs" 
           value={searchTerm} 
@@ -175,7 +277,7 @@ export const ProgramsTable = () => {
                     />
                     <MenuList>
                       <MenuItem onClick={(e) => handleEdit(program.id, e)}>Edit</MenuItem>
-                      <MenuItem onClick={(e) => handleDelete(program.id, e)}>Delete</MenuItem>
+                      <MenuItem onClick={(e) => handleDeleteClick(program.id, e)}>Delete</MenuItem>
                     </MenuList>
                   </Menu>
                 </Td>
@@ -184,6 +286,35 @@ export const ProgramsTable = () => {
           </Tbody>
         </Table>
       </TableContainer>
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Program
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              Are you sure? You can't undo this action afterwards.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+      <ProgramFiltersModal
+        isOpen={isFiltersModalOpen}
+        onClose={() => setIsFiltersModalOpen(false)}
+        onApplyFilters={handleApplyFilters}
+      />
     </>
   );
 };

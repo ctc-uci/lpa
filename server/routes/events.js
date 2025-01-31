@@ -89,12 +89,23 @@ eventsRouter.put("/:id", async (req, res) => {
 eventsRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await db.query(`DELETE FROM events WHERE id = $1 RETURNING *`, [id]);
-
-    if(data.length > 0)
-      res.status(200).json({"result" : "success", "deletedData" : keysToCamel(data)});
-    else
-      res.status(404).json({"result" : "error"});
+    
+    // Start a transaction
+    await db.tx(async t => {
+      // Delete related records first
+      await t.none('DELETE FROM bookings WHERE event_id = $1', [id]);
+      await t.none('DELETE FROM assignments WHERE event_id = $1', [id]);
+      await t.none('DELETE FROM invoices WHERE event_id = $1', [id]);
+      
+      // Then delete the event
+      const data = await t.any('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
+      
+      if (data.length > 0) {
+        res.status(200).json({"result": "success", "deletedData": keysToCamel(data)});
+      } else {
+        res.status(404).json({"result": "error", "message": "Event not found"});
+      }
+    });
   } catch (err) {
     res.status(500).send(err.message);
   }
