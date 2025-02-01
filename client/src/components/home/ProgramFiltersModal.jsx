@@ -1,33 +1,35 @@
-// i needa fix indendation and other stuff on this its mainly chatgptd lol
-// also TODO FIX THE TIME FILTERS FOR SOME REASON THEHY DONT WORK YETGA
+// i needa fix indentation and other stuff on this its mainly chatgptd lol
+// also TODO FIX THE TIME FILTERS FOR SOME REASON THEY DONT WORK YETGA
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
+
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
   Button,
   FormControl,
   FormLabel,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Select,
   VStack,
 } from "@chakra-ui/react";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [status, setStatus] = useState('all');
-  const [room, setRoom] = useState('all');
-  const [instructor, setInstructor] = useState('all');
-  const [payee, setPayee] = useState('all');
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [status, setStatus] = useState("all");
+  const [room, setRoom] = useState("all");
+  const [instructor, setInstructor] = useState("all");
+  const [payee, setPayee] = useState("all");
 
   const [rooms, setRooms] = useState([]);
   const [clients, setClients] = useState([]);
@@ -37,13 +39,13 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const roomsResponse = await backend.get('/rooms');
+        const roomsResponse = await backend.get("/rooms");
         setRooms(roomsResponse.data);
 
-        const clientsResponse = await backend.get('/clients');
+        const clientsResponse = await backend.get("/clients");
         setClients(clientsResponse.data);
       } catch (error) {
-        console.error('Failed to fetch filter data:', error);
+        console.error("Failed to fetch filter data:", error);
       }
     };
 
@@ -63,7 +65,10 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Filter Programs</ModalHeader>
@@ -100,7 +105,10 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             </FormControl>
             <FormControl>
               <FormLabel>Status</FormLabel>
-              <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <Select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
                 <option value="all">All</option>
                 <option value="active">Active</option>
                 <option value="past">Past</option>
@@ -108,39 +116,71 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             </FormControl>
             <FormControl>
               <FormLabel>Room</FormLabel>
-              <Select value={room} onChange={(e) => setRoom(e.target.value)}>
+              <Select
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+              >
                 <option value="all">All</option>
                 {rooms.map((room) => (
-                    <option key={room.id} value={room.name}>{room.name}</option>
+                  <option
+                    key={room.id}
+                    value={room.name}
+                  >
+                    {room.name}
+                  </option>
                 ))}
               </Select>
             </FormControl>
             <FormControl>
-                <FormLabel>Instructor</FormLabel>
-                <Select value={instructor} onChange={(e) => setInstructor(e.target.value)}>
-                    <option value="all">All</option>
-                    {clients.map((client) => (
-                    <option key={client.id} value={client.name}>{client.name}</option>
-                    ))}
-                </Select>
+              <FormLabel>Instructor</FormLabel>
+              <Select
+                value={instructor}
+                onChange={(e) => setInstructor(e.target.value)}
+              >
+                <option value="all">All</option>
+                {clients.map((client) => (
+                  <option
+                    key={client.id}
+                    value={client.name}
+                  >
+                    {client.name}
+                  </option>
+                ))}
+              </Select>
             </FormControl>
-
             <FormControl>
-                <FormLabel>Payee</FormLabel>
-                <Select value={payee} onChange={(e) => setPayee(e.target.value)}>
-                    <option value="all">All</option>
-                    {clients.map((client) => (
-                    <option key={client.id} value={client.name}>{client.name}</option>
-                    ))}
-                </Select>
+              <FormLabel>Payee</FormLabel>
+              <Select
+                value={payee}
+                onChange={(e) => setPayee(e.target.value)}
+              >
+                <option value="all">All</option>
+                {clients.map((client) => (
+                  <option
+                    key={client.id}
+                    value={client.name}
+                  >
+                    {client.name}
+                  </option>
+                ))}
+              </Select>
             </FormControl>
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={handleApply}>
+          <Button
+            colorScheme="blue"
+            mr={3}
+            onClick={handleApply}
+          >
             Apply Filters
           </Button>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
