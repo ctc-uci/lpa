@@ -7,16 +7,23 @@ programsRouter.use(express.json());
 
 programsRouter.get("/", async (req, res) => {
   try {
-    const programs = await db.query(`
-        SELECT e.name, b.date, b.start_time, b.end_time, r.name
-        MAX(CASE WHEN a.role = 'instructor' THEN c.name END) AS instructor_name,
-        MAX(CASE WHEN a.role = 'payee' THEN c.name END) AS payee_name
+    const programs = await db.any(`
+        SELECT 
+        e.name AS event_name,  
+        b.date, 
+        b.start_time, 
+        b.end_time, 
+        r.name AS room_name,
+         MAX(CASE WHEN a.role = 'instructor' THEN c.name END) AS instructor_name,
+         MAX(CASE WHEN a.role = 'payee' THEN c.name END) AS payee_name
         FROM events AS e
          JOIN assignments AS a ON e.id = a.event_id
          JOIN bookings AS b ON e.id = b.event_id
          JOIN rooms AS r ON r.id = b.room_id
          JOIN clients AS c ON a.client_id = c.id
-        GROUP BY e.id, e.name, b.date, b.start_time, b.end_time, r.name;  
+        GROUP BY e.id, e.name, b.date, b.start_time, b.end_time, r.name
+        ORDER BY b.date, b.start_time;
+
     `);
 
     if (programs.length === 0) {
@@ -33,20 +40,14 @@ programsRouter.get("/:id", async (req, res) => {
     try {
       const { id } = req.params;
       const query = `
-        SELECT 
-          e.id AS event_id,
-          e.name AS event_name, 
-          b.date AS booking_date, 
-          b.start_time AS booking_start_time, 
-          b.end_time AS booking_end_time, 
-          r.name AS room_name,
-          MAX(CASE WHEN a.role = 'instructor' THEN c.name END) AS instructor_name,
-          MAX(CASE WHEN a.role = 'payee' THEN c.name END) AS payee_name
+        SELECT e.id, e.name, b.date, b.start_time, b.end_time, r.name,
+        MAX(CASE WHEN a.role = 'instructor' THEN c.name END) AS instructor_name,
+        MAX(CASE WHEN a.role = 'payee' THEN c.name END) AS payee_name
         FROM events AS e
-        JOIN bookings AS b ON e.id = b.event_id
-        JOIN rooms AS r ON b.room_id = r.id
-        JOIN assignments AS a ON e.id = a.event_id
-        JOIN clients AS c ON a.client_id = c.id
+         JOIN bookings AS b ON e.id = b.event_id
+         JOIN rooms AS r ON b.room_id = r.id
+         JOIN assignments AS a ON e.id = a.event_id
+         JOIN clients AS c ON a.client_id = c.id
         WHERE e.id = $1
         GROUP BY e.id, e.name, b.date, b.start_time, b.end_time, r.name;
       `;
