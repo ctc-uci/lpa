@@ -8,6 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogOverlay,
   Button,
+  Box,
+  HStack,
   IconButton,
   Input,
   InputGroup,
@@ -20,11 +22,13 @@ import {
   TableContainer,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
   useDisclosure,
   useToast,
+  VStack
 } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router-dom";
@@ -104,15 +108,6 @@ const SearchIcon = (props) => (
   <img
     src={searchSvg}
     alt="Search"
-    style={{ width: 20, height: 20 }}
-    {...props}
-  />
-);
-
-const ProgramIcon = (props) => (
-  <img
-    src={programSvg}
-    alt="Program"
     style={{ width: 20, height: 20 }}
     {...props}
   />
@@ -396,9 +391,14 @@ export const ProgramsTable = () => {
           <Thead>
             <Tr>
               {/* Program Name with icon to the RIGHT */}
-              <Th style={{ whiteSpace: "nowrap" }}>
-                Program Name
-                <ProgramIcon style={{ marginLeft: "6px" }} />
+              <Th>
+                <HStack spacing={2} alignItems="center">
+                  <Text fontSize="sm" fontWeight="medium">Program</Text>
+                  <VStack>
+                    <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" />
+                    <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" mt={-2} transform="rotate(180deg)"/>
+                  </VStack>
+                </HStack>
               </Th>
               <Th>Status</Th>
               {/* Upcoming Date with icon to the LEFT */}
