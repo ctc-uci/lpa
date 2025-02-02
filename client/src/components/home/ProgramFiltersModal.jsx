@@ -1,8 +1,4 @@
-// i needa fix indentation and other stuff on this its mainly chatgptd lol
-// also TODO FIX THE TIME FILTERS FOR SOME REASON THEY DONT WORK YETGA
-
 import React, { useEffect, useState } from "react";
-
 import {
   Button,
   FormControl,
@@ -17,7 +13,11 @@ import {
   ModalOverlay,
   Select,
   VStack,
+  HStack,
+  Box,
 } from "@chakra-ui/react";
+
+import calendarSvg from "../../assets/icons/calendar.svg";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
@@ -65,91 +65,100 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-    >
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Filter Programs</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <VStack spacing={4}>
+          <VStack spacing={4} align="stretch">
+            {/* Date Filters */}
             <FormControl>
-              <FormLabel>Date Range</FormLabel>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                placeholder="Start Date"
-              />
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                placeholder="End Date"
-              />
+              <HStack alignItems="center" spacing={2} pb="3">
+                <Box as="img" src={calendarSvg} alt="Calendar Icon" boxSize="20px" />
+                <FormLabel margin="0">Date</FormLabel>
+              </HStack>
+              <HStack>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  placeholder="Start Date"
+                />
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  placeholder="End Date"
+                />
+              </HStack>
             </FormControl>
+
+            {/* Time Filters */}
             <FormControl>
-              <FormLabel>Time Range</FormLabel>
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
+              <FormLabel>Time</FormLabel>
+              <HStack>
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+                <Input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </HStack>
             </FormControl>
+
+            {/* Status Buttons */}
             <FormControl>
               <FormLabel>Status</FormLabel>
-              <Select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="all">All</option>
-                <option value="active">Active</option>
-                <option value="past">Past</option>
-              </Select>
+              <HStack>
+                {["all", "active", "past"].map((s) => (
+                  <Button
+                    key={s}
+                    colorScheme={status === s ? "blue" : "gray"}
+                    onClick={() => setStatus(s)}
+                  >
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </Button>
+                ))}
+              </HStack>
             </FormControl>
+
+            {/* Room Selection as Pills/Chips */}
             <FormControl>
               <FormLabel>Room</FormLabel>
-              <Select
-                value={room}
-                onChange={(e) => setRoom(e.target.value)}
-              >
-                <option value="all">All</option>
-                {rooms.map((room) => (
-                  <option
-                    key={room.id}
-                    value={room.name}
+              <HStack>
+                {["all", "Community", "Lounge", "Theater"].map((r) => (
+                  <Button
+                    key={r}
+                    colorScheme={room === r ? "blue" : "gray"}
+                    onClick={() => setRoom(r)}
                   >
-                    {room.name}
-                  </option>
+                    {r}
+                  </Button>
                 ))}
-              </Select>
+              </HStack>
             </FormControl>
+
+            {/* Instructor Dropdown */}
             <FormControl>
-              <FormLabel>Instructor</FormLabel>
-              <Select
-                value={instructor}
-                onChange={(e) => setInstructor(e.target.value)}
-              >
+              <FormLabel>Instructor(s)</FormLabel>
+              <Select value={instructor} onChange={(e) => setInstructor(e.target.value)}>
                 <option value="all">All</option>
                 {clients.map((client) => (
-                  <option
-                    key={client.id}
-                    value={client.name}
-                  >
+                  <option key={client.id} value={client.name}>
                     {client.name}
                   </option>
                 ))}
               </Select>
             </FormControl>
+
+            {/* Payee Dropdown */}
             <FormControl>
-              <FormLabel>Payee</FormLabel>
+            <FormLabel>Payee</FormLabel>
               <Select
                 value={payee}
                 onChange={(e) => setPayee(e.target.value)}
@@ -167,22 +176,18 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             </FormControl>
           </VStack>
         </ModalBody>
+
         <ModalFooter>
-          <Button
-            colorScheme="blue"
-            mr={3}
-            onClick={handleApply}
-          >
-            Apply Filters
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={onClose}
-          >
+          <Button variant="outline" onClick={onClose}>
             Cancel
+          </Button>
+          <Button colorScheme="blue" onClick={handleApply}>
+            Apply
           </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
   );
 };
+
+export default ProgramFiltersModal;

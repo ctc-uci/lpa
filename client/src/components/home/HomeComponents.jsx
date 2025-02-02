@@ -1,4 +1,3 @@
-// ProgramsTable.jsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -30,9 +29,6 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-// =============================
-// ===  1. Icon Imports    ====
-// =============================
 import actionsSvg from "../../assets/icons/actions.svg";
 import activeSvg from "../../assets/icons/active.svg";
 import calendarSvg from "../../assets/icons/calendar.svg";
@@ -49,9 +45,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import { ProgramStatusLegend } from "./ProgramStatusLegend";
 
-// =============================
-// === 2. Tiny Icon Components
-// =============================
+
 const ActiveStatusIcon = (props) => (
   <img
     src={activeSvg}
@@ -160,16 +154,20 @@ const PersonIcon = (props) => (
   />
 );
 
-// =============================
-// ===  ProgramsTable     =====
-// =============================
 export const ProgramsTable = () => {
   const [programs, setPrograms] = useState([]);
   const [filteredPrograms, setFilteredPrograms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [programToDelete, setProgramToDelete] = useState(null);
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState({
+    dateRange: { start: null, end: null },
+    timeRange: { start: null, end: null },
+    status: "all",
+    room: "all",
+    instructor: "all",
+    payee: "all",
+  });
 
   const { backend } = useBackendContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -177,25 +175,17 @@ export const ProgramsTable = () => {
   const toast = useToast();
   const cancelRef = useRef();
 
-  // =============================
-  // ===   Fetch Program Data  ===
-  // =============================
   const fetchPrograms = useCallback(async () => {
     try {
-      const eventsResponse = await backend.get("/events");
-      const bookingsResponse = await backend.get("/bookings");
-      const roomsResponse = await backend.get("/rooms");
-      const assignmentsResponse = await backend.get("/assignments");
-      const clientsResponse = await backend.get("/clients");
-
-      const eventsData = eventsResponse.data;
-      const bookingsData = bookingsResponse.data;
-      const roomsData = roomsResponse.data;
-      const assignmentsData = assignmentsResponse.data;
-      const clientsData = clientsResponse.data;
-
-      const currentDate = new Date();
-
+      const response = await backend.get("/programs");
+      console.log("API Response:", response.data); 
+  
+      if (!response.data || response.data.length === 0) {
+        console.warn("No programs received from API.");
+        setPrograms([]);
+        return;
+      }
+  
       const formatDate = (dateString) => {
         const date = new Date(dateString);
         const options = {
@@ -204,7 +194,7 @@ export const ProgramsTable = () => {
           day: "2-digit",
           year: "numeric",
         };
-        return date.toLocaleDateString("en-US", options).replace(/,/g, ".");
+        return date.toLocaleDateString("en-US", options).replace(/,/g, ".");  
       };
 
       const formatTime = (timeString) => {
@@ -215,186 +205,110 @@ export const ProgramsTable = () => {
           .toLowerCase();
       };
 
-      const programsData = eventsData.map((event) => {
-        const eventBookings = bookingsData.filter(
-          (booking) => booking.eventId === event.id
-        );
-        const upcomingBookings = eventBookings.filter(
-          (booking) => new Date(booking.date) > currentDate
-        );
-        const pastBookings = eventBookings.filter(
-          (booking) => new Date(booking.date) <= currentDate
-        );
-
-        let relevantBooking;
-        let status;
-
-        if (upcomingBookings.length > 0) {
-          relevantBooking = upcomingBookings.reduce((earliest, current) =>
-            new Date(current.date) < new Date(earliest.date)
-              ? current
-              : earliest
-          );
-          status = "Active";
-        } else if (pastBookings.length > 0) {
-          relevantBooking = pastBookings.reduce((latest, current) =>
-            new Date(current.date) > new Date(latest.date) ? current : latest
-          );
-          status = "Past";
-        } else {
-          status = "No bookings";
-        }
-
-        const room = relevantBooking
-          ? roomsData.find((r) => r.id === relevantBooking.roomId)
-          : null;
-
-        const eventAssignments = assignmentsData.filter(
-          (assignment) => assignment.eventId === event.id
-        );
-        const instructorAssignment = eventAssignments.find(
-          (assignment) => assignment.role === "instructor"
-        );
-        const payeeAssignment = eventAssignments.find(
-          (assignment) => assignment.role === "payee"
-        );
-
-        const instructor = instructorAssignment
-          ? clientsData.find(
-              (client) => client.id === instructorAssignment.clientId
-            )
-          : null;
-
-        const payee = payeeAssignment
-          ? clientsData.find((client) => client.id === payeeAssignment.clientId)
-          : null;
-
-        return {
-          id: event.id,
-          name: event.name,
-          description: event.description,
-          status,
-          upcomingDate: relevantBooking
-            ? formatDate(relevantBooking.date)
-            : "No bookings",
-          upcomingTime: relevantBooking
-            ? `${formatTime(relevantBooking.startTime)} - ${formatTime(
-                relevantBooking.endTime
-              )}`
-            : "N/A",
-          room: room ? room.name : "N/A",
-          instructor: instructor ? instructor.name : "N/A",
-          payee: payee ? payee.name : "N/A",
-        };
-      });
-
+      const programsData = response.data.map((program) => ({ 
+        name: program.eventName,  
+        status: program.date && new Date(program.date) > new Date() ? "Active" : "Past",
+        upcomingDate: program.date ? formatDate(program.date) : "No bookings",
+        upcomingTime: program.startTime && program.endTime 
+          ? `${formatTime(program.startTime)} - ${formatTime(program.endTime)}`
+          : "N/A",
+        room: program.roomName || "N/A",
+        instructor: program.instructorName || "N/A",
+        payee: program.payeeName || "N/A",
+      }));
+  
+      console.log("Formatted Programs:", programsData); 
       setPrograms(programsData);
     } catch (error) {
       console.error("Failed to fetch programs:", error);
     }
   }, [backend]);
+  
 
   useEffect(() => {
     fetchPrograms();
   }, [fetchPrograms]);
 
-  // =============================
-  // ===   Filtering Logic    ===
-  // =============================
+  ///////////////
+  // Filtering //
+  ///////////////
+
   const applyFilters = useCallback(() => {
     let result = programs;
-
-    if (
-      filters.dateRange &&
-      (filters.dateRange.start || filters.dateRange.end)
-    ) {
+  
+    // Date Range Filtering
+    if (filters.dateRange.start || filters.dateRange.end) {
       result = result.filter((program) => {
-        if (program.upcomingDate === "No bookings") return false;
-        const bookingDate = new Date(program.upcomingDate);
+        if (!program.date) return false;
+        const bookingDate = new Date(program.date);
         return (
-          (!filters.dateRange.start ||
-            bookingDate >= new Date(filters.dateRange.start)) &&
-          (!filters.dateRange.end ||
-            bookingDate <= new Date(filters.dateRange.end))
+          (!filters.dateRange.start || bookingDate >= new Date(filters.dateRange.start)) &&
+          (!filters.dateRange.end || bookingDate <= new Date(filters.dateRange.end))
         );
       });
     }
-
-    if (
-      filters.timeRange &&
-      (filters.timeRange.start || filters.timeRange.end)
-    ) {
+  
+    // Time Range Filtering
+    if (filters.timeRange.start || filters.timeRange.end) {
       result = result.filter((program) => {
         if (program.upcomingTime === "N/A") return false;
         const [startTime] = program.upcomingTime.split(" - ");
+        const startTimeObj = new Date(`2000-01-01 ${startTime}`);
         return (
-          (!filters.timeRange.start || startTime >= filters.timeRange.start) &&
-          (!filters.timeRange.end || startTime <= filters.timeRange.end)
+          (!filters.timeRange.start || startTimeObj >= new Date(`2000-01-01 ${filters.timeRange.start}`)) &&
+          (!filters.timeRange.end || startTimeObj <= new Date(`2000-01-01 ${filters.timeRange.end}`))
         );
       });
     }
-
-    if (filters.status && filters.status !== "all") {
-      result = result.filter(
-        (program) =>
-          program.status.toLowerCase() === filters.status.toLowerCase()
-      );
+  
+    // Other Filters
+    if (filters.status !== "all") {
+      result = result.filter((program) => program.status.toLowerCase() === filters.status.toLowerCase());
     }
-
-    if (filters.room && filters.room !== "all") {
+    if (filters.room !== "all") {
       result = result.filter((program) => program.room === filters.room);
     }
-
-    if (filters.instructor && filters.instructor !== "all") {
-      result = result.filter(
-        (program) =>
-          program.instructor &&
-          program.instructor.toLowerCase() === filters.instructor.toLowerCase()
-      );
+    if (filters.instructor !== "all") {
+      result = result.filter((program) => program.instructor.toLowerCase() === filters.instructor.toLowerCase());
+    }
+    if (filters.payee !== "all") {
+      result = result.filter((program) => program.payee.toLowerCase() === filters.payee.toLowerCase());
     }
 
-    if (filters.payee && filters.payee !== "all") {
-      result = result.filter(
-        (program) =>
-          program.payee &&
-          program.payee.toLowerCase() === filters.payee.toLowerCase()
+    if (searchTerm.trim() !== "") {
+      result = result.filter((program) =>
+        program.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
-    // Filter by search term
-    result = result.filter((program) =>
-      program.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
+  
     setFilteredPrograms(result);
   }, [programs, filters, searchTerm]);
+  
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+    setIsFiltersModalOpen(false); 
+};
+
 
   useEffect(() => {
     applyFilters();
-  }, [applyFilters]);
-
-  // =============================
-  // ===     Event Handlers   ===
-  // =============================
-  const handleApplyFilters = (newFilters) => {
-    setFilters(newFilters);
-  };
-
+  }, [filters, programs, searchTerm, applyFilters]);
+    
   const handleRowClick = (id) => {
     navigate(`/programs/${id}`);
   };
-
+  
   const handleEdit = (id, e) => {
     e.stopPropagation();
     navigate(`/programs/${id}`);
   };
-
+  
   const handleDeleteClick = (id, e) => {
     e.stopPropagation();
     setProgramToDelete(id);
     onOpen();
   };
-
+  
   const handleDelete = async () => {
     if (programToDelete) {
       try {
@@ -440,9 +354,7 @@ export const ProgramsTable = () => {
     }
   };
 
-  // =============================
-  // ===       RENDERING      ===
-  // =============================
+
   return (
     <>
       {/* Top area: Filters + Search box */}
@@ -461,7 +373,7 @@ export const ProgramsTable = () => {
           Filters
         </Button>
 
-        {/* Input with Search Icon on the right */}
+        
         <InputGroup style={{ width: "300px" }}>
           <Input
             placeholder="Search programs"
@@ -472,6 +384,7 @@ export const ProgramsTable = () => {
             <SearchIcon />
           </InputRightElement>
         </InputGroup>
+
       </div>
 
       {/* Status legend (Active/Past) */}
@@ -518,49 +431,53 @@ export const ProgramsTable = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {filteredPrograms.map((program) => (
-              <Tr
-                key={program.id}
-                onClick={() => handleRowClick(program.id)}
-                cursor="pointer"
-              >
-                <Td>{program.name}</Td>
-                <Td>{renderStatusIcon(program.status)}</Td>
-                <Td>{program.upcomingDate}</Td>
-                <Td>{program.upcomingTime}</Td>
-                <Td>{program.room}</Td>
-                <Td>{program.instructor}</Td>
-                <Td>{program.payee}</Td>
-                {/* Actions menu */}
-                <Td onClick={(e) => e.stopPropagation()}>
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      aria-label="Options"
-                      icon={<ActionsIcon />} // was ThreeDotsIcon
-                      variant="outline"
-                    />
-                    <MenuList>
-                      <MenuItem onClick={(e) => handleEdit(program.id, e)}>
-                        <EditIcon style={{ marginRight: "6px" }} />
-                        Edit
-                      </MenuItem>
-                      <MenuItem
-                        onClick={(e) => handleDeleteClick(program.id, e)}
-                      >
-                        <CancelIcon style={{ marginRight: "6px" }} />
-                        Delete
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
+            {filteredPrograms.length === 0 ? (
+              <Tr>
+                <Td colSpan="7" style={{ textAlign: "center" }}>
+                  No programs available.
                 </Td>
               </Tr>
-            ))}
+            ) : (
+              filteredPrograms.map((program) => (
+                <Tr key={program.id} onClick={() => handleRowClick(program.id)} cursor="pointer">
+                  <Td>{program.name}</Td>
+                  <Td>{renderStatusIcon(program.status)}</Td>
+                  <Td>{program.upcomingDate}</Td>
+                  <Td>{program.upcomingTime}</Td>
+                  <Td>{program.room}</Td>
+                  <Td>{program.instructor}</Td>
+                  <Td>{program.payee}</Td>
+                  <Td onClick={(e) => e.stopPropagation()}>
+                    <Menu>
+                      <MenuButton
+                        as={IconButton}
+                        aria-label="Options"
+                        icon={<ActionsIcon />} // Uses your existing ActionsIcon
+                        variant="outline"
+                      />
+                      <MenuList>
+                        <MenuItem onClick={(e) => handleEdit(program.id, e)}>
+                          <EditIcon style={{ marginRight: "6px" }} />
+                          Edit
+                        </MenuItem>
+                        <MenuItem
+                          onClick={(e) => handleDeleteClick(program.id, e)}
+                          color="red.500"
+                        >
+                          <CancelIcon style={{ marginRight: "6px" }} />
+                          Delete
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
+                  </Td>
+                </Tr>
+              ))
+            )}
           </Tbody>
+
         </Table>
       </TableContainer>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={isOpen}
         leastDestructiveRef={cancelRef}
@@ -603,6 +520,8 @@ export const ProgramsTable = () => {
         isOpen={isFiltersModalOpen}
         onClose={() => setIsFiltersModalOpen(false)}
         onApplyFilters={handleApplyFilters}
+        filters={filters}
+        setFilters={setFilters}
       />
     </>
   );
