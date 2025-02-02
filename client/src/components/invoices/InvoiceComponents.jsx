@@ -13,11 +13,15 @@ import {
   Flex,
   Card,
   Box,
-  Text
+  Text,
+  Select
 } from '@chakra-ui/react';
+
+
 import React, { useState, useEffect } from 'react';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { format } from 'date-fns';
+
 
 export const InvoicesStats = ({ name, email }) => {
   return (
@@ -82,7 +86,33 @@ export const InvoicesStats = ({ name, email }) => {
 };
 
 export const InvoicesTable = ({ comments }) => {
+  const [pageSize, setPageSize] = useState(3);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handlePageSizeChange = (event) => {
+    setPageSize(Number(event.target.value)); n
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(comments.length / pageSize);
+  const paginatedComments = comments.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+
   return (
+    <>
     <Flex
       w="100%"
         borderRadius={15}
@@ -103,7 +133,7 @@ export const InvoicesTable = ({ comments }) => {
           </Thead>
           <Tbody>
             {Array.isArray(comments) && comments.length > 0 ? (
-              comments.map((comment) => (
+              paginatedComments.map((comment) => (
                 <Tr key={comment.id}>
                   <Td>{format(new Date(comment.date), 'M/d/yy')}</Td>
                   <Td>{comment.comment}</Td>
@@ -117,10 +147,36 @@ export const InvoicesTable = ({ comments }) => {
             )}
 
           </Tbody>
-
-
         </Table>
+
       </Flex>
+
+      {/* pagination */}
+      <Flex w="100%" justifyContent="space-between">
+        <Flex align="center">
+          <Text mr={3}>Show: </Text>
+          <Select value={pageSize} onChange={handlePageSizeChange} width="auto">
+            <option value={3}>3</option>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+          </Select>
+          <Text ml={3}>per page</Text>
+        </Flex>
+
+        <Flex align="center" >
+          <Text mr={3}>{currentPage} of {totalPages}</Text>
+          <Button onClick={handlePrevPage} isDisabled={currentPage === 1} borderLeftRadius={30} >
+            Prev
+          </Button>
+          <Button onClick={handleNextPage} isDisabled={currentPage === totalPages} borderRightRadius={30}>
+            Next
+          </Button>
+        </Flex>
+      </Flex>
+
+
+</>
   );
 
 };
