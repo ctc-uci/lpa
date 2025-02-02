@@ -403,28 +403,42 @@ export const ProgramsTable = () => {
               <Th>Status</Th>
               {/* Upcoming Date with icon to the LEFT */}
               <Th>
-                <CalendarIcon style={{ marginRight: "6px" }} />
-                Upcoming Date
+                <HStack spacing={2} alignItems="center">
+                  <CalendarIcon/>
+                  <Text>Upcoming Date</Text>
+                  <VStack alignItems="center">
+                    <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" />
+                    <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" mt={-2} transform="rotate(180deg)"/>
+                  </VStack>
+                </HStack>
               </Th>
               {/* Upcoming Time with icon to the LEFT */}
               <Th>
-                <ClockIcon style={{ marginRight: "6px" }} />
-                Upcoming Time
+                <HStack>
+                  <ClockIcon/>
+                  <Text>Upcoming Time</Text>
+                </HStack>
               </Th>
               {/* Room with icon to the LEFT */}
               <Th>
-                <LocationIcon style={{ marginRight: "6px" }} />
-                Room
+                <HStack>
+                  <LocationIcon/>
+                  <Text ml={-1}>Room</Text>
+                </HStack>
               </Th>
               {/* Instructor with icon to the LEFT */}
               <Th>
-                <PersonIcon style={{ marginRight: "6px" }} />
-                Instructor
+                <HStack>
+                  <PersonIcon/>
+                  <Text>Instructor</Text>
+                </HStack>
               </Th>
               {/* Payee with icon to the LEFT */}
               <Th>
-                <PersonIcon style={{ marginRight: "6px" }} />
-                Payee
+                <HStack>
+                  <PersonIcon/>
+                  <Text>Payee</Text>
+                </HStack>
               </Th>
               {/* Actions column */}
               <Th></Th>

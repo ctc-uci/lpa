@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
+  ButtonGroup,
   FormControl,
   FormLabel,
   HStack,
@@ -25,7 +26,9 @@ import activeSvg from "../../assets/icons/active.svg";
 // Icons for styling
 import calendarSvg from "../../assets/icons/calendar.svg";
 import clockSvg from "../../assets/icons/clock.svg";
+import locationSvg from "../../assets/icons/location.svg";
 import pastSvg from "../../assets/icons/past.svg";
+import personSvg from "../../assets/icons/person.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
@@ -153,66 +156,57 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             {/* === STATUS FILTER (BUTTON GROUP) === */}
             <FormControl>
               <FormLabel>Status</FormLabel>
-              <HStack spacing={2}>
-                {/* ALL */}
-                <Button
-                  variant="outline"
-                  colorScheme={status === "all" ? "purple" : "gray"}
-                  onClick={() => setStatus("all")}
-                >
-                  <Text mb="0">All</Text>
-                </Button>
-                {/* ACTIVE */}
-                <Button
-                  variant="outline"
-                  colorScheme={status === "active" ? "purple" : "gray"}
-                  onClick={() => setStatus("active")}
-                >
-                  <Box
-                    as="img"
-                    src={activeSvg}
-                    alt="Active Icon"
-                    boxSize="20px"
-                  />
-                  <Text
-                    ml="2"
-                    mb="0"
+              <HStack alignItems="center">
+                <ButtonGroup variant="outline" spacing={3} colorScheme="purple">
+                  <Button 
+                    borderRadius="full"
+                    borderWidth="2px"
+                    color={status === "all" ? "purple.500" : "gray.300"}
+                    _hover={{ bg: "purple.100" }}
+                    onClick={() => setStatus("all")}
                   >
-                    Active
-                  </Text>
-                </Button>
-                {/* PAST */}
-                <Button
-                  variant="outline"
-                  colorScheme={status === "past" ? "purple" : "gray"}
-                  onClick={() => setStatus("past")}
-                >
-                  <Box
-                    as="img"
-                    src={pastSvg}
-                    alt="Past Icon"
-                    boxSize="20px"
-                  />
-                  <Text
-                    ml="2"
-                    mb="0"
+                    <Text mb="0">All</Text>
+                  </Button>
+                  {/* ACTIVE */}
+                  <Button 
+                    borderRadius="full"
+                    borderWidth="2px"
+                    color={status === "active" ? "purple.500" : "gray.300"}
+                    onClick={() => setStatus("active")}
                   >
-                    Past
-                  </Text>
-                </Button>
+                    <Box as="img" src={activeSvg} alt="Active Icon" boxSize="20px" />
+                    <Text ml="2" mb="0">Active</Text>
+                  </Button>
+                  <Button
+                    borderRadius="full"
+                    borderWidth="2px"
+                    color={status === "past" ? "purple.500" : "gray.300"}
+                    onClick={() => setStatus("past")}
+                  >
+                    <Box as="img" src={pastSvg} alt="Past Icon" boxSize="20px" />
+                    <Text ml="2">Past</Text>
+                  </Button>
+                </ButtonGroup>
               </HStack>
             </FormControl>
 
             {/* === ROOM FILTER (PILL BUTTONS) === */}
             <FormControl>
-              <FormLabel>Room</FormLabel>
+              <HStack>
+                <Box as="img" src={locationSvg} alt="Location Icon" boxSize="20px" />
+                <FormLabel mt={1}>Room</FormLabel>
+              </HStack>
               <HStack
                 spacing={2}
                 wrap="wrap"
               >
                 {/* "All" pill */}
                 <Button
-                  colorScheme={room === "all" ? "purple" : "gray"}
+                  variant="outline"
+                  borderRadius="full"
+                  borderWidth="2px"
+                  color={room === "all" ? "purple.500" : "gray.300"}
+                  colorScheme="purple"
                   onClick={() => setRoom("all")}
                 >
                   All
@@ -222,7 +216,11 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
                 {rooms.map((r) => (
                   <Button
                     key={r.id}
-                    colorScheme={room === r.name ? "purple" : "gray"}
+                    variant="outline"
+                    borderRadius="full"
+                    borderWidth="2px"
+                    color={room === r.name ? "purple.500" : "gray.300"}
+                    colorScheme="purple"
                     onClick={() => setRoom(r.name)}
                   >
                     {r.name}
@@ -233,7 +231,10 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
 
             {/* === INSTRUCTOR DROPDOWN === */}
             <FormControl>
-              <FormLabel>Instructor(s)</FormLabel>
+              <HStack>
+                <Box as="img" src={personSvg} alt="Person Icon" boxSize="20px" />
+                <FormLabel>Instructor(s)</FormLabel>
+              </HStack>
               <Select
                 value={instructor}
                 onChange={(e) => setInstructor(e.target.value)}
@@ -252,7 +253,10 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
 
             {/* === PAYEE DROPDOWN === */}
             <FormControl>
-              <FormLabel>Payee</FormLabel>
+              <HStack>
+                <Box as="img" src={personSvg} alt="Person Icon" boxSize="20px" />
+                <FormLabel>Payee</FormLabel>
+              </HStack>
               <Select
                 value={payee}
                 onChange={(e) => setPayee(e.target.value)}
