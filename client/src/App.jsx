@@ -17,6 +17,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { ForgotPassword } from "./components/login/ForgotPassword";
+import { Invoice } from "./components/invoices/Invoice";
+
 import { PDFViewer } from "@react-pdf/renderer";
 import PDFButton from "./components/PDFButton";
 
@@ -43,6 +45,19 @@ const App = () => {
                 <Route
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
+                />
+                {/* <Route
+                  path="/invoices/:id"
+                  element={
+                    <ProtectedRoute
+                      element={<Invoice />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                /> */}
+                <Route
+                  path="/invoices/:id"
+                  element={<Invoice />}
                 />
                 <Route
                   path="/admin"

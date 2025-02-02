@@ -30,6 +30,20 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
   }
 });
 
+commentsRouter.get("/paidInvoices/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await db.query(
+      "SELECT * FROM comments WHERE invoice_id = $1 and adjustment_type = 'paid'",
+      [id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 commentsRouter.get("/booking/:id", async (req, res) => {
   try {
     const { id } = req.params;
