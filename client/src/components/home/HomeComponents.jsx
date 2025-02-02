@@ -386,8 +386,8 @@ export const ProgramsTable = () => {
       <ProgramStatusLegend />
 
       {/* The table */}
-      <TableContainer>
-        <Table variant="simple">
+      <TableContainer maxW="80%" mx="auto" p="4" border="1px solid gray" borderRadius="15">
+        <Table variant="simple" size="sm">
           <Thead>
             <Tr>
               {/* Program Name with icon to the RIGHT */}
