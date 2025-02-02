@@ -12,12 +12,16 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
+  Text,
   VStack,
   HStack,
   Box,
 } from "@chakra-ui/react";
 
 import calendarSvg from "../../assets/icons/calendar.svg";
+import clockSvg from "../../assets/icons/clock.svg";
+import activeSvg from "../../assets/icons/active.svg";
+import pastSvg from "../../assets/icons/past.svg";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
@@ -76,7 +80,7 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             <FormControl>
               <HStack alignItems="center" spacing={2} pb="3">
                 <Box as="img" src={calendarSvg} alt="Calendar Icon" boxSize="20px" />
-                <FormLabel margin="0">Date</FormLabel>
+                <FormLabel mb="1">Date</FormLabel>
               </HStack>
               <HStack>
                 <Input
@@ -96,7 +100,10 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
 
             {/* Time Filters */}
             <FormControl>
-              <FormLabel>Time</FormLabel>
+              <HStack alignItems="center" spacing={2} pb="3">
+                <Box as="img" src={clockSvg} alt="Clock Icon" boxSize="20px" />
+                <FormLabel mt="1">Time</FormLabel>
+              </HStack>
               <HStack>
                 <Input
                   type="time"
@@ -114,16 +121,18 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             {/* Status Buttons */}
             <FormControl>
               <FormLabel>Status</FormLabel>
-              <HStack>
-                {["all", "active", "past"].map((s) => (
-                  <Button
-                    key={s}
-                    colorScheme={status === s ? "blue" : "gray"}
-                    onClick={() => setStatus(s)}
-                  >
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                  </Button>
-                ))}
+              <HStack alignItems="center">
+                <Button variant="outline" >
+                  <Text mb="0">All</Text>
+                </Button>
+                <Button variant="outline" >
+                  <Box as="img" src={activeSvg} alt="Active Icon" boxSize="20px" />
+                  <Text ml="2" mb="0">Active</Text>
+                </Button>
+                <Button variant="outline">
+                  <Box as="img" src={pastSvg} alt="Past Icon" boxSize="20px" />
+                  <Text ml="2">Past</Text>
+                </Button>
               </HStack>
             </FormControl>
 
@@ -131,10 +140,10 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             <FormControl>
               <FormLabel>Room</FormLabel>
               <HStack>
-                {["all", "Community", "Lounge", "Theater"].map((r) => (
+                {["All", "Community", "Lounge", "Theater"].map((r) => (
                   <Button
                     key={r}
-                    colorScheme={room === r ? "blue" : "gray"}
+                    colorScheme={room === r ? "purple" : "gray"}
                     onClick={() => setRoom(r)}
                   >
                     {r}
@@ -181,7 +190,7 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button colorScheme="blue" onClick={handleApply}>
+          <Button colorScheme="purple" onClick={handleApply}>
             Apply
           </Button>
         </ModalFooter>
