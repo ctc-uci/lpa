@@ -201,6 +201,7 @@ export const ProgramsTable = () => {
       };
 
       const programsData = response.data.map((program) => ({ 
+        id: program.id,
         name: program.eventName,  
         status: program.date && new Date(program.date) > new Date() ? "Active" : "Past",
         upcomingDate: program.date ? formatDate(program.date) : "No bookings",

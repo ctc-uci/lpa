@@ -9,6 +9,7 @@ programsRouter.get("/", async (req, res) => {
   try {
     const programs = await db.any(`
         SELECT DISTINCT ON (e.id) 
+        e.id,
         e.name AS event_name,  
         b.date, 
         b.start_time, 
