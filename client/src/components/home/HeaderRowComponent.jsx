@@ -5,7 +5,6 @@ import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
 import plusSvg from "../../assets/icons/plus.svg";
 import { AddClassModal } from "../AddClassModal";
 
-// Remove inline styles; use classNames from home.css
 export const HeaderRowComponent = () => {
   const [isAddClassOpen, setIsAddClassOpen] = useState(false);
 
