@@ -49,7 +49,6 @@ import searchSvg from "../../assets/icons/search.svg";
 import StatusTooltip from "./StatusIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
-import { ProgramStatusLegend } from "./ProgramStatusLegend";
 
 
 const ActiveStatusIcon = (props) => (
@@ -461,7 +460,10 @@ export const ProgramsTable = () => {
                         <MenuButton
                           as={IconButton}
                           aria-label="Options"
-                          icon={<ActionsIcon />} // Uses your existing ActionsIcon
+                          icon={<ActionsIcon />} 
+                          variant="ghost"
+                          bg="transparent"
+                          _hover={{ bg: "purple.100" }}
                         />
                         <MenuList>
                           <MenuItem onClick={(e) => handleEdit(program.id, e)}>
