@@ -356,11 +356,10 @@ export const ProgramsTable = () => {
     <>
       {/* The table */}
       <Box w="100%" mx="auto" mt="10" alignItems="center" justifyContent="center" border="1px solid" borderRadius="20px" borderColor="gray.300" >
-          <Flex maxW="100%" mt="10" mx="auto" align="center" gap="40%">
+          <Flex w="95%" maxW="100%" mt="10" mx="auto" align="center" justifyContent="space-between">
             <Button
               leftIcon={<FiltersIcon />}
               onClick={() => setIsFiltersModalOpen(true)}
-              ml="4"
             >
               Filters
             </Button>
