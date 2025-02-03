@@ -356,7 +356,7 @@ export const ProgramsTable = () => {
     <>
       {/* The table */}
       <Box w="90%" mx="auto" mt="10" alignItems="center" justifyContent="center" border="1px solid" borderRadius="20px" borderColor="gray.300" >
-          <Flex maxW="100%" mt="10" mx="auto" align="center" gap="34%">
+          <Flex maxW="100%" mt="10" mx="auto" align="center" gap="35%">
             <Button
               leftIcon={<FiltersIcon />}
               onClick={() => setIsFiltersModalOpen(true)}
