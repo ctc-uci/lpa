@@ -8,7 +8,7 @@ programsRouter.use(express.json());
 programsRouter.get("/", async (req, res) => {
   try {
     const programs = await db.any(`
-        SELECT 
+        SELECT DISTINCT ON (e.id) 
         e.name AS event_name,  
         b.date, 
         b.start_time, 
@@ -22,8 +22,7 @@ programsRouter.get("/", async (req, res) => {
          JOIN rooms AS r ON r.id = b.room_id
          JOIN clients AS c ON a.client_id = c.id
         GROUP BY e.id, e.name, b.date, b.start_time, b.end_time, r.name
-        ORDER BY b.date, b.start_time;
-
+        ORDER BY e.id, b.date DESC, b.start_time DESC;
     `);
 
     if (programs.length === 0) {
