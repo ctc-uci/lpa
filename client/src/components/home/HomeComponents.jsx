@@ -9,6 +9,7 @@ import {
   AlertDialogOverlay,
   Button,
   Box,
+  Flex,
   HStack,
   IconButton,
   Input,
@@ -45,6 +46,7 @@ import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
 import programSvg from "../../assets/icons/program.svg";
 import searchSvg from "../../assets/icons/search.svg";
+import StatusTooltip from "./StatusIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import { ProgramStatusLegend } from "./ProgramStatusLegend";
@@ -352,145 +354,138 @@ export const ProgramsTable = () => {
 
   return (
     <>
-      {/* Top area: Filters + Search box */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-          marginBottom: "1rem",
-        }}
-      >
-        <Button
-          leftIcon={<FiltersIcon />}
-          onClick={() => setIsFiltersModalOpen(true)}
-        >
-          Filters
-        </Button>
-
-        
-        <InputGroup style={{ width: "300px" }}>
-          <Input
-            placeholder="Search programs"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <InputRightElement pointerEvents="none">
-            <SearchIcon />
-          </InputRightElement>
-        </InputGroup>
-
-      </div>
-
-      {/* Status legend (Active/Past) */}
-      <ProgramStatusLegend />
-
       {/* The table */}
-      <TableContainer maxW="80%" mx="auto" p="4" border="1px solid gray" borderRadius="15">
-        <Table variant="simple" size="sm">
-          <Thead>
-            <Tr>
-              {/* Program Name with icon to the RIGHT */}
-              <Th>
-                <HStack spacing={2} alignItems="center">
-                  <Text fontSize="sm" fontWeight="medium">Program</Text>
-                  <VStack>
-                    <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" />
-                    <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" mt={-2} transform="rotate(180deg)"/>
-                  </VStack>
-                </HStack>
-              </Th>
-              <Th>Status</Th>
-              {/* Upcoming Date with icon to the LEFT */}
-              <Th>
-                <HStack spacing={2} alignItems="center">
-                  <CalendarIcon/>
-                  <Text>Upcoming Date</Text>
-                  <VStack alignItems="center">
-                    <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" />
-                    <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" mt={-2} transform="rotate(180deg)"/>
-                  </VStack>
-                </HStack>
-              </Th>
-              {/* Upcoming Time with icon to the LEFT */}
-              <Th>
-                <HStack>
-                  <ClockIcon/>
-                  <Text>Upcoming Time</Text>
-                </HStack>
-              </Th>
-              {/* Room with icon to the LEFT */}
-              <Th>
-                <HStack>
-                  <LocationIcon/>
-                  <Text ml={-1}>Room</Text>
-                </HStack>
-              </Th>
-              {/* Instructor with icon to the LEFT */}
-              <Th>
-                <HStack>
-                  <PersonIcon/>
-                  <Text>Instructor</Text>
-                </HStack>
-              </Th>
-              {/* Payee with icon to the LEFT */}
-              <Th>
-                <HStack>
-                  <PersonIcon/>
-                  <Text>Payee</Text>
-                </HStack>
-              </Th>
-              {/* Actions column */}
-              <Th></Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {filteredPrograms.length === 0 ? (
+      <Box w="90%" mx="auto" mt="10" alignItems="center" justifyContent="center" border="1px solid" borderRadius="20px" borderColor="gray.300" >
+          <Flex maxW="100%" mt="10" mx="auto" align="center" gap="53%">
+            <Button
+              leftIcon={<FiltersIcon />}
+              onClick={() => setIsFiltersModalOpen(true)}
+              ml="4"
+            >
+              Filters
+            </Button>
+            <InputGroup maxW="500px" flexGrow={1}>
+              <Input 
+                w="500px"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <InputRightElement pointerEvents="none">
+                <SearchIcon />
+              </InputRightElement>
+            </InputGroup>
+          </Flex>
+        <TableContainer maxW="100%" mx="auto" p="4" >
+          <Table variant="simple" size="sm" mt="5" sx={{ borderSpacing: "0 10px", borderCollapse: "separate" }}>
+            <Thead>
               <Tr>
-                <Td colSpan="7" style={{ textAlign: "center" }}>
-                  No programs available.
-                </Td>
+                {/* Program Name with icon to the RIGHT */}
+                <Th>
+                  <HStack spacing={2} alignItems="center">
+                    <Text fontSize="sm" fontWeight="medium">Program</Text>
+                    <VStack>
+                      <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" />
+                      <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" mt={-2} transform="rotate(180deg)"/>
+                    </VStack>
+                  </HStack>
+                </Th>
+                <Th><StatusTooltip/></Th>
+                {/* Upcoming Date with icon to the LEFT */}
+                <Th>
+                  <HStack spacing={2} alignItems="center">
+                    <CalendarIcon/>
+                    <Text>Upcoming Date</Text>
+                    <VStack alignItems="center">
+                      <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" />
+                      <Box as="img" src={programSvg} alt="Program Icon" boxSize="10px" mt={-2} transform="rotate(180deg)"/>
+                    </VStack>
+                  </HStack>
+                </Th>
+                {/* Upcoming Time with icon to the LEFT */}
+                <Th>
+                  <HStack>
+                    <ClockIcon/>
+                    <Text>Upcoming Time</Text>
+                  </HStack>
+                </Th>
+                {/* Room with icon to the LEFT */}
+                <Th>
+                  <HStack>
+                    <LocationIcon/>
+                    <Text ml={-1}>Room</Text>
+                  </HStack>
+                </Th>
+                {/* Instructor with icon to the LEFT */}
+                <Th>
+                  <HStack>
+                    <PersonIcon/>
+                    <Text>Instructor</Text>
+                  </HStack>
+                </Th>
+                {/* Payee with icon to the LEFT */}
+                <Th>
+                  <HStack>
+                    <PersonIcon/>
+                    <Text>Payee</Text>
+                  </HStack>
+                </Th>
+                {/* Actions column */}
+                <Th></Th>
               </Tr>
-            ) : (
-              filteredPrograms.map((program) => (
-                <Tr key={program.id} onClick={() => handleRowClick(program.id)} cursor="pointer">
-                  <Td>{program.name}</Td>
-                  <Td>{renderStatusIcon(program.status)}</Td>
-                  <Td>{program.upcomingDate}</Td>
-                  <Td>{program.upcomingTime}</Td>
-                  <Td>{program.room}</Td>
-                  <Td>{program.instructor}</Td>
-                  <Td>{program.payee}</Td>
-                  <Td onClick={(e) => e.stopPropagation()}>
-                    <Menu>
-                      <MenuButton
-                        as={IconButton}
-                        aria-label="Options"
-                        icon={<ActionsIcon />} // Uses your existing ActionsIcon
-                        variant="outline"
-                      />
-                      <MenuList>
-                        <MenuItem onClick={(e) => handleEdit(program.id, e)}>
-                          <EditIcon style={{ marginRight: "6px" }} />
-                          Edit
-                        </MenuItem>
-                        <MenuItem
-                          onClick={(e) => handleDeleteClick(program.id, e)}
-                          color="red.500"
-                        >
-                          <CancelIcon style={{ marginRight: "6px" }} />
-                          Delete
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
+            </Thead>
+            <Tbody>
+              {filteredPrograms.length === 0 ? (
+                <Tr>
+                  <Td colSpan="7" style={{ textAlign: "center" }}>
+                    No programs available.
                   </Td>
                 </Tr>
-              ))
-            )}
-          </Tbody>
+              ) : (
+                filteredPrograms.map((program) => (
+                  <Tr 
+                    key={program.id} 
+                    onClick={() => handleRowClick(program.id)} 
+                    cursor="pointer"
+                    sx={{ _odd: { bg: "gray.100" }}} 
+                  >
+                    <Td borderLeftRadius="12px">{program.name}</Td>
+                    <Td>{renderStatusIcon(program.status)}</Td>
+                    <Td>{program.upcomingDate}</Td>
+                    <Td>{program.upcomingTime}</Td>
+                    <Td>{program.room}</Td>
+                    <Td>{program.instructor}</Td>
+                    <Td>{program.payee}</Td>
+                    <Td borderRightRadius="12px" onClick={(e) => e.stopPropagation()}>
+                      <Menu>
+                        <MenuButton
+                          as={IconButton}
+                          aria-label="Options"
+                          icon={<ActionsIcon />} // Uses your existing ActionsIcon
+                        />
+                        <MenuList>
+                          <MenuItem onClick={(e) => handleEdit(program.id, e)}>
+                            <EditIcon style={{ marginRight: "6px" }} />
+                            Edit
+                          </MenuItem>
+                          <MenuItem
+                            onClick={(e) => handleDeleteClick(program.id, e)}
+                            color="red.500"
+                          >
+                            <CancelIcon style={{ marginRight: "6px" }} />
+                            Delete
+                          </MenuItem>
+                        </MenuList>
+                      </Menu>
+                    </Td>
+                  </Tr>
+                ))
+              )}
+            </Tbody>
 
-        </Table>
-      </TableContainer>
+          </Table>
+        </TableContainer>
+      </Box>
 
       <AlertDialog
         isOpen={isOpen}
