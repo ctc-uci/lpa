@@ -2,32 +2,17 @@ import React from "react";
 
 import { Box } from "@chakra-ui/react";
 
+import "./home.css";
+
 import { Navbar } from "../Navbar";
 import { HeaderRowComponent } from "./HeaderRowComponent";
 import { ProgramsTable } from "./HomeComponents";
 
 export const Home = () => {
   return (
-    <Box
-      style={{
-        display: "flex",
-        padding: "32px 32px 0px 32px",
-        alignItems: "flex-start",
-        gap: "32px",
-        alignSelf: "stretch",
-      }}
-    >
+    <Box className="home">
       <Navbar />
-
-      <Box
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          gap: "24px",
-          alignSelf: "stretch",
-        }}
-      >
+      <Box className="home-inner">
         <HeaderRowComponent />
         <ProgramsTable />
       </Box>

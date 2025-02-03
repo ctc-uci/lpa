@@ -5,137 +5,51 @@ import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
 import plusSvg from "../../assets/icons/plus.svg";
 import { AddClassModal } from "../AddClassModal";
 
+// Remove inline styles; use classNames from home.css
 export const HeaderRowComponent = () => {
-  // State to control AddClassModal visibility
   const [isAddClassOpen, setIsAddClassOpen] = useState(false);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        width: "100%",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "24px",
-        alignSelf: "stretch",
-      }}
-    >
-      {/* Google Calendar on the left */}
+    <div className="header-row">
       <div
-        style={{
-          display: "flex",
-          height: "54.795px",
-          padding: "4px 16px",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "4px",
-          borderRadius: "15px",
-          border: "1px solid var(--medium-grey, #767778)",
-          background: "var(--light-grey, #F6F6F6)",
-          cursor: "pointer",
-        }}
+        className="google-calendar"
         onClick={() => {
-          // handle google calendar logic uhhhhh
+          // handle google calendar logic
         }}
       >
         <img
           src={googleCalendarSvg}
           alt="Google Calendar"
-          style={{ width: "20px", height: "20px" }}
+          className="google-calendar-icon"
         />
-        <span
-          style={{
-            color: "var(--medium-grey, #767778)",
-            fontFamily: "Inter",
-            fontSize: "16px",
-            fontStyle: "normal",
-            fontWeight: 600,
-            lineHeight: "normal",
-          }}
-        >
-          Google Calendar
-        </span>
+        <span className="google-calendar-text">Google Calendar</span>
       </div>
 
-      {/* Archived + New Program on right*/}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "24px",
-        }}
-      >
-        {/* Archived button */}
+      <div className="header-right">
         <div
-          style={{
-            display: "flex",
-            height: "54.795px",
-            padding: "4px 16px",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: "4px",
-            border: "none",
-            borderRadius: "0px",
-            cursor: "pointer",
-          }}
+          className="archive"
           onClick={() => {
-            // handle archive logic uhhhhhhh
+            // handle archive logic
           }}
         >
           <img
             src={archiveSvg}
             alt="Archived"
-            style={{ width: "20px", height: "20px" }}
+            className="archive-icon"
           />
-          <span
-            style={{
-              color: "var(--medium-grey, #767778)",
-              fontFamily: "Inter",
-              fontSize: "16px",
-              fontStyle: "normal",
-              fontWeight: 600,
-              lineHeight: "normal",
-            }}
-          >
-            Archived
-          </span>
+          <span className="archive-text">Archived</span>
         </div>
 
-        {/* New Program Button */}
         <div
-          style={{
-            display: "flex",
-            padding: "12px 16px",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: "4px",
-            borderRadius: "30px",
-            background: "var(--indigo, #4E4AE7)",
-            cursor: "pointer",
-          }}
-          onClick={() => {
-            // Open the AddClassModal
-            setIsAddClassOpen(true);
-          }}
+          className="new-program"
+          onClick={() => setIsAddClassOpen(true)}
         >
           <img
             src={plusSvg}
             alt="New Program"
-            style={{ width: "20px", height: "20px" }}
+            className="new-program-icon"
           />
-          <span
-            style={{
-              color: "var(--white, #FFF)",
-              fontFamily: "Inter",
-              fontSize: "16px",
-              fontStyle: "normal",
-              fontWeight: 600,
-              lineHeight: "normal",
-            }}
-          >
-            New Program
-          </span>
+          <span className="new-program-text">New Program</span>
         </div>
       </div>
 
