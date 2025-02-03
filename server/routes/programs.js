@@ -1,6 +1,7 @@
 import express, { Router } from "express";
-import { db } from "../db/db-pgp";
+
 import { keysToCamel } from "../common/utils";
+import { db } from "../db/db-pgp";
 
 const programsRouter = Router();
 programsRouter.use(express.json());
@@ -18,16 +19,16 @@ programsRouter.get("/", async (req, res) => {
          MAX(CASE WHEN a.role = 'instructor' THEN c.name END) AS instructor_name,
          MAX(CASE WHEN a.role = 'payee' THEN c.name END) AS payee_name
         FROM events AS e
-         JOIN assignments AS a ON e.id = a.event_id
-         JOIN bookings AS b ON e.id = b.event_id
-         JOIN rooms AS r ON r.id = b.room_id
-         JOIN clients AS c ON a.client_id = c.id
+         LEFT JOIN assignments AS a ON e.id = a.event_id
+         LEFT JOIN bookings AS b ON e.id = b.event_id
+         LEFT JOIN rooms AS r ON r.id = b.room_id
+         LEFT JOIN clients AS c ON a.client_id = c.id
         GROUP BY e.id, e.name, b.date, b.start_time, b.end_time, r.name
         ORDER BY e.id, b.date DESC, b.start_time DESC;
     `);
 
     if (programs.length === 0) {
-        return res.status(404).json({ error: "No programs found." });
+      return res.status(404).json({ error: "No programs found." });
     }
 
     res.status(200).json(keysToCamel(programs));
@@ -37,9 +38,9 @@ programsRouter.get("/", async (req, res) => {
 });
 
 programsRouter.get("/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const query = `
+  try {
+    const { id } = req.params;
+    const query = `
         SELECT e.id, e.name, b.date, b.start_time, b.end_time, r.name,
         MAX(CASE WHEN a.role = 'instructor' THEN c.name END) AS instructor_name,
         MAX(CASE WHEN a.role = 'payee' THEN c.name END) AS payee_name
@@ -51,19 +52,19 @@ programsRouter.get("/:id", async (req, res) => {
         WHERE e.id = $1
         GROUP BY e.id, e.name, b.date, b.start_time, b.end_time, r.name;
       `;
-  
-      const program = await db.any(query, [id]);
-  
-      if (program.length === 0) {
-        return res.status(404).json({ error: "Program not found." });
-      }
-  
-      res.status(200).json(keysToCamel(program));
-    } catch (err) {
-      res.status(500).send(err.message);
+
+    const program = await db.any(query, [id]);
+
+    if (program.length === 0) {
+      return res.status(404).json({ error: "Program not found." });
     }
-  });
-  
+
+    res.status(200).json(keysToCamel(program));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 export { programsRouter };
 
 // Assignment (client_id, role), -DONE-
