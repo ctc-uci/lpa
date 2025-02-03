@@ -85,25 +85,40 @@ eventsRouter.put("/:id", async (req, res) => {
   }
 });
 
-
 eventsRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Start a transaction
-    await db.tx(async t => {
-      // Delete related records first
-      await t.none('DELETE FROM bookings WHERE event_id = $1', [id]);
-      await t.none('DELETE FROM assignments WHERE event_id = $1', [id]);
-      await t.none('DELETE FROM invoices WHERE event_id = $1', [id]);
-      
-      // Then delete the event
-      const data = await t.any('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
-      
+    await db.tx(async (t) => {
+      // 1) Delete comments that reference these bookings
+      await t.none(`
+        DELETE FROM comments
+        WHERE booking_id IN (
+          SELECT id FROM bookings WHERE event_id = $1
+        )
+      `, [id]);
+
+      // 2) Then delete from bookings, assignments, invoices, etc.
+      await t.none(`DELETE FROM bookings WHERE event_id = $1`, [id]);
+      await t.none(`DELETE FROM assignments WHERE event_id = $1`, [id]);
+      await t.none(`DELETE FROM invoices WHERE event_id = $1`, [id]);
+
+      // 3) Finally, delete the event
+      const data = await t.any(
+        `DELETE FROM events WHERE id = $1 RETURNING *`, 
+        [id]
+      );
+
       if (data.length > 0) {
-        res.status(200).json({"result": "success", "deletedData": keysToCamel(data)});
+        res.status(200).json({
+          result: "success",
+          deletedData: keysToCamel(data),
+        });
       } else {
-        res.status(404).json({"result": "error", "message": "Event not found"});
+        res.status(404).json({
+          result: "error",
+          message: "Event not found",
+        });
       }
     });
   } catch (err) {
