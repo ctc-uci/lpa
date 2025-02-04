@@ -19,6 +19,7 @@ import { RoleProvider } from "./contexts/RoleContext";
 import { ForgotPassword } from "./components/login/ForgotPassword";
 import { PDFViewer } from "@react-pdf/renderer";
 import PDFButton from "./components/PDFButton";
+import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 
 const App = () => {
   return (
@@ -61,6 +62,10 @@ const App = () => {
                       replace
                     />
                   }
+                />
+                <Route 
+                  path="/invoices"
+                  element={<InvoicesDashboard/>}
                 />
                 <Route
                   path="*"

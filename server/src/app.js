@@ -13,6 +13,7 @@ import { assignmentsRouter } from "../routes/assignments";
 import { verifyToken } from "./middleware";
 import { clientsRouter } from "../routes/clients";
 import { invoicesRouter } from "../routes/invoices";
+import {invoicesAssignments} from "../routes/invoicesAssignments"
 
 dotenv.config();
 
@@ -50,7 +51,7 @@ app.use("/events", eventsRouter);
 app.use("/clients", clientsRouter);
 app.use("/invoices", invoicesRouter);
 app.use("/assignments", assignmentsRouter)
-
+app.use("/invoicesAssignments", invoicesAssignments)
 app.listen(SERVER_PORT, () => {
   console.info(`Server listening on ${SERVER_PORT}`);
 });

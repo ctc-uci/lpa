@@ -1,4 +1,6 @@
 import { Box, Flex, Link, Text, VStack } from "@chakra-ui/react";
+import { Logo } from "../assets/logo/Logo";
+import image from "../assets/logo/logo.png"
 
 export const Navbar = ({ children }) => {
   const menuItems = [
@@ -24,28 +26,19 @@ export const Navbar = ({ children }) => {
       w="64"
       bg="white"
       boxShadow="lg"
+      h="100vh"
     >
       {/* Logo Section */}
       <Flex
         justify="center"
         p={6}
       >
-        <Flex
-          w="16"
-          h="16"
-          rounded="full"
-          border="2px"
-          borderColor="gray.300"
-          align="center"
-          justify="center"
-        >
+        <Logo/>
           <Text
             fontSize="xl"
             fontWeight="semibold"
           >
-            LPA
           </Text>
-        </Flex>
       </Flex>
 
       {/* Navigation Links */}
@@ -62,7 +55,7 @@ export const Navbar = ({ children }) => {
             alignItems="center"
             px={4}
             py={3}
-            color="gray.700"
+            color={item.name === "Invoices" ? "#4E4AE7": "gray.700"}
             _hover={{ bg: "gray.100" }}
             rounded="lg"
           >

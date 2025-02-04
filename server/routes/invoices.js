@@ -17,7 +17,7 @@ invoicesRouter.get("/", async (req, res) => {
 });
 
 // Get invoice by id
-invoicesRouter.get("/:id", async (req, res) => {
+invoicesRouter.get("/:id", async (req, res) => { 
   try {
     const { id } = req.params;
 
@@ -217,5 +217,6 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+
 
 export { invoicesRouter };
