@@ -17,6 +17,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { ForgotPassword } from "./components/login/ForgotPassword";
+import { EditProgram } from "./components/programs/EditProgram";
 import { PDFViewer } from "@react-pdf/renderer";
 import PDFButton from "./components/PDFButton";
 
@@ -69,6 +70,15 @@ const App = () => {
                 <Route
                   path="/forgotpassword"
                   element={<ForgotPassword />}
+                />
+                <Route
+                  path="/programs/edit/:id"
+                  element={<EditProgram />}
+                  // element={
+                  //   <ProtectedRoute
+                  //     element={<EditProgram />}
+                  //   />
+                  // }
                 />
               </Routes>
             </Router>

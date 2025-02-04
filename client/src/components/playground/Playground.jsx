@@ -5,7 +5,7 @@ import {
 import { EventsTable } from "../EventsTable";
 import React from 'react';
 import PDFButton from "../PDFButton";
-import Navbar from "../Navbar";
+import Navbar from "../navbar/Navbar";
 
 export const Playground = () => {
   return (

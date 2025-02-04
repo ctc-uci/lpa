@@ -16,6 +16,50 @@ assignmentsRouter.get("/", async (req, res) => {
   }
 });
 
+const generateWhereClause = (search) => {
+  const columns = ['c.name']; // You want to search the client name
+  let searchWhereClause = '';
+
+  if (search.length > 0) {
+    searchWhereClause = ` WHERE `;
+    // Generate the condition for searching through client names
+    searchWhereClause += columns
+      .map((column) => {
+        return `CAST(${column} AS TEXT) ILIKE '%' || $1 || '%'`;
+      })
+      .join(' OR ');
+  }
+  return { searchWhereClause };
+};
+
+
+assignmentsRouter.get('/instructorSearch', async (req, res) => {
+  try {
+    console.log("in router");
+    const { searchTerm } = req.query;
+    console.log("searchTerm", searchTerm);
+    const search = searchTerm.split('+').join(' ');
+    const { searchWhereClause } = generateWhereClause(search);
+    // if (search.length > 0) {
+    //   const searchWhereClause += "AND a.role = 'instructor' AND a.client_id = c.id";
+    // }
+    const query = `
+      SELECT DISTINCT c.id, c.name
+      FROM assignments AS a
+      JOIN clients AS c ON c.id = a.client_id
+      ${searchWhereClause}
+      AND a.role = 'instructor';
+    `;
+
+    // Execute the query and pass the search term for the placeholder
+    const result = await db.query(query, [search]);
+
+    res.status(200).send(result);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 // Get an assignment by ID
 assignmentsRouter.get("/:id", async (req, res) => {
   try {
@@ -59,7 +103,7 @@ assignmentsRouter.post("/", async (req, res) => {
         text: 'INSERT INTO assignments (event_id, client_id, role) VALUES ($1, $2, $3) RETURNING *',
         values: [eventId, clientId, role],
       };
-  
+
       const result = await db.query(query);
       console.log('Query result:', result);  // Add this line
       res.status(201).json({id: result[0].id });
@@ -67,7 +111,7 @@ assignmentsRouter.post("/", async (req, res) => {
       res.status(500).send(err.message);
     }
   });
-  
+
 assignmentsRouter.get("/client/:client_id", async (req, res) => {
     try {
         const { client_id } = req.params;

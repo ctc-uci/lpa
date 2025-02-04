@@ -1,0 +1,71 @@
+#body, #programsBody {
+  width: 100vw;
+  display: flex;
+  flex-direction: row;
+  margin-right: auto;
+}
+
+#eventInfoBody {
+  width: 90%;
+  margin-left: 2.5%;
+  flex-direction: column;
+}
+
+#programsBody {
+  margin-top: 5vh;
+}
+
+#body > #navbarBody {
+  flex: 0 0 auto;
+}
+
+#body > div {
+  flex: 1;
+}
+
+#title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#save {
+  background-color: var(--indigo, #4E4AE7);
+  color: white;
+  justify-content: center;
+  align-items: center;
+  border-radius: 30px; /* CHANGE LATER */
+}
+
+#dateTimeDiv {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+#time1, #time2 {
+  width: 10%;
+}
+
+#date1, #date2 {
+  width: 10%;
+}
+
+#instructors, #payees {
+  display: flex;
+  flex-direction: row;
+  border: 1px lightgrey solid;
+  border-radius: 5px;
+  width: 20%;
+  background: #F6F6F6;
+}
+
+#instructors > Input {
+  background-color: transparent;
+  border: none;
+}
+
+#payees > Input {
+  background-color: transparent;
+  border: none;
+}
