@@ -19,6 +19,7 @@ import { RoleProvider } from "./contexts/RoleContext";
 import { ForgotPassword } from "./components/login/ForgotPassword";
 import { PDFViewer } from "@react-pdf/renderer";
 import PDFButton from "./components/PDFButton";
+import { Program } from "./components/programs/Program";
 
 const App = () => {
   return (
@@ -69,6 +70,14 @@ const App = () => {
                 <Route
                   path="/forgotpassword"
                   element={<ForgotPassword />}
+                />
+                <Route
+                  path="/programs/:id"
+                  element={
+                    <ProtectedRoute
+                      element={<Program />}
+                    />
+                  }
                 />
               </Routes>
             </Router>
