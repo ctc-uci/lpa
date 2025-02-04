@@ -46,7 +46,7 @@ import {
     ArrowUpDownIcon,
   } from '@chakra-ui/icons'
 
-  import {FileTextIcon, EllipsisIcon, Calendar, MapPin, SlidersHorizontal} from 'lucide-react'
+  import {FileTextIcon, EllipsisIcon, Calendar, MapPin, SlidersHorizontal, ChevronsUpDown} from 'lucide-react'
 
 export const ProgramSummary = () => {
 
@@ -189,8 +189,8 @@ export const ProgramSummary = () => {
 
 export const Sessions = () => {
   return (
-    <Box>
-      <Card shadow="md" m="20">
+    <Box minH="10vh">
+      <Card shadow="md" border="1px" borderColor="gray.300" borderRadius="15px">
         <CardBody m={6}>
           <Flex direction="column" justify="space-between">
             <Flex align="center" mb="15px">
@@ -202,11 +202,11 @@ export const Sessions = () => {
               <Button color="#767778" variant="outline" size="sm" mb="15px" rounded="xl" leftIcon={<SlidersHorizontal />}> Filters </Button>
             </Flex>
             <TableContainer>
-              <Table variant="simple">
+              <Table variant="unstyled">
                 <Thead>
                   <Tr>
                     <Th>Status</Th>
-                    <Th><Icon as={Calendar} boxSize={4} mr={2}/>Date</Th>
+                    <Th><Icon as={Calendar} boxSize={4} mr={2}/>Date <Icon as={ChevronsUpDown} boxSize={4}/></Th>
                     <Th><Icon as={TimeIcon} boxSize={4} mr={2}/>Time</Th>
                     <Th><Icon as={MapPin} boxSize={4} mr={1}/>Room</Th>
                     <Th> </Th>
@@ -214,7 +214,7 @@ export const Sessions = () => {
                 </Thead>
                 <Tbody>
                   <Tr>
-                    <Td><Box w="12px" h="12px" borderRadius="50%" bg="green"/></Td>
+                    <Td><Box w="12px" h="12px" borderRadius="50%" bg="green" display="flex" align="center"/></Td>
                     <Td>Thu. 01/16/2025</Td>
                     <Td>10:00 a.m. - 1:00 p.m.</Td>
                     <Td>Community</Td>
