@@ -38,7 +38,6 @@ import calendarSvg from "../../assets/icons/calendar.svg";
 import cancelSvg from "../../assets/icons/cancel.svg";
 import clockSvg from "../../assets/icons/clock.svg";
 import editSvg from "../../assets/icons/edit.svg";
-import filterSvg from "../../assets/icons/filter.svg";
 import locationSvg from "../../assets/icons/location.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
@@ -53,7 +52,6 @@ import "./home.css";
 // Icon components
 const ActiveStatusIcon = () => <img src={activeSvg} />;
 const PastStatusIcon = () => <img src={pastSvg} />;
-const FiltersIcon = () => <img src={filterSvg} />;
 const ActionsIcon = () => <img src={actionsSvg} />;
 const EditIcon = () => <img src={editSvg} />;
 const CancelIcon = () => <img src={cancelSvg} />;
@@ -295,14 +293,8 @@ export const ProgramsTable = () => {
       {/* Container for the table + filter/search row */}
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">
-          <Box
-            className="filter-box"
-            onClick={() => setIsFiltersModalOpen(true)}
-          >
-            <FiltersIcon />
-            <span className="filter-box-text">Filters</span>
-          </Box>
-
+          
+          <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
           {/* Spacer to push search bar to the right */}
           <Box flex="1" />
 
@@ -536,15 +528,6 @@ export const ProgramsTable = () => {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
-
-      {/* Filters Modal */}
-      <ProgramFiltersModal
-        isOpen={isFiltersModalOpen}
-        onClose={() => setIsFiltersModalOpen(false)}
-        onApplyFilters={handleApplyFilters}
-        filters={filters}
-        setFilters={setFilters}
-      />
     </>
   );
 };
