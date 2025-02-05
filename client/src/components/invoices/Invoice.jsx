@@ -27,21 +27,30 @@ export const Invoice = () => {
     const payeeName = "Aya De Leon"
     const payeeEmail = "payee@gmail.com"
 
-    const [total, setTotal] = useState([]);
+    const [total, setTotal] = useState(0);
     const [invoices, setInvoices] = useState([]);
+    const [billingPeriod, setBillingPeriod] = useState({});
     const [comments, setComments] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const invoiceTotalResponse = await backend.get("/invoices/total/" + id);
-                console.log("Invoice Total: ", invoiceTotalResponse.data);
-                setTotal(invoiceTotalResponse.data)
+                console.log("Invoice Total: ", invoiceTotalResponse.data.total);
+                setTotal(invoiceTotalResponse.data.total)
 
                 const invoicesResponse = await backend.get("/invoices")
                 console.log("Invoices", invoicesResponse.data);
                 setInvoices(invoicesResponse.data);
 
+                const billingPeriod = await backend.get("invoices/" + id);
+                console.log("Billing Period: ", billingPeriod.data[0]["startDate"]);
+                setBillingPeriod(
+                    {
+                        "startDate": billingPeriod.data[0]["startDate"],
+                        "endDate": billingPeriod.data[0]["endDate"]
+                    }
+                )
                 const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
                 console.log("Comments: ", commentsResponse.data);
                 setComments(commentsResponse.data);
@@ -53,60 +62,61 @@ export const Invoice = () => {
     }, [backend, id]);
 
     return (
-      <Navbar>
-        <Flex direction="row" height="100vh" width="100vw">
-            <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
-                <Flex width="100%">
-                    {/* back button */}
-                    <IconButton
-                        icon={<FaAngleLeft />}
-                        onClick={() => {
-                            navigate("/invoices");
-                        }}
-                        variant="link"
-                        color="#474849"
-                        fontSize="1.5em"
-                    >
-                    </IconButton>
-                </Flex>
-
-                <Flex direction="column" height="100%" width="100%" paddingLeft="2.5vw" paddingRight="2.5vw" gap="1.25vw">
-                    {/* title*/}
-                    <Flex direction="row" width="100%">
-                        <Heading color="#4E4AE7">Invoice Details</Heading>
-
-                        {/* buttons */}
-                        <Flex direction="row" marginLeft="auto" gap={5}>
-                            <Button height="100%" borderRadius={30} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1}>
-                                <FiEdit></FiEdit>
-                                Edit
-                            </Button>
-
-                            <Button height="100%" borderRadius={30} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1}>
-                                <FiExternalLink></FiExternalLink>
-                                Preview
-                            </Button>
-
-                        </Flex>
+        <Navbar>
+            <Flex direction="row" height="100vh" width="100vw">
+                <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
+                    <Flex width="100%">
+                        {/* back button */}
+                        <IconButton
+                            icon={<FaAngleLeft />}
+                            onClick={() => {
+                                navigate("/invoices");
+                            }}
+                            variant="link"
+                            color="#474849"
+                            fontSize="1.5em"
+                        >
+                        </IconButton>
                     </Flex>
 
-                    <InvoiceDescription
-                        description="Immigrant Rights Solidarity Week: Become an Immigration Rights Ambassador Workshop"
-                    ></InvoiceDescription>
+                    <Flex direction="column" height="100%" width="100%" paddingLeft="2.5vw" paddingRight="2.5vw" gap="1.25vw">
+                        {/* title*/}
+                        <Flex direction="row" width="100%">
+                            <Heading color="#4E4AE7">Invoice Details</Heading>
 
-                    <InvoiceStats
-                        name={payeeName}
-                        email={payeeEmail}
-                        amountDue={total.total}
-                    ></InvoiceStats>
+                            {/* buttons */}
+                            <Flex direction="row" marginLeft="auto" gap={5}>
+                                <Button height="100%" borderRadius={30} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1}>
+                                    <FiEdit></FiEdit>
+                                    Edit
+                                </Button>
 
-                    <InvoicePayments
-                        comments={comments}
-                    ></InvoicePayments>
+                                <Button height="100%" borderRadius={30} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1}>
+                                    <FiExternalLink></FiExternalLink>
+                                    Preview
+                                </Button>
 
+                            </Flex>
+                        </Flex>
+
+                        <InvoiceDescription
+                            description="Immigrant Rights Solidarity Week: Become an Immigration Rights Ambassador Workshop"
+                        ></InvoiceDescription>
+
+                        <InvoiceStats
+                            name={payeeName}
+                            email={payeeEmail}
+                            amountDue={total}
+                            billingPeriod={billingPeriod}
+                        ></InvoiceStats>
+
+                        <InvoicePayments
+                            comments={comments}
+                        ></InvoicePayments>
+
+                    </Flex>
                 </Flex>
             </Flex>
-        </Flex>
-      </Navbar>
+        </Navbar>
     );
 }

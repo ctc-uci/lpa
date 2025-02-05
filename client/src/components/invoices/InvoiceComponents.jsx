@@ -18,19 +18,27 @@ import {
 } from '@chakra-ui/react';
 
 export const InvoiceDescription = ({ description }) => {
-  return (
-    <Flex direction="row" width="100%" alignItems="center">
-      <Text fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849" fontWeight="bold" marginRight="0.5rem">
-          Program:
-      </Text>
-      <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
-          { description }
-      </Text>
-    </Flex>
-  );
+    return (
+        <Flex direction="row" width="100%" alignItems="center">
+            <Text fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849" fontWeight="bold" marginRight="0.5rem">
+                Program:
+            </Text>
+            <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
+                {description}
+            </Text>
+        </Flex>
+    );
 };
 
-export const InvoiceStats = ({ name, email, amountDue }) => {
+export const InvoiceStats = ({ name, email, amountDue, billingPeriod }) => {
+    const formatDate = (isoDate) => {
+        const date = new Date(isoDate);
+        return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric"
+        });
+    }
+
     return (
         <Flex direction="row" h="auto" w="100%" gap="2rem">
             {/* Billed To Section */}
@@ -54,22 +62,24 @@ export const InvoiceStats = ({ name, email, amountDue }) => {
 
             {/* Invoice Details Section */}
             <Card
-              flex={3}
-              h="7em"
-              borderRadius={15}
-              borderWidth="1px"
-              color="#D2D2D2"
-              boxShadow="none"
-              width="75%"
-              padding="1.5em"
-              display="flex"
-              flexDirection="column"
-              justifyContent="center"
+                flex={3}
+                h="7em"
+                borderRadius={15}
+                borderWidth="1px"
+                color="#D2D2D2"
+                boxShadow="none"
+                width="75%"
+                padding="1.5em"
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
             >
                 <Flex width="100%" justifyContent="space-between">
                     <Box>
                         <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Billing Period </Text>
-                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> Jan 1 - Jan 31 </Text>
+                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+                            {formatDate(billingPeriod["startDate"])} - {formatDate(billingPeriod["endDate"])}
+                        </Text>
                     </Box>
                     <Box>
                         <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Amount Due </Text>
@@ -113,9 +123,9 @@ export const InvoicePayments = ({ comments }) => {
 
     return (
         <Flex direction="column" w="100%">
-          <Text fontWeight="bold" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
-              Comments
-          </Text>
+            <Text fontWeight="bold" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+                Comments
+            </Text>
 
             <Flex
                 borderRadius={15}
@@ -150,14 +160,14 @@ export const InvoicePayments = ({ comments }) => {
                                 </Tr>))
                         ) : (
                             <Tr>
-                                <Td colspan={3}>No comments available.</Td>
+                                <Td colSpan={3}>No comments available.</Td>
                             </Tr>
                         )}
                     </Tbody>
 
 
                 </Table>
-              {/* </TableContainer> */}
+                {/* </TableContainer> */}
             </Flex>
             <Flex direction="row" width="100%" alignItems="center">
                 <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" marginRight="0.5rem"> Show: </Text>
