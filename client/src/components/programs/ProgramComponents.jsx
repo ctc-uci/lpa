@@ -49,142 +49,183 @@ import {
   } from "@chakra-ui/react"
 
   import {
-    ChevronLeftIcon,
     TimeIcon,
     DownloadIcon,
-    AttachmentIcon,
     EmailIcon,
     InfoIcon,
-    HamburgerIcon,
     EditIcon,
     AtSignIcon,
     CloseIcon,
     CalendarIcon,
-    CopyIcon,
-    ArrowUpDownIcon,
+   
   } from '@chakra-ui/icons'
 
-  import {FileTextIcon, EllipsisIcon, Calendar, MapPin, SlidersHorizontal, ChevronsUpDown} from 'lucide-react'
+  import { UserIcon, FileTextIcon, EllipsisIcon, Calendar, MapPin, SlidersHorizontal, ChevronsUpDown} from 'lucide-react'
 
-export const ProgramSummary = ({program, nextRoom, sessions}) => {
-
-  // Make sure program data is fetched before rendering
-  if (!program || program.length === 0) {
-    return <div>Loading...</div>; // Possibly change loading indicator
-  }
-  // console.log("programs", program[0])
-  // console.log("sessions: ",  nextRoom)
-  return (
-      <Box minH="10vh" py={8}>
-          <Container maxW="90%" >
-              <Card shadow="md" border="1px" borderColor="gray.300" borderRadius="15px">
-                  <CardBody m={6}>
-                      <Flex mb={6} justify="space-between" align="center" >
-                          <Flex align="center" gap={2}>
+  export const ProgramSummary = ({program, bookingInfo}) => {
+    const formatTimeString = (timeString) => {
+      if (!timeString) return '';
+      if (timeString.includes(':')) {
+        const [hours, minutes] = timeString.split(':');
+        const hour = parseInt(hours, 10);
+        const period = hour >= 12 ? 'pm' : 'am';
+        const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+        return `${displayHour}:${minutes} ${period}`;
+      }
+      return timeString;
+    };
+  
+    // Default empty booking info structure
+    const defaultBookingInfo = {
+      nextSession: null,
+      nextRoom: null,
+      instructors: [],
+      payees: []
+    };
+  
+    const safeBookingInfo = {
+      ...defaultBookingInfo,
+      ...(bookingInfo || {})
+    };
+  
+    // Make sure program data is fetched before rendering
+    if (!program || program.length === 0) {
+      return <div>Loading...</div>;
+    }
+  
+    const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
+  
+    return (
+        <Box minH="10vh" py={8}>
+            <Container maxW="90%" >
+                <Card shadow="md" border="1px" borderColor="gray.300" borderRadius="15px">
+                    <CardBody m={6}>
+                        <Flex mb={6} justify="space-between" align="center" >
+                            <Flex align="center" gap={2}>
+                                <Flex align="center" gap={2}>
+                                    <Icon as={FileTextIcon} boxSize={6} color="gray.600" />
+                                    <Text fontSize="xl" fontWeight="semibold" color="gray.600">
+                                        Summary
+                                    </Text>
+                                </Flex>
+                            </Flex>
+  
+                            <Flex align="center" gap={2}>
+                                <Button leftIcon={<Icon as={DownloadIcon} />} colorScheme="purple" size="sm" borderRadius="20px">
+                                    Invoice
+                                </Button>
+                                <Menu>
+                                    <MenuButton as={IconButton} icon={<Icon as={EllipsisIcon} />} aria-label="Options" border="0.5px" bg="gray.50" size="sm" variant="ghost" borderRadius="20px"  />
+                                    <MenuList>
+                                        <MenuItem icon={<Icon as={EditIcon} />}>Edit</MenuItem>
+                                        <MenuItem icon={<Icon as={CloseIcon} />} color="red.500">
+                                            Cancel
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
+                            </Flex>
+                        </Flex>
+  
+                        <Stack spacing={6}>
+                            <Heading as="h2" size="md" textColor="gray.600">
+                              {program[0]?.name || 'Untitled Program'}
+                            </Heading>
+  
+                            <Flex align="center" gap={2} color="gray.700">
+                                <Icon as={TimeIcon}/>
+                                <Text>
+                                  {nextSession ? 
+                                  `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}` 
+                                  : 'No session scheduled'}
+                                </Text>
+                                <Text color="gray.600">next up on</Text>
+                                <Icon as={CalendarIcon} />
+                                <Text>
+                                  {nextSession?.date ? 
+                                    new Date(nextSession.date).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: '2-digit'
+                                    })
+                                    : 'No date available'
+                                  }
+                                </Text>
+                            </Flex>
+  
+                            <Flex spacing={2} gap={6}>
                               <Flex align="center" gap={2}>
-                                  <Icon as={FileTextIcon} boxSize={6} color="gray.600" />
-                                  <Text fontSize="xl" fontWeight="semibold" color="gray.600">
-                                      Summary
+                                <Icon as={UserIcon} color="gray.600" />
+                                <Text color="gray.600">
+                                  {payees?.length > 0 ? 
+                                    payees.map(payee => payee.clientName).join(', ')
+                                    : 'No payees'
+                                  }
+                                </Text>
+                              </Flex>
+                              <Flex align="center" gap={2}>
+                                <Icon as={UserIcon} color="gray.600" />
+                                <Text color="gray.600">
+                                  {instructors?.length > 0 ?
+                                    instructors.map(instructor => instructor.clientName).join(', ')
+                                    : 'No instructors'
+                                  }
+                                </Text>
+                              </Flex>
+                            </Flex>
+  
+                            <Flex spacing={2} gap={6}>
+                                <Flex align="center" gap={2}>
+                                  <Icon as={EmailIcon} color="gray.600" />
+                                  <Text color="gray.600">
+                                    {(instructors?.length > 0 || payees?.length > 0) ?
+                                      [...(instructors || []), ...(payees || [])]
+                                        .map(person => person?.clientEmail)
+                                        .filter(Boolean)
+                                        .join(', ')
+                                      : 'No emails available'
+                                    }
                                   </Text>
-                              </Flex>
-                          </Flex>
-
-                          <Flex align="center" gap={2}>
-                              <Button leftIcon={<Icon as={DownloadIcon} />} colorScheme="purple" size="sm" borderRadius="20px">
-                                  Invoice
-                              </Button>
-                              <Menu>
-                                  <MenuButton as={IconButton} icon={<Icon as={EllipsisIcon} />} aria-label="Options" border="0.5px" bg="gray.50" size="sm" variant="ghost" borderRadius="20px"  />
-                                  <MenuList>
-                                      <MenuItem icon={<Icon as={EditIcon} />}>Edit</MenuItem>
-                                      <MenuItem icon={<Icon as={CloseIcon} />} color="red.500">
-                                          Cancel
-                                      </MenuItem>
-                                  </MenuList>
-                              </Menu>
-                          </Flex>
-                      </Flex>
-
-                      <Stack spacing={6}>
-                          <Heading as="h2" size="md" textColor="gray.600">
-                            {program[0].name}
-                          </Heading>
-
-                          <Flex align="center" gap={2} color="gray.700">
-                              <Icon as={TimeIcon}/>
-                              <Text>10:00 am - 1:00 am</Text>
-                              <Text color="gray.600">next up on</Text>
-                              <Icon as={CalendarIcon} />
-                              <Text>Thu. 01/16/2025</Text>
-                          </Flex>
-
-                          <Flex spacing={2} gap={6}>
-                              <Flex align="center" gap={2}>
-                              <Icon as={AtSignIcon} color="gray.600" />
-                              <Text color="gray.600">Aya de Leon, Jane Doe</Text>
-                              </Flex>
-                              <Flex align="center" gap={2}>
-                              <Icon as={AtSignIcon} color="gray.600" />
-                              <Text color="gray.600">Aya de Leon</Text>
-                              </Flex>
-                          </Flex>
-
-                          <Flex spacing={2} gap={6}>
-                              <Flex align="center" gap={2}>
-                              <Icon as={EmailIcon} color="gray.600" />
-                              <Text color="gray.600">AyadeLeon@gmail.com, JaneDoe@email.com</Text>
-                              </Flex>
-                          </Flex>
-
-                          <Flex  align="center" gap={8}>
-                              <Flex align="center" gap={2}>
-                                  <Icon as={InfoIcon} color="gray.600" />
-                                  <Text color="gray.600">Theater</Text>
-                              </Flex>
-                              <Flex align="center" gap={2}>
-                                  <Text color="gray.600">$</Text>
-
-                                  <Text color="gray.600">60.00</Text>
-                                  <Text color="gray.600">/ hour</Text>
-                              </Flex>
-
-                          </Flex>
-
-                          <Stack spacing={6}>
-                              <Box spacing={2}>
-                                  <Heading size="md" textColor="gray.600">
-                                      Room Description
-                                  </Heading>
-                                  <Text color="gray.600" text="xs" mt={4}>
-                                  {program?.description || 'No description available'}
-
-                                  </Text>
-                              </Box>
-
-                              <Box>
-                                  <Heading size="md" textColor="gray.600">
-                                      Class Description
-                                  </Heading>
-                                  <Text color="gray.600" text="xs" mt={4}>
-                                      Lorem ipsum dolor szt amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-                                      et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                                      aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-                                      cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                                      culpa qui officia deserunt mollit anim id est laborum.
-                                  </Text>
-                              </Box>
-
-                          </Stack>
-
-                      </Stack>
-                  </CardBody>
-              </Card>
-
-          </Container>
-
-      </Box>
-  );
-};
+                                </Flex>
+                            </Flex>
+  
+                            <Flex align="center" gap={8}>
+                                <Flex align="center" gap={2}>
+                                    <Icon as={InfoIcon} color="gray.600" />
+                                    <Text color="gray.600">{nextRoom?.name || "-"}</Text>
+                                </Flex>
+                                <Flex align="center" gap={2}>
+                                    <Text color="gray.600">$</Text>
+                                    <Text color="gray.600">{nextRoom?.rate || "-.--"}</Text>
+                                    <Text color="gray.600">/ hour</Text>
+                                </Flex>
+                            </Flex>
+  
+                            <Stack spacing={6}>
+                                <Box spacing={2}>
+                                    <Heading size="md" textColor="gray.600">
+                                        Room Description
+                                    </Heading>
+                                    <Text color="gray.600" text="xs" mt={4}>
+                                      {nextRoom?.description || 'No description available'}
+                                    </Text>
+                                </Box>
+  
+                                <Box>
+                                    <Heading size="md" textColor="gray.600">
+                                        Class Description
+                                    </Heading>
+                                    <Text color="gray.600" text="xs" mt={4}>
+                                        {program[0]?.description || 'No description available'}
+                                    </Text>
+                                </Box>
+                            </Stack>
+                        </Stack>
+                    </CardBody>
+                </Card>
+            </Container>
+        </Box>
+    );
+  };
 
 export const Sessions = ({ sessions, rooms }) => {
   const formatDate = (isoString) => {

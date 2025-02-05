@@ -16,7 +16,6 @@ export const Program = () => {
   const [ sessions, setSessions ] = useState(null);
   const [ roomIds, setRoomIds ] = useState(null);
   const [ roomNames, setRoomNames] = useState(null);
-  const [ nextRoom, setNextRoom ] = useState(null);
   const [ nextBookingInfo, setNextBookingInfo ] = useState(null);
 
 
@@ -31,47 +30,53 @@ export const Program = () => {
   };
 
 
-  const getNextRoom = async () => {
-    try {
-      const nextSession = sessions?.find(session => !session.archived);
-
-      if (!nextSession) {
-        console.log("No upcoming sessions found");
-        return;
-      }
-
-      const roomResponse = await backend.get(`/rooms/${nextSession.roomId}`);
-      setNextRoom(roomResponse.data[0]);
-    }catch {
-      console.log("From getNextRoom: ", error);
-    }
-
-  }
-
+  
   const getNextBookingInfo = async () => {
     try {
       const nextBooking = {
         nextSession: {},
-        nextRoom:{},
-
-
+        nextRoom: {},
+        assignments: {},
+        instructors: [], 
+        payees: []
       };
+
+
       const nextSession = sessions?.find(session => !session.archived);
 
       if (!nextSession) {
         console.log("No upcoming sessions found");
         return;
       }
-      nextBooking.nextSession = nextSessio
+
+      nextBooking.nextSession = nextSession;
       const roomResponse = await backend.get(`/rooms/${nextBooking.nextSession.roomId}`);
-      setNextRoom(roomResponse.data[0]);
-      nextBooking.nextRoom = roomResponse.data[0]
+      nextBooking.nextRoom = roomResponse.data[0];
 
+      const assignmentsResponse = await backend.get(`/assignments/event/${program[0].id}`);
 
-      const assignmentResponse = await backend.get(`/assigments/event/${nextBooking.nextSession.id}`);
+      nextBooking.assignments = assignmentsResponse.data;
 
+      for (const assignment of assignmentsResponse.data) {
+        const clientResponse = await backend.get(`/clients/${assignment.clientId}`);
+        const assignmentWithClient = {
+          ...assignment,
+          clientName: clientResponse.data.name,
+          clientEmail: clientResponse.data.email
+        };
+  
+        if (assignment.role === 'instructor') {
+          nextBooking.instructors.push(assignmentWithClient);
+        } else if (assignment.role === 'payee') {
+          nextBooking.payees.push(assignmentWithClient);
+        }
+      }
 
-
+      setNextBookingInfo(nextBooking);
+    } catch (error) {
+      console.log("From getNextBookingInfo: ", error);
+    }
+  };
 
   const getSessions = async () => {
     try {
@@ -105,24 +110,38 @@ export const Program = () => {
   useEffect(() => {
     getProgram();
     getSessions();
+    
+    
 
   }, [id]);
 
   useEffect(() => {
     if (roomIds) {
       getRoomNames();
-      getNextRoom();
+      
     }
   }, [roomIds]);
+
+  useEffect(() => {
+    if (program && sessions) {
+      getNextBookingInfo();
+    }
+  }, [program, sessions]);
+
+
+  
+  
+
+  
 
   return (
     <Flex>
       <Navbar/>
       <Box>
-        <ProgramSummary program={program} nextRoom={nextRoom} sessions = {sessions}/>
+        <ProgramSummary program={program} bookingInfo={nextBookingInfo}/>
         <Sessions sessions={sessions} rooms={roomNames}/>
       </Box>
     </Flex>
   );
 };
-}
+
