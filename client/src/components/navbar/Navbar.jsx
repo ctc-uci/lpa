@@ -41,19 +41,18 @@ export const Navbar = ({ children }) => {
         px={4}
       >
         {menuItems.map((item) => (
-          <div key={item.name} className="navItem">
+          <div key={item.name} className="navItem" color="#474849" _hover={{ color: "#4E4AE7" }}>
             <Link
               href={item.path}
               display="flex"
               alignItems="center"
               px={4}
               py={3}
-              color="gray.700"
               rounded="lg"
               _hover={{ color: "#4E4AE7" }}
               className="navLink"
             >
-              <Icon className="navIcon" color="#474849" _hover={{ color: "#4E4AE7" }} fontSize="2xl">{item.icon}</Icon>
+              <Icon className="navIcon"  fontSize="2xl">{item.icon}</Icon>
               <Text className="navText">{item.name}</Text>
             </Link>
           </div>
