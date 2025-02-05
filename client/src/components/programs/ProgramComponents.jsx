@@ -57,7 +57,7 @@ import {
     AtSignIcon,
     CloseIcon,
     CalendarIcon,
-   
+
   } from '@chakra-ui/icons'
 
   import { UserIcon, FileTextIcon, EllipsisIcon, Calendar, MapPin, SlidersHorizontal, ChevronsUpDown} from 'lucide-react'
@@ -74,7 +74,7 @@ import {
       }
       return timeString;
     };
-  
+
     // Default empty booking info structure
     const defaultBookingInfo = {
       nextSession: null,
@@ -82,19 +82,19 @@ import {
       instructors: [],
       payees: []
     };
-  
+
     const safeBookingInfo = {
       ...defaultBookingInfo,
       ...(bookingInfo || {})
     };
-  
+
     // Make sure program data is fetched before rendering
     if (!program || program.length === 0) {
       return <div>Loading...</div>;
     }
-  
+
     const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
-  
+
     return (
         <Box minH="10vh" py={8}>
             <Container maxW="90%" >
@@ -109,7 +109,7 @@ import {
                                     </Text>
                                 </Flex>
                             </Flex>
-  
+
                             <Flex align="center" gap={2}>
                                 <Button leftIcon={<Icon as={DownloadIcon} />} colorScheme="purple" size="sm" borderRadius="20px">
                                     Invoice
@@ -125,23 +125,23 @@ import {
                                 </Menu>
                             </Flex>
                         </Flex>
-  
+
                         <Stack spacing={6}>
                             <Heading as="h2" size="md" textColor="gray.600">
                               {program[0]?.name || 'Untitled Program'}
                             </Heading>
-  
+
                             <Flex align="center" gap={2} color="gray.700">
                                 <Icon as={TimeIcon}/>
                                 <Text>
-                                  {nextSession ? 
-                                  `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}` 
+                                  {nextSession ?
+                                  `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
                                   : 'No session scheduled'}
                                 </Text>
                                 <Text color="gray.600">next up on</Text>
                                 <Icon as={CalendarIcon} />
                                 <Text>
-                                  {nextSession?.date ? 
+                                  {nextSession?.date ?
                                     new Date(nextSession.date).toLocaleDateString('en-US', {
                                       year: 'numeric',
                                       month: '2-digit',
@@ -151,12 +151,12 @@ import {
                                   }
                                 </Text>
                             </Flex>
-  
+
                             <Flex spacing={2} gap={6}>
                               <Flex align="center" gap={2}>
                                 <Icon as={UserIcon} color="gray.600" />
                                 <Text color="gray.600">
-                                  {payees?.length > 0 ? 
+                                  {payees?.length > 0 ?
                                     payees.map(payee => payee.clientName).join(', ')
                                     : 'No payees'
                                   }
@@ -172,7 +172,7 @@ import {
                                 </Text>
                               </Flex>
                             </Flex>
-  
+
                             <Flex spacing={2} gap={6}>
                                 <Flex align="center" gap={2}>
                                   <Icon as={EmailIcon} color="gray.600" />
@@ -187,7 +187,7 @@ import {
                                   </Text>
                                 </Flex>
                             </Flex>
-  
+
                             <Flex align="center" gap={8}>
                                 <Flex align="center" gap={2}>
                                     <Icon as={InfoIcon} color="gray.600" />
@@ -199,7 +199,7 @@ import {
                                     <Text color="gray.600">/ hour</Text>
                                 </Flex>
                             </Flex>
-  
+
                             <Stack spacing={6}>
                                 <Box spacing={2}>
                                     <Heading size="md" textColor="gray.600">
@@ -209,7 +209,7 @@ import {
                                       {nextRoom?.description || 'No description available'}
                                     </Text>
                                 </Box>
-  
+
                                 <Box>
                                     <Heading size="md" textColor="gray.600">
                                         Class Description
@@ -274,8 +274,39 @@ export const Sessions = ({ sessions, rooms }) => {
   }
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [timeRange, setTimeRange] = useState({ start: '', end: '' });
+  const [status, setStatus] = useState('All');
+  const [selectedRoom, setSelectedRoom] = useState('All');
+
+  const filterSessions = () => {
+    return sessions.filter((session) => {
+      const sessionDate = new Date(session.date);
+      const sessionStartTime = session.startTime;
+      const sessionEndTime = session.endTime;
+
+      const isDateInRange = (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
+                            (!dateRange.end || sessionDate <= new Date(dateRange.end));
+      const isTimeInRange = (!timeRange.start || timeRange.start <= sessionStartTime) &&
+                            (!timeRange.end || sessionEndTime <= timeRange.end);
+      const isStatusMatch = status === 'All' || (status === 'Active' && !hasTimePassed(session.date)) ||
+                            (status === 'Past' && hasTimePassed(session.date));
+      const isRoomMatch = selectedRoom === 'All' || rooms.get(session.roomId) === selectedRoom;
+
+      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
+    });
+  };
+
+  const handleDateChange = (field, value) => {
+    setDateRange((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleTimeChange = (field, value) => {
+    setTimeRange((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
-    <Box minH="10vh" marginLeft="5vw" marginRight="5vw" marginBottom="4vw">
+    <Box minH="10rem" marginLeft="5vw" marginRight="5vw" marginBottom="4vw">
       <Card shadow="md" border="1px" borderColor="gray.300" borderRadius="15px">
         <CardBody m={6}>
           <Flex direction="column" justify="space-between">
@@ -290,28 +321,83 @@ export const Sessions = ({ sessions, rooms }) => {
                 </PopoverTrigger>
                 <Portal>
                   <PopoverContent>
-                    <PopoverBody>
-                      <FormControl id="date">
-                        <FormLabel>Date</FormLabel>
-                        <HStack>
-                          <Input size="xs" borderRadius="5px" width="30%" height="20%" placeholder="MM/DD/YYYY" />
-                          <Text> to </Text>
-                          <Input size="xs" borderRadius="5px" width="30%" height="20%" placeholder="MM/DD/YYYY" />
-                        </HStack>
-                      </FormControl>
-                      <FormControl id="time">
-                        <FormLabel>Time</FormLabel>
-                        <Input placeholder="MM/DD/YYYY" />
-                      </FormControl>
-                      <FormControl id="status">
-                        <FormLabel>Status</FormLabel>
-                        <Input placeholder="MM/DD/YYYY" />
-                      </FormControl>
-                      <FormControl id="room">
-                        <FormLabel>Room</FormLabel>
-                        <Input placeholder="MM/DD/YYYY" />
-                      </FormControl>
-                    </PopoverBody>
+                    <Box margin="16px">
+                      <PopoverBody>
+                        <Box display="flex" flexDirection="column" alignItems="flex-start" gap="24px" alignSelf="stretch">
+                          <FormControl id="date">
+                            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="flex-start" gap="16px" alignSelf="stretch">
+                              <HStack spacing={2}>
+                                <Icon as={CalendarIcon} boxSize={4} color="#767778" />
+                                <Text fontWeight="bold" color="#767778">Date</Text>
+                              </HStack>
+                              <Box display="flex" alignItems="center" gap="8px">
+                                <Input size="sm" borderRadius="5px" borderColor="#D2D2D2" backgroundColor="#F6F6F6" width="35%" height="20%" type="date" placeholder="MM/DD/YYYY" onChange={(e) => handleDateChange('start', e.target.value)}/>
+                                <Text> to </Text>
+                                <Input size="sm" borderRadius="5px" borderColor="#D2D2D2" backgroundColor="#F6F6F6" width="35%" height="20%" type="date" placeholder="MM/DD/YYYY" onChange={(e) => handleDateChange('end', e.target.value)}/>
+                              </Box>
+                            </Box>
+                          </FormControl>
+                          <FormControl id="time">
+                            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="flex-start" gap="16px" alignSelf="stretch">
+                              <HStack spacing={2}>
+                                <Icon as={TimeIcon} boxSize={4} color="#767778" />
+                                <Text fontWeight="bold" color="#767778">Time</Text>
+                              </HStack>
+                              <Box display="flex" alignItems="center" gap="8px">
+                                <Input size="xs" borderRadius="5px" borderColor="#D2D2D2" backgroundColor="#F6F6F6" width="30%" height="20%" type="time" placeholder="00:00 am" onChange={(e) => handleTimeChange('start', e.target.value)} />
+                                <Text> to </Text>
+                                <Input size="xs" borderRadius="5px" borderColor="#D2D2D2" backgroundColor="#F6F6F6" width="30%" height="20%" type="time" placeholder="00:00 pm" onChange={(e) => handleTimeChange('end', e.target.value)} />
+                              </Box>
+                            </Box>
+                          </FormControl>
+                          <FormControl id="status">
+                            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="flex-start" gap="16px" alignSelf="stretch">
+                              <Text fontWeight="bold" color="#767778">Status</Text>
+                              <Box display="flex" alignItems="center" gap="8px">
+                                <Button
+                                  borderRadius="30px"
+                                  borderWidth="1px"
+                                  minWidth="auto"
+                                  height="20%"
+                                  onClick={() => setStatus('All')}
+                                  backgroundColor={status === 'All' ? "#EDEDFD" : "#F6F6F6"}
+                                  borderColor={status === 'All' ? "#4E4AE7" : "#767778"}>
+                                  All
+                                </Button>
+                                <Button borderRadius="30px" borderWidth="1px" minWidth="auto" height="20%" onClick={() => setStatus('Active')} backgroundColor={status === 'Active' ? "#EDEDFD" : "#F6F6F6"}
+                                  borderColor={status === 'Active' ? "#4E4AE7" : "#767778"}>
+                                  <Box display="flex" justifyContent="center" alignItems="center" gap="4px">
+                                    <Box width="10px" height="10px" borderRadius="50%" bg="#0C824D" />
+                                    Active
+                                  </Box>
+                                </Button>
+                                <Button borderRadius="30px" borderWidth="1px" minWidth="auto" height="20%" onClick={() => setStatus('Past')} backgroundColor={status === 'Past' ? "#EDEDFD" : "#F6F6F6"}
+                                  borderColor={status === 'Past' ? "#4E4AE7" : "#767778"}>
+                                  <Box display="flex" justifyContent="center" alignItems="center" gap="4px">
+                                    <Box width="10px" height="10px" borderRadius="50%" bg="#DAB434" />
+                                    Past
+                                  </Box>
+                                </Button>
+                              </Box>
+                            </Box>
+                          </FormControl>
+                          <FormControl id="room">
+                            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="flex-start" gap="16px" alignSelf="stretch">
+                              <HStack spacing={2}>
+                                <Icon as={MapPin} boxSize={4} color="#767778" />
+                                <Text fontWeight="bold" color="#767778">Room</Text>
+                              </HStack>
+                              <HStack spacing={2}>
+                                <Button borderRadius="30px" borderWidth="1px" width="15%" height="20%" onClick={() => setSelectedRoom('All')} backgroundColor={selectedRoom === 'All' ? "#EDEDFD" : "#F6F6F6"} borderColor={selectedRoom === 'All' ? "#4E4AE7" : "#767778"}>All</Button>
+                                {Array.from(rooms.values()).map((room, index) => (
+                                  <Button key={index} borderRadius="30px" borderWidth="1px" minWidth="auto" height="20%" onClick={() => setSelectedRoom(room)} backgroundColor={selectedRoom === room ? "#EDEDFD" : "#F6F6F6"} borderColor={selectedRoom === room ? "#4E4AE7" : "#767778"}>{room}</Button>
+                                ))}
+                              </HStack>
+                            </Box>
+                          </FormControl>
+                        </Box>
+                      </PopoverBody>
+                    </Box>
                   </PopoverContent>
                 </Portal>
               </Popover>
@@ -328,12 +414,12 @@ export const Sessions = ({ sessions, rooms }) => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {sessions.map((sesh) => (
-                    <Tr key={sesh.id}>
-                      <Td><Box height="10px" width="10px" borderRadius="50%" bg={hasTimePassed(sesh.date) ? "orange" : "green"}></Box></Td>
-                      <Td>{formatDate(sesh.date)}</Td>
-                      <Td>{formatTime(sesh.startTime)} - {formatTime(sesh.endTime)}</Td>
-                      <Td>{rooms.get(sesh.roomId)}</Td>
+                  {filterSessions().map((session) => (
+                    <Tr key={session.id}>
+                      <Td><Box height="10px" width="10px" borderRadius="50%" bg={hasTimePassed(session.date) ? "#DAB434" : "#0C824D"}></Box></Td>
+                      <Td>{formatDate(session.date)}</Td>
+                      <Td>{formatTime(session.startTime)} - {formatTime(session.endTime)}</Td>
+                      <Td>{rooms.get(session.roomId)}</Td>
                       <Td><IconButton size="sm" rounded="full"><EllipsisIcon /></IconButton></Td>
                     </Tr>
                   ))}
