@@ -17,8 +17,20 @@ import {
     Td
 } from '@chakra-ui/react';
 
+export const InvoiceDescription = ({ description }) => {
+  return (
+    <Flex direction="row" width="100%" alignItems="center">
+      <Text fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849" fontWeight="bold" marginRight="0.5rem">
+          Program:
+      </Text>
+      <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
+          { description }
+      </Text>
+    </Flex>
+  );
+};
 
-export const InvoiceStats = ({ name, email, amountDue}) => {
+export const InvoiceStats = ({ name, email, amountDue }) => {
     return (
         <Flex direction="row" h="auto" w="100%" gap="2rem">
             {/* Billed To Section */}
@@ -157,7 +169,7 @@ export const InvoicePayments = ({ comments }) => {
                 </Select>
                 <Text>per page</Text>
                 <Flex direction="row" marginLeft="auto" alignItems="center">
-                    <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" marginRight="1rem"> {currentPageNumber} of {totalPages} </Text>
+                    <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" marginRight="1rem"> {currentPageNumber} of {totalPages < 1 ? 1 : totalPages} </Text>
                     <Button onClick={handlePrevPage} isDisabled={currentPageNumber === 1} borderLeftRadius={30}>
                         <FaAngleLeft></FaAngleLeft>
                     </Button>

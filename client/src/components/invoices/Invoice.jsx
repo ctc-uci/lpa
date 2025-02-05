@@ -14,7 +14,7 @@ import {
     IconButton,
 } from "@chakra-ui/react";
 
-import { InvoicePayments, InvoiceStats } from "./InvoiceComponents";
+import { InvoicePayments, InvoiceStats, InvoiceDescription } from "./InvoiceComponents";
 import Navbar from "../Navbar";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
@@ -42,7 +42,7 @@ export const Invoice = () => {
                 console.log("Invoices", invoicesResponse.data);
                 setInvoices(invoicesResponse.data);
 
-                const commentsResponse = await backend.get('/comments/invoice/' + id);
+                const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
                 console.log("Comments: ", commentsResponse.data);
                 setComments(commentsResponse.data);
             } catch (error) {
@@ -90,26 +90,20 @@ export const Invoice = () => {
                         </Flex>
                     </Flex>
 
-
-                    <Flex direction="row" width="100%" alignItems="center">
-                        <Text fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849" fontWeight="bold" marginRight="0.5rem">
-                            Program:
-                        </Text>
-                        <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
-                            Immigrant Rights Solidarity Week: Become an Immigration Rights Ambassador Workshop
-                        </Text>
-                    </Flex>
+                    <InvoiceDescription
+                        description="Immigrant Rights Solidarity Week: Become an Immigration Rights Ambassador Workshop"
+                    ></InvoiceDescription>
 
                     <InvoiceStats
                         name={payeeName}
                         email={payeeEmail}
                         amountDue={total.total}
-                    >
-                    </InvoiceStats>
+                    ></InvoiceStats>
+
                     <InvoicePayments
                         comments={comments}
-                    >
-                    </InvoicePayments>
+                    ></InvoicePayments>
+
                 </Flex>
             </Flex>
         </Flex>
