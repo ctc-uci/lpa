@@ -155,8 +155,12 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             <FormControl>
               <FormLabel>Status</FormLabel>
               <HStack alignItems="center">
-                <ButtonGroup variant="outline" spacing={3} colorScheme="purple">
-                  <Button 
+                <ButtonGroup
+                  variant="outline"
+                  spacing={3}
+                  colorScheme="purple"
+                >
+                  <Button
                     borderRadius="full"
                     borderWidth="2px"
                     color={status === "all" ? "purple.500" : "gray.300"}
@@ -166,14 +170,24 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
                     <Text mb="0">All</Text>
                   </Button>
                   {/* ACTIVE */}
-                  <Button 
+                  <Button
                     borderRadius="full"
                     borderWidth="2px"
                     color={status === "active" ? "purple.500" : "gray.300"}
                     onClick={() => setStatus("active")}
                   >
-                    <Box as="img" src={activeSvg} alt="Active Icon" boxSize="20px" />
-                    <Text ml="2" mb="0">Active</Text>
+                    <Box
+                      as="img"
+                      src={activeSvg}
+                      alt="Active Icon"
+                      boxSize="20px"
+                    />
+                    <Text
+                      ml="2"
+                      mb="0"
+                    >
+                      Active
+                    </Text>
                   </Button>
                   <Button
                     borderRadius="full"
@@ -181,7 +195,12 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
                     color={status === "past" ? "purple.500" : "gray.300"}
                     onClick={() => setStatus("past")}
                   >
-                    <Box as="img" src={pastSvg} alt="Past Icon" boxSize="20px" />
+                    <Box
+                      as="img"
+                      src={pastSvg}
+                      alt="Past Icon"
+                      boxSize="20px"
+                    />
                     <Text ml="2">Past</Text>
                   </Button>
                 </ButtonGroup>
@@ -191,7 +210,12 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             {/* === ROOM FILTER (PILL BUTTONS) === */}
             <FormControl>
               <HStack>
-                <Box as="img" src={locationSvg} alt="Location Icon" boxSize="20px" />
+                <Box
+                  as="img"
+                  src={locationSvg}
+                  alt="Location Icon"
+                  boxSize="20px"
+                />
                 <FormLabel mt={1}>Room</FormLabel>
               </HStack>
               <HStack
@@ -230,7 +254,12 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             {/* === INSTRUCTOR DROPDOWN === */}
             <FormControl>
               <HStack>
-                <Box as="img" src={personSvg} alt="Person Icon" boxSize="20px" />
+                <Box
+                  as="img"
+                  src={personSvg}
+                  alt="Person Icon"
+                  boxSize="20px"
+                />
                 <FormLabel>Instructor(s)</FormLabel>
               </HStack>
               <Select
@@ -252,7 +281,12 @@ export const ProgramFiltersModal = ({ isOpen, onClose, onApplyFilters }) => {
             {/* === PAYEE DROPDOWN === */}
             <FormControl>
               <HStack>
-                <Box as="img" src={personSvg} alt="Person Icon" boxSize="20px" />
+                <Box
+                  as="img"
+                  src={personSvg}
+                  alt="Person Icon"
+                  boxSize="20px"
+                />
                 <FormLabel>Payee</FormLabel>
               </HStack>
               <Select

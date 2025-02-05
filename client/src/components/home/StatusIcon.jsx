@@ -38,31 +38,19 @@ const StatusTooltip = () => {
             <Box
               as="img"
               src={activeSvg}
+              alt="Active"
               boxSize="10px"
             />
-            <Text
-              fontSize="sm"
-              fontFamily="var(--font-inter)"
-              fontWeight="600"
-              color="var(--medium-grey)"
-            >
-              Active
-            </Text>
+            <Text className="status-tooltip-text">Active</Text>
           </HStack>
           <HStack mt={2}>
             <Box
               as="img"
               src={pastSvg}
+              alt="Past"
               boxSize="10px"
             />
-            <Text
-              fontSize="sm"
-              fontFamily="var(--font-inter)"
-              fontWeight="600"
-              color="var(--medium-grey)"
-            >
-              Past
-            </Text>
+            <Text className="status-tooltip-text">Past</Text>
           </HStack>
         </PopoverBody>
       </PopoverContent>

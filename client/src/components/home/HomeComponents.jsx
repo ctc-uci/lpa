@@ -93,7 +93,7 @@ export const ProgramsTable = () => {
         setPrograms([]);
         return;
       }
-      
+
       // Format date and time
       const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -114,7 +114,7 @@ export const ProgramsTable = () => {
           .toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
           .toLowerCase();
       };
-      
+
       // Format programs data for display
       const programsData = response.data.map((program) => ({
         id: program.id,
@@ -293,7 +293,6 @@ export const ProgramsTable = () => {
       {/* Container for the table + filter/search row */}
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">
-          
           <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
           {/* Spacer to push search bar to the right */}
           <Box flex="1" />

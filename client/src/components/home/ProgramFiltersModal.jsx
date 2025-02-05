@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import {
   Box,
   Button,
@@ -10,7 +11,6 @@ import {
   Menu,
   MenuButton,
   MenuList,
-  MenuItem,
   Select,
   Text,
   VStack,
@@ -23,13 +23,18 @@ import filterSvg from "../../assets/icons/filter.svg";
 import locationSvg from "../../assets/icons/location.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
-
-// Icons import
-const FiltersIcon = () => <img src={filterSvg} />;
-
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
+// Icon component for Filters
+const FiltersIcon = () => (
+  <img
+    src={filterSvg}
+    alt="Filters"
+  />
+);
+
 export const ProgramFiltersModal = ({ onApplyFilters }) => {
+  // Filter state variables
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -60,7 +65,8 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
     fetchData();
   }, [backend]);
 
-  const handleApply = () => {
+  // Automatically update filters whenever any filter state changes.
+  useEffect(() => {
     onApplyFilters({
       dateRange: { start: startDate, end: endDate },
       timeRange: { start: startTime, end: endTime },
@@ -69,28 +75,36 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
       instructor,
       payee,
     });
-  };
+  }, [
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    status,
+    room,
+    instructor,
+    payee,
+    onApplyFilters,
+  ]);
 
   return (
     <Menu closeOnSelect={false}>
-      {/* Dropdown Trigger Button (Using Unicode Arrow ▼) */}
-      <MenuButton 
-        as={Button} 
-        border="1px solid"
-        borderColor="grey.500"
-        borderRadius="md"
-        bg="transparent" 
-        _hover={{ bg: "gray.100" }}
-        leftIcon={<FiltersIcon />} 
+      <MenuButton
+        as={Button}
+        variant="unstyled"
+        className="filter-box"
+        leftIcon={<FiltersIcon />}
+        _hover={{ bg: "transparent" }}
         _active={{ bg: "transparent" }}
       >
         <span className="filter-box-text">Filters</span>
       </MenuButton>
 
-      {/* Dropdown Menu */}
-      <MenuList p={3} maxH="500px" maxW="400px" minW="100px" overflowY="auto">
-        <VStack spacing={4} align="stretch">
-          {/* === DATE FILTERS === */}
+      <MenuList className="program-filters-menu-list">
+        <VStack
+          spacing={4}
+          align="stretch"
+        >
           <FormControl>
             <HStack
               alignItems="center"
@@ -121,7 +135,6 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
             </HStack>
           </FormControl>
 
-          {/* === TIME FILTERS === */}
           <FormControl>
             <HStack
               alignItems="center"
@@ -150,12 +163,15 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
             </HStack>
           </FormControl>
 
-          {/* === STATUS FILTER (BUTTON GROUP) === */}
           <FormControl>
             <FormLabel>Status</FormLabel>
             <HStack alignItems="center">
-              <ButtonGroup variant="outline" spacing={3} colorScheme="purple">
-                <Button 
+              <ButtonGroup
+                variant="outline"
+                spacing={3}
+                colorScheme="purple"
+              >
+                <Button
                   borderRadius="full"
                   borderWidth="2px"
                   color={status === "all" ? "purple.500" : "gray.300"}
@@ -164,15 +180,24 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
                 >
                   <Text mb="0">All</Text>
                 </Button>
-                {/* ACTIVE */}
-                <Button 
+                <Button
                   borderRadius="full"
                   borderWidth="2px"
                   color={status === "active" ? "purple.500" : "gray.300"}
                   onClick={() => setStatus("active")}
                 >
-                  <Box as="img" src={activeSvg} alt="Active Icon" boxSize="20px" />
-                  <Text ml="2" mb="0">Active</Text>
+                  <Box
+                    as="img"
+                    src={activeSvg}
+                    alt="Active Icon"
+                    boxSize="20px"
+                  />
+                  <Text
+                    ml="2"
+                    mb="0"
+                  >
+                    Active
+                  </Text>
                 </Button>
                 <Button
                   borderRadius="full"
@@ -180,24 +205,32 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
                   color={status === "past" ? "purple.500" : "gray.300"}
                   onClick={() => setStatus("past")}
                 >
-                  <Box as="img" src={pastSvg} alt="Past Icon" boxSize="20px" />
+                  <Box
+                    as="img"
+                    src={pastSvg}
+                    alt="Past Icon"
+                    boxSize="20px"
+                  />
                   <Text ml="2">Past</Text>
                 </Button>
               </ButtonGroup>
             </HStack>
           </FormControl>
 
-          {/* === ROOM FILTER (PILL BUTTONS) === */}
           <FormControl>
             <HStack>
-              <Box as="img" src={locationSvg} alt="Location Icon" boxSize="20px" />
+              <Box
+                as="img"
+                src={locationSvg}
+                alt="Location Icon"
+                boxSize="20px"
+              />
               <FormLabel mt={1}>Room</FormLabel>
             </HStack>
             <HStack
               spacing={2}
               wrap="wrap"
             >
-              {/* "All" pill */}
               <Button
                 variant="outline"
                 borderRadius="full"
@@ -208,8 +241,6 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
               >
                 All
               </Button>
-
-              {/* Each room from the backend */}
               {rooms.map((r) => (
                 <Button
                   key={r.id}
@@ -226,10 +257,14 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
             </HStack>
           </FormControl>
 
-          {/* === INSTRUCTOR DROPDOWN === */}
           <FormControl>
             <HStack>
-              <Box as="img" src={personSvg} alt="Person Icon" boxSize="20px" />
+              <Box
+                as="img"
+                src={personSvg}
+                alt="Person Icon"
+                boxSize="20px"
+              />
               <FormLabel>Instructor(s)</FormLabel>
             </HStack>
             <Select
@@ -248,10 +283,14 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
             </Select>
           </FormControl>
 
-          {/* === PAYEE DROPDOWN === */}
           <FormControl>
             <HStack>
-              <Box as="img" src={personSvg} alt="Person Icon" boxSize="20px" />
+              <Box
+                as="img"
+                src={personSvg}
+                alt="Person Icon"
+                boxSize="20px"
+              />
               <FormLabel>Payee</FormLabel>
             </HStack>
             <Select
@@ -270,32 +309,6 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
             </Select>
           </FormControl>
         </VStack>
-        <Box
-          mt="4"
-          display="flex"
-          justifyContent="flex-end" 
-        >
-          <Button colorScheme="purple" onClick={handleApply}>
-            Apply
-          </Button>
-        </Box>
-        {/* <Box
-          mt={4}
-          pt={3}
-          borderTop="1px solid #E2E8F0"
-          display="flex"
-          justifyContent="flex-end"
-          gap={3}
-          p={3}
-          bg="gray.50"
-        >
-          <Button variant="outline" onClick={() => console.log("Canceled")}>
-            Cancel
-          </Button>
-          <Button colorScheme="purple" onClick={handleApply}>
-            Apply
-          </Button>
-        </Box> */}
       </MenuList>
     </Menu>
   );

@@ -1,12 +1,16 @@
 :root {
-  --light-grey: #F6F6F6;
+  --light-grey: #f6f6f6;
   --medium-grey: #767778;
-  --medium-light-grey: #D2D2D2;
-  --white: #FFF;
-  --indigo: #4E4AE7;
-  --deep-red: #90080F;
+  --medium-light-grey: #d2d2d2;
+  --white: #fff;
+  --indigo: #4e4ae7;
+  --deep-red: #90080f;
   --font-inter: "Inter", sans-serif;
 }
+
+/* ========================= */
+/* Global / Page Layout CSS  */
+/* ========================= */
 
 .home {
   display: flex;
@@ -112,6 +116,10 @@
   font-weight: 600;
 }
 
+/* ========================= */
+/* Programs Table CSS        */
+/* ========================= */
+
 .programs-table {
   width: 100%;
   margin: 40px auto 0 auto;
@@ -153,15 +161,20 @@
   background-color: #e0e0e0 !important;
 }
 
+/* ========================= */
+/* Filter Box & Search CSS   */
+/* ========================= */
+
 .filter-box {
-  border-radius: 15px;
-  border: 1px solid var(--medium-light-grey);
-  background: var(--white);
-  display: flex;
-  height: 54.795px;
-  padding: 8px 16px;
-  justify-content: center;
-  align-items: center;
+  height: 54.795px !important;
+  min-height: 54.795px !important;
+  padding: 8px 16px !important;
+  border-radius: 15px !important;
+  border: 1px solid var(--medium-light-grey) !important;
+  background: var(--white) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
   gap: 4px;
   cursor: pointer;
 }
@@ -171,72 +184,6 @@
   font-family: var(--font-inter);
   font-size: 16px;
   font-weight: 600;
-}
-
-.table-header-text {
-  color: var(--medium-grey);
-  font-family: var(--font-inter);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 20px;
-  text-transform: none;
-}
-
-.actions-container {
-  display: flex;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: transparent;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
-.actions-container:hover,
-.actions-container:focus-within {
-  background: transparent !important;
-}
-
-.menu-list-custom {
-  border-radius: 15px;
-  border: 1px solid var(--medium-light-grey, #D2D2D2);
-  background: var(--light-grey, #F6F6F6);
-  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-  padding: 8px;
-}
-
-.menu-list-custom {
-  border-radius: 15px !important;
-  border: 1px solid var(--medium-light-grey, #D2D2D2) !important;
-  background: var(--light-grey, #F6F6F6) !important;
-  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
-  padding: 8px !important;
-}
-
-.menu-list-custom .chakra-menu__menuitem {
-  background: var(--light-grey, #F6F6F6) !important;
-  display: flex !important;
-  padding: 8px 12px !important;
-  align-items: center !important;
-  gap: 8px !important;
-  border-radius: 10px !important;
-  font-family: var(--font-inter) !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-}
-
-.menu-list-custom .chakra-menu__menuitem:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-}
-
-.menu-item--edit {
-  color: var(--medium-grey, #767778) !important;
-}
-
-.menu-item--delete {
-  color: var(--deep-red, #90080F) !important;
 }
 
 .search-wrapper {
@@ -263,7 +210,7 @@
 .searchbar-container input {
   border: none;
   outline: none;
-  width: 400px; 
+  width: 400px;
   font-family: var(--font-inter);
   font-size: 16px;
 }
@@ -278,4 +225,91 @@
   gap: 10px;
   border-radius: 0px 15px 15px 0px;
   background: var(--medium-light-grey);
+}
+
+/* ========================= */
+/* Menu & Actions CSS        */
+/* ========================= */
+
+.actions-container {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: transparent;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.actions-container:hover,
+.actions-container:focus-within {
+  background: transparent !important;
+}
+
+.menu-list-custom {
+  border-radius: 15px !important;
+  border: 1px solid var(--medium-light-grey, #d2d2d2) !important;
+  background: var(--light-grey, #f6f6f6) !important;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
+  padding: 8px !important;
+}
+
+.menu-list-custom .chakra-menu__menuitem {
+  background: var(--light-grey, #f6f6f6) !important;
+  display: flex !important;
+  padding: 8px 12px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 10px !important;
+  font-family: var(--font-inter) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+.menu-list-custom .chakra-menu__menuitem:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.menu-item--edit {
+  color: var(--medium-grey, #767778) !important;
+}
+
+.menu-item--delete {
+  color: var(--deep-red, #90080f) !important;
+}
+
+/* ========================= */
+/* Table Header Text         */
+/* ========================= */
+
+.table-header-text {
+  color: var(--medium-grey);
+  font-family: var(--font-inter);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+  text-transform: none;
+}
+
+/* ========================= */
+/* Additional CSS for Filters and Tooltip  */
+/* ========================= */
+
+.program-filters-menu-list {
+  padding: 12px;
+  max-height: 500px;
+  max-width: 400px;
+  min-width: 100px;
+  overflow-y: auto;
+}
+
+.status-tooltip-text {
+  font-size: 16px;
+  font-family: var(--font-inter);
+  font-weight: 400;
+  color: var(--medium-grey, #767778);
+  line-height: 20px;
+  text-transform: none;
 }
