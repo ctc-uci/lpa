@@ -48,19 +48,30 @@ import {
     HStack
   } from "@chakra-ui/react"
 
-  import {
-    TimeIcon,
-    DownloadIcon,
-    EmailIcon,
-    InfoIcon,
-    EditIcon,
-    AtSignIcon,
-    CloseIcon,
-    CalendarIcon,
+import {
+  TimeIcon,
+  DownloadIcon,
+  EmailIcon,
+  InfoIcon,
+  EditIcon,
+  AtSignIcon,
+  CloseIcon,
+  CalendarIcon,
 
-  } from '@chakra-ui/icons'
+} from '@chakra-ui/icons'
 
-  import { UserIcon, FileTextIcon, EllipsisIcon, Calendar, MapPin, SlidersHorizontal, ChevronsUpDown} from 'lucide-react'
+import { UserIcon, FileTextIcon, EllipsisIcon, Calendar, MapPin, SlidersHorizontal, ChevronsUpDown} from 'lucide-react'
+
+import {
+  filterDateCalendar,
+  sessionsCalendar,
+  filterButton,
+  sessionsUpArrow,
+  sessionsDownArrow,
+  sessionsClock,
+  sessionsMapPin,
+  sessionsEllipsis
+} from '../../assets/icons/ProgramIcons';
 
   export const ProgramSummary = ({program, bookingInfo}) => {
     const formatTimeString = (timeString) => {
@@ -306,18 +317,23 @@ export const Sessions = ({ sessions, rooms }) => {
   };
 
   return (
-    <Box minH="10rem" marginLeft="5vw" marginRight="5vw" marginBottom="4vw">
+    <Box marginLeft="4vw" marginRight="4vw" marginBottom="50px">
       <Card shadow="md" border="1px" borderColor="gray.300" borderRadius="15px">
         <CardBody m={6}>
           <Flex direction="column" justify="space-between">
             <Flex align="center" mb="15px">
-              <Icon as={CalendarIcon} boxSize={5} color="#474849"/>
-              <Text fontSize='xl' fontWeight="semibold" color="#474849" ml="8px"> Sessions </Text>
+              <Icon as={sessionsCalendar}/>
+              <Text fontSize="25px" fontWeight="semibold" color="#474849" ml="8px"> Sessions </Text>
             </Flex>
             <Flex>
               <Popover>
                 <PopoverTrigger>
-                <Button color="#767778" variant="outline" size="sm" mb="15px" rounded="xl" onClick={onOpen} leftIcon={<SlidersHorizontal />}> Filters </Button>
+                <Button color="#767778" variant="outline" minWidth="auto" height="45px" mt="10px" mb="15px" rounded="xl" onClick={onOpen} borderColor="#D2D2D2" borderWidth="1px">
+                  <Box display="flex" flexDirection="row" alignItems="center" gap="5px">
+                    <Icon as={filterButton}/>
+                    <Text fontSize="sm" color="#767778"> Filters </Text>
+                  </Box>
+                </Button>
                 </PopoverTrigger>
                 <Portal>
                   <PopoverContent>
@@ -326,10 +342,10 @@ export const Sessions = ({ sessions, rooms }) => {
                         <Box display="flex" flexDirection="column" alignItems="flex-start" gap="24px" alignSelf="stretch">
                           <FormControl id="date">
                             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="flex-start" gap="16px" alignSelf="stretch">
-                              <HStack spacing={2}>
-                                <Icon as={CalendarIcon} boxSize={4} color="#767778" />
+                              <Box display="flex" alignItems="center" gap="8px" alignSelf="stretch">
+                                <Icon as={filterDateCalendar} width="5px" height="5px" fill="#767778" />
                                 <Text fontWeight="bold" color="#767778">Date</Text>
-                              </HStack>
+                              </Box>
                               <Box display="flex" alignItems="center" gap="8px">
                                 <Input size="sm" borderRadius="5px" borderColor="#D2D2D2" backgroundColor="#F6F6F6" width="35%" height="20%" type="date" placeholder="MM/DD/YYYY" onChange={(e) => handleDateChange('start', e.target.value)}/>
                                 <Text> to </Text>
@@ -404,23 +420,60 @@ export const Sessions = ({ sessions, rooms }) => {
             </Flex>
             <TableContainer>
               <Table variant="unstyled">
-                <Thead>
+                <Thead borderBottom="1px" color="#D2D2D2">
                   <Tr>
-                    <Th>Status</Th>
-                    <Th><Icon as={Calendar} boxSize={4} mr={2}/>Date <Icon as={ChevronsUpDown} boxSize={4}/></Th>
-                    <Th><Icon as={TimeIcon} boxSize={4} mr={2}/>Time</Th>
-                    <Th><Icon as={MapPin} boxSize={4} mr={1}/>Room</Th>
+                    <Th>
+                      <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                        Status
+                      </Text>
+                    </Th>
+                    <Th>
+                      <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
+                        <Icon as={filterDateCalendar} />
+                        <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                          Date
+                        </Text>
+                        <Box display="flex" flexDirection="column" alignItems="flex-start" gap="2px">
+                          <Icon as={sessionsUpArrow} />
+                          <Icon as={sessionsDownArrow} />
+                        </Box>
+                      </Box>
+                    </Th>
+                    <Th>
+                      <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
+                        <Icon as={sessionsClock} />
+                        <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                          Time
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th>
+                      <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
+                        <Icon as={sessionsMapPin} boxSize={4} mr={1}/>
+                        <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                          Room
+                        </Text>
+                      </Box>
+                    </Th>
+                    {/* Empty header as space for the menu ellipsis button */}
                     <Th> </Th>
                   </Tr>
                 </Thead>
                 <Tbody>
                   {filterSessions().map((session) => (
                     <Tr key={session.id}>
-                      <Td><Box height="10px" width="10px" borderRadius="50%" bg={hasTimePassed(session.date) ? "#DAB434" : "#0C824D"}></Box></Td>
+                      <Td>
+                        <Box display="flex" padding="8px" justifyContent="center" alignItems="center">
+                          <Box height="14px" width="14px" borderRadius="50%" bg={hasTimePassed(session.date) ? "#DAB434" : "#0C824D"}></Box>
+                        </Box>
+                      </Td>
                       <Td>{formatDate(session.date)}</Td>
                       <Td>{formatTime(session.startTime)} - {formatTime(session.endTime)}</Td>
                       <Td>{rooms.get(session.roomId)}</Td>
-                      <Td><IconButton size="sm" rounded="full"><EllipsisIcon /></IconButton></Td>
+                      <Td>
+                        {/* Slight "bug": hovering shows shadow larger than button */}
+                        <IconButton height="30px" width="30px" rounded="full" variant="ghost" icon={<Icon as={sessionsEllipsis}/>} />
+                      </Td>
                     </Tr>
                   ))}
                 </Tbody>

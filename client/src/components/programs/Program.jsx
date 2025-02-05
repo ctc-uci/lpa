@@ -30,14 +30,14 @@ export const Program = () => {
   };
 
 
-  
+
   const getNextBookingInfo = async () => {
     try {
       const nextBooking = {
         nextSession: {},
         nextRoom: {},
         assignments: {},
-        instructors: [], 
+        instructors: [],
         payees: []
       };
 
@@ -64,7 +64,7 @@ export const Program = () => {
           clientName: clientResponse.data.name,
           clientEmail: clientResponse.data.email
         };
-  
+
         if (assignment.role === 'instructor') {
           nextBooking.instructors.push(assignmentWithClient);
         } else if (assignment.role === 'payee') {
@@ -110,15 +110,15 @@ export const Program = () => {
   useEffect(() => {
     getProgram();
     getSessions();
-    
-    
+
+
 
   }, [id]);
 
   useEffect(() => {
     if (roomIds) {
       getRoomNames();
-      
+
     }
   }, [roomIds]);
 
@@ -129,10 +129,10 @@ export const Program = () => {
   }, [program, sessions]);
 
 
-  
-  
 
-  
+
+
+
 
   return (
     <Flex>
