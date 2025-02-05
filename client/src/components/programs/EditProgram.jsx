@@ -37,8 +37,8 @@ import {
   PopoverBody,
 } from "@chakra-ui/react";
 
-import {CancelIcon} from './CancelIcon';
-import {RepeatIcon} from './RepeatIcon';
+import {CancelIcon} from '../../assets/CancelIcon';
+import {RepeatIcon} from '../../assets/RepeatIcon';
 // import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useNavigate } from 'react-router-dom';
@@ -94,6 +94,10 @@ export const EditProgram = () => {
   useEffect(() => {
     getPayeeResults(payeeSearchTerm);
   }, [selectedPayees, payeeSearchTerm]);
+
+  const exit = () => {
+    navigate('/program/' + id);
+  };
 
   const getInitialEventData = async () => {
     const eventResponse = await backend.get(`/events/${id}`);
@@ -160,30 +164,23 @@ const payees = eventClientResponse.data
     const currentDate = new Date(startDate);
     const lastDate = new Date(endDate);
 
-    if (currentDate.toDateString() === lastDate.toDateString() && daysIndices.length === 0) {
-      dates.push(new Date(currentDate).toISOString().split("T")[0]);
-    }
-
     while (currentDate <= lastDate) {
       if (daysIndices.includes(currentDate.getUTCDay())) {
         dates.push(new Date(currentDate).toISOString().split("T")[0]);
       }
       currentDate.setDate(currentDate.getDate() + 1);
     }
-    console.log("dates: ", dates);
     return dates;
   };
 
   const getInstructorResults = async (search) => {
     try {
-    console.log("getting instrucroes");
       if (search !== "") {
         const instructorResponse = await backend.get("/assignments/searchClients", {
           params: {
             searchTerm: search
           }
         });
-console.log(" instrucroes: ", instructorResponse.data);
         filterSelectedInstructorsFromSearch(instructorResponse.data);
       }
       else {
@@ -194,18 +191,12 @@ console.log(" instrucroes: ", instructorResponse.data);
     }
   };
 
-  const exit = () => {
-    navigate('/program/' + id);
-  };
-
   const filterSelectedInstructorsFromSearch = (instructorData) => {
     const filteredInstructors =  instructorData.filter(
       instructor => !selectedInstructors.some(
         selected => selected.id === instructor.id
       )
     );
-console.log("selected instructors: ",selectedInstructors);
-console.log("filtered instructors: ", filteredInstructors);
     setSearchedInstructors(filteredInstructors);
   };
 
@@ -438,7 +429,7 @@ console.log("filtered instructors: ", filteredInstructors);
             <div id="instructorTags">
               {selectedInstructors.length > 0 ? (
                 selectedInstructors.map((instructor, ind) => (
-                  <div key={instructor.id.toString() + ind.toString()}>
+                  <div key={ind}>
                     <Icon fontSize="xl" onClick={() => {
                         setSelectedInstructors(prevItems =>
                           prevItems.filter(item => item.id !== instructor.id));
@@ -492,12 +483,10 @@ console.log("filtered instructors: ", filteredInstructors);
             <div id="payeeTags">
                 {selectedPayees.length > 0 ? (
                   selectedPayees.map((payee, ind) => (
-                    <div key={payee.id.toString() + ind.toString()}>
+                    <div key={ind}>
                       <Icon fontSize="xl" onClick={(e) => {
                         setSelectedPayees(prevItems =>
                           prevItems.filter(item => item.id !== payee.id));
-                        // setSearchedPayees(prevItems => [...prevItems, payee]);
-                          getPayeeResults(payeeSearchTerm);
                       }}><IoCloseOutline/></Icon>
                       <Tag value={payee.id}>
                         {payee.name}

@@ -5,3 +5,16 @@
   justify-content: space-between;
 }
 
+.navItem:hover {
+  border-bottom:  #4E4AE7 2px solid;
+}
+
+.navItem:hover .navLink{
+  text-decoration: none;
+}
+
+.navText {
+  margin-left: 2%;
+  width: 90%;
+  font-size: 150%;
+}
