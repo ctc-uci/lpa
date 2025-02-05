@@ -70,7 +70,9 @@ import {
   sessionsDownArrow,
   sessionsClock,
   sessionsMapPin,
-  sessionsEllipsis
+  sessionsEllipsis,
+  sessionsFilterClock,
+  sessionsFilterMapPin
 } from '../../assets/icons/ProgramIcons';
 
   export const ProgramSummary = ({program, bookingInfo}) => {
@@ -342,8 +344,8 @@ export const Sessions = ({ sessions, rooms }) => {
                         <Box display="flex" flexDirection="column" alignItems="flex-start" gap="24px" alignSelf="stretch">
                           <FormControl id="date">
                             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="flex-start" gap="16px" alignSelf="stretch">
-                              <Box display="flex" alignItems="center" gap="8px" alignSelf="stretch">
-                                <Icon as={filterDateCalendar} width="5px" height="5px" fill="#767778" />
+                              <Box display="flex" alignItems="center" gap="5px" alignSelf="stretch">
+                                <Icon as={filterDateCalendar} />
                                 <Text fontWeight="bold" color="#767778">Date</Text>
                               </Box>
                               <Box display="flex" alignItems="center" gap="8px">
@@ -355,10 +357,10 @@ export const Sessions = ({ sessions, rooms }) => {
                           </FormControl>
                           <FormControl id="time">
                             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="flex-start" gap="16px" alignSelf="stretch">
-                              <HStack spacing={2}>
-                                <Icon as={TimeIcon} boxSize={4} color="#767778" />
+                              <Box display="flex" alignItems="center" gap="5px" alignSelf="stretch">
+                                <Icon as={sessionsFilterClock} />
                                 <Text fontWeight="bold" color="#767778">Time</Text>
-                              </HStack>
+                              </Box>
                               <Box display="flex" alignItems="center" gap="8px">
                                 <Input size="xs" borderRadius="5px" borderColor="#D2D2D2" backgroundColor="#F6F6F6" width="30%" height="20%" type="time" placeholder="00:00 am" onChange={(e) => handleTimeChange('start', e.target.value)} />
                                 <Text> to </Text>
@@ -399,10 +401,10 @@ export const Sessions = ({ sessions, rooms }) => {
                           </FormControl>
                           <FormControl id="room">
                             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="flex-start" gap="16px" alignSelf="stretch">
-                              <HStack spacing={2}>
-                                <Icon as={MapPin} boxSize={4} color="#767778" />
+                              <Box display="flex" alignItems="center" gap="5px" alignSelf="stretch">
+                                <Icon as={sessionsFilterMapPin} />
                                 <Text fontWeight="bold" color="#767778">Room</Text>
-                              </HStack>
+                              </Box>
                               <HStack spacing={2}>
                                 <Button borderRadius="30px" borderWidth="1px" width="15%" height="20%" onClick={() => setSelectedRoom('All')} backgroundColor={selectedRoom === 'All' ? "#EDEDFD" : "#F6F6F6"} borderColor={selectedRoom === 'All' ? "#4E4AE7" : "#767778"}>All</Button>
                                 {Array.from(rooms.values()).map((room, index) => (
@@ -467,9 +469,21 @@ export const Sessions = ({ sessions, rooms }) => {
                           <Box height="14px" width="14px" borderRadius="50%" bg={hasTimePassed(session.date) ? "#DAB434" : "#0C824D"}></Box>
                         </Box>
                       </Td>
-                      <Td>{formatDate(session.date)}</Td>
-                      <Td>{formatTime(session.startTime)} - {formatTime(session.endTime)}</Td>
-                      <Td>{rooms.get(session.roomId)}</Td>
+                      <Td>
+                        <Box display="flex" justifyContent="center" alignItems="center">
+                        {formatDate(session.date)}
+                        </Box>
+                      </Td>
+                      <Td>
+                        <Box display="flex" justifyContent="center" alignItems="center">
+                          {formatTime(session.startTime)} - {formatTime(session.endTime)}
+                        </Box>
+                      </Td>
+                      <Td>
+                        <Box display="flex" justifyContent="center" alignItems="center">
+                          {rooms.get(session.roomId)}
+                        </Box>
+                      </Td>
                       <Td>
                         {/* Slight "bug": hovering shows shadow larger than button */}
                         <IconButton height="30px" width="30px" rounded="full" variant="ghost" icon={<Icon as={sessionsEllipsis}/>} />
