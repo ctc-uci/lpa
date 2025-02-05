@@ -41,6 +41,7 @@ import {CancelIcon} from './CancelIcon';
 import {RepeatIcon} from './RepeatIcon';
 // import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useNavigate } from 'react-router-dom';
 // import { useRoleContext } from "../../contexts/hooks/useRoleContext";
 // import { User } from "../../types/user";
 // import { RoleSelect } from "./RoleSelect";
@@ -57,6 +58,7 @@ import React from 'react';
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();
+  const navigate = useNavigate();
   const {id} = useParams();
   const [locations, setLocations] = useState({}); // rooms.id rooms.name
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -75,6 +77,8 @@ export const EditProgram = () => {
   const [endDate, setEndDate] = useState("");
   const [selectedDays, setSelectedDays] = useState([]);
   const [bookingIds, setBookingIds] = useState([]);
+  const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
+  const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
 
   useEffect(() => {
     getInitialEventData();
@@ -82,6 +86,14 @@ export const EditProgram = () => {
     getInitialAssignmentsData();
     getInitialLocations();
   }, []);
+
+  useEffect(() => {
+    getInstructorResults(instructorSearchTerm);
+  }, [selectedInstructors, instructorSearchTerm]);
+
+  useEffect(() => {
+    getPayeeResults(payeeSearchTerm);
+  }, [selectedPayees, payeeSearchTerm]);
 
   const getInitialEventData = async () => {
     const eventResponse = await backend.get(`/events/${id}`);
@@ -162,15 +174,17 @@ const payees = eventClientResponse.data
     return dates;
   };
 
-  const getInstructorResults = async (event) => {
+  const getInstructorResults = async (search) => {
     try {
-      if (event.target.value !== "") {
+    console.log("getting instrucroes");
+      if (search !== "") {
         const instructorResponse = await backend.get("/assignments/searchClients", {
           params: {
-            searchTerm: event.target.value
+            searchTerm: search
           }
         });
-        setSearchedInstructors(instructorResponse.data);
+console.log(" instrucroes: ", instructorResponse.data);
+        filterSelectedInstructorsFromSearch(instructorResponse.data);
       }
       else {
         setSearchedInstructors([]);
@@ -180,15 +194,30 @@ const payees = eventClientResponse.data
     }
   };
 
-  const getPayeeResults = async (event) => {
+  const exit = () => {
+    navigate('/program/' + id);
+  };
+
+  const filterSelectedInstructorsFromSearch = (instructorData) => {
+    const filteredInstructors =  instructorData.filter(
+      instructor => !selectedInstructors.some(
+        selected => selected.id === instructor.id
+      )
+    );
+console.log("selected instructors: ",selectedInstructors);
+console.log("filtered instructors: ", filteredInstructors);
+    setSearchedInstructors(filteredInstructors);
+  };
+
+  const getPayeeResults = async (search) => {
     try {
-      if (event.target.value !== "") {
+      if (search !== "") {
         const payeeResponse = await backend.get("/assignments/searchClients", {
           params: {
-            searchTerm: event.target.value
+            searchTerm: search
           }
         });
-        setSearchedPayees(payeeResponse.data);
+        filterSelectedPayeesFromSearch(payeeResponse.data);
       }
       else {
         setSearchedPayees([]);
@@ -196,6 +225,16 @@ const payees = eventClientResponse.data
     } catch (error) {
         console.error("Error getting instructors:", error);
     }
+  };
+
+  const filterSelectedPayeesFromSearch = (payeesData) => {
+    const filteredPayees = payeesData.filter(
+      (payee) => !selectedPayees.some(
+        (selectedPayee) => selectedPayee.id === payee.id
+      )
+    );
+
+    setSearchedPayees(filteredPayees);
   };
 
   const deleteAllBookingComments = async () => {
@@ -276,7 +315,7 @@ const payees = eventClientResponse.data
         };
 
         const bookingsResponse = await backend.post('/bookings', bookingsData);
-        console.log("booking made for: ", bookingsResponse.data);
+        console.log("booking made for: ", bookingsResponse.data, bookingsData);
       }
 
       for (const instructor of selectedInstructors) {
@@ -287,24 +326,15 @@ const payees = eventClientResponse.data
         });
       }
 
-//&& !selectedInstructors.includes(selectedInstructor)
-
-      // for (const payee of selectedPayees) {
-      //   const payeeResponse = await backend.post("/assignments", {
-      //       eventId: id,
-      //       clientId: instructor.id,
-      //       role: "payee"
-      //   });
-      // }
-
-      // for i in selectedPayees
-      // const payeeResponse = await backend.put("/assignments", {
-      //   params: {
-      //     event_id: id,
-      //     client_id: ,
-      //     role: "payee"
-      //   }
-      // });
+    console.log(selectedPayees);
+      for (const payee of selectedPayees) {
+        const payeeResponse = await backend.post("/assignments", {
+            eventId: id,
+            clientId: payee.id,
+            role: "payee"
+        });
+      }
+      // exit();
 
     } catch (error) {
         console.error("Error getting instructors:", error);
@@ -316,7 +346,7 @@ const payees = eventClientResponse.data
       <Navbar >
       </Navbar>
       <div id="programsBody">
-        <Link href="/programs/:id"><Icon fontSize="2xl" id="leftCancel"><IoCloseOutline /></Icon></Link>
+        <div onClick={exit}><Icon fontSize="2xl" id="leftCancel"><IoCloseOutline /></Icon></div>
         <div id="eventInfoBody">
           <div id="title"><h1><b>{eventName}</b></h1><Button id="save" onClick={saveEvent}>Save</Button></div>
           <div>
@@ -374,19 +404,27 @@ const payees = eventClientResponse.data
             <div id="instructors">
               <div id="instructorSelection">
                 <div id="instructorInput">
-                  <Input placeholder="Instructor" onChange={getInstructorResults}/>
+                  <Input placeholder="Instructor" onChange={(e)=>{getInstructorResults(e.target.value); setInstructorSearchTerm(e.target.value);}}/>
                   <IoMdAddCircle />
                 </div>
                 <select
                       onChange={(event) => {
-                      const selectedId = event.target.value;
-                            const selectedInstructor = searchedInstructors.find(
-                              instructor => instructor.id.toString() === selectedId
-                            );
-                            if (selectedInstructor) {
-                              setSelectedInstructors(prevItems => [...prevItems, selectedInstructor]);
-                            }
-                            }}
+                        const selectedId = event.target.value;
+                        const selectedInstructor = searchedInstructors.find(
+                          instructor => instructor.id.toString() === selectedId
+                        );
+
+                        const alreadySelected = selectedInstructors.find(
+                          instructor => instructor.id.toString() === selectedId
+                        );
+
+                        if (selectedInstructor && !alreadySelected) {
+                          setSelectedInstructors(prevItems => [...prevItems, selectedInstructor]);
+                          const filteredInstructors = searchedInstructors.filter(
+                            (instructor) => selectedId !== instructor.id.toString());
+                          setSearchedInstructors(filteredInstructors);
+                        }
+                      }}
                     multiple
                 >
                   {searchedInstructors.map((instructor) => (
@@ -401,9 +439,10 @@ const payees = eventClientResponse.data
               {selectedInstructors.length > 0 ? (
                 selectedInstructors.map((instructor, ind) => (
                   <div key={instructor.id.toString() + ind.toString()}>
-                    <Icon fontSize="xl" onClick={() => setSelectedInstructors(prevItems =>
-                        prevItems.filter(item => item.id !== instructor.id)
-                      )}><IoCloseOutline /></Icon>
+                    <Icon fontSize="xl" onClick={() => {
+                        setSelectedInstructors(prevItems =>
+                          prevItems.filter(item => item.id !== instructor.id));
+                      }}><IoCloseOutline /></Icon>
                     <Tag value={instructor.id}>
                       {instructor.name}
                     </Tag>
@@ -419,7 +458,7 @@ const payees = eventClientResponse.data
             <div id="payees">
               <div id="payeeSelection">
                 <div id="payeeInput">
-                  <Input placeholder="Payee" onChange={getPayeeResults}/>
+                  <Input placeholder="Payee" onChange={(e)=>{getPayeeResults(e.target.value); setPayeeSearchTerm(e.target.value);}}/>
                   <IoMdAddCircle />
                 </div>
                 <select
@@ -428,8 +467,16 @@ const payees = eventClientResponse.data
                               const selectedPayee = searchedPayees.find(
                                 payee => payee.id.toString() === selectedId
                               );
-                              if (selectedPayee) {
+
+                              const alreadySelected = selectedPayees.find(
+                                payee => payee.id.toString() === selectedId
+                              );
+
+                              if (selectedPayee && !alreadySelected) {
                                 setSelectedPayees(prevItems => [...prevItems, selectedPayee]);
+                                const filteredPayees = searchedPayees.filter(
+                                  (payee) => selectedId !== payee.id.toString());
+                                setSearchedPayees(filteredPayees);
                               }
                               }}
                     multiple
@@ -446,9 +493,12 @@ const payees = eventClientResponse.data
                 {selectedPayees.length > 0 ? (
                   selectedPayees.map((payee, ind) => (
                     <div key={payee.id.toString() + ind.toString()}>
-                      <Icon fontSize="xl" onClick={() => setSelectedPayees(prevItems =>
-                        prevItems.filter(item => item.id !== payee.id)
-                      )}><IoCloseOutline/></Icon>
+                      <Icon fontSize="xl" onClick={(e) => {
+                        setSelectedPayees(prevItems =>
+                          prevItems.filter(item => item.id !== payee.id));
+                        // setSearchedPayees(prevItems => [...prevItems, payee]);
+                          getPayeeResults(payeeSearchTerm);
+                      }}><IoCloseOutline/></Icon>
                       <Tag value={payee.id}>
                         {payee.name}
                       </Tag>
@@ -502,14 +552,12 @@ const payees = eventClientResponse.data
             <Icon fontSize="2xl"><CiCircleMore /></Icon>
           </PopoverTrigger>
             <PopoverContent style={{width:"100%"}}>
-              <Link href="/programs/:id" id="cancelLink">
-              <PopoverBody>
+              <PopoverBody onClick={exit}>
                 <div id="cancelBody">
                   <Icon fontSize="2xl"><CancelIcon id="cancelIcon"/></Icon>
                   <p id="cancel">Close</p>
                 </div>
               </PopoverBody>
-              </Link>
             </PopoverContent>
         </Popover>
       </div>
