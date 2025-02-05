@@ -19,17 +19,15 @@ export const Notifications = () => {
   }); // all, overdue, neardue
 
   useEffect(() => {
-    console.log("Current filter:", filterType);
     const fetchNotifs = async () => {
       try {
         const notifsResponse = await backend.get("/invoices");
         const notifsData = notifsResponse.data;
-        let invoices = notifsData;
         const today = new Date();
 
         // Fetch additional data for each invoice (total, paid, event name)
         const enrichedInvoices = await Promise.all(
-          invoices.map(async (invoice) => {
+          notifsData.map(async (invoice) => {
             try {
               const [totalRes, paidRes, eventRes] = await Promise.all([
                 backend.get(`/invoices/total/${invoice.id}`),

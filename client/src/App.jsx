@@ -43,7 +43,7 @@ const App = () => {
                 />
                 <Route
                   path="/notifications"
-                  element={<Notifications />}
+                  element={<ProtectedRoute element={<Notifications />} />}
                 />
                 <Route
                   path="/dashboard"
