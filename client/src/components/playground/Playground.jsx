@@ -6,6 +6,7 @@ import { EventsTable } from "../EventsTable";
 import React from 'react';
 import PDFButton from "../PDFButton";
 import Navbar from "../navbar/Navbar";
+import { AddClassModal } from '../AddClassModal';
 
 export const Playground = () => {
   return (
@@ -15,6 +16,7 @@ export const Playground = () => {
       sx={{ width: 300, marginX: "auto" }}
     >
       <Heading>Playground</Heading>
+      <AddClassModal></AddClassModal>
       <EventsTable />
       <PDFButton/>
     </VStack>

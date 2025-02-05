@@ -33,22 +33,18 @@ const generateWhereClause = (search) => {
 };
 
 
-assignmentsRouter.get('/instructorSearch', async (req, res) => {
+assignmentsRouter.get('/searchClients', async (req, res) => {
   try {
-    console.log("in router");
     const { searchTerm } = req.query;
     console.log("searchTerm", searchTerm);
     const search = searchTerm.split('+').join(' ');
     const { searchWhereClause } = generateWhereClause(search);
-    // if (search.length > 0) {
-    //   const searchWhereClause += "AND a.role = 'instructor' AND a.client_id = c.id";
-    // }
+
     const query = `
-      SELECT DISTINCT c.id, c.name
+      SELECT DISTINCT c.id, c.name, c.email
       FROM assignments AS a
       JOIN clients AS c ON c.id = a.client_id
-      ${searchWhereClause}
-      AND a.role = 'instructor';
+      ${searchWhereClause};
     `;
 
     // Execute the query and pass the search term for the placeholder
@@ -76,12 +72,11 @@ assignmentsRouter.get("/:id", async (req, res) => {
 });
 
 // Get assignments for a specific event
-assignmentsRouter.get("/event/:event_id", async (req, res) => {
-  try {
+assignmentsRouter.get("/event/:event_id", async (req, res) => {  try {
     const { event_id } = req.params;
 
     const assignments = await db.query(
-      `SELECT a.id, a.event_id, a.client_id, a.role, c.name as client_name, e.name as event_name
+      `SELECT a.id, a.event_id, a.client_id, a.role, c.name as client_name, c.email as client_email, e.name as event_name
        FROM assignments a, clients c, events e
        WHERE a.client_id = c.id AND a.event_id = e.id AND a.event_id = $1
        ORDER BY a.id ASC`,
@@ -147,6 +142,19 @@ assignmentsRouter.delete("/:id", async (req, res) => {
     try {
         const {id} = req.params;
         const data = await db.query("DELETE FROM assignments WHERE id = $1", [id]);
+        if (data.length === 0) {
+            return res.status(404).json({result: "error", message: "Assignment not found"});
+        }
+        res.status(200).json({result: "success"});
+    } catch (err) {
+        res.status(500).json({result: "error"});
+    }
+});
+
+assignmentsRouter.delete("/event/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const data = await db.query("DELETE FROM assignments WHERE event_id = $1", [id]);
         if (data.length === 0) {
             return res.status(404).json({result: "error", message: "Assignment not found"});
         }

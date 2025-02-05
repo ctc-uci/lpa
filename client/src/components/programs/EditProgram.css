@@ -1,32 +1,69 @@
-#body, #programsBody {
+input[type="time"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width:auto;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width:auto;
+}
+
+#body {
   width: 100vw;
   display: flex;
   flex-direction: row;
   margin-right: auto;
 }
 
-#eventInfoBody {
-  width: 90%;
-  margin-left: 2.5%;
-  flex-direction: column;
-}
-
-#programsBody {
-  margin-top: 5vh;
+#body > div {
+  flex: 1;
 }
 
 #body > #navbarBody {
   flex: 0 0 auto;
 }
 
-#body > div {
-  flex: 1;
+#leftCancel {
+  margin-top: 1%;
 }
+
+#programsBody {
+  width: 90%;
+  margin: 5% 2.5%;
+  display: flex;
+  flex-direction: row;
+}
+
+#eventInfoBody {
+  flex-direction: column;
+  flex: 1;
+  margin-left: 2.5%;
+  margin-right: 2.5%;
+}
+
 
 #title {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  font-size: 170%;
+  margin-bottom: 5%;
 }
 
 #save {
@@ -37,18 +74,85 @@
   border-radius: 30px; /* CHANGE LATER */
 }
 
-#dateTimeDiv {
+#dateTimeDiv, #instructorContainer, #payeeContainer {
   width: 100%;
   display: flex;
   flex-direction: row;
+  gap: 1%;
+  align-items: center;
+}
+
+#dateTimeDiv {
+  justify-content: space-between;
+}
+
+#dateTimeDiv > div {
+  width: 23%;
+}
+
+#payeeEmails, #cancelBody {
+  display: flex!important;
+  flex-direction: row!important;
+}
+
+#instructorTags, #payeeTags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+#instructorTags > div, #payeeTags > div {
+  border: 1px lightgrey solid;
+  border-radius: 20px;
+  margin-right: 3%;
+}
+
+#instructorTags > div *, #payeeTags > div * {
+  background-color: transparent;
+}
+
+#repeatDiv {
+  width: 55%;
+  display: flex;
+  flex-direction: row;
+  gap: 2%;
+  margin: 3% 0;
+  padding-top: 2%;
+  padding-bottom: 2%;
+}
+
+#Button {
+  width: 40px;
+  height: 40px;
+}
+
+.Icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #time1, #time2 {
-  width: 10%;
+  width: 80%;
+  margin-right: auto;
 }
+/*
+input[type="time"]:invalid:before, #time2:invalid:before {
+  content: '00:00 am';
+} */
 
 #date1, #date2 {
-  width: 10%;
+  width: 80%;
+  margin-right: 0;
+}
+
+#repeatContainer {
+  justify-content: space-evenly;
+}
+
+#instructorSelection, #payeeSelection {
+  width: 100%;
 }
 
 #instructors, #payees {
@@ -56,16 +160,51 @@
   flex-direction: row;
   border: 1px lightgrey solid;
   border-radius: 5px;
-  width: 20%;
+  width: 25%;
   background: #F6F6F6;
 }
 
-#instructors > Input {
+#instructorInput > *, #payeeInput > * {
   background-color: transparent;
   border: none;
+}
+
+
+#instructorInput input:focus, #payeeInput input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+#instructorSelection Select {
+  background-color: transparent;
+  height: fit-content;
+  width: 100%;
+}
+
+#instructorSelection option {
+  height: 80%;
+  background-color: transparent;
+  margin-top: 5%;
+}
+
+#instructorInput, #payeeInput {
+  border: none;
+  border-bottom: var(--indigo, #4E4AE7) 3px solid;
+  border-radius: 5px 5px 0 0;
+  display: flex;
+  flex-direction: row;
 }
 
 #payees > Input {
   background-color: transparent;
   border: none;
+}
+
+#cancel {
+  color: #90080F;
+  text-decoration: none;
+}
+
+#cancelLink {
+  text-decoration: none;
 }
