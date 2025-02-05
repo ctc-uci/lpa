@@ -14,7 +14,12 @@
 }
 
 .navText {
-  margin-left: 2%;
+  margin-left: 3%;
   width: 90%;
   font-size: 150%;
+  color: #474849;
+}
+
+#navIcon, #navIcon > * {
+  color: #474849;
 }

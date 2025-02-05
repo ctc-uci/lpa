@@ -17,16 +17,19 @@ export const Navbar = ({ children }) => {
 
   return (
     <div id="navbarBody"
+
     >
     <Box
       w="64"
       bg="white"
       boxShadow="lg"
+      bgColor="#F6F6F6"
     >
       {/* Logo Section */}
       <Flex
         justify="center"
-        p={6}
+        p={10}
+        pb={7}
       >
         <Logo></Logo>
       </Flex>
@@ -50,7 +53,7 @@ export const Navbar = ({ children }) => {
               _hover={{ color: "#4E4AE7" }}
               className="navLink"
             >
-              <Icon className="navIcon" _hover={{ color: "#4E4AE7" }} fontSize="2xl">{item.icon}</Icon>
+              <Icon className="navIcon" color="#474849" _hover={{ color: "#4E4AE7" }} fontSize="2xl">{item.icon}</Icon>
               <Text className="navText">{item.name}</Text>
             </Link>
           </div>

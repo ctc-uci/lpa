@@ -11,6 +11,10 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   width:auto;
 }
 
+Icon * {
+  color: #767778!important;
+}
+
 input[type="date"]::-webkit-calendar-picker-indicator {
   background: transparent;
   bottom: 0;

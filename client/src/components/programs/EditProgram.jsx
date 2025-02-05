@@ -345,7 +345,6 @@ const payees = eventClientResponse.data
             <div id="dateTimeDiv">
               <div>
                 <Icon boxSize={6}><GoClockFill/></Icon>
-
                 <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)}/>
               </div>
               to
