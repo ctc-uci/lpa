@@ -8,12 +8,11 @@ invoicesAssignments.use(express.json());
 invoicesAssignments.get("/", async (req, res) => {
   try {
     const invoices = await db.query(
-      `SELECT events.name as event_name, invoices.is_sent, clients.name, invoices.end_date
+      `SELECT events.name as event_name, invoices.is_sent, invoices.payment_status, clients.name, invoices.end_date, assignments.role
        FROM events 
        JOIN invoices ON events.id = invoices.event_id 
        JOIN assignments ON assignments.event_id = events.id
-       JOIN clients ON clients.id = assignments.client_id
-       WHERE assignments.role = 'payee';`, 
+       JOIN clients ON clients.id = assignments.client_id;`, 
     );
 
 
