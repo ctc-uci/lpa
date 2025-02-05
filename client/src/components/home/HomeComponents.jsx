@@ -47,7 +47,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
 
-import "./home.css";
+import "./Home.css";
 
 // Icon components
 const ActiveStatusIcon = () => <img src={activeSvg} />;
