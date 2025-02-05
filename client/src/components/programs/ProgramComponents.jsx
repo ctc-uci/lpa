@@ -45,7 +45,9 @@ import {
     Input,
     useBoolean,
     Portal,
-    HStack
+    HStack,
+    Wrap,
+    WrapItem
   } from "@chakra-ui/react"
 
 import {
@@ -405,12 +407,28 @@ export const Sessions = ({ sessions, rooms }) => {
                                 <Icon as={sessionsFilterMapPin} />
                                 <Text fontWeight="bold" color="#767778">Room</Text>
                               </Box>
-                              <HStack spacing={2}>
-                                <Button borderRadius="30px" borderWidth="1px" width="15%" height="20%" onClick={() => setSelectedRoom('All')} backgroundColor={selectedRoom === 'All' ? "#EDEDFD" : "#F6F6F6"} borderColor={selectedRoom === 'All' ? "#4E4AE7" : "#767778"}>All</Button>
+                              <Wrap spacing={2}>
+                                <WrapItem>
+                                  <Button borderRadius="30px" borderWidth="1px" width="auto" height="20px" onClick={() => setSelectedRoom('All')} backgroundColor={selectedRoom === 'All' ? "#EDEDFD" : "#F6F6F6"} borderColor={selectedRoom === 'All' ? "#4E4AE7" : "#767778"}>
+                                    All
+                                  </Button>
+                                </WrapItem>
                                 {Array.from(rooms.values()).map((room, index) => (
-                                  <Button key={index} borderRadius="30px" borderWidth="1px" minWidth="auto" height="20%" onClick={() => setSelectedRoom(room)} backgroundColor={selectedRoom === room ? "#EDEDFD" : "#F6F6F6"} borderColor={selectedRoom === room ? "#4E4AE7" : "#767778"}>{room}</Button>
+                                  <WrapItem>
+                                    <Button
+                                      key={index}
+                                      borderRadius="30px"
+                                      borderWidth="1px"
+                                      minWidth="auto"
+                                      height="20px"
+                                      onClick={() => setSelectedRoom(room)}
+                                      backgroundColor={selectedRoom === room ? "#EDEDFD" : "#F6F6F6"}
+                                      borderColor={selectedRoom === room ? "#4E4AE7" : "#767778"}>
+                                    {room}
+                                    </Button>
+                                  </WrapItem>
                                 ))}
-                              </HStack>
+                              </Wrap>
                             </Box>
                           </FormControl>
                         </Box>
@@ -457,7 +475,9 @@ export const Sessions = ({ sessions, rooms }) => {
                         </Text>
                       </Box>
                     </Th>
-                    {/* Empty header as space for the menu ellipsis button */}
+                    {/* Empty headers as space for the menu ellipsis button */}
+                    <Th> </Th>
+                    <Th> </Th>
                     <Th> </Th>
                   </Tr>
                 </Thead>
@@ -465,7 +485,7 @@ export const Sessions = ({ sessions, rooms }) => {
                   {filterSessions().map((session) => (
                     <Tr key={session.id}>
                       <Td>
-                        <Box display="flex" padding="8px" justifyContent="center" alignItems="center">
+                        <Box display="flex" justifyContent="center">
                           <Box height="14px" width="14px" borderRadius="50%" bg={hasTimePassed(session.date) ? "#DAB434" : "#0C824D"}></Box>
                         </Box>
                       </Td>
