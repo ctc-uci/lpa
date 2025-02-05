@@ -61,8 +61,8 @@ function InvoicesDashboard(){
     if (invoices.length === 0 || hasShownToast.current) return; 
 
     const getUnpaidInvoices = () => {
-      const pastDueInvoices = invoices.filter(invoice => isPaid(invoice) === "Past Due");
-      const notifCounter = pastDueInvoices.length;
+      const filteredPastDueInvoices = filteredInvoices.filter(invoice => isPaid(invoice) === "Past Due");
+      const notifCounter = filteredPastDueInvoices.length;
   
       if (notifCounter > 0) {
         hasShownToast.current = true; // Set ref to true to prevent multiple toasts
@@ -70,7 +70,7 @@ function InvoicesDashboard(){
           title: "Unpaid Invoices",
           description: notifCounter > 1
             ? `You have ${notifCounter} past due invoices`
-            : `${pastDueInvoices[0].name} - ${pastDueInvoices[0].endDate.split("T")[0]}`,
+            : `${filteredPastDueInvoices[0].name} - ${filteredPastDueInvoices[0].endDate.split("T")[0]}`,
           status: "error",
           duration: 9000,
           position: "bottom-right",
@@ -80,8 +80,8 @@ function InvoicesDashboard(){
               <Heading size="sm">Unpaid Invoices</Heading>
               {notifCounter > 1 
                 ? `You have ${notifCounter} past due invoices` 
-                : `${pastDueInvoices[0].name} - 
-                  ${new Date(pastDueInvoices[0].endDate).toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "2-digit",})}`
+                : `${filteredPastDueInvoices[0].name} - 
+                  ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "2-digit",})}`
               }
             </Box>
           ),
@@ -90,7 +90,6 @@ function InvoicesDashboard(){
     };
   
     getUnpaidInvoices();
-    console.log(filter);
   }, [invoices]);
 
   const filteredInvoices = invoices
@@ -102,13 +101,11 @@ function InvoicesDashboard(){
     
     // Status filter
     if (filter.status !== 'all' && isPaid(invoice).toLowerCase() !== filter.status.toLowerCase()) return false;
-    
 
     // Instructor filter
     // Filters for events that have an instructor, and gets the event while ensuring only showing a single events even if they have both instructor and payee
     if (filter.instructor.toLowerCase() !== 'all' && invoice.role !== "instructor" && !invoices.some(inv => inv.eventName === invoice.eventName && inv.role === "instructor" && inv.name.toLowerCase() === filter.instructor.toLowerCase()))
       return false; 
-
 
     //Payee filter
     if (filter.payee.toLowerCase() !== 'all' && invoice.role === "payee" && invoice.name.toLowerCase() !== filter.payee.toLowerCase()) return false;
@@ -117,8 +114,6 @@ function InvoicesDashboard(){
     if (filter.startDate && new Date(invoice.endDate) < new Date(filter.startDate)) return false;
     if (filter.endDate && new Date(invoice.endDate) > new Date(new Date(filter.endDate).setDate(new Date(filter.endDate).getDate() + 1))) return false; //to make date range inclusive
 
-
-    
     return true; 
   });
 

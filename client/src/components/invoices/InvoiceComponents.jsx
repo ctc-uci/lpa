@@ -6,12 +6,6 @@ import personIcon from "../../assets/person.svg"
 
 function InvoiceFilter({invoices, filter, setFilter}) {
 
-
-  useEffect(() => {
-    console.log(filter);
-    console.log(invoices);
-  }, [invoices, filter])
-
   return (
     <>
       <Popover placement='bottom-start'>
