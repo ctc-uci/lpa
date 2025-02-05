@@ -8,11 +8,90 @@ invoicesRouter.use(express.json());
 // Get all invoices
 invoicesRouter.get("/", async (req, res) => {
   try {
-    const users = await db.query(`SELECT * FROM invoices`);
+    const { startDate, endDate } = req.query;
+    console.log("Query params:", startDate, endDate);
+    
+    if (startDate && endDate) {
+      const invoices = await db.any(
+        `SELECT * FROM invoices WHERE start_date >= $1::date AND end_date <= $2::date`,
+        [startDate, endDate]
+      );
+      res.status(200).json(keysToCamel(invoices));
+    } else {
+      const invoices = await db.any(`SELECT * FROM invoices ORDER BY id ASC`);
 
-    res.status(200).json(keysToCamel(users));
+      if (invoices.length === 0) {
+        return res.status(404).json({ error: "No invoices found." });
+      }
+
+      res.status(200).json(keysToCamel(invoices));
+    }
   } catch (err) {
-    res.status(400).send(err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+// Get all overdue invoices with optional date range filtering
+invoicesRouter.get("/overdue", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    // Base query for overdue invoices
+    let query = `
+      SELECT * FROM invoices 
+      WHERE is_sent = true 
+      AND payment_status IN ('partial', 'none') 
+      AND end_date < CURRENT_DATE`;
+    
+    const params = [];
+    
+    // Add date range filtering if both dates are provided
+    if (startDate && endDate) {
+      query = `
+        SELECT * FROM invoices 
+        WHERE is_sent = true 
+        AND payment_status IN ('partial', 'none') 
+        AND end_date < CURRENT_DATE
+        AND start_date >= $1 
+        AND end_date <= $2`;
+      params.push(startDate, endDate);
+    }
+
+    const overdueInvoices = await db.query(query, params);
+    res.status(200).json(keysToCamel(overdueInvoices));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Get all invoices due within the next week with optional date range filtering
+invoicesRouter.get("/neardue", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    // Base query for neardue invoices
+    let query = `
+      SELECT * FROM invoices 
+      WHERE is_sent = false 
+      AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')`;
+    
+    const params = [];
+    
+    // Add date range filtering if both dates are provided
+    if (startDate && endDate) {
+      query = `
+        SELECT * FROM invoices 
+        WHERE is_sent = false 
+        AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')
+        AND start_date >= $1 
+        AND end_date <= $2`;
+      params.push(startDate, endDate);
+    }
+
+    const nearDueInvoices = await db.query(query, params);
+    res.status(200).json(keysToCamel(nearDueInvoices));
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 });
 

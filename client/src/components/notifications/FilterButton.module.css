@@ -1,0 +1,106 @@
+/* FilterButton.module.css */
+.modalContent {
+    display: inline-flex;
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    border-radius: 15px;
+    border: 1px solid var(--medium-light-grey, #D2D2D2);
+    background: var(--white, #FFF);
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+    width: 200px;
+}
+
+.dateRangeHeader {
+  color: var(--medium-grey, #767778);
+  font-family: Inter;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  margin-bottom: 16px;
+
+}
+
+.modalBody {
+  padding: 0;
+}
+
+.dateInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  width: 280px;
+}
+
+.dateInput {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--medium-light-grey, #d2d2d2);
+}
+
+.dateInput::placeholder{
+    color: var(--medium-grey, #767778);
+    font-family: Inter;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px; /* 125% */
+}
+
+.toText {
+    color: var(--medium-grey, #767778);
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.typeHeader {
+    color: var(--medium-grey, #767778);
+    font-family: Inter;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    margin-bottom: 16px;
+}
+
+.filterButtonGroup {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    align-self: stretch;
+}
+
+.filterButton {
+  border: 1px solid #d2d2d2 !important;
+  border-radius: 15px !important;
+  padding: 0px 15px !important;
+  background: white !important;
+  color: #767778 !important;
+  transition: all 0.2s !important;
+  color: var(--medium-grey, #767778);
+  font-family: Inter;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.filterButton:hover {
+  background: #f5f5f5 !important;
+}
+
+.filterButton.active {
+    color: var(--indigo, #4E4AE7) !important;
+    border-radius: 30px !important;
+    border: 1px solid var(--indigo, #4E4AE7) !important;
+    background: var(--light-indigo, #EDEDFD) !important;
+}
