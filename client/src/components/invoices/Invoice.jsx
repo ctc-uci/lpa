@@ -28,7 +28,7 @@ export const Invoice = () => {
     const payeeEmail = "payee@gmail.com"
 
     const [total, setTotal] = useState(0);
-    const [invoices, setInvoices] = useState([]);
+    const [remainingBalance, setRemainingBalance] = useState(0);
     const [billingPeriod, setBillingPeriod] = useState({});
     const [comments, setComments] = useState([]);
 
@@ -39,9 +39,36 @@ export const Invoice = () => {
                 console.log("Invoice Total: ", invoiceTotalResponse.data.total);
                 setTotal(invoiceTotalResponse.data.total)
 
-                const invoicesResponse = await backend.get("/invoices")
-                console.log("Invoices", invoicesResponse.data);
-                setInvoices(invoicesResponse.data);
+                const currentInvoiceResponse = await backend.get("/invoices/" + id);
+                // console.log("Current Invoice: ", currentInvoiceResponse.data);
+
+                const unpaidInvoicesResponse = await backend.get("/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]);
+                // console.log("Unpaid Invoices: ", unpaidInvoicesResponse.data);
+
+                const unpaidInvoicesTotalResponse = await Promise.all(
+                    unpaidInvoicesResponse.data.map(
+                        unpaidInvoice => backend.get("/invoices/total/" + unpaidInvoice.id)
+                    )
+                );
+                console.log("Unpaid Invoices Total: ", unpaidInvoicesTotalResponse);
+                const unpaidTotal = unpaidInvoicesTotalResponse.reduce(
+                    ((accumulator, currentValue) => accumulator + currentValue["data"]["total"]), 0
+                );
+                console.log("Unpaid Total: ", unpaidTotal);
+
+                const unpaidInvoicesPartiallyPaidResponse = await Promise.all(
+                    unpaidInvoicesResponse.data.map(
+                        unpaidInvoice => backend.get("/invoices/paid/" + unpaidInvoice.id)
+                    )
+                );
+                console.log("Unpaid Invoices Partially Paid Total: ", unpaidInvoicesPartiallyPaidResponse);
+                const unpaidPartiallyPaidTotal = unpaidInvoicesPartiallyPaidResponse.reduce(
+                    ((accumulator, currentValue) => accumulator + currentValue["data"]["paid"]), 0
+                );
+                console.log("Unpaid Partially Paid Total: ", unpaidPartiallyPaidTotal);
+
+                setRemainingBalance(unpaidTotal - unpaidPartiallyPaidTotal);
+                console.log("Remaining Balance: ", remainingBalance);
 
                 const billingPeriod = await backend.get("invoices/" + id);
                 console.log("Billing Period: ", billingPeriod.data[0]["startDate"]);
@@ -106,8 +133,9 @@ export const Invoice = () => {
                         <InvoiceStats
                             name={payeeName}
                             email={payeeEmail}
-                            amountDue={total}
                             billingPeriod={billingPeriod}
+                            amountDue={total}
+                            remainingBalance={remainingBalance}
                         ></InvoiceStats>
 
                         <InvoicePayments

@@ -30,7 +30,7 @@ export const InvoiceDescription = ({ description }) => {
     );
 };
 
-export const InvoiceStats = ({ name, email, amountDue, billingPeriod }) => {
+export const InvoiceStats = ({ name, email, billingPeriod, amountDue, remainingBalance }) => {
     const formatDate = (isoDate) => {
         const date = new Date(isoDate);
         return date.toLocaleDateString("en-US", {
@@ -87,7 +87,7 @@ export const InvoiceStats = ({ name, email, amountDue, billingPeriod }) => {
                     </Box>
                     <Box>
                         <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Remaining Balance </Text>
-                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> $20.00 </Text>
+                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> ${remainingBalance ? remainingBalance.toFixed(2) : "N/A"} </Text>
                     </Box>
                 </Flex>
             </Card>
