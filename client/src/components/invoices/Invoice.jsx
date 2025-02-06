@@ -24,9 +24,6 @@ export const Invoice = () => {
     const { backend } = useBackendContext();
     const navigate = useNavigate();
 
-    const payeeName = "Aya De Leon"
-    const payeeEmail = "payee@gmail.com"
-
     const [total, setTotal] = useState(0);
     const [remainingBalance, setRemainingBalance] = useState(0);
     const [billingPeriod, setBillingPeriod] = useState({});
@@ -49,30 +46,16 @@ export const Invoice = () => {
                 console.log("Unpaid Invoices: ", unpaidInvoicesResponse.data);
 
                 // calculate sum of unpaid/remaining invoices
-                const unpaidInvoicesTotalResponse = await Promise.all(
-                    unpaidInvoicesResponse.data.map(
-                        unpaidInvoice => backend.get("/invoices/total/" + unpaidInvoice.id)
-                    )
+                const unpaidTotals = await Promise.all(
+                  unpaidInvoicesResponse.data.map(invoice => backend.get(`/invoices/total/${invoice.id}`))
                 );
-                console.log("Unpaid Invoices Total: ", unpaidInvoicesTotalResponse);
-                const unpaidTotal = unpaidInvoicesTotalResponse.reduce(
-                    ((accumulator, currentValue) => accumulator + currentValue["data"]["total"]), 0
+                const partiallyPaidTotals = await Promise.all(
+                    unpaidInvoicesResponse.data.map(invoice => backend.get(`/invoices/paid/${invoice.id}`))
                 );
-                console.log("Unpaid Total: ", unpaidTotal);
-
-                const unpaidInvoicesPartiallyPaidResponse = await Promise.all(
-                    unpaidInvoicesResponse.data.map(
-                        unpaidInvoice => backend.get("/invoices/paid/" + unpaidInvoice.id)
-                    )
-                );
-                console.log("Unpaid Invoices Partially Paid Total: ", unpaidInvoicesPartiallyPaidResponse);
-                const unpaidPartiallyPaidTotal = unpaidInvoicesPartiallyPaidResponse.reduce(
-                    ((accumulator, currentValue) => accumulator + currentValue["data"]["paid"]), 0
-                );
-                console.log("Unpaid Partially Paid Total: ", unpaidPartiallyPaidTotal);
-
-                setRemainingBalance(unpaidTotal - unpaidPartiallyPaidTotal);
-                console.log("Remaining Balance: ", remainingBalance);
+                const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
+                const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => sum + res.data.paid, 0);
+                const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+                setRemainingBalance(remainingBalance);
 
                 // get billing period
                 const billingPeriod = await backend.get("invoices/" + id);

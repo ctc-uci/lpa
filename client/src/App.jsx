@@ -46,7 +46,7 @@ const App = () => {
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
                 />
-                {/* <Route
+                <Route
                   path="/invoices/:id"
                   element={
                     <ProtectedRoute
@@ -54,10 +54,6 @@ const App = () => {
                       allowedRoles={["admin"]}
                     />
                   }
-                /> */}
-                <Route
-                  path="/invoices/:id"
-                  element={<Invoice />}
                 />
                 <Route
                   path="/admin"

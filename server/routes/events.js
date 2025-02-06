@@ -40,22 +40,6 @@ eventsRouter.get("/:id", async (req, res) => {
     }
 });
 
-eventsRouter.get("/remaining/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const currentDate = new Date();
-
-        const unpaidInvoices = await db.query(
-            "SELECT * from invoices " +
-            "WHERE invoices.event_id = $1 AND payment_status <> 'full' AND end_date < $2", [
-            id, currentDate.toISOString().split('T')[0] + "T00:00:00Z"
-        ])
-        res.status(200).json(keysToCamel(unpaidInvoices));
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
-});
-
 // Create event, return event ID
 eventsRouter.post("/", async (req, res) => {
     try {
@@ -87,12 +71,12 @@ eventsRouter.put("/:id", async (req, res) => {
 
         const event = await db.query(
             `UPDATE events
-      SET
-      name = COALESCE($1, name),
-      description = COALESCE($2, description),
-      archived = COALESCE($3, archived)
-      WHERE id = $4
-      RETURNING *`,
+            SET
+            name = COALESCE($1, name),
+            description = COALESCE($2, description),
+            archived = COALESCE($3, archived)
+            WHERE id = $4
+            RETURNING *`,
             [eventData.name, eventData.description, eventData.archived, id]
         );
 
@@ -115,6 +99,21 @@ eventsRouter.delete("/:id", async (req, res) => {
     } catch (err) {
         res.status(500).send(err.message);
     }
+});
+
+eventsRouter.get("/remaining/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentMonth = (new Date()).toISOString().split('T')[0] + "T00:00:00Z";
+
+    const unpaidInvoices = await db.query(
+      `SELECT * FROM invoices
+      WHERE invoices.event_id = $1 AND payment_status <> 'full' AND end_date < $2;`, [
+      id, currentMonth])
+    res.status(200).json(keysToCamel(unpaidInvoices));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 export { eventsRouter };
