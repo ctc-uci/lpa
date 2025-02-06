@@ -11,6 +11,14 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   width:auto;
 }
 
+h1 {
+  font-size: 150%;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1;
+  color: #474849;
+}
+
 Icon * {
   color: #767778!important;
 }
@@ -41,6 +49,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 #body > #navbarBody {
   flex: 0 0 auto;
+}
+
+#innerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 #leftCancel {
@@ -94,6 +108,38 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 23%;
 }
 
+#dateTimeDiv > div {
+  display: flex;
+  align-items: center;
+line-height: 1.5;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#time1, #time2 {
+  width: 80%;
+  margin-right: auto;
+  margin-left: 2%;
+flex: 1;
+}
+
+#date1, #date2 {
+  width: 80%;
+  margin-right: 0;
+  margin-left: 2%;
+}
+
+#repeatContainer {
+  justify-content: space-evenly;
+}
+
+#repeatDiv {
+  width: 55%;
+  display: flex;
+  flex-direction: row;
+  gap: 2%;
+}
+
 #payeeEmails, #cancelBody {
   display: flex!important;
   flex-direction: row!important;
@@ -116,16 +162,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background-color: transparent;
 }
 
-#repeatDiv {
-  width: 55%;
-  display: flex;
-  flex-direction: row;
-  gap: 2%;
-  margin: 3% 0;
-  padding-top: 2%;
-  padding-bottom: 2%;
-}
-
 #Button {
   width: 40px;
   height: 40px;
@@ -135,24 +171,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-#time1, #time2 {
-  width: 80%;
-  margin-right: auto;
-}
-/*
-input[type="time"]:invalid:before, #time2:invalid:before {
-  content: '00:00 am';
-} */
-
-#date1, #date2 {
-  width: 80%;
-  margin-right: 0;
-}
-
-#repeatContainer {
-  justify-content: space-evenly;
 }
 
 #instructorSelection, #payeeSelection {
@@ -202,6 +220,11 @@ input[type="time"]:invalid:before, #time2:invalid:before {
 #payees > Input {
   background-color: transparent;
   border: none;
+}
+
+#location {
+  display: flex;
+  flex-direction: row;
 }
 
 #cancel {

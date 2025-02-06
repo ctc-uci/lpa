@@ -63,13 +63,14 @@ export const EditProgram = () => {
   const [locations, setLocations] = useState({}); // rooms.id rooms.name
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState("");
+  const [locationRate, setLocationRate] = useState("");
+  const [roomDescription, setRoomDescription] = useState("");
   const [eventName, setEventName] = useState("");
   const [eventArchived, setEventArchived] = useState("");
   const [searchedInstructors, setSearchedInstructors] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [searchedPayees, setSearchedPayees] = useState([]);
   const [selectedPayees, setSelectedPayees] = useState([]);
-  const [roomDescription, setRoomDescription] = useState("");
   const [generalInformation, setGeneralInformation] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -95,6 +96,7 @@ export const EditProgram = () => {
     getPayeeResults(payeeSearchTerm);
   }, [selectedPayees, payeeSearchTerm]);
 
+
   const exit = () => {
     navigate('/program/' + id);
   };
@@ -113,6 +115,7 @@ export const EditProgram = () => {
       setSelectedLocation(bookingResponse.data[0].name);
       setSelectedLocationId(bookingResponse.data[0].roomId);
       setRoomDescription(bookingResponse.data[0].description);
+      setLocationRate(bookingResponse.data[0].rate);
       setStartTime(bookingResponse.data[0].startTime.split(':').slice(0, 2).join(':'));
       setEndTime(bookingResponse.data[0].endTime.split(':').slice(0, 2).join(':'));
       setStartDate(bookingResponse.data[0].date.split("T")[0]);
@@ -288,8 +291,6 @@ const payees = eventClientResponse.data
       });
 
       deleteAllBookingComments();
-      // error if no comments for booking & try to delete
-      // error if comments for booking & dont try to delete
       deleteAllEventBookings();
       deleteAllAssignments();
 
@@ -340,26 +341,26 @@ const payees = eventClientResponse.data
         <div onClick={exit}><Icon fontSize="2xl" id="leftCancel"><IoCloseOutline /></Icon></div>
         <div id="eventInfoBody">
           <div id="title"><h1><b>{eventName}</b></h1><Button id="save" onClick={saveEvent}>Save</Button></div>
-          <div>
+          <div id="innerBody">
             {/* <Field invalid label="startTime" errorText="This field is required">*/}
             <div id="dateTimeDiv">
               <div>
-                <Icon boxSize={6}><GoClockFill/></Icon>
+                <Icon boxSize={6} fontSize="lg"><GoClockFill/></Icon>
                 <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)}/>
               </div>
               to
               <div>
-                <Icon boxSize={6}><GoClockFill/></Icon>
+                <Icon boxSize={6} fontSize="lg"><GoClockFill/></Icon>
                 <Input id = "time2" placeholder="00:00 pm" type='time' variant="outline" size="md" value={endTime} onChange={(event) => setEndTime(event.target.value)}/>
               </div>
               from
               <div>
-                <Icon boxSize={6}><TbCalendarEvent /></Icon>
+                <Icon boxSize={6} fontSize="lg"><TbCalendarEvent /></Icon>
                 <Input id = "date1" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={startDate} onChange={(e) => setStartDate(e.target.value)}/>
               </div>
               to
               <div>
-                <Icon boxSize={6}><TbCalendarEvent /></Icon>
+                <Icon boxSize={6} fontSize="lg"><TbCalendarEvent /></Icon>
                 <Input id = "date2" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={endDate} onChange={(e) => setEndDate(e.target.value)}/>
               </div>
             </div>
@@ -389,150 +390,155 @@ const payees = eventClientResponse.data
                 </Flex>
               </FormControl>
             </div>
-          </div>
-          <div id="instructorContainer">
-            <div id="instructors">
-              <div id="instructorSelection">
-                <div id="instructorInput">
-                  <Input placeholder="Instructor" onChange={(e)=>{getInstructorResults(e.target.value); setInstructorSearchTerm(e.target.value);}}/>
-                  <IoMdAddCircle />
-                </div>
-                <select
-                      onChange={(event) => {
-                        const selectedId = event.target.value;
-                        const selectedInstructor = searchedInstructors.find(
-                          instructor => instructor.id.toString() === selectedId
-                        );
 
-                        const alreadySelected = selectedInstructors.find(
-                          instructor => instructor.id.toString() === selectedId
-                        );
-
-                        if (selectedInstructor && !alreadySelected) {
-                          setSelectedInstructors(prevItems => [...prevItems, selectedInstructor]);
-                          const filteredInstructors = searchedInstructors.filter(
-                            (instructor) => selectedId !== instructor.id.toString());
-                          setSearchedInstructors(filteredInstructors);
-                        }
-                      }}
-                    multiple
-                >
-                  {searchedInstructors.map((instructor) => (
-                    <option value={instructor.id} key={instructor.id}>
-                      {instructor.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div id="instructorTags">
-              {selectedInstructors.length > 0 ? (
-                selectedInstructors.map((instructor, ind) => (
-                  <div key={ind}>
-                    <Icon fontSize="xl" onClick={() => {
-                        setSelectedInstructors(prevItems =>
-                          prevItems.filter(item => item.id !== instructor.id));
-                      }}><IoCloseOutline /></Icon>
-                    <Tag value={instructor.id}>
-                      {instructor.name}
-                    </Tag>
+            <div id="instructorContainer">
+              <div id="instructors">
+                <div id="instructorSelection">
+                  <div id="instructorInput">
+                    <Input placeholder="Instructor" onChange={(e)=>{getInstructorResults(e.target.value); setInstructorSearchTerm(e.target.value);}}/>
+                    <IoMdAddCircle />
                   </div>
-                ))
-              ) : (
-                <div></div>
-              )}
-            </div>
-          </div>
+                  <select
+                        onChange={(event) => {
+                          const selectedId = event.target.value;
+                          const selectedInstructor = searchedInstructors.find(
+                            instructor => instructor.id.toString() === selectedId
+                          );
 
-          <div id="payeeContainer">
-            <div id="payees">
-              <div id="payeeSelection">
-                <div id="payeeInput">
-                  <Input placeholder="Payee" onChange={(e)=>{getPayeeResults(e.target.value); setPayeeSearchTerm(e.target.value);}}/>
-                  <IoMdAddCircle />
-                </div>
-                <select
-                    onChange={(event) => {
-                        const selectedId = event.target.value;
-                              const selectedPayee = searchedPayees.find(
-                                payee => payee.id.toString() === selectedId
-                              );
+                          const alreadySelected = selectedInstructors.find(
+                            instructor => instructor.id.toString() === selectedId
+                          );
 
-                              const alreadySelected = selectedPayees.find(
-                                payee => payee.id.toString() === selectedId
-                              );
-
-                              if (selectedPayee && !alreadySelected) {
-                                setSelectedPayees(prevItems => [...prevItems, selectedPayee]);
-                                const filteredPayees = searchedPayees.filter(
-                                  (payee) => selectedId !== payee.id.toString());
-                                setSearchedPayees(filteredPayees);
-                              }
-                              }}
-                    multiple
+                          if (selectedInstructor && !alreadySelected) {
+                            setSelectedInstructors(prevItems => [...prevItems, selectedInstructor]);
+                            const filteredInstructors = searchedInstructors.filter(
+                              (instructor) => selectedId !== instructor.id.toString());
+                            setSearchedInstructors(filteredInstructors);
+                          }
+                        }}
+                      multiple
                   >
-                    {searchedPayees.map((payee) => (
-                      <option value={payee.id} key={payee.id}>
-                        {payee.name}
+                    {searchedInstructors.map((instructor) => (
+                      <option value={instructor.id} key={instructor.id}>
+                        {instructor.name}
                       </option>
                     ))}
-                </select>
+                  </select>
+                </div>
               </div>
-            </div>
-            <div id="payeeTags">
-                {selectedPayees.length > 0 ? (
-                  selectedPayees.map((payee, ind) => (
+              <div id="instructorTags">
+                {selectedInstructors.length > 0 ? (
+                  selectedInstructors.map((instructor, ind) => (
                     <div key={ind}>
-                      <Icon fontSize="xl" onClick={(e) => {
-                        setSelectedPayees(prevItems =>
-                          prevItems.filter(item => item.id !== payee.id));
-                      }}><IoCloseOutline/></Icon>
-                      <Tag value={payee.id}>
-                        {payee.name}
+                      <Icon fontSize="xl" onClick={() => {
+                          setSelectedInstructors(prevItems =>
+                            prevItems.filter(item => item.id !== instructor.id));
+                        }}><IoCloseOutline /></Icon>
+                      <Tag value={instructor.id}>
+                        {instructor.name}
                       </Tag>
                     </div>
                   ))
                 ) : (
                   <div></div>
                 )}
+              </div>
             </div>
-          </div>
-          <div id="payeeEmails">
-            <MdOutlineEmail />
-            {selectedPayees.map(payee => payee.email).join(", ")}
-          </div>
 
-          <div id="location">
-            <MdLocationOn />
-            {locations && locations.length > 0 ? (
-                  <Select
-                    defaultValue={'DEFAULT'}
-                    onChange={(event) => {
-                      const selectedId = parseInt(event.target.value);
-                      const location = locations.find(loc => loc.id === selectedId);
-                      setSelectedLocation(location.name);
-                      setSelectedLocationId(location.id);
-                      setRoomDescription(location.description);
-                    }}
-                  >
-                    <option value="DEFAULT" disabled>{selectedLocation}</option>
-                    {locations.map((location) => (
-                      <option value={location.id} key={location.id}>
-                        {location.name}
-                      </option>
-                    ))}
-                  </Select>
-                ) : <div></div>  }
-          </div>
+            <div id="payeeContainer">
+              <div id="payees">
+                <div id="payeeSelection">
+                  <div id="payeeInput">
+                    <Input placeholder="Payee" onChange={(e)=>{getPayeeResults(e.target.value); setPayeeSearchTerm(e.target.value);}}/>
+                    <IoMdAddCircle />
+                  </div>
+                  <select
+                      onChange={(event) => {
+                          const selectedId = event.target.value;
+                                const selectedPayee = searchedPayees.find(
+                                  payee => payee.id.toString() === selectedId
+                                );
 
-          <div id="roomDescription">
-            <h3>Room Description</h3>
-            <p>{roomDescription}</p>
-          </div>
+                                const alreadySelected = selectedPayees.find(
+                                  payee => payee.id.toString() === selectedId
+                                );
 
-          <div id="information">
-            <h3>General Information</h3>
-            <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}}></Textarea>
+                                if (selectedPayee && !alreadySelected) {
+                                  setSelectedPayees(prevItems => [...prevItems, selectedPayee]);
+                                  const filteredPayees = searchedPayees.filter(
+                                    (payee) => selectedId !== payee.id.toString());
+                                  setSearchedPayees(filteredPayees);
+                                }
+                                }}
+                      multiple
+                    >
+                      {searchedPayees.map((payee) => (
+                        <option value={payee.id} key={payee.id}>
+                          {payee.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+              <div id="payeeTags">
+                  {selectedPayees.length > 0 ? (
+                    selectedPayees.map((payee, ind) => (
+                      <div key={ind}>
+                        <Icon fontSize="xl" onClick={(e) => {
+                          setSelectedPayees(prevItems =>
+                            prevItems.filter(item => item.id !== payee.id));
+                        }}><IoCloseOutline/></Icon>
+                        <Tag value={payee.id}>
+                          {payee.name}
+                        </Tag>
+                      </div>
+                    ))
+                  ) : (
+                    <div></div>
+                  )}
+              </div>
+            </div>
+            <div id="payeeEmails">
+              <MdOutlineEmail />
+              {selectedPayees.map(payee => payee.email).join(", ")}
+            </div>
+
+            <div id="location">
+              <MdLocationOn />
+              {locations && locations.length > 0 ? (
+                    <Select width="30%"
+                      defaultValue={'DEFAULT'}
+                      onChange={(event) => {
+                        const selectedId = parseInt(event.target.value);
+                        const location = locations.find(loc => loc.id === selectedId);
+                        setSelectedLocation(location.name);
+                        setSelectedLocationId(location.id);
+                        setRoomDescription(location.description);
+                        setLocationRate(location.rate);
+                      }}
+                    >
+                      <option value="DEFAULT" disabled>{selectedLocation}</option>
+                      {locations.map((location) => (
+                        <option value={location.id} key={location.id}>
+                          {location.name}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : <div></div>  }
+              <div id="locationRate">
+                <p>{locationRate}</p>
+              </div>
+            </div>
+
+            <div id="roomDescription">
+              <h3>Room Description</h3>
+              <p>{roomDescription}</p>
+            </div>
+
+            <div id="information">
+              <h3>General Information</h3>
+              <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}}></Textarea>
+            </div>
           </div>
         </div>
         <Popover id="popTrigger">
