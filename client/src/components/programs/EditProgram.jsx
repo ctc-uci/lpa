@@ -46,6 +46,7 @@ import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
 import {EmailIcon} from '../../assets/EmailIcon';
 import {LocationIcon} from '../../assets/LocationIcon';
 import {DollarIcon} from '../../assets/DollarIcon';
+
 // import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useNavigate } from 'react-router-dom';
@@ -87,6 +88,11 @@ export const EditProgram = () => {
   const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
+  const [instructorFocused, setInstructorFocused] = useState(false);
+  const [payeeFocused, setPayeeFocused] = useState(false);
+  const [dropInstructorFocused, setDropInstructorFocused] = useState(false);
+  const [dropPayeeFocused, setDropPayeeFocused] = useState(false);
+  
 
   useEffect(() => {
     getInitialEventData();
@@ -105,7 +111,7 @@ export const EditProgram = () => {
 
 
   const exit = () => {
-    navigate('/program/' + id);
+    navigate('/programs/' + id);
   };
 
   const getInitialEventData = async () => {
@@ -290,7 +296,6 @@ const payees = eventClientResponse.data
 
   const saveEvent = async () => {
     try {
-      console.log("saving event");
       const eventsResponse = await backend.put('/events/' + id, {
           name: eventName,
           description: generalInformation,
@@ -302,7 +307,6 @@ const payees = eventClientResponse.data
       deleteAllAssignments();
 
       const dates = getDatesForDays(startDate, endDate, selectedDays);
-      console.log("dates: ", dates);
       for (const date of dates) {
         const bookingsData = {
           event_id: id,
@@ -333,21 +337,78 @@ const payees = eventClientResponse.data
             role: "payee"
         });
       }
-      // exit();
+      navigate('/programs/' + id);
 
     } catch (error) {
         console.error("Error getting instructors:", error);
     }
   };
 
+  const handle1Blur = (event) => {
+    // Delay the blur event to check if the dropdown was clicked
+    setTimeout(() => {
+      if (!dropInstructorFocused) {
+        setInstructorFocused(false);
+        
+      }
+    }, 10000);
+  };
+
+  const handle2Blur = (event) => {
+    // Delay the blur event to check if the dropdown was clicked
+    setTimeout(() => {
+      if (!dropPayeeFocused) {
+        setPayeeFocused(false);
+      }
+    }, 10000);
+  };
+
+  const handle1DropdownClick = () => {
+    // When clicking on the dropdown, prevent the blur event from triggering
+    setDropInstructorFocused(true);
+  };
+
+  const handle2DropdownClick = () => {
+    // When clicking on the dropdown, prevent the blur event from triggering
+    setDropPayeeFocused(true);
+  };
+  
+  const handle1DropdownBlur = () => {
+    // When the dropdown loses focus, we set it back to false
+    setDropInstructorFocused(false);
+  };
+
+  const handle2DropdownBlur = () => {
+    // When the dropdown loses focus, we set it back to false
+    setDropPayeeFocused(false);
+  };
+
   return (
     <div id="body">
-      <Navbar >
+      <Navbar>
       </Navbar>
       <div id="programsBody">
-        <div onClick={exit}><Icon fontSize="2xl" id="leftCancel"><IoCloseOutline /></Icon></div>
+        <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
         <div id="eventInfoBody">
-          <div id="title"><h1><b>{eventName}</b></h1><Button id="save" onClick={saveEvent}>Save</Button></div>
+          <div id="title">
+            <h1><b>{eventName}</b></h1>
+            <div id = "saveCancel">
+              <Button id="save" onClick={saveEvent}>Save</Button>
+              <Popover id="popTrigger">
+                <PopoverTrigger asChild>
+                  <Icon fontSize="2x1"><CiCircleMore/></Icon>
+                </PopoverTrigger>
+                  <PopoverContent style={{width:"100%"}}>
+                    <PopoverBody onClick={exit}>
+                      <div id="cancelBody">
+                        <Icon fontSize="2xl"><CancelIcon id="cancelIcon"/></Icon>
+                        <p id="cancel">Cancel</p>
+                      </div>
+                    </PopoverBody>
+                  </PopoverContent>
+              </Popover>
+            </div>
+          </div>
           <div id="innerBody">
             {/* <Field invalid label="startTime" errorText="This field is required">*/}
             <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
@@ -404,10 +465,18 @@ const payees = eventClientResponse.data
               <div id="instructors">
                 <div id="instructorSelection">
                   <div id="instructorInput">
-                    <Input placeholder="Instructor" onChange={(e)=>{getInstructorResults(e.target.value); setInstructorSearchTerm(e.target.value);}}/>
+                    <Input placeholder="Instructor" 
+                    onFocus={() => setInstructorFocused(true)}
+                    onBlur= {handle1Blur}
+                    onChange={(e)=>{getInstructorResults(e.target.value); setInstructorSearchTerm(e.target.value);}}
+                    tabIndex = {-1}/>
+                    
                     <PlusFilledIcon />
                   </div>
-                  <select
+                  {instructorFocused && searchedInstructors.length > 0 &&(
+                    <select 
+                        onClick={handle1DropdownClick}
+                        onBlur={handle1DropdownBlur}
                         onChange={(event) => {
                           const selectedId = event.target.value;
                           const selectedInstructor = searchedInstructors.find(
@@ -433,6 +502,7 @@ const payees = eventClientResponse.data
                       </option>
                     ))}
                   </select>
+                  )}
                 </div>
               </div>
                 <div id="instructorTags">
@@ -458,35 +528,43 @@ const payees = eventClientResponse.data
               <div id="payees">
                 <div id="payeeSelection">
                   <div id="payeeInput">
-                    <Input placeholder="Payee" onChange={(e)=>{getPayeeResults(e.target.value); setPayeeSearchTerm(e.target.value);}}/>
+                    <Input placeholder="Payee" 
+                    onFocus={() => setPayeeFocused(true)}
+                    onBlur= {handle2Blur}
+                    onChange={(e)=>{getPayeeResults(e.target.value); setPayeeSearchTerm(e.target.value);}}
+                    tabIndex = {-1}/>
                     <PlusFilledIcon />
                   </div>
-                  <select
-                      onChange={(event) => {
-                          const selectedId = event.target.value;
-                                const selectedPayee = searchedPayees.find(
-                                  payee => payee.id.toString() === selectedId
-                                );
+                  {payeeFocused && searchedPayees.length > 0 &&(
+                    <select
+                        onClick={handle2DropdownClick}
+                        onBlur={handle2DropdownBlur}
+                        onChange={(event) => {
+                            const selectedId = event.target.value;
+                                  const selectedPayee = searchedPayees.find(
+                                    payee => payee.id.toString() === selectedId
+                                  );
 
-                                const alreadySelected = selectedPayees.find(
-                                  payee => payee.id.toString() === selectedId
-                                );
+                                  const alreadySelected = selectedPayees.find(
+                                    payee => payee.id.toString() === selectedId
+                                  );
 
-                                if (selectedPayee && !alreadySelected) {
-                                  setSelectedPayees(prevItems => [...prevItems, selectedPayee]);
-                                  const filteredPayees = searchedPayees.filter(
-                                    (payee) => selectedId !== payee.id.toString());
-                                  setSearchedPayees(filteredPayees);
-                                }
-                                }}
-                      multiple
-                    >
-                      {searchedPayees.map((payee) => (
-                        <option value={payee.id} key={payee.id}>
-                          {payee.name}
-                        </option>
-                      ))}
-                  </select>
+                                  if (selectedPayee && !alreadySelected) {
+                                    setSelectedPayees(prevItems => [...prevItems, selectedPayee]);
+                                    const filteredPayees = searchedPayees.filter(
+                                      (payee) => selectedId !== payee.id.toString());
+                                    setSearchedPayees(filteredPayees);
+                                  }
+                                  }}
+                        multiple
+                      >
+                        {searchedPayees.map((payee) => (
+                          <option value={payee.id} key={payee.id}>
+                            {payee.name}
+                          </option>
+                        ))}
+                    </select>
+                  )}
                 </div>
               </div>
               <div id="payeeTagsContainer">
@@ -552,19 +630,6 @@ const payees = eventClientResponse.data
             </div>
           </div>
         </div>
-        <Popover id="popTrigger">
-          <PopoverTrigger asChild>
-            <Icon fontSize="2xl"><CiCircleMore /></Icon>
-          </PopoverTrigger>
-            <PopoverContent style={{width:"100%"}}>
-              <PopoverBody onClick={exit}>
-                <div id="cancelBody">
-                  <Icon fontSize="2xl"><CancelIcon id="cancelIcon"/></Icon>
-                  <p id="cancel">Close</p>
-                </div>
-              </PopoverBody>
-            </PopoverContent>
-        </Popover>
       </div>
     </div>
   );
