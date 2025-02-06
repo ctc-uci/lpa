@@ -10,14 +10,15 @@ programsRouter.get("/", async (req, res) => {
   try {
     const programs = await db.any(`
         SELECT DISTINCT ON (e.id) 
-        e.id,
-        e.name AS event_name,  
-        b.date, 
-        b.start_time, 
-        b.end_time, 
-        r.name AS room_name,
-         MAX(CASE WHEN a.role = 'instructor' THEN c.name END) AS instructor_name,
-         MAX(CASE WHEN a.role = 'payee' THEN c.name END) AS payee_name
+          e.id,
+          e.name AS event_name,  
+          b.date, 
+          b.start_time, 
+          b.end_time, 
+          r.name AS room_name,
+          -- Use string_agg to get all instructors concatenated, and trim extra commas if needed
+          COALESCE(string_agg(DISTINCT CASE WHEN a.role = 'instructor' THEN c.name END, ', '), 'N/A') AS instructor_name,
+          COALESCE(string_agg(DISTINCT CASE WHEN a.role = 'payee' THEN c.name END, ', '), 'N/A') AS payee_name
         FROM events AS e
          LEFT JOIN assignments AS a ON e.id = a.event_id
          LEFT JOIN bookings AS b ON e.id = b.event_id
@@ -41,9 +42,9 @@ programsRouter.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const query = `
-        SELECT e.id, e.name, b.date, b.start_time, b.end_time, r.name,
-        MAX(CASE WHEN a.role = 'instructor' THEN c.name END) AS instructor_name,
-        MAX(CASE WHEN a.role = 'payee' THEN c.name END) AS payee_name
+        SELECT e.id, e.name, b.date, b.start_time, b.end_time, r.name AS room_name,
+          COALESCE(string_agg(DISTINCT CASE WHEN a.role = 'instructor' THEN c.name END, ', '), 'N/A') AS instructor_name,
+          COALESCE(string_agg(DISTINCT CASE WHEN a.role = 'payee' THEN c.name END, ', '), 'N/A') AS payee_name
         FROM events AS e
          JOIN bookings AS b ON e.id = b.event_id
          JOIN rooms AS r ON b.room_id = r.id
@@ -66,9 +67,3 @@ programsRouter.get("/:id", async (req, res) => {
 });
 
 export { programsRouter };
-
-// Assignment (client_id, role), -DONE-
-// Events (id, name), -DONE-
-// Bookings (date, start_time, end_time, room_id), -DONE-
-// Rooms (name), -DONE-
-// Client (name)

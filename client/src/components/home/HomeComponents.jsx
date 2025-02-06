@@ -116,22 +116,35 @@ export const ProgramsTable = () => {
       };
 
       // Format programs data for display
-      const programsData = response.data.map((program) => ({
-        id: program.id,
-        name: program.eventName,
-        status:
-          program.date && new Date(program.date) > new Date()
-            ? "Active"
-            : "Past",
-        upcomingDate: program.date ? formatDate(program.date) : "No bookings",
-        upcomingTime:
-          program.startTime && program.endTime
-            ? `${formatTime(program.startTime)} - ${formatTime(program.endTime)}`
-            : "N/A",
-        room: program.roomName || "N/A",
-        instructor: program.instructorName || "N/A",
-        payee: program.payeeName || "N/A",
-      }));
+      const programsData = response.data.map((program) => {
+        // Handle multiple instructors or payees:
+        const instructor = Array.isArray(program.instructorName)
+          ? program.instructorName.join(", ")
+          : program.instructorName || "N/A";
+
+        const payee = Array.isArray(program.payeeName)
+          ? program.payeeName.join(", ")
+          : program.payeeName || "N/A";
+
+        return {
+          id: program.id,
+          name: program.eventName,
+          // Preserve the original date for filtering:
+          date: program.date,
+          status:
+            program.date && new Date(program.date) > new Date()
+              ? "Active"
+              : "Past",
+          upcomingDate: program.date ? formatDate(program.date) : "No bookings",
+          upcomingTime:
+            program.startTime && program.endTime
+              ? `${formatTime(program.startTime)} - ${formatTime(program.endTime)}`
+              : "N/A",
+          room: program.roomName || "N/A",
+          instructor, // possibly a comma-separated list
+          payee, // possibly a comma-separated list
+        };
+      });
 
       console.log("Formatted Programs:", programsData);
       setPrograms(programsData);
@@ -143,6 +156,12 @@ export const ProgramsTable = () => {
   useEffect(() => {
     fetchPrograms();
   }, [fetchPrograms]);
+
+  // Truncate long lists of instructors/payees
+  const truncateNames = (names, maxLength = 30) => {
+    if (names.length <= maxLength) return names;
+    return `${names.substring(0, maxLength)}...`;
+  };
 
   // Apply Filters
   const applyFilters = useCallback(() => {
@@ -449,8 +468,8 @@ export const ProgramsTable = () => {
                       <Td>{program.upcomingDate}</Td>
                       <Td>{program.upcomingTime}</Td>
                       <Td>{program.room}</Td>
-                      <Td>{program.instructor}</Td>
-                      <Td>{program.payee}</Td>
+                      <Td>{truncateNames(program.instructor)}</Td>
+                      <Td>{truncateNames(program.payee)}</Td>
                       <Td
                         borderRightRadius="12px"
                         onClick={(e) => e.stopPropagation()}

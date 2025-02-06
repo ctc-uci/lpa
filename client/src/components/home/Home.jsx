@@ -2,20 +2,19 @@ import React from "react";
 
 import { Box } from "@chakra-ui/react";
 
-import "./Home.css";
-
 import { Navbar } from "../Navbar";
 import { HeaderRowComponent } from "./HeaderRowComponent";
 import { ProgramsTable } from "./HomeComponents";
 
+import "./Home.css";
+
 export const Home = () => {
   return (
-    <Box className="home">
-      <Navbar />
+    <Navbar>
       <Box className="home-inner">
         <HeaderRowComponent />
         <ProgramsTable />
       </Box>
-    </Box>
+    </Navbar>
   );
 };

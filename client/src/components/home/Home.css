@@ -22,10 +22,13 @@
 
 .home-inner {
   display: flex;
+  width: 1230px;
+  height: 1024px;
+  padding: 64px 64px 0px 32px;
   flex-direction: column;
   align-items: flex-start;
-  gap: 24px;
-  align-self: stretch;
+  gap: 32px;
+  flex-shrink: 0;
 }
 
 .header-row {
