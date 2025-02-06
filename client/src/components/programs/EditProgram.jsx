@@ -103,6 +103,7 @@ export const EditProgram = () => {
 
 
   const exit = () => {
+    console.log('/program/' + id);
     navigate('/program/' + id);
   };
 
@@ -539,7 +540,7 @@ const payees = eventClientResponse.data
             <div id="location">
               <LocationIcon />
               {locations && locations.length > 0 ? (
-                    <Select width="30%" backgroundColor="#F6F6F6"
+                    <Select width="30%" backgroundColor="#F6F6F6" value={selectedLocationId}
                       onChange={(event) => {
                         const selectedId = parseInt(event.target.value);
                         const location = locations.find(loc => loc.id === selectedId);
