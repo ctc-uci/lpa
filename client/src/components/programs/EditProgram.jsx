@@ -34,8 +34,9 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-  PopoverBody,
+  PopoverBody, Menu, MenuButton, MenuItem, MenuList
 } from "@chakra-ui/react";
+
 
 import {CancelIcon} from '../../assets/CancelIcon';
 import {RepeatIcon} from '../../assets/RepeatIcon';
@@ -87,6 +88,9 @@ export const EditProgram = () => {
   const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
+  // const [instructorDropdownVisible, setInstructorDropdownVisible] = useState(false);
+  // const [payeeDropdownVisible, setPayeeDropdownVisible] = useState(false);
+
 
   useEffect(() => {
     getInitialEventData();
@@ -349,7 +353,6 @@ const payees = eventClientResponse.data
         <div id="eventInfoBody">
           <div id="title"><h1><b>{eventName}</b></h1><Button id="save" onClick={saveEvent}>Save</Button></div>
           <div id="innerBody">
-            {/* <Field invalid label="startTime" errorText="This field is required">*/}
             <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
               <div>
                 <Icon boxSize={6} fontSize="sm"><ClockFilledIcon/></Icon>
@@ -403,42 +406,54 @@ const payees = eventClientResponse.data
             <div id="instructorContainer">
               <div id="instructors">
                 <div id="instructorSelection">
-                  <div id="instructorInput">
-                    <Input placeholder="Instructor" onChange={(e)=>{getInstructorResults(e.target.value); setInstructorSearchTerm(e.target.value);}}/>
-                    <PlusFilledIcon />
-                  </div>
-                  <select
-                        onChange={(event) => {
-                          const selectedId = event.target.value;
-                          const selectedInstructor = searchedInstructors.find(
-                            instructor => instructor.id.toString() === selectedId
-                          );
+                  <Box>
+                    <Input
+                      placeholder="Instructor..."
+                      onChange={(e) => {
+                        getInstructorResults(e.target.value);
+                        setInstructorSearchTerm(e.target.value);
+                      }}
+                      value={instructorSearchTerm} id="instructorInput"/>
 
-                          const alreadySelected = selectedInstructors.find(
-                            instructor => instructor.id.toString() === selectedId
-                          );
+                    {searchedInstructors.length > 0 && (
+                      <Box id="instructorDropdown">
+                        {searchedInstructors.map((instructor) => (
+                          <Box
+                            key={instructor.id}
+                            onClick={() => {
+                              const alreadySelected = selectedInstructors.find(
+                                (instr) => instr.id.toString() === instructor.id
+                              );
 
-                          if (selectedInstructor && !alreadySelected) {
-                            setSelectedInstructors(prevItems => [...prevItems, selectedInstructor]);
-                            const filteredInstructors = searchedInstructors.filter(
-                              (instructor) => selectedId !== instructor.id.toString());
-                            setSearchedInstructors(filteredInstructors);
-                          }
-                        }}
-                      multiple
-                  >
-                    {searchedInstructors.map((instructor) => (
-                      <option value={instructor.id} key={instructor.id}>
-                        {instructor.name}
-                      </option>
-                    ))}
-                  </select>
+                              if (instructor && !alreadySelected) {
+                                setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                                const filteredInstructors = searchedInstructors.filter(
+                                  (instr) => instructor.id !== instr.id.toString()
+                                );
+                                setSearchedInstructors(filteredInstructors);
+                              }
+                            }}
+                            style={{
+                              padding: "10px",
+                              fontSize: "16px",
+                              cursor: "pointer",
+                              transition: "0.2s",
+                            }}
+                            bg="#F6F6F6"
+                            _hover={{ bg: "#D9D9D9" }}
+                          >
+                            {instructor.name}
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
                 </div>
               </div>
                 <div id="instructorTags">
                   {selectedInstructors.length > 0 ? (
                     selectedInstructors.map((instructor, ind) => (
-                      <div key={ind}>
+                      <div className="instructorTag" key={ind}>
                         <Icon fontSize="lg" onClick={() => {
                             setSelectedInstructors(prevItems =>
                               prevItems.filter(item => item.id !== instructor.id));
@@ -448,66 +463,72 @@ const payees = eventClientResponse.data
                         </Tag>
                       </div>
                     ))
-                  ) : (
-                    <div></div>
-                  )}
+                  ) : <div></div> }
                 </div>
             </div>
 
-            <div id="payeeContainer">
+             <div id="payeeContainer">
               <div id="payees">
                 <div id="payeeSelection">
-                  <div id="payeeInput">
-                    <Input placeholder="Payee" onChange={(e)=>{getPayeeResults(e.target.value); setPayeeSearchTerm(e.target.value);}}/>
-                    <PlusFilledIcon />
-                  </div>
-                  <select
-                      onChange={(event) => {
-                          const selectedId = event.target.value;
-                                const selectedPayee = searchedPayees.find(
-                                  payee => payee.id.toString() === selectedId
-                                );
+                  <Box>
+                    <Input
+                      placeholder="Payee..."
+                      onChange={(e) => {
+                        getPayeeResults(e.target.value);
+                        setPayeeSearchTerm(e.target.value);
+                      }}
+                      value={payeeSearchTerm} id="payeeInput"/>
 
-                                const alreadySelected = selectedPayees.find(
-                                  payee => payee.id.toString() === selectedId
-                                );
+                    {searchedPayees.length > 0 && (
+                      <Box id="payeeDropdown">
+                        {searchedPayees.map((payee) => (
+                          <Box
+                            key={payee.id}
+                            onClick={() => {
+                              const alreadySelected = selectedPayees.find(
+                                (pay) => pay.id.toString() === payee.id
+                              );
 
-                                if (selectedPayee && !alreadySelected) {
-                                  setSelectedPayees(prevItems => [...prevItems, selectedPayee]);
-                                  const filteredPayees = searchedPayees.filter(
-                                    (payee) => selectedId !== payee.id.toString());
-                                  setSearchedPayees(filteredPayees);
-                                }
-                                }}
-                      multiple
-                    >
-                      {searchedPayees.map((payee) => (
-                        <option value={payee.id} key={payee.id}>
-                          {payee.name}
-                        </option>
-                      ))}
-                  </select>
+                              if (payee && !alreadySelected) {
+                                setSelectedPayees((prevItems) => [...prevItems, payee]);
+                                const filteredPayees = searchedPayees.filter(
+                                  (pay) => payee.id !== pay.id.toString()
+                                );
+                                setSearchedPayees(filteredPayees);
+                              }
+                            }}
+                            style={{
+                              padding: "10px",
+                              fontSize: "16px",
+                              cursor: "pointer",
+                              transition: "0.2s",
+                            }}
+                            bg="#F6F6F6"
+                            _hover={{ bg: "#D9D9D9" }}
+                          >
+                            {payee.name}
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
                 </div>
               </div>
-              <div id="payeeTagsContainer">
                 <div id="payeeTags">
-                    {selectedPayees.length > 0 ? (
-                      selectedPayees.map((payee, ind) => (
-                        <div key={ind}>
-                          <Icon fontSize="lg" onClick={(e) => {
+                  {selectedPayees.length > 0 ? (
+                    selectedPayees.map((payee, ind) => (
+                      <div className="payeeTag" key={ind}>
+                        <Icon fontSize="lg" onClick={() => {
                             setSelectedPayees(prevItems =>
                               prevItems.filter(item => item.id !== payee.id));
-                          }}><CloseFilledIcon/></Icon>
-                          <Tag value={payee.id}>
-                            {payee.name}
-                          </Tag>
-                        </div>
-                      ))
-                    ) : (
-                      <div></div>
-                    )}
+                          }}><CloseFilledIcon /></Icon>
+                        <Tag value={payee.id}>
+                          {payee.name}
+                        </Tag>
+                      </div>
+                    ))
+                  ) : <div></div> }
                 </div>
-              </div>
             </div>
 
             <div id="payeeEmails">

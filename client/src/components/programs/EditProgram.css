@@ -166,7 +166,7 @@ flex: 1;
   margin-left: 27%;
 }
 
-#instructorTags > div, #payeeTags > div {
+.instructorTag, .payeeTag {
   height: 2rem;
   border: 1px lightgrey solid;
   border-radius: 20px;
@@ -193,11 +193,6 @@ flex: 1;
   justify-content: center;
 }
 
-#instructorSelection, #payeeSelection {
-  width: 100%;
-  max-height: 300%;
-}
-
 #instructors, #payees {
   display: flex;
   flex-direction: row;
@@ -207,47 +202,38 @@ flex: 1;
   background: #F6F6F6;
 }
 
+#instructorSelection, #payeeSelection {
+  width: 100%;
+}
+
+#instructorSelection > Box, #payeeSelection > Box{
+  position: relative!important;
+  width: 100%!important;
+}
+
 #instructorInput, #payeeInput {
-  border: none;
-  border-bottom: var(--indigo, #4E4AE7) 3px solid;
-  border-radius: 5px 5px 0 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding-right: 3%;
+  border-radius: 5px 5px 0 0!important;
+  border: none!important;
 }
 
-#instructorInput > *, #payeeInput > * {
-  background-color: transparent;
-  border: none;
-}
-
-#instructorInput input:focus, #payeeInput input:focus {
+#instructorInput:focus, #payeeInput:focus {
   outline: none;
   box-shadow: none;
 }
 
-#instructorSelection Select, #payeeSelection Select {
-  background-color: transparent;
-  height: fit-content;
+#instructorDropdown, #payeeDropdown {
   width: 100%;
+  background-color: #D9D9D9;
+  border-top: #4E4AE7 3px solid;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-#instructorSelection option, #payeeSelection option {
-  height: 100%;
-  background-color: transparent;
-  font-size: 100%;
-  margin-top: .5rem;
-}
 
-#instructorSelection option:hover, #payeeSelection option:hover {
-  background-color: #D2D2D2;
-}
 
-#instructors > Input, #payees > Input {
-  background-color: transparent;
-  border: none;
-}
 
 #location, #locationRate {
   display: flex;
