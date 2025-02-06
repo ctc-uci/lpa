@@ -16,6 +16,45 @@ clientsRouter.get("/", async (req, res) => {
   }
 });
 
+const generateWhereClause = (search) => {
+  const columns = ['name']; // You want to search the client name
+  let searchWhereClause = '';
+
+  if (search.length > 0) {
+    searchWhereClause = ` WHERE `;
+    // Generate the condition for searching through client names
+    searchWhereClause += columns
+      .map((column) => {
+        return `CAST(${column} AS TEXT) ILIKE '%' || $1 || '%'`;
+      })
+      .join(' OR ');
+  }
+  return { searchWhereClause };
+};
+
+// Get client that matches a search parameter
+clientsRouter.get('/search', async (req, res) => {
+  try {
+    const { searchTerm } = req.query;
+    console.log("searchTerm", searchTerm);
+    const search = searchTerm.split('+').join(' ');
+    const { searchWhereClause } = generateWhereClause(search);
+
+    const query = `
+      SELECT DISTINCT *
+      FROM clients
+      ${searchWhereClause};
+    `;
+
+    // Execute the query and pass the search term for the placeholder
+    const result = await db.query(query, [search]);
+
+    res.status(200).send(result);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 // Get client by id
 clientsRouter.get("/:id", async (req, res) => {
   try {
@@ -42,11 +81,11 @@ clientsRouter.put("/:id", async (req, res) => {
     // Update just the name or just the email, without having to provide both fields
     const updatedClient = await db.query(
       `
-      UPDATE clients 
-      SET 
-        name = COALESCE($1, name), 
+      UPDATE clients
+      SET
+        name = COALESCE($1, name),
         email = COALESCE($2, email)
-      WHERE id = $3 
+      WHERE id = $3
       RETURNING *
       `,
       [name, email, id]);
@@ -72,7 +111,7 @@ clientsRouter.delete("/:id", async (req, res) => {
     }
 
     res.status(200).json(keysToCamel({result: "success", deletedClient: deletedClient[0]}));
-    
+
   } catch (err) {
     res.status(500).send(err.message);
   }

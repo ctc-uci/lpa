@@ -16,46 +16,6 @@ assignmentsRouter.get("/", async (req, res) => {
   }
 });
 
-const generateWhereClause = (search) => {
-  const columns = ['c.name']; // You want to search the client name
-  let searchWhereClause = '';
-
-  if (search.length > 0) {
-    searchWhereClause = ` WHERE `;
-    // Generate the condition for searching through client names
-    searchWhereClause += columns
-      .map((column) => {
-        return `CAST(${column} AS TEXT) ILIKE '%' || $1 || '%'`;
-      })
-      .join(' OR ');
-  }
-  return { searchWhereClause };
-};
-
-
-assignmentsRouter.get('/searchClients', async (req, res) => {
-  try {
-    const { searchTerm } = req.query;
-    console.log("searchTerm", searchTerm);
-    const search = searchTerm.split('+').join(' ');
-    const { searchWhereClause } = generateWhereClause(search);
-
-    const query = `
-      SELECT DISTINCT c.id, c.name, c.email
-      FROM assignments AS a
-      JOIN clients AS c ON c.id = a.client_id
-      ${searchWhereClause};
-    `;
-
-    // Execute the query and pass the search term for the placeholder
-    const result = await db.query(query, [search]);
-
-    res.status(200).send(result);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
 // Get an assignment by ID
 assignmentsRouter.get("/:id", async (req, res) => {
   try {

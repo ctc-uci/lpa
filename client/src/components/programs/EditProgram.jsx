@@ -39,6 +39,9 @@ import {
 
 import {CancelIcon} from '../../assets/CancelIcon';
 import {RepeatIcon} from '../../assets/RepeatIcon';
+import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
+import {CalendarIcon} from '../../assets/CalendarIcon';
+import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
 // import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useNavigate } from 'react-router-dom';
@@ -179,7 +182,7 @@ const payees = eventClientResponse.data
   const getInstructorResults = async (search) => {
     try {
       if (search !== "") {
-        const instructorResponse = await backend.get("/assignments/searchClients", {
+        const instructorResponse = await backend.get("/clients/search", {
           params: {
             searchTerm: search
           }
@@ -206,7 +209,7 @@ const payees = eventClientResponse.data
   const getPayeeResults = async (search) => {
     try {
       if (search !== "") {
-        const payeeResponse = await backend.get("/assignments/searchClients", {
+        const payeeResponse = await backend.get("/clients/search", {
           params: {
             searchTerm: search
           }
@@ -343,30 +346,31 @@ const payees = eventClientResponse.data
           <div id="title"><h1><b>{eventName}</b></h1><Button id="save" onClick={saveEvent}>Save</Button></div>
           <div id="innerBody">
             {/* <Field invalid label="startTime" errorText="This field is required">*/}
-            <div id="dateTimeDiv">
+            <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
               <div>
-                <Icon boxSize={6} fontSize="lg"><GoClockFill/></Icon>
-                <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)}/>
+                <Icon boxSize={6} fontSize="sm"><ClockFilledIcon/></Icon>
+                <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
               </div>
               to
               <div>
-                <Icon boxSize={6} fontSize="lg"><GoClockFill/></Icon>
-                <Input id = "time2" placeholder="00:00 pm" type='time' variant="outline" size="md" value={endTime} onChange={(event) => setEndTime(event.target.value)}/>
+                <Icon boxSize={6} fontSize="lg"><ClockFilledIcon/></Icon>
+                <Input id = "time2" placeholder="00:00 pm" type='time' variant="outline" size="md" value={endTime} onChange={(event) => setEndTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
               </div>
               from
               <div>
-                <Icon boxSize={6} fontSize="lg"><TbCalendarEvent /></Icon>
-                <Input id = "date1" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={startDate} onChange={(e) => setStartDate(e.target.value)}/>
+                <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
+                <Input id = "date1" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={startDate} onChange={(e) => setStartDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
               </div>
               to
               <div>
-                <Icon boxSize={6} fontSize="lg"><TbCalendarEvent /></Icon>
-                <Input id = "date2" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={endDate} onChange={(e) => setEndDate(e.target.value)}/>
+                <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
+                <Input id = "date2" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={endDate} onChange={(e) => setEndDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
               </div>
             </div>
+
             <div id="repeatDiv">
-              <Icon fontSize="150%"><RepeatIcon /></Icon>
-              <FormLabel>Repeat</FormLabel>
+              <Icon fontSize="100%"><RepeatIcon /></Icon>
+              <FormLabel style={{margin:"0", fontSize:"1rem", color:"#474849"}}>Repeats</FormLabel>
               <FormControl >
                 <Flex id="repeatContainer">
                   {["Su", "M", "Tu", "W", "Th", "F", "S"].map((day) => (
@@ -376,7 +380,8 @@ const payees = eventClientResponse.data
                       variant={selectedDays.includes(day) ? "solid" : "outline"}
                       aria-label={`Toggle ${day}`}
                       fontSize="20px"
-                      icon={<Box as="span">{day}</Box>}
+                      backgroundColor="#F6F6F6"
+                      icon={<Box as="span" color="#767778">{day}</Box>}
                       value={day}
                       onClick={() => {
                         if (selectedDays.includes(day)) {
@@ -396,7 +401,7 @@ const payees = eventClientResponse.data
                 <div id="instructorSelection">
                   <div id="instructorInput">
                     <Input placeholder="Instructor" onChange={(e)=>{getInstructorResults(e.target.value); setInstructorSearchTerm(e.target.value);}}/>
-                    <IoMdAddCircle />
+                    <PlusFilledIcon />
                   </div>
                   <select
                         onChange={(event) => {
@@ -450,7 +455,7 @@ const payees = eventClientResponse.data
                 <div id="payeeSelection">
                   <div id="payeeInput">
                     <Input placeholder="Payee" onChange={(e)=>{getPayeeResults(e.target.value); setPayeeSearchTerm(e.target.value);}}/>
-                    <IoMdAddCircle />
+                    <PlusFilledIcon />
                   </div>
                   <select
                       onChange={(event) => {
@@ -506,7 +511,7 @@ const payees = eventClientResponse.data
             <div id="location">
               <MdLocationOn />
               {locations && locations.length > 0 ? (
-                    <Select width="30%"
+                    <Select width="30%" backgroundColor="#F6F6F6"
                       defaultValue={'DEFAULT'}
                       onChange={(event) => {
                         const selectedId = parseInt(event.target.value);
@@ -537,7 +542,7 @@ const payees = eventClientResponse.data
 
             <div id="information">
               <h3>General Information</h3>
-              <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}}></Textarea>
+              <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="#F6F6F6"></Textarea>
             </div>
           </div>
         </div>
