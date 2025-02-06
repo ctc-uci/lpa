@@ -94,10 +94,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 #dateTimeDiv, #instructorContainer, #payeeContainer {
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: row;
   gap: 1%;
   align-items: center;
+  position: relative;
 }
 
 #dateTimeDiv {
@@ -146,17 +148,28 @@ flex: 1;
   flex-direction: row!important;
 }
 
+
+
 #instructorTags, #payeeTags {
+  height: 2rem;
+  width: 73%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  flex: 1;
+  margin-left: 27%;
 }
 
 #instructorTags > div, #payeeTags > div {
   border: 1px lightgrey solid;
   border-radius: 20px;
   margin-right: 3%;
+  margin-bottom: 2%;
+  display: flex;
+  flex-direction: row;
 }
 
 #instructorTags > div *, #payeeTags > div * {
@@ -188,11 +201,19 @@ flex: 1;
   background: #F6F6F6;
 }
 
+#instructorInput, #payeeInput {
+  border: none;
+  border-bottom: var(--indigo, #4E4AE7) 3px solid;
+  border-radius: 5px 5px 0 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
 #instructorInput > *, #payeeInput > * {
   background-color: transparent;
   border: none;
 }
-
 
 #instructorInput input:focus, #payeeInput input:focus {
   outline: none;
@@ -216,16 +237,7 @@ flex: 1;
   background-color: #D2D2D2;
 }
 
-#instructorInput, #payeeInput {
-  border: none;
-  border-bottom: var(--indigo, #4E4AE7) 3px solid;
-  border-radius: 5px 5px 0 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-#payees > Input {
+#instructors > Input, #payees > Input {
   background-color: transparent;
   border: none;
 }

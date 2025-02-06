@@ -431,23 +431,23 @@ const payees = eventClientResponse.data
                   </select>
                 </div>
               </div>
-              <div id="instructorTags">
-                {selectedInstructors.length > 0 ? (
-                  selectedInstructors.map((instructor, ind) => (
-                    <div key={ind}>
-                      <Icon fontSize="xl" onClick={() => {
-                          setSelectedInstructors(prevItems =>
-                            prevItems.filter(item => item.id !== instructor.id));
-                        }}><IoCloseOutline /></Icon>
-                      <Tag value={instructor.id}>
-                        {instructor.name}
-                      </Tag>
-                    </div>
-                  ))
-                ) : (
-                  <div></div>
-                )}
-              </div>
+                <div id="instructorTags">
+                  {selectedInstructors.length > 0 ? (
+                    selectedInstructors.map((instructor, ind) => (
+                      <div key={ind}>
+                        <Icon fontSize="xl" onClick={() => {
+                            setSelectedInstructors(prevItems =>
+                              prevItems.filter(item => item.id !== instructor.id));
+                          }}><IoCloseOutline /></Icon>
+                        <Tag value={instructor.id}>
+                          {instructor.name}
+                        </Tag>
+                      </div>
+                    ))
+                  ) : (
+                    <div></div>
+                  )}
+                </div>
             </div>
 
             <div id="payeeContainer">
@@ -485,22 +485,24 @@ const payees = eventClientResponse.data
                   </select>
                 </div>
               </div>
-              <div id="payeeTags">
-                  {selectedPayees.length > 0 ? (
-                    selectedPayees.map((payee, ind) => (
-                      <div key={ind}>
-                        <Icon fontSize="xl" onClick={(e) => {
-                          setSelectedPayees(prevItems =>
-                            prevItems.filter(item => item.id !== payee.id));
-                        }}><IoCloseOutline/></Icon>
-                        <Tag value={payee.id}>
-                          {payee.name}
-                        </Tag>
-                      </div>
-                    ))
-                  ) : (
-                    <div></div>
-                  )}
+              <div id="payeeTagsContainer">
+                <div id="payeeTags">
+                    {selectedPayees.length > 0 ? (
+                      selectedPayees.map((payee, ind) => (
+                        <div key={ind}>
+                          <Icon fontSize="xl" onClick={(e) => {
+                            setSelectedPayees(prevItems =>
+                              prevItems.filter(item => item.id !== payee.id));
+                          }}><IoCloseOutline/></Icon>
+                          <Tag value={payee.id}>
+                            {payee.name}
+                          </Tag>
+                        </div>
+                      ))
+                    ) : (
+                      <div></div>
+                    )}
+                </div>
               </div>
             </div>
             <div id="payeeEmails">
