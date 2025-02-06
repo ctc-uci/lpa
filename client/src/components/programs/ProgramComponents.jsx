@@ -414,6 +414,13 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
 };
 
 export const Sessions = ({ sessions, rooms }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [timeRange, setTimeRange] = useState({ start: "", end: "" });
+  const [status, setStatus] = useState("All");
+  const [selectedRoom, setSelectedRoom] = useState("All");
+
   const formatDate = (isoString) => {
     const date = new Date(isoString);
 
@@ -457,12 +464,7 @@ export const Sessions = ({ sessions, rooms }) => {
   if (!rooms || rooms.length === 0) {
     return <div>Loading...</div>; // Possibly change loading indicator
   }
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [dateRange, setDateRange] = useState({ start: "", end: "" });
-  const [timeRange, setTimeRange] = useState({ start: "", end: "" });
-  const [status, setStatus] = useState("All");
-  const [selectedRoom, setSelectedRoom] = useState("All");
 
   const filterSessions = () => {
     return sessions.filter((session) => {
