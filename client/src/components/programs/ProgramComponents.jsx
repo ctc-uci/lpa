@@ -414,7 +414,7 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
 };
 
 export const Sessions = ({ sessions, rooms }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure(); 
 
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
