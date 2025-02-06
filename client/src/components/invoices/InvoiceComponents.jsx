@@ -57,19 +57,17 @@ export const InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalanc
                 overflowY="auto"
                 justifyContent="flex-start"
             >
-                {payees.length > 0 && (
-                  <>
-                    <Text fontSize="clamp(1rem, 1.5rem, 2rem)" fontWeight="bold" color="#474849"> Billed to: </Text>
-                    {payees.map((payee) => (
-                      <Box key={payee.id} mb="0.5rem">
-                        <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.name}</Text>
-                        <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.email}</Text>
-                      </Box>
-                    ))}
-                  </>
-                )}
-
-
+              <Text fontSize="clamp(1rem, 1.5rem, 2rem)" fontWeight="bold" color="#474849"> Billed to: </Text>
+              {(payees && payees.length > 0) ? (
+                payees.map((payee) => (
+                  <Box key={payee.id} mb="0.5rem">
+                    <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.name}</Text>
+                    <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.email}</Text>
+                  </Box>
+                ))
+              ) : (
+                <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">N/A</Text>
+              )}
             </Card>
 
 
@@ -90,17 +88,24 @@ export const InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalanc
                 <Flex width="100%" justifyContent="space-between">
                     <Box>
                         <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Billing Period </Text>
-                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+
+                        {(billingPeriod) ? (
+                          <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
                             {formatDate(billingPeriod["startDate"])} - {formatDate(billingPeriod["endDate"])}
+                          </Text>
+                        ) : (
+                          <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+                            N/A - N/A
                         </Text>
+                        )}
                     </Box>
                     <Box>
                         <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Amount Due </Text>
-                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> ${amountDue ? amountDue.toFixed(2) : "N/A"} </Text>
+                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> {amountDue ? `$${amountDue.toFixed(2)}` : "N/A"} </Text>
                     </Box>
                     <Box>
                         <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Remaining Balance </Text>
-                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> ${remainingBalance ? remainingBalance.toFixed(2) : "N/A"} </Text>
+                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> {remainingBalance ? `$${remainingBalance.toFixed(2)}` : "N/A"} </Text>
                     </Box>
                 </Flex>
             </Card>
@@ -112,8 +117,8 @@ export const InvoicePayments = ({ comments }) => {
     const [commentsPerPage, setCommentsPerPage] = useState(3);
     const [currentPageNumber, setCurrentPageNumber] = useState(1);
 
-    const totalPages = Math.ceil(comments.length / commentsPerPage);
-    const currentPageComments = comments.slice(
+    const totalPages = Math.ceil((comments ?? []).length / commentsPerPage) || 1;
+    const currentPageComments = (comments ?? []).slice(
         (currentPageNumber - 1) * commentsPerPage, currentPageNumber * commentsPerPage
     );
 
@@ -136,7 +141,7 @@ export const InvoicePayments = ({ comments }) => {
 
     return (
         <Flex direction="column" w="100%">
-            <Text fontWeight="bold" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+            <Text fontWeight="bold" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
                 Comments
             </Text>
 
@@ -145,6 +150,7 @@ export const InvoicePayments = ({ comments }) => {
                 borderWidth=".07em"
                 borderColor="#E2E8F0"
                 p={3}
+                mb={3}
             >
                 <Table
                     variant="striped"
@@ -158,7 +164,7 @@ export const InvoicePayments = ({ comments }) => {
                         </Tr>
                     </Thead>
                     <Tbody color="#2D3748">
-                        {Array.isArray(comments) && comments.length > 0 ? (
+                        {comments && comments.length > 0 ? (
                             currentPageComments.map((comment) => (
                                 <Tr key={comment.id}>
                                     <Td fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
@@ -168,7 +174,7 @@ export const InvoicePayments = ({ comments }) => {
                                         {comment.comment}
                                     </Td>
                                     <Td fontSize="clamp(.75rem, 1.25rem, 1.75rem)" fontWeight="bold">
-                                        ${comment.adjustmentValue ? Number(comment.adjustmentValue).toFixed(2) : "N/A"}
+                                        {comment.adjustmentValue ? `$${Number(comment.adjustmentValue).toFixed(2)}` : "N/A"}
                                     </Td>
                                 </Tr>))
                         ) : (
@@ -177,12 +183,9 @@ export const InvoicePayments = ({ comments }) => {
                             </Tr>
                         )}
                     </Tbody>
-
-
                 </Table>
-                {/* </TableContainer> */}
             </Flex>
-            <Flex direction="row" width="100%" alignItems="center">
+            <Flex direction="row" width="100%" alignItems="center" mb={5}>
                 <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" marginRight="0.5rem"> Show: </Text>
                 <Select width="auto" marginRight="0.5rem" value={commentsPerPage} onChange={handleCommentsPerPageChange}>
                     <option value={3}>3</option>
@@ -196,7 +199,7 @@ export const InvoicePayments = ({ comments }) => {
                     <Button onClick={handlePrevPage} isDisabled={currentPageNumber === 1} borderLeftRadius={30}>
                         <FaAngleLeft></FaAngleLeft>
                     </Button>
-                    <Button onClick={handleNextPage} isDisabled={currentPageNumber === totalPages} borderRightRadius={30}>
+                    <Button onClick={handleNextPage} isDisabled={currentPageNumber === totalPages || totalPages === 0} borderRightRadius={30}>
                         <FaAngleRight></FaAngleRight>
                     </Button>
                 </Flex>

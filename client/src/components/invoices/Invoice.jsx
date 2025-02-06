@@ -37,16 +37,18 @@ export const Invoice = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // get invoice total
                 const invoiceTotalResponse = await backend.get("/invoices/total/" + id);
-                console.log("Invoice Total: ", invoiceTotalResponse.data.total);
                 setTotal(invoiceTotalResponse.data.total)
 
+                // get current invoice
                 const currentInvoiceResponse = await backend.get("/invoices/" + id);
-                console.log("Current Invoice: ", currentInvoiceResponse.data);
 
+                // get the unpaid/remaining invoices
                 const unpaidInvoicesResponse = await backend.get("/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]);
                 console.log("Unpaid Invoices: ", unpaidInvoicesResponse.data);
 
+                // calculate sum of unpaid/remaining invoices
                 const unpaidInvoicesTotalResponse = await Promise.all(
                     unpaidInvoicesResponse.data.map(
                         unpaidInvoice => backend.get("/invoices/total/" + unpaidInvoice.id)
@@ -72,27 +74,34 @@ export const Invoice = () => {
                 setRemainingBalance(unpaidTotal - unpaidPartiallyPaidTotal);
                 console.log("Remaining Balance: ", remainingBalance);
 
+                // get billing period
                 const billingPeriod = await backend.get("invoices/" + id);
-                console.log("Billing Period: ", billingPeriod.data[0]["startDate"]);
                 setBillingPeriod(
                     {
                         "startDate": billingPeriod.data[0]["startDate"],
                         "endDate": billingPeriod.data[0]["endDate"]
                     }
                 )
+
+                // get comments
                 const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
-                console.log("Comments: ", commentsResponse.data);
                 setComments(commentsResponse.data);
 
+                // get payees
                 const payeesResponse = await backend.get("/invoices/payees/" + id);
-                console.log("Payees: ", payeesResponse.data);
                 setPayees(payeesResponse.data)
 
+                // get corresponding event
                 const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
                 setEvent(eventResponse.data)
-                console.log("Description: ", eventResponse.data);
             } catch (error) {
-                console.error("Error fetching comments:", error);
+              // error if invoice doesn't exist
+              setTotal(null);
+              setRemainingBalance(null);
+              setBillingPeriod(null);
+              setComments(null);
+              setPayees(null);
+              setEvent(null);
             }
         };
         fetchData();
