@@ -19,3 +19,11 @@
   font-size: 150%;
   color: #474849;
 }
+
+.navLink, .navText, .navIcon, .navItem {
+  color: #474849;
+}
+
+.navItem:hover .navLink, .navItem:hover .navText, .navItem:hover .navIcon {
+  color: #4E4AE7;
+}
