@@ -42,6 +42,10 @@ import {RepeatIcon} from '../../assets/RepeatIcon';
 import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
 import {CalendarIcon} from '../../assets/CalendarIcon';
 import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
+import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
+import {EmailIcon} from '../../assets/EmailIcon';
+import {LocationIcon} from '../../assets/LocationIcon';
+import {DollarIcon} from '../../assets/DollarIcon';
 // import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useNavigate } from 'react-router-dom';
@@ -375,12 +379,12 @@ const payees = eventClientResponse.data
                 <Flex id="repeatContainer">
                   {["Su", "M", "Tu", "W", "Th", "F", "S"].map((day) => (
                     <IconButton
-                      key={day} // Add a key for each button to avoid React warnings
+                      key={day}
                       isRound={true}
                       variant={selectedDays.includes(day) ? "solid" : "outline"}
                       aria-label={`Toggle ${day}`}
                       fontSize="20px"
-                      backgroundColor="#F6F6F6"
+                      backgroundColor={selectedDays.includes(day) ? "#D2D2D2" : "#F6F6F6"}
                       icon={<Box as="span" color="#767778">{day}</Box>}
                       value={day}
                       onClick={() => {
@@ -435,10 +439,10 @@ const payees = eventClientResponse.data
                   {selectedInstructors.length > 0 ? (
                     selectedInstructors.map((instructor, ind) => (
                       <div key={ind}>
-                        <Icon fontSize="xl" onClick={() => {
+                        <Icon fontSize="lg" onClick={() => {
                             setSelectedInstructors(prevItems =>
                               prevItems.filter(item => item.id !== instructor.id));
-                          }}><IoCloseOutline /></Icon>
+                          }}><CloseFilledIcon /></Icon>
                         <Tag value={instructor.id}>
                           {instructor.name}
                         </Tag>
@@ -490,10 +494,10 @@ const payees = eventClientResponse.data
                     {selectedPayees.length > 0 ? (
                       selectedPayees.map((payee, ind) => (
                         <div key={ind}>
-                          <Icon fontSize="xl" onClick={(e) => {
+                          <Icon fontSize="lg" onClick={(e) => {
                             setSelectedPayees(prevItems =>
                               prevItems.filter(item => item.id !== payee.id));
-                          }}><IoCloseOutline/></Icon>
+                          }}><CloseFilledIcon/></Icon>
                           <Tag value={payee.id}>
                             {payee.name}
                           </Tag>
@@ -505,16 +509,16 @@ const payees = eventClientResponse.data
                 </div>
               </div>
             </div>
+
             <div id="payeeEmails">
-              <MdOutlineEmail />
+              <EmailIcon />
               {selectedPayees.map(payee => payee.email).join(", ")}
             </div>
 
             <div id="location">
-              <MdLocationOn />
+              <LocationIcon />
               {locations && locations.length > 0 ? (
                     <Select width="30%" backgroundColor="#F6F6F6"
-                      defaultValue={'DEFAULT'}
                       onChange={(event) => {
                         const selectedId = parseInt(event.target.value);
                         const location = locations.find(loc => loc.id === selectedId);
@@ -524,7 +528,6 @@ const payees = eventClientResponse.data
                         setLocationRate(location.rate);
                       }}
                     >
-                      <option value="DEFAULT" disabled>{selectedLocation}</option>
                       {locations.map((location) => (
                         <option value={location.id} key={location.id}>
                           {location.name}
@@ -533,7 +536,8 @@ const payees = eventClientResponse.data
                     </Select>
                   ) : <div></div>  }
               <div id="locationRate">
-                <p>{locationRate}</p>
+                <DollarIcon />
+                <p>{locationRate} / hour</p>
               </div>
             </div>
 
