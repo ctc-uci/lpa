@@ -53,12 +53,8 @@ import { useNavigate } from 'react-router-dom';
 // import { useRoleContext } from "../../contexts/hooks/useRoleContext";
 // import { User } from "../../types/user";
 // import { RoleSelect } from "./RoleSelect";
-import { MdOutlineEmail, MdLocationOn } from "react-icons/md";
 import { IoCloseOutline } from "react-icons/io5";
-import { TbCalendarEvent } from "react-icons/tb";
-import { GoClockFill } from "react-icons/go";
 import { CiCircleMore } from "react-icons/ci";
-import { IoMdAddCircle, IoMdCloseCircle } from "react-icons/io";
 import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
@@ -451,24 +447,24 @@ const payees = eventClientResponse.data
                   </Box>
                 </div>
               </div>
-                <div id="instructorTags">
-                  {selectedInstructors.length > 0 ? (
-                    selectedInstructors.map((instructor, ind) => (
-                      <div className="instructorTag" key={ind}>
-                        <Icon fontSize="lg" onClick={() => {
-                            setSelectedInstructors(prevItems =>
-                              prevItems.filter(item => item.id !== instructor.id));
-                          }}><CloseFilledIcon /></Icon>
-                        <Tag value={instructor.id}>
-                          {instructor.name}
-                        </Tag>
-                      </div>
-                    ))
-                  ) : <div></div> }
-                </div>
+              <div id="instructorTags">
+                {selectedInstructors.length > 0 ? (
+                  selectedInstructors.map((instructor, ind) => (
+                    <div className="instructorTag" key={ind}>
+                      <Icon fontSize="lg" onClick={() => {
+                          setSelectedInstructors(prevItems =>
+                            prevItems.filter(item => item.id !== instructor.id));
+                        }}><CloseFilledIcon /></Icon>
+                      <Tag value={instructor.id}>
+                        {instructor.name}
+                      </Tag>
+                    </div>
+                  ))
+                ) : <div></div> }
+              </div>
             </div>
 
-             <div id="payeeContainer">
+            <div id="payeeContainer">
               <div id="payees">
                 <div id="payeeSelection">
                   <Box>

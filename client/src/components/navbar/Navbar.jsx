@@ -25,7 +25,6 @@ export const Navbar = ({ children }) => {
       boxShadow="lg"
       bgColor="#F6F6F6"
     >
-      {/* Logo Section */}
       <Flex
         justify="center"
         p={10}
@@ -34,7 +33,6 @@ export const Navbar = ({ children }) => {
         <Logo></Logo>
       </Flex>
 
-      {/* Navigation Links */}
       <VStack
         spacing={2}
         align="stretch"
@@ -49,6 +47,7 @@ export const Navbar = ({ children }) => {
               px={4}
               py={3}
               rounded="lg"
+              color="#474849"
               _hover={{ color: "#4E4AE7" }}
               className="navLink"
             >
