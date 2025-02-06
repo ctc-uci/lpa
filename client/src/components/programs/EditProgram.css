@@ -89,7 +89,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: white;
   justify-content: center;
   align-items: center;
-  border-radius: 30px; /* CHANGE LATER */
+  border-radius: 30px;
 }
 
 #dateTimeDiv, #instructorContainer, #payeeContainer {
@@ -209,6 +209,13 @@ flex: 1;
 #instructorSelection > Box, #payeeSelection > Box{
   position: relative!important;
   width: 100%!important;
+}
+
+#instructorInputContainer, #payeeInputContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-right: 3%;
 }
 
 #instructorInput, #payeeInput {

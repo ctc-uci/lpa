@@ -34,7 +34,7 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-  PopoverBody, Menu, MenuButton, MenuItem, MenuList
+  PopoverBody,
 } from "@chakra-ui/react";
 
 
@@ -71,8 +71,8 @@ export const EditProgram = () => {
   const [locations, setLocations] = useState({}); // rooms.id rooms.name
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState("");
-  const [locationRate, setLocationRate] = useState("");
-  const [roomDescription, setRoomDescription] = useState("");
+  const [locationRate, setLocationRate] = useState("--.--");
+  const [roomDescription, setRoomDescription] = useState("N/A");
   const [eventName, setEventName] = useState("");
   const [eventArchived, setEventArchived] = useState("");
   const [searchedInstructors, setSearchedInstructors] = useState([]);
@@ -88,8 +88,6 @@ export const EditProgram = () => {
   const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
-  // const [instructorDropdownVisible, setInstructorDropdownVisible] = useState(false);
-  // const [payeeDropdownVisible, setPayeeDropdownVisible] = useState(false);
 
 
   useEffect(() => {
@@ -407,13 +405,16 @@ const payees = eventClientResponse.data
               <div id="instructors">
                 <div id="instructorSelection">
                   <Box>
-                    <Input
-                      placeholder="Instructor..."
-                      onChange={(e) => {
-                        getInstructorResults(e.target.value);
-                        setInstructorSearchTerm(e.target.value);
-                      }}
-                      value={instructorSearchTerm} id="instructorInput"/>
+                    <div id="instructorInputContainer">
+                      <Input
+                        placeholder="Instructor..."
+                        onChange={(e) => {
+                          getInstructorResults(e.target.value);
+                          setInstructorSearchTerm(e.target.value);
+                        }}
+                        value={instructorSearchTerm} id="instructorInput"/>
+                      <PlusFilledIcon />
+                    </div>
 
                     {searchedInstructors.length > 0 && (
                       <Box id="instructorDropdown">
@@ -471,13 +472,16 @@ const payees = eventClientResponse.data
               <div id="payees">
                 <div id="payeeSelection">
                   <Box>
-                    <Input
-                      placeholder="Payee..."
-                      onChange={(e) => {
-                        getPayeeResults(e.target.value);
-                        setPayeeSearchTerm(e.target.value);
-                      }}
-                      value={payeeSearchTerm} id="payeeInput"/>
+                    <div id="payeeInputContainer">
+                      <Input
+                        placeholder="Payee..."
+                        onChange={(e) => {
+                          getPayeeResults(e.target.value);
+                          setPayeeSearchTerm(e.target.value);
+                        }}
+                        value={payeeSearchTerm} id="payeeInput"/>
+                      <PlusFilledIcon />
+                    </div>
 
                     {searchedPayees.length > 0 && (
                       <Box id="payeeDropdown">
