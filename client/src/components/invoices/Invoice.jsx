@@ -31,6 +31,8 @@ export const Invoice = () => {
     const [remainingBalance, setRemainingBalance] = useState(0);
     const [billingPeriod, setBillingPeriod] = useState({});
     const [comments, setComments] = useState([]);
+    const [payees, setPayees] = useState([]);
+    const [event, setEvent] = useState();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -40,10 +42,10 @@ export const Invoice = () => {
                 setTotal(invoiceTotalResponse.data.total)
 
                 const currentInvoiceResponse = await backend.get("/invoices/" + id);
-                // console.log("Current Invoice: ", currentInvoiceResponse.data);
+                console.log("Current Invoice: ", currentInvoiceResponse.data);
 
                 const unpaidInvoicesResponse = await backend.get("/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]);
-                // console.log("Unpaid Invoices: ", unpaidInvoicesResponse.data);
+                console.log("Unpaid Invoices: ", unpaidInvoicesResponse.data);
 
                 const unpaidInvoicesTotalResponse = await Promise.all(
                     unpaidInvoicesResponse.data.map(
@@ -81,6 +83,14 @@ export const Invoice = () => {
                 const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
                 console.log("Comments: ", commentsResponse.data);
                 setComments(commentsResponse.data);
+
+                const payeesResponse = await backend.get("/invoices/payees/" + id);
+                console.log("Payees: ", payeesResponse.data);
+                setPayees(payeesResponse.data)
+
+                const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
+                setEvent(eventResponse.data)
+                console.log("Description: ", eventResponse.data);
             } catch (error) {
                 console.error("Error fetching comments:", error);
             }
@@ -126,17 +136,16 @@ export const Invoice = () => {
                             </Flex>
                         </Flex>
 
-                        <InvoiceDescription
-                            description="Immigrant Rights Solidarity Week: Become an Immigration Rights Ambassador Workshop"
-                        ></InvoiceDescription>
+                    <InvoiceDescription
+                        description={event ? event.description : "N/A"}
+                    ></InvoiceDescription>
 
-                        <InvoiceStats
-                            name={payeeName}
-                            email={payeeEmail}
-                            billingPeriod={billingPeriod}
-                            amountDue={total}
-                            remainingBalance={remainingBalance}
-                        ></InvoiceStats>
+                    <InvoiceStats
+                        payees={payees}
+                        billingPeriod={billingPeriod}
+                        amountDue={total}
+                        remainingBalance={remainingBalance}
+                    ></InvoiceStats>
 
                         <InvoicePayments
                             comments={comments}

@@ -30,7 +30,7 @@ export const InvoiceDescription = ({ description }) => {
     );
 };
 
-export const InvoiceStats = ({ name, email, billingPeriod, amountDue, remainingBalance }) => {
+export const InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalance }) => {
     const formatDate = (isoDate) => {
         const date = new Date(isoDate);
         return date.toLocaleDateString("en-US", {
@@ -50,13 +50,26 @@ export const InvoiceStats = ({ name, email, billingPeriod, amountDue, remainingB
                 borderWidth="1px"
                 boxShadow="none"
                 display="flex"
-                justifyContent="center"
                 p={4}
                 color="#D2D2D2"
+                gap={2}
+                flexDirection="column"
+                overflowY="auto"
+                justifyContent="flex-start"
             >
-                <Text fontSize="clamp(1rem, 1.5rem, 2rem)" fontWeight="bold" color="#474849"> Billed to: </Text>
-                <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849"> {name} </Text>
-                <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849"> {email} </Text>
+                {payees.length > 0 && (
+                  <>
+                    <Text fontSize="clamp(1rem, 1.5rem, 2rem)" fontWeight="bold" color="#474849"> Billed to: </Text>
+                    {payees.map((payee) => (
+                      <Box key={payee.id} mb="0.5rem">
+                        <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.name}</Text>
+                        <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.email}</Text>
+                      </Box>
+                    ))}
+                  </>
+                )}
+
+
             </Card>
 
 
