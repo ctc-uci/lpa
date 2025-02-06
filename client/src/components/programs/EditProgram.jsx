@@ -103,7 +103,6 @@ export const EditProgram = () => {
 
 
   const exit = () => {
-    console.log('/program/' + id);
     navigate('/program/' + id);
   };
 
@@ -131,7 +130,6 @@ export const EditProgram = () => {
       setBookingIds(ids);
       setEndDate(bookingResponse.data[bookingResponse.data.length - 1].date.split("T")[0]);
     }
-    console.log(bookingResponse.data);
   }
 
   const getInitialAssignmentsData = async () => {
@@ -242,7 +240,6 @@ const payees = eventClientResponse.data
     await Promise.all(bookingIds.map(async (bookingId) => {
       try {
         const deletedCommentResponse = await backend.delete('/comments/booking/' + bookingId);
-        console.log("deleted comments: ", deletedCommentResponse);
       } catch (err) {
         if (err.response?.status === 404) {
           console.log(`No comments found for booking ${bookingId}`);
@@ -260,7 +257,6 @@ const payees = eventClientResponse.data
   const deleteAllEventBookings = async () => {
     try {
       const deletedBookingResponse = await backend.delete('/bookings/event/' + id);
-      console.log("deleted events: ", deletedBookingResponse);
     } catch (error) {
       if (error.response?.status === 404) {
         console.log(`No bookings found for event ${id}`);
@@ -275,7 +271,6 @@ const payees = eventClientResponse.data
   const deleteAllAssignments = async () => {
     try {
       const deletedAssignmentResponse = await backend.delete('/assignments/event/' + id);
-      console.log("deleted events: ", deletedAssignmentResponse);
     } catch (error) {
       if (error.response?.status === 404) {
           console.log(`No assignments found for event ${id}`);
@@ -289,7 +284,6 @@ const payees = eventClientResponse.data
 
   const saveEvent = async () => {
     try {
-      console.log("saving event");
       const eventsResponse = await backend.put('/events/' + id, {
           name: eventName,
           description: generalInformation,
@@ -301,7 +295,6 @@ const payees = eventClientResponse.data
       deleteAllAssignments();
 
       const dates = getDatesForDays(startDate, endDate, selectedDays);
-      console.log("dates: ", dates);
       for (const date of dates) {
         const bookingsData = {
           event_id: id,
@@ -313,26 +306,24 @@ const payees = eventClientResponse.data
         };
 
         const bookingsResponse = await backend.post('/bookings', bookingsData);
-        console.log("booking made for: ", bookingsResponse.data, bookingsData);
       }
 
       for (const instructor of selectedInstructors) {
-        const instructorResponse = await backend.post("/assignments", {
+        await backend.post("/assignments", {
             eventId: id,
             clientId: instructor.id,
             role: "instructor"
         });
       }
 
-    console.log(selectedPayees);
       for (const payee of selectedPayees) {
-        const payeeResponse = await backend.post("/assignments", {
+        await backend.post("/assignments", {
             eventId: id,
             clientId: payee.id,
             role: "payee"
         });
       }
-      // exit();
+      exit();
 
     } catch (error) {
         console.error("Error getting instructors:", error);
@@ -540,7 +531,7 @@ const payees = eventClientResponse.data
             <div id="location">
               <LocationIcon />
               {locations && locations.length > 0 ? (
-                    <Select width="30%" backgroundColor="#F6F6F6" value={selectedLocationId}
+                    <Select width="30%" backgroundColor="#F6F6F6"  value={selectedLocationId === "" ? 'DEFAULT' : selectedLocationId}
                       onChange={(event) => {
                         const selectedId = parseInt(event.target.value);
                         const location = locations.find(loc => loc.id === selectedId);
@@ -550,6 +541,7 @@ const payees = eventClientResponse.data
                         setLocationRate(location.rate);
                       }}
                     >
+                    <option value={'DEFAULT'} disabled>Location...</option>
                       {locations.map((location) => (
                         <option value={location.id} key={location.id}>
                           {location.name}
