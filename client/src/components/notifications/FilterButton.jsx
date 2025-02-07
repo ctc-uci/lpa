@@ -24,7 +24,7 @@ export const FilterButton = ({ setFilterType, currentFilter }) => {
   // Watch for changes in both dates
   useEffect(() => {
     console.log(startDate, endDate);
-    if (startDate.substring(0,1) == "2" && endDate.substring(0,1) == "2") { // checking if the date is filled out completely
+    if (startDate.substring(0,1) === "2" && endDate.substring(0,1) === "2") { // checking if the date is filled out completely
       const start = new Date(startDate);
       const end = new Date(endDate);
 
