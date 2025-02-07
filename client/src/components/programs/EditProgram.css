@@ -54,7 +54,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 #innerBody {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 #leftCancel {
@@ -95,7 +95,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: white;
   justify-content: center;
   align-items: center;
-  border-radius: 30px; /* CHANGE LATER */
+  border-radius: 30px;
 }
 
 #popTrigger {
@@ -186,27 +186,23 @@ flex: 1;
   font-size: 1.2rem;
 }
 
-
-
 #instructorTags, #payeeTags {
   height: 2rem;
   width: 73%;
   position: absolute;
   left: 0;
   top: 0;
-  margin: 0;
+  margin: 0 0 3% 27%;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  margin-left: 27%;
 }
 
 .instructorTag, .payeeTag {
   height: 2rem;
   border: 1px lightgrey solid;
   border-radius: 20px;
-  margin-right: 3%;
-  margin-bottom: 2%;
+  margin: .5% 3% 0 0;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -244,6 +240,13 @@ flex: 1;
 #instructorSelection > Box, #payeeSelection > Box{
   position: relative!important;
   width: 100%!important;
+}
+
+#instructorInputContainer, #payeeInputContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-right: 3%;
 }
 
 #instructorInput, #payeeInput {

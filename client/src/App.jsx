@@ -73,12 +73,11 @@ const App = () => {
                 />
                 <Route
                   path="/programs/edit/:id"
-                  element={<EditProgram />}
-                  // element={
-                  //   <ProtectedRoute
-                  //     element={<EditProgram />}
-                  //   />
-                  // }
+                  element={
+                    <ProtectedRoute
+                      element={<EditProgram />}
+                    />
+                  }
                 />
               </Routes>
             </Router>
