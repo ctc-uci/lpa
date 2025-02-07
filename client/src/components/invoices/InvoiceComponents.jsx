@@ -104,7 +104,7 @@ export const InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalanc
           </Box>
           <Box>
             <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Remaining Balance </Text>
-            <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> {remainingBalance !== null ? `$${remainingBalance.toFixed(2)}` : "N/A"} </Text>
+            <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> {remainingBalance !== 0 ? `$${remainingBalance.toFixed(2)}` : "N/A"} </Text>
           </Box>
         </Flex>
       </Card>

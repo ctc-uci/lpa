@@ -131,10 +131,6 @@ invoicesRouter.get("/payees/:id", async (req, res) => {
       WHERE invoices.id = $1 AND assignments.role = 'payee';`,
       [ id ]);
 
-    if (data.length === 0) {
-      return res.status(404).json({result: 'error'});
-    }
-
     res.status(200).json(keysToCamel(data));
   } catch (err) {
     res.status(500).send(err.message);

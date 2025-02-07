@@ -8,7 +8,6 @@ import {
 
 import {
     Heading,
-    Text,
     Flex,
     Button,
     IconButton,
@@ -34,16 +33,26 @@ export const Invoice = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // get current invoice
+                const currentInvoiceResponse = await backend.get("/invoices/" + id);
+
+                // If no invoice is found, set everything to null
+                if (!currentInvoiceResponse.data || currentInvoiceResponse.status === 404) {
+                  setTotal(null);
+                  setRemainingBalance(null);
+                  setBillingPeriod(null);
+                  setComments(null);
+                  setPayees(null);
+                  setEvent(null)
+                  return;
+              }
+
                 // get invoice total
                 const invoiceTotalResponse = await backend.get("/invoices/total/" + id);
                 setTotal(invoiceTotalResponse.data.total)
 
-                // get current invoice
-                const currentInvoiceResponse = await backend.get("/invoices/" + id);
-
                 // get the unpaid/remaining invoices
                 const unpaidInvoicesResponse = await backend.get("/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]);
-                console.log("Unpaid Invoices: ", unpaidInvoicesResponse.data);
 
                 // calculate sum of unpaid/remaining invoices
                 const unpaidTotals = await Promise.all(
