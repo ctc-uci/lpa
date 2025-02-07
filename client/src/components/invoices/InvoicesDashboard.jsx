@@ -4,8 +4,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../Navbar";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom' 
-import PDFButtonInvoice from "./PDFButtonInvoice"
-import { InvoiceFilter } from "./InvoiceComponents";
+import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
 
 
 function InvoicesDashboard(){
@@ -93,28 +92,28 @@ function InvoicesDashboard(){
   }, [invoices]);
 
   const filteredInvoices = invoices
-  .filter(invoice => invoice.eventName.toLowerCase().includes(query.toLowerCase()))
-  .filter(invoice => {
+    .filter(invoice => invoice.eventName.toLowerCase().includes(query.toLowerCase()))
+    .filter(invoice => {
 
-    // Exclude invoices where the role is "instructor"
-    if (invoice.role === "instructor") return false;
-    
-    // Status filter
-    if (filter.status !== 'all' && isPaid(invoice).toLowerCase() !== filter.status.toLowerCase()) return false;
+      // Exclude invoices where the role is "instructor"
+      if (invoice.role === "instructor") return false;
+      
+      // Status filter
+      if (filter.status !== 'all' && isPaid(invoice).toLowerCase() !== filter.status.toLowerCase()) return false;
 
-    // Instructor filter
-    // Filters for events that have an instructor, and gets the event while ensuring only showing a single events even if they have both instructor and payee
-    if (filter.instructor.toLowerCase() !== 'all' && invoice.role !== "instructor" && !invoices.some(inv => inv.eventName === invoice.eventName && inv.role === "instructor" && inv.name.toLowerCase() === filter.instructor.toLowerCase()))
-      return false; 
+      // Instructor filter
+      // Filters for events that have an instructor, and gets the event while ensuring only showing a single events even if they have both instructor and payee
+      if (filter.instructor.toLowerCase() !== 'all' && invoice.role !== "instructor" && !invoices.some(inv => inv.eventName === invoice.eventName && inv.role === "instructor" && inv.name.toLowerCase() === filter.instructor.toLowerCase()))
+        return false; 
 
-    //Payee filter
-    if (filter.payee.toLowerCase() !== 'all' && invoice.role === "payee" && invoice.name.toLowerCase() !== filter.payee.toLowerCase()) return false;
+      //Payee filter
+      if (filter.payee.toLowerCase() !== 'all' && invoice.role === "payee" && invoice.name.toLowerCase() !== filter.payee.toLowerCase()) return false;
 
-    // Date range filters
-    if (filter.startDate && new Date(invoice.endDate) < new Date(filter.startDate)) return false;
-    if (filter.endDate && new Date(invoice.endDate) > new Date(new Date(filter.endDate).setDate(new Date(filter.endDate).getDate() + 1))) return false; //to make date range inclusive
+      // Date range filters
+      if (filter.startDate && new Date(invoice.endDate) < new Date(filter.startDate)) return false;
+      if (filter.endDate && new Date(invoice.endDate) > new Date(new Date(filter.endDate).setDate(new Date(filter.endDate).getDate() + 1))) return false; //to make date range inclusive
 
-    return true; 
+      return true; 
   });
 
 
@@ -122,62 +121,32 @@ function InvoicesDashboard(){
 
 
   return(
-    <Flex minH="100vh">
-      <Navbar style={{display: 'flex', h: "100vh"}}/>
-      <Flex w='100vw' m='120px 40px' flexDirection='column' padding="48px">
-        <Flex justifyContent='space-between' mb='40px'>
-          {/* <Button backgroundColor='transparent' border="1px solid rgba(71, 72, 73, 0.20)" borderRadius='15px' h='48px'> */}
-            <InvoiceFilter filter={filter} setFilter={setFilter} invoices={invoices} />
-          {/* </Button> */}
-          
-          <InputGroup w='400px' borderColor='transparent' >
-          <InputRightElement pointerEvents='none' bgColor="rgba(71, 72, 73, 0.20)" borderRadius='0px 15px 15px 0px'>
-            <SearchIcon color='#767778'/>
-          </InputRightElement>
-            <Input 
-              value={query} 
-              onChange={(e) => setQuery(e.target.value)} 
-              icon={SearchIcon} borderColor='gray.100' 
-              borderRadius='15px 15px 15px 15px' 
-              placeholder="Search..."
-            />
-          </InputGroup>
+    <Navbar>
+      <Flex minH="100vh">
+        <Flex w='100vw' m='120px 40px' flexDirection='column' padding="48px">
+          <Flex justifyContent='space-between' mb='40px'>
+            {/* <Button backgroundColor='transparent' border="1px solid rgba(71, 72, 73, 0.20)" borderRadius='15px' h='48px'> */}
+              <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} />
+            {/* </Button> */}
+            
+            <InputGroup w='400px' borderColor='transparent' >
+            <InputRightElement pointerEvents='none' bgColor="rgba(71, 72, 73, 0.20)" borderRadius='0px 15px 15px 0px'>
+              <SearchIcon color='#767778'/>
+            </InputRightElement>
+              <Input 
+                value={query} 
+                onChange={(e) => setQuery(e.target.value)} 
+                icon={SearchIcon} borderColor='gray.100' 
+                borderRadius='15px 15px 15px 15px' 
+                placeholder="Search..."
+              />
+            </InputGroup>
+          </Flex>
+
+          <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} isPaid={isPaid}/>
         </Flex>
-        <TableContainer paddingTop="8px" border='1px solid var(--gray-200, #E2E8F0)' borderRadius='12px' >
-          
-          <Table variant='simple'>
-            <Thead>
-              <Tr>
-                <Th textAlign='center'>Program</Th>
-                <Th textAlign='center'>Status</Th>
-                <Th textAlign='center'>Payee</Th>
-                <Th textAlign='center'>Date Due</Th>
-                <Th textAlign='center'>Download</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-            {filteredInvoices.map((invoice, index) => (
-                <Tr key={index}>
-                  <Td textAlign='center'>{invoice.eventName}</Td>
-                  <Td textAlign='center' bg={isPaidColor(invoice)}>{isPaid(invoice)}</Td>
-                  <Td textAlign='center'>{invoice.name}</Td>
-                  <Td textAlign="center">
-                    {new Date(invoice.endDate).toLocaleDateString("en-US", {
-                      month: "2-digit", day: "2-digit", year: "numeric"
-                    })}
-                  </Td>
-                  <Td>
-                    <Flex justifyContent="center">
-                      <PDFButtonInvoice invoice={invoice} />
-                    </Flex>
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
       </Flex>
-    </Flex>
+    </Navbar>
   );
 }
 

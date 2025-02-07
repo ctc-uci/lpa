@@ -1,16 +1,53 @@
-import {Menu, MenuButton, MenuList, MenuItem, Image, Button, Flex, Heading, PopoverTrigger, Popover, PopoverContent, Input, Text, Select} from '@chakra-ui/react'
+import {TableContainer, Table, Tr, Td, Thead, Th, Tbody, Image, Button, Flex, Heading, PopoverTrigger, Popover, PopoverContent, Input, Text, Select} from '@chakra-ui/react'
 import filterIcon from  "../../assets/filter.svg";
 import { useEffect, useState } from 'react';
 import { CalendarIcon } from '@chakra-ui/icons';
 import personIcon from "../../assets/person.svg"
+import PDFButtonInvoice from "./PDFButtonInvoice"
 
-function InvoiceFilter({invoices, filter, setFilter}) {
+function InvoicesTable({filteredInvoices, isPaidColor, isPaid}){
+  return (
+    <TableContainer paddingTop="8px" border='1px solid var(--gray-200, #E2E8F0)' borderRadius='12px' >
+      <Table variant='simple'>
+        <Thead>
+          <Tr>
+            <Th textAlign='center'>Program</Th>
+            <Th textAlign='center'>Status</Th>
+            <Th textAlign='center'>Payee</Th>
+            <Th textAlign='center'>Date Due</Th>
+            <Th textAlign='center'>Download</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+        {filteredInvoices.map((invoice, index) => (
+            <Tr key={index}>
+              <Td textAlign='center'>{invoice.eventName}</Td>
+              <Td textAlign='center' bg={isPaidColor(invoice)}>{isPaid(invoice)}</Td>
+              <Td textAlign='center'>{invoice.name}</Td>
+              <Td textAlign="center">
+                {new Date(invoice.endDate).toLocaleDateString("en-US", {
+                  month: "2-digit", day: "2-digit", year: "numeric"
+                })}
+              </Td>
+              <Td>
+                <Flex justifyContent="center">
+                  <PDFButtonInvoice invoice={invoice} />
+                </Flex>
+              </Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+    </TableContainer>
+  );
+}
+
+function InvoicesFilter({invoices, filter, setFilter}) {
 
   return (
     <>
       <Popover placement='bottom-start'>
         <PopoverTrigger>
-
           <Button
             backgroundColor="transparent"
             border="1px solid rgba(71, 72, 73, 0.20)"
@@ -92,9 +129,9 @@ function InvoiceFilter({invoices, filter, setFilter}) {
 
 
          </PopoverContent>
-      </Popover>
+      </Popover>  
     </>
   )
 }
 
-export { InvoiceFilter }
+export { InvoicesTable, InvoicesFilter }
