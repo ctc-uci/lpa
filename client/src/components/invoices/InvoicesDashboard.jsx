@@ -1,10 +1,11 @@
-import { Text, Box, Stack, Table, HStack, Tr, Thead, Th, TableContainer, Tbody, Td, Flex, Button, Input, IconButton, Image, InputGroup, InputRightElement, Heading, useToast } from "@chakra-ui/react";
-import { DownloadIcon, SearchIcon } from "@chakra-ui/icons";
+import { Text, Flex, Input, Image, InputGroup, InputRightElement, Heading, useToast } from "@chakra-ui/react";
+import { SearchIcon } from "@chakra-ui/icons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../Navbar";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom' 
 import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
+import AlertIcon from "../../assets/alertIcon.svg"
 
 
 function InvoicesDashboard(){
@@ -27,19 +28,19 @@ function InvoicesDashboard(){
         return "#6CE65C";
     } 
     if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
-        return "transparent";
+        return "none";
     } 
     return "#FF4D4D"; 
   };
 
   const isPaid = (invoice) => {
     if (invoice.isSent && invoice.paymentStatus === "full") {
-        return "Paid";
+        return "PAID";
     } 
     if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
-        return "Not Paid";
+        return "NOT PAID";
     } 
-    return "Past Due"; 
+    return "PAST DUE"; 
   };
 
   
@@ -60,7 +61,7 @@ function InvoicesDashboard(){
     if (invoices.length === 0 || hasShownToast.current) return; 
 
     const getUnpaidInvoices = () => {
-      const filteredPastDueInvoices = filteredInvoices.filter(invoice => isPaid(invoice) === "Past Due");
+      const filteredPastDueInvoices = filteredInvoices.filter(invoice => isPaid(invoice) === "PAST DUE");
       const notifCounter = filteredPastDueInvoices.length;
   
       if (notifCounter > 0) {
@@ -75,14 +76,20 @@ function InvoicesDashboard(){
           position: "bottom-right",
           isClosable: true,
           render: () => (
-            <Box p={3} bg="#FED7D7" borderTop="4px solid" borderTopColor="red.500" onClick={() => navigate("/notification")}>
-              <Heading size="sm">Unpaid Invoices</Heading>
-              {notifCounter > 1 
-                ? `You have ${notifCounter} past due invoices` 
-                : `${filteredPastDueInvoices[0].name} - 
+            <Flex p={3} bg="#FED7D7" borderTop="4px solid" borderTopColor="red.500" onClick={() => navigate("/notification")} padding="12px 16px" gap='12px' w='400px'>
+              <Image src={AlertIcon} />
+              <Flex flexDirection='column'>
+                <Heading size="sm" align-self='stretch'>Unpaid Invoices</Heading>
+                <Text align-self='stretch'>
+
+                {notifCounter > 1 
+                  ? `You have ${notifCounter} past due invoices` 
+                  : `${filteredPastDueInvoices[0].name} - 
                   ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "2-digit",})}`
-              }
-            </Box>
+                }
+                </Text>
+              </Flex>
+            </Flex>
           ),
         });
       }

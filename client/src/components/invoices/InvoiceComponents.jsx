@@ -1,36 +1,36 @@
-import {TableContainer, Table, Tr, Td, Thead, Th, Tbody, Image, Button, Flex, Heading, PopoverTrigger, Popover, PopoverContent, Input, Text, Select} from '@chakra-ui/react'
+import {TableContainer, Table, Tr, Td, Thead, Th, Tbody, Image, Button, Flex, PopoverTrigger, Popover, PopoverContent, Input, Text, Select} from '@chakra-ui/react'
 import filterIcon from  "../../assets/filter.svg";
-import { useEffect, useState } from 'react';
 import { CalendarIcon } from '@chakra-ui/icons';
 import personIcon from "../../assets/person.svg"
 import PDFButtonInvoice from "./PDFButtonInvoice"
 
 function InvoicesTable({filteredInvoices, isPaidColor, isPaid}){
+
   return (
     <TableContainer paddingTop="8px" border='1px solid var(--gray-200, #E2E8F0)' borderRadius='12px' >
-      <Table variant='simple'>
+      <Table variant='striped'>
         <Thead>
           <Tr>
-            <Th textAlign='center'>Program</Th>
-            <Th textAlign='center'>Status</Th>
-            <Th textAlign='center'>Payee</Th>
-            <Th textAlign='center'>Date Due</Th>
-            <Th textAlign='center'>Download</Th>
+            <Th>Program</Th>
+            <Th>Status</Th>
+            <Th>Payee</Th>
+            <Th>Date Due</Th>
+            <Th>Download</Th>
           </Tr>
         </Thead>
         <Tbody>
         {filteredInvoices.map((invoice, index) => (
             <Tr key={index}>
-              <Td textAlign='center'>{invoice.eventName}</Td>
-              <Td textAlign='center' bg={isPaidColor(invoice)}>{isPaid(invoice)}</Td>
-              <Td textAlign='center'>{invoice.name}</Td>
-              <Td textAlign="center">
+              <Td >{invoice.eventName}</Td>
+              <Td  style={{ backgroundColor: isPaidColor(invoice) }}> {isPaid(invoice)} </Td>
+              <Td >{invoice.name}</Td>
+              <Td fontWeight="700">
                 {new Date(invoice.endDate).toLocaleDateString("en-US", {
                   month: "2-digit", day: "2-digit", year: "numeric"
                 })}
               </Td>
               <Td>
-                <Flex justifyContent="center">
+                <Flex  ml="18px">
                   <PDFButtonInvoice invoice={invoice} />
                 </Flex>
               </Td>
@@ -55,7 +55,7 @@ function InvoicesFilter({invoices, filter, setFilter}) {
             h="48px"
             px="12px" 
             >
-              <Image src={filterIcon} alt="Filter" boxSize="20px" mr="4px" /> Filter 
+              <Image src={filterIcon} alt="Filter" boxSize="20px" mr="4px" /> Filters 
           </Button>
         </PopoverTrigger>
          <PopoverContent h='auto' w='sm' borderRadius='15px' box-shadow='0px 4px 4px 0px rgba(0, 0, 0, 0.25)' border='1px solid #D2D2D2' padding='16px' display='inline-flex' flexDirection='column' gap='16px'>
