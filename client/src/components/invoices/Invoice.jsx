@@ -59,10 +59,10 @@ export const Invoice = () => {
 
                 // set billing period
                 setBillingPeriod(
-                    {
-                        "startDate": currentInvoiceResponse.data[0]["startDate"],
-                        "endDate": currentInvoiceResponse.data[0]["endDate"]
-                    }
+                  {
+                    "startDate": currentInvoiceResponse.data[0]["startDate"],
+                    "endDate": currentInvoiceResponse.data[0]["endDate"]
+                  }
                 )
 
                 // get comments
@@ -76,15 +76,9 @@ export const Invoice = () => {
                 // get corresponding event
                 const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
                 setEvent(eventResponse.data)
-                console.log(eventResponse)
             } catch (error) {
-              // error if invoice doesn't exist
-              setTotal(null);
-              setRemainingBalance(null);
-              setBillingPeriod(null);
-              setComments(null);
-              setPayees(null);
-              setEvent(null);
+              // Invoice/field does not exist
+              console.error("Error fetching data:", error);
             }
         };
         fetchData();

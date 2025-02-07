@@ -88,7 +88,7 @@ export const InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalanc
           <Box>
             <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Billing Period </Text>
 
-            {(billingPeriod) ? (
+            {(billingPeriod && billingPeriod["startDate"]) ? (
               <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
                 {formatDate(billingPeriod["startDate"])} - {formatDate(billingPeriod["endDate"])}
               </Text>
