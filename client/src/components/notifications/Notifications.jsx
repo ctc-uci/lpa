@@ -6,7 +6,7 @@ import NotificationsComponents from "./NotificationsComponents";
 import { CounterComponent } from "./Counter";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
-import { isBefore, isWithinInterval, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
