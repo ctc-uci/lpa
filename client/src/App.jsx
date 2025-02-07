@@ -51,7 +51,6 @@ const App = () => {
                   element={
                     <ProtectedRoute
                       element={<Invoice />}
-                      allowedRoles={["admin"]}
                     />
                   }
                 />
