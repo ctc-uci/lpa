@@ -47,7 +47,7 @@ const App = () => {
                 />
                 <Route
                   path ="/home"
-                  element={<Home />}
+                  element={<ProtectedRoute element={<Home />} />}
                 />
                 <Route
                   path="/admin"
