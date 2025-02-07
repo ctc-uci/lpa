@@ -79,7 +79,6 @@ invoicesRouter.get("/event/:event_id", async (req, res) => {
 
       const invoices = await db.any(query, params);
 
-      console.log(invoices);
       res.status(200).json(keysToCamel(invoices));
     } catch (err) {
       res.status(500).send(err.message);
@@ -129,7 +128,7 @@ invoicesRouter.get("/payees/:id", async (req, res) => {
       FROM clients
       JOIN assignments ON assignments.client_id = clients.id
       JOIN invoices ON assignments.event_id = invoices.event_id
-      WHERE invoices.id = $1;`,
+      WHERE invoices.id = $1 AND assignments.role = 'payee';`,
       [ id ]);
 
     if (data.length === 0) {

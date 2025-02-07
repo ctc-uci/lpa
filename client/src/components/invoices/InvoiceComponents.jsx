@@ -3,114 +3,113 @@ import React, { useState } from 'react';
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 
 import {
-    Button,
-    Flex,
-    Card,
-    Box,
-    Text,
-    Select,
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td
+  Button,
+  Flex,
+  Card,
+  Box,
+  Text,
+  Select,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td
 } from '@chakra-ui/react';
 
-export const InvoiceDescription = ({ description }) => {
-    return (
-        <Flex direction="row" width="100%" alignItems="center">
-            <Text fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849" fontWeight="bold" marginRight="0.5rem">
-                Program:
-            </Text>
-            <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
-                {description}
-            </Text>
-        </Flex>
-    );
+export const InvoiceTitle = ({ title }) => {
+  return (
+    <Flex direction="row" width="100%" alignItems="center">
+      <Text fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849" fontWeight="bold" marginRight="0.5rem">
+        Program:
+      </Text>
+      <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
+        {title}
+      </Text>
+    </Flex>
+  );
 };
 
 export const InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalance }) => {
     const formatDate = (isoDate) => {
-        const date = new Date(isoDate);
-        return date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric"
-        });
+      const date = new Date(isoDate);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric"
+      });
     }
 
-    return (
-        <Flex direction="row" h="auto" w="100%" gap="2rem">
-            {/* Billed To Section */}
-            <Card
-                flex={1}
-                h="7em"
-                width="25%"
-                borderRadius={15}
-                borderWidth="1px"
-                boxShadow="none"
-                display="flex"
-                p={4}
-                color="#D2D2D2"
-                gap={2}
-                flexDirection="column"
-                overflowY="auto"
-                justifyContent="flex-start"
-            >
-              <Text fontSize="clamp(1rem, 1.5rem, 2rem)" fontWeight="bold" color="#474849"> Billed to: </Text>
-              {(payees && payees.length > 0) ? (
-                payees.map((payee) => (
-                  <Box key={payee.id} mb="0.5rem">
-                    <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.name}</Text>
-                    <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.email}</Text>
-                  </Box>
-                ))
-              ) : (
-                <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">N/A</Text>
-              )}
-            </Card>
+  return (
+    <Flex direction="row" h="auto" w="100%" gap="2rem">
+      {/* Billed To Section */}
+      <Card
+        flex={1}
+        h="7em"
+        width="25%"
+        borderRadius={15}
+        borderWidth="1px"
+        boxShadow="none"
+        display="flex"
+        p={4}
+        color="#D2D2D2"
+        gap={2}
+        flexDirection="column"
+        overflowY="auto"
+        justifyContent="flex-start"
+      >
+        <Text fontSize="clamp(1rem, 1.5rem, 2rem)" fontWeight="bold" color="#474849"> Billed to: </Text>
+        {(payees && payees.length > 0) ? (
+          payees.map((payee) => (
+            <Box key={payee.id} mb="0.5rem">
+              <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.name}</Text>
+              <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">{payee.email}</Text>
+            </Box>
+          ))
+        ) : (
+          <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">N/A</Text>
+        )}
+      </Card>
 
+      {/* Invoice Details Section */}
+      <Card
+        flex={3}
+        h="7em"
+        borderRadius={15}
+        borderWidth="1px"
+        color="#D2D2D2"
+        boxShadow="none"
+        width="75%"
+        padding="1.5em"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+      >
+        <Flex width="100%" justifyContent="space-between">
+          <Box>
+            <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Billing Period </Text>
 
-            {/* Invoice Details Section */}
-            <Card
-                flex={3}
-                h="7em"
-                borderRadius={15}
-                borderWidth="1px"
-                color="#D2D2D2"
-                boxShadow="none"
-                width="75%"
-                padding="1.5em"
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-            >
-                <Flex width="100%" justifyContent="space-between">
-                    <Box>
-                        <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Billing Period </Text>
-
-                        {(billingPeriod) ? (
-                          <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
-                            {formatDate(billingPeriod["startDate"])} - {formatDate(billingPeriod["endDate"])}
-                          </Text>
-                        ) : (
-                          <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
-                            N/A - N/A
-                        </Text>
-                        )}
-                    </Box>
-                    <Box>
-                        <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Amount Due </Text>
-                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> {amountDue ? `$${amountDue.toFixed(2)}` : "N/A"} </Text>
-                    </Box>
-                    <Box>
-                        <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Remaining Balance </Text>
-                        <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> {remainingBalance !== null ? `$${remainingBalance.toFixed(2)}` : "N/A"} </Text>
-                    </Box>
-                </Flex>
-            </Card>
+            {(billingPeriod) ? (
+              <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+                {formatDate(billingPeriod["startDate"])} - {formatDate(billingPeriod["endDate"])}
+              </Text>
+            ) : (
+              <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+                N/A - N/A
+              </Text>
+            )}
+          </Box>
+          <Box>
+            <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Amount Due </Text>
+            <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> {amountDue ? `$${amountDue.toFixed(2)}` : "N/A"} </Text>
+          </Box>
+          <Box>
+            <Text fontWeight="bold" fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849"> Remaining Balance </Text>
+            <Text color="#474849" fontSize="clamp(.75rem, 1.25rem, 1.75rem)"> {remainingBalance !== null ? `$${remainingBalance.toFixed(2)}` : "N/A"} </Text>
+          </Box>
         </Flex>
-    );
+      </Card>
+    </Flex>
+  );
 };
 
 export const InvoicePayments = ({ comments }) => {

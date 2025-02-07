@@ -14,7 +14,7 @@ import {
     IconButton,
 } from "@chakra-ui/react";
 
-import { InvoicePayments, InvoiceStats, InvoiceDescription } from "./InvoiceComponents";
+import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
 import Navbar from "../Navbar";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
@@ -57,12 +57,11 @@ export const Invoice = () => {
                 const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
                 setRemainingBalance(remainingBalance);
 
-                // get billing period
-                const billingPeriod = await backend.get("invoices/" + id);
+                // set billing period
                 setBillingPeriod(
                     {
-                        "startDate": billingPeriod.data[0]["startDate"],
-                        "endDate": billingPeriod.data[0]["endDate"]
+                        "startDate": currentInvoiceResponse.data[0]["startDate"],
+                        "endDate": currentInvoiceResponse.data[0]["endDate"]
                     }
                 )
 
@@ -77,6 +76,7 @@ export const Invoice = () => {
                 // get corresponding event
                 const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
                 setEvent(eventResponse.data)
+                console.log(eventResponse)
             } catch (error) {
               // error if invoice doesn't exist
               setTotal(null);
@@ -128,9 +128,9 @@ export const Invoice = () => {
                             </Flex>
                         </Flex>
 
-                    <InvoiceDescription
-                        description={event ? event.description : "N/A"}
-                    ></InvoiceDescription>
+                    <InvoiceTitle
+                        title={event ? event.name : "N/A"}
+                    ></InvoiceTitle>
 
                     <InvoiceStats
                         payees={payees}
