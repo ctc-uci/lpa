@@ -1,92 +1,34 @@
+import { useEffect, useState } from "react";
 import {
   Button,
+  HStack,
   Popover,
-  PopoverTrigger,
-  PopoverContent,
   PopoverBody,
   PopoverCloseButton,
-  HStack,
-  Input,
+  PopoverContent,
+  PopoverTrigger,
   Text,
   useToast,
 } from "@chakra-ui/react";
-import { useState } from 'react';
-import styles from './FilterButton.module.css';
-import { FilterIcon } from "./FilterIcon";
+
 import { CalendarIcon } from "./CalendarIcon";
+import styles from "./FilterButton.module.css";
+import { FilterIcon } from "./FilterIcon";
 
 export const FilterButton = ({ setFilterType, currentFilter }) => {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const toast = useToast();
+  const [type, setType] = useState("all");
 
-  const validateDate = (dateString) => {
-    // Check if date matches MM/DD/YYYY format
-    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
-    if (!dateRegex.test(dateString)) return false;
+  // Watch for changes in both dates
+  useEffect(() => {
+    console.log(startDate, endDate);
+    if (startDate.substring(0,1) == "2" && endDate.substring(0,1) == "2") { // checking if the date is filled out completely
+      const start = new Date(startDate);
+      const end = new Date(endDate);
 
-    // Convert to Date object and check if valid
-    const [month, day, year] = dateString.split('/').map(num => parseInt(num, 10));
-    const date = new Date(year, month - 1, day);
-    return date.getMonth() === month - 1 && 
-           date.getDate() === day && 
-           date.getFullYear() === year;
-  };
-
-  const formatDateForBackend = (dateString) => {
-    if (!dateString) return null;
-    const [month, day, year] = dateString.split('/');
-    return `${year}-${month}-${day}`;
-  };
-
-  const handleDateChange = (value, setDate) => {
-    // Allow empty input for clearing
-    if (!value) {
-      setDate('');
-      return;
-    }
-
-    // Auto-format as user types
-    const cleaned = value.replace(/\D/g, '');
-    let formatted = cleaned;
-
-    if (cleaned.length >= 4) {
-      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4, 8)}`;
-    } else if (cleaned.length >= 2) {
-      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
-    }
-
-    setDate(formatted);
-  };
-
-  const handleFilterSelect = (type) => {
-    // If dates are provided, validate them
-    if ((startDate || endDate) && !(startDate && endDate)) {
-      toast({
-        title: "Date Range Error",
-        description: "Please provide both start and end dates",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    if (startDate && endDate) {
-      if (!validateDate(startDate) || !validateDate(endDate)) {
-        toast({
-          title: "Invalid Date Format",
-          description: "Please use MM/DD/YYYY format",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
-
-      const start = new Date(formatDateForBackend(startDate));
-      const end = new Date(formatDateForBackend(endDate));
-      
+      console.log(start, end);
       if (start > end) {
         toast({
           title: "Invalid Date Range",
@@ -97,13 +39,23 @@ export const FilterButton = ({ setFilterType, currentFilter }) => {
         });
         return;
       }
-    }
 
-    setFilterType({
+      // Update filter with new dates
+      setFilterType(prev => ({
+        ...prev,
+        type: type,
+        startDate: startDate, // The date input already returns YYYY-MM-DD format
+        endDate: endDate
+      }));
+    }
+  }, [startDate, endDate, type, toast]);
+
+  const handleFilterSelect = (type) => {
+    setType(type);
+    setFilterType(prev => ({
+      ...prev,
       type,
-      startDate: formatDateForBackend(startDate),
-      endDate: formatDateForBackend(endDate)
-    });
+    }));
   };
 
   return (
@@ -132,7 +84,7 @@ export const FilterButton = ({ setFilterType, currentFilter }) => {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent 
+      <PopoverContent
         className={styles.modalContent}
         boxShadow="0px 4px 6px -1px rgba(0, 0, 0, 0.1)"
         border="1px solid #E2E2E2"
@@ -144,28 +96,24 @@ export const FilterButton = ({ setFilterType, currentFilter }) => {
             <Text>Date Range</Text>
           </HStack>
 
-          <div className={styles.dateInputContainer}>
-            <Input 
+          <div className={styles.dateInputContainer}> 
+            <input
+              type="date"
               value={startDate}
-              onChange={(e) => handleDateChange(e.target.value, setStartDate)}
-              placeholder="MM/DD/YYYY"
+              onChange={(e) => setStartDate(e.target.value)}
               className={styles.dateInput}
-              bg="#F6F6F6"
-              _placeholder={{ color: '#767778' }}
             />
             <Text className={styles.toText}>to</Text>
-            <Input 
+            <input
+              type="date"
               value={endDate}
-              onChange={(e) => handleDateChange(e.target.value, setEndDate)}
-              placeholder="MM/DD/YYYY"
+              onChange={(e) => setEndDate(e.target.value)}
               className={styles.dateInput}
-              bg="#F6F6F6"
-              _placeholder={{ color: '#767778' }}
             />
           </div>
 
           <Text className={styles.typeHeader}>Type</Text>
-          
+
           <div className={styles.filterButtonGroup}>
             <Button
               onClick={() => handleFilterSelect("all")}
