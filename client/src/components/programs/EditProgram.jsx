@@ -4,33 +4,15 @@ import './EditProgram.css';
 import {
   Box,
   Button,
-  Link as ChakraLink,
   Flex,
   FormControl,
   FormLabel,
-  Heading,
-  HStack,
   Icon,
   IconButton,
   Input,
-  InputGroup,
-  InputLeftElement,
-  Link,
   Select,
-  Table,
-  TableCaption,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
   Textarea,
-  Th,
-  Thead,
   Tag,
-  Tr,
-  VStack,
-  Kbd,
-  Portal,
   Popover,
   PopoverTrigger,
   PopoverContent,
@@ -47,13 +29,8 @@ import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
 import {EmailIcon} from '../../assets/EmailIcon';
 import {LocationIcon} from '../../assets/LocationIcon';
 import {DollarIcon} from '../../assets/DollarIcon';
-
-// import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useNavigate } from 'react-router-dom';
-// import { useRoleContext } from "../../contexts/hooks/useRoleContext";
-// import { User } from "../../types/user";
-// import { RoleSelect } from "./RoleSelect";
 import { IoCloseOutline } from "react-icons/io5";
 import { CiCircleMore } from "react-icons/ci";
 import { useParams } from "react-router";
@@ -85,16 +62,6 @@ export const EditProgram = () => {
   const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
-<<<<<<< HEAD
-  const [instructorFocused, setInstructorFocused] = useState(false);
-  const [payeeFocused, setPayeeFocused] = useState(false);
-  const [dropInstructorFocused, setDropInstructorFocused] = useState(false);
-  const [dropPayeeFocused, setDropPayeeFocused] = useState(false);
-  
-  // const [instructorDropdownVisible, setInstructorDropdownVisible] = useState(false);
-  // const [payeeDropdownVisible, setPayeeDropdownVisible] = useState(false);
-=======
->>>>>>> 4fe8d86bdf4dfaea25b6560b19eafeb05566318a
 
 
   useEffect(() => {
@@ -250,7 +217,7 @@ const payees = eventClientResponse.data
   try {
     await Promise.all(bookingIds.map(async (bookingId) => {
       try {
-        const deletedCommentResponse = await backend.delete('/comments/booking/' + bookingId);
+        await backend.delete('/comments/booking/' + bookingId);
       } catch (err) {
         if (err.response?.status === 404) {
           console.log(`No comments found for booking ${bookingId}`);
@@ -267,7 +234,7 @@ const payees = eventClientResponse.data
 
   const deleteAllEventBookings = async () => {
     try {
-      const deletedBookingResponse = await backend.delete('/bookings/event/' + id);
+      await backend.delete('/bookings/event/' + id);
     } catch (error) {
       if (error.response?.status === 404) {
         console.log(`No bookings found for event ${id}`);
@@ -281,7 +248,7 @@ const payees = eventClientResponse.data
 
   const deleteAllAssignments = async () => {
     try {
-      const deletedAssignmentResponse = await backend.delete('/assignments/event/' + id);
+      await backend.delete('/assignments/event/' + id);
     } catch (error) {
       if (error.response?.status === 404) {
           console.log(`No assignments found for event ${id}`);
@@ -295,7 +262,7 @@ const payees = eventClientResponse.data
 
   const saveEvent = async () => {
     try {
-      const eventsResponse = await backend.put('/events/' + id, {
+      await backend.put('/events/' + id, {
           name: eventName,
           description: generalInformation,
           archived: eventArchived
@@ -316,7 +283,7 @@ const payees = eventClientResponse.data
           archived: eventArchived,
         };
 
-        const bookingsResponse = await backend.post('/bookings', bookingsData);
+        await backend.post('/bookings', bookingsData);
       }
 
       for (const instructor of selectedInstructors) {
@@ -334,11 +301,7 @@ const payees = eventClientResponse.data
             role: "payee"
         });
       }
-<<<<<<< HEAD
-      navigate('/programs/' + id);
-=======
       exit();
->>>>>>> 4fe8d86bdf4dfaea25b6560b19eafeb05566318a
 
     } catch (error) {
         console.error("Error getting instructors:", error);
@@ -358,12 +321,12 @@ const payees = eventClientResponse.data
               <Button id="save" onClick={saveEvent}>Save</Button>
               <Popover id="popTrigger">
                 <PopoverTrigger asChild>
-                  <Icon fontSize="2x1"><CiCircleMore/></Icon>
+                  <Icon boxSize="5"><CiCircleMore/></Icon>
                 </PopoverTrigger>
                   <PopoverContent style={{width:"100%"}}>
                     <PopoverBody onClick={exit}>
                       <div id="cancelBody">
-                        <Icon fontSize="2xl"><CancelIcon id="cancelIcon"/></Icon>
+                        <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
                         <p id="cancel">Cancel</p>
                       </div>
                     </PopoverBody>

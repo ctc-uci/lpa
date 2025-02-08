@@ -1,5 +1,4 @@
 #navbarBody {
-  height: 100vh;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -16,6 +15,7 @@
 .navText {
   margin-left: 3%;
   width: 90%;
+  font-weight: 500;
   font-size: 150%;
   color: #474849;
 }

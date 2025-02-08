@@ -80,15 +80,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
+  width: 90%;
+  /* align-items: center; */
   font-size: 170%;
   margin-bottom: 5%;
 }
 
-#saveCancel {
 
-  height: 100%;
-}
 
 #save {
   background-color: var(--indigo, #4E4AE7);
@@ -98,13 +96,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: 30px;
 }
 
-#popTrigger {
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-  margin-right: 1%;
-}
 
 #select {
   display: none;
@@ -116,16 +107,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     background-color: white;
     appearance: auto; /* Restores the dropdown behavior */
 }
-
-/* #instructorTags {
-  display: none;
-  appearance: none;
-}
-
-#instructorTags:focus {
-  background-color: white;
-  appearance: auto;
-} */
 
 #dateTimeDiv, #instructorContainer, #payeeContainer {
   width: 100%;
@@ -157,7 +138,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 80%;
   margin-right: auto;
   margin-left: 2%;
-flex: 1;
+  flex: 1;
 }
 
 #date1, #date2 {
@@ -269,9 +250,6 @@ flex: 1;
   max-height: 200px;
   overflow-y: auto;
 }
-
-
-
 
 #location, #locationRate {
   display: flex;
