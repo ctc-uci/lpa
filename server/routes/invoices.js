@@ -204,12 +204,24 @@ invoicesRouter.get("/total/:id", async (req, res) => {
 });
 
 invoicesRouter.get("/paid/:id", async (req, res) => {
-  // DUMMY ENDPONT for testing
   try {
     const { id } = req.params;
 
-    const result = {
-      paid: 50
+    let result = await db.oneOrNone(
+      `SELECT SUM(c.adjustment_value) FROM
+      invoices as i, comments as c
+      WHERE i.id = $1 AND c.adjustment_type = 'paid';`,
+      [
+        id
+      ]
+    );
+    
+    if (!result) {
+      return res.status(404).json({ error: "Invoice not found" });
+    }
+
+    result = {
+      total: result.sum
     }
     
     res.status(200).json(keysToCamel(result));
