@@ -47,8 +47,7 @@ const App = () => {
                 />
                 <Route 
                   path="/invoices"
-                  // element={<ProtectedRoute element={<InvoicesDashboard />} />}
-                  element={<InvoicesDashboard />}
+                  element={<ProtectedRoute element={<InvoicesDashboard />} />}
                 />
                 <Route
                   path="/admin"
