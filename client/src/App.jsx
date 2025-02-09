@@ -22,6 +22,7 @@ import { Invoice } from "./components/invoices/Invoice";
 import { EditProgram } from "./components/programs/EditProgram";
 import { PDFViewer } from "@react-pdf/renderer";
 import PDFButton from "./components/PDFButton";
+import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 import { Program } from "./components/programs/Program";
 
 const App = () => {
@@ -53,6 +54,10 @@ const App = () => {
                   element={<ProtectedRoute element={<Dashboard />} />}
                 />
                 <Route
+                  path="/invoices"
+                  element={<ProtectedRoute element={<InvoicesDashboard />} />}
+                />
+                <Route
                   path="/invoices/:id"
                   element={
                     <ProtectedRoute
@@ -79,10 +84,6 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="*"
-                  element={<ProtectedRoute element={<CatchAll />} />}
-                />
-                <Route
                   path="/forgotpassword"
                   element={<ForgotPassword />}
                 />
@@ -101,6 +102,10 @@ const App = () => {
                       element={<Program />}
                     />
                   }
+                />
+                <Route
+                  path="*"
+                  element={<ProtectedRoute element={<CatchAll />} />}
                 />
               </Routes>
             </Router>

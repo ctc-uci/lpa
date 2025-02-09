@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { useBackendContext } from '../contexts/hooks/useBackendContext';
+import { useBackendContext } from '../../contexts/hooks/useBackendContext';
 import { IconButton } from "@chakra-ui/react";
 import { DownloadIcon } from "@chakra-ui/icons";
 
@@ -71,7 +71,7 @@ const MyDocument = ({ bookingData }) => {
   );
 };
 
-const PDFButton = () => {
+const PDFButtonInvoice = ({invoice}) => {
   const { backend } = useBackendContext();
   const [bookingData, setBookingData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,15 +93,17 @@ const PDFButton = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div>
-      <PDFDownloadLink
+    <PDFDownloadLink
         document={<MyDocument bookingData={bookingData} />}
         fileName="bookingdata.pdf"
       >
-      <button>Download PDF</button>
-      </PDFDownloadLink>
-    </div>
+       <IconButton
+        icon={<DownloadIcon boxSize="20px" />}
+        backgroundColor="transparent"
+        aria-label="Download PDF"
+      />
+    </PDFDownloadLink>
   );
 };
   
-export default PDFButton;
+export default PDFButtonInvoice;
