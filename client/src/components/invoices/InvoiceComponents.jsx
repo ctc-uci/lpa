@@ -1,29 +1,32 @@
 import { format } from 'date-fns';
 import React, { useState } from 'react';
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
-
-import {TableContainer, Table, Tr, Td, Thead, Th, Tbody, Image, Button, Flex, PopoverTrigger, Popover, PopoverContent, Input, Text, Select} from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Card,
+  Flex,
+  Image,
+  Input,
+  PopoverTrigger,
+  Popover,
+  PopoverContent,
+  Select,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Thead,
+  Th,
+  Tr
+  } from '@chakra-ui/react'
 import filterIcon from  "../../assets/filter.svg";
 import { CalendarIcon } from '@chakra-ui/icons';
 import personIcon from "../../assets/person.svg"
 import PDFButtonInvoice from "./PDFButtonInvoice"
 
-import {
-  Button,
-  Flex,
-  Card,
-  Box,
-  Text,
-  Select,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td
-} from '@chakra-ui/react';
-
-function InvoiceTitle = ({ title }) => {
+const InvoiceTitle = ({ title }) => {
   return (
     <Flex direction="row" width="100%" alignItems="center">
       <Text fontSize="clamp(1rem, 1.5rem, 2rem)" color="#474849" fontWeight="bold" marginRight="0.5rem">
@@ -36,7 +39,7 @@ function InvoiceTitle = ({ title }) => {
   );
 };
 
-function InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalance }) => {
+const InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalance }) => {
     const formatDate = (isoDate) => {
       const date = new Date(isoDate);
       return date.toLocaleDateString("en-US", {
@@ -118,7 +121,7 @@ function InvoiceStats = ({ payees, billingPeriod, amountDue, remainingBalance })
   );
 };
 
-function InvoicePayments = ({ comments }) => {
+const InvoicePayments = ({ comments }) => {
     const [commentsPerPage, setCommentsPerPage] = useState(3);
     const [currentPageNumber, setCurrentPageNumber] = useState(1);
 
