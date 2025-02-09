@@ -309,259 +309,259 @@ const payees = eventClientResponse.data
   };
 
   return (
-    <div id="body">
-      <Navbar>
-      </Navbar>
-      <div id="programsBody">
-        <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
-        <div id="eventInfoBody">
-          <div id="title">
-            <h1><b>{eventName}</b></h1>
-            <div id = "saveCancel">
-              <Button id="save" onClick={saveEvent}>Save</Button>
-              <Popover id="popTrigger">
-                <PopoverTrigger asChild>
-                  <Icon boxSize="5"><CiCircleMore/></Icon>
-                </PopoverTrigger>
-                  <PopoverContent style={{width:"100%"}}>
-                    <PopoverBody onClick={exit}>
-                      <div id="cancelBody">
-                        <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
-                        <p id="cancel">Cancel</p>
+    <Navbar>
+      <div id="body">
+        <div id="programsBody">
+          <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
+          <div id="eventInfoBody">
+            <div id="title">
+              <h1><b>{eventName}</b></h1>
+              <div id = "saveCancel">
+                <Button id="save" onClick={saveEvent}>Save</Button>
+                <Popover id="popTrigger">
+                  <PopoverTrigger asChild>
+                    <Icon boxSize="5"><CiCircleMore/></Icon>
+                  </PopoverTrigger>
+                    <PopoverContent style={{width:"100%"}}>
+                      <PopoverBody onClick={exit}>
+                        <div id="cancelBody">
+                          <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
+                          <p id="cancel">Cancel</p>
+                        </div>
+                      </PopoverBody>
+                    </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <div id="innerBody">
+              <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
+                <div>
+                  <Icon boxSize={6} fontSize="sm"><ClockFilledIcon/></Icon>
+                  <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
+                </div>
+                to
+                <div>
+                  <Icon boxSize={6} fontSize="lg"><ClockFilledIcon/></Icon>
+                  <Input id = "time2" placeholder="00:00 pm" type='time' variant="outline" size="md" value={endTime} onChange={(event) => setEndTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
+                </div>
+                from
+                <div>
+                  <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
+                  <Input id = "date1" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={startDate} onChange={(e) => setStartDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
+                </div>
+                to
+                <div>
+                  <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
+                  <Input id = "date2" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={endDate} onChange={(e) => setEndDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
+                </div>
+              </div>
+
+              <div id="repeatDiv">
+                <Icon fontSize="100%"><RepeatIcon /></Icon>
+                <FormLabel style={{margin:"0", fontSize:"1rem", color:"#474849"}}>Repeats</FormLabel>
+                <FormControl >
+                  <Flex id="repeatContainer">
+                    {["Su", "M", "Tu", "W", "Th", "F", "S"].map((day) => (
+                      <IconButton
+                        key={day}
+                        isRound={true}
+                        variant={selectedDays.includes(day) ? "solid" : "outline"}
+                        aria-label={`Toggle ${day}`}
+                        fontSize="20px"
+                        backgroundColor={selectedDays.includes(day) ? "#D2D2D2" : "#F6F6F6"}
+                        icon={<Box as="span" color="#767778">{day}</Box>}
+                        value={day}
+                        onClick={() => {
+                          if (selectedDays.includes(day)) {
+                            setSelectedDays(selectedDays.filter((d) => d !== day));
+                          } else {
+                            setSelectedDays([...selectedDays, day]);
+                          }
+                        }}
+                      />
+                    ))}
+                  </Flex>
+                </FormControl>
+              </div>
+
+              <div id="instructorContainer">
+                <div id="instructors">
+                  <div id="instructorSelection">
+                    <Box>
+                      <div id="instructorInputContainer">
+                        <Input
+                          placeholder="Instructor..."
+                          onChange={(e) => {
+                            getInstructorResults(e.target.value);
+                            setInstructorSearchTerm(e.target.value);
+                          }}
+                          value={instructorSearchTerm} id="instructorInput"/>
+                        <PlusFilledIcon />
                       </div>
-                    </PopoverBody>
-                  </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          <div id="innerBody">
-            <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
-              <div>
-                <Icon boxSize={6} fontSize="sm"><ClockFilledIcon/></Icon>
-                <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-              </div>
-              to
-              <div>
-                <Icon boxSize={6} fontSize="lg"><ClockFilledIcon/></Icon>
-                <Input id = "time2" placeholder="00:00 pm" type='time' variant="outline" size="md" value={endTime} onChange={(event) => setEndTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-              </div>
-              from
-              <div>
-                <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
-                <Input id = "date1" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={startDate} onChange={(e) => setStartDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-              </div>
-              to
-              <div>
-                <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
-                <Input id = "date2" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={endDate} onChange={(e) => setEndDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-              </div>
-            </div>
 
-            <div id="repeatDiv">
-              <Icon fontSize="100%"><RepeatIcon /></Icon>
-              <FormLabel style={{margin:"0", fontSize:"1rem", color:"#474849"}}>Repeats</FormLabel>
-              <FormControl >
-                <Flex id="repeatContainer">
-                  {["Su", "M", "Tu", "W", "Th", "F", "S"].map((day) => (
-                    <IconButton
-                      key={day}
-                      isRound={true}
-                      variant={selectedDays.includes(day) ? "solid" : "outline"}
-                      aria-label={`Toggle ${day}`}
-                      fontSize="20px"
-                      backgroundColor={selectedDays.includes(day) ? "#D2D2D2" : "#F6F6F6"}
-                      icon={<Box as="span" color="#767778">{day}</Box>}
-                      value={day}
-                      onClick={() => {
-                        if (selectedDays.includes(day)) {
-                          setSelectedDays(selectedDays.filter((d) => d !== day));
-                        } else {
-                          setSelectedDays([...selectedDays, day]);
-                        }
-                      }}
-                    />
-                  ))}
-                </Flex>
-              </FormControl>
-            </div>
-
-            <div id="instructorContainer">
-              <div id="instructors">
-                <div id="instructorSelection">
-                  <Box>
-                    <div id="instructorInputContainer">
-                      <Input
-                        placeholder="Instructor..."
-                        onChange={(e) => {
-                          getInstructorResults(e.target.value);
-                          setInstructorSearchTerm(e.target.value);
-                        }}
-                        value={instructorSearchTerm} id="instructorInput"/>
-                      <PlusFilledIcon />
-                    </div>
-
-                    {searchedInstructors.length > 0 && (
-                      <Box id="instructorDropdown">
-                        {searchedInstructors.map((instructor) => (
-                          <Box
-                            key={instructor.id}
-                            onClick={() => {
-                              const alreadySelected = selectedInstructors.find(
-                                (instr) => instr.id.toString() === instructor.id
-                              );
-                              if (instructor && !alreadySelected) {
-                                setSelectedInstructors((prevItems) => [...prevItems, instructor]);
-                                const filteredInstructors = searchedInstructors.filter(
-                                  (instr) => instructor.id !== instr.id.toString()
+                      {searchedInstructors.length > 0 && (
+                        <Box id="instructorDropdown">
+                          {searchedInstructors.map((instructor) => (
+                            <Box
+                              key={instructor.id}
+                              onClick={() => {
+                                const alreadySelected = selectedInstructors.find(
+                                  (instr) => instr.id.toString() === instructor.id
                                 );
-                                setSearchedInstructors(filteredInstructors);
-                              }
-                            }}
-                            style={{
-                              padding: "10px",
-                              fontSize: "16px",
-                              cursor: "pointer",
-                              transition: "0.2s",
-                            }}
-                            bg="#F6F6F6"
-                            _hover={{ bg: "#D9D9D9" }}
-                          >
-                            {instructor.name}
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                  </Box>
+                                if (instructor && !alreadySelected) {
+                                  setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                                  const filteredInstructors = searchedInstructors.filter(
+                                    (instr) => instructor.id !== instr.id.toString()
+                                  );
+                                  setSearchedInstructors(filteredInstructors);
+                                }
+                              }}
+                              style={{
+                                padding: "10px",
+                                fontSize: "16px",
+                                cursor: "pointer",
+                                transition: "0.2s",
+                              }}
+                              bg="#F6F6F6"
+                              _hover={{ bg: "#D9D9D9" }}
+                            >
+                              {instructor.name}
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  </div>
                 </div>
-              </div>
-              <div id="instructorTags">
-                {selectedInstructors.length > 0 ? (
-                  selectedInstructors.map((instructor, ind) => (
-                    <div className="instructorTag" key={ind}>
-                      <Icon fontSize="lg" onClick={() => {
-                          setSelectedInstructors(prevItems =>
-                            prevItems.filter(item => item.id !== instructor.id));
-                        }}><CloseFilledIcon /></Icon>
-                      <Tag value={instructor.id}>
-                        {instructor.name}
-                      </Tag>
-                    </div>
-                  ))
-                ) : <div></div> }
-              </div>
-            </div>
-
-            <div id="payeeContainer">
-              <div id="payees">
-                <div id="payeeSelection">
-                  <Box>
-                    <div id="payeeInputContainer">
-                      <Input
-                        placeholder="Payee..."
-                        onChange={(e) => {
-                          getPayeeResults(e.target.value);
-                          setPayeeSearchTerm(e.target.value);
-                        }}
-                        value={payeeSearchTerm} id="payeeInput"/>
-                      <PlusFilledIcon />
-                    </div>
-
-                    {searchedPayees.length > 0 && (
-                      <Box id="payeeDropdown">
-                        {searchedPayees.map((payee) => (
-                          <Box
-                            key={payee.id}
-                            onClick={() => {
-                              const alreadySelected = selectedPayees.find(
-                                (pay) => pay.id.toString() === payee.id
-                              );
-
-                              if (payee && !alreadySelected) {
-                                setSelectedPayees((prevItems) => [...prevItems, payee]);
-                                const filteredPayees = searchedPayees.filter(
-                                  (pay) => payee.id !== pay.id.toString()
-                                );
-                                setSearchedPayees(filteredPayees);
-                              }
-                            }}
-                            style={{
-                              padding: "10px",
-                              fontSize: "16px",
-                              cursor: "pointer",
-                              transition: "0.2s",
-                            }}
-                            bg="#F6F6F6"
-                            _hover={{ bg: "#D9D9D9" }}
-                          >
-                            {payee.name}
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                  </Box>
-                </div>
-              </div>
-                <div id="payeeTags">
-                  {selectedPayees.length > 0 ? (
-                    selectedPayees.map((payee, ind) => (
-                      <div className="payeeTag" key={ind}>
+                <div id="instructorTags">
+                  {selectedInstructors.length > 0 ? (
+                    selectedInstructors.map((instructor, ind) => (
+                      <div className="instructorTag" key={ind}>
                         <Icon fontSize="lg" onClick={() => {
-                            setSelectedPayees(prevItems =>
-                              prevItems.filter(item => item.id !== payee.id));
+                            setSelectedInstructors(prevItems =>
+                              prevItems.filter(item => item.id !== instructor.id));
                           }}><CloseFilledIcon /></Icon>
-                        <Tag value={payee.id}>
-                          {payee.name}
+                        <Tag value={instructor.id}>
+                          {instructor.name}
                         </Tag>
                       </div>
                     ))
                   ) : <div></div> }
                 </div>
-            </div>
-
-            <div id="payeeEmails">
-              <EmailIcon />
-              {selectedPayees.map(payee => payee.email).join(", ")}
-            </div>
-
-            <div id="location">
-              <LocationIcon />
-              {locations && locations.length > 0 ? (
-                    <Select width="30%" backgroundColor="#F6F6F6"  value={selectedLocationId === "" ? 'DEFAULT' : selectedLocationId}
-                      onChange={(event) => {
-                        const selectedId = parseInt(event.target.value);
-                        const location = locations.find(loc => loc.id === selectedId);
-                        setSelectedLocation(location.name);
-                        setSelectedLocationId(location.id);
-                        setRoomDescription(location.description);
-                        setLocationRate(location.rate);
-                      }}
-                    >
-                    <option value={'DEFAULT'} disabled>Location...</option>
-                      {locations.map((location) => (
-                        <option value={location.id} key={location.id}>
-                          {location.name}
-                        </option>
-                      ))}
-                    </Select>
-                  ) : <div></div>  }
-              <div id="locationRate">
-                <DollarIcon />
-                <p>{locationRate} / hour</p>
               </div>
-            </div>
 
-            <div id="roomDescription">
-              <h3>Room Description</h3>
-              <p>{roomDescription}</p>
-            </div>
+              <div id="payeeContainer">
+                <div id="payees">
+                  <div id="payeeSelection">
+                    <Box>
+                      <div id="payeeInputContainer">
+                        <Input
+                          placeholder="Payee..."
+                          onChange={(e) => {
+                            getPayeeResults(e.target.value);
+                            setPayeeSearchTerm(e.target.value);
+                          }}
+                          value={payeeSearchTerm} id="payeeInput"/>
+                        <PlusFilledIcon />
+                      </div>
 
-            <div id="information">
-              <h3>General Information</h3>
-              <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="#F6F6F6"></Textarea>
+                      {searchedPayees.length > 0 && (
+                        <Box id="payeeDropdown">
+                          {searchedPayees.map((payee) => (
+                            <Box
+                              key={payee.id}
+                              onClick={() => {
+                                const alreadySelected = selectedPayees.find(
+                                  (pay) => pay.id.toString() === payee.id
+                                );
+
+                                if (payee && !alreadySelected) {
+                                  setSelectedPayees((prevItems) => [...prevItems, payee]);
+                                  const filteredPayees = searchedPayees.filter(
+                                    (pay) => payee.id !== pay.id.toString()
+                                  );
+                                  setSearchedPayees(filteredPayees);
+                                }
+                              }}
+                              style={{
+                                padding: "10px",
+                                fontSize: "16px",
+                                cursor: "pointer",
+                                transition: "0.2s",
+                              }}
+                              bg="#F6F6F6"
+                              _hover={{ bg: "#D9D9D9" }}
+                            >
+                              {payee.name}
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  </div>
+                </div>
+                  <div id="payeeTags">
+                    {selectedPayees.length > 0 ? (
+                      selectedPayees.map((payee, ind) => (
+                        <div className="payeeTag" key={ind}>
+                          <Icon fontSize="lg" onClick={() => {
+                              setSelectedPayees(prevItems =>
+                                prevItems.filter(item => item.id !== payee.id));
+                            }}><CloseFilledIcon /></Icon>
+                          <Tag value={payee.id}>
+                            {payee.name}
+                          </Tag>
+                        </div>
+                      ))
+                    ) : <div></div> }
+                  </div>
+              </div>
+
+              <div id="payeeEmails">
+                <EmailIcon />
+                {selectedPayees.map(payee => payee.email).join(", ")}
+              </div>
+
+              <div id="location">
+                <LocationIcon />
+                {locations && locations.length > 0 ? (
+                      <Select width="30%" backgroundColor="#F6F6F6"  value={selectedLocationId === "" ? 'DEFAULT' : selectedLocationId}
+                        onChange={(event) => {
+                          const selectedId = parseInt(event.target.value);
+                          const location = locations.find(loc => loc.id === selectedId);
+                          setSelectedLocation(location.name);
+                          setSelectedLocationId(location.id);
+                          setRoomDescription(location.description);
+                          setLocationRate(location.rate);
+                        }}
+                      >
+                      <option value={'DEFAULT'} disabled>Location...</option>
+                        {locations.map((location) => (
+                          <option value={location.id} key={location.id}>
+                            {location.name}
+                          </option>
+                        ))}
+                      </Select>
+                    ) : <div></div>  }
+                <div id="locationRate">
+                  <DollarIcon />
+                  <p>{locationRate} / hour</p>
+                </div>
+              </div>
+
+              <div id="roomDescription">
+                <h3>Room Description</h3>
+                <p>{roomDescription}</p>
+              </div>
+
+              <div id="information">
+                <h3>General Information</h3>
+                <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="#F6F6F6"></Textarea>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Navbar>
   );
 };
