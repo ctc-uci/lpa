@@ -448,14 +448,7 @@ export const ProgramsTable = () => {
                 </Tr>
               ) : (
                 filteredPrograms.map((program, idx) => {
-                  // Determine row classes (even/odd and grey-out if no bookings)
-                  let rowClass =
-                    idx % 2 === 0
-                      ? "programs-table__row--odd"
-                      : "programs-table__row--even";
-                  if (program.upcomingDate === "No bookings") {
-                    rowClass += " programs-table__row--no-booking";
-                  }
+                  const rowClass = "programs-table__row--even";
                   return (
                     <Tr
                       key={program.id}
