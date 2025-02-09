@@ -8,7 +8,7 @@ import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
 import AlertIcon from "../../assets/alertIcon.svg"
 
 
-function InvoicesDashboard(){
+const InvoicesDashboard = () => {
   const toast = useToast()
   const navigate = useNavigate();
   const { backend } = useBackendContext();
@@ -122,10 +122,6 @@ function InvoicesDashboard(){
 
       return true; 
   });
-
-
-
-
 
   return(
     <Navbar>

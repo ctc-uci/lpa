@@ -45,6 +45,11 @@ const App = () => {
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
                 />
+                <Route 
+                  path="/invoices"
+                  // element={<ProtectedRoute element={<InvoicesDashboard />} />}
+                  element={<InvoicesDashboard />}
+                />
                 <Route
                   path="/admin"
                   element={
@@ -63,17 +68,13 @@ const App = () => {
                     />
                   }
                 />
-                <Route 
-                  path="/invoices"
-                  element={<ProtectedRoute element={<InvoicesDashboard />} />}
+                <Route
+                  path="/forgotpassword"
+                  element={<ForgotPassword />}
                 />
                 <Route
                   path="*"
                   element={<ProtectedRoute element={<CatchAll />} />}
-                />
-                <Route
-                  path="/forgotpassword"
-                  element={<ForgotPassword />}
                 />
               </Routes>
             </Router>
