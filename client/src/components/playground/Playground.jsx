@@ -13,7 +13,7 @@ export const Playground = () => {
     <Navbar>
     <VStack
       spacing={8}
-      sx={{ width: 300, marginX: "auto" }}
+      width={"100%"}
     >
       <Heading>Playground</Heading>
       <AddClassModal></AddClassModal>

@@ -7,7 +7,7 @@ import { TbInvoice } from "react-icons/tb";
 import './Navbar.css';
 
 
-export const Navbar = ({ children }) => {
+const Navbar = ({ children }) => {
   const menuItems = [
     { name: "Programs", path: "/programs", icon: <IoMdCalendar/>},
     { name: "Invoices", path: "/invoices", icon: <TbInvoice/> },
@@ -16,14 +16,15 @@ export const Navbar = ({ children }) => {
   ];
 
   return (
-    <div id="navbarBody"
-
-    >
+    <div id="navbarBody">
     <Box
       w="18%"
+      maxW={250}
       bg="white"
       boxShadow="lg"
       bgColor="#F6F6F6"
+      height="100vh"
+      position="fixed"
     >
       <Flex
         justify="center"
@@ -56,11 +57,11 @@ export const Navbar = ({ children }) => {
         ))}
       </VStack>
     </Box>
-    <div style={{width: "82%"}}>
+    <div style={{width: "100%", marginLeft: "min(18%, 250px)"}}>
       {children}
     </div>
     </div>
   );
 };
 
-export default Navbar;
+export default Navbar; 
