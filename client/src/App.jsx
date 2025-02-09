@@ -65,7 +65,7 @@ const App = () => {
                 />
                 <Route 
                   path="/invoices"
-                  element={<InvoicesDashboard/>}
+                  element={<ProtectedRoute element={<InvoicesDashboard />} />}
                 />
                 <Route
                   path="*"
