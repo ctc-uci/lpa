@@ -1,5 +1,5 @@
 import { Box, Flex, Icon, Link, Text, VStack } from "@chakra-ui/react";
-import { Logo } from '../../assets/logo/Logo';
+import { Logo } from "../assets/logo/Logo";
 import { MdNotifications } from "react-icons/md";
 import { MdSettings } from "react-icons/md";
 import { IoMdCalendar } from "react-icons/io";
@@ -20,7 +20,7 @@ export const Navbar = ({ children }) => {
 
     >
     <Box
-      w="64"
+      w="18%"
       bg="white"
       boxShadow="lg"
       bgColor="#F6F6F6"
@@ -56,7 +56,9 @@ export const Navbar = ({ children }) => {
         ))}
       </VStack>
     </Box>
-    {children}
+    <div style={{width: "82%"}}>
+      {children}
+    </div>
     </div>
   );
 };
