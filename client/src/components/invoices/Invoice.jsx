@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 
 import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
-import Navbar from "../Navbar";
+import Navbar from "../navbar/Navbar";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 
