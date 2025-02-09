@@ -1,5 +1,5 @@
 import { Box, Flex, Icon, Link, Text, VStack } from "@chakra-ui/react";
-import { Logo } from "../assets/logo/Logo";
+import { Logo } from "../../assets/logo/Logo";
 import { MdNotifications } from "react-icons/md";
 import { MdSettings } from "react-icons/md";
 import { IoMdCalendar } from "react-icons/io";
