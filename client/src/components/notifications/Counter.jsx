@@ -13,7 +13,7 @@ export const CounterComponent = ({ count }) => {
       <p
         style={{
           color: "var(--medium-grey, #767778",
-          fontFamily: "Inter",
+          fontFamily: "Inter, sans-serif",
           fontSize: "20px",
           fontStyle: "normal",
           fontWeight: 400,

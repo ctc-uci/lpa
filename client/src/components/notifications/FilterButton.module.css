@@ -14,7 +14,7 @@
 
 .dateRangeHeader {
   color: var(--medium-grey, #767778);
-  font-family: Inter;
+  font-family: "Inter", sans-serif;
   font-size: 18px;
   font-style: normal;
   font-weight: 600;
@@ -44,7 +44,7 @@
   border: 1px solid var(--medium-light-grey, #d2d2d2);
   background-color: #F6F6F6;
   padding: 8px;
-  font-family: Inter;
+  font-family: "Inter", sans-serif;
   font-size: 13px;
   color: #767778;
   width: 110px;
@@ -89,7 +89,7 @@
 
 .dateInput::placeholder{
     color: var(--medium-grey, #767778);
-    font-family: Inter;
+    font-family: "Inter", sans-serif;
     font-size: 13px;
     font-style: normal;
     font-weight: 500;
@@ -98,7 +98,7 @@
 
 .toText {
     color: var(--medium-grey, #767778);
-    font-family: Inter;
+    font-family: "Inter", sans-serif;
     font-size: 12px;
     font-style: normal;
     font-weight: 400;
@@ -107,7 +107,7 @@
 
 .typeHeader {
     color: var(--medium-grey, #767778);
-    font-family: Inter;
+    font-family: "Inter", sans-serif;
     font-size: 18px;
     font-style: normal;
     font-weight: 600;
@@ -130,7 +130,7 @@
   color: #767778 !important;
   transition: all 0.2s !important;
   color: var(--medium-grey, #767778);
-  font-family: Inter;
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   font-style: normal;
   font-weight: 600;

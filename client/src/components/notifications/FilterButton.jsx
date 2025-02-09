@@ -74,7 +74,7 @@ export const FilterButton = ({ setFilterType, currentFilter }) => {
           border="1px solid var(--medium-light-grey, #D2D2D2)"
           background="var(--white, #FFF)"
           color="var(--medium-grey, #767778)"
-          fontFamily="Inter"
+          fontFamily="Inter, sans-serif"
           fontSize="16px"
           fontStyle="normal"
           fontWeight={400}
