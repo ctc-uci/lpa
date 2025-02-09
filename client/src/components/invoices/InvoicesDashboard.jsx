@@ -1,9 +1,9 @@
 import { Text, Flex, Input, Image, InputGroup, InputRightElement, Heading, useToast } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import Navbar from "../Navbar";
+import Navbar from "../navbar/Navbar";
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from 'react-router-dom' 
+import { useNavigate } from 'react-router-dom'
 import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
 import AlertIcon from "../../assets/alertIcon.svg"
 
@@ -26,24 +26,24 @@ const InvoicesDashboard = () => {
   const isPaidColor = (invoice) => {
     if (invoice.isSent && invoice.paymentStatus === "full") {
         return "#6CE65C";
-    } 
+    }
     if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
         return "none";
-    } 
-    return "#FF4D4D"; 
+    }
+    return "#FF4D4D";
   };
 
   const isPaid = (invoice) => {
     if (invoice.isSent && invoice.paymentStatus === "full") {
         return "PAID";
-    } 
+    }
     if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
         return "NOT PAID";
-    } 
-    return "PAST DUE"; 
+    }
+    return "PAST DUE";
   };
 
-  
+
   useEffect(() => {
     const fetchInvoicesData = async () => {
       try {
@@ -58,12 +58,12 @@ const InvoicesDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (invoices.length === 0 || hasShownToast.current) return; 
+    if (invoices.length === 0 || hasShownToast.current) return;
 
     const getUnpaidInvoices = () => {
       const filteredPastDueInvoices = filteredInvoices.filter(invoice => isPaid(invoice) === "PAST DUE");
       const notifCounter = filteredPastDueInvoices.length;
-  
+
       if (notifCounter > 0) {
         hasShownToast.current = true; // Set ref to true to prevent multiple toasts
         toast({
@@ -82,9 +82,9 @@ const InvoicesDashboard = () => {
                 <Heading size="sm" align-self='stretch'>Unpaid Invoices</Heading>
                 <Text align-self='stretch'>
 
-                {notifCounter > 1 
-                  ? `You have ${notifCounter} past due invoices` 
-                  : `${filteredPastDueInvoices[0].name} - 
+                {notifCounter > 1
+                  ? `You have ${notifCounter} past due invoices`
+                  : `${filteredPastDueInvoices[0].name} -
                   ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "2-digit",})}`
                 }
                 </Text>
@@ -94,7 +94,7 @@ const InvoicesDashboard = () => {
         });
       }
     };
-  
+
     getUnpaidInvoices();
   }, [invoices]);
 
@@ -104,14 +104,14 @@ const InvoicesDashboard = () => {
 
       // Exclude invoices where the role is "instructor"
       if (invoice.role === "instructor") return false;
-      
+
       // Status filter
       if (filter.status !== 'all' && isPaid(invoice).toLowerCase() !== filter.status.toLowerCase()) return false;
 
       // Instructor filter
       // Filters for events that have an instructor, and gets the event while ensuring only showing a single events even if they have both instructor and payee
       if (filter.instructor.toLowerCase() !== 'all' && invoice.role !== "instructor" && !invoices.some(inv => inv.eventName === invoice.eventName && inv.role === "instructor" && inv.name.toLowerCase() === filter.instructor.toLowerCase()))
-        return false; 
+        return false;
 
       //Payee filter
       if (filter.payee.toLowerCase() !== 'all' && invoice.role === "payee" && invoice.name.toLowerCase() !== filter.payee.toLowerCase()) return false;
@@ -120,7 +120,7 @@ const InvoicesDashboard = () => {
       if (filter.startDate && new Date(invoice.endDate) < new Date(filter.startDate)) return false;
       if (filter.endDate && new Date(invoice.endDate) > new Date(new Date(filter.endDate).setDate(new Date(filter.endDate).getDate() + 1))) return false; //to make date range inclusive
 
-      return true; 
+      return true;
   });
 
   return(
@@ -131,16 +131,16 @@ const InvoicesDashboard = () => {
             {/* <Button backgroundColor='transparent' border="1px solid rgba(71, 72, 73, 0.20)" borderRadius='15px' h='48px'> */}
               <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} />
             {/* </Button> */}
-            
+
             <InputGroup w='400px' borderColor='transparent' >
             <InputRightElement pointerEvents='none' bgColor="rgba(71, 72, 73, 0.20)" borderRadius='0px 15px 15px 0px'>
               <SearchIcon color='#767778'/>
             </InputRightElement>
-              <Input 
-                value={query} 
-                onChange={(e) => setQuery(e.target.value)} 
-                icon={SearchIcon} borderColor='gray.100' 
-                borderRadius='15px 15px 15px 15px' 
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                icon={SearchIcon} borderColor='gray.100'
+                borderRadius='15px 15px 15px 15px'
                 placeholder="Search..."
               />
             </InputGroup>

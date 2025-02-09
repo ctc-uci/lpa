@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import Navbar from "../Navbar";
+import Navbar from "../navbar/Navbar";
 import NotificationsComponents from "./NotificationsComponents";
 import { CounterComponent } from "./Counter";
 import { FilterButton } from "./FilterButton";
