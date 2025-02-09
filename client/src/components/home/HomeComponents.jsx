@@ -43,6 +43,7 @@ import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
 import programSvg from "../../assets/icons/program.svg";
 import searchSvg from "../../assets/icons/search.svg";
+import noneSvg from "../../assets/icons/none.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
@@ -52,6 +53,7 @@ import "./Home.css";
 // Icon components
 const ActiveStatusIcon = () => <img src={activeSvg} />;
 const PastStatusIcon = () => <img src={pastSvg} />;
+const NoneStatusIcon = () => <img src={noneSvg} />;
 const ActionsIcon = () => <img src={actionsSvg} />;
 const EditIcon = () => <img src={editSvg} />;
 const CancelIcon = () => <img src={cancelSvg} />;
@@ -132,9 +134,11 @@ export const ProgramsTable = () => {
           // Preserve the original date for filtering:
           date: program.date,
           status:
-            program.date && new Date(program.date) > new Date()
+            program.date ?
+            (program.date && new Date(program.date) > new Date()
               ? "Active"
-              : "Past",
+              : "Past") : 
+              "No Bookings",
           upcomingDate: program.date ? formatDate(program.date) : "No bookings",
           upcomingTime:
             program.startTime && program.endTime
@@ -303,7 +307,7 @@ export const ProgramsTable = () => {
       case "past":
         return <PastStatusIcon />;
       default:
-        return null;
+        return <NoneStatusIcon />;
     }
   };
 
