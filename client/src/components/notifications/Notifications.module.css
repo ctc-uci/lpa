@@ -1,0 +1,15 @@
+.title {
+    color: #4E4AE7;
+    font-family: "Inter", sans-serif;
+    font-size: 30px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    margin-right: 31px; /** a bit arbitrary */
+}
+
+.titleContainer {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 30px; 
+}
