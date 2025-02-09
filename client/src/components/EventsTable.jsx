@@ -27,12 +27,12 @@ export const EventsTable = () => {
             for (const event of eventsData) {
                 const instructors = [];
                 const payees = [];
-            
+
                 try {
                     // Attempt to fetch assignment information for each event
                     const assignmentsResponse = await backend.get('/assignments/event/' + event.id);
                     const assignmentsData = assignmentsResponse.data;
-    
+
                     // Process assignment information if available
                     if (Array.isArray(assignmentsData) && assignmentsData.length > 0) {
                         for (const assignment of assignmentsData) {

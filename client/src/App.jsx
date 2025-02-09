@@ -20,6 +20,7 @@ import { ForgotPassword } from "./components/login/ForgotPassword";
 import { EditProgram } from "./components/programs/EditProgram";
 import { PDFViewer } from "@react-pdf/renderer";
 import PDFButton from "./components/PDFButton";
+import { Program } from "./components/programs/Program";
 
 const App = () => {
   return (
@@ -76,6 +77,14 @@ const App = () => {
                   element={
                     <ProtectedRoute
                       element={<EditProgram />}
+                    />
+                  }
+                />
+                <Route
+                  path="/programs/:id"
+                  element={
+                    <ProtectedRoute
+                      element={<Program />}
                     />
                   }
                 />
