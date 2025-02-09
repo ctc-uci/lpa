@@ -1,23 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router';
-import { ProgramSummary, Sessions } from './ProgramComponents';
-import Navbar from '../navbar/Navbar';
-import {
-  Box,
-  Text,
-  Flex,
-} from "@chakra-ui/react"
-import { useBackendContext } from '../../contexts/hooks/useBackendContext';
+import { useEffect, useState } from "react";
+
+import { Box, Flex, Text } from "@chakra-ui/react";
+
+import { useParams } from "react-router";
+
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import Navbar from "../navbar/Navbar";
+import { ProgramSummary, Sessions } from "./ProgramComponents";
 
 export const Program = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
-  const [ program, setProgram ] = useState(null);
-  const [ sessions, setSessions ] = useState(null);
-  const [ roomIds, setRoomIds ] = useState(null);
-  const [ roomNames, setRoomNames] = useState(null);
-  const [ nextBookingInfo, setNextBookingInfo ] = useState(null);
-
+  const [program, setProgram] = useState(null);
+  const [sessions, setSessions] = useState(null);
+  const [roomIds, setRoomIds] = useState(null);
+  const [roomNames, setRoomNames] = useState(null);
+  const [nextBookingInfo, setNextBookingInfo] = useState(null);
 
   const getProgram = async () => {
     try {
@@ -29,8 +27,6 @@ export const Program = () => {
     }
   };
 
-
-
   const getNextBookingInfo = async () => {
     try {
       const nextBooking = {
@@ -38,11 +34,10 @@ export const Program = () => {
         nextRoom: {},
         assignments: {},
         instructors: [],
-        payees: []
+        payees: [],
       };
 
-
-      const nextSession = sessions?.find(session => !session.archived);
+      const nextSession = sessions?.find((session) => !session.archived);
 
       if (!nextSession) {
         console.log("No upcoming sessions found");
@@ -50,24 +45,30 @@ export const Program = () => {
       }
 
       nextBooking.nextSession = nextSession;
-      const roomResponse = await backend.get(`/rooms/${nextBooking.nextSession.roomId}`);
+      const roomResponse = await backend.get(
+        `/rooms/${nextBooking.nextSession.roomId}`
+      );
       nextBooking.nextRoom = roomResponse.data[0];
 
-      const assignmentsResponse = await backend.get(`/assignments/event/${program[0].id}`);
+      const assignmentsResponse = await backend.get(
+        `/assignments/event/${program[0].id}`
+      );
 
       nextBooking.assignments = assignmentsResponse.data;
 
       for (const assignment of assignmentsResponse.data) {
-        const clientResponse = await backend.get(`/clients/${assignment.clientId}`);
+        const clientResponse = await backend.get(
+          `/clients/${assignment.clientId}`
+        );
         const assignmentWithClient = {
           ...assignment,
           clientName: clientResponse.data.name,
-          clientEmail: clientResponse.data.email
+          clientEmail: clientResponse.data.email,
         };
 
-        if (assignment.role === 'instructor') {
+        if (assignment.role === "instructor") {
           nextBooking.instructors.push(assignmentWithClient);
-        } else if (assignment.role === 'payee') {
+        } else if (assignment.role === "payee") {
           nextBooking.payees.push(assignmentWithClient);
         }
       }
@@ -84,9 +85,10 @@ export const Program = () => {
       const sessionsData = sessionsResponse.data;
       setSessions(sessionsData);
       // Get set of room ids
-      const uniqueRoomIds = [...new Set(sessionsData.map(session => session.roomId))];
+      const uniqueRoomIds = [
+        ...new Set(sessionsData.map((session) => session.roomId)),
+      ];
       setRoomIds(uniqueRoomIds);
-
     } catch {
       console.log("From getSessions: ", error);
     }
@@ -105,20 +107,16 @@ export const Program = () => {
     } catch {
       console.log("From getRoomNames: ", error);
     }
-  }
+  };
 
   useEffect(() => {
     getProgram();
     getSessions();
-
-
-
   }, [id]);
 
   useEffect(() => {
     if (roomIds) {
       getRoomNames();
-
     }
   }, [roomIds]);
 
@@ -128,20 +126,19 @@ export const Program = () => {
     }
   }, [program, sessions]);
 
-
-
-
-
-
-
   return (
     <Flex>
-      <Navbar/>
+      <Navbar />
       <Box>
-        <ProgramSummary program={program} bookingInfo={nextBookingInfo}/>
-        <Sessions sessions={sessions} rooms={roomNames}/>
+        <ProgramSummary
+          program={program}
+          bookingInfo={nextBookingInfo}
+        />
+        <Sessions
+          sessions={sessions}
+          rooms={roomNames}
+        />
       </Box>
     </Flex>
   );
 };
-

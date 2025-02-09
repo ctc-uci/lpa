@@ -1,7 +1,6 @@
 import { React, useEffect, useState } from "react";
 
 import {
-  AtSignIcon,
   CalendarIcon,
   CloseIcon,
   DownloadIcon,
@@ -15,34 +14,22 @@ import {
   Button,
   Card,
   CardBody,
-  CardHeader,
   Container,
   Flex,
   FormControl,
-  FormErrorMessage,
-  FormHelperText,
-  FormLabel,
   Heading,
-  HStack,
   Icon,
   IconButton,
   Input,
-  Link,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
   Popover,
-  PopoverAnchor,
-  PopoverArrow,
   PopoverBody,
-  PopoverCloseButton,
   PopoverContent,
-  PopoverFooter,
-  PopoverHeader,
   PopoverTrigger,
   Portal,
-  Slide,
   Stack,
   Table,
   TableContainer,
@@ -52,8 +39,6 @@ import {
   Th,
   Thead,
   Tr,
-  useBoolean,
-  useColorModeValue,
   useDisclosure,
   Wrap,
   WrapItem,
@@ -68,16 +53,11 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import {
-  Calendar,
   ChevronLeftIcon,
-  ChevronsUpDown,
   EllipsisIcon,
   FileTextIcon,
-  MapPin,
-  SlidersHorizontal,
   UserIcon,
 } from "lucide-react";
-import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -156,7 +136,37 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
 
   // Make sure program data is fetched before rendering
   if (!program || program.length === 0) {
-    return <div>Loading...</div>;
+    return (
+      <Box
+        minH="10vh"
+        py={8}
+      >
+        <Container maxW="90%">
+          <Card
+            shadow="md"
+            border="1px"
+            borderColor="gray.300"
+            borderRadius="15px"
+            width="98%"
+          >
+            <CardBody
+              m={6}
+              textAlign="center"
+            >
+              <Heading
+                size="md"
+                textColor="gray.600"
+              >
+                No Program Available
+              </Heading>
+              <Text color="gray.500">
+                Please select a program to view details.
+              </Text>
+            </CardBody>
+          </Card>
+        </Container>
+      </Box>
+    );
   }
 
   const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
@@ -414,7 +424,7 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
 };
 
 export const Sessions = ({ sessions, rooms }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure(); 
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
@@ -457,14 +467,13 @@ export const Sessions = ({ sessions, rooms }) => {
   };
 
   // Make sure sessions data is fetched before rendering
-  if (!sessions || sessions.length === 0) {
-    return <div>Loading...</div>; // Possibly change loading indicator
-  }
+  // if (!sessions || sessions.length === 0) {
+  //   return <div>Loading...</div>; // Possibly change loading indicator
+  // }
   // Make sure rooms is fetched before rendering
   if (!rooms || rooms.length === 0) {
     return <div>Loading...</div>; // Possibly change loading indicator
   }
-
 
   const filterSessions = () => {
     return sessions.filter((session) => {
@@ -957,65 +966,81 @@ export const Sessions = ({ sessions, rooms }) => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filterSessions().map((session) => (
-                    <Tr key={session.id}>
-                      <Td>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                        >
+                  {filterSessions().length > 0 ? (
+                    filterSessions().map((session) => (
+                      <Tr key={session.id}>
+                        <Td>
                           <Box
-                            height="14px"
-                            width="14px"
-                            borderRadius="50%"
-                            bg={
-                              hasTimePassed(session.date)
-                                ? "#DAB434"
-                                : "#0C824D"
-                            }
-                          ></Box>
-                        </Box>
-                      </Td>
+                            display="flex"
+                            justifyContent="center"
+                          >
+                            <Box
+                              height="14px"
+                              width="14px"
+                              borderRadius="50%"
+                              bg={
+                                hasTimePassed(session.date)
+                                  ? "#DAB434"
+                                  : "#0C824D"
+                              }
+                            ></Box>
+                          </Box>
+                        </Td>
+                        <Td>
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {formatDate(session.date)}
+                          </Box>
+                        </Td>
+                        <Td>
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {formatTime(session.startTime)} -{" "}
+                            {formatTime(session.endTime)}
+                          </Box>
+                        </Td>
+                        <Td>
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {rooms.get(session.roomId)}
+                          </Box>
+                        </Td>
+                        <Td>
+                          {/* Slight "bug": hovering shows shadow larger than button */}
+                          <IconButton
+                            height="30px"
+                            width="30px"
+                            rounded="full"
+                            variant="ghost"
+                            icon={<Icon as={sessionsEllipsis} />}
+                          />
+                        </Td>
+                      </Tr>
+                    ))
+                  ) : (
+                    <Tr>
                       <Td>
                         <Box
-                          display="flex"
-                          justifyContent="center"
-                          alignItems="center"
+                          textAlign="center"
+                          py={6}
+                          color="gray.500"
+                          fontSize="md"
+                          width={"300px"}
                         >
-                          {formatDate(session.date)}
+                          No sessions available
                         </Box>
-                      </Td>
-                      <Td>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          alignItems="center"
-                        >
-                          {formatTime(session.startTime)} -{" "}
-                          {formatTime(session.endTime)}
-                        </Box>
-                      </Td>
-                      <Td>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          alignItems="center"
-                        >
-                          {rooms.get(session.roomId)}
-                        </Box>
-                      </Td>
-                      <Td>
-                        {/* Slight "bug": hovering shows shadow larger than button */}
-                        <IconButton
-                          height="30px"
-                          width="30px"
-                          rounded="full"
-                          variant="ghost"
-                          icon={<Icon as={sessionsEllipsis} />}
-                        />
                       </Td>
                     </Tr>
-                  ))}
+                  )}
                 </Tbody>
               </Table>
             </TableContainer>
