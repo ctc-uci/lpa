@@ -1,0 +1,30 @@
+#navbarBody {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.navItem:hover {
+  border-bottom:  #4E4AE7 2px solid;
+}
+
+.navItem:hover .navLink{
+  text-decoration: none;
+}
+
+.navText {
+  margin-left: 3%;
+  width: 90%;
+  font-weight: 500;
+  font-size: 150%;
+  color: #474849;
+}
+
+.navLink, .navText, .navIcon, .navItem {
+  color: #474849;
+}
+
+.navItem:hover .navLink, .navItem:hover .navText, .navItem:hover .navIcon {
+  color: #4E4AE7;
+}

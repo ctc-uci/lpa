@@ -64,6 +64,26 @@ commentsRouter.delete("/:id", async (req, res) => {
   }
 });
 
+// Delete comment with booking ID
+commentsRouter.delete("/booking/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const comment = await db.query(
+      `DELETE FROM comments WHERE booking_id = $1 RETURNING *`,
+      [id]
+    );
+
+    if (comment.length === 0) {
+      return res.status(404).json({ result: "error" });
+    }
+
+    res.status(200).json({ result: "success", deletedComment: comment });
+  } catch (err) {
+    res.status(500).json({ result: "error", message: err.message });
+  }
+});
+
 // Update a comment by ID
 commentsRouter.put("/:id", async (req, res) => {
   try {

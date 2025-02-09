@@ -32,12 +32,11 @@ assignmentsRouter.get("/:id", async (req, res) => {
 });
 
 // Get assignments for a specific event
-assignmentsRouter.get("/event/:event_id", async (req, res) => {
-  try {
+assignmentsRouter.get("/event/:event_id", async (req, res) => {  try {
     const { event_id } = req.params;
 
     const assignments = await db.query(
-      `SELECT a.id, a.event_id, a.client_id, a.role, c.name as client_name, e.name as event_name
+      `SELECT a.id, a.event_id, a.client_id, a.role, c.name as client_name, c.email as client_email, e.name as event_name
        FROM assignments a, clients c, events e
        WHERE a.client_id = c.id AND a.event_id = e.id AND a.event_id = $1
        ORDER BY a.id ASC`,
@@ -59,7 +58,7 @@ assignmentsRouter.post("/", async (req, res) => {
         text: 'INSERT INTO assignments (event_id, client_id, role) VALUES ($1, $2, $3) RETURNING *',
         values: [eventId, clientId, role],
       };
-  
+
       const result = await db.query(query);
       console.log('Query result:', result);  // Add this line
       res.status(201).json({id: result[0].id });
@@ -67,7 +66,7 @@ assignmentsRouter.post("/", async (req, res) => {
       res.status(500).send(err.message);
     }
   });
-  
+
 assignmentsRouter.get("/client/:client_id", async (req, res) => {
     try {
         const { client_id } = req.params;
@@ -103,6 +102,19 @@ assignmentsRouter.delete("/:id", async (req, res) => {
     try {
         const {id} = req.params;
         const data = await db.query("DELETE FROM assignments WHERE id = $1", [id]);
+        if (data.length === 0) {
+            return res.status(404).json({result: "error", message: "Assignment not found"});
+        }
+        res.status(200).json({result: "success"});
+    } catch (err) {
+        res.status(500).json({result: "error"});
+    }
+});
+
+assignmentsRouter.delete("/event/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const data = await db.query("DELETE FROM assignments WHERE event_id = $1", [id]);
         if (data.length === 0) {
             return res.status(404).json({result: "error", message: "Assignment not found"});
         }
