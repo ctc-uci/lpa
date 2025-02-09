@@ -12,7 +12,6 @@ import {
 
 import activeSvg from "../../assets/icons/active.svg";
 import pastSvg from "../../assets/icons/past.svg";
-import noneSvg from "../../assets/icons/none.svg";
 
 const StatusTooltip = () => {
   return (
@@ -29,8 +28,7 @@ const StatusTooltip = () => {
         </Text>
       </PopoverTrigger>
       <PopoverContent
-        // w="120px"
-        w="fit-content"
+        w="120px"
         p={2}
         borderRadius="lg"
         boxShadow="md"
@@ -53,15 +51,6 @@ const StatusTooltip = () => {
               boxSize="10px"
             />
             <Text className="status-tooltip-text">Past</Text>
-          </HStack>
-          <HStack mt={2}>
-            <Box
-              as="img"
-              src={noneSvg}
-              alt="Past"
-              boxSize="10px"
-            />
-            <Text className="status-tooltip-text">No Bookings</Text>
           </HStack>
         </PopoverBody>
       </PopoverContent>
