@@ -1,4 +1,5 @@
 import express, { Router } from "express";
+import { invoicesRouter } from "./invoices";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
 
@@ -10,7 +11,7 @@ eventsRouter.get("/", async (req, res) => {
   try {
     const events = await db.any(`SELECT * FROM events ORDER BY id ASC`);
 
-    if(events.length === 0){
+    if (events.length === 0) {
       return res.status(404).json({ error: "No events found." });
     }
 
@@ -29,7 +30,7 @@ eventsRouter.get("/:id", async (req, res) => {
       id,
     ]);
 
-    if(event.length === 0){
+    if (event.length === 0) {
       return res.status(404).json({ error: "Event does not exist." });
     }
 
@@ -44,7 +45,7 @@ eventsRouter.post("/", async (req, res) => {
   try {
     const eventData = req.body;
 
-    if (!eventData){
+    if (!eventData) {
       return res.status(404).json({ error: "Event data is required" });
     }
 
@@ -64,7 +65,7 @@ eventsRouter.put("/:id", async (req, res) => {
     const eventData = req.body;
     const { id } = req.params;
 
-    if (!eventData){
+    if (!eventData) {
       return res.status(404).json({ error: "Event data is required" });
     }
 
@@ -91,10 +92,25 @@ eventsRouter.delete("/:id", async (req, res) => {
     const { id } = req.params;
     const data = await db.query(`DELETE FROM events WHERE id = $1 RETURNING *`, [id]);
 
-    if(data.length > 0)
-      res.status(200).json({"result" : "success", "deletedData" : keysToCamel(data)});
+    if (data.length > 0)
+      res.status(200).json({ "result": "success", "deletedData": keysToCamel(data) });
     else
-      res.status(404).json({"result" : "error"});
+      res.status(404).json({ "result": "error" });
+  } catch (err) {
+      res.status(500).send(err.message);
+  }
+});
+
+eventsRouter.get("/remaining/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentMonth = (new Date()).toISOString().split('T')[0] + "T00:00:00Z";
+
+    const unpaidInvoices = await db.query(
+      `SELECT * FROM invoices
+      WHERE invoices.event_id = $1 AND payment_status <> 'full' AND end_date < $2;`, [
+      id, currentMonth])
+    res.status(200).json(keysToCamel(unpaidInvoices));
   } catch (err) {
     res.status(500).send(err.message);
   }
