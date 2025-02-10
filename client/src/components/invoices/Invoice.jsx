@@ -95,7 +95,7 @@ export const Invoice = () => {
 
     return (
         <Navbar>
-            <Flex direction="row" height="100vh" width="100vw">
+            <Flex direction="row" height="100%" width="100%">
                 <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
                     <Flex width="100%">
                         {/* back button */}
