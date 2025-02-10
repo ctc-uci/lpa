@@ -24,7 +24,6 @@ import { Signup } from "./components/signup/Signup";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
-import { ForgotPassword } from "./components/login/ForgotPassword";
 import { Home } from "./components/home/Home";
 
 const App = () => {
