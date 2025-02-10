@@ -94,7 +94,7 @@ roomsRouter.delete("/:id", async (req, res) => {
       return res.status(404).json({ result: "error" });
     }
     res.status(200).json({ result: "success" });
-  } catch (err) {
+  } catch {
     res.status(500).json({ result: "error" });
   }
 });

@@ -86,10 +86,10 @@ eventsRouter.put("/:id", async (req, res) => {
   }
 });
 
-
 eventsRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+
     const data = await db.query(`DELETE FROM events WHERE id = $1 RETURNING *`, [id]);
 
     if (data.length > 0)

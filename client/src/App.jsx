@@ -24,6 +24,7 @@ import { Signup } from "./components/signup/Signup";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
+import { Home } from "./components/home/Home";
 
 const App = () => {
   return (
@@ -66,6 +67,10 @@ const App = () => {
                 <Route
                   path="/playground"
                   element={<Playground />}
+                />
+                <Route
+                  path ="/home"
+                  element={<ProtectedRoute element={<Home />} />}
                 />
                 <Route
                   path="/notifications"
