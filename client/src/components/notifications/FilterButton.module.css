@@ -37,7 +37,7 @@
 
 .dateInput {
   display: flex;
-  justify-content: center;
+  justify-content: space-between; /* Changed to space-between to position text and icon */
   align-items: center;
   gap: 10px;
   border-radius: 5px;
@@ -49,31 +49,23 @@
   color: #767778;
   width: 110px;
   cursor: pointer;
-  overflow: hidden;
+  position: relative; /* Added for proper icon positioning */
 }
 
-/* Make the calendar icon transparent but keep it clickable */
+/* Style the calendar icon */
 .dateInput::-webkit-calendar-picker-indicator {
-  opacity: 0;
-  position: absolute;
-  width: 100%;
-  height: 100%;
+  position: static; /* Changed from absolute to static */
+  width: 16px; /* Set specific width */
+  height: 16px; /* Set specific height */
   cursor: pointer;
+  opacity: 0.5; /* Make it slightly transparent */
   margin: 0;
   padding: 0;
-  visibility: hidden;
 }
 
-
-/* Remove default styling */
-.dateInput::-webkit-datetime-edit {
-  padding: 0;
+.dateInput::-webkit-calendar-picker-indicator:hover {
+  opacity: 1; /* Full opacity on hover */
 }
-
-.dateInput::-webkit-datetime-edit-fields-wrapper {
-  padding: 0;
-}
-
 .dateInput::-webkit-datetime-edit-text,
 .dateInput::-webkit-datetime-edit-month-field,
 .dateInput::-webkit-datetime-edit-day-field,
