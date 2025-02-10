@@ -219,7 +219,7 @@ export const ProgramsTable = () => {
       result = result.filter(
         (program) =>
           program.instructor &&
-          program.instructor.toLowerCase() === filters.instructor.toLowerCase()
+          program.instructor.toLowerCase().includes(filters.instructor.toLowerCase())
       );
     }
 
@@ -228,7 +228,7 @@ export const ProgramsTable = () => {
       result = result.filter(
         (program) =>
           program.payee &&
-          program.payee.toLowerCase() === filters.payee.toLowerCase()
+          program.payee.toLowerCase().includes(filters.payee.toLowerCase())
       );
     }
 
