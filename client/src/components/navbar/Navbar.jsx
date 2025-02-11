@@ -70,7 +70,7 @@ const Navbar = ({ children }) => {
           ))}
         </VStack>
       </Box>
-      <div style={{ width: "100%", marginLeft: "min(18%, 250px)" }}>
+      <div style={{ width: "100%", paddingLeft: "min(18%, 250px)"}}>
         {children}
       </div>
     </div>
