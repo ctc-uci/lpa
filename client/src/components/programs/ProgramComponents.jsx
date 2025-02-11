@@ -139,9 +139,10 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
     return (
       <Box
         minH="10vh"
+        width="100%"
         py={8}
       >
-        <Container maxW="90%">
+        <Container maxW="90%" p={0}>
           <Card
             shadow="md"
             border="1px"
@@ -174,11 +175,13 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
   return (
     <Box
       minH="10vh"
+      width="100%"
+      minW="100%"
       py={8}
     >
-      <Container maxW="90%">
+      <Container minW="100%" p={0}>
         <Flex>
-          <Box
+          {/* <Box
             position="relative"
             left="-12"
           >
@@ -191,15 +194,15 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
               position="absolute"
               top="8"
             />
-          </Box>
+          </Box> */}
           <Card
             shadow="md"
             border="1px"
             borderColor="gray.300"
             borderRadius="15px"
-            width="98%"
+            minW="100%"
           >
-            <CardBody m={6}>
+            <CardBody>
               <Flex
                 mb={6}
                 justify="space-between"
@@ -508,9 +511,8 @@ export const Sessions = ({ sessions, rooms }) => {
 
   return (
     <Box
-      marginLeft="4vw"
-      marginRight="4vw"
       marginBottom="50px"
+      width="100%"
     >
       <Card
         shadow="md"

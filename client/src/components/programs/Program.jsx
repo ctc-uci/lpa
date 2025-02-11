@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { Box, Flex, Text } from "@chakra-ui/react";
+import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
 
 import { useParams } from "react-router";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
+import { ChevronLeftIcon } from "@chakra-ui/icons";
 
 export const Program = () => {
   const { id } = useParams();
@@ -127,18 +128,24 @@ export const Program = () => {
   }, [program, sessions]);
 
   return (
-    <Flex>
-      <Navbar />
-      <Box>
-        <ProgramSummary
-          program={program}
-          bookingInfo={nextBookingInfo}
-        />
-        <Sessions
-          sessions={sessions}
-          rooms={roomNames}
-        />
+    <Navbar>
+      <Box style={{width: "100%", padding: "20px 20px 20px 20px"}}>
+          <IconButton
+            icon={<ChevronLeftIcon />}
+            variant="ghost"
+            size="md"
+            aria-label="Go back"
+            onClick={() => navigate("/programs")}
+          />
+          <ProgramSummary
+            program={program}
+            bookingInfo={nextBookingInfo}
+          />
+          <Sessions
+            sessions={sessions}
+            rooms={roomNames}
+          />
       </Box>
-    </Flex>
+    </Navbar>
   );
 };

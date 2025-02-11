@@ -2,7 +2,7 @@ import React from "react";
 
 import { Box } from "@chakra-ui/react";
 
-import { Navbar } from "../Navbar";
+import Navbar from "../navbar/Navbar";
 import { HeaderRowComponent } from "./HeaderRowComponent";
 import { ProgramsTable } from "./HomeComponents";
 
