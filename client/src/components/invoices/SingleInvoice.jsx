@@ -13,7 +13,9 @@ import {
     IconButton,
 } from "@chakra-ui/react";
 
-import { InvoicePayments, InvoiceEmailHistory, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
+import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
+import { EmailHistory } from "./EmailHistory";
+
 import Navbar from "../navbar/Navbar";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
@@ -154,9 +156,9 @@ export const SingleInvoice = () => {
                           comments={comments}
                       ></InvoicePayments>
 
-                      <InvoiceEmailHistory
+                      <EmailHistory
                           emails={emails}
-                      ></InvoiceEmailHistory>
+                      ></EmailHistory>
                     </Flex>
 
                     </Flex>
