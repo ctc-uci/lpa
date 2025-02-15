@@ -127,7 +127,7 @@ export const SingleInvoice = () => {
 
                             {/* buttons */}
                             <Flex direction="row" marginLeft="auto" gap={5}>
-                                <Button height="100%" borderRadius={30} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1}>
+                                <Button height="100%" borderRadius={30} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1} onClick={() => navigate(`/invoices/edit/${id}`)}>
                                     <FiEdit></FiEdit>
                                     Edit
                                 </Button>
