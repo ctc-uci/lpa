@@ -13,7 +13,7 @@ import {
     IconButton,
 } from "@chakra-ui/react";
 
-import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
+import { InvoicePayments, InvoiceEmailHistory, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
 import Navbar from "../navbar/Navbar";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
@@ -27,6 +27,7 @@ export const Invoice = () => {
     const [remainingBalance, setRemainingBalance] = useState(0);
     const [billingPeriod, setBillingPeriod] = useState({});
     const [comments, setComments] = useState([]);
+    const [emails, setEmails] = useState([]);
     const [payees, setPayees] = useState([]);
     const [event, setEvent] = useState();
 
@@ -42,6 +43,7 @@ export const Invoice = () => {
                   setRemainingBalance(null);
                   setBillingPeriod(null);
                   setComments(null);
+                  setEmails(null);
                   setPayees(null);
                   setEvent(null)
                   return;
@@ -77,6 +79,11 @@ export const Invoice = () => {
                 // get comments
                 const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
                 setComments(commentsResponse.data);
+
+                // get emails
+                const emailsResponse = await backend.get('/invoices/historicInvoices/' + id);
+                setEmails(emailsResponse.data);
+                console.log(emailsResponse)
 
                 // get payees
                 const payeesResponse = await backend.get("/invoices/payees/" + id);
@@ -142,9 +149,15 @@ export const Invoice = () => {
                         remainingBalance={remainingBalance}
                     ></InvoiceStats>
 
-                        <InvoicePayments
-                            comments={comments}
-                        ></InvoicePayments>
+                    <Flex direction="row" h="auto" w="100%" gap="5rem">
+                      <InvoicePayments
+                          comments={comments}
+                      ></InvoicePayments>
+
+                      <InvoiceEmailHistory
+                          emails={emails}
+                      ></InvoiceEmailHistory>
+                    </Flex>
 
                     </Flex>
                 </Flex>
