@@ -10,7 +10,7 @@ import {
 import { Admin } from "./components/admin/Admin";
 import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
-import { Invoice } from "./components/invoices/Invoice";
+import { SingleInvoice } from "./components/invoices/SingleInvoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 import { ForgotPassword } from "./components/login/ForgotPassword";
 import { Login } from "./components/login/Login";
@@ -86,7 +86,7 @@ const App = () => {
                 />
                 <Route
                   path="/invoices/:id"
-                  element={<ProtectedRoute element={<Invoice />} />}
+                  element={<ProtectedRoute element={<SingleInvoice />} />}
                 />
                 <Route
                   path="/programs/edit/:id"

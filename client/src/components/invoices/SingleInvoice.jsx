@@ -18,7 +18,7 @@ import Navbar from "../navbar/Navbar";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 
-export const Invoice = () => {
+export const SingleInvoice = () => {
     const { id } = useParams()
     const { backend } = useBackendContext();
     const navigate = useNavigate();
