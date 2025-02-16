@@ -221,4 +221,28 @@ usersRouter.put('/:id', async (req, res) => {
   }
 });
 
+// get edit_perms for a user by email
+usersRouter.get("/edit-perms/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const perms = await db.query(
+      `
+        SELECT edit_perms
+        FROM users
+        WHERE email = $1
+      `,
+      [email,]);
+
+    if (!(perms.length)) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(keysToCamel(perms[0]));
+
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 export { usersRouter };
