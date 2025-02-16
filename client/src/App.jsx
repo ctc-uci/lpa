@@ -15,6 +15,7 @@ import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
 import { SetNewPassword } from "./components/forgotpassword/SetNewPassword";
+import { PasswordSet } from "./components/forgotpassword/PasswordSet";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
@@ -28,6 +29,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { Home } from "./components/home/Home";
+import { PasswordSet } from "./components/forgotpassword/PasswordSet";
 
 const App = () => {
   return (
@@ -78,6 +80,10 @@ const App = () => {
                 <Route
                   path="/setnewpassword"
                   element={<SetNewPassword />}
+                />
+                <Route
+                  path="/passwordset"
+                  element={<PasswordSet />}
                 />
                 <Route
                   path="/playground"

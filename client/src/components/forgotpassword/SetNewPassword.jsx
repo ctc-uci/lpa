@@ -138,16 +138,17 @@ export const SetNewPassword = () => {
                         to="/login" 
                         size={"lg"}
                         sx={{ width: "40%" }}
-                        borderRadius={"20px"}
+                        borderRadius={"25px"}
                     > 
                         Back to Login
                     </Button>
 
                     <Button
-                        type="submit"
+                        as={Link} 
+                        to="/passwordset" 
                         size={"lg"}
                         sx={{ width: "40%" }}
-                        borderRadius={"20px"}
+                        borderRadius={"25px"}
                         bg={"#4E4AE7"}
                         textColor={"white"}
                         isDisabled={Object.keys(errors).length > 0}
