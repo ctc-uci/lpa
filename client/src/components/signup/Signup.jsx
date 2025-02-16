@@ -12,6 +12,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  InputRightElement,
   Stack,
   useToast,
   VStack,
@@ -146,7 +147,16 @@ export const Signup = () => {
               w={"100%"}
             >
               <label htmlFor="last">Last name</label>
-              <Center id="last">
+              <InputGroup>
+                <InputLeftElement 
+                  pointerEvents="none"
+                  display="flex"
+                  alignItems="center"
+                  h="100%"
+                >
+                  <Box as="img" src={programSvg} boxSize="20px" />
+                </InputLeftElement>
+              
                 <Input
                   placeholder="Last name"
                   type="text"
@@ -155,7 +165,7 @@ export const Signup = () => {
                   name="last_name"
                   isRequired
                 />
-              </Center>
+              </InputGroup>
               <FormErrorMessage minH="20px">
                 {errors.last_name?.message?.toString()}
               </FormErrorMessage>
@@ -167,7 +177,15 @@ export const Signup = () => {
             w={"100%"}
           >
             <label htmlFor="email">Email</label>
-            <Center id="email">
+            <InputGroup>
+              <InputLeftElement 
+                pointerEvents="none"
+                display="flex"
+                alignItems="center"
+                h="100%"
+              >
+                <Box as="img" src={programSvg} boxSize="20px" />
+              </InputLeftElement>
               <Input
                 placeholder="Email"
                 type="text"
@@ -177,41 +195,73 @@ export const Signup = () => {
                 isRequired
                 autoComplete="email"
               />
-            </Center>
+            </InputGroup>
             <FormErrorMessage>
               {errors.email?.message?.toString()}
             </FormErrorMessage>
           </FormControl>
           <FormControl isInvalid={!!errors.password}>
           <label htmlFor="password">Password</label>
-            <Center id="password">
-              <Input
-                placeholder="Password"
-                type="password"
-                size={"lg"}
-                {...register("password")}
-                name="password"
-                isRequired
-                autoComplete="password"
-              />
-            </Center>
+          <InputGroup>
+            <InputLeftElement 
+              pointerEvents="none"
+              display="flex"
+              alignItems="center"
+              h="100%"
+            >
+              <Box as="img" src={programSvg} boxSize="20px" />
+            </InputLeftElement>
+            <Input
+              placeholder="Password"
+              type="password"
+              size={"lg"}
+              {...register("password")}
+              name="password"
+              isRequired
+              autoComplete="password"
+            />
+            <InputRightElement 
+              pointerEvents="none"
+              display="flex"
+              alignItems="center"
+              h="100%"
+            >
+              <Box as="img" src={programSvg} boxSize="20px" />
+            </InputRightElement>
+          </InputGroup>
             <FormErrorMessage>
               {errors.password?.message?.toString()}
             </FormErrorMessage>
           </FormControl>
           <FormControl isInvalid={!!errors.confirmPassword}>
           <label htmlFor="confirmPassword">Confirm Password</label>
-            <Center id="confirmPassword">
-              <Input
-                placeholder="Confirm Password"
-                type="password"
-                size={"lg"}
-                {...register("confirmPassword")}
-                name="confirmPassword"
-                isRequired
-                autoComplete="password"
-              />
-            </Center>
+          <InputGroup>
+            <InputLeftElement 
+              pointerEvents="none"
+              display="flex"
+              alignItems="center"
+              h="100%"
+            >
+              <Box as="img" src={programSvg} boxSize="20px" />
+            </InputLeftElement>
+            <Input
+              placeholder="Confirm Password"
+              type="password"
+              size={"lg"}
+              {...register("confirmPassword")}
+              name="confirmPassword"
+              isRequired
+              autoComplete="password"
+            />
+            <InputRightElement 
+              pointerEvents="none"
+              display="flex"
+              alignItems="center"
+              h="100%"
+            >
+              <Box as="img" src={programSvg} boxSize="20px" />
+            </InputRightElement>
+          </InputGroup>
             <FormErrorMessage>
               {errors.confirmPassword?.message}
             </FormErrorMessage>
