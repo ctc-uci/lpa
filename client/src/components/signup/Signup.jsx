@@ -3,12 +3,10 @@ import { useEffect } from "react";
 import {
   Box,
   Button,
-  Center,
   Divider,
   Link as ChakraLink,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
   Heading,
   Input,
   InputGroup,
@@ -26,13 +24,11 @@ import programSvg from "../../assets/icons/program.svg";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { FaGoogle } from "react-icons/fa6";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { authenticateGoogleUser } from "../../utils/auth/providers";
 
 const signupSchema = z.object({
   first_name: z.string("Invalid first name").min(1, { message: "First name required" }),
@@ -84,10 +80,6 @@ export const Signup = () => {
         });
       }
     }
-  };
-
-  const handleGoogleSignup = async () => {
-    await authenticateGoogleUser();
   };
 
   useEffect(() => {
@@ -278,14 +270,16 @@ export const Signup = () => {
           <HStack
             pt="10px"
           >
-            <Button
-              type="submit"
-              size={"lg"}
-              borderRadius={"20px"}
-              sx={{ width: "100%" }}
-            >
-              Cancel
-            </Button>
+              <Button
+                type="submit"
+                size={"lg"}
+                borderRadius={"20px"}
+                sx={{ width: "100%" }}
+              >
+                <ChakraLink as={Link} to="/login">
+                  Cancel
+                </ChakraLink>
+              </Button>
 
             <Button
               type="submit"
@@ -299,8 +293,6 @@ export const Signup = () => {
               Enter
             </Button>
           </HStack>
-          
-        <Text>Already have an account? <ChakraLink>Log in</ChakraLink></Text>
         </Stack>
       </form>
     </VStack>
