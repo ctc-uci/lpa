@@ -12,7 +12,10 @@ import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { Invoice } from "./components/invoices/Invoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
-import { ForgotPassword } from "./components/login/ForgotPassword";
+import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
+import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
+import { SetNewPassword } from "./components/forgotpassword/SetNewPassword";
+import { PasswordSet } from "./components/forgotpassword/PasswordSet";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
@@ -21,6 +24,7 @@ import { EditProgram } from "./components/programs/EditProgram";
 import { Program } from "./components/programs/Program";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Signup } from "./components/signup/Signup";
+import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
@@ -61,8 +65,24 @@ const App = () => {
                   element={<Signup />}
                 />
                 <Route
+                  path="/signup/requested"
+                  element={<SignupRequested />}
+                />
+                <Route
                   path="/forgotpassword"
                   element={<ForgotPassword />}
+                />
+                <Route
+                  path="/forgotpassword/sent"
+                  element={<ForgotPasswordSent />}
+                />
+                <Route
+                  path="/setnewpassword"
+                  element={<SetNewPassword />}
+                />
+                <Route
+                  path="/passwordset"
+                  element={<PasswordSet />}
                 />
                 <Route
                   path="/playground"
