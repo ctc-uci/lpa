@@ -17,15 +17,16 @@ export const SignupRequested = () => {
         mt={"44"}
       >
         <Box as="img" src={logo} height="150px" width="280px" />
-        <Heading fontSize="40px" color={"#4E4AE7"}>Request Sent!</Heading>
+        <Heading fontSize="40px" fontFamily="'Inter', sans-serif" color={"#4E4AE7"}>Request Sent!</Heading>
         <Divider h={"2px"} opacity="1" borderColor={"#4E4AE7"} w="25%"/>
-        <Text fontColor="#474849">Your account is waiting approval.</Text>
-        <Text fontColor="#474849">For questions, please contact La Peña admin at rocio@lapena.org</Text>
+        <Text fontColor="#474849" fontFamily="'Inter', sans-serif">Your account is waiting approval.</Text>
+        <Text fontColor="#474849" fontFamily="'Inter', sans-serif">For questions, please contact La Peña admin at rocio@lapena.org</Text>
         <Button 
             as={Link} 
             to="/login" 
             width={"200px"}
             mt={"20px"}
+            fontFamily="'Inter', sans-serif"
             borderRadius={"20px"}
             bg={"#4E4AE7"}
             textColor={"white"}
