@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Center,
+  Divider,
   Link as ChakraLink,
   FormControl,
   FormErrorMessage,
@@ -95,7 +96,7 @@ export const Signup = () => {
 
   return (
     <VStack
-      spacing={8}
+      spacing={5}
       sx={{ width: 550, marginX: "auto", mt:"20"}}
     >
       <Box
@@ -104,7 +105,9 @@ export const Signup = () => {
         height={"120px"}
         width={"230px"}
       />
-      <Heading>Create Account</Heading>
+      <Heading fontFamily="'Inter', sans-serif" color={"#4E4AE7"}>Create Account</Heading>
+      <Divider h={"2px"} mt={-"10px"} opacity="1" borderColor={"#4E4AE7"} w="60%"/>
+      <Text fontSize={"17px"}>Please enter your information</Text>
       <form
         onSubmit={handleSubmit(handleSignup)}
         style={{ width: "100%" }}
@@ -129,6 +132,7 @@ export const Signup = () => {
                 <Input
                   placeholder="First name"
                   type="text"
+                  borderRadius={"10px"}
                   pl={-"4px"}
                   size={"lg"}
                   {...register("first_name")}
@@ -161,6 +165,7 @@ export const Signup = () => {
                   placeholder="Last name"
                   type="text"
                   size={"lg"}
+                  borderRadius={"10px"}
                   {...register("last_name")}
                   name="last_name"
                   isRequired
@@ -190,6 +195,7 @@ export const Signup = () => {
                 placeholder="Email"
                 type="text"
                 size={"lg"}
+                borderRadius={"10px"}
                 {...register("email")}
                 name="email"
                 isRequired
@@ -215,6 +221,7 @@ export const Signup = () => {
               placeholder="Password"
               type="password"
               size={"lg"}
+              borderRadius={"10px"}
               {...register("password")}
               name="password"
               isRequired
@@ -248,6 +255,7 @@ export const Signup = () => {
               placeholder="Confirm Password"
               type="password"
               size={"lg"}
+              borderRadius={"10px"}
               {...register("confirmPassword")}
               name="confirmPassword"
               isRequired
