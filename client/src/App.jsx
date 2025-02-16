@@ -14,6 +14,7 @@ import { Invoice } from "./components/invoices/Invoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
+import { SetNewPassword } from "./components/forgotpassword/SetNewPassword";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
@@ -73,6 +74,10 @@ const App = () => {
                 <Route
                   path="/forgotpassword/sent"
                   element={<ForgotPasswordSent />}
+                />
+                <Route
+                  path="/setnewpassword"
+                  element={<SetNewPassword />}
                 />
                 <Route
                   path="/playground"
