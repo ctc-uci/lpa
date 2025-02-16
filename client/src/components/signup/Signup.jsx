@@ -30,6 +30,11 @@ const signupSchema = z.object({
   last_name: z.string("Invalid last name").min(1, { message: "Last name required" }),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters long"),
+  confirmPassword: z.string().min(6, "Confirm Password must be at least 6 characters long"),
+})
+.refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 export const Signup = () => {
@@ -165,6 +170,23 @@ export const Signup = () => {
             </Center>
             <FormErrorMessage>
               {errors.password?.message?.toString()}
+            </FormErrorMessage>
+          </FormControl>
+          <FormControl isInvalid={!!errors.confirmPassword}>
+          <label htmlFor="confirmPassword">Confirm Password</label>
+            <Center id="confirmPassword">
+              <Input
+                placeholder="Confirm Password"
+                type="password"
+                size={"lg"}
+                {...register("confirmPassword")}
+                name="confirmPassword"
+                isRequired
+                autoComplete="password"
+              />
+            </Center>
+            <FormErrorMessage>
+              {errors.confirmPassword?.message}
             </FormErrorMessage>
           </FormControl>
 
