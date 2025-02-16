@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import {
+  Box,
   Button,
   Center,
   Link as ChakraLink,
@@ -9,11 +10,17 @@ import {
   FormHelperText,
   Heading,
   Input,
+  InputGroup,
+  InputLeftElement,
   Stack,
   useToast,
   VStack,
   Text,
+  HStack,
 } from "@chakra-ui/react";
+
+import logo from "../../assets/logo/logo.png";
+import programSvg from "../../assets/icons/program.svg";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -88,53 +95,73 @@ export const Signup = () => {
   return (
     <VStack
       spacing={8}
-      sx={{ width: 300, marginX: "auto" }}
+      sx={{ width: 550, marginX: "auto", mt:"20"}}
     >
-      <Heading>SignUp</Heading>
-
+      <Box
+        as="img"
+        src={logo}
+        height={"120px"}
+        width={"230px"}
+      />
+      <Heading>Create Account</Heading>
       <form
         onSubmit={handleSubmit(handleSignup)}
         style={{ width: "100%" }}
       >
         <Stack spacing={2}>
-        <FormControl
-            isInvalid={!!errors.first_name}
-            w={"100%"}
-          >
-            <label htmlFor="first">First name</label>
-            <Center id="first">
-              <Input
-                placeholder="First name"
-                type="text"
-                size={"lg"}
-                {...register("first_name")}
-                name="first_name"
-                isRequired
-              />
-            </Center>
-            <FormErrorMessage>
-              {errors.first_name?.message?.toString()}
-            </FormErrorMessage>
-          </FormControl>
-          <FormControl
-            isInvalid={!!errors.last_name}
-            w={"100%"}
-          >
-            <label htmlFor="last">Last name</label>
-            <Center id="last">
-              <Input
-                placeholder="Last name"
-                type="text"
-                size={"lg"}
-                {...register("last_name")}
-                name="last_name"
-                isRequired
-              />
-            </Center>
-            <FormErrorMessage>
-              {errors.last_name?.message?.toString()}
-            </FormErrorMessage>
-          </FormControl>
+        <HStack align="start">
+          <VStack align="start" w="100%">
+            <FormControl
+              isInvalid={!!errors.first_name}
+              w={"100%"}
+            >
+              <label htmlFor="first">First name</label>
+              <InputGroup>
+                <InputLeftElement 
+                  pointerEvents="none"
+                  display="flex"
+                  alignItems="center"
+                  h="100%"
+                >
+                  <Box as="img" src={programSvg} boxSize="20px" />
+                </InputLeftElement>
+                <Input
+                  placeholder="First name"
+                  type="text"
+                  pl={-"4px"}
+                  size={"lg"}
+                  {...register("first_name")}
+                  name="first_name"
+                  isRequired
+                />
+              </InputGroup>
+              <FormErrorMessage minH="20px">
+                {errors.first_name?.message?.toString()}
+              </FormErrorMessage>
+            </FormControl>
+          </VStack>
+          <VStack align="start" w="100%">
+            <FormControl
+              isInvalid={!!errors.last_name}
+              w={"100%"}
+            >
+              <label htmlFor="last">Last name</label>
+              <Center id="last">
+                <Input
+                  placeholder="Last name"
+                  type="text"
+                  size={"lg"}
+                  {...register("last_name")}
+                  name="last_name"
+                  isRequired
+                />
+              </Center>
+              <FormErrorMessage minH="20px">
+                {errors.last_name?.message?.toString()}
+              </FormErrorMessage>
+            </FormControl>
+          </VStack>
+        </HStack>
           <FormControl
             isInvalid={!!errors.email}
             w={"100%"}
@@ -190,15 +217,31 @@ export const Signup = () => {
             </FormErrorMessage>
           </FormControl>
 
-          <Button
-            type="submit"
-            size={"lg"}
-            sx={{ width: "100%" }}
-            isDisabled={Object.keys(errors).length > 0}
+          <HStack
+            pt="10px"
           >
-            Sign Up
-          </Button>
+            <Button
+              type="submit"
+              size={"lg"}
+              borderRadius={"20px"}
+              sx={{ width: "100%" }}
+            >
+              Cancel
+            </Button>
 
+            <Button
+              type="submit"
+              size={"lg"}
+              sx={{ width: "100%" }}
+              borderRadius={"20px"}
+              bg={"#4E4AE7"}
+              textColor={"white"}
+              isDisabled={Object.keys(errors).length > 0}
+            >
+              Enter
+            </Button>
+          </HStack>
+          
         <Text>Already have an account? <ChakraLink>Log in</ChakraLink></Text>
         </Stack>
       </form>
