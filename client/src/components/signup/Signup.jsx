@@ -71,7 +71,7 @@ export const Signup = () => {
       });
 
       if (user) {
-        navigate("/dashboard");
+        navigate("/signup/requested");
       }
     } catch (err) {
       if (err instanceof Error) {
