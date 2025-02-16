@@ -12,7 +12,8 @@ import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { Invoice } from "./components/invoices/Invoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
-import { ForgotPassword } from "./components/login/ForgotPassword";
+import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
+import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
@@ -63,6 +64,10 @@ const App = () => {
                 <Route
                   path="/forgotpassword"
                   element={<ForgotPassword />}
+                />
+                <Route
+                  path="/forgotpassword/sent"
+                  element={<ForgotPasswordSent />}
                 />
                 <Route
                   path="/playground"
