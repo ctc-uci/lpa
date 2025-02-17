@@ -67,6 +67,7 @@ export const ArchivedPrograms = () => {
   const [archivedSessions, setArchivedProgramSessions]= useState([]);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getArchivedPrograms = async () => {
     try {
@@ -154,6 +155,10 @@ export const ArchivedPrograms = () => {
     getArchivedPrograms();
   }, []);
 
+  useEffect(() => {
+    // Runs whenever searchQuery, dateRange, or timeRange changes
+  }, [searchQuery, dateRange, timeRange]);
+
   const formatDate = (isoString) => {
     const date = new Date(isoString);
 
@@ -190,6 +195,11 @@ export const ArchivedPrograms = () => {
     setTimeRange((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    // No need to call any additional function here, as filtering will be done in filterSessions
+  };
+
   const filterSessions = () => {
     return archivedSessions.filter((program) => {
       const sessionDate = new Date(program.sessionDate);
@@ -202,9 +212,20 @@ export const ArchivedPrograms = () => {
       const isTimeInRange =
         (!timeRange.start || timeRange.start <= sessionStartTime) &&
         (!timeRange.end || sessionEndTime <= timeRange.end);
-      // const isRoomMatch =
-      //   selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
-      return isDateInRange && isTimeInRange;
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        program.programName.toLowerCase().includes(searchLower) ||
+        program.room.toLowerCase().includes(searchLower) ||
+        (program.instructors && program.instructors.some(instructor =>
+          instructor.clientName.toLowerCase().includes(searchLower)
+        )) ||
+        (program.payees && program.payees.some(payee =>
+          payee.clientName.toLowerCase().includes(searchLower)
+        )) ||
+        program.sessionDate.includes(searchQuery) ||
+        program.sessionStart.includes(searchQuery) ||
+        program.sessionEnd.includes(searchQuery);
+      return isDateInRange && isTimeInRange && matchesSearch;
     });
   };
 
@@ -384,9 +405,11 @@ export const ArchivedPrograms = () => {
                 </Flex>
                 <Flex>
                   <InputGroup size="md" width="300px" variant="outline" borderColor="#D2D2D2" background="white" type="text">
-                    <Input placeholder="Search..." borderRadius="15px" />
+                    <Input placeholder="Search..." borderRadius="15px"
+                      onChange={(e) => handleSearch(e.target.value)}/>
                     <InputRightElement marginRight="4px">
-                      <Button size="sm" borderRadius="15px" background="#F0F1F4" onClick={() => console.log("Search clicked")}>
+                      <Button size="sm" borderRadius="15px" background="#F0F1F4"
+                        onClick={() => handleSearch(searchQuery)}>
                         <Icon as={archiveMagnifyingGlass} />
                       </Button>
                     </InputRightElement>
@@ -496,7 +519,7 @@ export const ArchivedPrograms = () => {
                     ))
                     ) : (
                       <Tr>
-                        {/* <Td> */}
+                        <Td colSpan={7}>
                           <Box
                             justifyContent="center"
                             py={6}
@@ -507,7 +530,7 @@ export const ArchivedPrograms = () => {
                           >
                             <Text>No archived program or session data to display.</Text>
                           </Box>
-                        {/* </Td> */}
+                        </Td>
                       </Tr>
                     )}
                   </Tbody>
