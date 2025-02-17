@@ -27,6 +27,7 @@ import {
   PopoverTrigger,
   Portal,
   Stack,
+  Spinner,
   Table,
   TableContainer,
   Tbody,
@@ -59,52 +60,113 @@ import {
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
-  const [sessions, setSessions] = useState([]);
+  const [program, setPrograms] = useState([]);
   const [archived, setArchived] = useState([]);
+  const [sessions, setSessions] = useState(null);
+  const [uniqueRooms, setRoomIds] = useState(null);
+  const [archivedSessions, setArchivedProgramSessions]= useState([]);
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [timeRange, setTimeRange] = useState({ start: "", end: "" });
 
-  const getArchivedSessions = async () => {
+  const getArchivedPrograms = async () => {
     try {
-      const sessionsResponse = await backend.get(`events`);
-      const sessionsData = sessionsResponse.data;
+      const programResponse = await backend.get(`events`);
+      const programData = programResponse.data;
 
-      setSessions(sessionsData);
+      setPrograms(programData);
 
-      const archivedSessions = sessionsData.filter(session => session.archived === true);
+      const archivedSessions = programData.filter(program => program.archived === true);
 
       setArchived(archivedSessions);
-    } catch (error) {  // Add error parameter here
+
+      await getArchivedProgramSessions(archivedSessions);
+    } catch (error) {
       console.log("From getArchivedSessions: ", error);
     }
   }
 
+  const getArchivedProgramSessions = async (archivedPrograms) => {
+    try {
+      const info = [];
+      for (const program of archivedPrograms) {
+        console.log(program.id);
+        const sessionsResponse = await backend.get(`bookings/event/${program.id}`);
+        const sessions = sessionsResponse.data;
+        console.log(sessions);
+
+        // get most recent session
+        const mostRecentSession = sessions.reduce((latest, current) => {
+          return new Date(current.date) > new Date(latest.date) ? current : latest;
+        }, sessions[0]);
+        console.log(mostRecentSession);
+
+        // get artists and payees
+        const assignmentsResponse = await backend.get(
+          `/assignments/event/${program.id}`
+        );
+        const thisAssignments = {
+          instructors: [],
+          payees: []
+        }
+        for (const assignment of assignmentsResponse.data) {
+          if (assignment.role === "instructor") {
+            thisAssignments.instructors.push(assignment);
+          } else if (assignment.role === "payee") {
+            thisAssignments.payees.push(assignment);
+          }
+        }
+        console.log("assignments");
+        console.log(thisAssignments.instructors);
+
+        const roomsResponse = await backend.get(`rooms/${mostRecentSession.roomId}`);
+        const room = roomsResponse.data;
+        const roomName = room[0].name;
+        console.log("r");
+        console.log(roomName);
+
+        const thisSession = {
+          programId: program.id,
+          programName: program.name,
+          sessionDate: mostRecentSession.date,
+          sessionStart: mostRecentSession.startTime,
+          sessionEnd: mostRecentSession.endTime,
+          room: roomName,
+          recentSession: mostRecentSession,
+          instructors: thisAssignments.instructors,
+          payees: thisAssignments.payees
+        }
+
+        info.push(thisSession);
+        console.log("here is info");
+        console.log(info);
+      }
+
+      // Store this data in state
+      setArchivedProgramSessions(info);
+      console.log("here");
+      console.log(archivedSessions);
+    } catch (error) {
+      console.log("From getArchivedProgramSessions: ", error);
+    }
+  };
+
   useEffect(() => {
-    getArchivedSessions();
+    getArchivedPrograms();
   }, []);
 
   const formatDate = (isoString) => {
-    if (!isoString) return 'N/A';
-
     const date = new Date(isoString);
 
-    if (isNaN(date.getTime())) {
-      console.error('Invalid date:', isoString);
-      return 'Invalid Date';
-    }
-
+    // Format the date to "Mon 01/17/2025"
     const options = {
-      weekday: "short",
-      year: "numeric",
-      month: "2-digit",
+      weekday: "short", // "Mon"
+      year: "numeric", // "2025"
+      month: "2-digit", // "01"
       day: "2-digit",
     };
-
-    const parts = new Intl.DateTimeFormat("en-US", options).formatToParts(date);
-    const weekday = parts.find(part => part.type === 'weekday').value;
-    const month = parts.find(part => part.type === 'month').value;
-    const day = parts.find(part => part.type === 'day').value;
-    const year = parts.find(part => part.type === 'year').value;
-
-    return `${weekday}. ${month}/${day}/${year}`;
+    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
+    formattedDate = formattedDate.replace(",", ".");
+    return formattedDate;
   };
 
   const formatTime = (timeString) => {
@@ -118,6 +180,32 @@ export const ArchivedPrograms = () => {
 
     // Return formatted time
     return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
+
+  const handleDateChange = (field, value) => {
+    setDateRange((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleTimeChange = (field, value) => {
+    setTimeRange((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const filterSessions = () => {
+    return archivedSessions.filter((program) => {
+      const sessionDate = new Date(program.sessionDate);
+      const sessionStartTime = program.sessionStart;
+      const sessionEndTime = program.sessionEnd;
+
+      const isDateInRange =
+        (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
+        (!dateRange.end || sessionDate <= new Date(dateRange.end));
+      const isTimeInRange =
+        (!timeRange.start || timeRange.start <= sessionStartTime) &&
+        (!timeRange.end || sessionEndTime <= timeRange.end);
+      // const isRoomMatch =
+      //   selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
+      return isDateInRange && isTimeInRange;
+    });
   };
 
   return (
@@ -141,8 +229,6 @@ export const ArchivedPrograms = () => {
                         variant="subtle"
                         minWidth="auto"
                         height="40px"
-                        // mt="10px"
-                        // mb="15px"
                         borderRadius="30px"
                         // onClick={onOpen}
                       >
@@ -268,9 +354,9 @@ export const ArchivedPrograms = () => {
                                       height="20%"
                                       type="time"
                                       placeholder="00:00 am"
-                                      // onChange={(e) =>
-                                      //   handleTimeChange("start", e.target.value)
-                                      // }
+                                      onChange={(e) =>
+                                        handleTimeChange("start", e.target.value)
+                                      }
                                     />
                                     <Text> to </Text>
                                     <Input
@@ -282,131 +368,11 @@ export const ArchivedPrograms = () => {
                                       height="20%"
                                       type="time"
                                       placeholder="00:00 pm"
-                                      // onChange={(e) =>
-                                      //   handleTimeChange("end", e.target.value)
-                                      // }
+                                      onChange={(e) =>
+                                        handleTimeChange("end", e.target.value)
+                                      }
                                     />
                                   </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="status">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Text
-                                    fontWeight="bold"
-                                    color="#767778"
-                                  >
-                                    Status
-                                  </Text>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Button
-                                      borderRadius="30px"
-                                      borderWidth="1px"
-                                      minWidth="auto"
-                                      height="20%"
-                                      // onClick={() => setStatus("All")}
-                                      // backgroundColor={
-                                      //   status === "All" ? "#EDEDFD" : "#F6F6F6"
-                                      // }
-                                      // borderColor={
-                                      //   status === "All" ? "#4E4AE7" : "#767778"
-                                      // }
-                                    >
-                                      All
-                                    </Button>
-                                    <Button
-                                      borderRadius="30px"
-                                      borderWidth="1px"
-                                      minWidth="auto"
-                                      height="20%"
-                                      // onClick={() => setStatus("Active")}
-                                      // backgroundColor={
-                                      //   status === "Active" ? "#EDEDFD" : "#F6F6F6"
-                                      // }
-                                      // borderColor={
-                                      //   status === "Active" ? "#4E4AE7" : "#767778"
-                                      // }
-                                    >
-                                      <Box
-                                        display="flex"
-                                        justifyContent="center"
-                                        alignItems="center"
-                                        gap="4px"
-                                      >
-                                        <Box
-                                          width="10px"
-                                          height="10px"
-                                          borderRadius="50%"
-                                          bg="#0C824D"
-                                        />
-                                        Active
-                                      </Box>
-                                    </Button>
-                                    <Button
-                                      borderRadius="30px"
-                                      borderWidth="1px"
-                                      minWidth="auto"
-                                      height="20%"
-                                      // onClick={() => setStatus("Past")}
-                                      // backgroundColor={
-                                      //   status === "Past" ? "#EDEDFD" : "#F6F6F6"
-                                      // }
-                                      // borderColor={
-                                      //   status === "Past" ? "#4E4AE7" : "#767778"
-                                      // }
-                                    >
-                                      <Box
-                                        display="flex"
-                                        justifyContent="center"
-                                        alignItems="center"
-                                        gap="4px"
-                                      >
-                                        <Box
-                                          width="10px"
-                                          height="10px"
-                                          borderRadius="50%"
-                                          bg="#DAB434"
-                                        />
-                                        Past
-                                      </Box>
-                                    </Button>
-                                  </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="room">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={sessionsFilterMapPin} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Room
-                                    </Text>
-                                  </Box>
-
                                 </Box>
                               </FormControl>
                             </Box>
@@ -492,26 +458,30 @@ export const ArchivedPrograms = () => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {archived.length > 0 ? (
-                      archived.map((session) => (
-                      <Tr key={session.id}>
+                    {filterSessions().length > 0 ? (
+                      filterSessions().map((programSession) => (
+                      <Tr key={programSession.programId}>
                         <Td>
-                          {session.name}
+                          {programSession.programName}
                         </Td>
                         <Td>
-                          Date
+                          {formatDate(programSession.sessionDate)}
                         </Td>
                         <Td>
-                          Time
+                          {formatTime(programSession.sessionStart)} - {formatTime(programSession.sessionEnd)}
                         </Td>
                         <Td>
-                          {session.room}
+                          {programSession.room}
                         </Td>
                         <Td>
-                          Lead Artist Name
+                          {programSession.instructors && programSession.instructors.length > 0
+                            ? programSession.instructors[0].clientName
+                            : 'N/A'}
                         </Td>
                         <Td>
-                          Payers Name
+                          {programSession.payees && programSession.payees.length > 0
+                            ? programSession.payees[0].clientName
+                            : 'N/A'}
                         </Td>
                         <Td>
                           <IconButton
@@ -526,7 +496,7 @@ export const ArchivedPrograms = () => {
                     ))
                     ) : (
                       <Tr>
-                        <Td>
+                        {/* <Td> */}
                           <Box
                             justifyContent="center"
                             py={6}
@@ -537,7 +507,7 @@ export const ArchivedPrograms = () => {
                           >
                             <Text>No archived program or session data to display.</Text>
                           </Box>
-                        </Td>
+                        {/* </Td> */}
                       </Tr>
                     )}
                   </Tbody>
