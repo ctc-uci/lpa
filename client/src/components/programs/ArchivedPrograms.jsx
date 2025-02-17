@@ -56,7 +56,70 @@ import {
   archiveMagnifyingGlass
 } from "../../assets/icons/ProgramIcons";
 
+
 export const ArchivedPrograms = () => {
+  const { backend } = useBackendContext();
+  const [sessions, setSessions] = useState([]);
+  const [archived, setArchived] = useState([]);
+
+  const getArchivedSessions = async () => {
+    try {
+      const sessionsResponse = await backend.get(`events`);
+      const sessionsData = sessionsResponse.data;
+
+      setSessions(sessionsData);
+
+      const archivedSessions = sessionsData.filter(session => session.archived === true);
+
+      setArchived(archivedSessions);
+    } catch (error) {  // Add error parameter here
+      console.log("From getArchivedSessions: ", error);
+    }
+  }
+
+  useEffect(() => {
+    getArchivedSessions();
+  }, []);
+
+  const formatDate = (isoString) => {
+    if (!isoString) return 'N/A';
+
+    const date = new Date(isoString);
+
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date:', isoString);
+      return 'Invalid Date';
+    }
+
+    const options = {
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    };
+
+    const parts = new Intl.DateTimeFormat("en-US", options).formatToParts(date);
+    const weekday = parts.find(part => part.type === 'weekday').value;
+    const month = parts.find(part => part.type === 'month').value;
+    const day = parts.find(part => part.type === 'day').value;
+    const year = parts.find(part => part.type === 'year').value;
+
+    return `${weekday}. ${month}/${day}/${year}`;
+  };
+
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(":").map(Number);
+
+    // Determine AM or PM suffix
+    const period = hours >= 12 ? "p.m." : "a.m.";
+
+    // Convert to 12-hour format
+    const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+
+    // Return formatted time
+    return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
+
   return (
     <Navbar>
       <Box margin="40px">
@@ -366,10 +429,7 @@ export const ArchivedPrograms = () => {
               </Box>
               <TableContainer>
                 <Table variant="unstyled">
-                  <Thead
-                    borderBottom="1px"
-                    color="#D2D2D2"
-                  >
+                  <Thead borderBottom="1px" color="#D2D2D2">
                     <Tr>
                       <Th>
                         <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
@@ -431,6 +491,56 @@ export const ArchivedPrograms = () => {
                       </Th>
                     </Tr>
                   </Thead>
+                  <Tbody>
+                    {archived.length > 0 ? (
+                      archived.map((session) => (
+                      <Tr key={session.id}>
+                        <Td>
+                          {session.name}
+                        </Td>
+                        <Td>
+                          Date
+                        </Td>
+                        <Td>
+                          Time
+                        </Td>
+                        <Td>
+                          {session.room}
+                        </Td>
+                        <Td>
+                          Lead Artist Name
+                        </Td>
+                        <Td>
+                          Payers Name
+                        </Td>
+                        <Td>
+                          <IconButton
+                            height="30px"
+                            width="30px"
+                            rounded="full"
+                            variant="ghost"
+                            icon={<Icon as={sessionsEllipsis} />}
+                          />
+                        </Td>
+                      </Tr>
+                    ))
+                    ) : (
+                      <Tr>
+                        <Td>
+                          <Box
+                            justifyContent="center"
+                            py={6}
+                            color="gray.500"
+                            fontSize="md"
+                            width="300px"
+                            margin="auto"
+                          >
+                            <Text>No archived program or session data to display.</Text>
+                          </Box>
+                        </Td>
+                      </Tr>
+                    )}
+                  </Tbody>
                 </Table>
               </TableContainer>
             </Flex>
