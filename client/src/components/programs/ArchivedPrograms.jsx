@@ -54,7 +54,10 @@ import {
   archiveClock,
   archiveMapPin,
   archivePerson,
-  archiveMagnifyingGlass
+  archiveMagnifyingGlass,
+  duplicateIcon,
+  reactivateIcon,
+  deleteIcon
 } from "../../assets/icons/ProgramIcons";
 
 
@@ -196,8 +199,8 @@ export const ArchivedPrograms = () => {
   };
 
   const handleSearch = (query) => {
+    // Sets query for filterSessions
     setSearchQuery(query);
-    // No need to call any additional function here, as filtering will be done in filterSessions
   };
 
   const filterSessions = () => {
@@ -229,6 +232,107 @@ export const ArchivedPrograms = () => {
     });
   };
 
+  const deleteArchivedProgram = async (programId) => {
+    try {
+      await backend.delete(`/events/${programId}`);
+    } catch (error) {
+      console.log("Couldn't delete", error);
+    }
+  };
+
+  const reactivateArchivedProgram = async (programId) => {
+    try {
+      await backend.put(`/events/${programId}`, {
+        archived: false
+    });
+    } catch (error) {
+      console.log("Couldn't reactivate", error);
+    }
+  };
+
+  const duplicateArchivedProgram = async (programId) => {
+    try {
+      // Get original program data
+      const originalEvent = await backend.get(`/events/${programId}`);
+      const originalSessions = await backend.get(`/bookings/event/${programId}`);
+      const originalAssignments = await backend.get(`/assignments/event/${programId}`);
+
+      // Create a new program
+      const newEventData = { ...originalEvent.data[0] };
+      delete newEventData.id; // Remove the original ID
+      newEventData.name = `${originalEvent.data[0].name}`;
+      newEventData.description = `${originalEvent.data[0].description}`;
+      newEventData.archived = false; // Ensure the new event is not archived
+      const newEvent = await backend.post('/events', newEventData);
+      console.log("New event created:", newEvent.data);
+      console.log(newEventData);
+
+      // Create copies of sessions for the new program
+      for (let session of originalSessions.data) {
+        const newSessionData = {
+          event_id: newEvent.data.id,
+          room_id: session.roomId,
+          start_time: session.startTime,
+          end_time: session.endTime,
+          date: session.date,
+          archived: false
+        };
+        const newBooking = await backend.post('/bookings', newSessionData);
+        console.log("New booking", newSessionData);
+        console.log(newBooking);
+      }
+
+      // Create copies of assignments for the new program
+      for (let assignment of originalAssignments.data) {
+        const newAssignmentData = {
+          event_id: newEvent.data.id, // Set the new event ID
+          client_id: assignment.clientId, // Ensure clientId is a number
+          role: assignment.role
+        };
+        const newAssignment = await backend.post('/assignments', newAssignmentData);
+        
+      }
+
+      // Return the new program data
+      return newEvent.data;
+    } catch (error) {
+      console.log("Couldn't duplicate event", error);
+    }
+  };
+
+  const handleDuplicate = async (programId) => {
+    try {
+      await duplicateArchivedProgram(programId);
+    } catch (error) {
+      console.log("Couldn't duplicate program", error);
+    }
+  };
+
+  const handleReactivate = async (programId) => {
+    try {
+      await reactivateArchivedProgram(programId);
+      // Update local state
+      setArchivedProgramSessions(prevSessions =>
+        prevSessions.filter(session => session.programId !== programId)
+      );
+    } catch (error) {
+      console.log("Couldn't reactivate program", error);
+    }
+  };
+
+  const handleDelete = async (programId) => {
+    try {
+      await deleteArchivedProgram(programId);
+
+      // Update local state
+      setArchivedProgramSessions(prevSessions =>
+        prevSessions.filter(session => session.programId !== programId)
+      );
+    } catch (error) {
+      console.log("Couldn't delete program", error);
+    }
+  };
+
   return (
     <Navbar>
       <Box margin="40px">
@@ -251,7 +355,6 @@ export const ArchivedPrograms = () => {
                         minWidth="auto"
                         height="40px"
                         borderRadius="30px"
-                        // onClick={onOpen}
                       >
                         <Box
                           display="flex"
@@ -507,13 +610,36 @@ export const ArchivedPrograms = () => {
                             : 'N/A'}
                         </Td>
                         <Td>
-                          <IconButton
-                            height="30px"
-                            width="30px"
-                            rounded="full"
-                            variant="ghost"
-                            icon={<Icon as={sessionsEllipsis} />}
-                          />
+                          <Menu>
+                            <MenuButton
+                              as={IconButton}
+                              height="30px"
+                              width="30px"
+                              rounded="full"
+                              variant="ghost"
+                              icon={<Icon as={sessionsEllipsis} />}/>
+                            <MenuList>
+                              <MenuItem onClick={() => handleDuplicate(programSession.programId)}>
+                                <Box display="flex" padding="12px 16px" alignItems="center" gap="8px" alignSelf="stretch">
+                                  <Icon as={duplicateIcon} />
+                                  <Text color="#767778">Duplicate</Text>
+                                </Box>
+                              </MenuItem>
+                              <MenuItem onClick={() => handleReactivate(programSession.programId)}>
+                                <Box display="flex" padding="12px 16px" alignItems="center" gap="8px" alignSelf="stretch">
+                                  <Icon as={reactivateIcon} />
+                                  <Text color="#767778">Reactivate</Text>
+                                </Box>
+                              </MenuItem>
+                              <MenuItem onClick={() => handleDelete(programSession.programId)}>
+                                <Box display="flex" padding="12px 16px" alignItems="center" gap="8px" alignSelf="stretch">
+                                  <Icon as={deleteIcon} />
+                                  <Text color="#90080F">Delete</Text>
+                                </Box>
+                              </MenuItem>
+                            </MenuList>
+                          </Menu>
+
                         </Td>
                       </Tr>
                     ))

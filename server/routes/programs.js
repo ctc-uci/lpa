@@ -9,12 +9,12 @@ programsRouter.use(express.json());
 programsRouter.get("/", async (req, res) => {
   try {
     const programs = await db.any(`
-        SELECT DISTINCT ON (e.id) 
+        SELECT DISTINCT ON (e.id)
           e.id,
-          e.name AS event_name,  
-          b.date, 
-          b.start_time, 
-          b.end_time, 
+          e.name AS event_name,
+          b.date,
+          b.start_time,
+          b.end_time,
           r.name AS room_name,
           -- Use string_agg to get all instructors concatenated, and trim extra commas if needed
           COALESCE(string_agg(DISTINCT CASE WHEN a.role = 'instructor' THEN c.name END, ', '), 'N/A') AS instructor_name,
@@ -61,6 +61,24 @@ programsRouter.get("/:id", async (req, res) => {
     }
 
     res.status(200).json(keysToCamel(program));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+programsRouter.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Delete booking from database
+    const data = db.query("DELETE FROM events WHERE id = $1 RETURNING *",
+      [ id ]);
+
+    if (!data) {
+      return res.status(404).json({result: 'error'});
+    }
+
+    res.status(200).json({result: 'success'});
   } catch (err) {
     res.status(500).send(err.message);
   }
