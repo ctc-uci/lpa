@@ -65,11 +65,13 @@ export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
   const [program, setPrograms] = useState([]);
   const [archived, setArchived] = useState([]);
-  const [sessions, setSessions] = useState(null);
-  const [uniqueRooms, setRoomIds] = useState(null);
+  // const [sessions, setSessions] = useState(null);
+  const [uniqueRooms, setUniqueRooms] = useState(null);
+  const [roomNames, setRoomNames] = useState(null);
   const [archivedSessions, setArchivedProgramSessions]= useState([]);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
+  const [selectedRoom, setSelectedRoom] = useState("All");
   const [searchQuery, setSearchQuery] = useState('');
 
   const getArchivedPrograms = async () => {
@@ -92,11 +94,15 @@ export const ArchivedPrograms = () => {
   const getArchivedProgramSessions = async (archivedPrograms) => {
     try {
       const info = [];
+      const allRoomIds = new Set();
       for (const program of archivedPrograms) {
         console.log(program.id);
         const sessionsResponse = await backend.get(`bookings/event/${program.id}`);
         const sessions = sessionsResponse.data;
         console.log(sessions);
+
+        // get unique roomIds
+        sessions.forEach(session => allRoomIds.add(session.roomId));
 
         // get most recent session
         const mostRecentSession = sessions.reduce((latest, current) => {
@@ -121,6 +127,8 @@ export const ArchivedPrograms = () => {
         }
         console.log("assignments");
         console.log(thisAssignments.instructors);
+        console.log(thisAssignments.payees);
+        console.log("current", program.id);
 
         const roomsResponse = await backend.get(`rooms/${mostRecentSession.roomId}`);
         const room = roomsResponse.data;
@@ -147,10 +155,25 @@ export const ArchivedPrograms = () => {
 
       // Store this data in state
       setArchivedProgramSessions(info);
+      setUniqueRooms([...allRoomIds]);
       console.log("here");
       console.log(archivedSessions);
     } catch (error) {
       console.log("From getArchivedProgramSessions: ", error);
+    }
+  };
+
+  const getRoomNames = async (roomIds) => {
+    try {
+      const roomMap = new Map();
+      for (const roomId of roomIds) {
+        const roomResponse = await backend.get(`rooms/${roomId}`);
+        const roomData = roomResponse.data;
+        roomMap.set(roomId, roomData[0].name);
+      }
+      setRoomNames(roomMap);
+    } catch (error) {
+      console.log("From getRoomNames: ", error);
     }
   };
 
@@ -161,6 +184,12 @@ export const ArchivedPrograms = () => {
   useEffect(() => {
     // Runs whenever searchQuery, dateRange, or timeRange changes
   }, [searchQuery, dateRange, timeRange]);
+
+  useEffect(() => {
+    if (uniqueRooms) {
+      getRoomNames(uniqueRooms);
+    }
+  }, [uniqueRooms]);
 
   const formatDate = (isoString) => {
     const date = new Date(isoString);
@@ -216,6 +245,8 @@ export const ArchivedPrograms = () => {
         (!timeRange.start || timeRange.start <= sessionStartTime) &&
         (!timeRange.end || sessionEndTime <= timeRange.end);
       const searchLower = searchQuery.toLowerCase();
+      const isRoomMatch =
+        selectedRoom === "All" || program.room === selectedRoom;
       const matchesSearch =
         program.programName.toLowerCase().includes(searchLower) ||
         program.room.toLowerCase().includes(searchLower) ||
@@ -228,7 +259,7 @@ export const ArchivedPrograms = () => {
         program.sessionDate.includes(searchQuery) ||
         program.sessionStart.includes(searchQuery) ||
         program.sessionEnd.includes(searchQuery);
-      return isDateInRange && isTimeInRange && matchesSearch;
+      return isDateInRange && isTimeInRange && isRoomMatch && matchesSearch;
     });
   };
 
@@ -290,7 +321,6 @@ export const ArchivedPrograms = () => {
           role: assignment.role
         };
         const newAssignment = await backend.post('/assignments', newAssignmentData);
-        
       }
 
       // Return the new program data
@@ -499,6 +529,80 @@ export const ArchivedPrograms = () => {
                                   </Box>
                                 </Box>
                               </FormControl>
+                              <FormControl id="room">
+                                <Box
+                                  display="flex"
+                                  flexDirection="column"
+                                  justifyContent="center"
+                                  alignItems="flex-start"
+                                  gap="16px"
+                                  alignSelf="stretch"
+                                >
+                                  <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    gap="5px"
+                                    alignSelf="stretch"
+                                  >
+                                    <Icon as={sessionsFilterMapPin} />
+                                    <Text
+                                      fontWeight="bold"
+                                      color="#767778"
+                                    >
+                                      Room
+                                    </Text>
+                                  </Box>
+                                  <Wrap spacing={2}>
+                                    <WrapItem>
+                                      <Button
+                                        borderRadius="30px"
+                                        borderWidth="1px"
+                                        width="auto"
+                                        height="20px"
+                                        onClick={() => setSelectedRoom("All")}
+                                        backgroundColor={
+                                          selectedRoom === "All"
+                                            ? "#EDEDFD"
+                                            : "#F6F6F6"
+                                        }
+                                        borderColor={
+                                          selectedRoom === "All"
+                                            ? "#4E4AE7"
+                                            : "#767778"
+                                        }
+                                      >
+                                        All
+                                      </Button>
+                                    </WrapItem>
+                                    {roomNames && Array.from(roomNames.values()).map(
+                                      (room, index) => (
+                                        <WrapItem>
+                                          <Button
+                                            key={index}
+                                            borderRadius="30px"
+                                            borderWidth="1px"
+                                            minWidth="auto"
+                                            height="20px"
+                                            onClick={() => setSelectedRoom(room)}
+                                            backgroundColor={
+                                              selectedRoom === room
+                                                ? "#EDEDFD"
+                                                : "#F6F6F6"
+                                            }
+                                            borderColor={
+                                              selectedRoom === room
+                                                ? "#4E4AE7"
+                                                : "#767778"
+                                            }
+                                          >
+                                            {room}
+                                          </Button>
+                                        </WrapItem>
+                                      )
+                                    )}
+                                  </Wrap>
+                                </Box>
+                              </FormControl>
                             </Box>
                           </PopoverBody>
                         </Box>
@@ -601,12 +705,12 @@ export const ArchivedPrograms = () => {
                         </Td>
                         <Td>
                           {programSession.instructors && programSession.instructors.length > 0
-                            ? programSession.instructors[0].clientName
+                            ? programSession.instructors.map(instructor => instructor.clientName).join(', ')
                             : 'N/A'}
                         </Td>
                         <Td>
                           {programSession.payees && programSession.payees.length > 0
-                            ? programSession.payees[0].clientName
+                            ? programSession.payees.map(payee => payee.clientName).join(', ')
                             : 'N/A'}
                         </Td>
                         <Td>
