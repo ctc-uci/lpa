@@ -44,6 +44,26 @@ commentsRouter.get("/paidInvoices/:id", async (req, res) => {
   }
 });
 
+// Get all comments details
+commentsRouter.get("/details/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await db.query(
+      `
+      SELECT * FROM comments
+      JOIN bookings ON comments.booking_id = bookings.id
+      JOIN rooms ON rooms.id = bookings.room_id
+      WHERE invoice_id = $1
+      `,
+      [id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 commentsRouter.get("/booking/:id", async (req, res) => {
   try {
     const { id } = req.params;
