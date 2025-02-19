@@ -1,0 +1,345 @@
+input[type="time"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width:auto;
+}
+
+h1 {
+  font-size: 150%;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1;
+  color: #474849;
+}
+
+Icon * {
+  color: #767778!important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width:auto;
+}
+
+#info {
+  display: flex;
+  flex-direction: row;
+  gap: 2%;
+  border-radius: 15px;
+  border: 1px solid var(--Primary-5, #4441C8);
+  background: #EDEDFD;
+  align-items: center;
+  width: 23rem;
+  padding: .5rem;
+  margin-bottom: 1rem;
+}
+
+#info > p {
+  color: var(--Primary-5, #4441C8);
+  font-family: Inter;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 125% */
+}
+
+#body {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  margin-right: auto;
+}
+
+#body > div {
+  flex: 1;
+}
+
+#body > #navbarBody {
+  flex: 0 0 auto;
+}
+
+#innerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  width: 50rem;
+}
+
+#leftCancel {
+  margin-top: 1%;
+}
+
+#programsBody {
+  width: 90%;
+  margin: 5% 2.5%;
+  display: flex;
+  flex-direction: row;
+}
+
+#eventInfoBody {
+  flex-direction: column;
+  flex: 1;
+  margin-left: 2.5%;
+  margin-right: 2.5%;
+}
+
+
+#title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 90%;
+  /* align-items: center; */
+  font-size: 170%;
+  margin-bottom: 5%;
+}
+
+
+
+#save {
+  background-color: var(--indigo, #4E4AE7);
+  color: white;
+  justify-content: center;
+  align-items: center;
+  border-radius: 30px;
+}
+
+
+#select {
+  display: none;
+  appearance: none;  /* Hides the default dropdown arrow */
+  background-color: transparent;
+}
+
+#select:focus {
+    background-color: white;
+    appearance: auto; /* Restores the dropdown behavior */
+}
+
+#dateTimeDiv, #instructorContainer, #payeeContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 1%;
+  align-items: center;
+  position: relative;
+}
+
+#dateTimeDiv {
+  justify-content: space-between;
+}
+
+#dateTimeDiv > div {
+  width: 23%;
+}
+
+#dateTimeDiv > div {
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#time1, #time2 {
+  width: 80%;
+  margin-right: auto;
+  margin-left: 2%;
+  flex: 1;
+}
+
+#date1, #date2 {
+  width: 80%;
+  margin-right: 0;
+  margin-left: 2%;
+}
+
+#repeatContainer {
+  justify-content: space-between;
+}
+
+#repeatDiv {
+  width: 40%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3%;
+}
+
+#payeeEmails, #cancelBody {
+  display: flex!important;
+  flex-direction: row!important;
+  gap: 1rem;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+#instructorTags, #payeeTags {
+  height: 2rem;
+  width: 73%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0 0 3% 27%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.instructorTag, .payeeTag {
+  height: 2rem;
+  border: 1px lightgrey solid;
+  border-radius: 20px;
+  margin: .5% 3% 0 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 1% 1%;
+}
+
+#instructorTags > div *, #payeeTags > div * {
+  background-color: transparent;
+}
+
+#Button {
+  width: 40px;
+  height: 40px;
+}
+
+.Icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#instructors, #payees {
+  display: flex;
+  flex-direction: row;
+  border: 1px lightgrey solid;
+  border-radius: 5px;
+  width: 25%;
+  background: #F6F6F6;
+}
+
+#instructorSelection, #payeeSelection {
+  width: 100%;
+}
+
+#instructorSelection > Box, #payeeSelection > Box{
+  position: relative!important;
+  width: 100%!important;
+}
+
+#instructorInputContainer, #payeeInputContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-right: 3%;
+}
+
+#instructorInput, #payeeInput {
+  border-radius: 5px 5px 0 0!important;
+  border: none!important;
+}
+
+#instructorInput:focus, #payeeInput:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+#instructorDropdown, #payeeDropdown {
+  width: 100%;
+  background-color: #D9D9D9;
+  border-top: #4E4AE7 3px solid;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#location, #locationRate {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+#locationRate {
+  margin-left: 3rem;
+}
+
+#roomDescription > h3, #information > h3 {
+  font-size: 1.5rem;
+  color: #474849;
+  margin-bottom: .5rem;
+}
+
+#roomDescription > p, #information > Textarea {
+  color: #474849;
+}
+
+#cancel {
+  color: #90080F;
+  text-decoration: none;
+}
+
+#cancelLink {
+  text-decoration: none;
+}
+
+
+#deactivateDeadlineBox {
+  border-radius: 15px;
+  border: 1px solid var(--deep-red, #90080F);
+  background-color: var(--light-red, #F4E6E7);
+  text-align: center;
+  margin-bottom: 5%;
+}
+
+#deactivateReason {
+  margin-bottom: 5%;
+}
+
+#deactivateDeadlineText, #deactivateDeadlineBox Checkbox {
+  color: var(--deep-red, #90080F);
+  font-family: Inter;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 122.222% */;
+}
+
+#deactivateDeadlineText {
+  text-align: left;
+  margin: .5rem;
+}
+
+#deactivateConfirm {
+  border-radius: 30px;
+  background: var(--deep-red, #90080F);
+  margin: 0;
+}
+
+.horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}

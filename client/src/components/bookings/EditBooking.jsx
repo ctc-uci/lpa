@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import './EditBooking.css';
 
 import {
   Box,
@@ -16,8 +17,23 @@ import {
   PopoverTrigger,
   PopoverContent,
   PopoverBody,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+useDisclosure,
+Checkbox,
+// Lorem,
 } from "@chakra-ui/react";
 
+import {InfoIconPurple} from '../../assets/InfoIconPurple';
+import {InfoIconRed} from '../../assets/InfoIconRed';
+import {ArchiveIcon} from '../../assets/ArchiveIcon';
+import {DeleteIcon} from '../../assets/DeleteIcon';
+import {ProfileIcon} from '../../assets/ProfileIcon';
 import {CancelIcon} from '../../assets/CancelIcon';
 import {RepeatIcon} from '../../assets/RepeatIcon';
 import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
@@ -56,68 +72,80 @@ export const EditBooking = () => {
   const [endDate, setEndDate] = useState("");
   const [selectedDays, setSelectedDays] = useState([]);
   const [bookingIds, setBookingIds] = useState([]);
+  const [eventId, setEventId] = useState();
+  const {
+  isOpen: isOpen,
+  onOpen: onOpen,
+  onClose: onClose
+} = useDisclosure();
+
+const {
+  isOpen: cancelIsOpen,
+  onOpen: cancelOnOpen,
+  onClose: cancelOnClose
+} = useDisclosure();
+  const [deactivateOption, setDeactivateOption] = useState("archive");
+
 
 
   useEffect(() => {
     getInitialEventData();
-    getInitialBookingData();
-    getInitialAssignmentsData();
     getInitialLocations();
     printData();
   }, []);
 
-const printData = () => {
+  const printData = () => {
     console.log(eventName);
   };
 
   const exit = () => {
-    navigate('/programs/' + id);
+    navigate('/programs/' + eventId);
   };
 
   const getInitialEventData = async () => {
-    const eventResponse = await backend.get(`/events/${id}`);
-
-    setEventName(eventResponse.data[0].name);
-    setGeneralInformation(eventResponse.data[0].description);
+    const eventResponse = await backend.get(`/bookings/event/rooms/${id}`);
+    console.log(eventResponse.data);
+    setEventId(eventResponse.data[0].eventId);
+    setEventName(eventResponse.data[0].eventname);
+    setGeneralInformation(eventResponse.data[0].eventdescription);
     setEventArchived(eventResponse.data[0].archived);
-  }
+    setSelectedLocation(eventResponse.data[0].roomname);
+    setSelectedLocationId(eventResponse.data[0].roomId);
+    setRoomDescription(eventResponse.data[0].roomdescription);
+    setLocationRate(eventResponse.data[0].rate);
+    setStartTime(eventResponse.data[0].startTime.split(':').slice(0, 2).join(':'));
+    setEndTime(eventResponse.data[0].endTime.split(':').slice(0, 2).join(':'));
+    setStartDate(eventResponse.data[0].date.split("T")[0]);
 
-  const getInitialBookingData = async () => {
-    const bookingResponse = await backend.get('/bookings/rooms/event/' + id);
-    if (bookingResponse.data.length > 0) {
-      setSelectedLocation(bookingResponse.data[0].name);
-      setSelectedLocationId(bookingResponse.data[0].roomId);
-      setRoomDescription(bookingResponse.data[0].description);
-      setLocationRate(bookingResponse.data[0].rate);
-      setStartTime(bookingResponse.data[0].startTime.split(':').slice(0, 2).join(':'));
-      setEndTime(bookingResponse.data[0].endTime.split(':').slice(0, 2).join(':'));
-      setStartDate(bookingResponse.data[0].date.split("T")[0]);
+    const ids = eventResponse.data.map(booking => booking.bookingId);
 
-      const ids = bookingResponse.data.map(booking => booking.bookingId);
+    setBookingIds(ids);
+    setEndDate(eventResponse.data[eventResponse.data.length - 1].date.split("T")[0]);
 
-      setBookingIds(ids);
-      setEndDate(bookingResponse.data[bookingResponse.data.length - 1].date.split("T")[0]);
-    }
-  }
+    const instructors = Array.from (
+      new Map (
+        eventResponse.data
+        .filter(instructor => instructor.clientrole === "instructor")
+        .map (instructor => [instructor.email, {
+          id: instructor.clientId,
+          name: instructor.clientname,
+          email: instructor.email
+        }])
+      ).values()
+    );
 
-  const getInitialAssignmentsData = async () => {
-    const eventClientResponse = await backend.get('/assignments/event/' + id);
+    const payees = Array.from (
+      new Map (
+        eventResponse.data
+        .filter(client => client.clientrole === "payee")
+        .map (client => [client.email, {
+          id: client.clientId,
+          name: client.clientname,
+          email: client.email
+        }])
+      ).values()
+    );
 
-    const instructors = eventClientResponse.data
-  .filter(client => client.role === "instructor")
-  .map(client => ({
-    id: client.clientId,
-    name: client.clientName,
-    email: client.clientEmail
-  }));
-
-const payees = eventClientResponse.data
-  .filter(client => client.role === "payee")
-  .map(client => ({
-    id: client.clientId,
-    name: client.clientName,
-    email: client.clientEmail
-  }));
     setSelectedInstructors(instructors);
     setSelectedPayees(payees);
   }
@@ -129,114 +157,70 @@ const payees = eventClientResponse.data
     } catch (error) {
         console.error("Error getting locations:", error);
     }
-    }
-
-    const deleteAllBookingComments = async () => {
-  try {
-    await Promise.all(bookingIds.map(async (bookingId) => {
-      try {
-        await backend.delete('/comments/booking/' + bookingId);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.log(`No comments found for booking ${bookingId}`);
-          return;
-        }
-        throw err;
-      }
-    }));
-  } catch (error) {
-    console.error("Error deleting event bookings", error);
-    throw error;
   }
-};
-
-// change to delete singular booking form bookings table, not every booking for an event
-  const deleteAllEventBookings = async () => {
-    try {
-      await backend.delete('/bookings/event/' + id);
-    } catch (error) {
-      if (error.response?.status === 404) {
-        console.log(`No bookings found for event ${id}`);
-        return;
-      }
-      else {
-        console.error("Error deleting event bookings", error);
-      }
-    }
-  };
 
   const saveEvent = async () => {
     try {
-      await backend.put('/events/' + id, {
-          name: eventName,
-          description: generalInformation,
-          archived: eventArchived
-      });
+     const bookingsData = {
+        event_id: eventId,
+        room_id: selectedLocationId,
+        start_time: startTime,
+        end_time: endTime,
+        date: startDate,
+        archived: eventArchived,
+        description: generalInformation,
+      };
 
-      deleteAllBookingComments();
-      deleteAllEventBookings();
-      deleteAllAssignments();
+      await backend.put('/bookings/event/' + id, bookingsData);
 
-      const dates = getDatesForDays(startDate, endDate, selectedDays);
-      for (const date of dates) {
-        const bookingsData = {
-          event_id: id,
-          room_id: selectedLocationId,
-          start_time: startTime,
-          end_time: endTime,
-          date: date,
-          archived: eventArchived,
-        };
-
-        await backend.post('/bookings', bookingsData);
-      }
-
-      for (const instructor of selectedInstructors) {
-        await backend.post("/assignments", {
-            eventId: id,
-            clientId: instructor.id,
-            role: "instructor"
-        });
-      }
-
-      for (const payee of selectedPayees) {
-        await backend.post("/assignments", {
-            eventId: id,
-            clientId: payee.id,
-            role: "payee"
-        });
-      }
       exit();
 
     } catch (error) {
-        console.error("Error getting instructors:", error);
+        console.error("Error saving:", error);
     }
   };
+
+  const setArchived = async (boolean) => {
+    await backend.put(`/booings/` + eventId, {archived: boolean});
+  }
+
+  const handleConfirm = async () => {
+    if (deactivateOption === "archive") {
+      setArchived(true);
+      onClose();
+    }
+    else {
+      await backend.delete('/bookings/' + id);
+    }
+    exit();
+  }
 
 return (
     <Navbar>
       <div id="body">
         <div id="programsBody">
-          <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
+          <div>
+            <Icon fontSize="2xl" onClick={cancelOnOpen} id="leftCancel"><IoCloseOutline/></Icon>
+            <Modal isOpen={cancelIsOpen} onClose={cancelOnClose}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader textAlign="center" paddingBottom="0">Discard unsaved changes?</ModalHeader>
+                <ModalFooter style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button variant='ghost' onClick={cancelOnClose}>
+                    Cancel
+                  </Button>
+                  <Button  colorScheme='red' mr={3} id="deactivateConfirm" onClick={exit}>Ok</Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+          </div>
           <div id="eventInfoBody">
+            <div id="info">
+              <InfoIconPurple id="infoIcon"/>
+              <p>You are editing a session of this program</p>
+            </div>
             <div id="title">
               <h1><b>{eventName}</b></h1>
-              <div id = "saveCancel">
-                <Button id="save" onClick={saveEvent}>Save</Button>
-                <Popover id="popTrigger">
-                  <PopoverTrigger asChild>
-                    <Icon boxSize="5"><CiCircleMore/></Icon>
-                  </PopoverTrigger>
-                    <PopoverContent style={{width:"100%"}}>
-                      <PopoverBody onClick={exit}>
-                        <div id="cancelBody">
-                          <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
-                          <p id="cancel">Cancel</p>
-                        </div>
-                      </PopoverBody>
-                    </PopoverContent>
-                </Popover>
-              </div>
             </div>
             <div id="innerBody">
               <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
@@ -257,13 +241,14 @@ return (
               </div>
 
             <div id = "payee">
-            <Flex align="center" gap={2}>
-                <Icon as={VscAccount} fontSize="2xl" />
-                <Icon as={VscAccount} fontSize="2xl" />
-
-            </Flex>
+              <Flex align="center" gap={8.25}>
+                  <ProfileIcon />
+                  <span> {selectedPayees.map(payee => payee.name).join(", ")} </span>
+                  <ProfileIcon />
+                  <span> {selectedInstructors.map(instructors => instructors.name).join(", ")} </span>
+              </Flex>
             </div>
-     
+
 
               <div id="payeeEmails">
                 <EmailIcon />
@@ -307,6 +292,62 @@ return (
                 <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="#F6F6F6"></Textarea>
               </div>
             </div>
+          </div>
+          <div id="saveCancel">
+            <Button id="save" onClick={saveEvent}>Save</Button>
+            <Popover id="popTrigger">
+              <PopoverTrigger asChild>
+                <Icon boxSize="10"><CiCircleMore/></Icon>
+              </PopoverTrigger>
+                <PopoverContent style={{width:"100%"}}>
+                  <PopoverBody onClick={onOpen}>
+                    <div id="cancelBody">
+                      <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
+                      <p id="cancel">Deactivate</p>
+                    </div>
+                  </PopoverBody>
+                </PopoverContent>
+            </Popover>
+            <Modal isOpen={isOpen} onClose={onClose}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Deactivate Program?</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <div id="deactivateDeadlineBox">
+                    <Box padding = "10px" backgroundColor = "red.100" borderRadius="15px">
+                      <div class="horizontal">
+                        <InfoIconRed fontSize="2xl"/>
+                        <p id="deactivateDeadlineText"> The deactivation fee deadline for this session is Thu. 1/2/2025 </p>
+                      </div>
+                      <Checkbox borderColor = "black">Waive fee </Checkbox>
+                    </Box>
+                    </div>
+                  <div id="deactivateReason">Reason for Deactivation
+                    <Input placeholder="..." />
+                  </div>
+                  <div id = "archive" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Select width="30%" backgroundColor="#F6F6F6"  value={deactivateOption}
+                        onChange={(event) => {
+                          setDeactivateOption(event.target.value);
+                          if (event.target.value === "archived")
+                            setEventArchived(true);
+                        }}
+                      >
+                      <option value={'archive'}>Archive</option>
+                      <option value={'delete'}>Delete</option>
+                    </Select>
+                  </div>
+                </ModalBody>
+
+                <ModalFooter style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button variant='ghost' onClick={onClose}>
+                    Exit
+                  </Button>
+                  <Button  colorScheme='red' mr={3} id="deactivateConfirm" onClick={() => {handleConfirm(); exit();}}>Confirm</Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
           </div>
         </div>
       </div>

@@ -1,13 +1,19 @@
 import { React, useEffect, useState } from "react";
+import {InfoIconRed} from '../../assets/InfoIconRed';
+import {CancelIcon} from '../../assets/CancelIcon';
+import './Program.css';
+import {EditIcon} from '../../assets/EditIcon';
+import {DuplicateIcon} from '../../assets/DuplicateIcon';
+import {ReactivateIcon} from '../../assets/ReactivateIcon';
+import {DeleteIconRed} from '../../assets/DeleteIconRed';
 
 import {
   CalendarIcon,
   CloseIcon,
   DownloadIcon,
-  EditIcon,
   EmailIcon,
-  InfoIcon,
   TimeIcon,
+  InfoIcon
 } from "@chakra-ui/icons";
 import {
   Box,
@@ -21,10 +27,6 @@ import {
   Icon,
   IconButton,
   Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Popover,
   PopoverBody,
   PopoverContent,
@@ -42,6 +44,13 @@ import {
   useDisclosure,
   Wrap,
   WrapItem,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 
 import {
@@ -59,7 +68,6 @@ import {
   UserIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
 import {
   filterButton,
   filterDateCalendar,
@@ -74,9 +82,28 @@ import {
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
-export const ProgramSummary = ({ program, bookingInfo }) => {
+export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived, eventId }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+const {
+  isOpen: modalIsOpen,
+  onOpen: modalOnOpen,
+  onClose: modalOnClose
+} = useDisclosure();
+
+const {
+  isOpen: popoverIsOpen ,
+  onOpen: popoverOnOpen,
+  onClose: popoverOnClose
+} = useDisclosure();
+
+  const exit = () => {
+    navigate('/home');
+  };
+
+  const toEditProgram = () => {
+    navigate('/programs/edit/' + eventId);
+  };
 
   const formatTimeString = (timeString) => {
     if (!timeString) return "";
@@ -94,6 +121,84 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
     navigate(`/programs/edit/${program[0].id}`);
   };
 
+  const setArchived = async (boolean) => {
+    await backend.put(`/programs/` + eventId, {archived: boolean});
+  }
+
+ const duplicateProgram = async () => {
+    const eventResponse = await backend.get('/events/allInfo/' + eventId);
+    console.log(eventResponse);
+    const eventName = eventResponse.data[0].eventname;
+    const generalInformation = eventResponse.data[0].eventdescription;
+
+    const dates = [...new Set(eventResponse.data.map(item => item.date))];
+    const locationId = eventResponse.data[0].roomId;
+    const startTime = eventResponse.data[0].startTime.split(':').slice(0, 2).join(':');
+    const endTime = eventResponse.data[0].endTime.split(':').slice(0, 2).join(':');
+
+    const instructors = Array.from (
+      new Map (
+        eventResponse.data
+        .filter(instructor => instructor.clientrole === "instructor")
+        .map (instructor => [instructor.email, {
+          id: instructor.clientId,
+          name: instructor.clientname,
+          email: instructor.email
+        }])
+      ).values()
+    );
+
+    const payees = Array.from (
+      new Map (
+        eventResponse.data
+        .filter(client => client.clientrole === "payee")
+        .map (client => [client.email, {
+          id: client.clientId,
+          name: client.clientname,
+          email: client.email
+        }])
+      ).values()
+    );
+
+    const eventInfo = {
+      name: "[Unarchived] " + eventName,
+      description: generalInformation
+    }
+
+    const response = await backend.post('/events', eventInfo);
+    const newEventId = response.data.id;
+    for (const date of dates) {
+      const bookingInfo = {
+        event_id: newEventId,
+        room_id: locationId,
+        start_time: startTime,
+        end_time: endTime,
+        date: date,
+        archived: false
+      }
+      await backend.post('/bookings', bookingInfo);
+    }
+
+    for (const instructor of instructors) {
+      const instructorInfo = {
+        eventId: newEventId,
+        clientId: instructor.id,
+        role: "instructor"
+      };
+      await backend.post('/assignments', instructorInfo);
+    }
+
+    for (const payee of payees) {
+      const payeeInfo = {
+        eventId: newEventId,
+        clientId: payee.id,
+        role: "payee"
+      };
+      await backend.post('/assignments', payeeInfo);
+    }
+  };
+
+
   const handleDelete = async () => {
     console.log("Starting delete process...");
     console.log("Program data:", program[0]);
@@ -104,7 +209,6 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
     }
 
     try {
-      //just points to events endpoint
       await backend.delete(`/events/${program[0].id}`);
       console.log("Successfully deleted event and all related records");
 
@@ -178,23 +282,10 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
       width="100%"
       minW="100%"
       py={8}
+      paddingTop="1rem"
     >
       <Container minW="100%" p={0}>
         <Flex>
-          {/* <Box
-            position="relative"
-            left="-12"
-          >
-            <IconButton
-              icon={<ChevronLeftIcon />}
-              variant="ghost"
-              size="md"
-              aria-label="Go back"
-              onClick={() => navigate("/programs")}
-              position="absolute"
-              top="8"
-            />
-          </Box> */}
           <Card
             shadow="md"
             border="1px"
@@ -238,33 +329,69 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
                   <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
                     Invoice
                   </PDFButton>
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      icon={<Icon as={EllipsisIcon} />}
-                      aria-label="Options"
-                      border="0.5px"
-                      bg="gray.50"
-                      size="sm"
-                      variant="ghost"
-                      borderRadius="20px"
-                    />
-                    <MenuList>
-                      <MenuItem
-                        icon={<Icon as={EditIcon} />}
-                        onClick={handleEdit}
-                      >
-                        Edit
-                      </MenuItem>
-                      <MenuItem
-                        icon={<Icon as={CloseIcon} />}
-                        color="red.500"
-                        onClick={handleDelete}
-                      >
-                        Cancel
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
+                  <Popover id="popTrigger" placement='bottom-start'
+                      isOpen={popoverIsOpen}
+                      onOpen={popoverOnOpen}
+                      onClose={popoverOnClose}>
+                    {({ isOpen, onClose }) => (
+                      <>
+                    <PopoverTrigger asChild>
+                      <Icon boxSize="5"><EllipsisIcon/></Icon>
+                    </PopoverTrigger>
+                      <PopoverContent style={{width:"100%"}}>
+                          <PopoverBody>
+                          {!isArchived ?
+                            <div>
+                              <div id="popoverChoice" color="#767778">
+                                <EditIcon/>
+                                <p id="cancel" onClick={toEditProgram}>Edit</p>
+                              </div>
+                              <div id="cancelBody" onClick={() => {onClose(); setIsArchived(true); setArchived(true);}}>
+                                <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
+                                <p id="cancel">Deactivate</p>
+                              </div>
+                            </div> :
+                            <div>
+                              <div id="popoverChoice" color="#767778!important">
+                                <DuplicateIcon/>
+                                <p id="cancel" onClick={duplicateProgram}>Duplicate</p>
+                              </div>
+
+                              <div id="popoverChoice" onClick={() => { onClose(); setIsArchived(false); setArchived(false);}}>
+                                <ReactivateIcon/><p id="cancel">Reactivate</p>
+                              </div>
+                              <div id="cancelBody" onClick={modalOnOpen}>
+                                <DeleteIconRed/><p id="cancel">Delete</p>
+                              </div>
+                            </div>
+                            }
+                          </PopoverBody>
+                      </PopoverContent>
+                  </>
+                        )}
+                  </Popover>
+                    <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
+                    <ModalOverlay />
+                    <ModalContent>
+                      <ModalHeader>Delete Program?</ModalHeader>
+                      <ModalCloseButton />
+                      <ModalBody>
+                        <div id="deactivateDeadlineBox">
+                          <Box padding = "10px" backgroundColor = "#F4E6E7" borderRadius="15px" id="deactivateDeadlineInnerBox">
+                            <InfoIconRed id="infoIcon"/>
+                            <p id="deactivateDeadlineText">Program will be permanently deleted from Archives.</p>
+                          </Box>
+                          </div>
+                      </ModalBody>
+
+                      <ModalFooter style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button variant='ghost' onClick={modalOnClose}>
+                          Exit
+                        </Button>
+                        <Button  colorScheme='red' mr={3} id="deactivateConfirm" onClick={() => {handleDelete(); exit();}}>Confirm</Button>
+                      </ModalFooter>
+                    </ModalContent>
+                  </Modal>
                 </Flex>
               </Flex>
 
@@ -426,7 +553,7 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
   );
 };
 
-export const Sessions = ({ sessions, rooms }) => {
+export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
@@ -541,7 +668,7 @@ export const Sessions = ({ sessions, rooms }) => {
               </Text>
             </Flex>
             <Flex>
-              <Popover>
+              <Popover onClose={onClose}>
                 <PopoverTrigger>
                   <Button
                     color="#767778"
@@ -881,6 +1008,7 @@ export const Sessions = ({ sessions, rooms }) => {
                   color="#D2D2D2"
                 >
                   <Tr>
+                {!isArchived ?
                     <Th>
                       <Text
                         textTransform="none"
@@ -890,7 +1018,7 @@ export const Sessions = ({ sessions, rooms }) => {
                       >
                         Status
                       </Text>
-                    </Th>
+                    </Th> : <div></div>}
                     <Th>
                       <Box
                         display="flex"
@@ -969,8 +1097,10 @@ export const Sessions = ({ sessions, rooms }) => {
                 </Thead>
                 <Tbody>
                   {filterSessions().length > 0 ? (
+
                     filterSessions().map((session) => (
                       <Tr key={session.id}>
+{!isArchived ?
                         <Td>
                           <Box
                             display="flex"
@@ -987,7 +1117,7 @@ export const Sessions = ({ sessions, rooms }) => {
                               }
                             ></Box>
                           </Box>
-                        </Td>
+                        </Td> : <div></div> }
                         <Td>
                           <Box
                             display="flex"
