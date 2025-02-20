@@ -14,8 +14,8 @@ import { Invoice } from "./components/invoices/Invoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
-import { SetNewPassword } from "./components/forgotpassword/SetNewPassword";
-import { PasswordSet } from "./components/forgotpassword/PasswordSet";
+import { ResetPassword } from "./components/resetpassword/ResetPassword";
+import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
@@ -77,12 +77,12 @@ const App = () => {
                   element={<ForgotPasswordSent />}
                 />
                 <Route
-                  path="/setnewpassword"
-                  element={<SetNewPassword />}
+                  path="/resetpassword"
+                  element={<ResetPassword />}
                 />
                 <Route
-                  path="/passwordset"
-                  element={<PasswordSet />}
+                  path="/resetpassword/success"
+                  element={<ResetPasswordSuccess />}
                 />
                 <Route
                   path="/playground"

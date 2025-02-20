@@ -77,7 +77,7 @@ export const Login = () => {
         password: data.password,
       });
 
-      const permitCheck = await backend.get(`/users/edit-perms/${data.email}`);
+      const permitCheck = await backend.get(`/users/email/${data.email}`);
       if (permitCheck.data.editPerms === false) {
         throw {
           code: "auth/no-permission",

@@ -30,7 +30,7 @@ const setNewPasswordSchema = z.object({
     path: ["confirmPassword"],
 });
 
-export const SetNewPassword = () => {
+export const ResetPassword = () => {
     const {
       register,
       handleSubmit,

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Box,
@@ -19,6 +19,7 @@ import {
   HStack,
 } from "@chakra-ui/react";
 
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import logo from "../../assets/logo/logo.png";
 import programSvg from "../../assets/icons/program.svg";
 
@@ -47,6 +48,9 @@ export const Signup = () => {
   const toast = useToast();
   const { signup, handleRedirectResult } = useAuthContext();
   const { backend } = useBackendContext();
+
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
 
   const {
     register,
@@ -211,7 +215,7 @@ export const Signup = () => {
             </InputLeftElement>
             <Input
               placeholder="Password"
-              type="password"
+              type={isPasswordVisible ? 'text' : 'password'}
               size={"lg"}
               borderRadius={"10px"}
               {...register("password")}
@@ -220,12 +224,13 @@ export const Signup = () => {
               autoComplete="password"
             />
             <InputRightElement 
-              pointerEvents="none"
               display="flex"
               alignItems="center"
               h="100%"
             >
-              <Box as="img" src={programSvg} boxSize="20px" />
+              <button onClick={() => {setIsPasswordVisible((prev) => !prev)}} style={{ background: 'none', border: 'none' }}>
+                {isPasswordVisible ? <AiOutlineEyeInvisible color="gray" /> : <AiOutlineEye color="gray" />}
+              </button>
             </InputRightElement>
           </InputGroup>
             <FormErrorMessage>
@@ -245,7 +250,7 @@ export const Signup = () => {
             </InputLeftElement>
             <Input
               placeholder="Confirm Password"
-              type="password"
+              type={isConfirmPasswordVisible ? 'text' : 'password'}
               size={"lg"}
               borderRadius={"10px"}
               {...register("confirmPassword")}
@@ -254,12 +259,13 @@ export const Signup = () => {
               autoComplete="password"
             />
             <InputRightElement 
-              pointerEvents="none"
               display="flex"
               alignItems="center"
               h="100%"
             >
-              <Box as="img" src={programSvg} boxSize="20px" />
+              <button onClick={() => {setIsConfirmPasswordVisible((prev) => !prev)}} style={{ background: 'none', border: 'none' }}>
+                {isConfirmPasswordVisible ? <AiOutlineEyeInvisible color="gray" /> : <AiOutlineEye color="gray" />}
+              </button>
             </InputRightElement>
           </InputGroup>
             <FormErrorMessage>

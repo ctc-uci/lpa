@@ -9,7 +9,7 @@ import {
 import logo from "../../assets/logo/logo.png";
 import { Link } from "react-router-dom";
 
-export const PasswordSet = () => {
+export const ResetPasswordSuccess = () => {
     return (
         <VStack 
             spacing={5}
