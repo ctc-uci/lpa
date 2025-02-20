@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 
 import {
-  Box,
   Button,
-  Flex,
   Heading,
   Input,
   Popover,
@@ -12,6 +10,7 @@ import {
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
+  Stack,
   Table,
   TableContainer,
   Tbody,
@@ -20,7 +19,6 @@ import {
   Th,
   Thead,
   Tr,
-  Stack
 } from "@chakra-ui/react";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -120,170 +118,129 @@ export const Settings = () => {
 
   return (
     <Navbar>
-      <TableContainer mb="40px">
-        <Table variant="striped">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Created</Th>
-              <Th>Approve</Th>
-              <Th>Deny</Th>
-              <Th>Make Admin</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {users.map((user) => (
-              <Tr key={user.id}>
-                <Td>{`${user.firstName} ${user.lastName}`}</Td>
-                <Td>January 20, 2025</Td>
-                <Td>
-                  <Button
-                    onClick={() => handleApprove(user)}
-                    colorScheme="green"
-                  >
-                    Approve
-                  </Button>
-                </Td>
-                <Td>
-                  <Button
-                    onClick={() => handleRemove(user)}
-                    colorScheme="red"
-                  >
-                    Deny
-                  </Button>
-                </Td>
-                <Td>
-                  <Button
-                    colorScheme="blackAlpha"
-                    variant="outline"
-                  >
-                    Admin
-                  </Button>
-                </Td>
+      <Stack m="20">
+        <Heading size="lg">Approve Users</Heading>
+        <TableContainer mb="40px">
+          <Table variant="striped">
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Created</Th>
+                <Th>Approve</Th>
+                <Th>Deny</Th>
+                <Th>Make Admin</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
+            </Thead>
+            <Tbody>
+              {users.map((user) => (
+                <Tr key={user.id}>
+                  <Td>{`${user.firstName} ${user.lastName}`}</Td>
+                  <Td>January 20, 2025</Td>
+                  <Td>
+                    <Button
+                      onClick={() => handleApprove(user)}
+                      colorScheme="green"
+                    >
+                      Approve
+                    </Button>
+                  </Td>
+                  <Td>
+                    <Button
+                      onClick={() => handleRemove(user)}
+                      colorScheme="red"
+                    >
+                      Deny
+                    </Button>
+                  </Td>
+                  <Td>
+                    <Button
+                      colorScheme="blackAlpha"
+                      variant="outline"
+                    >
+                      Admin
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </Stack>
 
-      <TableContainer mb="40px">
-        <Table variant="striped">
-          <Thead>
-            <Tr>
-              <Th>Room</Th>
-              <Th>Rate</Th>
-              <Th>Edit</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {rooms.map((room) => (
-              <Tr key={room.id}>
-                <Td>{room.name}</Td>
-                <Td>{room.rate}</Td>
-                <Td>
-                  <Popover>
-                    {({ onClose }) => (
-                      <>
-                        <PopoverTrigger>
-                          <Button
-                            onClick={() => {
-                              setSelectedRoom(room);
-                              setNewRate(room.rate);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent>
-                          <PopoverHeader>Edit Room Rate</PopoverHeader>
-                          <PopoverBody>
-                            <Stack>
-                            <Text as="b">Room:</Text> 
-                            <Text>{room.name}</Text>
-                            <Input
-                              mt="2"
-                              type="number"
-                              value={newRate}
-                              onChange={(e) => setNewRate(e.target.value)}
-                              />
+      <Stack m="20">
+        <Heading size="lg">Edit Room Rate</Heading>
+        <TableContainer mb="40px">
+          <Table variant="striped">
+            <Thead>
+              <Tr>
+                <Th>Room</Th>
+                <Th>Rate</Th>
+                <Th>Edit</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {rooms.map((room) => (
+                <Tr key={room.id}>
+                  <Td>{room.name}</Td>
+                  <Td>{room.rate}</Td>
+                  <Td>
+                    <Popover>
+                      {({ onClose }) => (
+                        <>
+                          <PopoverTrigger>
+                            <Button onClick={() => handleEditRoom(room)}>
+                              Edit
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent>
+                            <PopoverHeader>Edit Room Rate</PopoverHeader>
+                            <PopoverBody>
+                              <Stack>
+                                <Text as="b">Room:</Text>
+                                <Text>{room.name}</Text>
+                                <Input
+                                  mt="2"
+                                  type="number"
+                                  value={newRate}
+                                  onChange={(e) => setNewRate(e.target.value)}
+                                />
                               </Stack>
-                          </PopoverBody>
-                          <PopoverFooter
-                            display="flex"
-                            justifyContent="flex-end"
-                          >
-                            <Button
-                              colorScheme="green"
-                              mr="3"
-                              onClick={() => {
-                                handleSaveRate();
-                                onClose();
-                              }}
+                            </PopoverBody>
+                            <PopoverFooter
+                              display="flex"
+                              justifyContent="flex-end"
                             >
-                              Save
-                            </Button>
-                            <Button
-                              colorScheme="red"
-                              onClick={() => {
-                                handleCancelEdit();
-                                onClose();
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                          </PopoverFooter>
-                        </PopoverContent>
-                      </>
-                    )}
-                  </Popover>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
-
-      {selectedRoom && (
-        <Box
-          p="20px"
-          border="1px solid #ccc"
-          borderRadius="md"
-          maxW="300px"
-          mb="40px"
-        >
-          <Heading
-            as="h3"
-            size="md"
-            mb="4"
-          >
-            Edit Room Rate
-          </Heading>
-          <Box mb="3">
-            <Text as="b">Room:</Text> {selectedRoom.name}
-          </Box>
-          <Box mb="3">
-            <Input
-              type="number"
-              value={newRate}
-              onChange={(e) => setNewRate(e.target.value)}
-            />
-          </Box>
-          <Flex gap="10px">
-            <Button
-              colorScheme="green"
-              onClick={handleSaveRate}
-            >
-              Save
-            </Button>
-            <Button
-              colorScheme="red"
-              onClick={handleCancelEdit}
-            >
-              Cancel
-            </Button>
-          </Flex>
-        </Box>
-      )}
+                              <Button
+                                colorScheme="green"
+                                mr="3"
+                                onClick={() => {
+                                  handleSaveRate();
+                                  onClose();
+                                }}
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                colorScheme="red"
+                                onClick={() => {
+                                  handleCancelEdit();
+                                  onClose();
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </PopoverFooter>
+                          </PopoverContent>
+                        </>
+                      )}
+                    </Popover>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </Stack>
     </Navbar>
   );
 };
