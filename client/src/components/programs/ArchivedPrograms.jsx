@@ -307,7 +307,7 @@ export const ArchivedPrograms = () => {
       console.log(newEventData);
 
       // Create copies of sessions for the new program
-      for (let session of originalSessions.data) {
+      for (const session of originalSessions.data) {
         const newSessionData = {
           event_id: newEvent.data.id,
           room_id: session.roomId,
@@ -322,7 +322,7 @@ export const ArchivedPrograms = () => {
       }
 
       // Create copies of assignments for the new program
-      for (let assignment of originalAssignments.data) {
+      for (const assignment of originalAssignments.data) {
         const newAssignmentData = {
           event_id: newEvent.data.id, // Set the new event ID
           client_id: assignment.clientId, // Ensure clientId is a number
