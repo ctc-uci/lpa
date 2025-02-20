@@ -3,24 +3,40 @@ import { React, useEffect, useState } from "react";
 import {
   CalendarIcon,
   CloseIcon,
+  CheckIcon,
   DownloadIcon,
+  DeleteIcon,
   EditIcon,
   EmailIcon,
   InfoIcon,
   TimeIcon,
+  ChevronDownIcon,
 } from "@chakra-ui/icons";
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
   Box,
   Button,
   Card,
   CardBody,
   Container,
+  Checkbox,
   Flex,
   FormControl,
+  FormLabel,
   Heading,
   Icon,
   IconButton,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Menu,
   MenuButton,
   MenuItem,
@@ -36,12 +52,14 @@ import {
   Tbody,
   Td,
   Text,
+  Textarea,
   Th,
   Thead,
   Tr,
   useDisclosure,
   Wrap,
   WrapItem,
+  Select,
 } from "@chakra-ui/react";
 
 import {
@@ -54,6 +72,7 @@ import {
 } from "@react-pdf/renderer";
 import {
   ChevronLeftIcon,
+  Delete,
   EllipsisIcon,
   FileTextIcon,
   UserIcon,
@@ -73,10 +92,22 @@ import {
   sessionsUpArrow,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import {CancelIcon} from '../../assets/CancelIcon';
+import {ArchiveIcon} from '../../assets/ArchiveIcon';
+
 
 export const ProgramSummary = ({ program, bookingInfo }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedAction, setSelectedAction] = useState("Archive");
+  const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
+
+  const handleSelect = (action, iconSrc) => {
+    setSelectedAction(action);
+    setSelectedIcon(iconSrc);
+  };
+  //const [loading, setLoading] = useState(false);
 
   const formatTimeString = (timeString) => {
     if (!timeString) return "";
@@ -94,6 +125,31 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
     navigate(`/programs/edit/${program[0].id}`);
   };
 
+  const handleDeactivate = () => {
+    onOpen();
+  };
+
+  const handleArchive = async () => {
+    console.log(program[0].id)
+    try {
+      await backend.put(`/events/${program[0].id}`, {
+        archived: true
+      });
+      onClose();
+      window.location.reload();
+    } catch (error) {
+      console.log("Couldn't deactivate", error);
+    }
+  }
+
+  const handleConfirm = async () => {
+    if (selectedAction === "Archive") {
+      await handleArchive()
+    } else if (selectedAction === "Delete"){
+      await handleDelete();    
+    }
+  }
+
   const handleDelete = async () => {
     console.log("Starting delete process...");
     console.log("Program data:", program[0]);
@@ -107,7 +163,7 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
       //just points to events endpoint
       await backend.delete(`/events/${program[0].id}`);
       console.log("Successfully deleted event and all related records");
-
+      onClose();
       navigate("/programs");
     } catch (error) {
       console.error("Error details:", {
@@ -255,6 +311,12 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
                         onClick={handleEdit}
                       >
                         Edit
+                      </MenuItem>
+                      <MenuItem
+                        icon={<Icon as={CancelIcon} />}
+                        onClick={handleDeactivate}
+                      >
+                        Deactivate
                       </MenuItem>
                       <MenuItem
                         icon={<Icon as={CloseIcon} />}
@@ -422,6 +484,60 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
           </Card>
         </Flex>
       </Container>
+      <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Confirm</ModalHeader>
+            <ModalBody>
+              <Alert status="error" borderRadius="md" p={4}>
+                <AlertIcon />
+                <Box>
+                  <AlertTitle fontSize="md">The deactivation fee deadline for this program is <AlertDescription fontSize="md" fontWeight="bold">
+                     Thu. 1/2/2025.
+                    </AlertDescription></AlertTitle>
+                  <Flex mt={4} align="center">
+                    <Checkbox variant="solid">Waive fee</Checkbox>
+                  </Flex>
+                </Box>
+              </Alert>
+              <Box mt={4}>
+                <Text fontWeight="medium" mb={2}>
+                  Reason for Deactivation:
+                </Text>
+                <Textarea placeholder="..." size="md" borderRadius="md" />
+              </Box>
+              <Box mt={4}>
+                <Menu>
+                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} variant="outline" width="50%">
+                    {selectedIcon} {selectedAction}
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem 
+                    icon={<Box display="inline-flex" alignItems="center">
+                      <Icon as={ArchiveIcon} boxSize={4} />
+                    </Box>}
+                    onClick ={() => handleSelect("Archive", ArchiveIcon)}
+                    display="flex"
+                    alignItems="center"
+                    >
+                      Archive
+                    </MenuItem>
+                    <MenuItem
+                    icon = {<DeleteIcon/>}
+                    onClick={() => handleSelect("Delete", <DeleteIcon/>)}
+                    >
+                      Delete
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              </Box>
+            </ModalBody>
+            <ModalFooter>
+              <Button onClick={onClose} mr={3}>Cancel</Button>
+              <Button onClick={handleConfirm}colorScheme="red">Confirm</Button>
+            </ModalFooter>
+          </ModalContent>
+      </Modal>
     </Box>
   );
 };

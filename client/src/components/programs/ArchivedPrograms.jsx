@@ -3,6 +3,9 @@ import { useParams } from "react-router";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
   Box,
   Button,
   Card,
@@ -10,13 +13,17 @@ import {
   Container,
   Flex,
   FormControl,
-  Heading,
   Icon,
   IconButton,
   Input,
   InputGroup,
   InputRightElement,
-  InputRightAddon,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Menu,
   MenuButton,
   MenuItem,
@@ -73,6 +80,7 @@ export const ArchivedPrograms = () => {
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [selectedRoom, setSelectedRoom] = useState("All");
   const [searchQuery, setSearchQuery] = useState('');
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getArchivedPrograms = async () => {
     try {
@@ -350,6 +358,10 @@ export const ArchivedPrograms = () => {
     }
   };
 
+  const handleConfirmDelete = () => {
+    onOpen();
+  };
+
   const handleDelete = async (programId) => {
     try {
       await deleteArchivedProgram(programId);
@@ -358,6 +370,7 @@ export const ArchivedPrograms = () => {
       setArchivedProgramSessions(prevSessions =>
         prevSessions.filter(session => session.programId !== programId)
       );
+      onClose();
     } catch (error) {
       console.log("Couldn't delete program", error);
     }
@@ -735,7 +748,7 @@ export const ArchivedPrograms = () => {
                                   <Text color="#767778">Reactivate</Text>
                                 </Box>
                               </MenuItem>
-                              <MenuItem onClick={() => handleDelete(programSession.programId)}>
+                              <MenuItem onClick={handleConfirmDelete}>
                                 <Box display="flex" padding="12px 16px" alignItems="center" gap="8px" alignSelf="stretch">
                                   <Icon as={deleteIcon} />
                                   <Text color="#90080F">Delete</Text>
@@ -769,6 +782,24 @@ export const ArchivedPrograms = () => {
             </Flex>
           </CardBody>
         </Card>
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Delete Program?</ModalHeader>
+            <ModalBody>
+              <Alert status="error" borderRadius="md" p={4}>
+                <AlertIcon />
+                <Box>
+                  <AlertTitle fontSize="md">Program will be permanently deleted from Archives.</AlertTitle>
+                </Box>
+              </Alert>
+            </ModalBody>
+            <ModalFooter>
+              <Button onClick={onClose} mr={3}>Exit</Button>
+              <Button onClick={() => handleDelete(programSession.programId)} colorScheme="red">Confirm</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Box>
     </Navbar>
   );
