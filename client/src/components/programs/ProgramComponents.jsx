@@ -2,25 +2,39 @@ import { React, useEffect, useState } from "react";
 
 import {
   CalendarIcon,
-  CloseIcon,
   DownloadIcon,
+  DeleteIcon,
   EditIcon,
   EmailIcon,
   InfoIcon,
   TimeIcon,
+  ChevronDownIcon,
 } from "@chakra-ui/icons";
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
   Box,
   Button,
   Card,
   CardBody,
   Container,
+  Checkbox,
   Flex,
   FormControl,
+  FormLabel,
   Heading,
   Icon,
   IconButton,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Menu,
   MenuButton,
   MenuItem,
@@ -36,12 +50,14 @@ import {
   Tbody,
   Td,
   Text,
+  Textarea,
   Th,
   Thead,
   Tr,
   useDisclosure,
   Wrap,
   WrapItem,
+  Select,
 } from "@chakra-ui/react";
 
 import {
@@ -54,9 +70,12 @@ import {
 } from "@react-pdf/renderer";
 import {
   ChevronLeftIcon,
+  Delete,
   EllipsisIcon,
   FileTextIcon,
   UserIcon,
+  Info,
+  Boxes,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -73,10 +92,22 @@ import {
   sessionsUpArrow,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import {CancelIcon} from '../../assets/CancelIcon';
+import {ArchiveIcon} from '../../assets/ArchiveIcon';
+
 
 export const ProgramSummary = ({ program, bookingInfo }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedAction, setSelectedAction] = useState("Archive");
+  const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
+
+  const handleSelect = (action, iconSrc) => {
+    setSelectedAction(action);
+    setSelectedIcon(iconSrc);
+  };
+  //const [loading, setLoading] = useState(false);
 
   const formatTimeString = (timeString) => {
     if (!timeString) return "";
@@ -94,6 +125,31 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
     navigate(`/programs/edit/${program[0].id}`);
   };
 
+  const handleDeactivate = () => {
+    onOpen();
+  };
+
+  const handleArchive = async () => {
+    console.log(program[0].id)
+    try {
+      await backend.put(`/events/${program[0].id}`, {
+        archived: true
+      });
+      onClose();
+      window.location.reload();
+    } catch (error) {
+      console.log("Couldn't deactivate", error);
+    }
+  }
+
+  const handleConfirm = async () => {
+    if (selectedAction === "Archive") {
+      await handleArchive()
+    } else if (selectedAction === "Delete"){
+      await handleDelete();    
+    }
+  }
+
   const handleDelete = async () => {
     console.log("Starting delete process...");
     console.log("Program data:", program[0]);
@@ -107,7 +163,7 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
       //just points to events endpoint
       await backend.delete(`/events/${program[0].id}`);
       console.log("Successfully deleted event and all related records");
-
+      onClose();
       navigate("/programs");
     } catch (error) {
       console.error("Error details:", {
@@ -257,11 +313,10 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
                         Edit
                       </MenuItem>
                       <MenuItem
-                        icon={<Icon as={CloseIcon} />}
-                        color="red.500"
-                        onClick={handleDelete}
+                        icon={<Icon as={CancelIcon} />}
+                        onClick={handleDeactivate}
                       >
-                        Cancel
+                        Deactivate
                       </MenuItem>
                     </MenuList>
                   </Menu>
@@ -422,6 +477,65 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
           </Card>
         </Flex>
       </Container>
+      <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Deactivate Program?</ModalHeader>
+            <ModalBody>
+              <Alert status="error" borderRadius="md" p={4} display="flex" flexDirection="column">
+                <Box color="#90080F">
+                  <Flex alignitems="center">
+                    <Box color="#90080F0" mr={2} display="flex" alignItems = "center">
+                      <Info />
+                    </Box>
+                    <AlertTitle color="#90080F" fontSize="md" fontWeight = "500">The deactivation fee deadline for this program is <AlertDescription fontSize="md" fontWeight="bold">
+                      Thu. 1/2/2025.
+                      </AlertDescription>
+                    </AlertTitle>
+                  </Flex>
+                  <Flex mt={4} align="center" justify="center" width="100%">
+                    <Checkbox fontWeight="500" sx={{".chakra-checkbox__control": {bg: "white", border: "#D2D2D2"}}}>Waive fee</Checkbox>
+                  </Flex>
+                </Box>
+              </Alert>
+              <Box mt={4}>
+                <Text fontWeight="medium" mb={2}>
+                  Reason for Deactivation:
+                </Text>
+                <Textarea bg="#F0F1F4" placeholder="..." size="md" borderRadius="md" />
+              </Box>
+              <Box mt={4} display="flex" justifyContent="right">
+                <Menu>
+                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} bg="#F0F1F4" variant="outline" width="50%" justify="right">
+                    {selectedIcon} {selectedAction}
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem 
+                    icon={<Box display="inline-flex" alignItems="center">
+                      <Icon as={ArchiveIcon} boxSize={4} />
+                    </Box>}
+                    onClick ={() => handleSelect("Archive", ArchiveIcon)}
+                    display="flex"
+                    alignItems="center"
+                    >
+                      Archive
+                    </MenuItem>
+                    <MenuItem
+                    icon = {<DeleteIcon/>}
+                    onClick={() => handleSelect("Delete", <DeleteIcon/>)}
+                    >
+                      Delete
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              </Box>
+            </ModalBody>
+            <ModalFooter>
+              <Button bg ="transparent" onClick={onClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
+              <Button onClick={handleConfirm} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
+            </ModalFooter>
+          </ModalContent>
+      </Modal>
     </Box>
   );
 };
