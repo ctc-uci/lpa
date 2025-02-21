@@ -1,28 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { FaAngleLeft } from "react-icons/fa6";
-import { FiEdit, FiExternalLink } from "react-icons/fi";
 import {
     useNavigate,
     useParams
 } from "react-router-dom";
 
 import {
-    Heading,
     Flex,
     Button,
     Box,
     IconButton,
     VStack,
     HStack,
-    Image,
-    Text,
-    SimpleGrid,
-    Input,
     
     
 } from "@chakra-ui/react";
 
-import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
 import { StatementComments, EditInvoiceTitle, EditInvoiceDetails, InvoiceSummary } from "./EditInvoiceComponents";
 
 import Navbar from "../navbar/Navbar";
