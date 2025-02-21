@@ -1,6 +1,7 @@
 import express, { Router } from "express";
-import { db } from "../db/db-pgp";
+
 import { keysToCamel } from "../common/utils";
+import { db } from "../db/db-pgp";
 
 const invoicesRouter = Router();
 invoicesRouter.use(express.json());
@@ -118,15 +119,15 @@ invoicesRouter.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     // Delete booking from database
-    const data = db.query("DELETE FROM invoices WHERE id = $1 RETURNING *",
-      [id]);
-
+    const data = db.query("DELETE FROM invoices WHERE id = $1 RETURNING *", [
+      id,
+    ]);
 
     if (data.length === 0) {
-      return res.status(404).json({ result: 'error' });
+      return res.status(404).json({ result: "error" });
     }
 
-    res.status(200).json({ result: 'success' });
+    res.status(200).json({ result: "success" });
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -142,18 +143,33 @@ invoicesRouter.get("/event/:event_id", async (req, res) => {
     const params = [event_id];
 
     if (date) {
-      query += " AND start_date >= $2 AND end_date <= $3";  // Changed from date to start_date
+      query += " AND start_date >= $2 AND end_date <= $3"; // Changed from date to start_date
       const parsedDate = new Date(date);
 
       if (isNaN(parsedDate.getTime())) {
-        res.status(400).send("Invalid date format. Please use ISO 8601 (YYYY-MM-DD) format.");
+        res
+          .status(400)
+          .send(
+            "Invalid date format. Please use ISO 8601 (YYYY-MM-DD) format."
+          );
         return;
       }
 
-      const startOfMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
-      const endOfMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth() + 1, 0);
+      const startOfMonth = new Date(
+        parsedDate.getFullYear(),
+        parsedDate.getMonth(),
+        1
+      );
+      const endOfMonth = new Date(
+        parsedDate.getFullYear(),
+        parsedDate.getMonth() + 1,
+        0
+      );
 
-      params.push(startOfMonth.toISOString().split("T")[0], endOfMonth.toISOString().split("T")[0]);
+      params.push(
+        startOfMonth.toISOString().split("T")[0],
+        endOfMonth.toISOString().split("T")[0]
+      );
     }
 
     const invoices = await db.any(query, params);
@@ -208,7 +224,8 @@ invoicesRouter.get("/payees/:id", async (req, res) => {
       JOIN assignments ON assignments.client_id = clients.id
       JOIN invoices ON assignments.event_id = invoices.event_id
       WHERE invoices.id = $1 AND assignments.role = 'payee';`,
-      [id]);
+      [id]
+    );
 
     res.status(200).json(keysToCamel(data));
   } catch (err) {
@@ -226,10 +243,11 @@ invoicesRouter.get("/invoiceEvent/:id", async (req, res) => {
       FROM events
       JOIN invoices ON events.id = invoices.event_id
       WHERE invoices.id = $1;`,
-      [id]);
+      [id]
+    );
 
     if (event.length === 0) {
-      return res.status(404).json({ result: 'error' });
+      return res.status(404).json({ result: "error" });
     }
 
     res.status(200).json(keysToCamel(event[0]));
@@ -237,7 +255,6 @@ invoicesRouter.get("/invoiceEvent/:id", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-
 
 // POST /invoices
 invoicesRouter.post("/", async (req, res) => {
@@ -258,7 +275,7 @@ invoicesRouter.post("/", async (req, res) => {
         invoiceData.startDate,
         invoiceData.endDate,
         invoiceData.isSent ?? false,
-        invoiceData.paymentStatus ?? 'none'
+        invoiceData.paymentStatus ?? "none",
       ]
     );
 
@@ -294,7 +311,7 @@ invoicesRouter.put("/:id", async (req, res) => {
         invoiceData.endDate,
         invoiceData.isSent,
         invoiceData.paymentStatus,
-        id
+        id,
       ]
     );
 
@@ -316,9 +333,7 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
       `SELECT SUM(c.adjustment_value) FROM
       invoices as i, comments as c
       WHERE i.id = $1 AND c.adjustment_type = 'paid';`,
-      [
-        id
-      ]
+      [id]
     );
 
     if (!result) {
@@ -326,8 +341,8 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
     }
 
     result = {
-      total: result.sum
-    }
+      total: result.sum,
+    };
 
     res.status(200).json(keysToCamel(result));
   } catch (err) {
@@ -339,26 +354,28 @@ invoicesRouter.get("/total/:id", async (req, res) => {
   try {
     const { id } = req.params; //invoice id
 
-    const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [id]);
+    const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [
+      id,
+    ]);
     const invoice = invoiceRes[0];
 
-    const eventID = await db.query("SELECT event_id FROM invoices WHERE id = $1", [id]);
-    const eventRes = await db.query("SELECT * FROM events WHERE id = $1", [eventID[0].event_id]);
+    // Use the event_id from the invoice record.
+    const eventRes = await db.query("SELECT * FROM events WHERE id = $1", [
+      invoice.event_id,
+    ]);
     const event = eventRes[0];
-
-
 
     const comments = await db.query(
       "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id IS NULL"
     );
 
-
-
-    const bookings = await db.query("SELECT * FROM bookings WHERE event_id = $1 AND date BETWEEN $2 AND $3", [event.id, invoice.start_date, invoice.end_date]);
+    const bookings = await db.query(
+      "SELECT * FROM bookings WHERE event_id = $1 AND date BETWEEN $2 AND $3",
+      [event.id, invoice.start_date, invoice.end_date]
+    );
 
     const bookingCosts = await Promise.all(
       bookings.map(async (booking) => {
-
         const roomRateBooking = await db.query(
           "SELECT rooms.name, rooms.rate FROM rooms JOIN bookings ON rooms.id = bookings.room_id WHERE bookings.id = $1",
           [booking.id]
@@ -370,13 +387,10 @@ invoicesRouter.get("/total/:id", async (req, res) => {
 
         comments.forEach((adj) => {
           if (adj.adjustment_type === "rate_percent") {
-
-            totalRate *= (1 + Number(adj.adjustment_value) / 100);
+            totalRate *= 1 + Number(adj.adjustment_value) / 100;
           } else if (adj.adjustment_type === "rate_flat") {
             totalRate += Number(adj.adjustment_value);
           }
-          totalRate = Math.round(totalRate * 100) / 100;
-
         });
 
         const commentsBooking = await db.query(
@@ -386,41 +400,44 @@ invoicesRouter.get("/total/:id", async (req, res) => {
 
         commentsBooking.forEach((adj) => {
           if (adj.adjustment_type === "rate_percent") {
-            totalRate *= (1 + Number(adj.adjustment_value) / 100);
+            totalRate *= 1 + Number(adj.adjustment_value) / 100;
           } else if (adj.adjustment_type === "rate_flat") {
             totalRate += Number(adj.adjustment_value);
           }
-          totalRate = Math.round(totalRate * 100) / 100;
         });
 
         // Calculate booking duration in hours.
-        const startTime = new Date(`1970-01-01T${booking.start_time.substring(0, booking.start_time.length - 3)}Z`);
-        const endTime = new Date(`1970-01-01T${booking.end_time.substring(0, booking.start_time.length - 3)}Z`);
+        const startTime = new Date(
+          `1970-01-01T${booking.start_time.substring(0, booking.start_time.length - 3)}Z`
+        );
+        const endTime = new Date(
+          `1970-01-01T${booking.end_time.substring(0, booking.start_time.length - 3)}Z`
+        );
         const durationHours = (endTime - startTime) / (1000 * 60 * 60);
 
         // Calculate booking cost.
         const bookingCost = totalRate * durationHours;
-        return Math.round(bookingCost * 100) / 100;
       })
     );
 
     let totalCost = bookingCosts.reduce((acc, cost) => acc + cost, 0);
 
-    const totalComments = await db.query("SELECT * FROM comments WHERE adjustment_type = 'total'")
+    const totalComments = await db.query(
+      "SELECT * FROM comments WHERE adjustment_type = 'total'"
+    );
 
     totalComments.map((comment) => {
       totalCost += Number(comment.adjustment_value);
-    })
-    
+    });
+
     const result = {
-      total: totalCost
-    }
+      total: totalCost,
+    };
 
     res.status(200).json(keysToCamel(result));
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
-
 
 export { invoicesRouter };
