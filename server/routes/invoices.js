@@ -37,9 +37,9 @@ invoicesRouter.get("/overdue", async (req, res) => {
 
     // Base query for overdue invoices
     let query = `
-      SELECT * FROM invoices 
-      WHERE is_sent = false 
-      AND payment_status IN ('partial', 'none') 
+      SELECT * FROM invoices
+      WHERE is_sent = false
+      AND payment_status IN ('partial', 'none')
       AND end_date < CURRENT_DATE`;
 
     const params = [];
@@ -47,11 +47,11 @@ invoicesRouter.get("/overdue", async (req, res) => {
     // Add date range filtering if both dates are provided
     if (startDate && endDate) {
       query = `
-        SELECT * FROM invoices 
-        WHERE is_sent = false 
-        AND payment_status IN ('partial', 'none') 
+        SELECT * FROM invoices
+        WHERE is_sent = false
+        AND payment_status IN ('partial', 'none')
         AND end_date < CURRENT_DATE
-        AND start_date >= $1 
+        AND start_date >= $1
         AND end_date <= $2`;
       params.push(startDate, endDate);
     }
@@ -70,8 +70,8 @@ invoicesRouter.get("/neardue", async (req, res) => {
 
     // Base query for neardue invoices
     let query = `
-      SELECT * FROM invoices 
-      WHERE is_sent = false 
+      SELECT * FROM invoices
+      WHERE is_sent = false
       AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')`;
 
     const params = [];
@@ -79,10 +79,10 @@ invoicesRouter.get("/neardue", async (req, res) => {
     // Add date range filtering if both dates are provided
     if (startDate && endDate) {
       query = `
-        SELECT * FROM invoices 
-        WHERE is_sent = false 
+        SELECT * FROM invoices
+        WHERE is_sent = false
         AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')
-        AND start_date >= $1 
+        AND start_date >= $1
         AND end_date <= $2`;
       params.push(startDate, endDate);
     }
@@ -120,6 +120,7 @@ invoicesRouter.delete("/:id", async (req, res) => {
     // Delete booking from database
     const data = db.query("DELETE FROM invoices WHERE id = $1 RETURNING *",
       [id]);
+
 
     if (data.length === 0) {
       return res.status(404).json({ result: 'error' });
