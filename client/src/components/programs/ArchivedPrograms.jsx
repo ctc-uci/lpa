@@ -67,6 +67,9 @@ import {
   deleteIcon
 } from "../../assets/icons/ProgramIcons";
 
+import {
+  Info,
+} from "lucide-react";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -81,6 +84,7 @@ export const ArchivedPrograms = () => {
   const [selectedRoom, setSelectedRoom] = useState("All");
   const [searchQuery, setSearchQuery] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [programToDelete, setProgramToDelete] = useState(null);
 
   const getArchivedPrograms = async () => {
     try {
@@ -112,7 +116,7 @@ export const ArchivedPrograms = () => {
           recentSession: "N/A"
         };
         let sessions = [];
-        let thisAssignments = {
+        const thisAssignments = {
           instructors: [],
           payees: []
         };
@@ -362,8 +366,9 @@ export const ArchivedPrograms = () => {
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = (programId) => {
     onOpen();
+    setProgramToDelete(programId);
   };
 
   const handleDelete = async (programId) => {
@@ -712,17 +717,17 @@ export const ArchivedPrograms = () => {
                           {programSession.programName}
                         </Td>
                         <Td>
-                          {programSession.sessionDate != "N/A"
+                          {programSession.sessionDate !== "N/A"
                           ? formatDate(programSession.sessionDate)
                           : "N/A"}
                         </Td>
                         <Td>
-                          {programSession.sessionStart != "N/A" ?
+                          {programSession.sessionStart !== "N/A" ?
                           `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
                             : "N/A"}
                         </Td>
                         <Td>
-                          {programSession.room != "N/A" ? programSession.room : "N/A"}
+                          {programSession.room !== "N/A" ? programSession.room : "N/A"}
                         </Td>
                         <Td>
                           {programSession.instructors && programSession.instructors.length > 0
@@ -756,7 +761,7 @@ export const ArchivedPrograms = () => {
                                   <Text color="#767778">Reactivate</Text>
                                 </Box>
                               </MenuItem>
-                              <MenuItem onClick={handleConfirmDelete}>
+                              <MenuItem onClick={() => handleConfirmDelete(programSession.programId)}>
                                 <Box display="flex" padding="12px 16px" alignItems="center" gap="8px" alignSelf="stretch">
                                   <Icon as={deleteIcon} />
                                   <Text color="#90080F">Delete</Text>
@@ -793,18 +798,22 @@ export const ArchivedPrograms = () => {
         <Modal isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Delete Program?</ModalHeader>
+            <ModalHeader fontStyle = "normal" fontWeight = "400" color="#474849">Delete Program?</ModalHeader>
             <ModalBody>
-              <Alert status="error" borderRadius="md" p={4}>
-                <AlertIcon />
-                <Box>
-                  <AlertTitle fontSize="md">Program will be permanently deleted from Archives.</AlertTitle>
+              <Alert status="error" borderRadius="md" p={4} display="flex" flexDirection="column">
+                <Box color="#90080F">
+                  <Flex alignitems="center">
+                    <Box color="#90080F0" mr={2} display="flex" alignItems = "center">
+                      <Info />
+                    </Box>
+                    <AlertTitle color="#90080F" fontStyle = "normal" fontWeight = "500">Program will be permanently deleted from Archives.</AlertTitle>
+                  </Flex>
                 </Box>
               </Alert>
             </ModalBody>
             <ModalFooter>
               <Button bg ="transparent" onClick={onClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
-              <Button onClick={() => handleDelete(programSession.programId)} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
+              <Button onClick={() => handleDelete(programToDelete)} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
             </ModalFooter>
           </ModalContent>
         </Modal>
