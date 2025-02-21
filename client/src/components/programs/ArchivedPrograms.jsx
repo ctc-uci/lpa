@@ -103,46 +103,52 @@ export const ArchivedPrograms = () => {
     try {
       const info = [];
       const allRoomIds = new Set();
+
       for (const program of archivedPrograms) {
-        console.log(program.id);
-        const sessionsResponse = await backend.get(`bookings/event/${program.id}`);
-        const sessions = sessionsResponse.data;
-        console.log(sessions);
-
-        // get unique roomIds
-        sessions.forEach(session => allRoomIds.add(session.roomId));
-
-        // get most recent session
-        const mostRecentSession = sessions.reduce((latest, current) => {
-          return new Date(current.date) > new Date(latest.date) ? current : latest;
-        }, sessions[0]);
-        console.log(mostRecentSession);
-
-        // get artists and payees
-        const assignmentsResponse = await backend.get(
-          `/assignments/event/${program.id}`
-        );
-        const thisAssignments = {
+        let mostRecentSession = {
+          date: "N/A",
+          startTime: "N/A",
+          endTime: "N/A",
+          recentSession: "N/A"
+        };
+        let sessions = [];
+        let thisAssignments = {
           instructors: [],
           payees: []
-        }
-        for (const assignment of assignmentsResponse.data) {
-          if (assignment.role === "instructor") {
-            thisAssignments.instructors.push(assignment);
-          } else if (assignment.role === "payee") {
-            thisAssignments.payees.push(assignment);
-          }
-        }
-        console.log("assignments");
-        console.log(thisAssignments.instructors);
-        console.log(thisAssignments.payees);
-        console.log("current", program.id);
+        };
+        let roomName = "N/A";
 
-        const roomsResponse = await backend.get(`rooms/${mostRecentSession.roomId}`);
-        const room = roomsResponse.data;
-        const roomName = room[0].name;
-        console.log("r");
-        console.log(roomName);
+        try {
+          const sessionsResponse = await backend.get(`bookings/event/${program.id}`);
+          sessions = sessionsResponse.data;
+
+          if (sessions.length > 0) {
+            // get unique roomIds
+            sessions.forEach(session => allRoomIds.add(session.roomId));
+
+            // get most recent session
+            mostRecentSession = sessions.reduce((latest, current) => {
+              return new Date(current.date) > new Date(latest.date) ? current : latest;
+            }, sessions[0]);
+
+            // get room name
+            const roomsResponse = await backend.get(`rooms/${mostRecentSession.roomId}`);
+            const room = roomsResponse.data;
+            roomName = room[0]?.name || "N/A";
+
+            // get artists and payees
+            const assignmentsResponse = await backend.get(`/assignments/event/${program.id}`);
+            for (const assignment of assignmentsResponse.data) {
+              if (assignment.role === "instructor") {
+                thisAssignments.instructors.push(assignment);
+              } else if (assignment.role === "payee") {
+                thisAssignments.payees.push(assignment);
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching data for program ${program.id}:`, error);
+        }
 
         const thisSession = {
           programId: program.id,
@@ -154,11 +160,9 @@ export const ArchivedPrograms = () => {
           recentSession: mostRecentSession,
           instructors: thisAssignments.instructors,
           payees: thisAssignments.payees
-        }
-
+        };
+        console.log("THIS SESSION", thisSession);
         info.push(thisSession);
-        console.log("here is info");
-        console.log(info);
       }
 
       // Store this data in state
@@ -708,13 +712,17 @@ export const ArchivedPrograms = () => {
                           {programSession.programName}
                         </Td>
                         <Td>
-                          {formatDate(programSession.sessionDate)}
+                          {programSession.sessionDate != "N/A"
+                          ? formatDate(programSession.sessionDate)
+                          : "N/A"}
                         </Td>
                         <Td>
-                          {formatTime(programSession.sessionStart)} - {formatTime(programSession.sessionEnd)}
+                          {programSession.sessionStart != "N/A" ?
+                          `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
+                            : "N/A"}
                         </Td>
                         <Td>
-                          {programSession.room}
+                          {programSession.room != "N/A" ? programSession.room : "N/A"}
                         </Td>
                         <Td>
                           {programSession.instructors && programSession.instructors.length > 0
