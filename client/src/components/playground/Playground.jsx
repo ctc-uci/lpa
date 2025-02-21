@@ -1,12 +1,13 @@
+import React from 'react';
+
 import {
-    Heading,
     VStack,
   } from "@chakra-ui/react";
-import { EventsTable } from "../EventsTable";
-import React from 'react';
-import PDFButton from "../PDFButton";
+
 import Navbar from "../navbar/Navbar";
-import { AddClassModal } from '../AddClassModal';
+
+import { SendEmailButton } from "../email/SendEmailButton";
+
 
 export const Playground = () => {
   return (
@@ -15,10 +16,7 @@ export const Playground = () => {
       spacing={8}
       width={"100%"}
     >
-      <Heading>Playground</Heading>
-      <AddClassModal></AddClassModal>
-      <EventsTable />
-      <PDFButton/>
+        <SendEmailButton></SendEmailButton>
     </VStack>
     </Navbar>
   );
