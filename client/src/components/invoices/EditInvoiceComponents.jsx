@@ -112,11 +112,12 @@ const EditInvoiceDetails = ({ instructors, programName, payees }) => {
 
 const StatementComments = ({ comments = [], subtotal = 0.0 }) => {
   return (
-    <Flex direction="column" w="100%">
+    <Flex direction="column" w="100%" minH="24">
       <Flex
         borderRadius={0}
         borderWidth=".07em"
         borderColor="#000"
+        minH="24"
       >
         <Table color="#EDF2F7">
           <Thead>
@@ -219,6 +220,7 @@ const StatementComments = ({ comments = [], subtotal = 0.0 }) => {
               <Td colSpan={6}></Td>
               <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                 <Input
+                  fontWeight="medium"
                   value={`Subtotal: ${subtotal}`}
                   size="sm"
                   mr={2}
@@ -239,13 +241,13 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
         <VStack align="stretch" spacing={4}>
         <HStack>
             <Text fontSize="xl" fontWeight="bold" mr={80}>SUMMARY:</Text>
-            <Text fontSize="xs" maxWidth="300px">
-                if you have any questions about this invoice, please contact: <Link href="mailto:classes@lapena.org" style={{textDecoration: "underline"}}>classes@lapena.org</Link>
+            <Text fontSize="xs" maxWidth="300px" fontWeight="bold">
+              if you have any questions about this invoice, please contact: <Link href="mailto:classes@lapena.org" style={{textDecoration: "underline"}}>classes@lapena.org</Link>
             </Text>
         </HStack>
           
         <HStack spacing={2}>
-            <Text w="120px" fontSize="xs">Past Due Balance:</Text>
+            <Text w="120px" fontSize="xs" fontWeight="medium">Past Due Balance:</Text>
             <Input 
                   w="80px"
                   value={`$${pastDue && !isNaN(pastDue) ? pastDue : 0}`}
@@ -255,7 +257,7 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
             </HStack>
 
             <HStack spacing={2}>
-                <Text w="120px" fontSize="xs">Current Statement Subtotal:</Text>
+                <Text w="120px" fontSize="xs" fontWeight="medium">Current Statement Subtotal:</Text>
                 <Input 
                   w="80px"
                   value={`$${subtotal}`}
@@ -265,7 +267,7 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
             </HStack>
 
             <HStack spacing={2}>
-                <Text w="120px" fontSize="xs">Total Amount Due:</Text>
+                <Text w="120px" fontSize="xs" fontWeight="medium">Total Amount Due:</Text>
                 <Input 
                 w="80px"
                 value={`$${(pastDue && !isNaN(pastDue) ? pastDue : 0) + subtotal}`}
@@ -275,8 +277,8 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
             </HStack>
           
           <VStack align="center" pt={3} pb={2} spacing={0}>
-            <Text fontWeight="medium">Payments are due at the end of each month:</Text>
-            <Text fontWeight="medium">
+            <Text fontWeight="bold">Payments are due at the end of each month:</Text>
+            <Text fontWeight="bold">
               You can make your payment at: <Link color="blue.500" href="https://lapena.org/payment">lapena.org/payment</Link>
             </Text>
           </VStack>

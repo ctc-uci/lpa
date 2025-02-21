@@ -122,8 +122,7 @@ export const EditInvoice = () => {
             <Flex direction="row" height="100%" width="100%">
                 <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
                     <Flex width="100%">
-                        
-                        <HStack align="flex-start">
+                        <HStack align="flex-start" width="100%" spacing={8}>
                             {/* back button */}
                             <IconButton
                                 icon={<FaAngleLeft />}
@@ -133,39 +132,56 @@ export const EditInvoice = () => {
                                 variant="link"
                                 color="#474849"
                                 fontSize="1.5em"
-                            >
-                            </IconButton>
-
-                    
+                            />
+    
                             {/*Edit Area*/}
-                            <VStack
-                                direction="column"
-                                pt={200}
+                            <Box
+                                width="80%"
+                                minH="150vh"  
+                                position="relative"
+                                bg="white"
                                 backgroundImage={`url(${InvoiceBackground})`}
-                                backgroundSize="cover" 
-                                backgroundPosition="center"
-                                
-                                
+                                backgroundSize="100% 150vh"
+                                backgroundPosition="top"
+                                backgroundRepeat="no-repeat"
+                                overflow="visible" 
                             >
-                                <div h="10px" overflow="auto">
-                                    <EditInvoiceTitle/>
-                                    <EditInvoiceDetails instructors={instructors} programName={programName} payees={payees}/>
-                                    <StatementComments comments={comments} subtotal={subtotal}/>
-                                    <InvoiceSummary pastDue= {pastDue} subtotal={subtotal}/>
-                                </div>
-                            </VStack>
-
+                                <VStack
+                                    width="100%"
+                                    height="100%"
+                                    spacing={4}
+                                    pt={8}
+                                    pb={32} 
+                                    px={8}
+                                >
+                                    <Box 
+                                        width="100%" 
+                                        overflowY="visible" 
+                                        mt={36}
+                                    >
+                                        <EditInvoiceTitle/>
+                                        <EditInvoiceDetails instructors={instructors} programName={programName} payees={payees}/>
+                                        <StatementComments comments={comments} subtotal={subtotal}/>
+                                        <InvoiceSummary pastDue={pastDue} subtotal={subtotal}/>
+                                    </Box>
+                                </VStack>
+                            </Box>
+    
                             {/*Save Changes Button*/}
-                            <Flex direction="row" marginLeft="auto" gap={5}>
-                                <Button height="2.5em" borderRadius={10} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1}>
+                            <Flex direction="column" justify="flex-start" pt={8}>
+                                <Button 
+                                    height="2.5em" 
+                                    borderRadius={10} 
+                                    backgroundColor="#4E4AE7" 
+                                    color="#FFF" 
+                                    fontSize="clamp(.75rem, 1.25rem, 1.75rem)" 
+                                    gap={1}
+                                >
                                     Save Changes
                                 </Button>
                             </Flex>
-
                         </HStack>
-
                     </Flex>
-
                 </Flex>
             </Flex>
         </Navbar>

@@ -148,7 +148,7 @@ export const SingleInvoice = () => {
                         payees={payees}
                         billingPeriod={billingPeriod}
                         amountDue={total}
-                        remainingBalance={remainingBalance}
+                        remainingBalance={!remainingBalance}
                     ></InvoiceStats>
 
                     <Flex direction="row" h="auto" w="100%" gap="5rem">
