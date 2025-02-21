@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
     Box,
     Button,
@@ -16,10 +18,12 @@ import {
   
 import logo from "../../assets/logo/logo.png";
 import programSvg from "../../assets/icons/program.svg";
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+
 
 const setNewPasswordSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters long"),
@@ -33,12 +37,18 @@ const setNewPasswordSchema = z.object({
 export const ResetPassword = () => {
     const {
       register,
+      watch,
       handleSubmit,
       formState: { errors },
     } = useForm({
       resolver: zodResolver(setNewPasswordSchema),
       mode: "onBlur", 
     });
+
+    const password = watch("password", "");
+    const confirmPassword = watch("confirmPassword", "");
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
 
     const onSubmit = (data) => {
         // Functionality will be added later
@@ -70,7 +80,7 @@ export const ResetPassword = () => {
                         </InputLeftElement>
                         <Input
                             placeholder="New Password"
-                            type="password"
+                            type={isPasswordVisible ? 'text' : 'password'}
                             size={"lg"}
                             {...register("password")}
                             name="password"
@@ -79,12 +89,13 @@ export const ResetPassword = () => {
                             borderRadius="10px"
                         />
                         <InputRightElement 
-                            pointerEvents="none"
                             display="flex"
                             alignItems="center"
                             h="100%"
                         >
-                            <Box as="img" src={programSvg} boxSize="20px" />
+                            <button onClick={() => {setIsPasswordVisible((prev) => !prev)}} style={{ background: 'none', border: 'none' }}>
+                                {isPasswordVisible ? <AiOutlineEyeInvisible color="gray" /> : <AiOutlineEye color="gray" />}
+                            </button>
                         </InputRightElement>
                     </InputGroup>
                     <FormErrorMessage minH={"20px"}>
@@ -104,7 +115,7 @@ export const ResetPassword = () => {
                     </InputLeftElement>
                     <Input
                         placeholder="Confirm Password"
-                        type="password"
+                        type= {isConfirmPasswordVisible ? 'text' : 'password'} 
                         size={"lg"}
                         {...register("confirmPassword")}
                         name="confirmPassword"
@@ -113,12 +124,13 @@ export const ResetPassword = () => {
                         borderRadius="10px"
                     />
                     <InputRightElement 
-                    pointerEvents="none"
-                    display="flex"
-                    alignItems="center"
-                    h="100%"
+                        display="flex"
+                        alignItems="center"
+                        h="100%"
                     >
-                    <Box as="img" src={programSvg} boxSize="20px" />
+                        <button onClick={() => {setIsConfirmPasswordVisible((prev) => !prev)}} style={{ background: 'none', border: 'none' }}>
+                            {isConfirmPasswordVisible ? <AiOutlineEyeInvisible color="gray" /> : <AiOutlineEye color="gray" />}
+                        </button>
                     </InputRightElement>
                 </InputGroup>
                 <FormErrorMessage minH={"20px"}>
@@ -145,13 +157,13 @@ export const ResetPassword = () => {
 
                     <Button
                         as={Link} 
-                        to="/passwordset" 
+                        to="/resetpassword/success" 
                         size={"lg"}
                         sx={{ width: "40%" }}
                         borderRadius={"25px"}
                         bg={"#4E4AE7"}
                         textColor={"white"}
-                        isDisabled={Object.keys(errors).length > 0}
+                        isDisabled={Object.keys(errors).length > 0 || password.trim() === "" || confirmPassword.trim() === ""}
                     >
                         Enter
                     </Button>
