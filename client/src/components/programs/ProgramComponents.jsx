@@ -2,8 +2,6 @@ import { React, useEffect, useState } from "react";
 
 import {
   CalendarIcon,
-  CloseIcon,
-  CheckIcon,
   DownloadIcon,
   DeleteIcon,
   EditIcon,
@@ -76,6 +74,8 @@ import {
   EllipsisIcon,
   FileTextIcon,
   UserIcon,
+  Info,
+  Boxes,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -318,13 +318,6 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
                       >
                         Deactivate
                       </MenuItem>
-                      <MenuItem
-                        icon={<Icon as={CloseIcon} />}
-                        color="red.500"
-                        onClick={handleDelete}
-                      >
-                        Cancel
-                      </MenuItem>
                     </MenuList>
                   </Menu>
                 </Flex>
@@ -487,16 +480,21 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
       <Modal isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Confirm</ModalHeader>
+            <ModalHeader>Deactivate Program?</ModalHeader>
             <ModalBody>
-              <Alert status="error" borderRadius="md" p={4}>
-                <AlertIcon />
-                <Box>
-                  <AlertTitle fontSize="md">The deactivation fee deadline for this program is <AlertDescription fontSize="md" fontWeight="bold">
-                     Thu. 1/2/2025.
-                    </AlertDescription></AlertTitle>
-                  <Flex mt={4} align="center">
-                    <Checkbox variant="solid">Waive fee</Checkbox>
+              <Alert status="error" borderRadius="md" p={4} display="flex" flexDirection="column">
+                <Box color="#90080F">
+                  <Flex alignitems="center">
+                    <Box color="#90080F0" mr={2} display="flex" alignItems = "center">
+                      <Info />
+                    </Box>
+                    <AlertTitle color="#90080F" fontSize="md" fontWeight = "500">The deactivation fee deadline for this program is <AlertDescription fontSize="md" fontWeight="bold">
+                      Thu. 1/2/2025.
+                      </AlertDescription>
+                    </AlertTitle>
+                  </Flex>
+                  <Flex mt={4} align="center" justify="center" width="100%">
+                    <Checkbox fontWeight="500" sx={{".chakra-checkbox__control": {bg: "white", border: "#D2D2D2"}}}>Waive fee</Checkbox>
                   </Flex>
                 </Box>
               </Alert>
@@ -504,11 +502,11 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
                 <Text fontWeight="medium" mb={2}>
                   Reason for Deactivation:
                 </Text>
-                <Textarea placeholder="..." size="md" borderRadius="md" />
+                <Textarea bg="#F0F1F4" placeholder="..." size="md" borderRadius="md" />
               </Box>
-              <Box mt={4}>
+              <Box mt={4} display="flex" justifyContent="right">
                 <Menu>
-                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} variant="outline" width="50%">
+                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} bg="#F0F1F4" variant="outline" width="50%" justify="right">
                     {selectedIcon} {selectedAction}
                   </MenuButton>
                   <MenuList>
@@ -533,8 +531,8 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
               </Box>
             </ModalBody>
             <ModalFooter>
-              <Button onClick={onClose} mr={3}>Cancel</Button>
-              <Button onClick={handleConfirm}colorScheme="red">Confirm</Button>
+              <Button bg ="transparent" onClick={onClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
+              <Button onClick={handleConfirm} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
             </ModalFooter>
           </ModalContent>
       </Modal>

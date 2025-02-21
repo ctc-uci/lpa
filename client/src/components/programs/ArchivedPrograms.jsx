@@ -795,8 +795,8 @@ export const ArchivedPrograms = () => {
               </Alert>
             </ModalBody>
             <ModalFooter>
-              <Button onClick={onClose} mr={3}>Exit</Button>
-              <Button onClick={() => handleDelete(programSession.programId)} colorScheme="red">Confirm</Button>
+              <Button bg ="transparent" onClick={onClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
+              <Button onClick={() => handleDelete(programSession.programId)} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
             </ModalFooter>
           </ModalContent>
         </Modal>

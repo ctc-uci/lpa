@@ -12,6 +12,7 @@ programsRouter.get("/", async (req, res) => {
         SELECT DISTINCT ON (e.id)
           e.id,
           e.name AS event_name,
+          e.archived,
           b.date,
           b.start_time,
           b.end_time,
@@ -24,7 +25,7 @@ programsRouter.get("/", async (req, res) => {
          LEFT JOIN bookings AS b ON e.id = b.event_id
          LEFT JOIN rooms AS r ON r.id = b.room_id
          LEFT JOIN clients AS c ON a.client_id = c.id
-        GROUP BY e.id, e.name, b.date, b.start_time, b.end_time, r.name
+        GROUP BY e.id, e.name, e.archived, b.date, b.start_time, b.end_time, r.name
         ORDER BY e.id, b.date DESC, b.start_time DESC;
     `);
 
@@ -71,7 +72,7 @@ programsRouter.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     // Delete booking from database
-    const data = db.query("DELETE FROM events WHERE id = $1 RETURNING *",
+    const data = await db.query("DELETE FROM events WHERE id = $1 RETURNING *",
       [ id ]);
 
     if (!data) {
