@@ -1,0 +1,68 @@
+#infoRed {
+  display: flex;
+  flex-direction: row;
+  gap: 2%;
+  border-radius: 15px;
+  border: 1px solid var(--destructive, #90080F);
+  background: #F4E6E7;
+  align-items: center;
+  width: 23rem;
+  padding: .5rem;
+  margin-bottom: 1rem;
+}
+
+
+#infoRed > p {
+  color: var(--destructive, #90080F);
+  font-family: Inter;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 125% */
+}
+
+
+#deactivateDeadlineInnerBox {
+  display: flex;
+  flex-direction: row;
+  text-align: left;
+  gap: .5rem;
+  padding: .8rem;
+}
+
+#popoverChoice, #deleteBody {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  font-size: 1.2rem;
+  width: 100%;
+  background-color: transparent;
+}
+
+#popoverChoice:hover, #deleteBody:hover {
+  background-color: #F0F1F4;
+}
+
+#popoverChoice > *, #deleteBody > * {
+  align-items: start!important;
+}
+
+#popoverChoice p {
+  color: #767778!important;
+}
+
+#deleteBody p {
+  color: #90080F!important;
+}
+
+#deactivateDeadlineInnerBox {
+  align-items: center;
+}
+
+
+
+
+
+
+

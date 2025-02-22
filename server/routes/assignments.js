@@ -52,8 +52,6 @@ assignmentsRouter.get("/event/:event_id", async (req, res) => {  try {
 assignmentsRouter.post("/", async (req, res) => {
     try {
       const { eventId, clientId, role } = req.body;
-
-      console.log('Values:', { eventId, clientId, role }); // Add this line
       const query = {
         text: 'INSERT INTO assignments (event_id, client_id, role) VALUES ($1, $2, $3) RETURNING *',
         values: [eventId, clientId, role],

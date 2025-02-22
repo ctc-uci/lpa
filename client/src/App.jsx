@@ -25,6 +25,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { Home } from "./components/home/Home";
+import { EditBooking } from "./components/bookings/EditBooking";
 
 const App = () => {
   return (
@@ -99,6 +100,11 @@ const App = () => {
                 <Route
                   path="*"
                   element={<ProtectedRoute element={<CatchAll />} />}
+                />
+                <Route
+                  path="/bookings/edit/:id"
+                  element={<EditBooking />}
+                  // element={<ProtectedRoute element={<EditBooking />} />}
                 />
               </Routes>
             </Router>
