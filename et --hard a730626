@@ -1,0 +1,137 @@
+[33ma730626[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32m68_Kaitlin_Sindhuja[m[33m, [m[1;31morigin/68_Kaitlin_Sindhuja[m[33m)[m Revert "Possibly fix action"
+[33m573f158[m Possibly fix action
+[33m714f29e[m task submission:
+[33mda82529[m something
+[33mf854a1c[m[33m ([m[1;32mmain[m[33m)[m Merge pull request #75 from ctc-uci/Fix-pages
+[33m67a7ee4[m Remove old navbar
+[33m1abdc18[m Fix spacing
+[33m0c6f585[m Fix children nesting
+[33m0b77836[m Broken: Fix spacing
+[33m4ccd95c[m Remove vw and vh:
+[33m64da38b[m Fix page size
+[33m1aa013d[m Merge pull request #74 from ctc-uci/56-implement-invoice-calculation-endpoints
+[33m0c57120[m Merge pull request #73 from ctc-uci/60-create-notifications-page-calendar-fix
+[33m9642164[m date picker works now even with hidden calendar icon, input click space is correctly bound
+[33mf37462d[m Merge pull request #62 from ctc-uci/creating-home-page
+[33m02bc580[m Remove duplicate import in App
+[33mc3f7970[m Merge branch 'main' into creating-home-page
+[33mcab6527[m added invoice editable background
+[33m5510d3a[m filters can search sole instructor/payee when multiple instructors/payees in a single booking
+[33m3e348ad[m fix route order and imports/function def in invoice components
+[33m87c6b61[m fix import for navbar
+[33m9990cea[m Merge branch '59-creating-invoice-dashboard-page'
+[33mc814ec4[m Merge pull request #63 from ctc-uci/60-create-notifications-page
+[33m4aff458[m Merge pull request #64 from ctc-uci/53-create-invoice-page
+[33m64cb797[m[33m ([m[1;31morigin/53-create-invoice-page[m[33m)[m fixed navbar import
+[33m1849998[m Merge branch 'main' into 53-create-invoice-page
+[33m042701d[m fixed component for when sessions or program DNE
+[33mcabc4b9[m Merge pull request #65 from ctc-uci/edit_program_page
+[33m699ef7a[m[33m ([m[1;31morigin/edit_program_page[m[33m)[m fixed navbar import for Program
+[33maafc3d8[m Merge branch 'main' into edit_program_page
+[33mcd98e77[m Merge pull request #66 from ctc-uci/54-creating-program-page
+[33mcac8959[m Revert yarn lock
+[33ma0652bd[m Fix nesting in navbar
+[33mb2b2c0e[m Fix navbar children
+[33m7043003[m[33m ([m[1;31morigin/59-creating-invoice-dashboard-page[m[33m)[m Re-add protected route
+[33mc0ffb06[m Clean routing
+[33md1d34d5[m Make invoice page protected
+[33m3d682bc[m Fix import
+[33m91f7519[m Fix no booking status icon
+[33mb850ace[m Revert "Add grey icon for programs with no booking"
+[33m35d08c1[m Add grey icon for programs with no booking
+[33mac5da4b[m Fix spacing and row color
+[33m208f97b[m Fix layout of children in Nav
+[33m5fadaae[m Fix spacing
+[33m7f051e0[m[33m ([m[1;31morigin/60-create-notifications-page[m[33m)[m Fix fonts
+[33m95a0568[m Restore yarn.lock and remove package-lock.json
+[33md992f22[m Extended navbar, removed unnecessary variables, imports, font weight on navbar text
+[33me7ed34b[m Implement /invoices/paid endpoint
+[33m28bcd96[m Fixed table styling, page styling, and toast
+[33m1ec275f[m Reverted Navbar and fixed invoice page component
+[33m0931236[m made invoice table component
+[33m6edaa5e[m Resolved merge conflicts
+[33mcb7ef6a[m merge?
+[33m72e080b[m fix action error
+[33mb1cbbdb[m DB is queried whenever a date is changed or the filter button is pressed, font should be consistent with the Figma
+[33m57c8cb3[m Bug w/ payees
+[33m537e418[m No data bug
+[33mc04c9f9[m clean up
+[33me9698d5[m fix endpoints and update useeffect
+[33me1d2be4[m Edits
+[33m67fc935[m Remove allowed roles field
+[33md443727[m deleted temp reference
+[33mc61c82d[m Make /home protected
+[33m379b3f0[m[33m ([m[1;31morigin/54-creating-program-page[m[33m)[m ..
+[33mfaad4f4[m Moved useStates to the top
+[33mff47b05[m removed package lock file
+[33m1af8a57[m Dependencies
+[33mfe79a92[m Added fucntionality to SummaryComponent and pretty formatted document
+[33m4fe8d86[m navbar css AGAIN grr
+[33m035d7dd[m fix: filter by date + fix navbar + add multiple instructors/payees to frontend (forgot to do this my bad lol)
+[33mb460299[m default location for dropdown if no location data
+[33mf990ea6[m scared. i think it works but not sure. fixed location on load error
+[33m2a5e2e1[m navbar css, instructor/payee css and functionality
+[33m01ead10[m gave up on getting svg to be purple when button hovered over but have the components for the figma icons
+[33m9126594[m Adjusted dropdown styling to match figma, dropdown delay needs to be fixed; save button navigates back now and all buttons should work
+[33maed5094[m omfg instructor/payee search absolute cancer done. i have beef with designers now
+[33m224ad62[m More bugs
+[33m5c7a30b[m Bugs
+[33maec1b35[m Resolved merge conflicts with Lana.
+[33m6502240[m Connected backend to remaining balance, but did so in Invoice.jsx as opposed to doing it in events.js via eventsRouter.get(/remaining/:id).
+[33m58549df[m imma toot my own horn. most css done except input dropdowns and navbar fixes i think?
+[33m9054655[m css for aligning instructor/payee tags with input form, tag spacing and wrap
+[33mc9678a7[m more edit program css & oopsies i make instructor/payee finally search from whole clients list used to be just clients for this event
+[33m21859ea[m pushing for daiki testing
+[33m999a7e8[m Made billing period dynamic. Cleaned up useState variables.
+[33m4269755[m Changing route
+[33md1d639b[m defeated navbar css demon
+[33ma36bd53[m Styling
+[33mf901ab1[m fighting the css demons. more navbar css
+[33m6e7003b[m navbar styling zuo wan le! i think
+[33m27a14bf[m search and adding/removing tags working in sync finally omg boutta blow my brains out
+[33me01a2b3[m made room name buttons wrap in filter popover
+[33m043a382[m more styling fixes
+[33m18aeb62[m made icons match figma
+[33mb666f50[m Added some responsiveness to components. Linked amount due to stats component and comments to table.
+[33m1a5fb88[m uh most stuff working im j saving before i break sumthn again
+[33mfadc5f5[m FILTERS WORK
+[33m1146a44[m Modified SummaryComponent
+[33meee442f[m switch to protected route, fix action error
+[33m0ac4511[m data connection, filter testing, and table component
+[33mbdbbfa9[m fix: fix to pass merge tests
+[33mb84b37d[m style: add in finalized touches
+[33m3c0a381[m 5pm feb 4
+[33md36f4c5[m Fixed toast multiplicity
+[33m172b79c[m added filter button for all, overdue, neardue, changed routes to include date filtering as well
+[33m807db79[m Implemented filter modal
+[33m2e3ff04[m fix: filter popup to filter dropdown
+[33m2b28a0e[m Implemented toast + search filter
+[33mfeb44b6[m saving changes
+[33m1a60ca0[m branch created, route made for frontend
+[33mc613821[m uh basic compnents of edit program
+[33m329c78f[m finished look of page
+[33mb269dea[m Matched figma design
+[33m96cf92c[m style: match up home page to figma mockup
+[33m70dc42a[m fix: spacing responsiveness when no programs available
+[33m51c70b6[m fixed table width
+[33mf6efbec[m merged updated program modals
+[33maf9c044[m fixed gap
+[33m49334c3[m Merge branch 'creating-home-page' of https://github.com/ctc-uci/lpa into creating-home-page
+[33mdbabcd0[m style: move home page styling to css file
+[33m73907f1[m feat: add header row component for home page + navbar
+[33m0918651[m removed background of edit/delete button
+[33m9617d12[m new status icon for status hover
+[33m63dfc7c[m updated table format, filter, and search feature
+[33m20dcbfb[m fix: update program table endpoint to include programs w/out bookings, comments, etc.
+[33m308aec1[m fix: ensure delete endpoint removes all associated invoices, bookings, assignments, and comments for program
+[33m9b0ee06[m updated query
+[33m364b50f[m table format
+[33m60a589e[m added and aligned icons on home page and filters modal
+[33ma513c76[m fix: fix functionality for program filters modal
+[33m36c6a57[m program icon updated and implemented
+[33mdab17b1[m added buttons with status icons
+[33ma7b79cc[m updated home page functionality and filter modal
+[33mebc650e[m Pagination
+[33mce36f13[m Invoice page structure
+[33m196fb59[m fixed query
+[33mcb4e311[m a

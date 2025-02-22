@@ -116,7 +116,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: white;
   justify-content: center;
   align-items: center;
+  border-top-right-radius: 5px;
   border-radius: 30px;
+}
+
+#savecancel {
+  display: flex;
+  align-items: center; 
+  justify-content: flex-end;
 }
 
 
@@ -305,6 +312,33 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   text-decoration: none;
 }
 
+#cancelBody:hover {
+  background-color: #ff4d4f; /* Adjust to match Figma */
+  color: white;
+  cursor: pointer;
+}
+
+#cancelIcon {
+  transition: color 0.3s ease;
+}
+
+#cancelBody:hover #cancelIcon {
+  color: white !important; /* Ensure the icon changes color */
+}
+
+#cancelBody:hover #cancel {
+  color: white !important; /* Ensure the text changes color */
+}
+
+#cancelBody {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Adjust spacing */
+  padding: 8px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 15px;
+}
 
 #deactivateDeadlineBox {
   border-radius: 15px;

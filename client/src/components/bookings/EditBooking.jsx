@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import './EditBooking.css';
-
 import {
+  Menu, 
+  MenuButton, 
+  MenuList, 
+  MenuItem,
   Box,
   Button,
   Flex,
@@ -40,6 +43,7 @@ import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
 import {CalendarIcon} from '../../assets/CalendarIcon';
 import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
 import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
+import { ChevronDownIcon } from "@chakra-ui/icons";
 import {EmailIcon} from '../../assets/EmailIcon';
 import {LocationIcon} from '../../assets/LocationIcon';
 import {DollarIcon} from '../../assets/DollarIcon';
@@ -181,7 +185,7 @@ const {
   };
 
   const setArchived = async (boolean) => {
-    await backend.put(`/booings/` + eventId, {archived: boolean});
+    await backend.put(`/bookings/` + eventId, {archived: boolean});
   }
 
   const handleConfirm = async () => {
@@ -289,7 +293,7 @@ return (
 
               <div id="information">
                 <h3>General Information</h3>
-                <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="#F6F6F6"></Textarea>
+                <Textarea value={generalInformation} isReadOnly backgroundColor="#F6F6F6"></Textarea>
               </div>
             </div>
           </div>
@@ -327,16 +331,36 @@ return (
                     <Input placeholder="..." />
                   </div>
                   <div id = "archive" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Select width="30%" backgroundColor="#F6F6F6"  value={deactivateOption}
-                        onChange={(event) => {
-                          setDeactivateOption(event.target.value);
-                          if (event.target.value === "archived")
-                            setEventArchived(true);
+                    <Menu>
+                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />} backgroundColor="#F6F6F6" width="30%">
+                        <Box display="flex" alignItems="center" justifyContent = "space-between" gap="8px">
+                          <Box as="span" display="flex" alignItems="center" gap="8px">
+                            <Icon as={ArchiveIcon} />
+                            {deactivateOption === "archive" ? "Archive" : "Delete "}
+                          </Box>
+                        </Box>
+                    </MenuButton>
+                    <MenuList>
+                      <MenuItem
+                        icon={<ArchiveIcon />}
+                        onClick={() => {
+                          setDeactivateOption("archive");
+                          setEventArchived(true);
                         }}
                       >
-                      <option value={'archive'}>Archive</option>
-                      <option value={'delete'}>Delete</option>
-                    </Select>
+                        Archive
+                      </MenuItem>
+                      <MenuItem
+                        icon={<DeleteIcon />}
+                        onClick={() => {
+                          setDeactivateOption("delete");
+                          setEventArchived(false);
+                        }}
+                      >
+                        Delete
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
                   </div>
                 </ModalBody>
 

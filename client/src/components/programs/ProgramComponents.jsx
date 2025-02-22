@@ -178,6 +178,8 @@ const {
       }
       await backend.post('/bookings', bookingInfo);
     }
+console.log("event response ", response.data.id)
+    const duplicateId = response.data.id;
 
     for (const instructor of instructors) {
       const instructorInfo = {
@@ -196,6 +198,8 @@ const {
       };
       await backend.post('/assignments', payeeInfo);
     }
+
+    navigate('/programs/' + duplicateId);
   };
 
 
@@ -326,9 +330,7 @@ const {
                   align="center"
                   gap={2}
                 >
-                  <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
-                    Invoice
-                  </PDFButton>
+              
                   <Popover id="popTrigger" placement='bottom-start'
                       isOpen={popoverIsOpen}
                       onOpen={popoverOnOpen}
@@ -370,7 +372,10 @@ const {
                   </>
                         )}
                   </Popover>
-                    <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
+ <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
+                    Invoice
+                  </PDFButton>
+                  <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
                     <ModalOverlay />
                     <ModalContent>
                       <ModalHeader>Delete Program?</ModalHeader>
@@ -392,6 +397,7 @@ const {
                       </ModalFooter>
                     </ModalContent>
                   </Modal>
+
                 </Flex>
               </Flex>
 
@@ -672,15 +678,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                 <PopoverTrigger>
                   <Button
                     color="#767778"
+                    backgroundColor="#F0F1F4"
                     variant="outline"
                     minWidth="auto"
                     height="45px"
                     mt="10px"
                     mb="15px"
-                    rounded="xl"
+                    borderRadius="30px"
                     onClick={onOpen}
-                    borderColor="#D2D2D2"
-                    borderWidth="1px"
                   >
                     <Box
                       display="flex"
