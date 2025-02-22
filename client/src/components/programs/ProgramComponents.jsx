@@ -330,7 +330,7 @@ console.log("event response ", response.data.id)
                   align="center"
                   gap={2}
                 >
-              
+
                   <Popover id="popTrigger" placement='bottom-start'
                       isOpen={popoverIsOpen}
                       onOpen={popoverOnOpen}
@@ -346,25 +346,26 @@ console.log("event response ", response.data.id)
                             <div>
                               <div id="popoverChoice" color="#767778">
                                 <EditIcon/>
-                                <p id="cancel" onClick={toEditProgram}>Edit</p>
+                                <p onClick={toEditProgram}>Edit</p>
                               </div>
                               <div id="cancelBody" onClick={() => {onClose(); setIsArchived(true); setArchived(true);}}>
                                 <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
-                                <p id="cancel">Deactivate</p>
+                                <p>Deactivate</p>
                               </div>
                             </div> :
                             <div>
-                              <div id="popoverChoice" color="#767778!important">
+                              <Button id="popoverChoice" onClick={duplicateProgram}>
                                 <DuplicateIcon/>
-                                <p id="cancel" onClick={duplicateProgram}>Duplicate</p>
-                              </div>
-
-                              <div id="popoverChoice" onClick={() => { onClose(); setIsArchived(false); setArchived(false);}}>
-                                <ReactivateIcon/><p id="cancel">Reactivate</p>
-                              </div>
-                              <div id="cancelBody" onClick={modalOnOpen}>
-                                <DeleteIconRed/><p id="cancel">Delete</p>
-                              </div>
+                                <p>Duplicate</p>
+                              </Button>
+                              <Button id="popoverChoice" onClick={() => { onClose(); setIsArchived(false); setArchived(false);}}>
+                                <ReactivateIcon/>
+                                <p>Reactivate</p>
+                              </Button>
+                              <Button id="deleteBody" onClick={modalOnOpen}>
+                                <DeleteIconRed/>
+                                <p>Delete</p>
+                              </Button>
                             </div>
                             }
                           </PopoverBody>
@@ -382,8 +383,8 @@ console.log("event response ", response.data.id)
                       <ModalCloseButton />
                       <ModalBody>
                         <div id="deactivateDeadlineBox">
-                          <Box padding = "10px" backgroundColor = "#F4E6E7" borderRadius="15px" id="deactivateDeadlineInnerBox">
-                            <InfoIconRed id="infoIcon"/>
+                          <Box backgroundColor = "#F4E6E7" borderRadius="15px" id="deactivateDeadlineInnerBox">
+                            <InfoIconRed fontSize="2xl" id="infoIcon"/>
                             <p id="deactivateDeadlineText">Program will be permanently deleted from Archives.</p>
                           </Box>
                           </div>
@@ -686,6 +687,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                     mb="15px"
                     borderRadius="30px"
                     onClick={onOpen}
+                    border="none"
                   >
                     <Box
                       display="flex"

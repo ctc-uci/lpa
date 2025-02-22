@@ -53,10 +53,10 @@ bookingsRouter.get("/event/rooms/:id", async (req, res) => {
       const { id } = req.params;
       const data = await db.query(`SELECT *, events.name as eventName, events.description as eventDescription, rooms.name as roomName, rooms.description as roomDescription, assignments.role as clientRole, clients.name as clientName
         FROM bookings
-        JOIN events ON events.id = bookings.event_id
-        JOIN rooms ON bookings.room_id = rooms.id
-        JOIN assignments ON bookings.event_id = assignments.event_id
-        JOIN clients ON assignments.client_id = clients.id
+        LEFT JOIN events ON events.id = bookings.event_id
+        LEFT JOIN rooms ON bookings.room_id = rooms.id
+        LEFT JOIN assignments ON bookings.event_id = assignments.event_id
+        LEFT JOIN clients ON assignments.client_id = clients.id
         WHERE bookings.id = $1`, [
           id
       ]);
