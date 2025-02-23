@@ -9,7 +9,7 @@ const NotificationsComponents = ({ notifications }) => {
   console.log(notifications);
 
   const paymentText = (eventName, payStatus) => {
-    if (payStatus == "overdue") {
+    if (payStatus === "overdue") {
       return (
         <Text
           fontSize="sm"
@@ -28,7 +28,7 @@ const NotificationsComponents = ({ notifications }) => {
           is {payStatus}.
         </Text>
       );
-    } else if (payStatus == "neardue") {
+    } else if (payStatus === "neardue") {
       return (
         <Text
           fontSize="sm"
@@ -70,11 +70,11 @@ const NotificationsComponents = ({ notifications }) => {
 
   const paymentRow = (eventName, payStatus, dueTime, index) => {
     let notifType = "";
-    if (payStatus == "overdue") {
+    if (payStatus === "overdue") {
       notifType = "Payment Past Due";
-    } else if (payStatus == "neardue") {
+    } else if (payStatus === "neardue") {
       notifType = "Email Not Sent";
-    } else if (payStatus == "highpriority") {
+    } else if (payStatus === "highpriority") {
       notifType = "High Priority";
     }
 
@@ -89,9 +89,9 @@ const NotificationsComponents = ({ notifications }) => {
           <Box
             borderLeft="4px solid"
             borderColor={
-              payStatus == "overdue"
+              payStatus === "overdue"
                 ? "#90080F"
-                : payStatus == "neardue"
+                : payStatus === "neardue"
                   ? "#DAB434"
                   : "#ffa500"
             }
