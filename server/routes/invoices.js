@@ -417,6 +417,8 @@ invoicesRouter.get("/total/:id", async (req, res) => {
 
         // Calculate booking cost.
         const bookingCost = totalRate * durationHours;
+        
+        return bookingCost;
       })
     );
 
