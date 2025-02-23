@@ -10,6 +10,7 @@ invoicesRouter.use(express.json());
 invoicesRouter.get("/", async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
+//     console.log("Query params:", startDate, endDate);
 
     if (startDate && endDate) {
       const invoices = await db.any(
@@ -109,6 +110,20 @@ invoicesRouter.get("/:id", async (req, res) => {
     }
 
     res.status(200).json(keysToCamel(invoice));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Get historic invoice by id
+invoicesRouter.get("/historicInvoices/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await db.query(
+      "SELECT * FROM historic_invoices WHERE original_invoice = $1",
+      [id]
+    );
+    res.status(200).json(keysToCamel(data));
   } catch (err) {
     res.status(500).send(err.message);
   }
