@@ -25,6 +25,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { Home } from "./components/home/Home";
+import { Settings } from "./components/settings/Settings";
 
 const App = () => {
   return (
@@ -95,6 +96,10 @@ const App = () => {
                 <Route
                   path="/programs/:id"
                   element={<ProtectedRoute element={<Program />} />}
+                />
+                <Route
+                  path="/settings"
+                  element={<ProtectedRoute element={<Settings />} />}
                 />
                 <Route
                   path="*"
