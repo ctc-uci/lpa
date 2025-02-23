@@ -38,7 +38,7 @@ invoicesRouter.get("/overdue", async (req, res) => {
     // const { startDate, endDate } = req.query;
     
     // Base query for overdue invoices
-    let query = `
+    const query = `
       SELECT * FROM invoices 
       WHERE is_sent = true 
       AND payment_status IN ('partial', 'none') 
@@ -70,7 +70,7 @@ invoicesRouter.get("/highpriority", async (req, res) => {
     // const { startDate, endDate } = req.query;
     
     // Base query for overdue invoices
-    let query = `
+    const query = `
       SELECT * FROM invoices 
       WHERE is_sent = false 
       AND payment_status IN ('partial', 'none') 
