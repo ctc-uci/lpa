@@ -50,22 +50,21 @@ assignmentsRouter.get("/event/:event_id", async (req, res) => {  try {
 });
 
 assignmentsRouter.post("/", async (req, res) => {
-    try {
-      const { eventId, clientId, role } = req.body;
+  try {
+    // Get new booking data
+    const { event_id, client_id, role } = req.body;
 
-      console.log('Values:', { eventId, clientId, role }); // Add this line
-      const query = {
-        text: 'INSERT INTO assignments (event_id, client_id, role) VALUES ($1, $2, $3) RETURNING *',
-        values: [eventId, clientId, role],
-      };
+    // Insert new booking into database
+    const data = await db.query(
+        `INSERT INTO assignments (event_id, client_id, role) VALUES ($1, $2, $3) RETURNING id`,
+        [ event_id, client_id, role ]
+      );
 
-      const result = await db.query(query);
-      console.log('Query result:', result);  // Add this line
-      res.status(201).json({id: result[0].id });
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 assignmentsRouter.get("/client/:client_id", async (req, res) => {
     try {
