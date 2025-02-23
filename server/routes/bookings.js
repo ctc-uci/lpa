@@ -166,7 +166,7 @@ bookingsRouter.delete("/:id", async (req, res) => {
       const { id } = req.params;
 
       // Delete booking from database
-      const data = db.query("DELETE FROM bookings WHERE id = $1 RETURNING *",
+      const data = await db.query("DELETE FROM bookings WHERE id = $1 RETURNING *",
         [ id ]);
 
       if (!data) {
@@ -184,7 +184,7 @@ bookingsRouter.delete("/event/:id", async (req, res) => {
       const { id } = req.params;
 
       // Delete all bookings from database for a given event
-      const data = db.query("DELETE FROM bookings WHERE event_id = $1 RETURNING *",
+      const data = await db.query("DELETE FROM bookings WHERE event_id = $1 RETURNING *",
         [ id ]);
 
       if (!data) {

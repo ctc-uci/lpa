@@ -14,11 +14,13 @@ import {
 } from "@chakra-ui/react";
 
 import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
+import { EmailHistory } from "./EmailHistory";
+
 import Navbar from "../navbar/Navbar";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 
-export const Invoice = () => {
+export const SingleInvoice = () => {
     const { id } = useParams()
     const { backend } = useBackendContext();
     const navigate = useNavigate();
@@ -27,6 +29,7 @@ export const Invoice = () => {
     const [remainingBalance, setRemainingBalance] = useState(0);
     const [billingPeriod, setBillingPeriod] = useState({});
     const [comments, setComments] = useState([]);
+    const [emails, setEmails] = useState([]);
     const [payees, setPayees] = useState([]);
     const [event, setEvent] = useState();
 
@@ -42,6 +45,7 @@ export const Invoice = () => {
                   setRemainingBalance(null);
                   setBillingPeriod(null);
                   setComments(null);
+                  setEmails(null);
                   setPayees(null);
                   setEvent(null)
                   return;
@@ -77,6 +81,11 @@ export const Invoice = () => {
                 // get comments
                 const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
                 setComments(commentsResponse.data);
+
+                // get emails
+                const emailsResponse = await backend.get('/invoices/historicInvoices/' + id);
+                setEmails(emailsResponse.data);
+                console.log(emailsResponse)
 
                 // get payees
                 const payeesResponse = await backend.get("/invoices/payees/" + id);
@@ -118,7 +127,7 @@ export const Invoice = () => {
 
                             {/* buttons */}
                             <Flex direction="row" marginLeft="auto" gap={5}>
-                                <Button height="100%" borderRadius={30} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1}>
+                                <Button height="100%" borderRadius={30} backgroundColor="#4E4AE7" color="#FFF" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" gap={1} onClick={() => navigate(`/invoices/edit/${id}`)}>
                                     <FiEdit></FiEdit>
                                     Edit
                                 </Button>
@@ -139,12 +148,18 @@ export const Invoice = () => {
                         payees={payees}
                         billingPeriod={billingPeriod}
                         amountDue={total}
-                        remainingBalance={remainingBalance}
+                        remainingBalance={!remainingBalance}
                     ></InvoiceStats>
 
-                        <InvoicePayments
-                            comments={comments}
-                        ></InvoicePayments>
+                    <Flex direction="row" h="auto" w="100%" gap="5rem">
+                      <InvoicePayments
+                          comments={comments}
+                      ></InvoicePayments>
+
+                      <EmailHistory
+                          emails={emails}
+                      ></EmailHistory>
+                    </Flex>
 
                     </Flex>
                 </Flex>

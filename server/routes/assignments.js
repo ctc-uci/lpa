@@ -86,6 +86,23 @@ assignmentsRouter.get("/search", async (req, res) => {
     }
 })
 
+assignmentsRouter.get("/instructors/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    // console.log(req.params)
+      const data = await db.query(`
+        SELECT * 
+        FROM assignments 
+        JOIN clients ON assignments.client_id = clients.id
+        WHERE assignments.event_id = $1 AND assignments.role = 'instructor'`,
+      [id]);
+      
+      res.status(200).json(keysToCamel(data));
+  } catch (err) {
+      res.status(500).send(err.message);
+  }
+})
+
 assignmentsRouter.put("/:id", async (req, res) => {
     try {
         const { id } = req.params;
