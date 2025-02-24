@@ -103,17 +103,17 @@ import {ArchiveIcon} from '../../assets/ArchiveIcon';
 export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived, eventId }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
-const {
-  isOpen: modalIsOpen,
-  onOpen: modalOnOpen,
-  onClose: modalOnClose
-} = useDisclosure();
+  const {
+    isOpen: modalIsOpen,
+    onOpen: modalOnOpen,
+    onClose: modalOnClose
+  } = useDisclosure();
 
-const {
-  isOpen: popoverIsOpen ,
-  onOpen: popoverOnOpen,
-  onClose: popoverOnClose
-} = useDisclosure();
+  const {
+    isOpen: popoverIsOpen ,
+    onOpen: popoverOnOpen,
+    onClose: popoverOnClose
+  } = useDisclosure();
 
   const exit = () => {
     navigate('/home');
@@ -249,7 +249,7 @@ console.log("event response ", response.data.id)
     if (selectedAction === "Archive") {
       await handleArchive()
     } else if (selectedAction === "Delete"){
-      await handleDelete();    
+      await handleDelete();
     }
   }
 
@@ -631,7 +631,7 @@ console.log("event response ", response.data.id)
           </Card>
         </Flex>
       </Container>
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Deactivate Program?</ModalHeader>
@@ -664,7 +664,7 @@ console.log("event response ", response.data.id)
                     {selectedIcon} {selectedAction}
                   </MenuButton>
                   <MenuList>
-                    <MenuItem 
+                    <MenuItem
                     icon={<Box display="inline-flex" alignItems="center">
                       <Icon as={ArchiveIcon} boxSize={4} />
                     </Box>}
@@ -685,7 +685,7 @@ console.log("event response ", response.data.id)
               </Box>
             </ModalBody>
             <ModalFooter>
-              <Button bg ="transparent" onClick={onClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
+              <Button bg ="transparent" onClick={modalOnClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
               <Button onClick={handleConfirm} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
             </ModalFooter>
           </ModalContent>

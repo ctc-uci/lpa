@@ -186,7 +186,8 @@ console.log(eventResponse.data[0]);
   };
 
   const setArchived = async (boolean) => {
-    await backend.put(`/bookings/` + eventId, {archived: boolean});
+  console.log("set archived: ", boolean)
+    await backend.put(`/bookings/` + id, {archived: boolean});
   }
 
   const handleConfirm = async () => {
