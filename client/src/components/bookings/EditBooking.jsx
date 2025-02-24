@@ -107,7 +107,7 @@ const {
   };
 
   const getInitialEventData = async () => {
-    const eventResponse = await backend.get(`/bookings/event/rooms/${id}`);
+    const eventResponse = await backend.get(`/bookings/displayData/${id}`);
     console.log(eventResponse.data);
     setEventId(eventResponse.data[0].eventId);
     setEventName(eventResponse.data[0].eventname);
@@ -175,7 +175,7 @@ const {
         description: generalInformation,
       };
 
-      await backend.put('/bookings/event/' + id, bookingsData);
+      await backend.put('/bookings/byEvent/' + id, bookingsData);
 
       exit();
 

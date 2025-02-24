@@ -103,8 +103,7 @@ const App = () => {
                 />
                 <Route
                   path="/bookings/edit/:id"
-                  element={<EditBooking />}
-                  // element={<ProtectedRoute element={<EditBooking />} />}
+                  element={<ProtectedRoute element={<EditBooking />} />}
                 />
               </Routes>
             </Router>
