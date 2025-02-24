@@ -11,7 +11,6 @@ import {
   CalendarIcon,
   DownloadIcon,
   DeleteIcon,
-  EditIcon,
   EmailIcon,
   TimeIcon,
   InfoIcon,
@@ -98,7 +97,6 @@ import {
   sessionsUpArrow,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import {CancelIcon} from '../../assets/CancelIcon';
 import {ArchiveIcon} from '../../assets/ArchiveIcon';
 
 
