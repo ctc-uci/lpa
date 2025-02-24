@@ -40,6 +40,31 @@ eventsRouter.get("/:id", async (req, res) => {
   }
 });
 
+// Return all event info for event by ID
+eventsRouter.get("/allInfo/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const event = await db.query(`SELECT *, events.name as eventName, events.description as eventDescription, rooms.name as roomName, rooms.description as roomDescription, assignments.role as clientRole, clients.name as clientName
+        FROM events
+        JOIN bookings ON events.id = bookings.event_id
+        JOIN rooms ON bookings.room_id = rooms.id
+        LEFT JOIN assignments ON bookings.event_id = assignments.event_id
+        LEFT JOIN clients ON assignments.client_id = clients.id
+        WHERE events.id = $1`, [
+          id
+      ]);
+
+    if (event.length === 0) {
+      return res.status(404).json({ error: "Event does not exist." });
+    }
+
+    res.status(200).json(keysToCamel(event));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 // Create event, return event ID
 eventsRouter.post("/", async (req, res) => {
   try {

@@ -30,6 +30,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { Home } from "./components/home/Home";
+import { EditBooking } from "./components/bookings/EditBooking";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
 import { Settings } from "./components/settings/Settings";
 
@@ -130,6 +131,10 @@ const App = () => {
                 <Route
                   path="*"
                   element={<ProtectedRoute element={<CatchAll />} />}
+                />
+                <Route
+                  path="/bookings/edit/:id"
+                  element={<ProtectedRoute element={<EditBooking />} />}
                 />
                 <Route
                   path='/programs/archived'

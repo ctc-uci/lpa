@@ -67,6 +67,29 @@ programsRouter.get("/:id", async (req, res) => {
   }
 });
 
+programsRouter.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { archived } = req.body;
+
+    const data = await db.query(
+      `
+      UPDATE events
+      SET
+        archived = COALESCE($2, archived)
+      WHERE id = $1
+      RETURNING *;
+      `,
+      [id, archived]
+  );
+    res.status(200).json(keysToCamel(data));
+   } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+
 programsRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
