@@ -123,7 +123,7 @@ export const ArchivedPrograms = () => {
         let roomName = "N/A";
 
         try {
-          const sessionsResponse = await backend.get(`bookings/event/${program.id}`);
+          const sessionsResponse = await backend.get(`bookings/byEvent/${program.id}`);
           sessions = sessionsResponse.data;
 
           if (sessions.length > 0) {
@@ -301,7 +301,7 @@ export const ArchivedPrograms = () => {
     try {
       // Get original program data
       const originalEvent = await backend.get(`/events/${programId}`);
-      const originalSessions = await backend.get(`/bookings/event/${programId}`);
+      const originalSessions = await backend.get(`/bookings/byEvent/${programId}`);
       const originalAssignments = await backend.get(`/assignments/event/${programId}`);
 
       // Create a new program
