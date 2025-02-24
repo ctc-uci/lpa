@@ -14,7 +14,7 @@ import {
   EditIcon,
   EmailIcon,
   TimeIcon,
-  InfoIcon
+  InfoIcon,
   ChevronDownIcon,
 } from "@chakra-ui/icons";
 import {
