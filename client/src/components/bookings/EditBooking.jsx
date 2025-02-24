@@ -29,7 +29,6 @@ import {
   ModalCloseButton,
 useDisclosure,
 Checkbox,
-// Lorem,
 } from "@chakra-ui/react";
 
 import {InfoIconPurple} from '../../assets/InfoIconPurple';
@@ -95,12 +94,7 @@ const {
   useEffect(() => {
     getInitialEventData();
     getInitialLocations();
-    printData();
   }, []);
-
-  const printData = () => {
-    console.log(eventName);
-  };
 
   const exit = () => {
     navigate('/programs/' + eventId);
@@ -108,8 +102,6 @@ const {
 
   const getInitialEventData = async () => {
     const eventResponse = await backend.get(`/bookings/displayData/${id}`);
-    console.log(eventResponse.data);
-console.log(eventResponse.data[0]);
     setEventId(eventResponse.data[0].eventId);
     setEventName(eventResponse.data[0].eventname);
     setGeneralInformation(eventResponse.data[0].eventdescription);
@@ -186,7 +178,6 @@ console.log(eventResponse.data[0]);
   };
 
   const setArchived = async (boolean) => {
-  console.log("set archived: ", boolean)
     await backend.put(`/bookings/` + id, {archived: boolean});
   }
 
