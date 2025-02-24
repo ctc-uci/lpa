@@ -10,9 +10,13 @@ import {
 import { Admin } from "./components/admin/Admin";
 import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
-import { Invoice } from "./components/invoices/Invoice";
+import { SingleInvoice } from "./components/invoices/SingleInvoice";
+import { EditInvoice } from "./components/invoices/EditInvoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
-import { ForgotPassword } from "./components/login/ForgotPassword";
+import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
+import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
+import { ResetPassword } from "./components/resetpassword/ResetPassword";
+import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
@@ -21,11 +25,14 @@ import { EditProgram } from "./components/programs/EditProgram";
 import { Program } from "./components/programs/Program";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Signup } from "./components/signup/Signup";
+import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { Home } from "./components/home/Home";
 import { EditBooking } from "./components/bookings/EditBooking";
+import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
+import { Settings } from "./components/settings/Settings";
 
 const App = () => {
   return (
@@ -62,8 +69,24 @@ const App = () => {
                   element={<Signup />}
                 />
                 <Route
+                  path="/signup/requested"
+                  element={<SignupRequested />}
+                />
+                <Route
                   path="/forgotpassword"
                   element={<ForgotPassword />}
+                />
+                <Route
+                  path="/forgotpassword/sent"
+                  element={<ForgotPasswordSent />}
+                />
+                <Route
+                  path="/resetpassword"
+                  element={<ResetPassword />}
+                />
+                <Route
+                  path="/resetpassword/success"
+                  element={<ResetPasswordSuccess />}
                 />
                 <Route
                   path="/playground"
@@ -87,7 +110,11 @@ const App = () => {
                 />
                 <Route
                   path="/invoices/:id"
-                  element={<ProtectedRoute element={<Invoice />} />}
+                  element={<ProtectedRoute element={<SingleInvoice />} />}
+                />
+                <Route
+                  path="/invoices/edit/:id"
+                  element={<ProtectedRoute element={<EditInvoice />} />}
                 />
                 <Route
                   path="/programs/edit/:id"
@@ -98,12 +125,20 @@ const App = () => {
                   element={<ProtectedRoute element={<Program />} />}
                 />
                 <Route
+                  path="/settings"
+                  element={<ProtectedRoute element={<Settings />} />}
+                />
+                <Route
                   path="*"
                   element={<ProtectedRoute element={<CatchAll />} />}
                 />
                 <Route
                   path="/bookings/edit/:id"
                   element={<ProtectedRoute element={<EditBooking />} />}
+                />
+                <Route
+                  path='/programs/archived'
+                  element={<ProtectedRoute element={<ArchivedPrograms/>} />}
                 />
               </Routes>
             </Router>

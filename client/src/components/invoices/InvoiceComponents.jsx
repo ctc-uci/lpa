@@ -19,7 +19,7 @@ import {
   Text,
   Thead,
   Th,
-  Tr
+  Tr,
   } from '@chakra-ui/react'
 import filterIcon from  "../../assets/filter.svg";
 import { CalendarIcon } from '@chakra-ui/icons';
@@ -150,7 +150,7 @@ const InvoicePayments = ({ comments }) => {
     return (
         <Flex direction="column" w="100%">
             <Text fontWeight="bold" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
-                Comments
+                Payments
             </Text>
 
             <Flex
@@ -166,22 +166,22 @@ const InvoicePayments = ({ comments }) => {
                 >
                     <Thead>
                         <Tr>
-                            <Th fontSize="clamp(.5rem, 1rem, 1.5rem)"> Date </Th>
-                            <Th fontSize="clamp(.5rem, 1rem, 1.5rem)"> Comment </Th>
-                            <Th fontSize="clamp(.5rem, 1rem, 1.5rem)"> Amount </Th>
+                            <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none"> Date </Th>
+                            <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none"> Comment </Th>
+                            <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none"> Amount </Th>
                         </Tr>
                     </Thead>
                     <Tbody color="#2D3748">
                         {comments && comments.length > 0 ? (
                             currentPageComments.map((comment) => (
                                 <Tr key={comment.id}>
-                                    <Td fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+                                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                                         {format(new Date(comment.datetime), 'M/d/yy')}
                                     </Td>
-                                    <Td fontSize="clamp(.75rem, 1.25rem, 1.75rem)">
+                                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                                         {comment.comment}
                                     </Td>
-                                    <Td fontSize="clamp(.75rem, 1.25rem, 1.75rem)" fontWeight="bold">
+                                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                                         {comment.adjustmentValue ? `$${Number(comment.adjustmentValue).toFixed(2)}` : "N/A"}
                                     </Td>
                                 </Tr>))
@@ -194,16 +194,16 @@ const InvoicePayments = ({ comments }) => {
                 </Table>
             </Flex>
             <Flex direction="row" width="100%" alignItems="center" mb={5}>
-                <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" marginRight="0.5rem"> Show: </Text>
+                <Text fontSize="clamp(.5rem, 1rem, 1.5rem)" marginRight="0.5rem"> Show: </Text>
                 <Select width="auto" marginRight="0.5rem" value={commentsPerPage} onChange={handleCommentsPerPageChange}>
                     <option value={3}>3</option>
                     <option value={5}>5</option>
                     <option value={10}>10</option>
                     <option value={20}>20</option>
                 </Select>
-                <Text>per page</Text>
+                <Text fontSize="clamp(.5rem, 1rem, 1.5rem)">per page</Text>
                 <Flex direction="row" marginLeft="auto" alignItems="center">
-                    <Text fontSize="clamp(.75rem, 1.25rem, 1.75rem)" marginRight="1rem"> {currentPageNumber} of {totalPages < 1 ? 1 : totalPages} </Text>
+                    <Text fontSize="clamp(.5rem, 1rem, 1.5rem)" marginRight="1rem"> {currentPageNumber} of {totalPages < 1 ? 1 : totalPages} </Text>
                     <Button onClick={handlePrevPage} isDisabled={currentPageNumber === 1} borderLeftRadius={30}>
                         <FaAngleLeft></FaAngleLeft>
                     </Button>

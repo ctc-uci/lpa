@@ -56,14 +56,11 @@ assignmentsRouter.post("/", async (req, res) => {
         text: 'INSERT INTO assignments (event_id, client_id, role) VALUES ($1, $2, $3) RETURNING *',
         values: [eventId, clientId, role],
       };
-
-      const result = await db.query(query);
-      console.log('Query result:', result);  // Add this line
-      res.status(201).json({id: result[0].id });
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 assignmentsRouter.get("/client/:client_id", async (req, res) => {
     try {
@@ -83,6 +80,23 @@ assignmentsRouter.get("/search", async (req, res) => {
     } catch (err) {
         res.status(500).send(err.message);
     }
+})
+
+assignmentsRouter.get("/instructors/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    // console.log(req.params)
+      const data = await db.query(`
+        SELECT * 
+        FROM assignments 
+        JOIN clients ON assignments.client_id = clients.id
+        WHERE assignments.event_id = $1 AND assignments.role = 'instructor'`,
+      [id]);
+      
+      res.status(200).json(keysToCamel(data));
+  } catch (err) {
+      res.status(500).send(err.message);
+  }
 })
 
 assignmentsRouter.put("/:id", async (req, res) => {
