@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import './EditBooking.css';
 import {
-  Menu, 
-  MenuButton, 
-  MenuList, 
+  Menu,
+  MenuButton,
+  MenuList,
   MenuItem,
   Box,
   Button,
@@ -109,6 +109,7 @@ const {
   const getInitialEventData = async () => {
     const eventResponse = await backend.get(`/bookings/displayData/${id}`);
     console.log(eventResponse.data);
+console.log(eventResponse.data[0]);
     setEventId(eventResponse.data[0].eventId);
     setEventName(eventResponse.data[0].eventname);
     setGeneralInformation(eventResponse.data[0].eventdescription);

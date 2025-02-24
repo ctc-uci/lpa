@@ -85,7 +85,7 @@ export const Program = () => {
 
   const getSessions = async () => {
     try {
-      const sessionsResponse = await backend.get(`bookings/event/${id}`);
+      const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
       setSessions(sessionsData);
       // Get set of room ids
@@ -93,7 +93,7 @@ export const Program = () => {
         ...new Set(sessionsData.map((session) => session.roomId)),
       ];
       setRoomIds(uniqueRoomIds);
-    } catch {
+    } catch (error) {
       console.log("From getSessions: ", error);
     }
   };
@@ -108,7 +108,7 @@ export const Program = () => {
         roomMap.set(roomId, roomData[0].name);
       }
       setRoomNames(roomMap);
-    } catch {
+    } catch (error) {
       console.log("From getRoomNames: ", error);
     }
   };

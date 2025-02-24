@@ -183,7 +183,7 @@ bookingsRouter.put("/event/:id", async (req, res) => {
       const { id } = req.params;
 
       const { event_id, room_id, start_time, end_time, date, archived, description } = req.body;
-console.log("description: " + description);
+      console.log("description: " + description);
       const data2 = await db.query( `
         UPDATE events
         SET description = COALESCE($2, description)
