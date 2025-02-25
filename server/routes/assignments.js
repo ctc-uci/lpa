@@ -51,6 +51,19 @@ assignmentsRouter.get("/event/:event_id", async (req, res) => {
   }
 });
 
+assignmentsRouter.post("/", async (req, res) => {
+    try {
+      const { eventId, clientId, role } = req.body;
+      const query = {
+        text: 'INSERT INTO assignments (event_id, client_id, role) VALUES ($1, $2, $3) RETURNING *',
+        values: [eventId, clientId, role],
+      };
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 assignmentsRouter.get("/client/:client_id", async (req, res) => {
   try {
     const { client_id } = req.params;

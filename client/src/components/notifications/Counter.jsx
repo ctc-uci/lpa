@@ -4,8 +4,6 @@ export const CounterComponent = ({ count }) => {
       style={{
         width: "75px",
         height: "31px",
-        borderRadius: "10px",
-        border: "1px solid var(--medium-light-grey, #D2D2D2)",
         background: "#FFF",
         marginTop: "3px",
       }}

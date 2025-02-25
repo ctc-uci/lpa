@@ -21,6 +21,14 @@
   color: #474849;
 }
 
+.navTextChosen {
+  margin-left: 3%;
+  width: 90%;
+  font-weight: 500;
+  font-size: 150%;
+  color: #4E4AE7;
+}
+
 .navLink, .navText, .navIcon, .navItem {
   color: #474849;
 }

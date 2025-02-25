@@ -19,6 +19,7 @@
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@hookform/resolvers": "^3.9.0",
+    "@react-email/components": "^0.0.33",
     "@react-pdf/renderer": "^4.1.6",
     "axios": "^1.7.4",
     "firebase": "10.12.5",

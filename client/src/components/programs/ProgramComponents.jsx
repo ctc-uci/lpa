@@ -1,26 +1,46 @@
 import { React, useEffect, useState } from "react";
+import {InfoIconRed} from '../../assets/InfoIconRed';
+import {CancelIcon} from '../../assets/CancelIcon';
+import './Program.css';
+import {EditIcon} from '../../assets/EditIcon';
+import {DuplicateIcon} from '../../assets/DuplicateIcon';
+import {ReactivateIcon} from '../../assets/ReactivateIcon';
+import {DeleteIconRed} from '../../assets/DeleteIconRed';
 
 import {
   CalendarIcon,
-  CloseIcon,
   DownloadIcon,
-  EditIcon,
+  DeleteIcon,
   EmailIcon,
-  InfoIcon,
   TimeIcon,
+  InfoIcon,
+  ChevronDownIcon,
 } from "@chakra-ui/icons";
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
   Box,
   Button,
   Card,
   CardBody,
   Container,
+  Checkbox,
   Flex,
   FormControl,
+  FormLabel,
   Heading,
   Icon,
   IconButton,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Menu,
   MenuButton,
   MenuItem,
@@ -36,12 +56,14 @@ import {
   Tbody,
   Td,
   Text,
+  Textarea,
   Th,
   Thead,
   Tr,
   useDisclosure,
   Wrap,
   WrapItem,
+  Select,
 } from "@chakra-ui/react";
 
 import {
@@ -54,12 +76,14 @@ import {
 } from "@react-pdf/renderer";
 import {
   ChevronLeftIcon,
+  Delete,
   EllipsisIcon,
   FileTextIcon,
   UserIcon,
+  Info,
+  Boxes,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
 import {
   filterButton,
   filterDateCalendar,
@@ -73,10 +97,39 @@ import {
   sessionsUpArrow,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import {ArchiveIcon} from '../../assets/ArchiveIcon';
 
-export const ProgramSummary = ({ program, bookingInfo }) => {
+
+export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived, eventId }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const {
+    isOpen: modalIsOpen,
+    onOpen: modalOnOpen,
+    onClose: modalOnClose
+  } = useDisclosure();
+
+  const {
+    isOpen: popoverIsOpen ,
+    onOpen: popoverOnOpen,
+    onClose: popoverOnClose
+  } = useDisclosure();
+
+  const exit = () => {
+    navigate('/home');
+  };
+
+  const toEditProgram = () => {
+    navigate('/programs/edit/' + eventId);
+  };
+  const [selectedAction, setSelectedAction] = useState("Archive");
+  const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
+
+  const handleSelect = (action, iconSrc) => {
+    setSelectedAction(action);
+    setSelectedIcon(iconSrc);
+  };
+  //const [loading, setLoading] = useState(false);
 
   const formatTimeString = (timeString) => {
     if (!timeString) return "";
@@ -94,6 +147,112 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
     navigate(`/programs/edit/${program[0].id}`);
   };
 
+  const setArchived = async (boolean) => {
+    await backend.put(`/programs/` + eventId, {archived: boolean});
+  }
+
+ const duplicateProgram = async () => {
+    const eventResponse = await backend.get('/events/allInfo/' + eventId);
+    console.log(eventResponse);
+    const eventName = eventResponse.data[0].eventname;
+    const generalInformation = eventResponse.data[0].eventdescription;
+
+    const dates = [...new Set(eventResponse.data.map(item => item.date))];
+    const locationId = eventResponse.data[0].roomId;
+    const startTime = eventResponse.data[0].startTime.split(':').slice(0, 2).join(':');
+    const endTime = eventResponse.data[0].endTime.split(':').slice(0, 2).join(':');
+
+    const instructors = Array.from (
+      new Map (
+        eventResponse.data
+        .filter(instructor => instructor.clientrole === "instructor")
+        .map (instructor => [instructor.email, {
+          id: instructor.clientId,
+          name: instructor.clientname,
+          email: instructor.email
+        }])
+      ).values()
+    );
+
+    const payees = Array.from (
+      new Map (
+        eventResponse.data
+        .filter(client => client.clientrole === "payee")
+        .map (client => [client.email, {
+          id: client.clientId,
+          name: client.clientname,
+          email: client.email
+        }])
+      ).values()
+    );
+
+    const eventInfo = {
+      name: "[Unarchived] " + eventName,
+      description: generalInformation
+    }
+
+    const response = await backend.post('/events', eventInfo);
+    const newEventId = response.data.id;
+    for (const date of dates) {
+      const bookingInfo = {
+        event_id: newEventId,
+        room_id: locationId,
+        start_time: startTime,
+        end_time: endTime,
+        date: date,
+        archived: false
+      }
+      await backend.post('/bookings', bookingInfo);
+    }
+console.log("event response ", response.data.id)
+    const duplicateId = response.data.id;
+
+    for (const instructor of instructors) {
+      const instructorInfo = {
+        eventId: newEventId,
+        clientId: instructor.id,
+        role: "instructor"
+      };
+      await backend.post('/assignments', instructorInfo);
+    }
+
+    for (const payee of payees) {
+      const payeeInfo = {
+        eventId: newEventId,
+        clientId: payee.id,
+        role: "payee"
+      };
+      await backend.post('/assignments', payeeInfo);
+    }
+
+    navigate('/programs/' + duplicateId);
+  };
+
+  const handleDeactivate = () => {
+    onOpen();
+  };
+
+  const handleArchive = async () => {
+    console.log(program[0].id)
+    try {
+      await backend.put(`/events/${program[0].id}`, {
+        archived: true
+      });
+      onClose();
+      window.location.reload();
+    } catch (error) {
+      console.log("Couldn't deactivate", error);
+    }
+  }
+
+  const handleConfirm = async () => {
+    if (selectedAction === "Archive") {
+      await handleArchive()
+    } else if (selectedAction === "Delete"){
+      await handleDelete();
+    }
+  }
+
   const handleDelete = async () => {
     console.log("Starting delete process...");
     console.log("Program data:", program[0]);
@@ -104,10 +263,9 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
     }
 
     try {
-      //just points to events endpoint
       await backend.delete(`/events/${program[0].id}`);
       console.log("Successfully deleted event and all related records");
-
+      onClose();
       navigate("/programs");
     } catch (error) {
       console.error("Error details:", {
@@ -178,23 +336,10 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
       width="100%"
       minW="100%"
       py={8}
+      paddingTop="1rem"
     >
       <Container minW="100%" p={0}>
         <Flex>
-          {/* <Box
-            position="relative"
-            left="-12"
-          >
-            <IconButton
-              icon={<ChevronLeftIcon />}
-              variant="ghost"
-              size="md"
-              aria-label="Go back"
-              onClick={() => navigate("/programs")}
-              position="absolute"
-              top="8"
-            />
-          </Box> */}
           <Card
             shadow="md"
             border="1px"
@@ -235,9 +380,74 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
                   align="center"
                   gap={2}
                 >
-                  <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
+
+                  <Popover id="popTrigger" placement='bottom-start'
+                      isOpen={popoverIsOpen}
+                      onOpen={popoverOnOpen}
+                      onClose={popoverOnClose}>
+                    {({ isOpen, onClose }) => (
+                      <>
+                    <PopoverTrigger asChild>
+                      <Icon boxSize="5"><EllipsisIcon/></Icon>
+                    </PopoverTrigger>
+                      <PopoverContent style={{width:"100%"}}>
+                          <PopoverBody>
+                          {!isArchived ?
+                            <div>
+                              <div id="popoverChoice" color="#767778">
+                                <EditIcon/>
+                                <p onClick={toEditProgram}>Edit</p>
+                              </div>
+                              <div id="cancelBody" onClick={() => {onClose(); setIsArchived(true); setArchived(true);}}>
+                                <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
+                                <p>Deactivate</p>
+                              </div>
+                            </div> :
+                            <div>
+                              <Button id="popoverChoice" onClick={duplicateProgram}>
+                                <DuplicateIcon/>
+                                <p>Duplicate</p>
+                              </Button>
+                              <Button id="popoverChoice" onClick={() => { onClose(); setIsArchived(false); setArchived(false);}}>
+                                <ReactivateIcon/>
+                                <p>Reactivate</p>
+                              </Button>
+                              <Button id="deleteBody" onClick={modalOnOpen}>
+                                <DeleteIconRed/>
+                                <p>Delete</p>
+                              </Button>
+                            </div>
+                            }
+                          </PopoverBody>
+                      </PopoverContent>
+                  </>
+                        )}
+                  </Popover>
+ <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
                     Invoice
                   </PDFButton>
+                  <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
+                    <ModalOverlay />
+                    <ModalContent>
+                      <ModalHeader>Delete Program?</ModalHeader>
+                      <ModalCloseButton />
+                      <ModalBody>
+                        <div id="deactivateDeadlineBox">
+                          <Box backgroundColor = "#F4E6E7" borderRadius="15px" id="deactivateDeadlineInnerBox">
+                            <InfoIconRed fontSize="2xl" id="infoIcon"/>
+                            <p id="deactivateDeadlineText">Program will be permanently deleted from Archives.</p>
+                          </Box>
+                          </div>
+                      </ModalBody>
+
+                      <ModalFooter style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button variant='ghost' onClick={modalOnClose}>
+                          Exit
+                        </Button>
+                        <Button  colorScheme='red' mr={3} id="deactivateConfirm" onClick={() => {handleDelete(); exit();}}>Confirm</Button>
+                      </ModalFooter>
+                    </ModalContent>
+                  </Modal>
                   <Menu>
                     <MenuButton
                       as={IconButton}
@@ -257,11 +467,10 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
                         Edit
                       </MenuItem>
                       <MenuItem
-                        icon={<Icon as={CloseIcon} />}
-                        color="red.500"
-                        onClick={handleDelete}
+                        icon={<Icon as={CancelIcon} />}
+                        onClick={handleDeactivate}
                       >
-                        Cancel
+                        Deactivate
                       </MenuItem>
                     </MenuList>
                   </Menu>
@@ -422,11 +631,70 @@ export const ProgramSummary = ({ program, bookingInfo }) => {
           </Card>
         </Flex>
       </Container>
+      <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Deactivate Program?</ModalHeader>
+            <ModalBody>
+              <Alert status="error" borderRadius="md" p={4} display="flex" flexDirection="column">
+                <Box color="#90080F">
+                  <Flex alignitems="center">
+                    <Box color="#90080F0" mr={2} display="flex" alignItems = "center">
+                      <Info />
+                    </Box>
+                    <AlertTitle color="#90080F" fontSize="md" fontWeight = "500">The deactivation fee deadline for this program is <AlertDescription fontSize="md" fontWeight="bold">
+                      Thu. 1/2/2025.
+                      </AlertDescription>
+                    </AlertTitle>
+                  </Flex>
+                  <Flex mt={4} align="center" justify="center" width="100%">
+                    <Checkbox fontWeight="500" sx={{".chakra-checkbox__control": {bg: "white", border: "#D2D2D2"}}}>Waive fee</Checkbox>
+                  </Flex>
+                </Box>
+              </Alert>
+              <Box mt={4}>
+                <Text fontWeight="medium" mb={2}>
+                  Reason for Deactivation:
+                </Text>
+                <Textarea bg="#F0F1F4" placeholder="..." size="md" borderRadius="md" />
+              </Box>
+              <Box mt={4} display="flex" justifyContent="right">
+                <Menu>
+                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} bg="#F0F1F4" variant="outline" width="50%" justify="right">
+                    {selectedIcon} {selectedAction}
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem
+                    icon={<Box display="inline-flex" alignItems="center">
+                      <Icon as={ArchiveIcon} boxSize={4} />
+                    </Box>}
+                    onClick ={() => handleSelect("Archive", ArchiveIcon)}
+                    display="flex"
+                    alignItems="center"
+                    >
+                      Archive
+                    </MenuItem>
+                    <MenuItem
+                    icon = {<DeleteIcon/>}
+                    onClick={() => handleSelect("Delete", <DeleteIcon/>)}
+                    >
+                      Delete
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              </Box>
+            </ModalBody>
+            <ModalFooter>
+              <Button bg ="transparent" onClick={modalOnClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
+              <Button onClick={handleConfirm} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
+            </ModalFooter>
+          </ModalContent>
+      </Modal>
     </Box>
   );
 };
 
-export const Sessions = ({ sessions, rooms }) => {
+export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
@@ -541,19 +809,19 @@ export const Sessions = ({ sessions, rooms }) => {
               </Text>
             </Flex>
             <Flex>
-              <Popover>
+              <Popover onClose={onClose}>
                 <PopoverTrigger>
                   <Button
                     color="#767778"
+                    backgroundColor="#F0F1F4"
                     variant="outline"
                     minWidth="auto"
                     height="45px"
                     mt="10px"
                     mb="15px"
-                    rounded="xl"
+                    borderRadius="30px"
                     onClick={onOpen}
-                    borderColor="#D2D2D2"
-                    borderWidth="1px"
+                    border="none"
                   >
                     <Box
                       display="flex"
@@ -881,6 +1149,7 @@ export const Sessions = ({ sessions, rooms }) => {
                   color="#D2D2D2"
                 >
                   <Tr>
+                {!isArchived ?
                     <Th>
                       <Text
                         textTransform="none"
@@ -890,7 +1159,7 @@ export const Sessions = ({ sessions, rooms }) => {
                       >
                         Status
                       </Text>
-                    </Th>
+                    </Th> : <div></div>}
                     <Th>
                       <Box
                         display="flex"
@@ -969,8 +1238,10 @@ export const Sessions = ({ sessions, rooms }) => {
                 </Thead>
                 <Tbody>
                   {filterSessions().length > 0 ? (
+
                     filterSessions().map((session) => (
                       <Tr key={session.id}>
+{!isArchived ?
                         <Td>
                           <Box
                             display="flex"
@@ -987,7 +1258,7 @@ export const Sessions = ({ sessions, rooms }) => {
                               }
                             ></Box>
                           </Box>
-                        </Td>
+                        </Td> : <div></div> }
                         <Td>
                           <Box
                             display="flex"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import './Program.css';
 import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
 
 import { useParams } from "react-router";
@@ -8,6 +8,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
+import {InfoIconRed} from '../../assets/InfoIconRed';
 
 export const Program = () => {
   const { id } = useParams();
@@ -17,12 +18,14 @@ export const Program = () => {
   const [roomIds, setRoomIds] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
   const [nextBookingInfo, setNextBookingInfo] = useState(null);
+  const [isArchived, setIsArchived] = useState(false);
 
   const getProgram = async () => {
     try {
       const programResponse = await backend.get(`/events/${id}`);
       const programData = programResponse.data;
       setProgram(programData); // programData should have what Events table in DB model contains
+      setIsArchived(programData[0].archived);
     } catch {
       console.log("From getProgram: ", error);
     }
@@ -82,7 +85,7 @@ export const Program = () => {
 
   const getSessions = async () => {
     try {
-      const sessionsResponse = await backend.get(`bookings/event/${id}`);
+      const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
       setSessions(sessionsData);
       // Get set of room ids
@@ -90,7 +93,7 @@ export const Program = () => {
         ...new Set(sessionsData.map((session) => session.roomId)),
       ];
       setRoomIds(uniqueRoomIds);
-    } catch {
+    } catch (error) {
       console.log("From getSessions: ", error);
     }
   };
@@ -105,7 +108,7 @@ export const Program = () => {
         roomMap.set(roomId, roomData[0].name);
       }
       setRoomNames(roomMap);
-    } catch {
+    } catch (error) {
       console.log("From getRoomNames: ", error);
     }
   };
@@ -127,6 +130,19 @@ export const Program = () => {
     }
   }, [program, sessions]);
 
+  // if (isArchived){
+  //   return(
+  //     <Navbar>
+  //       <Box style = {{ width : "100%", padding : "20px"}}>
+  //         <Text> Program is archived.</Text>
+  //       <Box>
+  //         <Text fontSize = "lg"> Archived Program Information </Text>
+  //       </Box>
+  //     </Box>
+  //   </Navbar>
+  //   )
+  // }
+
   return (
     <Navbar>
       <Box style={{width: "100%", padding: "20px 20px 20px 20px"}}>
@@ -137,13 +153,25 @@ export const Program = () => {
             aria-label="Go back"
             onClick={() => navigate("/programs")}
           />
+          { isArchived ?
+            <div id="infoRed">
+              <InfoIconRed id="infoIcon"/>
+              <p>You are viewing an archived program</p>
+            </div> : <div></div>
+          }
           <ProgramSummary
             program={program}
             bookingInfo={nextBookingInfo}
+            isArchived={isArchived}
+            setIsArchived={setIsArchived}
+            eventId={id}
           />
           <Sessions
             sessions={sessions}
             rooms={roomNames}
+            isArchived={isArchived}
+            setIsArchived={setIsArchived}
+            eventId={id}
           />
       </Box>
     </Navbar>

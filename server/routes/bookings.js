@@ -48,7 +48,25 @@ bookingsRouter.get("/:id", async (req, res) => {
   }
 });
 
-bookingsRouter.get("/event/:id", async (req, res) => {
+bookingsRouter.get("/displayData/:id", async (req, res) => {
+  try {
+      const { id } = req.params;
+      const data = await db.query(`SELECT *, events.name as eventName, events.description as eventDescription, rooms.name as roomName, rooms.description as roomDescription, assignments.role as clientRole, clients.name as clientName
+        FROM bookings
+        JOIN events ON events.id = bookings.event_id
+        JOIN rooms ON bookings.room_id = rooms.id
+        JOIN assignments ON bookings.event_id = assignments.event_id
+        JOIN clients ON assignments.client_id = clients.id
+        WHERE bookings.id = $1`, [
+          id
+      ]);
+      res.status(200).json(keysToCamel(data));
+  } catch (err) {
+      res.status(500).send(err.message);
+  }
+});
+
+bookingsRouter.get("/byEvent/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { start, end } = req.query;
@@ -152,6 +170,43 @@ bookingsRouter.put("/:id", async (req, res) => {
         RETURNING *;
         `,
         [event_id, room_id, start_time, end_time, date, archived, id]
+    );
+
+      res.status(200).json(keysToCamel(data));
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  });
+
+bookingsRouter.put("/event/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const { event_id, room_id, start_time, end_time, date, archived, description } = req.body;
+      console.log("description: " + description);
+      const data2 = await db.query( `
+        UPDATE events
+        SET description = COALESCE($2, description)
+        WHERE id = $1
+        RETURNING *;
+        `,
+        [event_id, description]
+    );
+
+      // Update booking in database
+      const data = await db.query(
+        `
+        UPDATE bookings
+        SET
+            room_id = COALESCE($1, room_id),
+            start_time = COALESCE($2, start_time),
+            end_time = COALESCE($3, end_time),
+            date = COALESCE($4, date),
+            archived = COALESCE($5, archived)
+        WHERE id = $6
+        RETURNING *;
+        `,
+        [room_id, start_time, end_time, date, archived, id]
     );
 
       res.status(200).json(keysToCamel(data));

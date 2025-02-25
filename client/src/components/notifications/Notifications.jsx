@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 
+import { formatDistanceToNow } from "date-fns";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import NotificationsComponents from "./NotificationsComponents";
 import { CounterComponent } from "./Counter";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
-import { formatDistanceToNow } from 'date-fns';
+import NotificationsComponents from "./NotificationsComponents";
+import { InboxTab } from "./InboxTab";
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
@@ -23,25 +25,25 @@ export const Notifications = () => {
       try {
         const today = new Date();
         let endpoints = [];
-        let queryParams = "";
-
-        // If we have dates, add them as query params regardless of filter type
-        if (filterType.startDate && filterType.endDate) {
-          queryParams = `?startDate=${filterType.startDate}&endDate=${filterType.endDate}`;
-        }
 
         // Only modify the endpoint if we're filtering by type AND it's not "all"
         if (filterType.type === "all") {
-          endpoints = [`/invoices/overdue${queryParams}`, `/invoices/neardue${queryParams}`];
+          endpoints = [
+            `/invoices/overdue`,
+            `/invoices/neardue`,
+            `/invoices/highpriority`,
+          ];
         } else {
-          endpoints = [`/invoices/${filterType.type}${queryParams}`];
+          endpoints = [`/invoices/${filterType.type}`];
         }
 
         const responses = await Promise.all(
-          endpoints.map(endpoint => backend.get(endpoint))
+          endpoints.map((endpoint) => backend.get(endpoint))
         );
 
-        const notifsData = responses.flatMap(res => res.data);
+        const notifsData = responses.flatMap((res) => res.data);
+
+        console.log(notifsData);
 
         // Fetch additional data for each invoice (total, paid, event name)
         const enrichedInvoices = await Promise.all(
@@ -56,10 +58,12 @@ export const Notifications = () => {
               const endDate = new Date(invoice.endDate);
               const dueTime = formatDistanceToNow(endDate, { addSuffix: true });
               let payStatus = "";
-              if (endDate < today) {
+              if (endDate < today && invoice.isSent) {
                 payStatus = "overdue";
+              } else if (endDate < today && !invoice.isSent) {
+                payStatus = "highpriority";
               } else {
-                payStatus = "due in one week";
+                payStatus = "neardue";
               }
 
               return {
@@ -68,23 +72,26 @@ export const Notifications = () => {
                 total: totalRes.data.total,
                 paid: paidRes.data.paid,
                 payStatus,
-                dueTime
+                dueTime,
               };
             } catch (err) {
-              console.error(`Failed to fetch additional data for invoice ID: ${invoice.id}`, err);
+              console.error(
+                `Failed to fetch additional data for invoice ID: ${invoice.id}`,
+                err
+              );
               return {
                 ...invoice,
                 eventName: "Unknown Event",
                 total: 0,
                 paid: 0,
                 payStatus: "Unknown",
-                dueTime: "Unknown"
+                dueTime: "Unknown",
               };
             }
           })
         );
 
-        setNotifications(enrichedInvoices);
+        setNotifications(enrichedInvoices); // attaches additional info onto invoices
       } catch (err) {
         console.error("Failed to fetch invoices", err);
       }
@@ -92,10 +99,16 @@ export const Notifications = () => {
     fetchNotifs();
   }, [filterType, backend]);
 
-
   return (
-    <Navbar >
-      <div style={{ marginLeft: "57px", marginTop: "90px", marginRight: "57px", flex: 1 }}>
+    <Navbar notificationsCount={notifications.length} currentPage="notifications">
+      <div
+        style={{
+          marginLeft: "57px",
+          marginTop: "90px",
+          marginRight: "57px",
+          flex: 1,
+        }}
+      >
         <div
           style={{
             display: "flex",
@@ -108,7 +121,9 @@ export const Notifications = () => {
             <h1 className={styles.title}>Invoice Notifications</h1>
             <CounterComponent count={notifications.length} />
           </div>
-
+        </div>
+        <div style={{display: "flex", flexDirection: "row", gap: "50px", marginBottom: "20px"}}>
+          <InboxTab/>
           <FilterButton
             setFilterType={setFilterType}
             currentFilter={filterType}
