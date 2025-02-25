@@ -1,4 +1,5 @@
 import express, { Router } from "express";
+
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
 
@@ -17,8 +18,8 @@ clientsRouter.get("/", async (req, res) => {
 });
 
 const generateWhereClause = (search) => {
-  const columns = ['name']; // You want to search the client name
-  let searchWhereClause = '';
+  const columns = ["name"]; // You want to search the client name
+  let searchWhereClause = "";
 
   if (search.length > 0) {
     searchWhereClause = ` WHERE `;
@@ -27,17 +28,17 @@ const generateWhereClause = (search) => {
       .map((column) => {
         return `CAST(${column} AS TEXT) ILIKE '%' || $1 || '%'`;
       })
-      .join(' OR ');
+      .join(" OR ");
   }
   return { searchWhereClause };
 };
 
 // Get client that matches a search parameter
-clientsRouter.get('/search', async (req, res) => {
+clientsRouter.get("/search", async (req, res) => {
   try {
     const { searchTerm } = req.query;
     console.log("searchTerm", searchTerm);
-    const search = searchTerm.split('+').join(' ');
+    const search = searchTerm.split("+").join(" ");
     const { searchWhereClause } = generateWhereClause(search);
 
     const query = `
@@ -88,30 +89,14 @@ clientsRouter.put("/:id", async (req, res) => {
       WHERE id = $3
       RETURNING *
       `,
-      [name, email, id]);
+      [name, email, id]
+    );
 
     if (updatedClient.length === 0) {
       return res.status(404).json(keysToCamel("Client not found"));
     }
 
     res.status(200).json(keysToCamel(updatedClient));
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-// Delete client by id
-clientsRouter.delete("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedClient = await db.query('DELETE FROM clients WHERE id = $1 RETURNING *', [id]);
-
-    if (deletedClient.length === 0) {
-      return res.status(404).json(keysToCamel({result: "error", message: "Client not found"}));
-    }
-
-    res.status(200).json(keysToCamel({result: "success", deletedClient: deletedClient[0]}));
-
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -128,6 +113,31 @@ clientsRouter.post("/", async (req, res) => {
     res.status(200).json(keysToCamel(users));
   } catch (err) {
     res.status(400).send(err.message);
+  }
+});
+
+// Delete client by id
+clientsRouter.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedClient = await db.query(
+      "DELETE FROM clients WHERE id = $1 RETURNING *",
+      [id]
+    );
+
+    if (deletedClient.length === 0) {
+      return res
+        .status(404)
+        .json(keysToCamel({ result: "error", message: "Client not found" }));
+    }
+
+    res
+      .status(200)
+      .json(
+        keysToCamel({ result: "success", deletedClient: deletedClient[0] })
+      );
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 });
 
