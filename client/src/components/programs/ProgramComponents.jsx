@@ -98,6 +98,8 @@ import {
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import {ArchiveIcon} from '../../assets/ArchiveIcon';
+import DateSortingModal from "./DateSortingModal";
+import ProgramSortingModal from "./ProgramSortingModal";
 
 
 export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived, eventId }) => {
@@ -448,32 +450,6 @@ console.log("event response ", response.data.id)
                       </ModalFooter>
                     </ModalContent>
                   </Modal>
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      icon={<Icon as={EllipsisIcon} />}
-                      aria-label="Options"
-                      border="0.5px"
-                      bg="gray.50"
-                      size="sm"
-                      variant="ghost"
-                      borderRadius="20px"
-                    />
-                    <MenuList>
-                      <MenuItem
-                        icon={<Icon as={EditIcon} />}
-                        onClick={handleEdit}
-                      >
-                        Edit
-                      </MenuItem>
-                      <MenuItem
-                        icon={<Icon as={CancelIcon} />}
-                        onClick={handleDeactivate}
-                      >
-                        Deactivate
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
                 </Flex>
               </Flex>
 
@@ -631,7 +607,7 @@ console.log("event response ", response.data.id)
           </Card>
         </Flex>
       </Container>
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Deactivate Program?</ModalHeader>
@@ -685,7 +661,7 @@ console.log("event response ", response.data.id)
               </Box>
             </ModalBody>
             <ModalFooter>
-              <Button bg ="transparent" onClick={onClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
+              <Button bg ="transparent" onClick={modalOnClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
               <Button onClick={handleConfirm} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
             </ModalFooter>
           </ModalContent>
@@ -693,6 +669,8 @@ console.log("event response ", response.data.id)
     </Box>
   );
 };
+
+
 
 export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -1367,6 +1345,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
 
 const MyDocument = ({ bookingData }) => {
   return (

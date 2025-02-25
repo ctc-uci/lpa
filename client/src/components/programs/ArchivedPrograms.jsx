@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router";
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import Navbar from "../navbar/Navbar";
+import { useEffect, useState, useMemo } from "react";
+
 import {
   Alert,
   AlertIcon,
@@ -18,23 +16,23 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Popover,
   PopoverBody,
   PopoverContent,
   PopoverTrigger,
   Portal,
-  Stack,
   Spinner,
+  Stack,
   Table,
   TableContainer,
   Tbody,
@@ -47,29 +45,33 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
+
+import { Info } from "lucide-react";
+import { useParams } from "react-router";
+
 import {
+  archiveBox,
+  archiveCalendar,
+  archiveClock,
+  archiveMagnifyingGlass,
+  archiveMapPin,
+  archivePerson,
+  deleteIcon,
+  duplicateIcon,
   filterButton,
   filterDateCalendar,
+  reactivateIcon,
   sessionsDownArrow,
   sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
   sessionsMapPin,
   sessionsUpArrow,
-  archiveBox,
-  archiveCalendar,
-  archiveClock,
-  archiveMapPin,
-  archivePerson,
-  archiveMagnifyingGlass,
-  duplicateIcon,
-  reactivateIcon,
-  deleteIcon
 } from "../../assets/icons/ProgramIcons";
-
-import {
-  Info,
-} from "lucide-react";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import Navbar from "../navbar/Navbar";
+import DateSortingModal from "./DateSortingModal";
+import ProgramSortingModal from "./ProgramSortingModal";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -78,13 +80,20 @@ export const ArchivedPrograms = () => {
   // const [sessions, setSessions] = useState(null);
   const [uniqueRooms, setUniqueRooms] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
-  const [archivedSessions, setArchivedProgramSessions]= useState([]);
+  const [archivedSessions, setArchivedProgramSessions] = useState([]);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [selectedRoom, setSelectedRoom] = useState("All");
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [programToDelete, setProgramToDelete] = useState(null);
+  const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
+  const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+
+  const handleSortChange = (key, order) => {
+    setSortKey(key);
+    setSortOrder(order);
+  };
 
   const getArchivedPrograms = async () => {
     try {
@@ -93,7 +102,9 @@ export const ArchivedPrograms = () => {
 
       setPrograms(programData);
 
-      const archivedSessions = programData.filter(program => program.archived === true);
+      const archivedSessions = programData.filter(
+        (program) => program.archived === true
+      );
 
       setArchived(archivedSessions);
 
@@ -101,7 +112,7 @@ export const ArchivedPrograms = () => {
     } catch (error) {
       console.log("From getArchivedSessions: ", error);
     }
-  }
+  };
 
   const getArchivedProgramSessions = async (archivedPrograms) => {
     try {
@@ -113,35 +124,43 @@ export const ArchivedPrograms = () => {
           date: "N/A",
           startTime: "N/A",
           endTime: "N/A",
-          recentSession: "N/A"
+          recentSession: "N/A",
         };
         let sessions = [];
         const thisAssignments = {
           instructors: [],
-          payees: []
+          payees: [],
         };
         let roomName = "N/A";
 
         try {
-          const sessionsResponse = await backend.get(`bookings/event/${program.id}`);
+          const sessionsResponse = await backend.get(
+            `bookings/byEvent/${program.id}`
+          );
           sessions = sessionsResponse.data;
 
           if (sessions.length > 0) {
             // get unique roomIds
-            sessions.forEach(session => allRoomIds.add(session.roomId));
+            sessions.forEach((session) => allRoomIds.add(session.roomId));
 
             // get most recent session
             mostRecentSession = sessions.reduce((latest, current) => {
-              return new Date(current.date) > new Date(latest.date) ? current : latest;
+              return new Date(current.date) > new Date(latest.date)
+                ? current
+                : latest;
             }, sessions[0]);
 
             // get room name
-            const roomsResponse = await backend.get(`rooms/${mostRecentSession.roomId}`);
+            const roomsResponse = await backend.get(
+              `rooms/${mostRecentSession.roomId}`
+            );
             const room = roomsResponse.data;
             roomName = room[0]?.name || "N/A";
 
             // get artists and payees
-            const assignmentsResponse = await backend.get(`/assignments/event/${program.id}`);
+            const assignmentsResponse = await backend.get(
+              `/assignments/event/${program.id}`
+            );
             for (const assignment of assignmentsResponse.data) {
               if (assignment.role === "instructor") {
                 thisAssignments.instructors.push(assignment);
@@ -151,7 +170,10 @@ export const ArchivedPrograms = () => {
             }
           }
         } catch (error) {
-          console.error(`Error fetching data for program ${program.id}:`, error);
+          console.error(
+            `Error fetching data for program ${program.id}:`,
+            error
+          );
         }
 
         const thisSession = {
@@ -163,7 +185,7 @@ export const ArchivedPrograms = () => {
           room: roomName,
           recentSession: mostRecentSession,
           instructors: thisAssignments.instructors,
-          payees: thisAssignments.payees
+          payees: thisAssignments.payees,
         };
         console.log("THIS SESSION", thisSession);
         info.push(thisSession);
@@ -266,18 +288,38 @@ export const ArchivedPrograms = () => {
       const matchesSearch =
         program.programName.toLowerCase().includes(searchLower) ||
         program.room.toLowerCase().includes(searchLower) ||
-        (program.instructors && program.instructors.some(instructor =>
-          instructor.clientName.toLowerCase().includes(searchLower)
-        )) ||
-        (program.payees && program.payees.some(payee =>
-          payee.clientName.toLowerCase().includes(searchLower)
-        )) ||
+        (program.instructors &&
+          program.instructors.some((instructor) =>
+            instructor.clientName.toLowerCase().includes(searchLower)
+          )) ||
+        (program.payees &&
+          program.payees.some((payee) =>
+            payee.clientName.toLowerCase().includes(searchLower)
+          )) ||
         program.sessionDate.includes(searchQuery) ||
         program.sessionStart.includes(searchQuery) ||
         program.sessionEnd.includes(searchQuery);
       return isDateInRange && isTimeInRange && isRoomMatch && matchesSearch;
     });
   };
+
+  const sortedArchivedSessions = useMemo(() => {
+    const sorted = [...filterSessions()];
+    if (sortKey === "title") {
+      sorted.sort((a, b) =>
+        sortOrder === "asc"
+          ? a.programName.localeCompare(b.programName)
+          : b.programName.localeCompare(a.programName)
+      );
+    } else if (sortKey === "date") {
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.sessionDate);
+        const dateB = new Date(b.sessionDate);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    }
+    return sorted;
+  }, [filterSessions, sortKey, sortOrder]);
 
   const deleteArchivedProgram = async (programId) => {
     try {
@@ -290,8 +332,8 @@ export const ArchivedPrograms = () => {
   const reactivateArchivedProgram = async (programId) => {
     try {
       await backend.put(`/events/${programId}`, {
-        archived: false
-    });
+        archived: false,
+      });
     } catch (error) {
       console.log("Couldn't reactivate", error);
     }
@@ -301,8 +343,12 @@ export const ArchivedPrograms = () => {
     try {
       // Get original program data
       const originalEvent = await backend.get(`/events/${programId}`);
-      const originalSessions = await backend.get(`/bookings/event/${programId}`);
-      const originalAssignments = await backend.get(`/assignments/event/${programId}`);
+      const originalSessions = await backend.get(
+        `/bookings/byEvent/${programId}`
+      );
+      const originalAssignments = await backend.get(
+        `/assignments/event/${programId}`
+      );
 
       // Create a new program
       const newEventData = { ...originalEvent.data[0] };
@@ -310,7 +356,7 @@ export const ArchivedPrograms = () => {
       newEventData.name = `${originalEvent.data[0].name}`;
       newEventData.description = `${originalEvent.data[0].description}`;
       newEventData.archived = false; // Ensure the new event is not archived
-      const newEvent = await backend.post('/events', newEventData);
+      const newEvent = await backend.post("/events", newEventData);
       console.log("New event created:", newEvent.data);
       console.log(newEventData);
 
@@ -322,9 +368,9 @@ export const ArchivedPrograms = () => {
           start_time: session.startTime,
           end_time: session.endTime,
           date: session.date,
-          archived: false
+          archived: false,
         };
-        const newBooking = await backend.post('/bookings', newSessionData);
+        const newBooking = await backend.post("/bookings", newSessionData);
         console.log("New booking", newSessionData);
         console.log(newBooking);
       }
@@ -334,9 +380,12 @@ export const ArchivedPrograms = () => {
         const newAssignmentData = {
           event_id: newEvent.data.id, // Set the new event ID
           client_id: assignment.clientId, // Ensure clientId is a number
-          role: assignment.role
+          role: assignment.role,
         };
-        const newAssignment = await backend.post('/assignments', newAssignmentData);
+        const newAssignment = await backend.post(
+          "/assignments",
+          newAssignmentData
+        );
       }
 
       // Return the new program data
@@ -358,8 +407,8 @@ export const ArchivedPrograms = () => {
     try {
       await reactivateArchivedProgram(programId);
       // Update local state
-      setArchivedProgramSessions(prevSessions =>
-        prevSessions.filter(session => session.programId !== programId)
+      setArchivedProgramSessions((prevSessions) =>
+        prevSessions.filter((session) => session.programId !== programId)
       );
     } catch (error) {
       console.log("Couldn't reactivate program", error);
@@ -376,8 +425,8 @@ export const ArchivedPrograms = () => {
       await deleteArchivedProgram(programId);
 
       // Update local state
-      setArchivedProgramSessions(prevSessions =>
-        prevSessions.filter(session => session.programId !== programId)
+      setArchivedProgramSessions((prevSessions) =>
+        prevSessions.filter((session) => session.programId !== programId)
       );
       onClose();
     } catch (error) {
@@ -388,16 +437,39 @@ export const ArchivedPrograms = () => {
   return (
     <Navbar>
       <Box margin="40px">
-        <Card shadow="md" border="1px" borderColor="gray.300" borderRadius="15px">
+        <Card
+          shadow="md"
+          border="1px"
+          borderColor="gray.300"
+          borderRadius="15px"
+        >
           <CardBody margin="6px">
-            <Flex direction="column" justify="space-between">
-              <Flex align="center" mb="15px">
+            <Flex
+              direction="column"
+              justify="space-between"
+            >
+              <Flex
+                align="center"
+                mb="15px"
+              >
                 <Icon as={archiveBox} />
-                <Text fontSize="25px" fontWeight="semibold" color="#474849" ml="8px">
+                <Text
+                  fontSize="25px"
+                  fontWeight="semibold"
+                  color="#474849"
+                  ml="8px"
+                >
                   Archived
                 </Text>
               </Flex>
-              <Box display="flex" justify-content="space-between" align-items="flex-start" align-self="stretch" marginTop="5px" marginBottom="15px">
+              <Box
+                display="flex"
+                justify-content="space-between"
+                align-items="flex-start"
+                align-self="stretch"
+                marginTop="5px"
+                marginBottom="15px"
+              >
                 <Flex marginRight="auto">
                   <Popover>
                     <PopoverTrigger>
@@ -473,7 +545,10 @@ export const ArchivedPrograms = () => {
                                       type="date"
                                       placeholder="MM/DD/YYYY"
                                       onChange={(e) =>
-                                        handleDateChange("start", e.target.value)
+                                        handleDateChange(
+                                          "start",
+                                          e.target.value
+                                        )
                                       }
                                     />
                                     <Text> to </Text>
@@ -531,7 +606,10 @@ export const ArchivedPrograms = () => {
                                       type="time"
                                       placeholder="00:00 am"
                                       onChange={(e) =>
-                                        handleTimeChange("start", e.target.value)
+                                        handleTimeChange(
+                                          "start",
+                                          e.target.value
+                                        )
                                       }
                                     />
                                     <Text> to </Text>
@@ -596,32 +674,35 @@ export const ArchivedPrograms = () => {
                                         All
                                       </Button>
                                     </WrapItem>
-                                    {roomNames && Array.from(roomNames.values()).map(
-                                      (room, index) => (
-                                        <WrapItem>
-                                          <Button
-                                            key={index}
-                                            borderRadius="30px"
-                                            borderWidth="1px"
-                                            minWidth="auto"
-                                            height="20px"
-                                            onClick={() => setSelectedRoom(room)}
-                                            backgroundColor={
-                                              selectedRoom === room
-                                                ? "#EDEDFD"
-                                                : "#F6F6F6"
-                                            }
-                                            borderColor={
-                                              selectedRoom === room
-                                                ? "#4E4AE7"
-                                                : "#767778"
-                                            }
-                                          >
-                                            {room}
-                                          </Button>
-                                        </WrapItem>
-                                      )
-                                    )}
+                                    {roomNames &&
+                                      Array.from(roomNames.values()).map(
+                                        (room, index) => (
+                                          <WrapItem>
+                                            <Button
+                                              key={index}
+                                              borderRadius="30px"
+                                              borderWidth="1px"
+                                              minWidth="auto"
+                                              height="20px"
+                                              onClick={() =>
+                                                setSelectedRoom(room)
+                                              }
+                                              backgroundColor={
+                                                selectedRoom === room
+                                                  ? "#EDEDFD"
+                                                  : "#F6F6F6"
+                                              }
+                                              borderColor={
+                                                selectedRoom === room
+                                                  ? "#4E4AE7"
+                                                  : "#767778"
+                                              }
+                                            >
+                                              {room}
+                                            </Button>
+                                          </WrapItem>
+                                        )
+                                      )}
                                   </Wrap>
                                 </Box>
                               </FormControl>
@@ -633,12 +714,26 @@ export const ArchivedPrograms = () => {
                   </Popover>
                 </Flex>
                 <Flex>
-                  <InputGroup size="md" width="300px" variant="outline" borderColor="#D2D2D2" background="white" type="text">
-                    <Input placeholder="Search..." borderRadius="15px"
-                      onChange={(e) => handleSearch(e.target.value)}/>
+                  <InputGroup
+                    size="md"
+                    width="300px"
+                    variant="outline"
+                    borderColor="#D2D2D2"
+                    background="white"
+                    type="text"
+                  >
+                    <Input
+                      placeholder="Search..."
+                      borderRadius="15px"
+                      onChange={(e) => handleSearch(e.target.value)}
+                    />
                     <InputRightElement marginRight="4px">
-                      <Button size="sm" borderRadius="15px" background="#F0F1F4"
-                        onClick={() => handleSearch(searchQuery)}>
+                      <Button
+                        size="sm"
+                        borderRadius="15px"
+                        background="#F0F1F4"
+                        onClick={() => handleSearch(searchQuery)}
+                      >
                         <Icon as={archiveMagnifyingGlass} />
                       </Button>
                     </InputRightElement>
@@ -647,135 +742,238 @@ export const ArchivedPrograms = () => {
               </Box>
               <TableContainer>
                 <Table variant="unstyled">
-                  <Thead borderBottom="1px" color="#D2D2D2">
+                  <Thead
+                    borderBottom="1px"
+                    color="#D2D2D2"
+                  >
                     <Tr>
                       <Th>
-                        <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
-                          <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
                             Program
                           </Text>
-                          <Box display="flex" flexDirection="column" alignItems="flex-start" gap="2px">
-                            <Icon as={sessionsUpArrow} />
-                            <Icon as={sessionsDownArrow} />
-                          </Box>
+                          <ProgramSortingModal
+                            onSortChange={handleSortChange}
+                          />
                         </Box>
                       </Th>
+
                       <Th>
-                        <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
                           <Icon as={archiveCalendar} />
-                          <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
                             Date
                           </Text>
-                          <Box display="flex" flexDirection="column" alignItems="flex-start" gap="2px">
-                            <Icon as={sessionsUpArrow} />
-                            <Icon as={sessionsDownArrow} />
-                          </Box>
+                          <DateSortingModal onSortChange={handleSortChange} />
                         </Box>
                       </Th>
+
                       <Th>
-                        <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
                           <Icon as={archiveClock} />
-                          <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
                             Time
                           </Text>
                         </Box>
                       </Th>
                       <Th>
-                        <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
                           <Icon as={archiveMapPin} />
-                          <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
                             Room
                           </Text>
                         </Box>
                       </Th>
                       <Th>
-                        <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
                           <Icon as={archivePerson} />
-                          <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
                             Lead Artist(s)
                           </Text>
                         </Box>
                       </Th>
                       <Th>
-                        <Box display="flex" padding="8px" justifyContent="center" alignItems="center" gap="8px">
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
                           <Icon as={archivePerson} />
-                          <Text textTransform="none" color="#767778" fontSize="16px" fontStyle="normal">
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
                             Payer(s)
                           </Text>
                         </Box>
                       </Th>
-                      <Th>
-                        {/* Empty column for ellipsis button */}
-                      </Th>
+                      <Th>{/* Empty column for ellipsis button */}</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {filterSessions().length > 0 ? (
-                      filterSessions().map((programSession) => (
-                      <Tr key={programSession.programId}>
-                        <Td>
-                          {programSession.programName}
-                        </Td>
-                        <Td>
-                          {programSession.sessionDate !== "N/A"
-                          ? formatDate(programSession.sessionDate)
-                          : "N/A"}
-                        </Td>
-                        <Td>
-                          {programSession.sessionStart !== "N/A" ?
-                          `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
-                            : "N/A"}
-                        </Td>
-                        <Td>
-                          {programSession.room !== "N/A" ? programSession.room : "N/A"}
-                        </Td>
-                        <Td>
-                          {programSession.instructors && programSession.instructors.length > 0
-                            ? programSession.instructors.map(instructor => instructor.clientName).join(', ')
-                            : 'N/A'}
-                        </Td>
-                        <Td>
-                          {programSession.payees && programSession.payees.length > 0
-                            ? programSession.payees.map(payee => payee.clientName).join(', ')
-                            : 'N/A'}
-                        </Td>
-                        <Td>
-                          <Menu>
-                            <MenuButton
-                              as={IconButton}
-                              height="30px"
-                              width="30px"
-                              rounded="full"
-                              variant="ghost"
-                              icon={<Icon as={sessionsEllipsis} />}/>
-                            <MenuList>
-                              <MenuItem onClick={() => handleDuplicate(programSession.programId)}>
-                                <Box display="flex" padding="12px 16px" alignItems="center" gap="8px" alignSelf="stretch">
-                                  <Icon as={duplicateIcon} />
-                                  <Text color="#767778">Duplicate</Text>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem onClick={() => handleReactivate(programSession.programId)}>
-                                <Box display="flex" padding="12px 16px" alignItems="center" gap="8px" alignSelf="stretch">
-                                  <Icon as={reactivateIcon} />
-                                  <Text color="#767778">Reactivate</Text>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem onClick={() => handleConfirmDelete(programSession.programId)}>
-                                <Box display="flex" padding="12px 16px" alignItems="center" gap="8px" alignSelf="stretch">
-                                  <Icon as={deleteIcon} />
-                                  <Text color="#90080F">Delete</Text>
-                                </Box>
-                              </MenuItem>
-                            </MenuList>
-                          </Menu>
-
-                        </Td>
-                      </Tr>
-                    ))
+                    {sortedArchivedSessions.length > 0 ? (
+                      sortedArchivedSessions.map((programSession) => (
+                        <Tr key={programSession.programId}>
+                          <Td>{programSession.programName}</Td>
+                          <Td>
+                            {programSession.sessionDate !== "N/A"
+                              ? formatDate(programSession.sessionDate)
+                              : "N/A"}
+                          </Td>
+                          <Td>
+                            {programSession.sessionStart !== "N/A"
+                              ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
+                              : "N/A"}
+                          </Td>
+                          <Td>
+                            {programSession.room !== "N/A"
+                              ? programSession.room
+                              : "N/A"}
+                          </Td>
+                          <Td>
+                            {programSession.instructors &&
+                            programSession.instructors.length > 0
+                              ? programSession.instructors
+                                  .map((instructor) => instructor.clientName)
+                                  .join(", ")
+                              : "N/A"}
+                          </Td>
+                          <Td>
+                            {programSession.payees &&
+                            programSession.payees.length > 0
+                              ? programSession.payees
+                                  .map((payee) => payee.clientName)
+                                  .join(", ")
+                              : "N/A"}
+                          </Td>
+                          <Td>
+                            <Menu>
+                              <MenuButton
+                                as={IconButton}
+                                height="30px"
+                                width="30px"
+                                rounded="full"
+                                variant="ghost"
+                                icon={<Icon as={sessionsEllipsis} />}
+                              />
+                              <MenuList>
+                                <MenuItem
+                                  onClick={() =>
+                                    handleDuplicate(programSession.programId)
+                                  }
+                                >
+                                  <Box
+                                    display="flex"
+                                    padding="12px 16px"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Icon as={duplicateIcon} />
+                                    <Text color="#767778">Duplicate</Text>
+                                  </Box>
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={() =>
+                                    handleReactivate(programSession.programId)
+                                  }
+                                >
+                                  <Box
+                                    display="flex"
+                                    padding="12px 16px"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Icon as={reactivateIcon} />
+                                    <Text color="#767778">Reactivate</Text>
+                                  </Box>
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={() =>
+                                    handleConfirmDelete(
+                                      programSession.programId
+                                    )
+                                  }
+                                >
+                                  <Box
+                                    display="flex"
+                                    padding="12px 16px"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Icon as={deleteIcon} />
+                                    <Text color="#90080F">Delete</Text>
+                                  </Box>
+                                </MenuItem>
+                              </MenuList>
+                            </Menu>
+                          </Td>
+                        </Tr>
+                      ))
                     ) : (
                       <Tr>
-                        <Td colSpan={7}>
+                        <Td
+                          colSpan={7}
+                          textAlign="center"
+                        >
                           <Box
                             justifyContent="center"
                             py={6}
@@ -784,7 +982,9 @@ export const ArchivedPrograms = () => {
                             width="300px"
                             margin="auto"
                           >
-                            <Text>No archived program or session data to display.</Text>
+                            <Text>
+                              No archived program or session data to display.
+                            </Text>
                           </Box>
                         </Td>
                       </Tr>
@@ -795,25 +995,66 @@ export const ArchivedPrograms = () => {
             </Flex>
           </CardBody>
         </Card>
-        <Modal isOpen={isOpen} onClose={onClose}>
+        <Modal
+          isOpen={isOpen}
+          onClose={onClose}
+        >
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader fontStyle = "normal" fontWeight = "400" color="#474849">Delete Program?</ModalHeader>
+            <ModalHeader
+              fontStyle="normal"
+              fontWeight="400"
+              color="#474849"
+            >
+              Delete Program?
+            </ModalHeader>
             <ModalBody>
-              <Alert status="error" borderRadius="md" p={4} display="flex" flexDirection="column">
+              <Alert
+                status="error"
+                borderRadius="md"
+                p={4}
+                display="flex"
+                flexDirection="column"
+              >
                 <Box color="#90080F">
                   <Flex alignitems="center">
-                    <Box color="#90080F0" mr={2} display="flex" alignItems = "center">
+                    <Box
+                      color="#90080F0"
+                      mr={2}
+                      display="flex"
+                      alignItems="center"
+                    >
                       <Info />
                     </Box>
-                    <AlertTitle color="#90080F" fontStyle = "normal" fontWeight = "500">Program will be permanently deleted from Archives.</AlertTitle>
+                    <AlertTitle
+                      color="#90080F"
+                      fontStyle="normal"
+                      fontWeight="500"
+                    >
+                      Program will be permanently deleted from Archives.
+                    </AlertTitle>
                   </Flex>
                 </Box>
               </Alert>
             </ModalBody>
             <ModalFooter>
-              <Button bg ="transparent" onClick={onClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
-              <Button onClick={() => handleDelete(programToDelete)} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
+              <Button
+                bg="transparent"
+                onClick={onClose}
+                color="#767778"
+                borderRadius="30px"
+                mr={3}
+              >
+                Exit
+              </Button>
+              <Button
+                onClick={() => handleDelete(programToDelete)}
+                style={{ backgroundColor: "#90080F" }}
+                colorScheme="white"
+                borderRadius="30px"
+              >
+                Confirm
+              </Button>
             </ModalFooter>
           </ModalContent>
         </Modal>

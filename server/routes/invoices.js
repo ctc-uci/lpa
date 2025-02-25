@@ -407,6 +407,10 @@ invoicesRouter.get("/total/:id", async (req, res) => {
       [event.id, invoice.start_date, invoice.end_date]
     );
 
+    const totalAdjustments = await db.query(
+      "SELECT * FROM comments WHERE adjustment_type = 'total'"
+    );
+
     const bookingCosts = await Promise.all(
       bookings.map(async (booking) => {
         const roomRateBooking = await db.query(
@@ -450,6 +454,13 @@ invoicesRouter.get("/total/:id", async (req, res) => {
 
         // Calculate booking cost.
         const bookingCost = totalRate * durationHours;
+
+        // Apply 'total' adjustments specific to this booking
+        totalAdjustments.forEach((comment) => {
+          if (comment.booking_id === booking.id) {
+            bookingCost += Number(comment.adjustment_value);
+          }
+        });
         
         return bookingCost;
       })
@@ -457,12 +468,11 @@ invoicesRouter.get("/total/:id", async (req, res) => {
 
     let totalCost = bookingCosts.reduce((acc, cost) => acc + cost, 0);
 
-    const totalComments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type = 'total'"
-    );
-
-    totalComments.map((comment) => {
-      totalCost += Number(comment.adjustment_value);
+    // Apply 'total' adjustments that do not have a booking_id (global adjustments)
+    totalAdjustments.forEach((comment) => {
+      if (!comment.booking_id) {
+        totalCost += Number(comment.adjustment_value);
+      }
     });
 
     const result = {

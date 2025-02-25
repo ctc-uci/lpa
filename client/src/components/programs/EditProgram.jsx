@@ -234,7 +234,7 @@ const payees = eventClientResponse.data
 
   const deleteAllEventBookings = async () => {
     try {
-      await backend.delete('/bookings/event/' + id);
+      await backend.delete('/bookings/byEvent/' + id);
     } catch (error) {
       if (error.response?.status === 404) {
         console.log(`No bookings found for event ${id}`);

@@ -1,9 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
+import { ChevronDownIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   Alert,
-  AlertTitle,
   AlertDescription,
+  AlertTitle,
   Box,
   Button,
   Checkbox,
@@ -35,17 +42,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 
-import {
-  DeleteIcon,
-  ChevronDownIcon,
-} from "@chakra-ui/icons";
-
-import {
-  Info,
-} from "lucide-react";
-
+import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { ArchiveIcon } from "../../assets/ArchiveIcon";
 // Icon imports
 import actionsSvg from "../../assets/icons/actions.svg";
 import activeSvg from "../../assets/icons/active.svg";
@@ -54,15 +54,15 @@ import cancelSvg from "../../assets/icons/cancel.svg";
 import clockSvg from "../../assets/icons/clock.svg";
 import editSvg from "../../assets/icons/edit.svg";
 import locationSvg from "../../assets/icons/location.svg";
+import noneSvg from "../../assets/icons/none.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
-import programSvg from "../../assets/icons/program.svg";
 import searchSvg from "../../assets/icons/search.svg";
-import noneSvg from "../../assets/icons/none.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import DateSortingModal from "../programs/DateSortingModal";
+import ProgramSortingModal from "../programs/ProgramSortingModal";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
-import {ArchiveIcon} from '../../assets/ArchiveIcon';
 
 import "./Home.css";
 
@@ -80,6 +80,10 @@ const LocationIcon = () => <img src={locationSvg} />;
 const PersonIcon = () => <img src={personSvg} />;
 
 export const ProgramsTable = () => {
+  // const [sortOption, setSortOption] = useState("asc");
+  const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
+  const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+
   const [programs, setPrograms] = useState([]);
   const [filteredPrograms, setFilteredPrograms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -98,7 +102,6 @@ export const ProgramsTable = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const toast = useToast();
-  const cancelRef = useRef();
   const [selectedAction, setSelectedAction] = useState("Archive");
   const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
 
@@ -114,7 +117,9 @@ export const ProgramsTable = () => {
         return;
       }
 
-      const activePrograms = response.data.filter(program => program.archived === false);
+      const activePrograms = response.data.filter(
+        (program) => program.archived === false
+      );
 
       // Format date and time
       const formatDate = (dateString) => {
@@ -153,12 +158,11 @@ export const ProgramsTable = () => {
           name: program.eventName,
           // Preserve the original date for filtering:
           date: program.date,
-          status:
-            program.date ?
-            (program.date && new Date(program.date) > new Date()
+          status: program.date
+            ? program.date && new Date(program.date) > new Date()
               ? "Active"
-              : "Past") : 
-              "No Bookings",
+              : "Past"
+            : "No Bookings",
           upcomingDate: program.date ? formatDate(program.date) : "No bookings",
           upcomingTime:
             program.startTime && program.endTime
@@ -239,7 +243,9 @@ export const ProgramsTable = () => {
       result = result.filter(
         (program) =>
           program.instructor &&
-          program.instructor.toLowerCase().includes(filters.instructor.toLowerCase())
+          program.instructor
+            .toLowerCase()
+            .includes(filters.instructor.toLowerCase())
       );
     }
 
@@ -262,6 +268,24 @@ export const ProgramsTable = () => {
     setFilteredPrograms(result);
   }, [programs, filters, searchTerm]);
 
+  const sortedPrograms = useMemo(() => {
+    const sorted = [...filteredPrograms];
+    if (sortKey === "title") {
+      sorted.sort((a, b) =>
+        sortOrder === "asc"
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name)
+      );
+    } else if (sortKey === "date") {
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    }
+    return sorted;
+  }, [filteredPrograms, sortKey, sortOrder]);
+
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
@@ -280,11 +304,10 @@ export const ProgramsTable = () => {
     navigate(`/programs/${id}`);
   };
 
-
   const handleDeactivate = (id, e) => {
-    console.log("what")
+    console.log("what");
     onOpen();
-    setProgramToDelete(id)
+    setProgramToDelete(id);
   };
 
   const handleSelect = (action, iconSrc) => {
@@ -295,54 +318,58 @@ export const ProgramsTable = () => {
   const handleArchive = async () => {
     try {
       await backend.put(`/events/${programToDelete}`, {
-        archived: true
+        archived: true,
       });
       setPrograms((prev) => prev.filter((p) => p.id !== programToDelete));
       onClose();
-      
     } catch (error) {
       console.log("Couldn't deactivate", error);
     }
-  }
+  };
 
   const handleConfirm = async () => {
     if (selectedAction === "Archive") {
-      await handleArchive()
-    } else if (selectedAction === "Delete"){
-      await handleDelete();    
+      await handleArchive();
+    } else if (selectedAction === "Delete") {
+      await handleDelete();
     }
-  }
+  };
 
   // Delete Program and all related records
   const handleDelete = async () => {
-      try {
-        const response = await backend.delete(`/events/${programToDelete}`);
-        if (response.data.result === "success") {
-          setPrograms((prev) => prev.filter((p) => p.id !== programToDelete));
-          toast({
-            title: "Program deleted",
-            description:
-              "The program and all related records have been successfully deleted.",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-        } else {
-          throw new Error("Failed to delete program");
-        }
-      } catch (error) {
-        console.error("Failed to delete program:", error);
+    try {
+      const response = await backend.delete(`/events/${programToDelete}`);
+      if (response.data.result === "success") {
+        setPrograms((prev) => prev.filter((p) => p.id !== programToDelete));
         toast({
-          title: "Delete failed",
+          title: "Program deleted",
           description:
-            error.response?.data?.message ||
-            "An error occurred while deleting the program.",
-          status: "error",
+            "The program and all related records have been successfully deleted.",
+          status: "success",
           duration: 5000,
           isClosable: true,
         });
+      } else {
+        throw new Error("Failed to delete program");
       }
+    } catch (error) {
+      console.error("Failed to delete program:", error);
+      toast({
+        title: "Delete failed",
+        description:
+          error.response?.data?.message ||
+          "An error occurred while deleting the program.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
     onClose();
+  };
+
+  const handleSortChange = (key, order) => {
+    setSortKey(key);
+    setSortOrder(order);
   };
 
   const renderStatusIcon = (status) => {
@@ -396,20 +423,10 @@ export const ProgramsTable = () => {
                     alignItems="center"
                   >
                     <Text className="table-header-text">Program</Text>
-                    <VStack>
-                      <Box
-                        as="img"
-                        src={programSvg}
-                        boxSize="10px"
-                      />
-                      <Box
-                        as="img"
-                        src={programSvg}
-                        boxSize="10px"
-                        mt={-2}
-                        transform="rotate(180deg)"
-                      />
-                    </VStack>
+                    <ProgramSortingModal
+                      sortOption={sortOrder}
+                      onSortChange={handleSortChange}
+                    />
                   </HStack>
                 </Th>
 
@@ -427,18 +444,7 @@ export const ProgramsTable = () => {
                     <CalendarIcon />
                     <Text className="table-header-text">Upcoming Date</Text>
                     <VStack alignItems="center">
-                      <Box
-                        as="img"
-                        src={programSvg}
-                        boxSize="10px"
-                      />
-                      <Box
-                        as="img"
-                        src={programSvg}
-                        boxSize="10px"
-                        mt={-2}
-                        transform="rotate(180deg)"
-                      />
+                      <DateSortingModal onSortChange={handleSortChange} />
                     </VStack>
                   </HStack>
                 </Th>
@@ -486,7 +492,7 @@ export const ProgramsTable = () => {
             </Thead>
 
             <Tbody>
-              {filteredPrograms.length === 0 ? (
+              {sortedPrograms.length === 0 ? (
                 <Tr>
                   <Td
                     colSpan={8}
@@ -496,7 +502,7 @@ export const ProgramsTable = () => {
                   </Td>
                 </Tr>
               ) : (
-                filteredPrograms.map((program, idx) => {
+                sortedPrograms.map((program) => {
                   const rowClass = "programs-table__row--even";
                   return (
                     <Tr
@@ -538,7 +544,7 @@ export const ProgramsTable = () => {
                               icon={<Icon as={CancelIcon} />}
                               onClick={() => handleDeactivate(program.id)}
                             >
-                            Deactivate
+                              Deactivate
                             </MenuItem>
                           </MenuList>
                         </Menu>
@@ -551,102 +557,145 @@ export const ProgramsTable = () => {
           </Table>
         </TableContainer>
       </Box>
-      <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Deactivate Program?</ModalHeader>
-            <ModalBody>
-              <Alert status="error" borderRadius="md" p={4} display="flex" flexDirection="column">
-                <Box color="#90080F">
-                  <Flex alignitems="center">
-                    <Box color="#90080F0" mr={2} display="flex" alignItems = "center">
-                      <Info />
-                    </Box>
-                    <AlertTitle color="#90080F" fontSize="md" fontWeight = "500">The deactivation fee deadline for this program is <AlertDescription fontSize="md" fontWeight="bold">
-                      Thu. 1/2/2025.
-                      </AlertDescription>
-                    </AlertTitle>
-                  </Flex>
-                  <Flex mt={4} align="center" justify="center" width="100%">
-                    <Checkbox fontWeight="500" sx={{".chakra-checkbox__control": {bg: "white", border: "#D2D2D2"}}}>Waive fee</Checkbox>
-                  </Flex>
-                </Box>
-              </Alert>
-              <Box mt={4}>
-                <Text fontWeight="medium" mb={2}>
-                  Reason for Deactivation:
-                </Text>
-                <Textarea bg="#F0F1F4" placeholder="..." size="md" borderRadius="md" />
-              </Box>
-              <Box mt={4} display="flex" justifyContent="right">
-                <Menu>
-                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} bg="#F0F1F4" variant="outline" width="50%" justify="right">
-                    {selectedIcon} {selectedAction}
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem 
-                    icon={<Box display="inline-flex" alignItems="center">
-                      <Icon as={ArchiveIcon} boxSize={4} />
-                    </Box>}
-                    onClick ={() => handleSelect("Archive", ArchiveIcon)}
-                    display="flex"
-                    alignItems="center"
-                    >
-                      Archive
-                    </MenuItem>
-                    <MenuItem
-                    icon = {<DeleteIcon/>}
-                    onClick={() => handleSelect("Delete", <DeleteIcon/>)}
-                    >
-                      Delete
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-              </Box>
-            </ModalBody>
-            <ModalFooter>
-              <Button bg ="transparent" onClick={onClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
-              <Button onClick={handleConfirm} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
-            </ModalFooter>
-          </ModalContent>
-      </Modal>
-      {/* Delete Confirmation AlertDialog */}
-      {/*
-      <AlertDialog
+      <Modal
         isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
         onClose={onClose}
       >
-        <AlertDialogOverlay>
-          <AlertDialogContent className="edit-cancel-frame">
-            <AlertDialogHeader
-              fontSize="lg"
-              fontWeight="bold"
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Deactivate Program?</ModalHeader>
+          <ModalBody>
+            <Alert
+              status="error"
+              borderRadius="md"
+              p={4}
+              display="flex"
+              flexDirection="column"
             >
-              Delete Program
-            </AlertDialogHeader>
-            <AlertDialogBody>
-              Are you sure? You can&apos;t undo this action afterwards.
-            </AlertDialogBody>
-            <AlertDialogFooter>
-              <Button
-                ref={cancelRef}
-                onClick={onClose}
+              <Box color="#90080F">
+                <Flex alignitems="center">
+                  <Box
+                    color="#90080F0"
+                    mr={2}
+                    display="flex"
+                    alignItems="center"
+                  >
+                    <Info />
+                  </Box>
+                  <AlertTitle
+                    color="#90080F"
+                    fontSize="md"
+                    fontWeight="500"
+                  >
+                    The deactivation fee deadline for this program is{" "}
+                    <AlertDescription
+                      fontSize="md"
+                      fontWeight="bold"
+                    >
+                      Thu. 1/2/2025.
+                    </AlertDescription>
+                  </AlertTitle>
+                </Flex>
+                <Flex
+                  mt={4}
+                  align="center"
+                  justify="center"
+                  width="100%"
+                >
+                  <Checkbox
+                    fontWeight="500"
+                    sx={{
+                      ".chakra-checkbox__control": {
+                        bg: "white",
+                        border: "#D2D2D2",
+                      },
+                    }}
+                  >
+                    Waive fee
+                  </Checkbox>
+                </Flex>
+              </Box>
+            </Alert>
+            <Box mt={4}>
+              <Text
+                fontWeight="medium"
+                mb={2}
               >
-                Cancel
-              </Button>
-              <Button
-                colorScheme="red"
-                onClick={handleDelete}
-                ml={3}
-              >
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-      */}
+                Reason for Deactivation:
+              </Text>
+              <Textarea
+                bg="#F0F1F4"
+                placeholder="..."
+                size="md"
+                borderRadius="md"
+              />
+            </Box>
+            <Box
+              mt={4}
+              display="flex"
+              justifyContent="right"
+            >
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  rightIcon={<ChevronDownIcon />}
+                  bg="#F0F1F4"
+                  variant="outline"
+                  width="50%"
+                  justify="right"
+                >
+                  {selectedIcon} {selectedAction}
+                </MenuButton>
+                <MenuList>
+                  <MenuItem
+                    icon={
+                      <Box
+                        display="inline-flex"
+                        alignItems="center"
+                      >
+                        <Icon
+                          as={ArchiveIcon}
+                          boxSize={4}
+                        />
+                      </Box>
+                    }
+                    onClick={() => handleSelect("Archive", ArchiveIcon)}
+                    display="flex"
+                    alignItems="center"
+                  >
+                    Archive
+                  </MenuItem>
+                  <MenuItem
+                    icon={<DeleteIcon />}
+                    onClick={() => handleSelect("Delete", <DeleteIcon />)}
+                  >
+                    Delete
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              bg="transparent"
+              onClick={onClose}
+              color="#767778"
+              borderRadius="30px"
+              mr={3}
+            >
+              Exit
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              style={{ backgroundColor: "#90080F" }}
+              colorScheme="white"
+              borderRadius="30px"
+            >
+              Confirm
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };
