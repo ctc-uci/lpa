@@ -37,6 +37,8 @@ import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
+import { ProgramInformation } from "./programComponents/ProgramInformation"
+import { TimeFrequency } from "./programComponents/TimeFrequency"
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();
@@ -334,6 +336,8 @@ const payees = eventClientResponse.data
               </div>
             </div>
             <div id="innerBody">
+              <TimeFrequency/>
+
               <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
                 <div>
                   <Icon boxSize={6} fontSize="sm"><ClockFilledIcon/></Icon>
@@ -554,10 +558,10 @@ const payees = eventClientResponse.data
                 <p>{roomDescription}</p>
               </div>
 
-              <div id="information">
-                <h3>General Information</h3>
-                <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="#F6F6F6"></Textarea>
-              </div>
+              <ProgramInformation
+                generalInformation={generalInformation}
+                setGeneralInformation={setGeneralInformation}
+              />
             </div>
           </div>
         </div>
