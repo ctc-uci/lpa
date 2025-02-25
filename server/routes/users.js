@@ -1,8 +1,10 @@
 import express, { Router } from "express";
+
 import { keysToCamel } from "../common/utils";
 import { admin } from "../config/firebase";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
 import { verifyRole } from "../src/middleware";
+
 
 const usersRouter = Router();
 usersRouter.use(express.json());
@@ -13,85 +15,6 @@ usersRouter.get("/", async (req, res) => {
     const users = await db.query(`SELECT * FROM users ORDER BY id ASC`);
 
     res.status(200).json(keysToCamel(users));
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
-
-// Get a user by ID
-usersRouter.get("/:firebaseUid", async (req, res) => {
-  try {
-    const { firebaseUid } = req.params;
-
-    const user = await db.query("SELECT * FROM users WHERE firebase_uid = $1", [
-      firebaseUid,
-    ]);
-
-    res.status(200).json(keysToCamel(user));
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
-
-// Delete a user by ID, both in Firebase and NPO DB
-usersRouter.delete("/:firebaseUid", async (req, res) => {
-  try {
-    const { firebaseUid } = req.params;
-
-    await admin.auth().deleteUser(firebaseUid);
-    const user = await db.query("DELETE FROM users WHERE firebase_uid = $1", [
-      firebaseUid,
-    ]);
-
-    res.status(200).json(keysToCamel(user));
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
-
-// Delete a user by their account ID (not based on Firebase Uid)
-usersRouter.delete("/id/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // first delete all associated comments
-    await db.query("DELETE FROM comments WHERE user_id = $1", [id]); // theres a foreign key constraint, comments requires a user_id to exist, so must delete all comments associated first
-    // then delete the user
-    await db.query("DELETE FROM users WHERE id = $1", [id]);
-
-    res.status(200).json({ result: "success" });
-  } catch (err) {
-    res.status(400).json({ result: "error" });
-  }
-});
-
-// Create user
-usersRouter.post("/create", async (req, res) => {
-  try {
-    const { email, firebaseUid, first_name, last_name } = req.body;
-
-    const user = await db.query(
-      "INSERT INTO users (email, firebase_uid, first_name, last_name, edit_perms) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-      [email, firebaseUid, first_name, last_name, false]
-    );
-
-    res.status(200).json(keysToCamel(user));
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-// Update a user by ID
-usersRouter.put("/update", async (req, res) => {
-  try {
-    const { email, firebaseUid } = req.body;
-
-    const user = await db.query(
-      "UPDATE users SET email = $1 WHERE firebase_uid = $2 RETURNING *",
-      [email, firebaseUid]
-    );
-
-    res.status(200).json(keysToCamel(user));
   } catch (err) {
     res.status(400).send(err.message);
   }
@@ -108,15 +31,14 @@ usersRouter.get("/admin/all", verifyRole("admin"), async (req, res) => {
   }
 });
 
-// Update a user's role
-usersRouter.put("/update/set-role", verifyRole("admin"), async (req, res) => {
+// Get a user by ID
+usersRouter.get("/:firebaseUid", async (req, res) => {
   try {
-    const { role, firebaseUid } = req.body;
+    const { firebaseUid } = req.params;
 
-    const user = await db.query(
-      "UPDATE users SET role = $1 WHERE firebase_uid = $2 RETURNING *",
-      [role, firebaseUid]
-    );
+    const user = await db.query("SELECT * FROM users WHERE firebase_uid = $1", [
+      firebaseUid,
+    ]);
 
     res.status(200).json(keysToCamel(user));
   } catch (err) {
@@ -185,6 +107,54 @@ usersRouter.post("/", async (req, res) => {
   }
 });
 
+// Create user
+usersRouter.post("/create", async (req, res) => {
+  try {
+    const { email, firebaseUid, first_name, last_name } = req.body;
+
+    const user = await db.query(
+      "INSERT INTO users (email, firebase_uid, first_name, last_name, edit_perms) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [email, firebaseUid, first_name, last_name, false]
+    );
+
+    res.status(200).json(keysToCamel(user));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Update a user by ID
+usersRouter.put("/update", async (req, res) => {
+  try {
+    const { email, firebaseUid } = req.body;
+
+    const user = await db.query(
+      "UPDATE users SET email = $1 WHERE firebase_uid = $2 RETURNING *",
+      [email, firebaseUid]
+    );
+
+    res.status(200).json(keysToCamel(user));
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
+// Update a user's role
+usersRouter.put("/update/set-role", verifyRole("admin"), async (req, res) => {
+  try {
+    const { role, firebaseUid } = req.body;
+
+    const user = await db.query(
+      "UPDATE users SET role = $1 WHERE firebase_uid = $2 RETURNING *",
+      [role, firebaseUid]
+    );
+
+    res.status(200).json(keysToCamel(user));
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
 // Update a user by ID
 usersRouter.put('/:id', async (req, res) => {
   try {
@@ -218,6 +188,38 @@ usersRouter.put('/:id', async (req, res) => {
 
   } catch (err) {
     res.status(500).send(err.message);
+  }
+});
+
+// Delete a user by ID, both in Firebase and NPO DB
+usersRouter.delete("/:firebaseUid", async (req, res) => {
+  try {
+    const { firebaseUid } = req.params;
+
+    await admin.auth().deleteUser(firebaseUid);
+    const user = await db.query("DELETE FROM users WHERE firebase_uid = $1", [
+      firebaseUid,
+    ]);
+
+    res.status(200).json(keysToCamel(user));
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
+// Delete a user by their account ID (not based on Firebase Uid)
+usersRouter.delete("/id/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // first delete all associated comments
+    await db.query("DELETE FROM comments WHERE user_id = $1", [id]); // theres a foreign key constraint, comments requires a user_id to exist, so must delete all comments associated first
+    // then delete the user
+    await db.query("DELETE FROM users WHERE id = $1", [id]);
+
+    res.status(200).json({ result: "success" });
+  } catch (err) {
+    res.status(400).json({ result: "error" });
   }
 });
 
