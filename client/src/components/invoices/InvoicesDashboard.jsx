@@ -72,7 +72,7 @@ const InvoicesDashboard = () => {
   useEffect(() => {
     const fetchInvoicesData = async () => {
       try {
-        let invoicesResponse = await backend.get("/invoicesAssignments/");
+        const invoicesResponse = await backend.get("/invoicesAssignments/");
         const invoices = invoicesResponse.data.map(invoice => {
           return {
             ...invoice,
