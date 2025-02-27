@@ -1,104 +1,70 @@
-import { Box, Flex, Icon, Link, Text, VStack } from "@chakra-ui/react";
+import { Box, Flex, VStack } from "@chakra-ui/react";
 
 import { IoMdCalendar } from "react-icons/io";
 import { MdNotifications, MdSettings } from "react-icons/md";
-import { TbInvoice } from "react-icons/tb";
+import { useLocation } from "react-router-dom";
 
-import { Logo } from "../../assets/logo/Logo";
+import { DocumentIcon } from "../../assets/DocumentIcon";
+import NavBarButton from "./NavBarButton";
 
 import "./Navbar.css";
 
-const Navbar = ({ children, notificationsCount, currentPage = "" }) => {
+import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
+
+const Navbar = ({ children, notificationsCount }) => {
+  // Get current location from React Router
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const menuItems = [
-    { name: "Programs", path: "/programs", icon: <IoMdCalendar /> },
-    { name: "Invoices", path: "/invoices", icon: <TbInvoice /> },
+    { name: "Programs", path: "/programs", icon: <NavCalendarIcon /> },
+    { name: "Invoices", path: "/invoices", icon: <DocumentIcon /> },
     {
       name: "Notifications",
       path: "/notifications",
       icon: <MdNotifications />,
       count: notificationsCount,
+      fontSize: "xl",
     },
-    { name: "Settings", path: "/settings", icon: <MdSettings /> },
+    {
+      name: "Settings",
+      path: "/settings",
+      icon: <MdSettings size="23px" />,
+      fontSize: "xl",
+    },
   ];
 
-  console.log(currentPage)
   return (
     <div id="navbarBody">
       <Box
-        w="18%"
-        maxW={250}
+        w="112px"
         bg="white"
         boxShadow="lg"
-        bgColor="#F6F6F6"
+        bgColor="#FFF"
         height="100vh"
         position="fixed"
+        zIndex={10}
+        className="navbar-container"
+        marginTop="32px"
       >
-        <Flex
-          justify="center"
-          p={10}
-          pb={7}
-        >
-          <Logo></Logo>
-        </Flex>
-
         <VStack
-          spacing={2}
+          spacing={4}
           align="stretch"
-          px={4}
+          px={2}
         >
           {menuItems.map((item) => (
-            <div
+            <NavBarButton
               key={item.name}
-              className="navItem"
-              color={
-                currentPage === item.name.toLowerCase() ? "#4441C8" : "#767778"
+              item={item}
+              isActive={
+                currentPath === item.path ||
+                (currentPath.startsWith(item.path + "/") && item.path !== "/")
               }
-            >
-              <Link
-                href={item.path}
-                display="flex"
-                alignItems="center"
-                px={4}
-                py={3}
-                rounded="lg"
-                className="navLink"
-              >
-                <Icon
-                  className="navIcon"
-                  fontSize="2xl"
-                  color={
-                    currentPage === item.name.toLowerCase()
-                      ? "#4441C8"
-                      : "#767778"
-                  }
-                >
-                  {item.icon}
-                </Icon>
-                <Text className={currentPage === item.name.toLowerCase() ? "navTextChosen" : "navText"} >{item.name}</Text>
-                {item.count !== null && item.count !== undefined && (
-                  <Box
-                    marginLeft="10px"
-                    height="30px"
-                    textAlign="center"
-                    fontSize="15px"
-                    fontWeight="medium"
-                    color="#FFF"
-                    padding="5px"
-                    borderRadius="5px"
-                    background="#4E4AE7"
-                    width="auto"
-                  >
-                    {item.count}
-                  </Box>
-                )}
-              </Link>
-            </div>
+            />
           ))}
         </VStack>
       </Box>
-      <div style={{ width: "100%", paddingLeft: "min(18%, 250px)" }}>
-        {children}
-      </div>
+      <div style={{ width: "100%", paddingLeft: "112px" }}>{children}</div>
     </div>
   );
 };
