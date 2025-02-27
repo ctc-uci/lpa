@@ -122,8 +122,6 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
     const [roomRate, setRoomRate] = useState(parseFloat(room.rate).toFixed(2));
     const [roomDescription, setRoomDescription] = useState(room.description);
 
-    // const [prevRoomName, setPrevRoomName] = useState(room.name);
-
     const { isOpen: isCancelModalOpen, onOpen: onCancelModalOpen, onClose: onCancelModalClose } = useDisclosure()
     const { isOpen: isSaveModalOpen, onOpen: onSaveModalOpen, onClose: onSaveModalClose } = useDisclosure()
 
@@ -166,8 +164,6 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
             const savedRoom = { id: newRoomResponse.data[0].id, ...updatedRoom };
             onSave(savedRoom);
         }
-
-        // setPrevRoomName(roomName);
         onSaveModalClose();
         setIsEditing(false);
     };
@@ -176,7 +172,6 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
         setRoomName(room.name);
         setRoomRate(parseFloat(room.rate).toFixed(2));
         setRoomDescription(room.description);
-        // setPrevRoomName(room.name);
     }, [room]);
 
     console.log(room);
