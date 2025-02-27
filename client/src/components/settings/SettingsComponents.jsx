@@ -140,27 +140,34 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
     }
 
     const handleSave = async () => {
-        console.log("Room")
-        console.log(room);
         const updatedRoom = {
             name: roomName,
             rate: roomRate,
             description: roomDescription
         };
-        console.log("Updated Room")
-        console.log(updatedRoom)
+
         if (room.id) {
             await backend.put("/rooms/" + room.id, updatedRoom);
+            if (onSave) {
+                onSave({ id: room.id, ...updatedRoom });
+            }
         } else {
             const newRoomResponse = await backend.post("/rooms", updatedRoom);
-            room.id = newRoomResponse.data[0].id;
-            onSave({ id: room.id, ...updatedRoom });
+            const savedRoom = { id: newRoomResponse.data[0].id, ...updatedRoom };
+            onSave(savedRoom);
         }
-        room = updatedRoom;
+
         setPrevRoomName(roomName);
         onSaveModalClose();
         setIsEditing(false);
-    }
+    };
+
+    useEffect(() => {
+        setRoomName(room.name);
+        setRoomRate(parseFloat(room.rate).toFixed(2));
+        setRoomDescription(room.description);
+        setPrevRoomName(room.name);
+    }, [room]);
 
     console.log(room);
 
@@ -295,6 +302,20 @@ const RoomsSettings = () => {
         setNewRoom(null);
     }
 
+    const handleSaveOrUpdateRoom = (updatedRoom) => {
+        setRooms(prevRooms => {
+            const roomIndex = prevRooms.findIndex(r => r.id === updatedRoom.id);
+            if (roomIndex >= 0) {
+                // Update existing room
+                return prevRooms.map(r => r.id === updatedRoom.id ? updatedRoom : r);
+            }
+            // Add new room
+            return [...prevRooms, updatedRoom];
+        });
+        setNewRoom(null);
+    };
+
+
     return (
         <Flex direction="column">
             <Flex alignItems="center">
@@ -321,14 +342,21 @@ const RoomsSettings = () => {
                 color="#718096"
             >
                 {
-                    rooms.map(room => <RoomSettings key={room.id} room={room} />)
+                    // rooms.map(room => <RoomSettings key={room.id} room={room} />)
+                    rooms.map(room => (
+                        <RoomSettings
+                            key={room.id}
+                            room={room}
+                            onSave={handleSaveOrUpdateRoom}
+                        />
+                    ))
                 }
                 {
                     newRoom && (
                         <RoomSettings
                             room={newRoom}
                             isInitiallyEditing={true}
-                            onSave={handleSaveNewRoom}
+                            onSave={handleSaveOrUpdateRoom}
                             onCancel={handleCancelNewRoom} />
                     )
                 }
