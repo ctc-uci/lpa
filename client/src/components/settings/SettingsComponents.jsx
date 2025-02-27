@@ -117,16 +117,33 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
     const { backend } = useBackendContext();
 
     const [isEditing, setIsEditing] = useState(isInitiallyEditing);
-    const [isInvalidNumericInput, setInvalidNumericInput] = useState(false);
+
+    const isInitiallyInvalid = room.id ? false : true;
+    const [isInvalidRoomName, setInvalidRoomName] = useState(isInitiallyInvalid);
+    const [isInvalidNumericInput, setInvalidNumericInput] = useState(isInitiallyInvalid);
+    const [isInvalidDescription, setInvalidDescription] = useState(isInitiallyInvalid);
+
     const [roomName, setRoomName] = useState(room.name);
     const [roomRate, setRoomRate] = useState(parseFloat(room.rate).toFixed(2));
     const [roomDescription, setRoomDescription] = useState(room.description);
 
+    const [originalRoomName, setOriginalRoomName] = useState(room.name);
+
     const { isOpen: isCancelModalOpen, onOpen: onCancelModalOpen, onClose: onCancelModalClose } = useDisclosure()
     const { isOpen: isSaveModalOpen, onOpen: onSaveModalOpen, onClose: onSaveModalClose } = useDisclosure()
 
+    const handleRoomNameEdit = (e) => {
+        if (e.target.value === "") {
+            setInvalidRoomName(true);
+        }
+        else {
+            setInvalidRoomName(false);
+        }
+        setRoomName(e.target.value);
+    }
+
     const handleNumericInputEdit = (value) => {
-        if (value[0] === "e") {
+        if (value[0] === "e" || value === "") {
             setInvalidNumericInput(true);
         } else {
             setInvalidNumericInput(false);
@@ -134,14 +151,26 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
         setRoomRate(value);
     }
 
+    const handleDescription = (e) => {
+        if (e.target.value === "") {
+            setInvalidDescription(true);
+        } else {
+            setInvalidDescription(false);
+        }
+        setRoomDescription(e.target.value);
+    }
+
     const handleCancel = () => {
-        console.log(room);
         if (!room.id) {
             onCancel();
         } else {
-            setRoomName(room.name);
+            setRoomName(originalRoomName);
+            // setRoomName(room.name);
             setRoomRate(parseFloat(room.rate).toFixed(2));
             setRoomDescription(room.description);
+            setInvalidRoomName(false);
+            setInvalidNumericInput(false);
+            setInvalidDescription(false);
             setIsEditing(false);
         }
         onCancelModalClose();
@@ -159,6 +188,7 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
             if (onSave) {
                 onSave({ id: room.id, ...updatedRoom });
             }
+            setOriginalRoomName(roomName);
         } else {
             const newRoomResponse = await backend.post("/rooms", updatedRoom);
             const savedRoom = { id: newRoomResponse.data[0].id, ...updatedRoom };
@@ -173,8 +203,6 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
         setRoomRate(parseFloat(room.rate).toFixed(2));
         setRoomDescription(room.description);
     }, [room]);
-
-    console.log(room);
 
     return (
         <VStack
@@ -193,9 +221,11 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
                             maxW="18rem"
                             marginLeft="0.75rem"
                             value={roomName}
-                            onChange={(e) => { setRoomName(e.target.value) }}
+                            onChange={handleRoomNameEdit}
                             placeholder="Add room name here..."
-                            style={{ fontWeight: "bold" }}>
+                            style={{ fontWeight: "bold" }}
+                            isInvalid={isInvalidRoomName}
+                        >
                         </Input>
                     ) : (
                         <Text marginLeft="0.75rem" as="b">
@@ -246,7 +276,7 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
                                         handleSave();
                                     }
                                 }}
-                                isDisabled={isInvalidNumericInput}>
+                                isDisabled={isInvalidRoomName || isInvalidNumericInput || isInvalidDescription}>
                                 <Text color="#FFFFFF">
                                     Save
                                 </Text>
@@ -263,7 +293,8 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
                     isOpen={isCancelModalOpen}
                     onClose={onCancelModalClose}
                     title="Discard changes?"
-                    body={`Your edits to the ${roomName || "new"} room will not be saved.`}
+                    // body={`Your edits to the ${roomName || "new"} room will not be saved.`}
+                    body={`Your edits to the ${room.id ? originalRoomName : roomName || "new"} room will not be saved.`}
                     onConfirm={handleCancel}
                     primaryButtonBackgroundColor="#90080F"
                 />
@@ -282,7 +313,7 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
             </Flex>
             {
                 isEditing ? (
-                    <Textarea value={roomDescription} onChange={(e) => { setRoomDescription(e.target.value) }} />
+                    <Textarea value={roomDescription} onChange={handleDescription} isInvalid={isInvalidDescription} />
                 ) : (
                     <Text>{roomDescription}</Text>
                 )
