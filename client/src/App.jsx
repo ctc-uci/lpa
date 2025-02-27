@@ -32,7 +32,8 @@ import { RoleProvider } from "./contexts/RoleContext";
 import { Home } from "./components/home/Home";
 import { EditBooking } from "./components/bookings/EditBooking";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
-import { Settings } from "./components/settings/Settings";
+// import { Settings } from "./components/settings/Settings";
+import { Settings } from "./components/settings/TemporarySettings";
 
 const App = () => {
   return (
