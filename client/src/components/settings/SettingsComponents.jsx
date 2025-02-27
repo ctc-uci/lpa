@@ -117,14 +117,24 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
     const { backend } = useBackendContext();
 
     const [isEditing, setIsEditing] = useState(isInitiallyEditing);
+    const [isInvalidNumericInput, setInvalidNumericInput] = useState(false);
     const [roomName, setRoomName] = useState(room.name);
     const [roomRate, setRoomRate] = useState(parseFloat(room.rate).toFixed(2));
     const [roomDescription, setRoomDescription] = useState(room.description);
 
-    const [prevRoomName, setPrevRoomName] = useState(room.name);
+    // const [prevRoomName, setPrevRoomName] = useState(room.name);
 
     const { isOpen: isCancelModalOpen, onOpen: onCancelModalOpen, onClose: onCancelModalClose } = useDisclosure()
     const { isOpen: isSaveModalOpen, onOpen: onSaveModalOpen, onClose: onSaveModalClose } = useDisclosure()
+
+    const handleNumericInputEdit = (value) => {
+        if (value[0] === "e") {
+            setInvalidNumericInput(true);
+        } else {
+            setInvalidNumericInput(false);
+        }
+        setRoomRate(value);
+    }
 
     const handleCancel = () => {
         console.log(room);
@@ -157,7 +167,7 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
             onSave(savedRoom);
         }
 
-        setPrevRoomName(roomName);
+        // setPrevRoomName(roomName);
         onSaveModalClose();
         setIsEditing(false);
     };
@@ -166,7 +176,7 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
         setRoomName(room.name);
         setRoomRate(parseFloat(room.rate).toFixed(2));
         setRoomDescription(room.description);
-        setPrevRoomName(room.name);
+        // setPrevRoomName(room.name);
     }, [room]);
 
     console.log(room);
@@ -209,7 +219,8 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
                                 marginLeft="0.25rem"
                                 precision={2}
                                 value={roomRate}
-                                onChange={(value) => { setRoomRate(value) }}
+                                onChange={handleNumericInputEdit}
+                                isInvalid={isInvalidNumericInput}
                             >
                                 <NumberInputField fontWeight="bold" />
                             </NumberInput>
@@ -229,7 +240,18 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
                                     Cancel
                                 </Text>
                             </Button>
-                            <Button marginLeft="0.75rem" padding="0rem 1.25rem" backgroundColor="#4441C8" onClick={() => { onSaveModalOpen() }}>
+                            <Button
+                                marginLeft="0.75rem"
+                                padding="0rem 1.25rem"
+                                backgroundColor="#4441C8"
+                                onClick={() => {
+                                    if (room.id) {
+                                        onSaveModalOpen();
+                                    } else {
+                                        handleSave();
+                                    }
+                                }}
+                                isDisabled={isInvalidNumericInput}>
                                 <Text color="#FFFFFF">
                                     Save
                                 </Text>
@@ -246,18 +268,22 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
                     isOpen={isCancelModalOpen}
                     onClose={onCancelModalClose}
                     title="Discard changes?"
-                    body={`Your edits to the ${prevRoomName || "new"} room will not be saved.`}
+                    body={`Your edits to the ${roomName || "new"} room will not be saved.`}
                     onConfirm={handleCancel}
                     primaryButtonBackgroundColor="#90080F"
                 />
-                <ConfirmationModal
-                    isOpen={isSaveModalOpen}
-                    onClose={onSaveModalClose}
-                    title={`Save changes to ${prevRoomName || "new"} room?`}
-                    body="Editing this room will affect all upcoming sessions, programs, and invoices that have not been generated yet."
-                    onConfirm={handleSave}
-                    primaryButtonBackgroundColor="#4441C8"
-                />
+                {
+                    room.id && (
+                        <ConfirmationModal
+                            isOpen={isSaveModalOpen}
+                            onClose={onSaveModalClose}
+                            title={`Save changes to ${roomName || "new"} room?`}
+                            body="Editing this room will affect all upcoming sessions, programs, and invoices that have not been generated yet."
+                            onConfirm={handleSave}
+                            primaryButtonBackgroundColor="#4441C8"
+                        />
+                    )
+                }
             </Flex>
             {
                 isEditing ? (
@@ -301,10 +327,8 @@ const RoomsSettings = () => {
         setRooms(prevRooms => {
             const roomIndex = prevRooms.findIndex(r => r.id === updatedRoom.id);
             if (roomIndex >= 0) {
-                // Update existing room
                 return prevRooms.map(r => r.id === updatedRoom.id ? updatedRoom : r);
             }
-            // Add new room
             return [...prevRooms, updatedRoom];
         });
         setNewRoom(null);
@@ -337,7 +361,6 @@ const RoomsSettings = () => {
                 color="#718096"
             >
                 {
-                    // rooms.map(room => <RoomSettings key={room.id} room={room} />)
                     rooms.map(room => (
                         <RoomSettings
                             key={room.id}
