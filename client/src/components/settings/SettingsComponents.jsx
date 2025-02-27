@@ -297,11 +297,6 @@ const RoomsSettings = () => {
         setNewRoom(null);
     }
 
-    const handleSaveNewRoom = (newRoom) => {
-        setRooms([...rooms, newRoom]);
-        setNewRoom(null);
-    }
-
     const handleSaveOrUpdateRoom = (updatedRoom) => {
         setRooms(prevRooms => {
             const roomIndex = prevRooms.findIndex(r => r.id === updatedRoom.id);

@@ -11,13 +11,11 @@ import {
     Text
 } from "@chakra-ui/react";
 
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { GeneralSettings } from "./SettingsComponents";
 
 export const Settings = () => {
     const [selectedComponent, setSelectedComponent] = useState("general");
-    const { backend } = useBackendContext();
     return (
         <Navbar>
             <Box margin="0px" padding="2.5rem 5rem">
