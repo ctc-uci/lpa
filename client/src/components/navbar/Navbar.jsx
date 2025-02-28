@@ -1,20 +1,22 @@
 import { Box, Flex, VStack } from "@chakra-ui/react";
-
+import { createContext } from "react";
 import { IoMdCalendar } from "react-icons/io";
 import { MdNotifications, MdSettings } from "react-icons/md";
 import { useLocation } from "react-router-dom";
-
 import { DocumentIcon } from "../../assets/DocumentIcon";
 import NavBarButton from "./NavBarButton";
-
 import "./Navbar.css";
-
 import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
+import { useCount } from '../../CountContext';
+import { useEffect } from "react";
 
-const Navbar = ({ children, notificationsCount }) => {
+
+
+const Navbar = ({ children }) => {
   // Get current location from React Router
   const location = useLocation();
   const currentPath = location.pathname;
+  const { count } = useCount();
 
   const menuItems = [
     { name: "Programs", path: "/programs", icon: <NavCalendarIcon /> },
@@ -23,7 +25,7 @@ const Navbar = ({ children, notificationsCount }) => {
       name: "Notifications",
       path: "/notifications",
       icon: <MdNotifications />,
-      count: notificationsCount,
+      count: count,
       fontSize: "xl",
     },
     {

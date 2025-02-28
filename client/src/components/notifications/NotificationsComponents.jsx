@@ -6,8 +6,6 @@ import { format } from "date-fns";
 import { MdEmail } from "react-icons/md";
 
 const NotificationsComponents = ({ notifications }) => {
-  console.log(notifications);
-
   const paymentText = (eventName, payStatus) => {
     if (payStatus === "overdue") {
       return (

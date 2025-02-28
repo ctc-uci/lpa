@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-
 import { formatDistanceToNow } from "date-fns";
-
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { CounterComponent } from "./Counter";
@@ -42,8 +40,6 @@ export const Notifications = () => {
         );
 
         const notifsData = responses.flatMap((res) => res.data);
-
-        console.log(notifsData);
 
         // Fetch additional data for each invoice (total, paid, event name)
         const enrichedInvoices = await Promise.all(
@@ -100,7 +96,7 @@ export const Notifications = () => {
   }, [filterType, backend]);
 
   return (
-    <Navbar notificationsCount={notifications.length} currentPage="notifications">
+    <Navbar currentPage="notifications">
       <div
         style={{
           marginLeft: "57px",
