@@ -28,7 +28,8 @@ const NavBarButton = ({ item, isActive }) => {
           <Flex
             alignItems="center"
             justifyContent="center"
-            width="90px"
+            width="70%"
+            marginLeft="15%"
             py={3}
             rounded="lg"
             className="navLink icon-container"

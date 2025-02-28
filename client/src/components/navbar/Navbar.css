@@ -19,6 +19,7 @@
 
 .navLink {
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .navIcon {
@@ -37,7 +38,6 @@
 /* Popup button styles */
 .nav-item-wrapper {
   position: relative;
-  padding: 0 8px;
 }
 
 .popup-button {
