@@ -37,6 +37,7 @@ import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
+import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { TimeFrequency } from "./programComponents/TimeFrequency"
 
@@ -553,10 +554,9 @@ const payees = eventClientResponse.data
                 </div>
               </div>
 
-              <div id="roomDescription">
-                <h3>Room Description</h3>
-                <p>{roomDescription}</p>
-              </div>
+              <RoomInformation 
+                roomDescription={roomDescription}
+              />
 
               <ProgramInformation
                 generalInformation={generalInformation}
