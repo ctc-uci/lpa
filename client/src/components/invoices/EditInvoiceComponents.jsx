@@ -1,147 +1,250 @@
-import { format } from 'date-fns';
-import React, { useState } from 'react';
-import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
+import React, { useState } from "react";
+
 import {
-  Button,
   Box,
+  Button,
   Flex,
+  Heading,
+  HStack,
+  Image,
+  Input,
+  Link,
   Select,
+  SimpleGrid,
+  Stack,
   Table,
   Tbody,
   Td,
   Text,
-  Thead,
   Th,
+  Thead,
   Tr,
-  Link,
   VStack,
-  Heading,
-  HStack,
-  Image,
-  SimpleGrid,
-  Input
-  } from '@chakra-ui/react'
+} from "@chakra-ui/react";
 
-import logo from '../../assets/logo/logo.png';
+import { format } from "date-fns";
+import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
+
+import logo from "../../assets/logo/logo.png";
 
 const EditInvoiceTitle = () => {
   return (
-    <Flex direction={{base: "column", md: "row"}} justify="space-between" align="center" mb={8} gap={16}>
-      <Image 
-          src={logo} 
-          alt="La Peña Logo" 
-          w="200px"
-      />
-
-      <VStack align="flex-start" spacing={0}>
-          <Heading size="xl">RENTAL INVOICE</Heading>
-          <Text fontSize="sm">La Peña Cultural Center</Text>
-          <Text fontSize="sm">3105 Shattuck Ave., Berkeley, CA 94705</Text>
-          <Text fontSize="sm">lapena.org</Text>
-      </VStack>
+    <Flex
+      justifyContent="space-between"
+      my="8"
+      mx="8"
+      fontFamily="Inter"
+      color="#2D3748"
+    >
+      <Stack>
+        <Heading
+          color="#2D3748"
+          fontWeight="600"
+          fontSize="45px"
+        >
+          INVOICE
+        </Heading>
+        <Text
+          color="#718096"
+          fontSize="16px"
+        >
+          Generated on 10/25/2025
+        </Text>
+      </Stack>
+      <Flex
+        direction={{ base: "column", md: "row" }}
+        justify="end"
+        align="center"
+        gap="4"
+      >
+        <VStack
+          align="flex-end"
+          spacing={0}
+        >
+          <Text fontSize="16px">La Peña Cultural Center</Text>
+          <Text fontSize="16px">3105 Shattuck Ave., Berkeley, CA 94705</Text>
+          <Text fontSize="16px">lapena.org</Text>
+        </VStack>
+        <Image
+          src={logo}
+          alt="La Peña Logo"
+          w="125px"
+        />
+      </Flex>
     </Flex>
-  )
-}
+  );
+};
 
 const EditInvoiceDetails = ({ instructors, programName, payees }) => {
   return (
-    <VStack spacing={6} align="stretch" mb={8}>
-        <Heading textAlign="center" size="lg">Classroom Rental Monthly Statement</Heading>
-        
-        <SimpleGrid columns={{base: 1, md: 2}} spacing={6}>
-            {/* Left column */}
-            <VStack align="stretch" flex={1}>
-                <Text fontWeight="bold">Recurring Program:</Text>
-                <Input 
-                placeholder="Program Name"
-                size="sm"
-                value={programName}
-                readOnly
-                />
-                <VStack align="stretch" flex={1} maxH="120px" overflowY="auto">
-                <Text fontWeight="bold">Designated Payers:</Text>
-                    {payees && payees.length > 0 ? (
-                    payees.map((payee, index) => (
-                        <Input 
-                            value={`${payee.name} - ${payee.email}`}
-                            size="md"
-                            mr={2}
-                            borderRadius="0"
-                        />
-                    
-                    ))
-                ) : (
-                    <Text>No payees found.</Text>
-                )}
-                </VStack>
-            </VStack>
-            
-            
-            {/* Right column */}
-            <HStack align="flex-start">
-            <VStack align="stretch" flex={1} maxH="195px" overflowY="auto">
-                <Text fontWeight="bold">Lead Artist(s):</Text>
+    <VStack
+      spacing={6}
+      align="stretch"
+      mb={8}
+      fontFamily="Inter"
+      color="#2D3748"
+    >
+      <VStack gap="0">
+        <Heading
+          textAlign="center"
+          size="lg"
+        >
+          Classroom Rental Monthly Statement
+        </Heading>
+        <Heading
+          size="sm"
+          textAlign="center"
+          color="#2D3748"
+        >
+          October 2025
+        </Heading>
+      </VStack>
 
+      <SimpleGrid
+        columns={{ base: 1, md: 2 }}
+        spacing={6}
+      >
+        {/* Left column */}
+        <VStack
+          align="stretch"
+          flex={1}
+        >
+          <Text fontWeight="bold">Recurring Program:</Text>
+          <Text size="sm">programName</Text>
+          <VStack
+            align="stretch"
+            flex={1}
+            maxH="120px"
+            overflowY="auto"
+          >
+            <Text fontWeight="bold">Designated Payers:</Text>
+            {payees && payees.length > 0 ? (
+              payees.map((payee, index) => (
+                <Text
+                  size="md"
+                  mr={2}
+                  borderRadius="0"
+                >
+                  {payee.name} - {payee.email}
+                </Text>
+              ))
+            ) : (
+              <Text>No payees found.</Text>
+            )}
+          </VStack>
+        </VStack>
 
-              {instructors && instructors.length > 0 ? (
-                instructors.map((instructor, index) => (
+        {/* Right column */}
+        <HStack align="flex-start">
+          <VStack
+            align="stretch"
+            flex={1}
+            maxH="195px"
+            overflowY="auto"
+          >
+            <Text fontWeight="bold">Lead Artist(s):</Text>
+
+            {instructors && instructors.length > 0 ? (
+              instructors.map((instructor, index) => (
                 <HStack>
-                    <Input 
-                      value={instructor.name}
-                      size="sm"
-                      mr={2}
-                    />
-                    <Input 
-                      value={instructor.email}
-                      size="sm"
-                      mr={2}
-                    />
-              </HStack>
-                  
-                ))
-              ) : (
-                <Text>No instructors found.</Text>
-              )}
-            </VStack>
-
-            </HStack>
-        </SimpleGrid>
+                  <Text
+                    size="sm"
+                    mr={2}
+                  >
+                    {instructor.name} - {instructor.email}
+                  </Text>
+                </HStack>
+              ))
+            ) : (
+              <Text>No instructors found.</Text>
+            )}
+          </VStack>
+        </HStack>
+      </SimpleGrid>
     </VStack>
-  )
-}
+  );
+};
 
-const StatementComments = ({ comments = [], subtotal = 0.0 }) => {
+const StatementComments = ({
+  comments = [],
+  booking = [],
+  room = [],
+  subtotal = 0.0,
+}) => {
+  // console.log("COMMENTS",comments)
+  //   console.log("BOOKING",booking)
+  // console.log("ROOM",room)
+
   return (
-    <Flex direction="column" w="100%" minH="24">
+    <Flex
+      direction="column"
+      w="100%"
+      minH="24"
+      fontFamily="Inter"
+      color="#2D3748"
+    >
+      <Heading
+        fontSize="22px"
+        mb="4"
+      >
+        Sessions
+      </Heading>
       <Flex
-        borderRadius={0}
-        borderWidth=".07em"
-        borderColor="#000"
+        border="1px solid #D2D2D2"
+        borderRadius="18px"
         minH="24"
       >
-        <Table color="#EDF2F7">
+        <Table
+          color="#EDF2F7"
+          style={{ tableLayout: "fixed", width: "100%" }}
+          textAlign="center"
+        >
           <Thead>
-            <Tr>
-              <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none" color="#000">
+            <Tr
+              color="#4A5568"
+              as="b"
+            >
+              <Th
+                textTransform="none"
+                width="14%"
+                textAlign="center"
+              >
                 Date
               </Th>
-              <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none" color="#000">
+              <Th
+                textTransform="none"
+                width="18%"
+                textAlign="center"
+              >
                 Classroom
               </Th>
-              <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none" color="#000">
+              <Th
+                textTransform="none"
+                width="18%"
+                textAlign="center"
+              >
                 Rental Hours
               </Th>
-              <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none" color="#000">
-                Hourly Fee
+              <Th
+                textTransform="none"
+                width="16%"
+                textAlign="center"
+              >
+                Room Fee
               </Th>
-              <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none" color="#000">
+              <Th
+                textTransform="none"
+                width="18%"
+                textAlign="center"
+              >
+                Adjustment Type(s)
+              </Th>
+              <Th
+                textTransform="none"
+                width="16%"
+                textAlign="center"
+              >
                 Total
-              </Th>
-              <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none" color="#000">
-                Adjustments
-              </Th>
-              <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none" color="#000">
-                Comments
               </Th>
             </Tr>
           </Thead>
@@ -149,82 +252,115 @@ const StatementComments = ({ comments = [], subtotal = 0.0 }) => {
             {comments.length > 0 ? (
               comments.map((comment, index) => {
                 return (
-                  <Tr key={`comment-${comment.id || 'unknown'}-${index}`}>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                  <Tr key={`comment-${comment.id || "unknown"}-${index}`}>
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      textAlign="center"
+                    >
                       <Input
-                        value={format(new Date(comment.datetime), 'M/d/yy')}
+                        value={format(new Date(comment.datetime), "M/d/yy")}
                         size="sm"
-                        mr={2}
+                        width="100px"
+                        textAlign="center"
                       />
                     </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                      <Input
-                        value={comment.name}
-                        size="sm"
-                        mr={2}
-                      />
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      textAlign="center"
+                    >
+                      <Text>
+                        {room && room.length > 0 ? `${room[0].name}` : "N/A"}
+                      </Text>
                     </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                      <Input
-                        value={
-                          comment.startTime && comment.endTime
-                            ? (() => {
-                                const startTime = comment.startTime.split('-')[0].substring(0, 5);
-                                const endTime = comment.endTime.split('-')[0].substring(0, 5);
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      textAlign="center"
+                    >
+                      <Text>
+                        {booking.startTime && booking.endTime
+                          ? (() => {
+                              const startTime = booking.startTime
+                                .split("-")[0]
+                                .substring(0, 5);
+                              const endTime = booking.endTime
+                                .split("-")[0]
+                                .substring(0, 5);
 
-                                const formatTime = (timeStr) => {
-                                  const [hours, minutes] = timeStr.split(':').map(Number);
-                                  const period = hours >= 12 ? 'pm' : 'am';
-                                  const hour12 = hours % 12 || 12;
-                                  return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
-                                };
+                              const formatTime = (timeStr) => {
+                                const [hours, minutes] = timeStr
+                                  .split(":")
+                                  .map(Number);
+                                const period = hours >= 12 ? "pm" : "am";
+                                const hour12 = hours % 12 || 12;
+                                return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
+                              };
 
-                                return `${formatTime(startTime)} - ${formatTime(endTime)}`;
-                              })()
-                            : 'N/A'
-                        }
+                              return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+                            })()
+                          : "N/A"}
+                      </Text>
+                    </Td>
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      textAlign="center"
+                    >
+                      <Text>
+                        {room && room.length > 0
+                          ? `$${room[0].rate}/hr`
+                          : "N/A"}
+                      </Text>
+                    </Td>
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      textAlign="center"
+                    >
+                      <Select
+                        value={comment.adjustmentType || ""}
                         size="sm"
-                        mr={2}
-                      />
+                      >
+                        <option value="rate_flat">Rate Flat</option>
+                        <option value="paid">Paid</option>
+                      </Select>
                     </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                      <Input
-                        value={`$${comment.rate}/hr`}
-                        size="sm"
-                        mr={2}
-                      />
-                    </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                      <Input
-                        value={`$${comment.adjustmentValue}`}
-                        size="sm"
-                        mr={2}
-                      />
-                    </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                      {comment.adjustmentType}
-                    </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                      {comment.comment}
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      textAlign="center"
+                    >
+                      <Flex
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Text>$</Text>
+                        <Input
+                          value={comment.adjustmentValue}
+                          size="sm"
+                          width="80px"
+                          textAlign="center"
+                        />
+                      </Flex>
                     </Td>
                   </Tr>
                 );
               })
             ) : (
               <Tr>
-                <Td colSpan={7}>No comments available.</Td>
+                <Td
+                  colSpan={7}
+                  textAlign="center"
+                >
+                  No comments available.
+                </Td>
               </Tr>
             )}
 
             <Tr>
-              <Td colSpan={6}></Td>
-              <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                <Input
-                  fontWeight="medium"
-                  value={`Subtotal: ${subtotal}`}
-                  size="sm"
-                  mr={2}
-                />
+              <Td colSpan={5}></Td>
+              <Td
+                fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                py="8"
+                textAlign="right"
+              >
+                <Text fontWeight="bold">{`Subtotal: $${subtotal}`}</Text>
               </Td>
             </Tr>
           </Tbody>
@@ -234,19 +370,98 @@ const StatementComments = ({ comments = [], subtotal = 0.0 }) => {
   );
 };
 
-
 const InvoiceSummary = ({ pastDue, subtotal }) => {
-    return(
-      <Box w="full" mt={8} position="relative">
-        <VStack align="stretch" spacing={4}>
-        <HStack>
-            <Text fontSize="xl" fontWeight="bold" mr={80}>SUMMARY:</Text>
-            <Text fontSize="xs" maxWidth="300px" fontWeight="bold">
-              if you have any questions about this invoice, please contact: <Link href="mailto:classes@lapena.org" style={{textDecoration: "underline"}}>classes@lapena.org</Link>
-            </Text>
-        </HStack>
-          
-        <HStack spacing={2}>
+  return (
+    <Box
+      mt={8}
+      color="#2D3748"
+    >
+      <VStack
+        align="stretch"
+        spacing={4}
+      >
+        <Text
+          fontSize="xl"
+          fontWeight="bold"
+          mr={80}
+        >
+          Summary
+        </Text>
+        <Flex
+          border="1px solid #D2D2D2"
+          borderRadius="18px"
+          minH="24"
+        >
+          <Table>
+            <Thead
+              color="#4A5568"
+              as="b"
+            >
+              <Tr>
+                <Th
+                  fontSize="lg"
+                  textTransform="none"
+                >
+                  Description
+                </Th>
+                <Th
+                  fontSize="lg"
+                  textTransform="none"
+                >
+                  Adjustment Type(s)
+                </Th>
+                <Th
+                  fontSize="lg"
+                  textTransform="none"
+                >
+                  Total
+                </Th>
+              </Tr>
+            </Thead>
+            <Tbody color="#2D3748">
+              <Tr>
+                <Td>Past Due Balance</Td>
+                <Td>
+                  <Select placeholder="Click to select">
+                    <option value=""></option>
+                    Past Due Balance
+                  </Select>
+                </Td>
+                <Td>
+                  <Flex alignItems="center">
+                    <Text mr={1}>$</Text>
+                    <Input type="number" />
+                    {/* <Input placeholder="0.00" defaultValue={pastDueValue.toFixed(2)} /> */}
+                  </Flex>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  Waiting for remaining payments from November and December
+                  TODO: NEED TO CHANGE TO CORRECT DATE
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>Current Statement Subtotal</Td>
+                <Td>
+                  <Select placeholder="Click to select">
+                    <option value=""></option>
+                    Past Due Balance
+                  </Select>
+                </Td>
+                <Td>
+                  <Flex alignItems="center">
+                    <Text mr={1}>$</Text>
+                    <Input type="number" />
+                    {/* <Input placeholder="0.00" defaultValue={pastDueValue.toFixed(2)} /> */}
+                  </Flex>
+                </Td>
+              </Tr>
+            </Tbody>
+          </Table>
+        </Flex>
+
+        {/* <HStack spacing={2}>
             <Text w="120px" fontSize="xs" fontWeight="medium">Past Due Balance:</Text>
             <Input 
                   w="80px"
@@ -274,19 +489,69 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
                 size="xs"
                 h="20px"
                 />
-            </HStack>
-          
-          <VStack align="center" pt={3} pb={2} spacing={0}>
-            <Text fontWeight="bold">Payments are due at the end of each month:</Text>
-            <Text fontWeight="bold">
-              You can make your payment at: <Link color="blue.500" href="https://lapena.org/payment">lapena.org/payment</Link>
+            </HStack> */}
+
+        <Flex
+          justifyContent="space-between"
+          color="black"
+        >
+          <VStack
+            pt={3}
+            pb={2}
+            spacing={0}
+            align="start"
+          >
+            <Text
+              fontWeight="bold"
+              fontSize="16px"
+            >
+              Payments are due at the end of each month.
+            </Text>
+            <Text
+              fontWeight="bold"
+              fontSize="16px"
+            >
+              You can make your payment at:{" "}
+              <Link
+                color="blue.500"
+                href="https://lapena.org/payment"
+              >
+                lapena.org/payment
+              </Link>
             </Text>
           </VStack>
+          <VStack align="start">
+            <Text
+              fontSize="16px"
+              maxWidth="300px"
+              fontWeight="bold"
+            >
+              For any questions,
+            </Text>
+            <Text
+              fontSize="16px"
+              maxWidth="300px"
+              fontWeight="bold"
+            >
+              please contact:{" "}
+              <Link
+                href="mailto:classes@lapena.org"
+                style={{ textDecoration: "underline" }}
+                color="blue.500"
+              >
+                classes@lapena.org
+              </Link>
+            </Text>
+          </VStack>
+        </Flex>
+      </VStack>
+    </Box>
+  );
+};
 
-          
-        </VStack>
-      </Box>
-    )
-  }
-
-export { StatementComments, EditInvoiceTitle, EditInvoiceDetails, InvoiceSummary }
+export {
+  StatementComments,
+  EditInvoiceTitle,
+  EditInvoiceDetails,
+  InvoiceSummary,
+};
