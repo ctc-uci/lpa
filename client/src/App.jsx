@@ -34,7 +34,6 @@ import { RoleProvider } from "./contexts/RoleContext";
 import { EditBooking } from "./components/bookings/EditBooking";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
 import { Settings } from "./components/settings/Settings";
-import { CountProvider } from './CountContext';
 
 const App = () => {
 
@@ -43,110 +42,108 @@ const App = () => {
       <BackendProvider>
         <AuthProvider>
           <RoleProvider>
-            <CountProvider>
-              <Router>
-                <Routes>
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute
-                        element={<Admin />}
-                        allowedRoles={["admin"]}
-                      />
-                    }
-                  />
-                  <Route
-                    path="/"
-                    element={
-                      <Navigate
-                        to="/login"
-                        replace
-                      />
-                    }
-                  />
-                  <Route
-                    path="/login"
-                    element={<Login />}
-                  />
-                  <Route
-                    path="/signup"
-                    element={<Signup />}
-                  />
-                  <Route
-                    path="/signup/requested"
-                    element={<SignupRequested />}
-                  />
-                  <Route
-                    path="/forgotpassword"
-                    element={<ForgotPassword />}
-                  />
-                  <Route
-                    path="/forgotpassword/sent"
-                    element={<ForgotPasswordSent />}
-                  />
-                  <Route
-                    path="/resetpassword"
-                    element={<ResetPassword />}
-                  />
-                  <Route
-                    path="/resetpassword/success"
-                    element={<ResetPasswordSuccess />}
-                  />
-                  <Route
-                    path="/playground"
-                    element={<Playground />}
-                  />
-                  <Route
-                    path ="/programs"
-                    element={<ProtectedRoute element={<Program />} />}
-                  />
-                  <Route
-                    path="/notifications"
-                    element={<ProtectedRoute element={<Notifications />} />}
-                  />
-                  <Route
-                    path="/dashboard"
-                    element={<ProtectedRoute element={<Dashboard />} />}
-                  />
-                  <Route
-                    path="/invoices"
-                    element={<ProtectedRoute element={<InvoicesDashboard />} />}
-                  />
-                  <Route
-                    path="/invoices/:id"
-                    element={<ProtectedRoute element={<SingleInvoice />} />}
-                  />
-                  <Route
-                    path="/invoices/edit/:id"
-                    element={<ProtectedRoute element={<EditInvoice />} />}
-                  />
-                  <Route
-                    path="/programs/edit/:id"
-                    element={<ProtectedRoute element={<EditProgram />} />}
-                  />
-                  <Route
-                    path="/programs/:id"
-                    element={<ProtectedRoute element={<Program />} />}
-                  />
-                  <Route
-                    path="/settings"
-                    element={<ProtectedRoute element={<Settings />} />}
-                  />
-                  <Route
-                    path="*"
-                    element={<ProtectedRoute element={<CatchAll />} />}
-                  />
-                  <Route
-                    path="/bookings/edit/:id"
-                    element={<ProtectedRoute element={<EditBooking />} />}
-                  />
-                  <Route
-                    path='/programs/archived'
-                    element={<ProtectedRoute element={<ArchivedPrograms/>} />}
-                  />
-                </Routes>
-              </Router>
-            </CountProvider>
+            <Router>
+              <Routes>
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute
+                      element={<Admin />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/"
+                  element={
+                    <Navigate
+                      to="/login"
+                      replace
+                    />
+                  }
+                />
+                <Route
+                  path="/login"
+                  element={<Login />}
+                />
+                <Route
+                  path="/signup"
+                  element={<Signup />}
+                />
+                <Route
+                  path="/signup/requested"
+                  element={<SignupRequested />}
+                />
+                <Route
+                  path="/forgotpassword"
+                  element={<ForgotPassword />}
+                />
+                <Route
+                  path="/forgotpassword/sent"
+                  element={<ForgotPasswordSent />}
+                />
+                <Route
+                  path="/resetpassword"
+                  element={<ResetPassword />}
+                />
+                <Route
+                  path="/resetpassword/success"
+                  element={<ResetPasswordSuccess />}
+                />
+                <Route
+                  path="/playground"
+                  element={<Playground />}
+                />
+                <Route
+                  path ="/programs"
+                  element={<ProtectedRoute element={<Program />} />}
+                />
+                <Route
+                  path="/notifications"
+                  element={<ProtectedRoute element={<Notifications />} />}
+                />
+                <Route
+                  path="/dashboard"
+                  element={<ProtectedRoute element={<Dashboard />} />}
+                />
+                <Route
+                  path="/invoices"
+                  element={<ProtectedRoute element={<InvoicesDashboard />} />}
+                />
+                <Route
+                  path="/invoices/:id"
+                  element={<ProtectedRoute element={<SingleInvoice />} />}
+                />
+                <Route
+                  path="/invoices/edit/:id"
+                  element={<ProtectedRoute element={<EditInvoice />} />}
+                />
+                <Route
+                  path="/programs/edit/:id"
+                  element={<ProtectedRoute element={<EditProgram />} />}
+                />
+                <Route
+                  path="/programs/:id"
+                  element={<ProtectedRoute element={<Program />} />}
+                />
+                <Route
+                  path="/settings"
+                  element={<ProtectedRoute element={<Settings />} />}
+                />
+                <Route
+                  path="*"
+                  element={<ProtectedRoute element={<CatchAll />} />}
+                />
+                <Route
+                  path="/bookings/edit/:id"
+                  element={<ProtectedRoute element={<EditBooking />} />}
+                />
+                <Route
+                  path='/programs/archived'
+                  element={<ProtectedRoute element={<ArchivedPrograms/>} />}
+                />
+              </Routes>
+            </Router>
           </RoleProvider>
         </AuthProvider>
       </BackendProvider>

@@ -7,16 +7,30 @@ import { DocumentIcon } from "../../assets/DocumentIcon";
 import NavBarButton from "./NavBarButton";
 import "./Navbar.css";
 import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
-import { useCount } from '../../CountContext';
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 
 
 const Navbar = ({ children }) => {
   // Get current location from React Router
+  const { backend } = useBackendContext();
   const location = useLocation();
   const currentPath = location.pathname;
-  const { count } = useCount();
+  const [count, setCount] = useState()
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const response = await backend.get('/invoices/notificationCount');
+        setCount(response.data[0].notificationcount);
+      } catch (error) {
+        console.error('Error fetching count:', error);
+      }
+    };
+
+    fetchCount();
+  });
 
   const menuItems = [
     { name: "Programs", path: "/programs", icon: <NavCalendarIcon /> },
