@@ -24,11 +24,10 @@ import {CancelIcon} from '../../assets/CancelIcon';
 import {RepeatIcon} from '../../assets/RepeatIcon';
 import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
 import {CalendarIcon} from '../../assets/CalendarIcon';
-import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
-import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
 import {EmailIcon} from '../../assets/EmailIcon';
-import {LocationIcon} from '../../assets/LocationIcon';
-import {DollarIcon} from '../../assets/DollarIcon';
+import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
+
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useNavigate } from 'react-router-dom';
 import { IoCloseOutline } from "react-icons/io5";
@@ -37,6 +36,8 @@ import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
+import { PayeesDropdown } from "./programComponents/PayeesDropdown"
+import { LocationDropdown } from "./programComponents/LocationDropdown"
 import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { TimeFrequency } from "./programComponents/TimeFrequency"
@@ -455,104 +456,30 @@ const payees = eventClientResponse.data
                 </div>
               </div>
 
-              <div id="payeeContainer">
-                <div id="payees">
-                  <div id="payeeSelection">
-                    <Box>
-                      <div id="payeeInputContainer">
-                        <Input
-                          placeholder="Payee..."
-                          onChange={(e) => {
-                            getPayeeResults(e.target.value);
-                            setPayeeSearchTerm(e.target.value);
-                          }}
-                          value={payeeSearchTerm} id="payeeInput"/>
-                        <PlusFilledIcon />
-                      </div>
-
-                      {searchedPayees.length > 0 && (
-                        <Box id="payeeDropdown">
-                          {searchedPayees.map((payee) => (
-                            <Box
-                              key={payee.id}
-                              onClick={() => {
-                                const alreadySelected = selectedPayees.find(
-                                  (pay) => pay.id.toString() === payee.id
-                                );
-
-                                if (payee && !alreadySelected) {
-                                  setSelectedPayees((prevItems) => [...prevItems, payee]);
-                                  const filteredPayees = searchedPayees.filter(
-                                    (pay) => payee.id !== pay.id.toString()
-                                  );
-                                  setSearchedPayees(filteredPayees);
-                                }
-                              }}
-                              style={{
-                                padding: "10px",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                transition: "0.2s",
-                              }}
-                              bg="#F6F6F6"
-                              _hover={{ bg: "#D9D9D9" }}
-                            >
-                              {payee.name}
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
-                    </Box>
-                  </div>
-                </div>
-                  <div id="payeeTags">
-                    {selectedPayees.length > 0 ? (
-                      selectedPayees.map((payee, ind) => (
-                        <div className="payeeTag" key={ind}>
-                          <Icon fontSize="lg" onClick={() => {
-                              setSelectedPayees(prevItems =>
-                                prevItems.filter(item => item.id !== payee.id));
-                            }}><CloseFilledIcon /></Icon>
-                          <Tag value={payee.id}>
-                            {payee.name}
-                          </Tag>
-                        </div>
-                      ))
-                    ) : <div></div> }
-                  </div>
-              </div>
+              <PayeesDropdown 
+                payeeSearchTerm={payeeSearchTerm}
+                searchedPayees={searchedPayees}
+                selectedPayees={selectedPayees}
+                getPayeeResults={getPayeeResults}
+                setPayeeSearchTerm={setPayeeSearchTerm}
+                setSelectedPayees={setSelectedPayees}
+                setSearchedPayees={setSearchedPayees}
+              />
 
               <div id="payeeEmails">
                 <EmailIcon />
                 {selectedPayees.map(payee => payee.email).join(", ")}
               </div>
 
-              <div id="location">
-                <LocationIcon />
-                {locations && locations.length > 0 ? (
-                      <Select width="30%" backgroundColor="#F6F6F6"  value={selectedLocationId === "" ? 'DEFAULT' : selectedLocationId}
-                        onChange={(event) => {
-                          const selectedId = parseInt(event.target.value);
-                          const location = locations.find(loc => loc.id === selectedId);
-                          setSelectedLocation(location.name);
-                          setSelectedLocationId(location.id);
-                          setRoomDescription(location.description);
-                          setLocationRate(location.rate);
-                        }}
-                      >
-                      <option value={'DEFAULT'} disabled>Location...</option>
-                        {locations.map((location) => (
-                          <option value={location.id} key={location.id}>
-                            {location.name}
-                          </option>
-                        ))}
-                      </Select>
-                    ) : <div></div>  }
-                <div id="locationRate">
-                  <DollarIcon />
-                  <p>{locationRate} / hour</p>
-                </div>
-              </div>
+              <LocationDropdown 
+                locations={locations} 
+                locationRate={locationRate}
+                selectedLocationId={selectedLocationId}
+                setSelectedLocation={setSelectedLocation}
+                setSelectedLocationId={setSelectedLocationId}
+                setRoomDescription={setRoomDescription}
+                setLocationRate={setLocationRate}
+              />
 
               <RoomInformation 
                 roomDescription={roomDescription}
