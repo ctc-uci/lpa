@@ -48,7 +48,7 @@ export const TimeFrequency = ({
             }}
             borderColor="#E2E8F0"
             borderWidth={1.5}
-            borderRaidus="4px"
+            borderRadius="4px"
             w={125}
             textAlign="center"
           />
@@ -65,7 +65,7 @@ export const TimeFrequency = ({
             }}
             borderColor="#E2E8F0"
             borderWidth={1.5}
-            borderRaidus="4px"
+            borderRadius="4px"
             w={125}
             textAlign="center"
           />
@@ -88,7 +88,7 @@ export const TimeFrequency = ({
             }}
             borderColor="#E2E8F0"
             borderWidth={1.5}
-            borderRaidus="4px"
+            borderRadius="4px"
             w={150}
             textAlign="center"
           />
@@ -107,7 +107,7 @@ export const TimeFrequency = ({
             }}
             borderColor="#E2E8F0"
             borderWidth={1.5}
-            borderRaidus="4px"
+            borderRadius="4px"
             w={150}
             textAlign="center"
           />
