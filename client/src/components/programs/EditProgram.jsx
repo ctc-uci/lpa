@@ -21,12 +21,14 @@ import {
 
 
 import {CancelIcon} from '../../assets/CancelIcon';
-import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
-import {RepeatIcon} from '../../assets/RepeatIcon';
-import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
-import {CalendarIcon} from '../../assets/CalendarIcon';
-import {EmailIcon} from '../../assets/EmailIcon';
-import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
+
+// I think we can remove these! But I'll keep it here for now just in case
+// import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
+// import {RepeatIcon} from '../../assets/RepeatIcon';
+// import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
+// import {CalendarIcon} from '../../assets/CalendarIcon';
+// import {EmailIcon} from '../../assets/EmailIcon';
+// import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
 
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -43,6 +45,7 @@ import { LocationDropdown } from "./programComponents/LocationDropdown"
 import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { TimeFrequency } from "./programComponents/TimeFrequency"
+import { EmailDropdown } from "./programComponents/EmailDropdown";
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();
@@ -375,10 +378,9 @@ const payees = eventClientResponse.data
                 setSearchedPayees={setSearchedPayees}
               />
 
-              <div id="payeeEmails">
-                <EmailIcon />
-                {selectedPayees.map(payee => payee.email).join(", ")}
-              </div>
+              <EmailDropdown 
+                selectedPayees={selectedPayees}
+              />
 
               <LocationDropdown
                 locations={locations}
