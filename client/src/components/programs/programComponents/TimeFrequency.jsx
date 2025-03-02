@@ -1,55 +1,117 @@
 import { useEffect, useState } from "react";
-
 import {
   Box,
-  Button,
   Flex,
   FormControl,
   FormLabel,
   Icon,
   IconButton,
   Input,
-  Select,
-  Textarea,
-  Tag,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverBody,
+  Text
 } from "@chakra-ui/react";
 
-import {ClockFilledIcon} from '../../../assets/ClockFilledIcon';
-import {CalendarIcon} from '../../../assets/CalendarIcon';
+import { ClockFilledIcon } from '../../../assets/ClockFilledIcon';
+import { CalendarIcon } from '../../../assets/CalendarIcon';
+import { RepeatIcon } from '../../../assets/RepeatIcon';
 
-
-export const TimeFrequency = ({ load = false }) => {
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
+export const TimeFrequency = ({
+  startTime,
+  setStartTime,
+  endTime,
+  setEndTime,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  selectedDays,
+  setSelectedDays,
+}) => {
 
   return (
+      <Box>
+        {/* repeatiability dropdown */}
 
-    <div>
-      {/* TODO: repeatability dropdown (brings up modal) */}
 
-      {/* times */}
-      <Flex>
-          <ClockFilledIcon/>
-          <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-          to
-          <Input id = "time2" placeholder="00:00 pm" type='time' variant="outline" size="md" value={endTime} onChange={(event) => setEndTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-      </Flex>
+        {/* Time Inputs */}
+        <Flex alignItems="center" mb={4}>
+          <Icon fontSize={25} mr={2}><ClockFilledIcon/></Icon>
+          <Input
+            placeholder="00:00 am"
+            type="time"
+            size="md"
+            value={startTime}
+            onChange={(event) => setStartTime(event.target.value)}
+            backgroundColor="#fff"
+            color="#2D3748"
+            _placeholder={{
+              color: "#E2E8F0",
+            }}
+            borderColor="#E2E8F0"
+            borderWidth={1.5}
+            borderRaidus="4px"
+            w={125}
+            textAlign="center"
+          />
+          <Text mr={5} ml={5} color="#2D3748">to</Text>
+          <Input
+            type="time"
+            size="md"
+            value={startTime}
+            onChange={(event) => setStartTime(event.target.value)}
+            backgroundColor="#fff"
+            color="#2D3748"
+            _placeholder={{
+              color: "#E2E8F0",
+            }}
+            borderColor="#E2E8F0"
+            borderWidth={1.5}
+            borderRaidus="4px"
+            w={125}
+            textAlign="center"
+          />
+        </Flex>
 
-      {/* dates */}
-      <Flex>
-        <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
-        Starts on
-        <Input id = "date1" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={startDate} onChange={(e) => setStartDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-        and ends on
-        <Input id = "date2" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={endDate} onChange={(e) => setEndDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-      </Flex>
-    </div>
-  )
+
+        {/* Date Inputs */}
+        <Flex alignItems="center">
+          <Icon fontSize={25} mr={2}><CalendarIcon/></Icon>
+          <Text mr={5}color="#2D3748">Starts on</Text>
+          <Input
+            type="date"
+            size="md"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            backgroundColor="#fff"
+            color="#2D3748"
+            _placeholder={{
+              color: "#E2E8F0",
+            }}
+            borderColor="#E2E8F0"
+            borderWidth={1.5}
+            borderRaidus="4px"
+            w={150}
+            textAlign="center"
+          />
+
+          <Text mr={5} ml={5} color="#2D3748">and ends on</Text>
+
+          <Input
+            type="date"
+            size="md"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            backgroundColor="#fff"
+            color="#2D3748"
+            _placeholder={{
+              color: "#E2E8F0",
+            }}
+            borderColor="#E2E8F0"
+            borderWidth={1.5}
+            borderRaidus="4px"
+            w={150}
+            textAlign="center"
+          />
+        </Flex>
+      </Box>
+    );
 };

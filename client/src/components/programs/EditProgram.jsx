@@ -21,9 +21,7 @@ import {
 
 
 import {CancelIcon} from '../../assets/CancelIcon';
-import {RepeatIcon} from '../../assets/RepeatIcon';
-import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
-import {CalendarIcon} from '../../assets/CalendarIcon';
+
 import {EmailIcon} from '../../assets/EmailIcon';
 import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
 
@@ -338,57 +336,25 @@ const payees = eventClientResponse.data
               </div>
             </div>
             <div id="innerBody">
-              <TimeFrequency/>
 
-              <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
-                <div>
-                  <Icon boxSize={6} fontSize="sm"><ClockFilledIcon/></Icon>
-                  <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-                </div>
-                to
-                <div>
-                  <Icon boxSize={6} fontSize="lg"><ClockFilledIcon/></Icon>
-                  <Input id = "time2" placeholder="00:00 pm" type='time' variant="outline" size="md" value={endTime} onChange={(event) => setEndTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-                </div>
-                from
-                <div>
-                  <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
-                  <Input id = "date1" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={startDate} onChange={(e) => setStartDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-                </div>
-                to
-                <div>
-                  <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
-                  <Input id = "date2" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={endDate} onChange={(e) => setEndDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-                </div>
-              </div>
 
-              <div id="repeatDiv">
-                <Icon fontSize="100%"><RepeatIcon /></Icon>
-                <FormLabel style={{margin:"0", fontSize:"1rem", color:"#474849"}}>Repeats</FormLabel>
-                <FormControl >
-                  <Flex id="repeatContainer">
-                    {["Su", "M", "Tu", "W", "Th", "F", "S"].map((day) => (
-                      <IconButton
-                        key={day}
-                        isRound={true}
-                        variant={selectedDays.includes(day) ? "solid" : "outline"}
-                        aria-label={`Toggle ${day}`}
-                        fontSize="20px"
-                        backgroundColor={selectedDays.includes(day) ? "#D2D2D2" : "#F6F6F6"}
-                        icon={<Box as="span" color="#767778">{day}</Box>}
-                        value={day}
-                        onClick={() => {
-                          if (selectedDays.includes(day)) {
-                            setSelectedDays(selectedDays.filter((d) => d !== day));
-                          } else {
-                            setSelectedDays([...selectedDays, day]);
-                          }
-                        }}
-                      />
-                    ))}
-                  </Flex>
-                </FormControl>
-              </div>
+              <TimeFrequency
+                startTime={startTime}
+                setStartTime={setStartTime}
+                endTime={endTime}
+                setEndTime={setEndTime}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+                selectedDays={selectedDays}
+                setSelectedDays={setSelectedDays}
+              />
+
+
+
+
+
 
               <div id="instructorContainer">
                 <div id="instructors">
@@ -456,7 +422,7 @@ const payees = eventClientResponse.data
                 </div>
               </div>
 
-              <PayeesDropdown 
+              <PayeesDropdown
                 payeeSearchTerm={payeeSearchTerm}
                 searchedPayees={searchedPayees}
                 selectedPayees={selectedPayees}
@@ -471,8 +437,8 @@ const payees = eventClientResponse.data
                 {selectedPayees.map(payee => payee.email).join(", ")}
               </div>
 
-              <LocationDropdown 
-                locations={locations} 
+              <LocationDropdown
+                locations={locations}
                 locationRate={locationRate}
                 selectedLocationId={selectedLocationId}
                 setSelectedLocation={setSelectedLocation}
@@ -481,7 +447,7 @@ const payees = eventClientResponse.data
                 setLocationRate={setLocationRate}
               />
 
-              <RoomInformation 
+              <RoomInformation
                 roomDescription={roomDescription}
               />
 
