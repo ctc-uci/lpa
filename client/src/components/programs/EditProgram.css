@@ -229,13 +229,16 @@ button#save {
   flex-direction: row;
   align-items: center;
   padding-right: 3%;
+  overflow: hidden;
   background-color: #FFF;
+  border-radius: 5px 5px 5px 5px;
+  
 }
 
 #instructorInput, #payeeInput {
-  border-radius: 5px 5px 0 0!important;
+  /* border-radius: 5px 5px 0 0!important; */
   border: none!important;
-  background-color: #FFF;
+  overflow: hidden;
 }
 
 #instructorInput:focus, #payeeInput:focus {
