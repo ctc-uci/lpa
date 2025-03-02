@@ -88,6 +88,9 @@ export const EditProgram = () => {
     getPayeeResults(payeeSearchTerm);
   }, [selectedPayees, payeeSearchTerm]);
 
+  useEffect(() => {
+    console.log("Selected location ID updated:", selectedLocationId);
+}, [selectedLocationId]);
 
   const exit = () => {
     navigate('/programs/' + id);
@@ -244,6 +247,7 @@ const payees = eventClientResponse.data
   const deleteAllEventBookings = async () => {
     try {
       await backend.delete('/bookings/byEvent/' + id);
+      console.log(`Deleted bookings for event ${id}`);
     } catch (error) {
       if (error.response?.status === 404) {
         console.log(`No bookings found for event ${id}`);
@@ -271,6 +275,12 @@ const payees = eventClientResponse.data
 
   const saveEvent = async () => {
     try {
+      console.log("Saving event with name:", eventName);
+      console.log("Description:", generalInformation);
+      console.log("Location ID:", selectedLocationId);
+      console.log("Selected Instructors:", selectedInstructors);
+      console.log("Selected Payees:", selectedPayees);
+
       await backend.put('/events/' + id, {
           name: eventName,
           description: generalInformation,
@@ -281,7 +291,14 @@ const payees = eventClientResponse.data
       deleteAllEventBookings();
       deleteAllAssignments();
 
+      console.log("Start Date:", startDate);
+      console.log("End Date:", endDate);
+      console.log("Selected Days:", selectedDays);
+
+
       const dates = getDatesForDays(startDate, endDate, selectedDays);
+      console.log("Saving bookings for dates:", dates);
+
       for (const date of dates) {
         const bookingsData = {
           event_id: id,
@@ -292,10 +309,13 @@ const payees = eventClientResponse.data
           archived: eventArchived,
         };
 
+        console.log("Saving event with location ID:", selectedLocationId);
         await backend.post('/bookings', bookingsData);
       }
 
+      console.log("Assigning instructors...");
       for (const instructor of selectedInstructors) {
+        console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
             eventId: id,
             clientId: instructor.id,
@@ -304,12 +324,14 @@ const payees = eventClientResponse.data
       }
 
       for (const payee of selectedPayees) {
+        console.log("Assigning payee:", payee);
         await backend.post("/assignments", {
             eventId: id,
             clientId: payee.id,
             role: "payee"
         });
       }
+      console.log("Save complete, navigating away...");
       exit();
 
     } catch (error) {
@@ -327,7 +349,7 @@ const payees = eventClientResponse.data
               <h1><b>{eventName}</b></h1>
               <div id = "saveCancel">
                 <Button id="save" onClick={saveEvent}>Save</Button>
-                <Popover id="popTrigger">
+                {/* <Popover id="popTrigger">
                   <PopoverTrigger asChild>
                     <Icon boxSize="5"><CiCircleMore/></Icon>
                   </PopoverTrigger>
@@ -339,7 +361,7 @@ const payees = eventClientResponse.data
                         </div>
                       </PopoverBody>
                     </PopoverContent>
-                </Popover>
+                </Popover> */}
               </div>
             </div>
             <div id="innerBody">
