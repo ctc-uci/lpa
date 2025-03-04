@@ -68,13 +68,13 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
               {selectedInstructors.length > 0 ? (
                 selectedInstructors.map((instructor, ind) => (
                   <div className="instructorTag" key={ind}>
+                    <Tag value={instructor.id}>
+                      {instructor.name}
+                    </Tag>
                     <Icon fontSize="lg" onClick={() => {
                         setSelectedInstructors(prevItems =>
                           prevItems.filter(item => item.id !== instructor.id));
                       }}><CloseFilledIcon /></Icon>
-                    <Tag value={instructor.id}>
-                      {instructor.name}
-                    </Tag>
                   </div>
                 ))
             ) : <div></div> }

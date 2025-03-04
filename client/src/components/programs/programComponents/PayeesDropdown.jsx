@@ -70,13 +70,13 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                     {selectedPayees.length > 0 ? (
                         selectedPayees.map((payee, ind) => (
                         <div className="payeeTag" key={ind}>
+                            <Tag value={payee.id}>
+                                {payee.name}
+                            </Tag>
                             <Icon fontSize="lg" onClick={() => {
                                 setSelectedPayees(prevItems =>
                                 prevItems.filter(item => item.id !== payee.id));
                             }}><CloseFilledIcon /></Icon>
-                            <Tag value={payee.id}>
-                                {payee.name}
-                            </Tag>
                         </div>
                     ))
                 ) : <div></div> }
