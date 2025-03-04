@@ -455,7 +455,7 @@ invoicesRouter.get("/total/:id", async (req, res) => {
         const durationHours = (endTime - startTime) / (1000 * 60 * 60);
 
         // Calculate booking cost.
-        const bookingCost = totalRate * durationHours;
+        let bookingCost = totalRate * durationHours;
 
         // Apply 'total' adjustments specific to this booking
         totalAdjustments.forEach((comment) => {
