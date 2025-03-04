@@ -13,7 +13,7 @@ import {
 
 import arrowsSvg from "../../assets/icons/right-icon.svg";
 
-import "./sorting.css";
+import "./Sorting.css";
 
 const DateSortingModal = ({ onSortChange }) => {
   return (

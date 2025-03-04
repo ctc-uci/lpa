@@ -1,4 +1,4 @@
-import { React, useEffect, useMemo, useState } from "react";
+import { React, useEffect, useState } from "react";
 
 import { CancelIcon } from "../../assets/CancelIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
@@ -8,7 +8,6 @@ import "./Program.css";
 import {
   CalendarIcon,
   ChevronDownIcon,
-  ChevronUpIcon,
   DeleteIcon,
   DownloadIcon,
   EmailIcon,
@@ -18,7 +17,6 @@ import {
 import {
   Alert,
   AlertDescription,
-  AlertIcon,
   AlertTitle,
   Box,
   Button,
@@ -28,7 +26,6 @@ import {
   Container,
   Flex,
   FormControl,
-  FormLabel,
   Heading,
   Icon,
   IconButton,
@@ -49,7 +46,6 @@ import {
   PopoverContent,
   PopoverTrigger,
   Portal,
-  Select,
   Stack,
   Table,
   TableContainer,
@@ -74,9 +70,6 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import {
-  Boxes,
-  ChevronLeftIcon,
-  Delete,
   EllipsisIcon,
   FileTextIcon,
   Info,
@@ -93,17 +86,14 @@ import {
   filterDateCalendar,
   sessionsCalendar,
   sessionsClock,
-  sessionsDownArrow,
   sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
   sessionsMapPin,
-  sessionsUpArrow,
 } from "../../assets/icons/ProgramIcons";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "./DateSortingModal";
-import ProgramSortingModal from "./ProgramSortingModal";
 
 export const ProgramSummary = ({
   program,

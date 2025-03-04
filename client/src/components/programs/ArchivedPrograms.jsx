@@ -45,7 +45,6 @@ import {
 } from "@chakra-ui/react";
 
 import { Info } from "lucide-react";
-import { useParams } from "react-router";
 
 import {
   archiveBox,
