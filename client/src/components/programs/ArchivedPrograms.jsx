@@ -2,13 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   Alert,
-  AlertIcon,
   AlertTitle,
   Box,
   Button,
   Card,
   CardBody,
-  Container,
   Flex,
   FormControl,
   Icon,
@@ -61,12 +59,9 @@ import {
   filterButton,
   filterDateCalendar,
   reactivateIcon,
-  sessionsDownArrow,
   sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
-  sessionsMapPin,
-  sessionsUpArrow,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
@@ -795,24 +790,27 @@ export const ArchivedPrograms = () => {
                       </Th>
 
                       <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
+                        <Flex
+                          align="center"
                           gap="8px"
                         >
-                          <Icon as={archiveCalendar} />
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Date
-                          </Text>
-                          <DateSortingModal onSortChange={handleSortChange} />
-                        </Box>
+                          <Box>
+                            <Icon as={archiveCalendar} />
+                          </Box>
+                          <Box>
+                            <Text
+                              textTransform="none"
+                              color="#767778"
+                              fontSize="16px"
+                              fontStyle="normal"
+                            >
+                              Date
+                            </Text>
+                          </Box>
+                          <Box>
+                            <DateSortingModal onSortChange={handleSortChange} />
+                          </Box>
+                        </Flex>
                       </Th>
 
                       <Th>

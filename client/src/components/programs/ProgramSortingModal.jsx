@@ -22,6 +22,11 @@ const ProgramSortingModal = ({ onSortChange }) => {
         as={Button}
         variant="ghost"
         size="sm"
+        sx={{
+          _hover: { background: "transparent" },
+          _active: { background: "transparent" },
+          _focus: { background: "transparent" },
+        }}
       >
         <img
           src={arrowsSvg}

@@ -33,7 +33,6 @@ import {
   Tr,
   useDisclosure,
   useToast,
-  VStack,
 } from "@chakra-ui/react";
 
 import { Info } from "lucide-react";
@@ -43,7 +42,6 @@ import { ArchiveIcon } from "../../assets/ArchiveIcon";
 // Icon imports
 import actionsSvg from "../../assets/icons/actions.svg";
 import activeSvg from "../../assets/icons/active.svg";
-import calendarSvg from "../../assets/icons/calendar.svg";
 import cancelSvg from "../../assets/icons/cancel.svg";
 import clockSvg from "../../assets/icons/clock.svg";
 import editSvg from "../../assets/icons/edit.svg";
@@ -51,6 +49,7 @@ import locationSvg from "../../assets/icons/location.svg";
 import noneSvg from "../../assets/icons/none.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
+import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import searchSvg from "../../assets/icons/search.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../programs/DateSortingModal";
@@ -68,7 +67,6 @@ const ActionsIcon = () => <img src={actionsSvg} />;
 const EditIcon = () => <img src={editSvg} />;
 const CancelIcon = () => <img src={cancelSvg} />;
 const SearchIcon = () => <img src={searchSvg} />;
-const CalendarIcon = () => <img src={calendarSvg} />;
 const ClockIcon = () => <img src={clockSvg} />;
 const LocationIcon = () => <img src={locationSvg} />;
 const PersonIcon = () => <img src={personSvg} />;
@@ -436,16 +434,28 @@ export const ProgramsTable = () => {
 
                 {/* Upcoming Date */}
                 <Th>
-                  <HStack
-                    spacing={2}
-                    alignItems="center"
+                  <Flex
+                    align="center"
+                    gap="8px"
+                    whiteSpace="nowrap"
                   >
-                    <CalendarIcon />
-                    <Text className="table-header-text">Upcoming Date</Text>
-                    <VStack alignItems="center">
+                    <Box>
+                      <Icon as={archiveCalendar} />
+                    </Box>
+                    <Box>
+                      <Text
+                        textTransform="none"
+                        color="#767778"
+                        fontSize="16px"
+                        fontStyle="normal"
+                      >
+                        Upcoming Date
+                      </Text>
+                    </Box>
+                    <Box flexShrink={0}>
                       <DateSortingModal onSortChange={handleSortChange} />
-                    </VStack>
-                  </HStack>
+                    </Box>
+                  </Flex>
                 </Th>
 
                 {/* Upcoming Time */}
