@@ -7,8 +7,8 @@ import "./Program.css";
 
 import {
   CalendarIcon,
-  ChevronUpIcon,
   ChevronDownIcon,
+  ChevronUpIcon,
   DeleteIcon,
   DownloadIcon,
   EmailIcon,
@@ -275,7 +275,6 @@ export const ProgramSummary = ({
       await handleDelete();
     }
   };
-
 
   const handleDelete = async () => {
     console.log("Starting delete process...");
@@ -845,25 +844,67 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
 
   const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
   const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
-  const [filteredSessions, setFilteredSessions] = useState(sessions || []); // Initial sessions state
+  // At the top of your Sessions component where other state variables are defined
+  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
+    []
+  );
 
-  // Sorting logic using useMemo
-  const sortedSessions = useMemo(() => {
-    const sorted = [...filteredSessions];
-    
-    sorted.sort((a, b) => {
-      const aInvalid = !a.date || a.date === "N/A";
-      const bInvalid = !b.date || b.date === "N/A";
-      if (aInvalid && bInvalid) return 0;
-      if (aInvalid) return 1; // Push invalid dates to the end
-      if (bInvalid) return -1; 
+  // Add this effect to handle both filtering and sorting whenever relevant dependencies change
+  useEffect(() => {
+    if (!sessions || !rooms) return;
 
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    // Step 1: Filter the sessions
+    const filtered = sessions.filter((session) => {
+      const sessionDate = new Date(session.date);
+      const sessionStartTime = session.startTime;
+      const sessionEndTime = session.endTime;
+
+      const isDateInRange =
+        (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
+        (!dateRange.end || sessionDate <= new Date(dateRange.end));
+      const isTimeInRange =
+        (!timeRange.start || timeRange.start <= sessionStartTime) &&
+        (!timeRange.end || sessionEndTime <= timeRange.end);
+      const isStatusMatch =
+        status === "All" ||
+        (status === "Active" && !hasTimePassed(session.date)) ||
+        (status === "Past" && hasTimePassed(session.date));
+      const isRoomMatch =
+        selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
+
+      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
     });
-    return sorted;
-  }, [filteredSessions, sortKey, sortOrder]);
+
+    // Step 2: Sort the filtered sessions
+    const sorted = [...filtered];
+    if (sortKey === "date") {
+      sorted.sort((a, b) => {
+        const aInvalid = !a.date || a.date === "N/A";
+        const bInvalid = !b.date || b.date === "N/A";
+
+        if (aInvalid && bInvalid) return 0;
+        if (aInvalid) return 1; // Push invalid dates to the end
+        if (bInvalid) return -1;
+
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    }
+
+    // Step 3: Set the filtered and sorted sessions
+    setFilteredAndSortedSessions(sorted);
+  }, [
+    dateRange,
+    timeRange,
+    status,
+    selectedRoom,
+    sessions,
+    rooms,
+    sortKey,
+    sortOrder,
+  ]);
 
   // Function to update sorting
   const handleSortChange = (key, order) => {
@@ -915,29 +956,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     return <div>Loading...</div>; // Possibly change loading indicator
   }
 
-  const filterSessions = () => {
-    return sessions.filter((session) => {
-      const sessionDate = new Date(session.date);
-      const sessionStartTime = session.startTime;
-      const sessionEndTime = session.endTime;
-
-      const isDateInRange =
-        (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
-        (!dateRange.end || sessionDate <= new Date(dateRange.end));
-      const isTimeInRange =
-        (!timeRange.start || timeRange.start <= sessionStartTime) &&
-        (!timeRange.end || sessionEndTime <= timeRange.end);
-      const isStatusMatch =
-        status === "All" ||
-        (status === "Active" && !hasTimePassed(session.date)) ||
-        (status === "Past" && hasTimePassed(session.date));
-      const isRoomMatch =
-        selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
-
-      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
-    });
-  };
-
   const handleDateChange = (field, value) => {
     setDateRange((prev) => ({ ...prev, [field]: value }));
   };
@@ -977,22 +995,25 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                 Sessions{" "}
               </Text>
             </Flex>
-            <Flex gap = "12px" alignItems = "center">
-                <Button
-                  bg="#f2f6fb"
-                  color="#1e293b"
-                  fontWeight="bold"
-                  fontSize="16px"
-                  borderRadius="8px"
-                  backgroundColor="#F0F1F4"
-                  height="45px"
-                  mt="10px"
-                  mb="15px"
-                  px="20px"
-                  _hover={{ bg: "#e0e6ed" }}
-                >
-                  Select
-                </Button>
+            <Flex
+              gap="12px"
+              alignItems="center"
+            >
+              <Button
+                bg="#f2f6fb"
+                color="#1e293b"
+                fontWeight="bold"
+                fontSize="16px"
+                borderRadius="8px"
+                backgroundColor="#F0F1F4"
+                height="45px"
+                mt="10px"
+                mb="15px"
+                px="20px"
+                _hover={{ bg: "#e0e6ed" }}
+              >
+                Select
+              </Button>
               <Popover onClose={onClose}>
                 <PopoverTrigger>
                   <Button
@@ -1423,8 +1444,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filterSessions().length > 0 ? (
-                    filterSessions().map((session) => (
+                  {filteredAndSortedSessions.length > 0 ? (
+                    filteredAndSortedSessions.map((session) => (
                       <Tr key={session.id}>
                         {!isArchived ? (
                           <Td>

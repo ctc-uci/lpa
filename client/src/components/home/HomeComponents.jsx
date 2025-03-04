@@ -267,30 +267,12 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
   </Thead>
 ));
 
-// Debounce function for search
-const useDebounce = (value, delay) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-};
-
 export const ProgramsTable = () => {
   const [sortKey, setSortKey] = useState("title");
   const [sortOrder, setSortOrder] = useState("asc");
   const [programs, setPrograms] = useState([]);
   const [filteredPrograms, setFilteredPrograms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300); // Debounce search input
   const [programToDelete, setProgramToDelete] = useState(null);
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -408,11 +390,11 @@ export const ProgramsTable = () => {
     if (!programs.length) return [];
 
     let result = [...programs];
-    const hasSearchTerm = debouncedSearchTerm.trim() !== "";
+    const hasSearchTerm = searchTerm.trim() !== "";
 
     // Apply search filter first as it's likely to filter out many items
     if (hasSearchTerm) {
-      const searchLower = debouncedSearchTerm.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
       result = result.filter((program) =>
         program.name.toLowerCase().includes(searchLower)
       );
@@ -484,7 +466,7 @@ export const ProgramsTable = () => {
     }
 
     return result;
-  }, [programs, filters, debouncedSearchTerm]);
+  }, [programs, filters, searchTerm]);
 
   // Apply filters when dependencies change
   useEffect(() => {
