@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ChevronDownIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
@@ -169,8 +163,8 @@ export const ProgramsTable = () => {
               ? `${formatTime(program.startTime)} - ${formatTime(program.endTime)}`
               : "N/A",
           room: program.roomName || "N/A",
-          instructor, // possibly a comma-separated list
-          payee, // possibly a comma-separated list
+          instructor,
+          payee,
         };
       });
 
@@ -278,6 +272,11 @@ export const ProgramsTable = () => {
       );
     } else if (sortKey === "date") {
       sorted.sort((a, b) => {
+        const aInvalid = !a.date || a.date === "N/A";
+        const bInvalid = !b.date || b.date === "N/A";
+        if (aInvalid && bInvalid) return 0;
+        if (aInvalid) return 1; // a is invalid, push to end
+        if (bInvalid) return -1; // b is invalid, push to end
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;

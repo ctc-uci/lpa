@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -11,6 +11,10 @@ import {
   MenuList,
 } from "@chakra-ui/react";
 
+import arrowsSvg from "../../assets/icons/right-icon.svg";
+
+import "./sorting.css";
+
 const DateSortingModal = ({ onSortChange }) => {
   return (
     <Menu>
@@ -19,32 +23,31 @@ const DateSortingModal = ({ onSortChange }) => {
         variant="ghost"
         size="sm"
       >
-        <Flex
-          direction="column"
-          align="center"
-          gap={1}
-        >
-          <ChevronUpIcon />
-          <ChevronDownIcon />
-        </Flex>
+        <img
+          src={arrowsSvg}
+          alt="Arrows"
+          className="menu-button-icon"
+        />
       </MenuButton>
-      <MenuList>
+      <MenuList className="date-sorting-popup">
         <MenuItem onClick={() => onSortChange("date", "asc")}>
           <Flex
             align="center"
             gap={2}
+            className="sort-menu-item"
           >
-            <ChevronUpIcon />
-            <Box>Soonest - Latest</Box>
+            <TriangleUpIcon className="triangle-icon icon-style" />
+            <Box className="icon-style">Soonest - Latest</Box>
           </Flex>
         </MenuItem>
         <MenuItem onClick={() => onSortChange("date", "desc")}>
           <Flex
             align="center"
             gap={2}
+            className="sort-menu-item"
           >
-            <ChevronDownIcon />
-            <Box>Latest - Soonest</Box>
+            <TriangleDownIcon className="triangle-icon icon-style" />
+            <Box className="icon-style">Latest - Soonest</Box>
           </Flex>
         </MenuItem>
       </MenuList>

@@ -1,0 +1,104 @@
+:root {
+  --white: #FFF;
+  --border-color: #D2D2D2;
+  --hover-bg: #F0F1F4;
+  --text-color: #767778;
+  --font-family: "Inter", sans-serif;
+  --font-size: 16px;
+  --font-weight: 600;
+  --line-height: normal;
+}
+
+/* Override default Chakra MenuItem hover/focus */
+.chakra-menu__menuitem {
+  background: transparent !important;
+  margin: 0 !important;
+}
+.chakra-menu__menuitem:hover,
+.chakra-menu__menuitem:focus {
+  background: var(--hover-bg) !important;
+  border-radius: 15px !important;
+}
+
+/* General icon/text style */
+.icon-style {
+  color: var(--text-color);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  font-style: normal;
+  font-weight: var(--font-weight);
+  line-height: var(--line-height);
+}
+
+/* MenuButton arrow icon */
+.menu-button-icon {
+  width: 20px;
+  height: 20px;
+  margin: 4px;
+  display: block;
+}
+
+/* Triangle icons inside the popups */
+.triangle-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-color) !important;
+  fill: var(--text-color) !important;
+}
+
+/* PROGRAM SORTING POPUP: force a square 106×106 with 8px padding */
+.program-sorting-popup {
+  width: 106px !important;
+  height: 106px !important;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  border: 1px solid var(--border-color);
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+/* Each menu item inside the program popup */
+.program-sorting-popup .sort-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 8px;
+  transition: background 0.2s ease;
+  border-radius: 15px;
+}
+.program-sorting-popup .sort-menu-item:hover {
+  background: var(--hover-bg);
+}
+
+/* DATE SORTING POPUP: force a rectangle 285×106 (width×height) with 8px padding */
+.date-sorting-popup {
+  width: 285px !important;
+  height: 106px !important;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  border: 1px solid var(--border-color);
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+/* Each menu item inside the date popup */
+.date-sorting-popup .sort-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 8px;
+  transition: background 0.2s ease;
+  border-radius: 15px;
+}
+.date-sorting-popup .sort-menu-item:hover {
+  background: var(--hover-bg);
+}

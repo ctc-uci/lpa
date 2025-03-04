@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Alert,
@@ -304,7 +304,13 @@ export const ArchivedPrograms = () => {
   };
 
   const sortedArchivedSessions = useMemo(() => {
-    const sorted = [...filterSessions()];
+    const filtered = filterSessions();
+    console.log(
+      "Filtered session dates:",
+      filtered.map((s) => s.sessionDate)
+    );
+
+    const sorted = [...filtered];
     if (sortKey === "title") {
       sorted.sort((a, b) =>
         sortOrder === "asc"
@@ -313,13 +319,32 @@ export const ArchivedPrograms = () => {
       );
     } else if (sortKey === "date") {
       sorted.sort((a, b) => {
-        const dateA = new Date(a.sessionDate);
-        const dateB = new Date(b.sessionDate);
+        const dateA = a.sessionDate !== "N/A" ? new Date(a.sessionDate) : null;
+        const dateB = b.sessionDate !== "N/A" ? new Date(b.sessionDate) : null;
+        // If both are null, they are equal.
+        if (!dateA && !dateB) return 0;
+        // If one is null, push it to the end.
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        console.log(
+          "Comparing:",
+          a.sessionDate,
+          "->",
+          dateA,
+          "vs",
+          b.sessionDate,
+          "->",
+          dateB
+        );
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
     }
+    console.log(
+      "Sorted session dates:",
+      sorted.map((s) => s.sessionDate)
+    );
     return sorted;
-  }, [filterSessions, sortKey, sortOrder]);
+  }, [filterSessions(), sortKey, sortOrder]);
 
   const deleteArchivedProgram = async (programId) => {
     try {

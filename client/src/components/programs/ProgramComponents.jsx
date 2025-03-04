@@ -1,4 +1,4 @@
-import { React, useEffect, useState } from "react";
+import { React, useEffect, useMemo, useState } from "react";
 
 import { CancelIcon } from "../../assets/CancelIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
@@ -7,6 +7,7 @@ import "./Program.css";
 
 import {
   CalendarIcon,
+  ChevronUpIcon,
   ChevronDownIcon,
   DeleteIcon,
   DownloadIcon,
@@ -274,6 +275,7 @@ export const ProgramSummary = ({
       await handleDelete();
     }
   };
+
 
   const handleDelete = async () => {
     console.log("Starting delete process...");
@@ -841,6 +843,34 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [status, setStatus] = useState("All");
   const [selectedRoom, setSelectedRoom] = useState("All");
 
+  const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
+  const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
+  const [filteredSessions, setFilteredSessions] = useState(sessions || []); // Initial sessions state
+
+  // Sorting logic using useMemo
+  const sortedSessions = useMemo(() => {
+    const sorted = [...filteredSessions];
+    
+    sorted.sort((a, b) => {
+      const aInvalid = !a.date || a.date === "N/A";
+      const bInvalid = !b.date || b.date === "N/A";
+      if (aInvalid && bInvalid) return 0;
+      if (aInvalid) return 1; // Push invalid dates to the end
+      if (bInvalid) return -1; 
+
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+    return sorted;
+  }, [filteredSessions, sortKey, sortOrder]);
+
+  // Function to update sorting
+  const handleSortChange = (key, order) => {
+    setSortKey(key);
+    setSortOrder(order);
+  };
+
   const formatDate = (isoString) => {
     const date = new Date(isoString);
 
@@ -947,18 +977,33 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                 Sessions{" "}
               </Text>
             </Flex>
-            <Flex>
+            <Flex gap = "12px" alignItems = "center">
+                <Button
+                  bg="#f2f6fb"
+                  color="#1e293b"
+                  fontWeight="bold"
+                  fontSize="16px"
+                  borderRadius="8px"
+                  backgroundColor="#F0F1F4"
+                  height="45px"
+                  mt="10px"
+                  mb="15px"
+                  px="20px"
+                  _hover={{ bg: "#e0e6ed" }}
+                >
+                  Select
+                </Button>
               <Popover onClose={onClose}>
                 <PopoverTrigger>
                   <Button
-                    color="#767778"
+                    color="#1e293b"
+                    fontWeight="bold"
                     backgroundColor="#F0F1F4"
                     variant="outline"
                     minWidth="auto"
                     height="45px"
                     mt="10px"
                     mb="15px"
-                    borderRadius="30px"
                     onClick={onOpen}
                     border="none"
                   >
@@ -1325,8 +1370,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           alignItems="flex-start"
                           gap="2px"
                         >
-                          <Icon as={sessionsUpArrow} />
-                          <Icon as={sessionsDownArrow} />
+                          <DateSortingModal onSortChange={handleSortChange} />
                         </Box>
                       </Box>
                     </Th>

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -11,6 +11,10 @@ import {
   MenuList,
 } from "@chakra-ui/react";
 
+import arrowsSvg from "../../assets/icons/right-icon.svg";
+
+import "./sorting.css";
+
 const ProgramSortingModal = ({ onSortChange }) => {
   return (
     <Menu>
@@ -19,32 +23,31 @@ const ProgramSortingModal = ({ onSortChange }) => {
         variant="ghost"
         size="sm"
       >
-        <Flex
-          direction="column"
-          align="center"
-          gap={1}
-        >
-          <ChevronUpIcon />
-          <ChevronDownIcon />
-        </Flex>
+        <img
+          src={arrowsSvg}
+          alt="Arrows"
+          className="menu-button-icon"
+        />
       </MenuButton>
-      <MenuList>
+      <MenuList className="program-sorting-popup">
         <MenuItem onClick={() => onSortChange("title", "asc")}>
           <Flex
             align="center"
             gap={2}
+            className="sort-menu-item"
           >
-            <ChevronUpIcon />
-            <Box>A‑Z</Box>
+            <TriangleUpIcon className="triangle-icon icon-style" />
+            <Box className="icon-style">A‑Z</Box>
           </Flex>
         </MenuItem>
         <MenuItem onClick={() => onSortChange("title", "desc")}>
           <Flex
             align="center"
             gap={2}
+            className="sort-menu-item"
           >
-            <ChevronDownIcon />
-            <Box>Z‑A</Box>
+            <TriangleDownIcon className="triangle-icon icon-style" />
+            <Box className="icon-style">Z‑A</Box>
           </Flex>
         </MenuItem>
       </MenuList>
