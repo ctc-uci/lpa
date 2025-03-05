@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Box,
@@ -27,12 +27,20 @@ import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 
 import logo from "../../assets/logo/logo.png";
 
+//TODO get latest date from comments for generated date and month
+//TODO make submit form for all the session and summary changes
+//TODO create save functionality
+//TODO select dropdown modal
+//TODO Fix session subtotal calculation
+//TODO Header Title
+//TODO Change color of recurring Program, designated payers, and lead artist(s) to match figma
+
 const EditInvoiceTitle = () => {
   return (
     <Flex
       justifyContent="space-between"
       my="8"
-      mx="8"
+      mx="4"
       fontFamily="Inter"
       color="#2D3748"
     >
@@ -193,7 +201,7 @@ const StatementComments = ({
         border="1px solid #D2D2D2"
         borderRadius="18px"
         minH="24"
-        px='12px'
+        px="12px"
       >
         <Table
           color="#EDF2F7"
@@ -201,38 +209,42 @@ const StatementComments = ({
           textAlign="center"
         >
           <Thead>
-            <Tr
-              color="#4A5568"
-            >
+            <Tr color="#4A5568">
               <Th
                 textTransform="none"
+                fontSize="14px"
               >
                 Date
               </Th>
               <Th
                 textTransform="none"
+                fontSize="14px"
               >
                 Classroom
               </Th>
               <Th
                 textTransform="none"
+                fontSize="14px"
               >
                 Rental Hours
               </Th>
               <Th
                 textTransform="none"
+                fontSize="14px"
               >
                 Room Fee
               </Th>
               <Th
                 textTransform="none"
+                fontSize="14px"
               >
                 Adjustment Type(s)
               </Th>
               <Th
                 textTransform="none"
-                textAlign='end'
-                pr='40px'
+                textAlign="end"
+                pr="40px"
+                fontSize="14px"
               >
                 Total
               </Th>
@@ -243,86 +255,100 @@ const StatementComments = ({
               comments.map((comment, index) => {
                 return (
                   <Tr key={`comment-${comment.id || "unknown"}-${index}`}>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                    >
+                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                       <Text
-                        size="sm"
                         width="100px"
-                      >{format(new Date(comment.datetime), "M/d/yy")}</Text>
+                        fontSize="14px"
+                      >
+                        {format(new Date(comment.datetime), "M/d/yy")}
+                      </Text>
                     </Td>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                    >
-                      <Text>
+                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                      <Text fontSize="14px">
                         {room && room.length > 0 ? `${room[0].name}` : "N/A"}
                       </Text>
                     </Td>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)" 
-                    >
-                      <Flex align='center' justifyContent='space-evenly' gap='2'>
+                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                      <Flex
+                        align="center"
+                        justifyContent="space-evenly"
+                        gap="2"
+                      >
+                        <Input
+                          w="85px"
+                          px="2"
+                          textAlign="center"
+                          fontSize="14px"
+                          value={
+                            booking.startTime
+                              ? (() => {
+                                  const startTime = booking.startTime
+                                    .split("-")[0]
+                                    .substring(0, 5);
+                                  const formatTime = (timeStr) => {
+                                    const [hours, minutes] = timeStr
+                                      .split(":")
+                                      .map(Number);
+                                    const period = hours >= 12 ? "pm" : "am";
+                                    const hour12 = hours % 12 || 12;
+                                    return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                  };
 
-                      
-                        <Input w='85px' px="2" textAlign='center' value={booking.startTime 
-                            ? (() => {
-                                const startTime = booking.startTime
-                                  .split("-")[0]
-                                  .substring(0, 5);
-                                const formatTime = (timeStr) => {
-                                  const [hours, minutes] = timeStr
-                                    .split(":")
-                                    .map(Number);
-                                  const period = hours >= 12 ? "pm" : "am";
-                                  const hour12 = hours % 12 || 12;
-                                  return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
-                                };
+                                  return `${formatTime(startTime)}`;
+                                })()
+                              : "N/A"
+                          }
+                        />
+                        <Text fontSize="14px">to</Text>
+                        <Input
+                          w="85px"
+                          px="2"
+                          fontSize="14px"
+                          textAlign="center"
+                          value={
+                            booking.startTime
+                              ? (() => {
+                                  const endTime = booking.endTime
+                                    .split("-")[0]
+                                    .substring(0, 5);
+                                  const formatTime = (timeStr) => {
+                                    const [hours, minutes] = timeStr
+                                      .split(":")
+                                      .map(Number);
+                                    const period = hours >= 12 ? "pm" : "am";
+                                    const hour12 = hours % 12 || 12;
+                                    return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                  };
 
-                                return `${formatTime(startTime)}`;
-                              })()
-                            : "N/A"}/>
-                            <Text>to</Text>
-                          <Input w='85px' px="2" textAlign='center' value={booking.startTime 
-                            ? (() => {
-                                const endTime = booking.endTime
-                                  .split("-")[0]
-                                  .substring(0, 5);
-                                const formatTime = (timeStr) => {
-                                  const [hours, minutes] = timeStr
-                                    .split(":")
-                                    .map(Number);
-                                  const period = hours >= 12 ? "pm" : "am";
-                                  const hour12 = hours % 12 || 12;
-                                  return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
-                                };
-
-                                return `${formatTime(endTime)}`;
-                              })()
-                          : "N/A"}/>
-                        </Flex>
-                    </Td>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                    >
-                      <Flex align='center' gap='1'>
-
-                        <Input w='95px'
-                          value={room && room.length > 0
-                            ? `$${room[0].rate}`
-                            : "N/A"}
-                            />
-                        <Text>/hr</Text>
+                                  return `${formatTime(endTime)}`;
+                                })()
+                              : "N/A"
+                          }
+                        />
                       </Flex>
                     </Td>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                    >
+                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                      <Flex
+                        align="center"
+                        gap="1"
+                      >
+                        <Input
+                          w="95px"
+                          fontSize="14px"
+                          value={
+                            room && room.length > 0 ? `$${room[0].rate}` : "N/A"
+                          }
+                        />
+                        <Text fontSize="14px">/hr</Text>
+                      </Flex>
+                    </Td>
+                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                       <Select
-                        h='40px'
+                        h="40px"
                         value={comment.adjustmentType || ""}
-                        size="sm"
-                        placeholder='Click to Select'
-                        borderRadius='4px'
+                        placeholder="Click to Select"
+                        borderRadius="4px"
+                        fontSize="14px"
                       >
                         <option value="rate_flat">Rate Flat</option>
                         <option value="paid">Paid</option>
@@ -335,31 +361,37 @@ const StatementComments = ({
                       <Flex
                         justifyContent="center"
                         alignItems="center"
-                        gap='2'
+                        gap="2"
                       >
-                        <Text>$</Text>
+                        <Text fontSize="14px">$</Text>
                         <Input
                           w="85px"
                           px="2"
                           textAlign="center"
+                          fontSize="14px"
                           value={
                             booking.startTime && booking.endTime
                               ? (() => {
                                   const timeToMinutes = (timeStr) => {
-                                    const [hours, minutes] = timeStr.split(":").map(Number);
+                                    const [hours, minutes] = timeStr
+                                      .split(":")
+                                      .map(Number);
                                     return hours * 60 + minutes;
                                   };
 
-                                    
-                                    const startMinutes = timeToMinutes(booking.startTime.substring(0, 5));
-                                    const endMinutes = timeToMinutes(booking.endTime.substring(0, 5));
-                                    const diff = endMinutes - startMinutes;
-                                    
-                                    const totalHours = Math.ceil(diff / 60);
-                                      
-                                    return (totalHours * room[0]?.rate).toFixed(2);
+                                  const startMinutes = timeToMinutes(
+                                    booking.startTime.substring(0, 5)
+                                  );
+                                  const endMinutes = timeToMinutes(
+                                    booking.endTime.substring(0, 5)
+                                  );
+                                  const diff = endMinutes - startMinutes;
 
-                                  
+                                  const totalHours = Math.ceil(diff / 60);
+
+                                  return (totalHours * room[0]?.rate).toFixed(
+                                    2
+                                  );
                                 })()
                               : "N/A"
                           }
@@ -379,26 +411,24 @@ const StatementComments = ({
                 </Td>
               </Tr>
             )}
-            
+
             <Tr>
-              
               <Td
-                fontSize="clamp(.5rem, 1rem, 1.5rem)"
                 py="8"
                 textAlign="right"
                 colSpan={5}
+                fontSize='16px'
               >
-                <Text fontWeight="bold">{`Subtotal`}</Text>
+                <Text fontWeight="bold">Subtotal</Text>
               </Td>
               <Td
                 fontSize="clamp(.5rem, 1rem, 1.5rem)"
                 py="8"
                 textAlign="right"
               >
-                <Text textAlign='center'>{`$ ${subtotal.toFixed(2)}`}</Text>
+                <Text textAlign="center">{`$ ${subtotal.toFixed(2)}`}</Text>
               </Td>
             </Tr>
-            
           </Tbody>
         </Table>
       </Flex>
@@ -407,6 +437,7 @@ const StatementComments = ({
 };
 
 const InvoiceSummary = ({ pastDue, subtotal }) => {
+
   return (
     <Box
       mt={8}
@@ -431,64 +462,77 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
           <Table>
             <Thead
               color="#4A5568"
-              as="b"
             >
               <Tr>
                 <Th
-                  fontSize="lg"
+                  fontSize="14px"
                   textTransform="none"
                 >
                   Description
                 </Th>
                 <Th
-                  fontSize="lg"
+                  fontSize="14px"
                   textTransform="none"
+                  pl='8'
                 >
                   Adjustment Type(s)
                 </Th>
                 <Th
-                  fontSize="lg"
+                  fontSize="14px"
                   textTransform="none"
+                  textAlign='end'
+                  pr='14'
                 >
                   Total
                 </Th>
               </Tr>
             </Thead>
             <Tbody color="#2D3748">
+              <Tr >
+                <Td fontSize="14px" border="none">Past Due Balance</Td>
+                <Td border="none">
+                  <Select placeholder="Click to select" fontSize="14px" isReadOnly>
+                    {/* <option value=""></option> */}
+                  </Select>
+                </Td>
+                <Td border="none">
+                  <Flex alignItems="center" justifyContent='end'>
+                    <Text mr={1} fontSize="14px">$</Text>
+                    {/* // ! Hardcoded value */}
+                    <Input textAlign='center' p='0' fontSize="14px" value={pastDue.toFixed(2)} width={`${pastDue.toFixed(2).length + 1}ch`}/>
+                    {/* <Input placeholder="0.00" defaultValue={pastDueValue.toFixed(2)} /> */}
+                  </Flex>
+                </Td>
+              </Tr>
+              <Tr borderBottom="1px solid" borderColor="gray.200">
+                <Td colSpan='1'>
+                  <Text as='b'>
+                    Waiting for remaining payments from November and December
+                  </Text>
+                </Td>
+              </Tr>
               <Tr>
-                <Td>Past Due Balance</Td>
+                <Td fontSize="14px">Current Statement Subtotal</Td>
                 <Td>
-                  <Select placeholder="Click to select">
-                    <option value=""></option>
-                    Past Due Balance
+                  {/* Temporarily isReadOnly as stated and until design is finalized */}
+                  <Select placeholder="Click to select" fontSize="14px"> 
+                    {/* <option value=""></option> */}
                   </Select>
                 </Td>
                 <Td>
-                  <Flex alignItems="center">
-                    <Text mr={1}>$</Text>
-                    <Input type="number" />
+                  <Flex alignItems="center" justifyContent='end'>
+                    <Text mr={1} fontSize="14px">$</Text>
+                    <Input type="number" textAlign="center" px='0' fontSize="14px" value={subtotal.toFixed(2)} width={`${subtotal.toFixed(2).length + 1}ch`}/>
                     {/* <Input placeholder="0.00" defaultValue={pastDueValue.toFixed(2)} /> */}
                   </Flex>
                 </Td>
               </Tr>
               <Tr>
+                <Td textAlign='end' colSpan='2' fontSize='16px' fontWeight='700'>Total Amount Due</Td>
                 <Td>
-                  Waiting for remaining payments from November and December
-                  TODO: NEED TO CHANGE TO CORRECT DATE
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>Current Statement Subtotal</Td>
-                <Td>
-                  <Select placeholder="Click to select">
-                    <option value=""></option>
-                    Past Due Balance
-                  </Select>
-                </Td>
-                <Td>
-                  <Flex alignItems="center">
-                    <Text mr={1}>$</Text>
-                    <Input type="number" />
+                  <Flex alignItems="center" justifyContent='end'>
+                    <Text mr={1} fontSize="14px">$</Text>
+                    <Input type="number" textAlign="center"  fontWeight='700' px='0' color='#474849' fontSize="24px" width={`${(subtotal + pastDue).toFixed(2).length + 1}ch`} value={(subtotal + pastDue).toFixed(2)} />
                     {/* <Input placeholder="0.00" defaultValue={pastDueValue.toFixed(2)} /> */}
                   </Flex>
                 </Td>
@@ -526,8 +570,15 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
                 h="20px"
                 />
             </HStack> */}
+      </VStack>
+    </Box>
+  );
+};
 
-        <Flex
+const FooterDescription = () => {
+  return (
+    <Flex
+          mt='24'
           justifyContent="space-between"
           color="black"
         >
@@ -580,14 +631,13 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
             </Text>
           </VStack>
         </Flex>
-      </VStack>
-    </Box>
   );
-};
+}
 
 export {
   StatementComments,
   EditInvoiceTitle,
   EditInvoiceDetails,
   InvoiceSummary,
+  FooterDescription
 };

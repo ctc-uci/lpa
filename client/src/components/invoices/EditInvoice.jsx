@@ -7,12 +7,15 @@ import {
   HStack,
   IconButton,
   VStack,
+  Image
 } from "@chakra-ui/react";
 
 import { FaAngleLeft } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 
-import InvoiceBackground from "../../assets/background/InvoiceBackground.png";
+// import InvoiceBackground from "../../assets/background/InvoiceBackground.png";
+import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png"
+import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png"
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import {
@@ -20,6 +23,7 @@ import {
   EditInvoiceTitle,
   InvoiceSummary,
   StatementComments,
+  FooterDescription
 } from "./EditInvoiceComponents";
 
 const InvoiceNavBar = ({ onBack, id }) => {
@@ -149,7 +153,9 @@ export const EditInvoice = () => {
           0
         );
         const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-          (sum, res) => sum + res.data.paid,
+          (sum, res) => {
+            return sum + Number(res.data.total) // Had to change to number because was causing NaN
+          },
           0
         );
         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
@@ -199,30 +205,21 @@ export const EditInvoice = () => {
     <Navbar>
       <VStack>
       <InvoiceNavBar onBack={handleBack} id={id} />
-      <Box
-          width="80%"
-          minH="150vh"
-          position="relative"
-          bg="white"
-          backgroundImage={`url(${InvoiceBackground})`}
-          backgroundSize="100% 150vh"
-          backgroundPosition="top"
-          backgroundRepeat="no-repeat"
-          overflow="visible"
-        >
+        <Image
+              w='80%'
+              position="relative"
+              src={InvoiceHeaderBackground}
+              backgroundSize="100%"
+              backgroundRepeat="no-repeat"
+          />
           <VStack
-            width="100%"
-            height="100%"
+            width="80%"
             spacing={4}
-            pt={8}
-            pb={32}
             px={8}
+            // mt={36}
           >
-            <Box
-              width="100%"
-              overflowY="visible"
-              mt={36}
-            >
+            
+            <Box>
               <EditInvoiceTitle />
               <EditInvoiceDetails
                 instructors={instructors}
@@ -239,9 +236,16 @@ export const EditInvoice = () => {
                 pastDue={pastDue}
                 subtotal={subtotal}
               />
+              <FooterDescription />
             </Box>
           </VStack>
-        </Box>
+          <Image
+              w='80%'
+              position="relative"
+              src={InvoiceFooterBackground}
+              backgroundSize="100%"
+              backgroundRepeat="no-repeat"
+          />
       </VStack>
 
     </Navbar>
