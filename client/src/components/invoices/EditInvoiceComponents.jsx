@@ -179,9 +179,22 @@ const StatementComments = ({
   room = [],
   subtotal = 0.0,
 }) => {
-  // console.log("COMMENTS",comments)
-  //   console.log("BOOKING",booking)
-  // console.log("ROOM",room)
+
+  const [commentsState,setComments] = useState(comments);
+  const [bookingState,setBooking] = useState(booking);
+  const [roomState,setRoom] = useState(room);
+
+  useEffect(() => {
+    if (comments && comments.length > 0) {
+      setComments(comments);
+      setBooking(booking);
+      setRoom(room);
+    }
+  }, [comments]);
+
+  // console.log(commentsState)
+
+
 
   return (
     <Flex
@@ -343,16 +356,21 @@ const StatementComments = ({
                       </Flex>
                     </Td>
                     <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                      <Select
-                        h="40px"
-                        value={comment.adjustmentType || ""}
-                        placeholder="Click to Select"
-                        borderRadius="4px"
-                        fontSize="14px"
-                      >
-                        <option value="rate_flat">Rate Flat</option>
-                        <option value="paid">Paid</option>
-                      </Select>
+                    <Select 
+                      h="40px"
+                      value={(commentsState[index] && commentsState[index].adjustmentType) || ""}
+                      onChange={(e) => {
+                        const newComments = [...commentsState];
+                        newComments[index].adjustmentType = e.target.value;
+                        setComments(newComments);
+                      }}
+                      placeholder="Click to Select"
+                      borderRadius="4px"
+                      fontSize="14px"
+                    >
+                      <option value="rate_flat">Rate Flat</option>
+                      <option value="paid">Paid</option>
+                    </Select>
                     </Td>
                     <Td
                       fontSize="clamp(.5rem, 1rem, 1.5rem)"
@@ -506,9 +524,9 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
               </Tr>
               <Tr borderBottom="1px solid" borderColor="gray.200">
                 <Td colSpan='1'>
-                  <Text as='b'>
-                    Waiting for remaining payments from November and December
-                  </Text>
+                <Text fontWeight="bold" color="gray.700">
+                  Waiting for remaining payments from November and December
+                </Text>
                 </Td>
               </Tr>
               <Tr>
