@@ -25,10 +25,10 @@ export const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme='gray' mr={3} onClick={onClose}>
+            <Button colorScheme='#EDF2F7' mr={3} onClick={onClose}>
               Exit
             </Button>
-            <Button colorScheme='red' onClick={onConfirm}>
+            <Button colorScheme='#90080F' onClick={onConfirm}>
               Confirm
             </Button>
           </ModalFooter>
