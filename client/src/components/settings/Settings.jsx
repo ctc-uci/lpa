@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 
 import Navbar from "../navbar/Navbar";
-import { GeneralSettings } from "./SettingsComponents";
+import { GeneralSettings, AdminSettings } from "./SettingsComponents";
 
 export const Settings = () => {
     const [selectedComponent, setSelectedComponent] = useState("general");
@@ -49,7 +49,7 @@ export const Settings = () => {
                             </GeneralSettings>
                         </TabPanel>
                         <TabPanel marginTop="2.5rem" padding="0px">
-                            <h1>Admin</h1>
+                            <AdminSettings />
                         </TabPanel>
                     </TabPanels>
                 </Tabs>
