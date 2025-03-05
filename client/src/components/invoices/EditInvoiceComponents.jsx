@@ -193,56 +193,46 @@ const StatementComments = ({
         border="1px solid #D2D2D2"
         borderRadius="18px"
         minH="24"
+        px='12px'
       >
         <Table
           color="#EDF2F7"
-          style={{ tableLayout: "fixed", width: "100%" }}
+          style={{ width: "100%" }}
           textAlign="center"
         >
           <Thead>
             <Tr
               color="#4A5568"
-              as="b"
             >
               <Th
                 textTransform="none"
-                width="14%"
-                textAlign="center"
               >
                 Date
               </Th>
               <Th
                 textTransform="none"
-                width="18%"
-                textAlign="center"
               >
                 Classroom
               </Th>
               <Th
                 textTransform="none"
-                width="18%"
-                textAlign="center"
               >
                 Rental Hours
               </Th>
               <Th
                 textTransform="none"
-                width="16%"
-                textAlign="center"
               >
                 Room Fee
               </Th>
               <Th
                 textTransform="none"
-                width="18%"
-                textAlign="center"
               >
                 Adjustment Type(s)
               </Th>
               <Th
                 textTransform="none"
-                width="16%"
-                textAlign="center"
+                textAlign='end'
+                pr='40px'
               >
                 Total
               </Th>
@@ -255,68 +245,84 @@ const StatementComments = ({
                   <Tr key={`comment-${comment.id || "unknown"}-${index}`}>
                     <Td
                       fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      textAlign="center"
                     >
-                      <Input
-                        value={format(new Date(comment.datetime), "M/d/yy")}
+                      <Text
                         size="sm"
                         width="100px"
-                        textAlign="center"
-                      />
+                      >{format(new Date(comment.datetime), "M/d/yy")}</Text>
                     </Td>
                     <Td
                       fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      textAlign="center"
                     >
                       <Text>
                         {room && room.length > 0 ? `${room[0].name}` : "N/A"}
                       </Text>
                     </Td>
                     <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      textAlign="center"
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)" 
                     >
-                      <Text>
-                        {booking.startTime && booking.endTime
-                          ? (() => {
-                              const startTime = booking.startTime
-                                .split("-")[0]
-                                .substring(0, 5);
-                              const endTime = booking.endTime
-                                .split("-")[0]
-                                .substring(0, 5);
+                      <Flex align='center' justifyContent='space-evenly' gap='2'>
 
-                              const formatTime = (timeStr) => {
-                                const [hours, minutes] = timeStr
-                                  .split(":")
-                                  .map(Number);
-                                const period = hours >= 12 ? "pm" : "am";
-                                const hour12 = hours % 12 || 12;
-                                return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
-                              };
+                      
+                        <Input w='85px' px="2" textAlign='center' value={booking.startTime 
+                            ? (() => {
+                                const startTime = booking.startTime
+                                  .split("-")[0]
+                                  .substring(0, 5);
+                                const formatTime = (timeStr) => {
+                                  const [hours, minutes] = timeStr
+                                    .split(":")
+                                    .map(Number);
+                                  const period = hours >= 12 ? "pm" : "am";
+                                  const hour12 = hours % 12 || 12;
+                                  return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                };
 
-                              return `${formatTime(startTime)} - ${formatTime(endTime)}`;
-                            })()
-                          : "N/A"}
-                      </Text>
+                                return `${formatTime(startTime)}`;
+                              })()
+                            : "N/A"}/>
+                            <Text>to</Text>
+                          <Input w='85px' px="2" textAlign='center' value={booking.startTime 
+                            ? (() => {
+                                const endTime = booking.endTime
+                                  .split("-")[0]
+                                  .substring(0, 5);
+                                const formatTime = (timeStr) => {
+                                  const [hours, minutes] = timeStr
+                                    .split(":")
+                                    .map(Number);
+                                  const period = hours >= 12 ? "pm" : "am";
+                                  const hour12 = hours % 12 || 12;
+                                  return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                };
+
+                                return `${formatTime(endTime)}`;
+                              })()
+                          : "N/A"}/>
+                        </Flex>
                     </Td>
                     <Td
                       fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      textAlign="center"
                     >
-                      <Text>
-                        {room && room.length > 0
-                          ? `$${room[0].rate}/hr`
-                          : "N/A"}
-                      </Text>
+                      <Flex align='center' gap='1'>
+
+                        <Input w='95px'
+                          value={room && room.length > 0
+                            ? `$${room[0].rate}`
+                            : "N/A"}
+                            />
+                        <Text>/hr</Text>
+                      </Flex>
                     </Td>
                     <Td
                       fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      textAlign="center"
                     >
                       <Select
+                        h='40px'
                         value={comment.adjustmentType || ""}
                         size="sm"
+                        placeholder='Click to Select'
+                        borderRadius='4px'
                       >
                         <option value="rate_flat">Rate Flat</option>
                         <option value="paid">Paid</option>
@@ -329,13 +335,34 @@ const StatementComments = ({
                       <Flex
                         justifyContent="center"
                         alignItems="center"
+                        gap='2'
                       >
                         <Text>$</Text>
                         <Input
-                          value={comment.adjustmentValue}
-                          size="sm"
-                          width="80px"
+                          w="85px"
+                          px="2"
                           textAlign="center"
+                          value={
+                            booking.startTime && booking.endTime
+                              ? (() => {
+                                  const timeToMinutes = (timeStr) => {
+                                    const [hours, minutes] = timeStr.split(":").map(Number);
+                                    return hours * 60 + minutes;
+                                  };
+
+                                    
+                                    const startMinutes = timeToMinutes(booking.startTime.substring(0, 5));
+                                    const endMinutes = timeToMinutes(booking.endTime.substring(0, 5));
+                                    const diff = endMinutes - startMinutes;
+                                    
+                                    const totalHours = Math.ceil(diff / 60);
+                                      
+                                    return (totalHours * room[0]?.rate).toFixed(2);
+
+                                  
+                                })()
+                              : "N/A"
+                          }
                         />
                       </Flex>
                     </Td>
@@ -352,17 +379,26 @@ const StatementComments = ({
                 </Td>
               </Tr>
             )}
-
+            
             <Tr>
-              <Td colSpan={5}></Td>
+              
+              <Td
+                fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                py="8"
+                textAlign="right"
+                colSpan={5}
+              >
+                <Text fontWeight="bold">{`Subtotal`}</Text>
+              </Td>
               <Td
                 fontSize="clamp(.5rem, 1rem, 1.5rem)"
                 py="8"
                 textAlign="right"
               >
-                <Text fontWeight="bold">{`Subtotal: $${subtotal}`}</Text>
+                <Text textAlign='center'>{`$ ${subtotal.toFixed(2)}`}</Text>
               </Td>
             </Tr>
+            
           </Tbody>
         </Table>
       </Flex>
