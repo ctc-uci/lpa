@@ -10,7 +10,7 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
     <div id="location">
         <LocationIcon />
         {locations && locations.length > 0 ? (
-                <Select width="30%" backgroundColor="#FFF;"  value={selectedLocationId === "" ? 'DEFAULT' : selectedLocationId}
+                <Select width="30%" backgroundColor="#FFF"  value={selectedLocationId === "" ? 'DEFAULT' : selectedLocationId}
                 onChange={(event) => {
                     const selectedId = parseInt(event.target.value);
                     const location = locations.find(loc => loc.id === selectedId);

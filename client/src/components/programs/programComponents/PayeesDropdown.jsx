@@ -54,6 +54,7 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                             fontSize: "16px",
                                             cursor: "pointer",
                                             transition: "0.2s",
+                                            backgroundColor: "#FFF"
                                         }}
                                         bg="#F6F6F6"
                                         _hover={{ bg: "#D9D9D9" }}
