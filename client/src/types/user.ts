@@ -3,4 +3,5 @@ export type User = {
   email: string;
   firebaseUid: string;
   role: "user" | "admin";
+  editPerms: boolean;
 };
