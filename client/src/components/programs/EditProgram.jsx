@@ -356,7 +356,7 @@ const payees = eventClientResponse.data
                     <PopoverContent style={{width:"100%"}}>
                       <PopoverBody onClick={exit}>
                         <div id="cancelBody">
-                          <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
+                          <Icon fontSize="1xl" onClick={() => navigate(-1)}><CancelIcon id="cancelIcon"/></Icon>
                           <p id="cancel">Cancel</p>
                         </div>
                       </PopoverBody>
