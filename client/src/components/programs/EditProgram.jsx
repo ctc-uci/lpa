@@ -2,37 +2,13 @@ import { useEffect, useState, useRef } from "react";
 import './EditProgram.css';
 
 import {
-  Box,
   Button,
-  Flex,
-  FormControl,
-  FormLabel,
   Icon,
-  IconButton,
-  Input,
-  Select,
-  Textarea,
-  Tag,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverBody,
 } from "@chakra-ui/react";
-
-
-// I think we can remove these! But I'll keep it here for now just in case
-// import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
-// import {RepeatIcon} from '../../assets/RepeatIcon';
-// import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
-// import {CalendarIcon} from '../../assets/CalendarIcon';
-// import {EmailIcon} from '../../assets/EmailIcon';
-// import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
-
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useNavigate } from 'react-router-dom';
 import { IoCloseOutline } from "react-icons/io5";
-import { CiCircleMore } from "react-icons/ci";
 import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
@@ -113,7 +89,7 @@ export const EditProgram = () => {
       endDate,
       selectedDays
     });
-  
+
     setHasChanges(isDifferent);
   }, [
     eventName,
@@ -126,7 +102,7 @@ export const EditProgram = () => {
     startDate,
     endDate,
     selectedDays
-  ]); 
+  ]);
 
   useEffect(() => {
     getInstructorResults(instructorSearchTerm);
@@ -224,18 +200,20 @@ const payees = eventClientResponse.data
   // TODO: add **selectedDays** as a parameter
   const getDatesForDays = (startDate, endDate, selectedDays) => {
     const daysMap = { 'Su': 0, 'M': 1, 'Tu': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 6 };
-    const daysIndices = selectedDays.map((day) => daysMap[day]);
+      const daysIndices = Object.keys(selectedDays).map((day) => daysMap[day.slice(0, 2)]);
 
-    const dates = [];
-    const currentDate = new Date(startDate);
-    const lastDate = new Date(endDate);
 
-    while (currentDate <= lastDate) {
-      if (daysIndices.includes(currentDate.getUTCDay())) {
-        dates.push(new Date(currentDate).toISOString().split("T")[0]);
+      const dates = [];
+      const currentDate = new Date(startDate);
+      const lastDate = new Date(endDate);
+
+      while (currentDate <= lastDate) {
+        if (daysIndices.includes(currentDate.getUTCDay())) {
+          dates.push(new Date(currentDate).toISOString().split("T")[0]);
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
       }
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
+
     return dates;
   };
 
@@ -343,6 +321,8 @@ const payees = eventClientResponse.data
   };
 
   const saveEvent = async () => {
+
+
     try {
       console.log("Newly added event name:", eventName);
       console.log("Newly added Description:", generalInformation);
@@ -363,22 +343,38 @@ const payees = eventClientResponse.data
       console.log("Newly added Start Date:", startDate);
       console.log("Newly added End Date:", endDate);
       console.log("Newly added Selected Days:", selectedDays);
+      console.log("TESTING", selectedDays);
 
       // TODO add , selectedDays as argument
       const dates = getDatesForDays(startDate, endDate, selectedDays);
+
+
+
+
+
+
       console.log("Newly added Saving bookings for dates:", dates);
+      console.log("selected days:", selectedDays);
 
       for (const date of dates) {
+        const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
+
+        const dayOfWeek = new Date(date).getUTCDay(); //0-6
+        const dayName = daysMap[dayOfWeek];
+
+        // Get start and end times from selectedDays
+        const { start, end } = selectedDays[dayName];
+
         const bookingsData = {
           event_id: id,
           room_id: selectedLocationId,
-          start_time: startTime,
-          end_time: endTime,
+          start_time: start,
+          end_time: end,
           date: date,
           archived: eventArchived,
         };
 
-        console.log("Saving event with location ID:", selectedLocationId);
+        console.log("Saving event with location ID:", selectedLocationId, "for date:", date, "with times:", start, "-", end);
         await backend.post('/bookings', bookingsData);
       }
 
@@ -407,14 +403,14 @@ const payees = eventClientResponse.data
         console.error("Error getting instructors:", error);
     }
   };
-  
+
 
   return (
-    
+
     <Navbar>
       <DeleteConfirmationModal
         isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)} 
+        onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={() => {
           setIsConfirmModalOpen(false); // Close modal
           navigate('/programs/' + id); // Navigate if confirmed
@@ -425,16 +421,15 @@ const payees = eventClientResponse.data
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
           <div id="eventInfoBody">
             <div id="title">
-              {/* <h1><b>{eventName}</b></h1> */}
-              
-              <TitleInformation 
+
+              <TitleInformation
                 eventName={eventName}
                 setEventName={setEventName}
               />
 
               <div id = "saveCancel">
-                <Button 
-                  id="save" 
+                <Button
+                  id="save"
                   onClick={saveEvent}
                   isDisabled={!isFormValid()}
                   backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
@@ -443,19 +438,6 @@ const payees = eventClientResponse.data
                   Save
 
                 </Button>
-                {/* <Popover id="popTrigger">
-                  <PopoverTrigger asChild>
-                    <Icon boxSize="5"><CiCircleMore/></Icon>
-                  </PopoverTrigger>
-                    <PopoverContent style={{width:"100%"}}>
-                      <PopoverBody onClick={exit}>
-                        <div id="cancelBody">
-                          <Icon fontSize="1xl" onClick={() => navigate(-1)}><CancelIcon id="cancelIcon"/></Icon>
-                          <p id="cancel">Cancel</p>
-                        </div>
-                      </PopoverBody>
-                    </PopoverContent>
-                </Popover> */}
               </div>
             </div>
             <div id="innerBody">
@@ -474,7 +456,7 @@ const payees = eventClientResponse.data
                 setSelectedDays={setSelectedDays}
               />
 
-              <ArtistsDropdown 
+              <ArtistsDropdown
                 instructorSearchTerm={instructorSearchTerm}
                 searchedInstructors={searchedInstructors}
                 selectedInstructors={selectedInstructors}
@@ -483,7 +465,7 @@ const payees = eventClientResponse.data
                 getInstructorResults={getInstructorResults}
                 setInstructorSearchTerm={setInstructorSearchTerm}
               />
-              
+
               <PayeesDropdown
                 payeeSearchTerm={payeeSearchTerm}
                 searchedPayees={searchedPayees}
@@ -494,7 +476,7 @@ const payees = eventClientResponse.data
                 setSearchedPayees={setSearchedPayees}
               />
 
-              <EmailDropdown 
+              <EmailDropdown
                 selectedPayees={selectedPayees}
               />
 
