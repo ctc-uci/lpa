@@ -28,6 +28,7 @@ import {
     TableContainer,
     Text,
     Textarea,
+    useCheckbox,
     VStack,
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react"
@@ -473,7 +474,21 @@ const AdminSettings = () => {
     }
   };
 
-  
+  const removeAdminAccess = async(userId) => {
+    try {
+      const userResponse = await backend.get(`/users/${userId}`);
+      const userData = userResponse.data;
+
+      await backend.put(`/users/${userId}`, {
+        ...userData,
+        editPerms: false
+      });
+
+      await getAllUsers();
+    } catch (error) {
+      console.error("Error in removeAdminAccess:", error);
+    }
+  };
 
   useEffect(() => {
     getAllUsers();
@@ -590,7 +605,10 @@ const AdminSettings = () => {
                     </Td>
                     <Td width="30%">
                       <Flex justifyContent="right" marginRight="4px">
-                        <Checkbox />
+                        <Checkbox
+                          isChecked={false}
+                          onChange={() => removeAdminAccess(admin.id)}
+                        />
                       </Flex>
                     </Td>
                   </Tr>
