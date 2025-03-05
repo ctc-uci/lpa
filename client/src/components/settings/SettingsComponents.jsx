@@ -504,7 +504,7 @@ const AdminSettings = () => {
         <Flex borderRadius="15px" border="1px solid #E2E8F0" marginTop="40px">
           <TableContainer
             margin="20px"
-            height="300px"
+            height="200px"
             overflowY="auto"
             width="full"
           >
@@ -579,7 +579,7 @@ const AdminSettings = () => {
         <Flex borderRadius="15px" border="1px solid #E2E8F0" marginTop="40px">
           <TableContainer
             margin="20px"
-            height="300px"
+            height="200px"
             overflowY="auto"
             width="full"
           >
