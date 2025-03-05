@@ -23,17 +23,7 @@ import {
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
-import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
-
 import logo from "../../assets/logo/logo.png";
-
-//TODO get latest date from comments for generated date and month
-//TODO make submit form for all the session and summary changes
-//TODO create save functionality
-//TODO select dropdown modal
-//TODO Fix session subtotal calculation
-//TODO Header Title
-//TODO Change color of recurring Program, designated payers, and lead artist(s) to match figma
 
 const EditInvoiceTitle = () => {
   return (
@@ -118,7 +108,7 @@ const EditInvoiceDetails = ({ instructors, programName, payees }) => {
           flex={1}
         >
           <Text fontWeight="bold">Recurring Program:</Text>
-          <Text size="sm">programName</Text>
+          <Text size="sm">{programName || "No program name found"}</Text>
           <VStack
             align="stretch"
             flex={1}
@@ -129,6 +119,7 @@ const EditInvoiceDetails = ({ instructors, programName, payees }) => {
             {payees && payees.length > 0 ? (
               payees.map((payee, index) => (
                 <Text
+                  key={index}
                   size="md"
                   mr={2}
                   borderRadius="0"
@@ -154,7 +145,7 @@ const EditInvoiceDetails = ({ instructors, programName, payees }) => {
 
             {instructors && instructors.length > 0 ? (
               instructors.map((instructor, index) => (
-                <HStack>
+                <HStack key={index}>
                   <Text
                     size="sm"
                     mr={2}
@@ -178,23 +169,73 @@ const StatementComments = ({
   booking = [],
   room = [],
   subtotal = 0.0,
+  onCommentsChange,
+  onSubtotalChange
 }) => {
-
-  const [commentsState,setComments] = useState(comments);
-  const [bookingState,setBooking] = useState(booking);
-  const [roomState,setRoom] = useState(room);
+  const [commentsState, setComments] = useState(comments);
+  const [bookingState, setBooking] = useState(booking);
+  const [roomState, setRoom] = useState(room);
+  const [sessionTotals, setSessionTotals] = useState([]);
 
   useEffect(() => {
     if (comments && comments.length > 0) {
       setComments(comments);
       setBooking(booking);
       setRoom(room);
+      
+      // Calculate individual session totals
+      if (booking && room && room.length > 0) {
+        const totals = comments.map(comment => {
+          if (!booking.startTime || !booking.endTime) return 0;
+          
+          const timeToMinutes = (timeStr) => {
+            const [hours, minutes] = timeStr.split(":").map(Number);
+            return hours * 60 + minutes;
+          };
+
+          const startMinutes = timeToMinutes(booking.startTime.substring(0, 5));
+          const endMinutes = timeToMinutes(booking.endTime.substring(0, 5));
+          const diff = endMinutes - startMinutes;
+          const totalHours = Math.ceil(diff / 60);
+          
+          return parseFloat((totalHours * room[0]?.rate).toFixed(2));
+        });
+        
+        setSessionTotals(totals);
+        
+        // Calculate new subtotal based on session totals
+        const newSubtotal = totals.reduce((sum, total) => sum + total, 0);
+        if (onSubtotalChange && newSubtotal !== subtotal) {
+          onSubtotalChange(newSubtotal);
+        }
+      }
     }
-  }, [comments]);
+  }, [comments, booking, room]);
 
-  // console.log(commentsState)
+  // Handle adjustmentType change
+  const handleAdjustmentChange = (index, value) => {
+    const newComments = [...commentsState];
+    newComments[index].adjustmentType = value;
+    setComments(newComments);
+    
+    // Notify parent component
+    if (onCommentsChange) {
+      onCommentsChange(newComments);
+    }
+  };
 
-
+  // Handle session total change
+  const handleSessionTotalChange = (index, value) => {
+    const newTotals = [...sessionTotals];
+    newTotals[index] = parseFloat(value);
+    setSessionTotals(newTotals);
+    
+    // Calculate new subtotal
+    const newSubtotal = newTotals.reduce((sum, total) => sum + total, 0);
+    if (onSubtotalChange) {
+      onSubtotalChange(newSubtotal);
+    }
+  };
 
   return (
     <Flex
@@ -264,8 +305,8 @@ const StatementComments = ({
             </Tr>
           </Thead>
           <Tbody color="#2D3748">
-            {comments.length > 0 ? (
-              comments.map((comment, index) => {
+            {commentsState.length > 0 ? (
+              commentsState.map((comment, index) => {
                 return (
                   <Tr key={`comment-${comment.id || "unknown"}-${index}`}>
                     <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
@@ -356,21 +397,17 @@ const StatementComments = ({
                       </Flex>
                     </Td>
                     <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                    <Select 
-                      h="40px"
-                      value={(commentsState[index] && commentsState[index].adjustmentType) || ""}
-                      onChange={(e) => {
-                        const newComments = [...commentsState];
-                        newComments[index].adjustmentType = e.target.value;
-                        setComments(newComments);
-                      }}
-                      placeholder="Click to Select"
-                      borderRadius="4px"
-                      fontSize="14px"
-                    >
-                      <option value="rate_flat">Rate Flat</option>
-                      <option value="paid">Paid</option>
-                    </Select>
+                      <Select 
+                        h="40px"
+                        value={(commentsState[index] && commentsState[index].adjustmentType) || ""}
+                        onChange={(e) => handleAdjustmentChange(index, e.target.value)}
+                        placeholder="Click to Select"
+                        borderRadius="4px"
+                        fontSize="14px"
+                      >
+                        <option value="rate_flat">Rate Flat</option>
+                        <option value="paid">Paid</option>
+                      </Select>
                     </Td>
                     <Td
                       fontSize="clamp(.5rem, 1rem, 1.5rem)"
@@ -388,6 +425,7 @@ const StatementComments = ({
                           textAlign="center"
                           fontSize="14px"
                           value={
+                            sessionTotals[index] ? sessionTotals[index].toFixed(2) :
                             booking.startTime && booking.endTime
                               ? (() => {
                                   const timeToMinutes = (timeStr) => {
@@ -407,12 +445,11 @@ const StatementComments = ({
 
                                   const totalHours = Math.ceil(diff / 60);
 
-                                  return (totalHours * room[0]?.rate).toFixed(
-                                    2
-                                  );
+                                  return (totalHours * room[0]?.rate).toFixed(2);
                                 })()
-                              : "N/A"
+                              : "0.00"
                           }
+                          onChange={(e) => handleSessionTotalChange(index, e.target.value)}
                         />
                       </Flex>
                     </Td>
@@ -454,7 +491,25 @@ const StatementComments = ({
   );
 };
 
-const InvoiceSummary = ({ pastDue, subtotal }) => {
+const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
+  const [pastDueValue, setPastDueValue] = useState(pastDue);
+  const [subtotalValue, setSubtotalValue] = useState(subtotal);
+  
+  useEffect(() => {
+    setPastDueValue(pastDue);
+  }, [pastDue]);
+  
+  useEffect(() => {
+    setSubtotalValue(subtotal);
+  }, [subtotal]);
+  
+  const handleSubtotalChange = (e) => {
+    const newValue = parseFloat(e.target.value);
+    setSubtotalValue(newValue);
+    if (onSubtotalChange) {
+      onSubtotalChange(newValue);
+    }
+  };
 
   return (
     <Box
@@ -516,9 +571,7 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
                 <Td border="none">
                   <Flex alignItems="center" justifyContent='end'>
                     <Text mr={1} fontSize="14px">$</Text>
-                    {/* // ! Hardcoded value */}
-                    <Input textAlign='center' p='0' fontSize="14px" value={pastDue.toFixed(2)} width={`${pastDue.toFixed(2).length + 1}ch`}/>
-                    {/* <Input placeholder="0.00" defaultValue={pastDueValue.toFixed(2)} /> */}
+                    <Input textAlign='center' p='0' fontSize="14px" value={pastDueValue.toFixed(2)} width={`${pastDueValue.toFixed(2).length + 1}ch`}/>
                   </Flex>
                 </Td>
               </Tr>
@@ -532,7 +585,6 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
               <Tr>
                 <Td fontSize="14px">Current Statement Subtotal</Td>
                 <Td>
-                  {/* Temporarily isReadOnly as stated and until design is finalized */}
                   <Select placeholder="Click to select" fontSize="14px"> 
                     {/* <option value=""></option> */}
                   </Select>
@@ -540,8 +592,15 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
                 <Td>
                   <Flex alignItems="center" justifyContent='end'>
                     <Text mr={1} fontSize="14px">$</Text>
-                    <Input type="number" textAlign="center" px='0' fontSize="14px" value={subtotal.toFixed(2)} width={`${subtotal.toFixed(2).length + 1}ch`}/>
-                    {/* <Input placeholder="0.00" defaultValue={pastDueValue.toFixed(2)} /> */}
+                    <Input 
+                      type="number" 
+                      textAlign="center" 
+                      px='0' 
+                      fontSize="14px" 
+                      value={subtotalValue.toFixed(2)} 
+                      width={`${subtotalValue.toFixed(2).length + 1}ch`}
+                      onChange={handleSubtotalChange}
+                    />
                   </Flex>
                 </Td>
               </Tr>
@@ -550,44 +609,23 @@ const InvoiceSummary = ({ pastDue, subtotal }) => {
                 <Td>
                   <Flex alignItems="center" justifyContent='end'>
                     <Text mr={1} fontSize="14px">$</Text>
-                    <Input type="number" textAlign="center"  fontWeight='700' px='0' color='#474849' fontSize="24px" width={`${(subtotal + pastDue).toFixed(2).length + 1}ch`} value={(subtotal + pastDue).toFixed(2)} />
-                    {/* <Input placeholder="0.00" defaultValue={pastDueValue.toFixed(2)} /> */}
+                    <Input 
+                      type="number" 
+                      textAlign="center"  
+                      fontWeight='700' 
+                      px='0' 
+                      color='#474849' 
+                      fontSize="24px" 
+                      width={`${(subtotalValue + pastDueValue).toFixed(2).length + 1}ch`} 
+                      value={(subtotalValue + pastDueValue).toFixed(2)} 
+                      readOnly
+                    />
                   </Flex>
                 </Td>
               </Tr>
             </Tbody>
           </Table>
         </Flex>
-
-        {/* <HStack spacing={2}>
-            <Text w="120px" fontSize="xs" fontWeight="medium">Past Due Balance:</Text>
-            <Input 
-                  w="80px"
-                  value={`$${pastDue && !isNaN(pastDue) ? pastDue : 0}`}
-                  size="xs"
-                  h="20px"
-                />
-            </HStack>
-
-            <HStack spacing={2}>
-                <Text w="120px" fontSize="xs" fontWeight="medium">Current Statement Subtotal:</Text>
-                <Input 
-                  w="80px"
-                  value={`$${subtotal}`}
-                  size="xs"
-                  h="20px"
-                />
-            </HStack>
-
-            <HStack spacing={2}>
-                <Text w="120px" fontSize="xs" fontWeight="medium">Total Amount Due:</Text>
-                <Input 
-                w="80px"
-                value={`$${(pastDue && !isNaN(pastDue) ? pastDue : 0) + subtotal}`}
-                size="xs"
-                h="20px"
-                />
-            </HStack> */}
       </VStack>
     </Box>
   );

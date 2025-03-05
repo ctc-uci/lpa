@@ -12,6 +12,7 @@ import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { SingleInvoice } from "./components/invoices/SingleInvoice";
 import { EditInvoice } from "./components/invoices/EditInvoice";
+import { SavedEdit } from "./components/invoices/SavedEditsInvoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
@@ -116,6 +117,11 @@ const App = () => {
                   path="/invoices/edit/:id"
                   element={<ProtectedRoute element={<EditInvoice />} />}
                 />
+                <Route
+                  path="/invoices/savededits"
+                  element={<ProtectedRoute element={<SavedEdit />} />}
+                />
+
                 <Route
                   path="/programs/edit/:id"
                   element={<ProtectedRoute element={<EditProgram />} />}

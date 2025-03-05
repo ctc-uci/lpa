@@ -7,13 +7,11 @@ import {
   HStack,
   IconButton,
   VStack,
-  Image
+  Image,
+  useToast
 } from "@chakra-ui/react";
 
-import { FaAngleLeft } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
-
-// import InvoiceBackground from "../../assets/background/InvoiceBackground.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png"
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png"
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -26,7 +24,7 @@ import {
   FooterDescription
 } from "./EditInvoiceComponents";
 
-const InvoiceNavBar = ({ onBack, id }) => {
+const InvoiceNavBar = ({ onBack, onSave, isSaving }) => {
   return (
     <Flex
       width="100%"
@@ -53,9 +51,11 @@ const InvoiceNavBar = ({ onBack, id }) => {
       <Button
         height="2.5em" 
         borderRadius={10}
-        background1Color="#4E4AE7"
+        backgroundColor="#4E4AE7"
         color="#FFF"
         fontSize="clamp(.75rem, 1rem, 1.25rem)"
+        onClick={onSave}
+        isLoading={isSaving}
       >
         Save
       </Button>
@@ -67,9 +67,11 @@ export const EditInvoice = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [invoice, setInvoice] = useState([]);
   const [comments, setComments] = useState([]);
+  const [editedComments, setEditedComments] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [programName, setProgramName] = useState("");
   const [payees, setPayees] = useState([]);
@@ -77,7 +79,15 @@ export const EditInvoice = () => {
   const [room, setRoom] = useState([]);
 
   const [subtotal, setSubtotal] = useState(0);
+  const [editedSubtotal, setEditedSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const [editedFields, setEditedFields] = useState({
+    comments: [],
+    subtotal: 0,
+    pastDue: 0
+  });
 
   useEffect(() => {
     if (id) {
@@ -85,16 +95,12 @@ export const EditInvoice = () => {
     }
   }, [id]);
 
-
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // get current invoice
         const currentInvoiceResponse = await backend.get("/invoices/" + id);
         setInvoice(currentInvoiceResponse);
       } catch (error) {
-        // Invoice/field does not exist
         console.error("Error fetching data:", error);
       }
     };
@@ -104,8 +110,6 @@ export const EditInvoice = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // If no invoice is found, set everything to null
-        // console.log("INVOICE",invoice)
         if (!invoice.data || invoice.status === 404) {
           setComments([]);
           setInstructors([]);
@@ -124,6 +128,7 @@ export const EditInvoice = () => {
         // get comments
         const commentsResponse = await backend.get("/comments/invoice/" + id);
         setComments(commentsResponse.data);
+        setEditedComments(commentsResponse.data); // Initialize edited comments
 
         // get program name
         const programNameResponse = await backend.get(
@@ -138,6 +143,7 @@ export const EditInvoice = () => {
         // get subtotal
         const subtotalResponse = await backend.get("/invoices/total/" + id);
         setSubtotal(subtotalResponse.data.total);
+        setEditedSubtotal(subtotalResponse.data.total);
 
         // get the unpaid/remaining invoices
         const unpaidInvoicesResponse = await backend.get(
@@ -161,14 +167,22 @@ export const EditInvoice = () => {
         );
         const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
           (sum, res) => {
-            return sum + Number(res.data.total) // Had to change to number because was causing NaN
+            return sum + Number(res.data.total)
           },
           0
         );
         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
         setPastDue(remainingBalance);
+
+        // Initialize the edited fields with current data
+        setEditedFields({
+          comments: commentsResponse.data,
+          adjustments: [],
+          subtotal: subtotalResponse.data.total,
+          pastDue: remainingBalance
+        });
+
       } catch (error) {
-        // Invoice/field does not exist
         console.error("Error fetching data:", error);
       }
     };
@@ -182,20 +196,17 @@ export const EditInvoice = () => {
           return;
         }
 
-        // Find the first comment with a booking_id
         const commentWithBookingId = comments[0].bookingId;
 
         const bookingResponse = await backend.get(
           `/bookings/${commentWithBookingId}`
         );
-        // console.log("Booking details:", bookingResponse.data);
         setBookingDetails(bookingResponse.data[0]);
 
         const roomResponse = await backend.get(
           `/rooms/${bookingResponse.data[0].roomId}`
         );
         setRoom(roomResponse.data);
-        // console.log("Room", roomResponse);
       } catch (error) {
         console.error("Error fetching booking details:", error);
       }
@@ -206,12 +217,75 @@ export const EditInvoice = () => {
 
   const handleBack = () => {
     navigate(`/invoices/${id}`);
-};
+  };
+
+  // Function to handle save
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      console.log(editedComments)
+      for (const comment of editedComments) {
+        if (comment.id) {
+          const commentData = {
+            ...comment,
+            adjustmentType: comment.adjustmentType || null
+          };
+          
+          console.log(`Saving comment ${comment.id} with full data:`, commentData);
+          
+          try {
+            const response = await backend.put(`/comments/${comment.id}`, commentData);
+            console.log(`Comment ${comment.id} save response:`, response);
+          } catch (error) {
+            console.error(`Error saving comment ${comment.id}:`, error);
+            
+            if (error.response && error.response.status === 400) {
+              console.log("Trying alternative approach with POST method...");
+              try {
+                const altResponse = await backend.post(`/comments/update/${comment.id}`, commentData);
+                console.log("Alternative update response:", altResponse);
+              } catch (altError) {
+                console.error("Alternative update failed:", altError);
+                throw altError;
+              }
+            } else {
+              throw error;
+            }
+          }
+        }
+      }
+
+      
+      // navigate(`/invoices/savededits`);
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Handler for comment updates
+  const handleCommentUpdate = (updatedComments) => {
+    setEditedComments(updatedComments);
+    setEditedFields({
+      ...editedFields,
+      comments: updatedComments
+    });
+  };
+
+  // Handler for subtotal updates
+  const handleSubtotalUpdate = (newSubtotal) => {
+    setEditedSubtotal(newSubtotal);
+    setEditedFields({
+      ...editedFields,
+      subtotal: newSubtotal
+    });
+  };
 
   return (
     <Navbar>
       <VStack>
-      <InvoiceNavBar onBack={handleBack} id={id} />
+      <InvoiceNavBar onBack={handleBack} onSave={handleSave} isSaving={isSaving} />
         <Image
               w='80%'
               position="relative"
@@ -223,7 +297,6 @@ export const EditInvoice = () => {
             width="80%"
             spacing={4}
             px={8}
-            // mt={36}
           >
             
             <Box>
@@ -234,14 +307,17 @@ export const EditInvoice = () => {
                 payees={payees}
               />
               <StatementComments
-                comments={comments}
+                comments={editedComments}
                 booking={booking}
                 room={room}
-                subtotal={subtotal}
+                subtotal={editedSubtotal}
+                onCommentsChange={handleCommentUpdate}
+                onSubtotalChange={handleSubtotalUpdate}
               />
               <InvoiceSummary
                 pastDue={pastDue}
-                subtotal={subtotal}
+                subtotal={editedSubtotal}
+                onSubtotalChange={handleSubtotalUpdate}
               />
               <FooterDescription />
             </Box>
