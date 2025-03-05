@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import './EditProgram.css';
 
 import {
@@ -45,6 +45,7 @@ import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { TimeFrequency } from "./programComponents/TimeFrequency"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();
@@ -70,6 +71,9 @@ export const EditProgram = () => {
   const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+  const initialState = useRef(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
 
   useEffect(() => {
@@ -78,6 +82,51 @@ export const EditProgram = () => {
     getInitialAssignmentsData();
     getInitialLocations();
   }, []);
+
+  useEffect(() => {
+    // Store the initial state when the component first loads
+    initialState.current = {
+      eventName,
+      generalInformation,
+      selectedLocationId,
+      selectedInstructors,
+      selectedPayees,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      selectedDays
+    };
+  }, []);
+
+  useEffect(() => {
+    // Compare the current state to the initial state
+    const isDifferent = JSON.stringify(initialState.current) !== JSON.stringify({
+      eventName,
+      generalInformation,
+      selectedLocationId,
+      selectedInstructors,
+      selectedPayees,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      selectedDays
+    });
+  
+    setHasChanges(isDifferent);
+  }, [
+    eventName,
+    generalInformation,
+    selectedLocationId,
+    selectedInstructors,
+    selectedPayees,
+    startTime,
+    endTime,
+    startDate,
+    endDate,
+    selectedDays
+  ]); 
 
   useEffect(() => {
     getInstructorResults(instructorSearchTerm);
@@ -92,6 +141,9 @@ export const EditProgram = () => {
 }, [selectedLocationId]);
 
   const exit = () => {
+    if (hasChanges) {
+      setIsConfirmModalOpen(true);
+    }
     navigate('/programs/' + id);
   };
 
@@ -355,9 +407,19 @@ const payees = eventClientResponse.data
         console.error("Error getting instructors:", error);
     }
   };
+  
 
   return (
+    
     <Navbar>
+      <DeleteConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)} 
+        onConfirm={() => {
+          setIsConfirmModalOpen(false); // Close modal
+          navigate('/programs/' + id); // Navigate if confirmed
+        }}
+      />
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
