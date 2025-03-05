@@ -292,11 +292,11 @@ const payees = eventClientResponse.data
 
   const saveEvent = async () => {
     try {
-      console.log("Saving event with name:", eventName);
-      console.log("Description:", generalInformation);
-      console.log("Location ID:", selectedLocationId);
-      console.log("Selected Instructors:", selectedInstructors);
-      console.log("Selected Payees:", selectedPayees);
+      console.log("Newly added event name:", eventName);
+      console.log("Newly added Description:", generalInformation);
+      console.log("Newly added Location ID:", selectedLocationId);
+      console.log("Newly added Selected Instructors:", selectedInstructors);
+      console.log("Newly added Selected Payees:", selectedPayees);
 
       await backend.put('/events/' + id, {
           name: eventName,
@@ -308,13 +308,13 @@ const payees = eventClientResponse.data
       deleteAllEventBookings();
       deleteAllAssignments();
 
-      console.log("Start Date:", startDate);
-      console.log("End Date:", endDate);
-      console.log("Selected Days:", selectedDays);
+      console.log("Newly added Start Date:", startDate);
+      console.log("Newly added End Date:", endDate);
+      console.log("Newly added Selected Days:", selectedDays);
 
       // TODO add , selectedDays as argument
       const dates = getDatesForDays(startDate, endDate, selectedDays);
-      console.log("Saving bookings for dates:", dates);
+      console.log("Newly added Saving bookings for dates:", dates);
 
       for (const date of dates) {
         const bookingsData = {
