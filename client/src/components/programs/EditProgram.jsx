@@ -37,6 +37,7 @@ import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
+import { TitleInformation } from "./programComponents/TitleInformation";
 import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { PayeesDropdown } from "./programComponents/PayeesDropdown"
 import { LocationDropdown } from "./programComponents/LocationDropdown"
@@ -345,17 +346,11 @@ const payees = eventClientResponse.data
           <div id="eventInfoBody">
             <div id="title">
               {/* <h1><b>{eventName}</b></h1> */}
-              <Input
-                defaultValue={eventName}
-                width="800px"
-                height="50px"
-                borderRightColor="transparent"
-                borderLeftColor="transparent"
-                borderTopColor="transparent"
-                borderRadius="0"
-                sx={{ borderBottomWidth: "3px", borderBottomColor:"gray", padding: "3px", fontSize: "40px", fontWeight: "bold" }}
+              
+              <TitleInformation 
+                eventName={eventName}
+                setEventName={setEventName}
               />
-              {/* </Textarea> */}
 
               <div id = "saveCancel">
                 <Button id="save" onClick={saveEvent}>Save</Button>
