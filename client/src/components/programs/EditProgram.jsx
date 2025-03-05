@@ -95,6 +95,20 @@ export const EditProgram = () => {
     navigate('/programs/' + id);
   };
 
+  const isFormValid = () => {
+    return (
+      eventName.trim() !== "" &&
+      startTime.trim() !== "" &&
+      endTime.trim() !== "" &&
+      startDate.trim() !== "" &&
+      endDate.trim() !== "" &&
+      selectedLocationId !== "" &&
+      selectedInstructors.length > 0 &&
+      selectedPayees.length > 0 &&
+      generalInformation.trim() !== ""
+    );
+  };
+
   const getInitialEventData = async () => {
     const eventResponse = await backend.get(`/events/${id}`);
 
@@ -152,6 +166,10 @@ const payees = eventClientResponse.data
     }
   };
 
+  // Start Date: 2025-03-04
+  // End Date: 2025-03-05
+
+  // TODO: add **selectedDays** as a parameter
   const getDatesForDays = (startDate, endDate, selectedDays) => {
     const daysMap = { 'Su': 0, 'M': 1, 'Tu': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 6 };
     const daysIndices = selectedDays.map((day) => daysMap[day]);
@@ -294,7 +312,7 @@ const payees = eventClientResponse.data
       console.log("End Date:", endDate);
       console.log("Selected Days:", selectedDays);
 
-
+      // TODO add , selectedDays as argument
       const dates = getDatesForDays(startDate, endDate, selectedDays);
       console.log("Saving bookings for dates:", dates);
 
@@ -353,7 +371,16 @@ const payees = eventClientResponse.data
               />
 
               <div id = "saveCancel">
-                <Button id="save" onClick={saveEvent}>Save</Button>
+                <Button 
+                  id="save" 
+                  onClick={saveEvent}
+                  isDisabled={!isFormValid()}
+                  backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
+                  _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
+                >
+                  Save
+
+                </Button>
                 {/* <Popover id="popTrigger">
                   <PopoverTrigger asChild>
                     <Icon boxSize="5"><CiCircleMore/></Icon>
