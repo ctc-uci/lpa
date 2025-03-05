@@ -20,8 +20,6 @@ import {
 } from "@chakra-ui/react";
 
 
-import {CancelIcon} from '../../assets/CancelIcon';
-
 // I think we can remove these! But I'll keep it here for now just in case
 // import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
 // import {RepeatIcon} from '../../assets/RepeatIcon';
@@ -346,7 +344,19 @@ const payees = eventClientResponse.data
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
           <div id="eventInfoBody">
             <div id="title">
-              <h1><b>{eventName}</b></h1>
+              {/* <h1><b>{eventName}</b></h1> */}
+              <Input
+                defaultValue={eventName}
+                width="800px"
+                height="50px"
+                borderRightColor="transparent"
+                borderLeftColor="transparent"
+                borderTopColor="transparent"
+                borderRadius="0"
+                sx={{ borderBottomWidth: "3px", borderBottomColor:"gray", padding: "3px", fontSize: "40px", fontWeight: "bold" }}
+              />
+              {/* </Textarea> */}
+
               <div id = "saveCancel">
                 <Button id="save" onClick={saveEvent}>Save</Button>
                 {/* <Popover id="popTrigger">
