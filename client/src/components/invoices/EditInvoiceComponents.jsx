@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
+import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
   Flex,
   Heading,
   HStack,
+  IconButton,
   Image,
   Input,
   Link,
+  Radio,
+  RadioGroup,
   Select,
   SimpleGrid,
   Stack,
@@ -23,23 +27,30 @@ import {
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
+
+import commentsIcon from "../../assets/icons/comments.svg";
+import plusIcon from "../../assets/icons/plus.svg";
 import logo from "../../assets/logo/logo.png";
 
-const EditInvoiceTitle = ({comments, invoice}) => {
-  
+//TODO comment buttons
+//TODO comment button dropdown
+//TODO change comments put router to change from camel to snake
+
+const EditInvoiceTitle = ({ comments, invoice }) => {
   const getGeneratedDate = () => {
     if (comments.length > 0) {
-      const latestComment = comments
-        .sort((a, b) => new Date(b.datetime) - new Date(a.datetime))[0];
-      
+      const latestComment = comments?.sort(
+        (a, b) => new Date(b.datetime) - new Date(a.datetime)
+      )[0];
+
       const latestDate = new Date(latestComment.datetime);
-      const month = latestDate.toLocaleString('default', { month: 'long' });
+      const month = latestDate.toLocaleString("default", { month: "long" });
       const day = latestDate.getDate();
       const year = latestDate.getFullYear();
-      
+
       return `${month} ${day}, ${year}`;
     } else if (invoice) {
-      return invoice['startDate'];
+      return invoice["startDate"];
     } else {
       return "No Date Found";
     }
@@ -92,22 +103,27 @@ const EditInvoiceTitle = ({comments, invoice}) => {
   );
 };
 
-const EditInvoiceDetails = ({ instructors, programName, payees, comments, invoice }) => {
-
-
+const EditInvoiceDetails = ({
+  instructors,
+  programName,
+  payees,
+  comments,
+  invoice,
+}) => {
   const getGeneratedDate = () => {
     if (comments.length > 0) {
-      const latestComment = comments
-        .sort((a, b) => new Date(b.datetime) - new Date(a.datetime))[0];
-  
+      const latestComment = comments.sort(
+        (a, b) => new Date(b.datetime) - new Date(a.datetime)
+      )[0];
+
       // Extract month, day, and year from the latest comment
       const latestDate = new Date(latestComment.datetime);
-      const month = latestDate.toLocaleString('default', { month: 'long' });
+      const month = latestDate.toLocaleString("default", { month: "long" });
       const year = latestDate.getFullYear();
-  
-      return `${month} ${year}`
+
+      return `${month} ${year}`;
     } else if (invoice) {
-      return invoice['startDate'];
+      return invoice["startDate"];
     } else {
       return "No Date Found";
     }
@@ -132,7 +148,7 @@ const EditInvoiceDetails = ({ instructors, programName, payees, comments, invoic
           size="sm"
           textAlign="center"
           color="#2D3748"
-          fontWeight='500'
+          fontWeight="500"
         >
           {getGeneratedDate()}
         </Heading>
@@ -210,24 +226,31 @@ const StatementComments = ({
   room = [],
   subtotal = 0.0,
   onCommentsChange,
-  onSubtotalChange
+  onSubtotalChange,
 }) => {
   const [commentsState, setComments] = useState(comments);
   const [bookingState, setBooking] = useState(booking);
   const [roomState, setRoom] = useState(room);
   const [sessionTotals, setSessionTotals] = useState([]);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [expandedCommentIndex, setExpandedCommentIndex] = useState(null); // Track which row is expanded
+  const [rowHoveredIndex, setRowHoveredIndex] = useState(null);
+
+  const handleCommentToggle = (index) => {
+    setExpandedCommentIndex(expandedCommentIndex === index ? null : index);
+  };
 
   useEffect(() => {
     if (comments && comments.length > 0) {
       setComments(comments);
       setBooking(booking);
       setRoom(room);
-      
+
       // Calculate individual session totals
       if (booking && room && room.length > 0) {
-        const totals = comments.map(comment => {
+        const totals = comments.map((comment) => {
           if (!booking.startTime || !booking.endTime) return 0;
-          
+
           const timeToMinutes = (timeStr) => {
             const [hours, minutes] = timeStr.split(":").map(Number);
             return hours * 60 + minutes;
@@ -237,12 +260,12 @@ const StatementComments = ({
           const endMinutes = timeToMinutes(booking.endTime.substring(0, 5));
           const diff = endMinutes - startMinutes;
           const totalHours = Math.ceil(diff / 60);
-          
+
           return parseFloat((totalHours * room[0]?.rate).toFixed(2));
         });
-        
+
         setSessionTotals(totals);
-        
+
         // Calculate new subtotal based on session totals
         const newSubtotal = totals.reduce((sum, total) => sum + total, 0);
         if (onSubtotalChange && newSubtotal !== subtotal) {
@@ -257,7 +280,7 @@ const StatementComments = ({
     const newComments = [...commentsState];
     newComments[index].adjustmentType = value;
     setComments(newComments);
-    
+
     // Notify parent component
     if (onCommentsChange) {
       onCommentsChange(newComments);
@@ -269,7 +292,7 @@ const StatementComments = ({
     const newTotals = [...sessionTotals];
     newTotals[index] = parseFloat(value);
     setSessionTotals(newTotals);
-    
+
     // Calculate new subtotal
     const newSubtotal = newTotals.reduce((sum, total) => sum + total, 0);
     if (onSubtotalChange) {
@@ -346,112 +369,203 @@ const StatementComments = ({
           </Thead>
           <Tbody color="#2D3748">
             {commentsState.length > 0 ? (
-              commentsState.map((comment, index) => {
-                return (
-                  <Tr key={`comment-${comment.id || "unknown"}-${index}`}>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+              commentsState
+                .map((comment, index) => [
+                  <Tr
+                    key={`comment-${comment.id || "unknown"}-${index}`}
+                    position="relative"
+                    borderBottom={
+                      expandedCommentIndex == index
+                        ? "none" // No bottom border for the row with expanded comment
+                        : hoveredIndex === index
+                          ? "1.5px solid purple" // Apply purple bottom border when hovered
+                          : "1px solid #e0e0e0" // Default bottom border
+                    }
+                    onMouseEnter={() => setRowHoveredIndex(index)} // When mouse enters, set hovered index
+                    onMouseLeave={() => setRowHoveredIndex(null)}
+                    borderTop="none"
+                  >
+                    <Td
+                      position="relative"
+                      px={0}
+                      pr={4}
+                      borderBottom="none"
+                    >
+                      <VStack
+                        position="absolute"
+                        left="-44px"
+                        top="50%"
+                        transform="translateY(-60%)"
+                        gap="-4"
+                        opacity={rowHoveredIndex === index ? 1 : 0} // Control visibility based on hover
+                        transition="opacity 0.3s ease" // Smooth transition for opacity change
+                      >
+                        <IconButton
+                          aria-label="Plus Icon"
+                          icon={
+                            <Box
+                              w="20px"
+                              h="20px"
+                              bgImage={`url(${plusIcon})`}
+                              bgSize="contain"
+                              bgRepeat="no-repeat"
+                              bgPos="center"
+                            />
+                          }
+                          colorScheme="purple"
+                          size="xs"
+                          borderRadius="full"
+                          onMouseEnter={() => setHoveredIndex(index)} // When mouse enters, set hovered index
+                          onMouseLeave={() => setHoveredIndex(null)} // When mouse leaves, reset hovered index
+                          onClick={() => {
+                            const newComment = {
+                              adjustmentType: "paid",
+                              adjustmentValue: "5",
+                              bookingId: "955",
+                              comment: "ADDED COMMENT (ALL DUMMY VALUES)",
+                              datetime: "2025-02-01T23:15:25.877Z",
+                              id: 129,
+                              invoiceId: 22,
+                              userId: 48,
+                            };
+
+                            setComments((prevComments) => [
+                              ...prevComments.slice(0, hoveredIndex + 1), // Items before the index
+                              newComment, // The new comment to be inserted
+                              ...prevComments.slice(hoveredIndex + 1), // Items after the index
+                            ]);
+                          }}
+                        />
+                        <IconButton
+                          icon={
+                            <Box
+                              w="60px" // Customize size of the icon
+                              h="60px" // Customize size of the icon
+                              bgImage={`url(${commentsIcon})`}
+                              bgSize="contain"
+                              bgRepeat="no-repeat"
+                              bgPos="center"
+                            />
+                          }
+                          variant="unstyled" // No surrounding button appearance
+                          size="xs" // Optional: Adjust this based on the overall size
+                          p={0} // Remove padding around the icon
+                          isRound // Makes the button round (optional)
+                          aria-label="Icon only" // Ensures accessibility
+                          onClick={() => handleCommentToggle(index)} // Toggle comment visibility
+                        />
+                      </VStack>
                       <Text
                         width="100px"
                         fontSize="14px"
+                        ml="6"
                       >
                         {format(new Date(comment.datetime), "M/d/yy")}
                       </Text>
                     </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      borderBottom="none"
+                    >
                       <Text fontSize="14px">
                         {room && room.length > 0 ? `${room[0].name}` : "N/A"}
                       </Text>
                     </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                    {/* Rest of the row content remains the same */}
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      borderBottom="none"
+                    >
                       <Flex
                         align="center"
                         justifyContent="space-evenly"
                         gap="2"
                       >
-                        <Input
+                        <Text
                           w="85px"
                           px="2"
                           textAlign="center"
                           fontSize="14px"
-                          value={
-                            booking.startTime
-                              ? (() => {
-                                  const startTime = booking.startTime
-                                    .split("-")[0]
-                                    .substring(0, 5);
-                                  const formatTime = (timeStr) => {
-                                    const [hours, minutes] = timeStr
-                                      .split(":")
-                                      .map(Number);
-                                    const period = hours >= 12 ? "pm" : "am";
-                                    const hour12 = hours % 12 || 12;
-                                    return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
-                                  };
+                        >
+                          {booking.startTime
+                            ? (() => {
+                                const startTime = booking.startTime
+                                  .split("-")[0]
+                                  .substring(0, 5);
+                                const formatTime = (timeStr) => {
+                                  const [hours, minutes] = timeStr
+                                    .split(":")
+                                    .map(Number);
+                                  const period = hours >= 12 ? "pm" : "am";
+                                  const hour12 = hours % 12 || 12;
+                                  return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                };
 
-                                  return `${formatTime(startTime)}`;
-                                })()
-                              : "N/A"
-                          }
-                        />
+                                return `${formatTime(startTime)}`;
+                              })()
+                            : "N/A"}
+                        </Text>
                         <Text fontSize="14px">to</Text>
-                        <Input
+                        <Text
                           w="85px"
                           px="2"
                           fontSize="14px"
                           textAlign="center"
-                          value={
-                            booking.startTime
-                              ? (() => {
-                                  const endTime = booking.endTime
-                                    .split("-")[0]
-                                    .substring(0, 5);
-                                  const formatTime = (timeStr) => {
-                                    const [hours, minutes] = timeStr
-                                      .split(":")
-                                      .map(Number);
-                                    const period = hours >= 12 ? "pm" : "am";
-                                    const hour12 = hours % 12 || 12;
-                                    return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
-                                  };
+                        >
+                          {booking.endTime
+                            ? (() => {
+                                const endTime = booking.endTime
+                                  .split("-")[0]
+                                  .substring(0, 5);
+                                const formatTime = (timeStr) => {
+                                  const [hours, minutes] = timeStr
+                                    .split(":")
+                                    .map(Number);
+                                  const period = hours >= 12 ? "pm" : "am";
+                                  const hour12 = hours % 12 || 12;
+                                  return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                };
 
-                                  return `${formatTime(endTime)}`;
-                                })()
-                              : "N/A"
-                          }
-                        />
+                                return `${formatTime(endTime)}`;
+                              })()
+                            : "N/A"}
+                        </Text>
                       </Flex>
                     </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      borderBottom="none"
+                    >
                       <Flex
                         align="center"
                         gap="1"
                       >
-                        <Input
+                        <Text
+                          fontSize="14"
                           w="95px"
-                          fontSize="14px"
-                          value={
-                            room && room.length > 0 ? `$${room[0].rate}` : "N/A"
-                          }
-                        />
+                        >
+                          {room && room.length > 0 ? `$${room[0].rate}` : "N/A"}
+                        </Text>
                         <Text fontSize="14px">/hr</Text>
                       </Flex>
                     </Td>
-                    <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                      <Select 
-                        h="40px"
-                        value={(commentsState[index] && commentsState[index].adjustmentType) || ""}
-                        onChange={(e) => handleAdjustmentChange(index, e.target.value)}
-                        placeholder="Click to Select"
-                        borderRadius="4px"
-                        fontSize="14px"
-                      >
-                        <option value="rate_flat">Rate Flat</option>
-                        <option value="paid">Paid</option>
-                      </Select>
+                    <Td
+                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                      borderBottom="none"
+                    >
+                      <RadioDropdown
+                        index={index}
+                        onSelectionChange={(value) => {
+                          handleAdjustmentChange(index, value);
+                        }}
+                        commentsState={commentsState}
+                        setComments={setComments}
+                      />
                     </Td>
                     <Td
                       fontSize="clamp(.5rem, 1rem, 1.5rem)"
                       textAlign="center"
+                      borderBottom="none"
                     >
                       <Flex
                         justifyContent="center"
@@ -465,37 +579,68 @@ const StatementComments = ({
                           textAlign="center"
                           fontSize="14px"
                           value={
-                            sessionTotals[index] ? sessionTotals[index].toFixed(2) :
-                            booking.startTime && booking.endTime
-                              ? (() => {
-                                  const timeToMinutes = (timeStr) => {
-                                    const [hours, minutes] = timeStr
-                                      .split(":")
-                                      .map(Number);
-                                    return hours * 60 + minutes;
-                                  };
+                            sessionTotals[index]
+                              ? sessionTotals[index].toFixed(2)
+                              : booking.startTime && booking.endTime
+                                ? (() => {
+                                    const timeToMinutes = (timeStr) => {
+                                      const [hours, minutes] = timeStr
+                                        .split(":")
+                                        .map(Number);
+                                      return hours * 60 + minutes;
+                                    };
 
-                                  const startMinutes = timeToMinutes(
-                                    booking.startTime.substring(0, 5)
-                                  );
-                                  const endMinutes = timeToMinutes(
-                                    booking.endTime.substring(0, 5)
-                                  );
-                                  const diff = endMinutes - startMinutes;
+                                    const startMinutes = timeToMinutes(
+                                      booking.startTime.substring(0, 5)
+                                    );
+                                    const endMinutes = timeToMinutes(
+                                      booking.endTime.substring(0, 5)
+                                    );
+                                    const diff = endMinutes - startMinutes;
 
-                                  const totalHours = Math.ceil(diff / 60);
+                                    const totalHours = Math.ceil(diff / 60);
 
-                                  return (totalHours * room[0]?.rate).toFixed(2);
-                                })()
-                              : "0.00"
+                                    return (totalHours * room[0]?.rate).toFixed(
+                                      2
+                                    );
+                                  })()
+                                : "0.00"
                           }
-                          onChange={(e) => handleSessionTotalChange(index, e.target.value)}
+                          onChange={(e) =>
+                            handleSessionTotalChange(index, e.target.value)
+                          }
                         />
                       </Flex>
                     </Td>
-                  </Tr>
-                );
-              })
+                  </Tr>,
+                  expandedCommentIndex === index && (
+                    <Tr
+                      key={`comment-text-expanded-${comment.id || "unknown"}-${index}`}
+                      borderBottom={
+                        hoveredIndex == index
+                          ? "1px solid purple"
+                          : "1px solid rgb(240, 240, 240)"
+                      } // Add bottom border to the expanded comment
+                    >
+                      <Td
+                        colSpan={6}
+                        textAlign="left"
+                        py={2}
+                        borderTop="none"
+                        borderBottom="none"
+                      >
+                        <Text
+                          fontSize="14px"
+                          fontStyle="italic"
+                          fontWeight="500"
+                        >
+                          {comment.comment || "No comment available"}
+                        </Text>
+                      </Td>
+                    </Tr>
+                  ),
+                ])
+                .flat()
             ) : (
               <Tr>
                 <Td
@@ -512,7 +657,7 @@ const StatementComments = ({
                 py="8"
                 textAlign="right"
                 colSpan={5}
-                fontSize='16px'
+                fontSize="16px"
               >
                 <Text fontWeight="bold">Subtotal</Text>
               </Td>
@@ -534,12 +679,11 @@ const StatementComments = ({
 const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
   const pastDueValue = pastDue;
   const [subtotalValue, setSubtotalValue] = useState(subtotal);
-  
-  
+
   useEffect(() => {
     setSubtotalValue(subtotal);
   }, [subtotal]);
-  
+
   const handleSubtotalChange = (e) => {
     const newValue = parseFloat(e.target.value);
     setSubtotalValue(newValue);
@@ -570,9 +714,7 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
           minH="24"
         >
           <Table>
-            <Thead
-              color="#4A5568"
-            >
+            <Thead color="#4A5568">
               <Tr>
                 <Th
                   fontSize="14px"
@@ -583,58 +725,95 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
                 <Th
                   fontSize="14px"
                   textTransform="none"
-                  pl='8'
+                  pl="8"
                 >
                   Adjustment Type(s)
                 </Th>
                 <Th
                   fontSize="14px"
                   textTransform="none"
-                  textAlign='end'
-                  pr='14'
+                  textAlign="end"
+                  pr="14"
                 >
                   Total
                 </Th>
               </Tr>
             </Thead>
             <Tbody color="#2D3748">
-              <Tr >
-                <Td fontSize="14px" border="none">Past Due Balance</Td>
-                <Td border="none">
-                  <Select placeholder="Click to select" fontSize="14px" isReadOnly>
-                    {/* <option value=""></option> */}
-                  </Select>
+              <Tr>
+                <Td
+                  fontSize="14px"
+                  border="none"
+                >
+                  Past Due Balance
                 </Td>
                 <Td border="none">
-                  <Flex alignItems="center" justifyContent='end'>
-                    <Text mr={1} fontSize="14px">$</Text>
-                    <Input textAlign='center' p='0' fontSize="14px" value={pastDueValue.toFixed(2)} width={`${pastDueValue.toFixed(2).length + 1}ch`}/>
+                  <RadioDropdown
+                    onSelectionChange={(value) =>
+                      handleAdjustmentChange(index, value)
+                    }
+                  />
+                </Td>
+                <Td border="none">
+                  <Flex
+                    alignItems="center"
+                    justifyContent="end"
+                  >
+                    <Text
+                      mr={1}
+                      fontSize="14px"
+                    >
+                      $
+                    </Text>
+                    <Input
+                      textAlign="center"
+                      p="0"
+                      fontSize="14px"
+                      value={pastDueValue.toFixed(2)}
+                      width={`${pastDueValue.toFixed(2).length + 1}ch`}
+                    />
                   </Flex>
                 </Td>
               </Tr>
-              <Tr borderBottom="1px solid" borderColor="gray.200">
-                <Td colSpan='1'>
-                <Text fontWeight="bold" color="gray.700">
-                  Waiting for remaining payments from November and December
-                </Text>
+              <Tr
+                borderBottom="1px solid"
+                borderColor="gray.200"
+              >
+                <Td colSpan="1">
+                  <Text
+                    fontWeight="bold"
+                    color="gray.700"
+                  >
+                    Waiting for remaining payments from November and December
+                  </Text>
                 </Td>
               </Tr>
               <Tr>
                 <Td fontSize="14px">Current Statement Subtotal</Td>
                 <Td>
-                  <Select placeholder="Click to select" fontSize="14px"> 
-                    {/* <option value=""></option> */}
-                  </Select>
+                  <RadioDropdown
+                    onSelectionChange={(value) =>
+                      handleAdjustmentChange(index, value)
+                    }
+                  />
                 </Td>
                 <Td>
-                  <Flex alignItems="center" justifyContent='end'>
-                    <Text mr={1} fontSize="14px">$</Text>
-                    <Input 
-                      type="number" 
-                      textAlign="center" 
-                      px='0' 
-                      fontSize="14px" 
-                      value={subtotalValue.toFixed(2)} 
+                  <Flex
+                    alignItems="center"
+                    justifyContent="end"
+                  >
+                    <Text
+                      mr={1}
+                      fontSize="14px"
+                    >
+                      $
+                    </Text>
+                    <Input
+                      type="number"
+                      textAlign="center"
+                      px="0"
+                      fontSize="14px"
+                      value={subtotalValue.toFixed(2)}
                       width={`${subtotalValue.toFixed(2).length + 1}ch`}
                       onChange={handleSubtotalChange}
                     />
@@ -642,21 +821,34 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
                 </Td>
               </Tr>
               <Tr>
-                <Td textAlign='end' colSpan='2' fontSize='16px' fontWeight='700'>Total Amount Due</Td>
+                <Td
+                  textAlign="end"
+                  colSpan="2"
+                  fontSize="16px"
+                  fontWeight="700"
+                >
+                  Total Amount Due
+                </Td>
                 <Td>
-                  <Flex alignItems="center" justifyContent='end'>
-                    <Text mr={1} fontSize="14px">$</Text>
-                    <Input 
-                      type="number" 
-                      textAlign="center"  
-                      fontWeight='700' 
-                      px='0' 
-                      color='#474849' 
-                      fontSize="24px" 
-                      width={`${(subtotalValue + pastDueValue).toFixed(2).length + 1}ch`} 
-                      value={(subtotalValue + pastDueValue).toFixed(2)} 
-                      readOnly
-                    />
+                  <Flex
+                    alignItems="center"
+                    justifyContent="end"
+                  >
+                    <Text
+                      mr={1}
+                      fontSize="14px"
+                    >
+                      $
+                    </Text>
+                    <Text
+                      textAlign="center"
+                      p="2"
+                      fontSize="14px"
+                      borderRadius="md"
+                      width={`${(pastDue + subtotalValue).toFixed(2).length + 3}ch`}
+                    >
+                      {(pastDue + subtotalValue).toFixed(2)}
+                    </Text>
                   </Flex>
                 </Td>
               </Tr>
@@ -671,66 +863,198 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
 const FooterDescription = () => {
   return (
     <Flex
-          mt='24'
-          justifyContent="space-between"
-          color="black"
+      mt="24"
+      justifyContent="space-between"
+      color="black"
+    >
+      <VStack
+        pt={3}
+        pb={2}
+        spacing={0}
+        align="start"
+      >
+        <Text
+          fontWeight="bold"
+          fontSize="16px"
         >
-          <VStack
-            pt={3}
-            pb={2}
-            spacing={0}
-            align="start"
+          Payments are due at the end of each month.
+        </Text>
+        <Text
+          fontWeight="bold"
+          fontSize="16px"
+        >
+          You can make your payment at:{" "}
+          <Link
+            color="blue.500"
+            href="https://lapena.org/payment"
           >
-            <Text
-              fontWeight="bold"
-              fontSize="16px"
-            >
-              Payments are due at the end of each month.
-            </Text>
-            <Text
-              fontWeight="bold"
-              fontSize="16px"
-            >
-              You can make your payment at:{" "}
-              <Link
-                color="blue.500"
-                href="https://lapena.org/payment"
-              >
-                lapena.org/payment
-              </Link>
-            </Text>
-          </VStack>
-          <VStack align="start">
-            <Text
-              fontSize="16px"
-              maxWidth="300px"
-              fontWeight="bold"
-            >
-              For any questions,
-            </Text>
-            <Text
-              fontSize="16px"
-              maxWidth="300px"
-              fontWeight="bold"
-            >
-              please contact:{" "}
-              <Link
-                href="mailto:classes@lapena.org"
-                style={{ textDecoration: "underline" }}
-                color="blue.500"
-              >
-                classes@lapena.org
-              </Link>
-            </Text>
-          </VStack>
-        </Flex>
+            lapena.org/payment
+          </Link>
+        </Text>
+      </VStack>
+      <VStack align="start">
+        <Text
+          fontSize="16px"
+          maxWidth="300px"
+          fontWeight="bold"
+        >
+          For any questions,
+        </Text>
+        <Text
+          fontSize="16px"
+          maxWidth="300px"
+          fontWeight="bold"
+        >
+          please contact:{" "}
+          <Link
+            href="mailto:classes@lapena.org"
+            style={{ textDecoration: "underline" }}
+            color="blue.500"
+          >
+            classes@lapena.org
+          </Link>
+        </Text>
+      </VStack>
+    </Flex>
   );
-}
+};
 
+const RadioDropdown = ({
+  onSelectionChange,
+  index,
+  commentsState,
+  setComments,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("");
+  const menuRef = useRef(null);
+
+  const options = [ 
+    { id: "rate_percent", label: "Room fee %" },
+    { id: "rate_flat", label: "Room fee $" },
+    { id: "total", label: "Manual Calculation" },
+  ];
+
+  const handleOptionChange = (optionId) => {
+    setSelectedOption(optionId);
+
+    if (onSelectionChange) {
+      onSelectionChange(optionId);
+    }
+
+    setIsOpen(false);
+  };
+
+  // Display selected option in button
+  const getButtonText = () => {
+    if (!selectedOption) return "Click to select";
+    const selected = options.find((option) => option.id === selectedOption);
+    return selected ? selected.label : "Click to select";
+  };
+
+  // Close the menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleAdjustmentChange = (index, value) => {
+    const newComments = [...commentsState];
+    newComments[index].adjustmentType = value;
+    setComments(newComments);
+
+    // // Notify parent component
+    // if (onCommentsChange) {
+    //   onCommentsChange(newComments);
+    // }
+  };
+
+  return (
+    <Box
+      position="relative"
+      ref={menuRef}
+    >
+      <Button
+        onClick={() => setIsOpen(!isOpen)}
+        rightIcon={<ChevronDownIcon />}
+        w="100%"
+        h="50px"
+        bg="white"
+        color="#718096"
+        size="sm"
+        border="2px solid #E2E8F0"
+        borderRadius="md"
+        justifyContent="space-between"
+        fontWeight="normal"
+        textAlign="left"
+        _hover={{ bg: "white" }}
+        _active={{ bg: "white" }}
+      >
+        {getButtonText()}
+      </Button>
+
+      {isOpen && (
+        <Box
+          position="absolute"
+          top="calc(100% + 5px)"
+          left="0"
+          width="100%"
+          bg="white"
+          boxShadow="md"
+          borderRadius="md"
+          zIndex="dropdown"
+          p={2}
+          border="1px solid #E2E8F0"
+        >
+          <RadioGroup
+            value={selectedOption}
+            onChange={handleOptionChange}
+          >
+            {options.map((option) => (
+              <Flex
+                key={option.id}
+                py={2}
+                px={3}
+                alignItems="center"
+                _hover={{ bg: "#F7FAFC" }}
+                borderRadius="md"
+                cursor="pointer"
+                onClick={() => handleAdjustmentChange(index, option.id)}
+              >
+                <Radio
+                  value={option.id}
+                  colorScheme="blue"
+                  mr={3}
+                  size="md"
+                >
+                  <Text
+                    fontSize="xs"
+                    color="#2D3748"
+                  >
+                    {option.label}
+                  </Text>
+                </Radio>
+              </Flex>
+            ))}
+          </RadioGroup>
+        </Box>
+      )}
+    </Box>
+  );
+};
 export {
   StatementComments,
   EditInvoiceTitle,
   EditInvoiceDetails,
   InvoiceSummary,
-  FooterDescription
+  FooterDescription,
+  RadioDropdown,
 };

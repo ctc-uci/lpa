@@ -21,7 +21,8 @@ import {
   EditInvoiceTitle,
   InvoiceSummary,
   StatementComments,
-  FooterDescription
+  FooterDescription,
+  RadioDropdown
 } from "./EditInvoiceComponents";
 
 const InvoiceNavBar = ({ onBack, onSave, isSaving }) => {
@@ -92,8 +93,8 @@ export const EditInvoice = () => {
   useEffect(() => {
     if (id) {
       sessionStorage.setItem('userId', id);
-    }
-  }, [id]);
+    } 
+  }, [id ]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,7 +129,6 @@ export const EditInvoice = () => {
         // get comments
         const commentsResponse = await backend.get("/comments/invoice/" + id);
         setComments(commentsResponse.data);
-        console.log("commentsResponse",commentsResponse.data)
         setEditedComments(commentsResponse.data); // Initialize edited comments
 
         // get program name
@@ -224,27 +224,27 @@ export const EditInvoice = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      console.log(editedComments)
       for (const comment of editedComments) {
         if (comment.id) {
           const commentData = {
-            ...comment,
-            adjustmentType: comment.adjustmentType || null
+            adjustment_type: comment.adjustmentType || null,
+            adjustment_value: comment.adjustmentValue,
+            booking_id: comment.bookingId,
+            comment: comment.comment,
+            datetime: comment.datetime,
+            id: comment.id,
+            invoice_id: comment.invoiceId,
+            user_id: comment.userId
           };
-          
-          console.log(`Saving comment ${comment.id} with full data:`, commentData);
           
           try {
             const response = await backend.put(`/comments/${comment.id}`, commentData);
-            console.log(`Comment ${comment.id} save response:`, response);
           } catch (error) {
             console.error(`Error saving comment ${comment.id}:`, error);
             
             if (error.response && error.response.status === 400) {
-              console.log("Trying alternative approach with POST method...");
               try {
                 const altResponse = await backend.post(`/comments/update/${comment.id}`, commentData);
-                console.log("Alternative update response:", altResponse);
               } catch (altError) {
                 console.error("Alternative update failed:", altError);
                 throw altError;
@@ -326,6 +326,7 @@ export const EditInvoice = () => {
                 onSubtotalChange={handleSubtotalUpdate}
               />
               <FooterDescription />
+              {/* <RadioDropdown/> */}
             </Box>
           </VStack>
           <Image
