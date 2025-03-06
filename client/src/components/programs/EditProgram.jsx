@@ -208,7 +208,6 @@ const payees = eventClientResponse.data
 
   // TODO: add **selectedDays** as a parameter
   const getDatesForDays = (startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType) => {
-    console.log("get dates for days:", startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType)
     const daysMap = {
       "Sun": 0,
       "Mon": 1,
@@ -336,7 +335,7 @@ const payees = eventClientResponse.data
 
   const deleteAllEventBookings = async () => {
     try {
-      await backend.delete('/bookings/byEvent/' + id);
+      await backend.delete('/bookings/event/' + id);
       console.log(`Deleted bookings for event ${id}`);
     } catch (error) {
       if (error.response?.status === 404) {

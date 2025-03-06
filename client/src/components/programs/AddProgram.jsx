@@ -39,6 +39,9 @@ export const AddProgram = () => {
   const [searchedPayees, setSearchedPayees] = useState([]);
   const [selectedPayees, setSelectedPayees] = useState([]);
   const [generalInformation, setGeneralInformation] = useState("");
+  const [repeatType, setRepeatType] = useState("Does not repeat");
+  const [repeatInterval, setRepeatInterval] = useState(1);
+  const [customRepeatType, setCustomRepeatType] = useState("Week");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -93,7 +96,6 @@ export const AddProgram = () => {
   };
 
   const getDatesForDays = (startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType) => {
-    console.log("get dates for days:", startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType)
     const daysMap = {
       "Sun": 0,
       "Mon": 1,
@@ -315,6 +317,12 @@ export const AddProgram = () => {
                 setEndDate={setEndDate}
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
+                repeatType={repeatType}
+                setRepeatType={setRepeatType}
+                repeatInterval={repeatInterval}
+                setRepeatInterval={setRepeatInterval}
+                customRepeatType={customRepeatType}
+                setCustomRepeatType={setCustomRepeatType}
               />
 
               <ArtistsDropdown
