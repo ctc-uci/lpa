@@ -205,7 +205,7 @@ export const SavedEdit = () => {
 
   useEffect(() => {
     console.log("comments in saved", comments, invoice);
-  }, [])
+  }, [comments, invoice])
 
   return (
     <Navbar>

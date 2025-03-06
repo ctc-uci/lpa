@@ -224,21 +224,31 @@ export const EditInvoice = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // console.log("editedComments", editedComments)
       for (const comment of editedComments) {
-        if (comment.id) {
           const commentData = {
             adjustment_type: comment.adjustmentType || null,
             adjustment_value: comment.adjustmentValue,
             booking_id: comment.bookingId,
             comment: comment.comment,
             datetime: comment.datetime,
-            id: comment.id,
+            id: comment.id || null,
             invoice_id: comment.invoiceId,
             user_id: comment.userId
           };
           
           try {
-            const response = await backend.put(`/comments/${comment.id}`, commentData);
+            if (comment.id) {
+              // Update existing comment with PUT request
+              const response = await backend.put(`/comments/${comment.id}`, commentData);
+              console.log("Updated comment:", response.data);
+            } else {
+              // Create new comment with POST request
+              const response = await backend.post(`/comments`, commentData);
+              console.log("Created new comment:", response.data);
+            }
+            // const response = await backend.put(`/comments/${comment.id}`, commentData);
+            // console.log("response.data", response.data)
           } catch (error) {
             console.error(`Error saving comment ${comment.id}:`, error);
             
@@ -253,7 +263,6 @@ export const EditInvoice = () => {
               throw error;
             }
           }
-        }
       }
 
       

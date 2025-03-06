@@ -21,18 +21,68 @@ const SavedStatementComments = ({
   booking = [],
   room = [],
   subtotal = 0.0,
+  onSubtotalChange
 }) => {
   const [commentsState, setComments] = useState(comments);
   const [bookingState, setBooking] = useState(booking);
   const [roomState, setRoom] = useState(room);
+  const [subtotalSum, setSubtotalSum] = useState(subtotal);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
+  const handleSubtotalSum = (startTime, endTime, rate) => {
+    if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
+    
+    const timeToMinutes = (timeStr) => {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+  
+    const startMinutes = timeToMinutes(startTime.substring(0, 5));
+    const endMinutes = timeToMinutes(endTime.substring(0, 5));
+    const diff = endMinutes - startMinutes;
+  
+    const totalHours = Math.ceil(diff / 60);
+    
+    const total = (totalHours * rate).toFixed(2);
+  
+    return total;
+  };
+ 
   useEffect(() => {
     if (comments && comments.length > 0) {
       setComments(comments);
       setBooking(booking);
       setRoom(room);
     }
-  }, [comments]);
+  }, [booking, comments, room]);
+
+  
+
+    useEffect(() => {
+      // Ensure all required values are available and this only runs once
+      if (
+        bookingState &&
+        room &&
+        bookingState.startTime &&
+        bookingState.endTime &&
+        room[0]?.rate &&
+        !isDataLoaded
+      ) {
+        console.log("CHECK", bookingState.startTime, bookingState.endTime, room[0]?.rate);
+        const total = handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate);
+        
+        // Add subtotal for each comment (this logic is now inside useEffect)
+        if (commentsState && commentsState.length > 0) {
+          commentsState.forEach(() => {
+            setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
+          });
+        }
+
+        // Set flag to prevent future reruns of this effect
+        setIsDataLoaded(true);
+      }
+    }, [bookingState, room, commentsState, isDataLoaded]); 
+
 
   return (
     <Flex
@@ -201,29 +251,13 @@ const SavedStatementComments = ({
                         borderRadius="md"
                         p="2"
                       >
-                        {booking.startTime && booking.endTime
-                          ? (() => {
-                              const timeToMinutes = (timeStr) => {
-                                const [hours, minutes] = timeStr
-                                  .split(":")
-                                  .map(Number);
-                                return hours * 60 + minutes;
-                              };
-
-                              const startMinutes = timeToMinutes(
-                                booking.startTime.substring(0, 5)
-                              );
-                              const endMinutes = timeToMinutes(
-                                booking.endTime.substring(0, 5)
-                              );
-                              const diff = endMinutes - startMinutes;
-
-                              const totalHours = Math.ceil(diff / 60);
-
-                              return (totalHours * room[0]?.rate).toFixed(2);
-                            })()
-                          : "N/A"}
+                        {
+                          bookingState && room && bookingState.startTime && bookingState.endTime && room[0]?.rate 
+                            ? handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate) 
+                            : "N/A"
+                        }
                       </Text>
+
                     </Flex>
                   </Td>
                 </Tr>,
@@ -257,7 +291,7 @@ const SavedStatementComments = ({
                 py="8"
                 textAlign="right"
               >
-                <Text textAlign="center">{`$ ${subtotal.toFixed(2)}`}</Text>
+                <Text textAlign="center">{`$ ${subtotalSum.toFixed(2)}`}</Text>
               </Td>
             </Tr>
           </Tbody>

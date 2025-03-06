@@ -300,6 +300,12 @@ const StatementComments = ({
     }
   };
 
+  const handleCommentsChange = (updatedComments) => {
+    setComments(updatedComments);
+    onCommentsChange(updatedComments);
+    console.log(updatedComments);
+  }
+
   return (
     <Flex
       direction="column"
@@ -375,7 +381,7 @@ const StatementComments = ({
                     key={`comment-${comment.id || "unknown"}-${index}`}
                     position="relative"
                     borderBottom={
-                      expandedCommentIndex == index
+                      expandedCommentIndex === index
                         ? "none" // No bottom border for the row with expanded comment
                         : hoveredIndex === index
                           ? "1.5px solid purple" // Apply purple bottom border when hovered
@@ -421,19 +427,14 @@ const StatementComments = ({
                             const newComment = {
                               adjustmentType: "paid",
                               adjustmentValue: "5",
-                              bookingId: "955",
+                              bookingId: 955,
                               comment: "ADDED COMMENT (ALL DUMMY VALUES)",
                               datetime: "2025-02-01T23:15:25.877Z",
-                              id: 129,
                               invoiceId: 22,
                               userId: 48,
                             };
 
-                            setComments((prevComments) => [
-                              ...prevComments.slice(0, hoveredIndex + 1), // Items before the index
-                              newComment, // The new comment to be inserted
-                              ...prevComments.slice(hoveredIndex + 1), // Items after the index
-                            ]);
+                            handleCommentsChange([...commentsState, newComment])
                           }}
                         />
                         <IconButton
@@ -617,7 +618,7 @@ const StatementComments = ({
                     <Tr
                       key={`comment-text-expanded-${comment.id || "unknown"}-${index}`}
                       borderBottom={
-                        hoveredIndex == index
+                        hoveredIndex === index
                           ? "1px solid purple"
                           : "1px solid rgb(240, 240, 240)"
                       } // Add bottom border to the expanded comment
