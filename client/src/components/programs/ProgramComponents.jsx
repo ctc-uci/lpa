@@ -116,7 +116,7 @@ export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived
   } = useDisclosure();
 
   const exit = () => {
-    navigate('/home');
+    navigate('/programs');
   };
 
   const toEditProgram = () => {
