@@ -90,7 +90,7 @@ export const SavedEdit = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // get current invoice
+        console.log("id", id);
         const currentInvoiceResponse = await backend.get("/invoices/" + id);
         setInvoice(currentInvoiceResponse);
       } catch (error) {
@@ -229,12 +229,12 @@ export const SavedEdit = () => {
           // mt={36}
         >
           <Box>
-            <EditInvoiceTitle />
+            {/* <EditInvoiceTitle />
             <EditInvoiceDetails
               instructors={instructors}
               programName={programName}
               payees={payees}
-            />
+            /> */}
             <SavedStatementComments
               comments={comments}
               booking={booking}
@@ -245,7 +245,7 @@ export const SavedEdit = () => {
               pastDue={pastDue}
               subtotal={subtotal}
             />
-            <FooterDescription />
+            {/* <FooterDescription /> */}
           </Box>
         </VStack>
         <Image

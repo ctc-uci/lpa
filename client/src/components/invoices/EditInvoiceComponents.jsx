@@ -25,7 +25,26 @@ import {
 import { format } from "date-fns";
 import logo from "../../assets/logo/logo.png";
 
-const EditInvoiceTitle = () => {
+const EditInvoiceTitle = ({comments, invoice}) => {
+  
+  const getGeneratedDate = () => {
+    if (comments.length > 0) {
+      const latestComment = comments
+        .sort((a, b) => new Date(b.datetime) - new Date(a.datetime))[0];
+      
+      const latestDate = new Date(latestComment.datetime);
+      const month = latestDate.toLocaleString('default', { month: 'long' });
+      const day = latestDate.getDate();
+      const year = latestDate.getFullYear();
+      
+      return `${month} ${day}, ${year}`;
+    } else if (invoice) {
+      return invoice['startDate'];
+    } else {
+      return "No Date Found";
+    }
+  };
+
   return (
     <Flex
       justifyContent="space-between"
@@ -46,7 +65,7 @@ const EditInvoiceTitle = () => {
           color="#718096"
           fontSize="16px"
         >
-          Generated on 10/25/2025
+          {getGeneratedDate()}
         </Text>
       </Stack>
       <Flex
@@ -73,7 +92,27 @@ const EditInvoiceTitle = () => {
   );
 };
 
-const EditInvoiceDetails = ({ instructors, programName, payees }) => {
+const EditInvoiceDetails = ({ instructors, programName, payees, comments, invoice }) => {
+
+
+  const getGeneratedDate = () => {
+    if (comments.length > 0) {
+      const latestComment = comments
+        .sort((a, b) => new Date(b.datetime) - new Date(a.datetime))[0];
+  
+      // Extract month, day, and year from the latest comment
+      const latestDate = new Date(latestComment.datetime);
+      const month = latestDate.toLocaleString('default', { month: 'long' });
+      const year = latestDate.getFullYear();
+  
+      return `${month} ${year}`
+    } else if (invoice) {
+      return invoice['startDate'];
+    } else {
+      return "No Date Found";
+    }
+  };
+
   return (
     <VStack
       spacing={6}
@@ -93,8 +132,9 @@ const EditInvoiceDetails = ({ instructors, programName, payees }) => {
           size="sm"
           textAlign="center"
           color="#2D3748"
+          fontWeight='500'
         >
-          October 2025
+          {getGeneratedDate()}
         </Heading>
       </VStack>
 
@@ -210,7 +250,7 @@ const StatementComments = ({
         }
       }
     }
-  }, [comments, booking, room]);
+  }, [comments, booking, room, onSubtotalChange, subtotal]);
 
   // Handle adjustmentType change
   const handleAdjustmentChange = (index, value) => {
@@ -481,7 +521,7 @@ const StatementComments = ({
                 py="8"
                 textAlign="right"
               >
-                <Text textAlign="center">{`$ ${subtotal.toFixed(2)}`}</Text>
+                <Text textAlign="center">{`$ ${subtotal?.toFixed(2)}`}</Text>
               </Td>
             </Tr>
           </Tbody>
@@ -492,12 +532,9 @@ const StatementComments = ({
 };
 
 const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
-  const [pastDueValue, setPastDueValue] = useState(pastDue);
+  const pastDueValue = pastDue;
   const [subtotalValue, setSubtotalValue] = useState(subtotal);
   
-  useEffect(() => {
-    setPastDueValue(pastDue);
-  }, [pastDue]);
   
   useEffect(() => {
     setSubtotalValue(subtotal);

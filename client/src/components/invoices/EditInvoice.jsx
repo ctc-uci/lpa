@@ -128,6 +128,7 @@ export const EditInvoice = () => {
         // get comments
         const commentsResponse = await backend.get("/comments/invoice/" + id);
         setComments(commentsResponse.data);
+        console.log("commentsResponse",commentsResponse.data)
         setEditedComments(commentsResponse.data); // Initialize edited comments
 
         // get program name
@@ -256,7 +257,7 @@ export const EditInvoice = () => {
       }
 
       
-      // navigate(`/invoices/savededits`);
+      navigate(`/invoices/savededits`);
     } catch (error) {
       console.error("Error saving invoice:", error);
     } finally {
@@ -300,11 +301,16 @@ export const EditInvoice = () => {
           >
             
             <Box>
-              <EditInvoiceTitle />
+              <EditInvoiceTitle 
+                comments={editedComments}
+                invoice={invoice?.data}
+              />
               <EditInvoiceDetails
                 instructors={instructors}
                 programName={programName}
                 payees={payees}
+                comments={editedComments}
+                invoice={invoice?.data}
               />
               <StatementComments
                 comments={editedComments}
