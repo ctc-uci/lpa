@@ -34,13 +34,17 @@ export const TimeFrequency = ({
   setEndDate,
   selectedDays,
   setSelectedDays,
+  repeatType,
+  setRepeatType,
+  repeatInterval,
+  setRepeatInterval,
+  customRepeatType,
+  setCustomRepeatType
 }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false); // if the reoccurance modal is open
   const [isCustomRepeat, setIsCustomRepeat] = useState(false); // if N is selected
-  const [repeatInterval, setRepeatInterval] = useState(1); // holds what the interval is (ie. 1/2/N)
   const [tempSelectedDays, setTempSelectedDays] = useState({}); // temp store for what days are selected
-  const [repeatType, setRepeatType] = useState("Does not repeat"); // what repeat type is selected (ie. day/month/year/custom)
 
   // opens the dropdown if custom is selected
   const handleDropdownChange = (event) => {
@@ -97,60 +101,68 @@ export const TimeFrequency = ({
         <ModalContent>
 
 
-          {repeatType === "Custom" ? (
-            <>
-              {/* repeatability selection */}
-              <ModalHeader>Custom Reoccurrence</ModalHeader>
-              <Flex p={5} mb={4} alignItems="center">
-                <Text w={200}>Repeats every</Text>
-                <Select
+        {repeatType === "Custom" ? (
+          <>
+            <ModalHeader>Custom Reoccurrence</ModalHeader>
+            <Flex p={5} mb={4} alignItems="center">
+              <Text w={200}>Repeats every</Text>
+              <Select
+                w={200}
+                value={repeatInterval}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "N") {
+                    setIsCustomRepeat(true);
+                  } else {
+                    setIsCustomRepeat(false);
+                    setRepeatInterval(Number(value));
+                  }
+                }}
+              >
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="N">N</option>
+              </Select>
+
+              {isCustomRepeat && (
+                <Input
+                  ml={2}
                   w={200}
+                  type="number"
+                  min="1"
                   value={repeatInterval}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "N") {
-                      setIsCustomRepeat(true);
-                      setRepeatInterval(""); // Reset input for manual entry
-                    } else {
-                      setRepeatInterval(value);
-                      setIsCustomRepeat(false);
-                    }
-                  }}
-                >
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="N">N</option>
-                </Select>
+                  onChange={(e) => setRepeatInterval(Number(e.target.value))}
+                  placeholder="Enter a number"
+                />
+              )}
 
-                {isCustomRepeat && (
-                  <Input
-                    ml={2}
-                    w={200}
-                    type="number"
-                    min="1"
-                    value={repeatInterval}
-                    onChange={(e) => setRepeatInterval(e.target.value)}
-                    placeholder="Enter a number"
-                  />
-                )}
-
-                <Select ml={2} w="50%">
-                  <option>Week</option>
-                  <option>Month</option>
-                  <option>Year</option>
-                </Select>
-              </Flex>
-            </>
-          ) : (
-            <>
-              <ModalHeader>Custom Reoccurrence</ModalHeader>
-              <Flex p={5} mb={4} alignItems="center">
-                <Text w={200}>Repeats every 1 { (repeatType.split(" "))[1].charAt(0).toUpperCase() + (repeatType.split(" "))[1].slice(1) }</Text>
-              </Flex>
-            </>
-          )}
-
-
+              <Select
+                ml={2}
+                w="50%"
+                value={customRepeatType}
+                onChange={(e) => setCustomRepeatType(e.target.value)}
+              >
+                <option value="Week">Week</option>
+                <option value="Month">Month</option>
+                <option value="Year">Year</option>
+              </Select>
+            </Flex>
+          </>
+        ) : (
+          <>
+            <ModalHeader>Custom Reoccurrence</ModalHeader>
+            <Flex p={5} mb={4} alignItems="center">
+              <Text w={200}>
+                Repeats every 1{" "}
+                {repeatType
+                  ? repeatType.split(" ")[1].charAt(0).toUpperCase() +
+                    repeatType.split(" ")[1].slice(1)
+                  : "Week"}
+              </Text>
+            </Flex>
+          </>
+        )
+      }
           <ModalBody>
             <Flex mb={4}>
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
@@ -295,10 +307,6 @@ export const TimeFrequency = ({
           )}
         </Flex>
         </Flex>
-
-
-
-
 
         {/* Date Inputs */}
         <Flex alignItems="center">

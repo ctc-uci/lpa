@@ -39,6 +39,9 @@ export const EditProgram = () => {
   const [searchedPayees, setSearchedPayees] = useState([]);
   const [selectedPayees, setSelectedPayees] = useState([]);
   const [generalInformation, setGeneralInformation] = useState("");
+  const [repeatType, setRepeatType] = useState("Does not repeat");
+  const [repeatInterval, setRepeatInterval] = useState(1);
+  const [customRepeatType, setCustomRepeatType] = useState("Week");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -67,6 +70,8 @@ export const EditProgram = () => {
       selectedLocationId,
       selectedInstructors,
       selectedPayees,
+      repeatType,
+      repeatInterval,
       startTime,
       endTime,
       startDate,
@@ -83,6 +88,8 @@ export const EditProgram = () => {
       selectedLocationId,
       selectedInstructors,
       selectedPayees,
+      repeatType,
+      repeatInterval,
       startTime,
       endTime,
       startDate,
@@ -97,6 +104,8 @@ export const EditProgram = () => {
     selectedLocationId,
     selectedInstructors,
     selectedPayees,
+    repeatType,
+    repeatInterval,
     startTime,
     endTime,
     startDate,
@@ -198,24 +207,58 @@ const payees = eventClientResponse.data
   // End Date: 2025-03-05
 
   // TODO: add **selectedDays** as a parameter
-  const getDatesForDays = (startDate, endDate, selectedDays) => {
-    const daysMap = { 'Su': 0, 'M': 1, 'Tu': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 6 };
-      const daysIndices = Object.keys(selectedDays).map((day) => daysMap[day.slice(0, 2)]);
+  const getDatesForDays = (startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType) => {
+    console.log("get dates for days:", startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType)
+    const daysMap = {
+      "Sun": 0,
+      "Mon": 1,
+      "Tue": 2,
+      "Wed": 3,
+      "Thu": 4,
+      "Fri": 5,
+      "Sat": 6,
+    };
 
+    const daysIndices = Object.keys(selectedDays).map((day) => daysMap[day]);
 
-      const dates = [];
-      const currentDate = new Date(startDate);
-      const lastDate = new Date(endDate);
+    const dates = [];
 
-      while (currentDate <= lastDate) {
-        if (daysIndices.includes(currentDate.getUTCDay())) {
-          dates.push(new Date(currentDate).toISOString().split("T")[0]);
+    let currentDate = new Date(startDate);
+    const lastDate = new Date(endDate);
+
+    while (currentDate <= lastDate) {
+      // // Adjust forward to the next matching day
+      // while (!daysIndices.includes(currentDate.getUTCDay()) && currentDate <= lastDate) {
+      //   currentDate.setDate(currentDate.getDate() + 1);
+      // }
+
+      if (daysIndices.includes(currentDate.getUTCDay())) {
+        dates.push(new Date(currentDate).toISOString().split("T")[0]);
+      }
+
+      if (repeatType === "Every week") {
+        currentDate.setDate(currentDate.getDate() + 7);
+      } else if (repeatType === "Every month") {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+      } else if (repeatType === "Every year") {
+        currentDate.setFullYear(currentDate.getFullYear() + 1);
+      } else if (repeatType === "Custom" && repeatInterval && customRepeatType) {
+        if (customRepeatType === "Week") {
+          currentDate.setDate(currentDate.getDate() + 7 * repeatInterval);
+        } else if (customRepeatType === "Month") {
+          currentDate.setMonth(currentDate.getMonth() + repeatInterval);
+        } else if (customRepeatType === "Year") {
+          currentDate.setFullYear(currentDate.getFullYear() + repeatInterval);
         }
+      } else {
         currentDate.setDate(currentDate.getDate() + 1);
       }
+    }
 
     return dates;
   };
+
+
 
   const getInstructorResults = async (search) => {
     try {
@@ -343,18 +386,11 @@ const payees = eventClientResponse.data
       console.log("Newly added Start Date:", startDate);
       console.log("Newly added End Date:", endDate);
       console.log("Newly added Selected Days:", selectedDays);
-      console.log("TESTING", selectedDays);
 
       // TODO add , selectedDays as argument
-      const dates = getDatesForDays(startDate, endDate, selectedDays);
-
-
-
-
-
+      const dates = getDatesForDays(startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType);
 
       console.log("Newly added Saving bookings for dates:", dates);
-      console.log("selected days:", selectedDays);
 
       for (const date of dates) {
         const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
@@ -387,6 +423,7 @@ const payees = eventClientResponse.data
             role: "instructor"
         });
       }
+
 
       for (const payee of selectedPayees) {
         console.log("Assigning payee:", payee);
@@ -454,6 +491,12 @@ const payees = eventClientResponse.data
                 setEndDate={setEndDate}
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
+                repeatType={repeatType}
+                setRepeatType={setRepeatType}
+                repeatInterval={repeatInterval}
+                setRepeatInterval={setRepeatInterval}
+                customRepeatType={customRepeatType}
+                setCustomRepeatType={setCustomRepeatType}
               />
 
               <ArtistsDropdown
