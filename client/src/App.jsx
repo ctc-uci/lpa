@@ -33,6 +33,7 @@ import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { EditBooking } from "./components/bookings/EditBooking";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
+import { Home } from  "./components/home/Home";
 import { Settings } from "./components/settings/Settings";
 
 const App = () => {
@@ -96,7 +97,7 @@ const App = () => {
                 />
                 <Route
                   path ="/programs"
-                  element={<ProtectedRoute element={<Program />} />}
+                  element={<ProtectedRoute element={<Home />} />}
                 />
                 <Route
                   path="/notifications"
