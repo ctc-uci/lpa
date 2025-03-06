@@ -262,8 +262,8 @@ function InvoicesTable({filteredInvoices, isPaidColor, seasonColor}){
             <Tr key={index}>
               <Td style={{ 
                 color: isPaidColor(invoice), 
-                textDecoration: invoice.isPaid === 'PAST DUE' ? 'underline' : 'none',
-                fontWeight: invoice.isPaid === 'PAST DUE' ? 'bold' : 'normal',
+                textDecoration: invoice.isPaid === 'Past Due' ? 'underline' : 'none',
+                fontWeight: invoice.isPaid === 'Past Due' ? 'bold' : 'normal',
               }}> 
                 {invoice.isPaid} 
               </Td>
