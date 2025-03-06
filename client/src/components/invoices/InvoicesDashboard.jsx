@@ -60,12 +60,12 @@ const InvoicesDashboard = () => {
 
   const isPaid = (invoice) => {
     if (invoice.isSent && invoice.paymentStatus === "full") {
-        return "PAID";
+        return "Paid";
     }
     if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
-        return "NOT PAID";
+        return "Not Paid";
     }
-    return "PAST DUE";
+    return "Past Due";
   };
 
 

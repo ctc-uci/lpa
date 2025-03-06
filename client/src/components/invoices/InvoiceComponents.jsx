@@ -227,34 +227,34 @@ function InvoicesTable({filteredInvoices, isPaidColor, seasonColor}){
       <Table variant='striped'>
         <Thead>
           <Tr>
-            <Th>
+            <Th textTransform="none" fontSize="md">
               <Flex align="center">
                 <Text>Status</Text>
                 <TbCaretUpDown style={{ marginLeft: '8px' }}/>
               </Flex>
             </Th>
-            <Th>Invoice Sent</Th>
-            <Th>
+            <Th textTransform="none" fontSize="md">Invoice Sent</Th>
+            <Th textTransform="none" fontSize="md">
               <Flex align="center">
                 <Text>Program</Text>
                 <TbCaretUpDown style={{ marginLeft: '8px' }}/>
               </Flex>
             </Th>
-            <Th>
+            <Th textTransform="none" fontSize="md">
               <Flex align="center">
                 <FaUser style={{ marginRight: '8px' }} />
                 <Text>Payer(s)</Text>
               </Flex>
             </Th>
-            <Th>
+            <Th textTransform="none" fontSize="md">
               <Flex align="center">
                 <CalendarIcon color="#767778" style={{ marginRight: '8px' }} />
                 <Text>Deadline</Text>
                 <TbCaretUpDown style={{ marginLeft: '8px' }}/>
               </Flex>
             </Th>
-            <Th>Season</Th>
-            <Th>Download</Th>
+            <Th textTransform="none" fontSize="md">Season</Th>
+            <Th textTransform="none" fontSize="md">Download</Th>
           </Tr>
         </Thead>
         <Tbody>
