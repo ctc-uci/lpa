@@ -107,7 +107,7 @@ export const AddProgram = () => {
 
     const dates = [];
 
-    let currentDate = new Date(startDate);
+    const currentDate = new Date(startDate);
     const lastDate = new Date(endDate);
 
     while (currentDate <= lastDate) {
