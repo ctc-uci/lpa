@@ -64,8 +64,8 @@ import {
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import DateSortingModal from "./DateSortingModal";
-import ProgramSortingModal from "./ProgramSortingModal";
+import DateSortingModal from "../filters/DateFilter";
+import ProgramSortingModal from "../filters/ProgramFilter";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();

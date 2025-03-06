@@ -50,7 +50,9 @@
 
 /* Program sorting popup */
 .program-sorting-popup {
-  width: 224px !important;
+  width: 129px !important;
+  min-width: 129px !important;
+  max-width: 129px !important;
   height: 129px !important;
   padding: 8px;
   box-sizing: border-box;
@@ -62,7 +64,14 @@
   justify-content: space-evenly;
 }
 
-/* Each menu item inside the program popup (updated to match date modal) */
+/* Force inner container to respect width */
+.program-sorting-popup > div {
+  width: 113px !important;
+  min-width: 113px !important;
+  max-width: 113px !important;
+}
+
+/* Each menu item inside the program popup */
 .program-sorting-popup .sort-menu-item {
   display: flex;
   align-items: center;
@@ -77,7 +86,7 @@
 
 /* Date sorting popup */
 .date-sorting-popup {
-  width: 224px !important;
+  width: 285px !important;
   height: 129px !important;
   padding: 8px;
   box-sizing: border-box;
@@ -100,4 +109,16 @@
 }
 .date-sorting-popup .sort-menu-item:hover {
   background: var(--hover-bg);
+}
+
+/* Override Chakra UI's internal styles */
+.chakra-menu__menu-list {
+  --menu-list-width: auto !important;
+}
+
+/* Target Chakra's internal width control specifically for program sorting popup */
+div[role="menu"].program-sorting-popup {
+  width: 129px !important;
+  min-width: 129px !important;
+  max-width: 129px !important;
 }

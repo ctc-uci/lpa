@@ -52,8 +52,8 @@ import personSvg from "../../assets/icons/person.svg";
 import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import searchSvg from "../../assets/icons/search.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import DateSortingModal from "../programs/DateSortingModal";
-import ProgramSortingModal from "../programs/ProgramSortingModal";
+import DateSortingModal from "../filters/DateFilter";
+import ProgramSortingModal from "../filters/ProgramFilter";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
 

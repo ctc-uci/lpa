@@ -93,7 +93,7 @@ import {
 } from "../../assets/icons/ProgramIcons";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import DateSortingModal from "./DateSortingModal";
+import DateSortingModal from "../filters/DateFilter";
 
 export const ProgramSummary = ({
   program,
