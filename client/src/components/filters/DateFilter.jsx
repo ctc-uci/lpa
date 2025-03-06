@@ -26,6 +26,8 @@ const DateSortingModal = ({ onSortChange }) => {
           _hover: { background: "transparent" },
           _active: { background: "transparent" },
           _focus: { background: "transparent" },
+          marginLeft: "auto",
+          marginRight: "-14px",
         }}
       >
         <img

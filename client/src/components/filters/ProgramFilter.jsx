@@ -26,6 +26,8 @@ const ProgramSortingModal = ({ onSortChange }) => {
           _hover: { background: "transparent" },
           _active: { background: "transparent" },
           _focus: { background: "transparent" },
+          marginLeft: "auto",
+          marginRight: "-16px",
         }}
       >
         <img
