@@ -75,10 +75,7 @@ export const AddProgram = () => {
   const isFormValid = () => {
     return (
       eventName.trim() !== "" &&
-      startTime.trim() !== "" &&
-      endTime.trim() !== "" &&
-      startDate.trim() !== "" &&
-      endDate.trim() !== "" &&
+      Object.keys(selectedDays).length > 0 &&
       selectedLocationId !== "" &&
       selectedInstructors.length > 0 &&
       selectedPayees.length > 0 &&
@@ -238,7 +235,7 @@ export const AddProgram = () => {
         const { start, end } = selectedDays[dayName];
 
         const bookingsData = {
-          event_id: id,
+          event_id: newEventId,
           room_id: selectedLocationId,
           start_time: start,
           end_time: end,
@@ -251,6 +248,7 @@ export const AddProgram = () => {
       }
 
       console.log("Assigning instructors...");
+      console.log("Instructor object:", selectedInstructors);
       for (const instructor of selectedInstructors) {
         console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
@@ -260,6 +258,7 @@ export const AddProgram = () => {
         });
       }
 
+      console.log("payee object:", selectedPayees);
       for (const payee of selectedPayees) {
         console.log("Assigning payee:", payee);
         await backend.post("/assignments", {

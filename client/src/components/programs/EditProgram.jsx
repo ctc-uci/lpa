@@ -135,10 +135,7 @@ export const EditProgram = () => {
   const isFormValid = () => {
     return (
       eventName.trim() !== "" &&
-      startTime.trim() !== "" &&
-      endTime.trim() !== "" &&
-      startDate.trim() !== "" &&
-      endDate.trim() !== "" &&
+      Object.keys(selectedDays).length > 0 &&
       selectedLocationId !== "" &&
       selectedInstructors.length > 0 &&
       selectedPayees.length > 0 &&

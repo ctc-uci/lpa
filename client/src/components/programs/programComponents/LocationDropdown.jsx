@@ -14,10 +14,12 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
                 onChange={(event) => {
                     const selectedId = parseInt(event.target.value);
                     const location = locations.find(loc => loc.id === selectedId);
-                    setSelectedLocation(location.name);
-                    setSelectedLocationId(location.id);
-                    setRoomDescription(location.description);
-                    setLocationRate(location.rate);
+                    if (location) {
+                      setSelectedLocation(location.name);
+                      setSelectedLocationId(location.id);
+                      setRoomDescription(location.description);
+                      setLocationRate(location.rate);
+                    }
                 }}
                 >
                 <option value={'DEFAULT'} disabled>Location...</option>
