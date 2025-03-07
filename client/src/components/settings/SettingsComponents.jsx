@@ -3,12 +3,10 @@ import { useEffect, useState, useRef } from "react";
 import {
     Box,
     Button,
-    Card,
     Checkbox,
     Flex,
     Heading,
     Icon,
-    IconButton,
     Input,
     Modal,
     ModalBody,
@@ -22,14 +20,12 @@ import {
     Table,
     Thead,
     Tbody,
-    Tfoot,
     Tr,
     Th,
     Td,
     TableContainer,
     Text,
     Textarea,
-    useCheckbox,
     VStack,
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react"
@@ -429,7 +425,6 @@ const AdminSettings = () => {
   const { backend } = useBackendContext();
   const [generalUsers, setGeneralUsers] = useState(null);
   const [adminUsers, setAdminUsers] = useState(null);
-  const tableContainerRef = useRef(null);
 
   const getAllUsers = async () => {
     try {

@@ -28,7 +28,10 @@ export const Settings = () => {
                     }}
                 >
                     <TabList gap="2rem" color="#718096">
-                        <Tab _selected={{ color: "#5C1F8C" }}>
+                        <Tab
+                            _selected={{ color: "#5C1F8C" }}
+                            onClick={() => setSelectedComponent("general")}
+                        >
                             <Text as="b" fontSize="1.5rem">
                                 General
                             </Text>
