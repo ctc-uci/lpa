@@ -74,10 +74,18 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                             <Tag value={payee.id}>
                                 {payee.name}
                             </Tag>
-                            <Icon fontSize="lg" onClick={() => {
-                                setSelectedPayees(prevItems =>
-                                prevItems.filter(item => item.id !== payee.id));
-                            }}><CloseFilledIcon /></Icon>
+                            <Icon
+                                fontSize="lg"
+                                color = "#718096"
+                                _hover={{ color: "#4441C8" }}
+                                cursor="pointer"
+                                onClick={() => {
+                                    setSelectedPayees(prevItems =>
+                                    prevItems.filter(item => item.id !== payee.id));
+                                }}
+                            >
+                                <CloseFilledIcon color="currentColor"/>
+                            </Icon>
                         </div>
                     ))
                 ) : <div></div> }

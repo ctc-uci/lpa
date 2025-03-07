@@ -2,7 +2,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background: transparent;
   bottom: 0;
   color: transparent;
-  cursor: pointer;     
+  cursor: pointer;
   height: auto;
   left: 0;
   position: absolute;
@@ -232,7 +232,7 @@ button#save {
   overflow: hidden;
   background-color: #FFF;
   border-radius: 5px 5px 5px 5px;
-  
+
 }
 
 #instructorInput, #payeeInput {
@@ -269,7 +269,7 @@ button#save {
   margin-left: 3rem;
 }
 
-#eventInfoBody #roomDescription > h3, 
+#eventInfoBody #roomDescription > h3,
 #eventInfoBody #information > h3 {
   margin-bottom: 24px;
   font-size: 1.5rem;
@@ -277,11 +277,6 @@ button#save {
   font-weight: 700;
   line-height: normal;
   letter-spacing: 0.08px;
-}
-
-#roomDescription > p, #information > Textarea {
-  color: #474849;
-  background-color: #FFF;
 }
 
 #cancel {

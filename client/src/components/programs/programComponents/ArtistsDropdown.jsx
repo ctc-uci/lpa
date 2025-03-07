@@ -72,10 +72,18 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                     <Tag value={instructor.id}>
                       {instructor.name}
                     </Tag>
-                    <Icon fontSize="lg" onClick={() => {
-                        setSelectedInstructors(prevItems =>
-                          prevItems.filter(item => item.id !== instructor.id));
-                      }}><CloseFilledIcon /></Icon>
+                    <Icon
+                        fontSize="lg"
+                        color = "#718096"
+                        _hover={{ color: "#4441C8" }}
+                        cursor="pointer"
+                        onClick={() => {
+                            setSelectedInstructors(prevItems =>
+                            prevItems.filter(item => item.id !== instructor.id));
+                        }}
+                    >
+                        <CloseFilledIcon color="currentColor"/>
+                    </Icon>
                   </div>
                 ))
             ) : <div></div> }

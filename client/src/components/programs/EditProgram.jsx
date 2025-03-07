@@ -138,8 +138,7 @@ export const EditProgram = () => {
       Object.keys(selectedDays).length > 0 &&
       selectedLocationId !== "" &&
       selectedInstructors.length > 0 &&
-      selectedPayees.length > 0 &&
-      generalInformation.trim() !== ""
+      selectedPayees.length > 0
     );
   };
 
