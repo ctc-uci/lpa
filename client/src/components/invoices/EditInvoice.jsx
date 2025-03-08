@@ -26,7 +26,7 @@ import {
   RadioDropdown
 } from "./EditInvoiceComponents";
 
-const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoices }) => {
+const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments }) => {
   const getGeneratedDate = () => {
     if (comments.length > 0) {
       const latestComment = comments?.sort(
@@ -39,8 +39,6 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoices })
       const year = latestDate.getFullYear();
 
       return `${month}  ${year}`;
-    } else if (invoice) {
-      return invoice["startDate"];
     } else {
       return "No Date Found";
     }
@@ -319,7 +317,7 @@ export const EditInvoice = () => {
   return (
     <Navbar>
       <VStack>
-      <InvoiceNavBar onBack={handleBack} onSave={handleSave} isSaving={isSaving} payees={payees} comments={comments} invoices={invoices}/>
+      <InvoiceNavBar onBack={handleBack} onSave={handleSave} isSaving={isSaving} payees={payees} comments={comments}/>
         <Image
               w='80%'
               position="relative"
