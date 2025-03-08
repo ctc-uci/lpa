@@ -248,6 +248,7 @@ button#save {
 
 #instructorDropdown, #payeeDropdown {
   width: 100%;
+  position: absolute;
   background-color: #D9D9D9;
   border-top: #4E4AE7 3px solid;
   border-radius: 0 0 5px 5px;
