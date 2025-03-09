@@ -13,10 +13,10 @@ export const ProtectedRoute = ({
   allowedRoles = [],
 }: ProtectedRouteProps) => {
   const { currentUser } = useAuthContext();
-  const { role } = useRoleContext();
+  const { role, editPerms } = useRoleContext();
 
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
-  const isValidRole = getIsValidRole(roles, role);
+  const isValidRole = getIsValidRole(roles, role, editPerms);
   return currentUser && isValidRole ? (
     element
   ) : currentUser ? (
@@ -33,7 +33,11 @@ export const ProtectedRoute = ({
  * @param roles a list of roles which may access this route
  * @param role the current user's role
  */
-function getIsValidRole(roles: string[], role: string | undefined) {
+function getIsValidRole(roles: string[], role: string | undefined, editPerms: boolean) {
+  if (roles.includes('admin')) {
+    return editPerms === true
+  }
+
   return (
     roles.length === 0 ||
     (role !== undefined && roles.includes(role)) ||
