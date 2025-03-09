@@ -16,21 +16,22 @@ export const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
     <>
       {/* <Button onClick={onOpen}>Discard Changes?</Button> */}
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Discard Changes</ModalHeader>
-          <ModalCloseButton />
+          <ModalHeader>Discard Changes?</ModalHeader>
+          {/* <ModalCloseButton /> */}
           <ModalBody>
+            
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme='#EDF2F7' mr={3} onClick={onClose}>
-              Exit
-            </Button>
-            <Button colorScheme='#90080F' onClick={onConfirm}>
-              Confirm
-            </Button>
+            <Button colorScheme='gray' mr={3} onClick={onClose}>
+                Exit
+              </Button>
+              <Button background='#90080F' color="white" onClick={onConfirm}>
+                Confirm
+              </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

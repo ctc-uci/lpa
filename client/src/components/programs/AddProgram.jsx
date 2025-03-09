@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
-import './EditProgram.css';
-
 import {
   Button,
   Icon,
 } from "@chakra-ui/react";
 
-
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
+import './EditProgram.css';
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { IoCloseOutline } from "react-icons/io5";
 import { CiCircleMore } from "react-icons/ci";
 import { useParams } from "react-router";
@@ -23,6 +21,7 @@ import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { TimeFrequency } from "./programComponents/TimeFrequency"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 
 export const AddProgram = () => {
   const { backend } = useBackendContext();
@@ -50,7 +49,60 @@ export const AddProgram = () => {
   const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+  const initialState = useRef(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
+  useEffect(() => {
+    initialState.current = JSON.stringify({
+      eventName,
+      generalInformation,
+      selectedLocationId,
+      selectedInstructors,
+      selectedPayees,
+      repeatType,
+      repeatInterval,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      selectedDays
+    });
+  }, []); // Runs only once when component mounts
+  
+
+  useEffect(() => {
+    const currentState = JSON.stringify({
+      eventName,
+      generalInformation,
+      selectedLocationId,
+      selectedInstructors,
+      selectedPayees,
+      repeatType,
+      repeatInterval,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      selectedDays
+    });
+  
+    setHasChanges(currentState !== initialState.current);
+  }, [
+    eventName,
+    generalInformation,
+    selectedLocationId,
+    selectedInstructors,
+    selectedPayees,
+    repeatType,
+    repeatInterval,
+    startTime,
+    endTime,
+    startDate,
+    endDate,
+    selectedDays
+  ]); 
+  
 
   useEffect(() => {
     getInitialLocations();
@@ -68,8 +120,17 @@ export const AddProgram = () => {
     console.log("Selected location ID updated:", selectedLocationId);
 }, [selectedLocationId]);
 
-  const exit = (newEventId) => {
-    navigate('/programs/' + newEventId);
+  const exit = (newEventId = "") => {
+    console.log(newEventId);
+    if (hasChanges) {
+      setIsConfirmModalOpen(true);
+      return;
+    }
+    if (window.history.length > 1) {
+      navigate(-1);
+  } else {
+      navigate("/dashboard"); 
+  }
   };
 
   const isFormValid = () => {
@@ -276,6 +337,13 @@ export const AddProgram = () => {
 
   return (
     <Navbar>
+      <DeleteConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={() => {
+          setIsConfirmModalOpen(false); // Close modal
+        }}
+      />
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
