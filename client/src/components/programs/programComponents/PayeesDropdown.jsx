@@ -29,7 +29,7 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
     }, []);
 
     return (
-    <HStack>
+    <HStack gap="12px">
         <Box as="img" src={personSvg} boxSize="20px" />
         <div id="payeeContainer">
             <div id="payees">

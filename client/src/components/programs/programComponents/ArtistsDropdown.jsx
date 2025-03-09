@@ -28,7 +28,7 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
   }, []);
 
   return (
-    <HStack>
+    <HStack gap="12px">
       <Box as="img" src={BsPaletteFill} boxSize="20px" />
       <div id="instructorContainer">
         <div id="instructors">
