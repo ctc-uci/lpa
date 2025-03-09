@@ -246,12 +246,15 @@ button#save {
   box-shadow: none;
 }
 
-#instructorDropdown, #payeeDropdown {
+#instructorContainer #instructorDropdown, 
+#payeeContainer #payeeDropdown {
   width: 100%;
   position: absolute;
-  background-color: #D9D9D9;
-  border-top: #4E4AE7 3px solid;
-  border-radius: 0 0 5px 5px;
+  background-color: #D9D9D9!important;
+  margin-top: 4px;
+  border-top: #E2E8F0;
+  border-width: 1px;
+  border-radius: 4px 4px 4px 4px;
   box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
   z-index: 10;
   max-height: 200px;

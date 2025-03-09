@@ -72,12 +72,18 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                 }
                                 _hover={{ color: payeeSearchTerm.trim() !== "" ? "#800080" : "inherit" }}
                             >
-                                <PlusFilledIcon/>
+                                <PlusFilledIcon
+                                    color={
+                                        payeeSearchTerm.trim() !== "" &&
+                                          searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
+                                          ? "#4441C8" : "#718096"
+                                    }
+                                />
                             </Box>
                         </div>
 
                         {dropdownVisible && searchedPayees.length > 0 && payeeSearchTerm.length > 0 && (
-                            <Box id="payeeDropdown">
+                            <Box id="payeeDropdown" w="100%" maxW="195px">
                                 {searchedPayees.map((payee) => (
                                     <Box
                                         key={payee.id}
