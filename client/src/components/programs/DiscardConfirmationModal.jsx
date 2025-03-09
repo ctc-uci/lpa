@@ -1,17 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalCloseButton,
   ModalBody,
   ModalFooter,
   Button,
-  Text
 } from "@chakra-ui/react";
 
-export const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
+export const DeleteConfirmationModal = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   return (
     <>
       {/* <Button onClick={onOpen}>Discard Changes?</Button> */}
@@ -29,7 +29,11 @@ export const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
             <Button colorScheme='gray' mr={3} onClick={onClose}>
                 Exit
               </Button>
-              <Button background='#90080F' color="white" onClick={onConfirm}>
+              <Button 
+                background='#90080F' 
+                color="white" 
+                onClick={() => navigate(-1)}
+              >
                 Confirm
               </Button>
           </ModalFooter>

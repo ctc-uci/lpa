@@ -21,7 +21,7 @@ import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { TimeFrequency } from "./programComponents/TimeFrequency"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
-import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
 
 export const AddProgram = () => {
   const { backend } = useBackendContext();
@@ -340,9 +340,6 @@ export const AddProgram = () => {
       <DeleteConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
-        onConfirm={() => {
-          setIsConfirmModalOpen(false); // Close modal
-        }}
       />
       <div id="body">
         <div id="programsBody">
