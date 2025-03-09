@@ -69,17 +69,12 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                       !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
                       ? "not-allowed" : "pointer"
                     }
-                    _hover={{
-                      color: instructorSearchTerm.trim() !== "" &&
-                        searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
-                        ? "#4441C8" : "gray"  
-                    }}
                   >
                     <PlusFilledIcon
                       color={
                         instructorSearchTerm.trim() !== "" &&
                           searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
-                          ? "#4441C8" : "#A0A0A0"
+                          ? "#4441C8" : "#718096"
                       }
                     />
                   </Box>
