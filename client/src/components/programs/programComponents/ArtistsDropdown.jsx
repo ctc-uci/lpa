@@ -1,4 +1,4 @@
-import React from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   HStack,
@@ -12,6 +12,21 @@ import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import BsPaletteFill from "../../../assets/icons/BsPaletteFill.svg";
 
 export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, getInstructorResults, setInstructorSearchTerm} ) => {
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest("#instructorContainer")) {
+          setDropdownVisible(false);
+      }
+    }
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    }
+  }, []);
+
   return (
     <HStack>
       <Box as="img" src={BsPaletteFill} boxSize="20px" />
@@ -25,27 +40,76 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                     onChange={(e) => {
                       getInstructorResults(e.target.value);
                       setInstructorSearchTerm(e.target.value);
+                      setDropdownVisible(true);
                     }}
                     value={instructorSearchTerm} id="instructorInput"/>
-                  <PlusFilledIcon />
+                  <Box 
+                    as="button" 
+                    onClick={() => {
+                      if (instructorSearchTerm.trim() !== "") {
+                        // Find the instructor from the searched list
+                        const instructor = searchedInstructors.find(
+                          (instr) => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()
+                        );
+                        // If instructor exists and is not already selected, add it as a tag
+                        if (instructor && !selectedInstructors.some(instr => instr.id === instructor.id)) {
+                          setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                        }
+                        setInstructorSearchTerm("");
+                        setSearchedInstructors([]);
+                        getInstructorResults(")")
+                      }
+                    }}
+                    disabled={ 
+                      instructorSearchTerm.trim() === "" || 
+                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
+                    }
+                    cursor={
+                      instructorSearchTerm.trim()==="" || 
+                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
+                      ? "not-allowed" : "pointer"
+                    }
+                    _hover={{
+                      color: instructorSearchTerm.trim() !== "" &&
+                        searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
+                        ? "#4441C8" : "gray"  
+                    }}
+                  >
+                    <PlusFilledIcon
+                      color={
+                        instructorSearchTerm.trim() !== "" &&
+                          searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
+                          ? "#4441C8" : "#A0A0A0"
+                      }
+                    />
+                  </Box>
                 </div>
 
-                {searchedInstructors.length > 0 && (
+                {dropdownVisible && searchedInstructors.length > 0 && instructorSearchTerm.length > 0 && (
                   <Box id="instructorDropdown">
                     {searchedInstructors.map((instructor) => (
                       <Box
                         key={instructor.id}
                         onClick={() => {
-                          const alreadySelected = selectedInstructors.find(
-                            (instr) => instr.id.toString() === instructor.id
-                          );
-                          if (instructor && !alreadySelected) {
-                            setSelectedInstructors((prevItems) => [...prevItems, instructor]);
-                            const filteredInstructors = searchedInstructors.filter(
-                              (instr) => instructor.id !== instr.id.toString()
-                            );
-                            setSearchedInstructors(filteredInstructors);
-                          }
+                          setInstructorSearchTerm(instructor.name); // Populate input field
+                          setDropdownVisible(false);
+                          // const alreadySelected = selectedInstructors.find(
+                          //   (instr) => instr.id.toString() === instructor.id
+                          // );
+                          // console.log("ran");
+                          // if (!alreadySelected) {
+                          //   console.log("ran here");
+                          //   setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                          //   setInstructorSearchTerm(""); // Clears input
+                          //   setSearchedInstructors([]); // Closes dropdown
+                          // }
+                          // if (instructor && !alreadySelected) {
+                          //   setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                          //   const filteredInstructors = searchedInstructors.filter(
+                          //     (instr) => instructor.id !== instr.id.toString()
+                          //   );
+                          //   setSearchedInstructors(filteredInstructors);
+                          // }
                         }}
                           style={{
                             padding: "10px",

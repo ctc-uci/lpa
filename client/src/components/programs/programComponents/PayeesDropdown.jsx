@@ -1,4 +1,4 @@
-import React from 'react'
+import { useState, useEffect } from 'react'
 import '../EditProgram.css';
 import {
     Box,
@@ -13,7 +13,22 @@ import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import personSvg from "../../../assets/person.svg";
 
 export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees, getPayeeResults, setPayeeSearchTerm, setSelectedPayees, setSearchedPayees} ) => {
-  return (
+    const [dropdownVisible, setDropdownVisible] = useState(false);
+    
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest("#payeeContainer")) {
+                setDropdownVisible(false);
+            }
+        }
+
+        document.addEventListener("click", handleClickOutside);
+        return () => {
+            document.removeEventListener("click", handleClickOutside);
+        }
+    }, []);
+
+    return (
     <HStack>
         <Box as="img" src={personSvg} boxSize="20px" />
         <div id="payeeContainer">
@@ -26,28 +41,66 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                 onChange={(e) => {
                                 getPayeeResults(e.target.value);
                                 setPayeeSearchTerm(e.target.value);
+                                setDropdownVisible(true);
                                 }}
                                 value={payeeSearchTerm} id="payeeInput"/>
-                            <PlusFilledIcon />
+                            <Box 
+                                as="button" 
+                                onClick={() => {
+                                if (payeeSearchTerm.trim() !== "") {
+                                    // Find the instructor from the searched list
+                                    const payee = searchedPayees.find(
+                                    (p) => p.name.toLowerCase() === payeeSearchTerm.toLowerCase()
+                                    );
+                                    // If instructor exists and is not already selected, add it as a tag
+                                    if (payee && !selectedPayees.some(p => p.id === payee.id)) {
+                                    setSelectedPayees((prevItems) => [...prevItems, payee]);
+                                    }
+                                    setPayeeSearchTerm("");
+                                    setSearchedPayees([]);
+                                    getPayeeResults(")")
+                                }
+                                }}
+                                disabled={ 
+                                payeeSearchTerm.trim() === "" || 
+                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase()) 
+                                }
+                                cursor={
+                                payeeSearchTerm.trim()==="" || 
+                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase()) 
+                                ? "not-allowed" : "pointer"
+                                }
+                                _hover={{ color: payeeSearchTerm.trim() !== "" ? "#800080" : "inherit" }}
+                            >
+                                <PlusFilledIcon/>
+                            </Box>
                         </div>
 
-                        {searchedPayees.length > 0 && (
+                        {dropdownVisible && searchedPayees.length > 0 && payeeSearchTerm.length > 0 && (
                             <Box id="payeeDropdown">
                                 {searchedPayees.map((payee) => (
                                     <Box
                                         key={payee.id}
                                         onClick={() => {
-                                        const alreadySelected = selectedPayees.find(
-                                            (pay) => pay.id.toString() === payee.id
-                                        );
+                                            setPayeeSearchTerm(payee.name); // Fill input field
+                                            setDropdownVisible(false); // Hide dropdown after selecting
+                                        // const alreadySelected = selectedPayees.find(
+                                        //     (pay) => pay.id.toString() === payee.id
+                                        // );
 
-                                        if (payee && !alreadySelected) {
-                                            setSelectedPayees((prevItems) => [...prevItems, payee]);
-                                            const filteredPayees = searchedPayees.filter(
-                                            (pay) => payee.id !== pay.id.toString()
-                                            );
-                                            setSearchedPayees(filteredPayees);
-                                        }
+                                        // if (!alreadySelected) {
+                                        //     setSelectedPayees((prevItems) => [...prevItems, payee]);
+                                        //     setPayeeSearchTerm(""); // Clears input
+                                        //     setSearchedPayees([]); // Closes dropdown
+                                        // }
+
+                                        // if (payee && !alreadySelected) {
+                                        //     setSelectedPayees((prevItems) => [...prevItems, payee]);
+                                        //     const filteredPayees = searchedPayees.filter(
+                                        //     (pay) => payee.id !== pay.id.toString()
+                                        //     );
+                                        //     setSearchedPayees(filteredPayees);
+                                        // }
                                     }}
                                         style={{
                                             padding: "10px",
