@@ -55,7 +55,7 @@ export const ReoccuranceDropdown = ({
   // opens the dropdown if custom is selected
   const handleDropdownChange = (event) => {
     setRepeatType(event.target.value);
-    if (repeatType != "Does not repeat") {
+    if (repeatType !== "Does not repeat") {
       setIsModalOpen(true);
     }
   };
