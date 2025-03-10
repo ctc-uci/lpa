@@ -16,12 +16,18 @@ import {
   ModalBody,
   ModalFooter,
   Checkbox,
-  Button
+  Button,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  VStack,
 } from "@chakra-ui/react";
 
 import { ClockFilledIcon } from '../../../assets/ClockFilledIcon';
 import { CalendarIcon } from '../../../assets/CalendarIcon';
 import { RepeatIcon } from '../../../assets/RepeatIcon';
+import {ArrowDropdown} from '../../../assets/ArrowDropdown';
 
 export const TimeFrequency = ({
   startTime,
@@ -42,9 +48,21 @@ export const TimeFrequency = ({
   setCustomRepeatType
 }) => {
 
+  const [hasEdits, setHasEdits] = useState(false); // whether or not edits have been made
   const [isModalOpen, setIsModalOpen] = useState(false); // if the reoccurance modal is open
   const [isCustomRepeat, setIsCustomRepeat] = useState(false); // if N is selected
   const [tempSelectedDays, setTempSelectedDays] = useState({}); // temp store for what days are selected
+
+  const dayFullNames = {
+    Sun: "Sunday",
+    Mon: "Monday",
+    Tue: "Tuesday",
+    Wed: "Wednesday",
+    Thu: "Thursday",
+    Fri: "Friday",
+    Sat: "Saturday"
+  };
+  const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   // opens the dropdown if custom is selected
   const handleDropdownChange = (event) => {
@@ -82,47 +100,116 @@ export const TimeFrequency = ({
   return (
       <Box>
         {/* repeatability dropdown */}
+
         <Flex alignItems="center" mb={4}>
           <Icon fontSize={20} mr={3}><RepeatIcon/></Icon>
-          <Select size="md" w={250} value={repeatType} onChange={handleDropdownChange}>
-            <option>Does not repeat</option>
-            <option>Every week</option>
-            <option>Every month</option>
-            <option>Every year</option>
-            <option>Custom</option>
-          </Select>
+          <Popover placement="bottom-start" matchWidth>
+            <PopoverTrigger>
+              <Box
+                width="250px"
+                height="40px"
+                backgroundColor="white"
+                border="1px solid #E2E8F0"
+                borderRadius="4px"
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                padding="10px"
+                fontFamily="Inter"
+                fontSize="16px"
+                color="#2D3748"
+                _hover={{ backgroundColor: "#EDF2F7" }}
+                cursor="pointer"
+              >
+                {hasEdits ? repeatType : "Reset all bookings"}
+                <ArrowDropdown />
+              </Box>
+            </PopoverTrigger>
+            <PopoverContent width="250px" boxShadow="none" outline="none" background="white">
+              <PopoverBody>
+                <VStack align="start" spacing={2}>
+                  {["Does not repeat", "Every week", "Every month", "Every year", "Custom"].map((option) => (
+                    <Box
+                      key={option}
+                      width="100%"
+                      fontSize="14px"
+                      borderRadius="4px"
+                      cursor="pointer"
+                      backgroundColor={repeatType === option ? "#EDF2F7" : "white"}
+                      _hover={{ backgroundColor: "#EDF2F7" }}
+                      onClick={() => {
+                        handleDropdownChange({ target: { value: option } });
+                        setHasEdits(true);
+                      }}
+                    >
+                      <Text margin="10px">{option}</Text>
+                    </Box>
+                  ))}
+                </VStack>
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
         </Flex>
-
-
 
         {/* Custom Reoccurrence Modal */}
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ModalOverlay />
         <ModalContent>
-
-
         {repeatType === "Custom" ? (
           <>
             <ModalHeader>Custom Reoccurrence</ModalHeader>
             <Flex p={5} mb={4} alignItems="center">
               <Text w={200}>Repeats every</Text>
-              <Select
-                w={200}
-                value={repeatInterval}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "N") {
-                    setIsCustomRepeat(true);
-                  } else {
-                    setIsCustomRepeat(false);
-                    setRepeatInterval(Number(value));
-                  }
-                }}
-              >
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="N">N</option>
-              </Select>
+              <Popover placement="bottom-start" matchWidth>
+                <PopoverTrigger>
+                  <Box
+                    width="35%"
+                    height="40px"
+                    backgroundColor="white"
+                    border="1px solid #E2E8F0"
+                    borderRadius="4px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    padding="10px"
+                    fontFamily="Inter"
+                    fontSize="16px"
+                    color="#2D3748"
+                    _hover={{ backgroundColor: "#EDF2F7" }}
+                    cursor="pointer"
+                  >
+                    {repeatInterval === "N" ? "Custom" : repeatInterval}
+                    <ArrowDropdown />
+                  </Box>
+                </PopoverTrigger>
+                <PopoverContent boxShadow="none" outline="none" background="white" width="100%">
+                  <PopoverBody>
+                    <VStack align="start" spacing={2}>
+                      {["1", "2", "N"].map((option) => (
+                        <Box
+                          key={option}
+                          width="100%"
+                          fontSize="16px"
+                          borderRadius="4px"
+                          cursor="pointer"
+                          backgroundColor={repeatInterval === option ? "#EDF2F7" : "white"}
+                          _hover={{ backgroundColor: "#EDF2F7" }}
+                          onClick={() => {
+                            if (option === "N") {
+                              setIsCustomRepeat(true);
+                            } else {
+                              setIsCustomRepeat(false);
+                              setRepeatInterval(Number(option));
+                            }
+                          }}
+                        >
+                          <Text margin="10px">{option === "N" ? "Custom" : option}</Text>
+                        </Box>
+                      ))}
+                    </VStack>
+                  </PopoverBody>
+                </PopoverContent>
+              </Popover>
 
               {isCustomRepeat && (
                 <Input
@@ -136,16 +223,51 @@ export const TimeFrequency = ({
                 />
               )}
 
-              <Select
-                ml={2}
-                w="50%"
-                value={customRepeatType}
-                onChange={(e) => setCustomRepeatType(e.target.value)}
-              >
-                <option value="Week">Week</option>
-                <option value="Month">Month</option>
-                <option value="Year">Year</option>
-              </Select>
+              <Popover placement="bottom-start" matchWidth>
+                <PopoverTrigger>
+                  <Box
+                    ml={2}
+                    width="50%"
+                    height="40px"
+                    backgroundColor="white"
+                    border="1px solid #E2E8F0"
+                    borderRadius="4px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    padding="10px"
+                    fontFamily="Inter"
+                    fontSize="16px"
+                    color="#2D3748"
+                    _hover={{ backgroundColor: "#EDF2F7" }}
+                    cursor="pointer"
+                  >
+                    {customRepeatType}
+                    <ArrowDropdown />
+                  </Box>
+                </PopoverTrigger>
+                <PopoverContent width="100%" boxShadow="none" outline="none" background="white">
+                  <PopoverBody>
+                    <VStack align="start" spacing={2}>
+                      {["Week", "Month", "Year"].map((option) => (
+                        <Box
+                          key={option}
+                          width="100%"
+                          fontSize="16px"
+                          borderRadius="4px"
+                          cursor="pointer"
+                          backgroundColor={customRepeatType === option ? "#EDF2F7" : "white"}
+                          _hover={{ backgroundColor: "#EDF2F7" }}
+                          onClick={() => setCustomRepeatType(option)}
+                        >
+                          <Text margin="10px">{option}</Text>
+                        </Box>
+                      ))}
+                    </VStack>
+                  </PopoverBody>
+                </PopoverContent>
+              </Popover>
+
             </Flex>
           </>
         ) : (
@@ -164,44 +286,44 @@ export const TimeFrequency = ({
         )
       }
           <ModalBody>
-            <Flex mb={4}>
+            <Flex mb={4} gap={4} w="100%" justifyContent="center" pb={5}>
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <Checkbox
-                  key={day}
-                  isChecked={day in tempSelectedDays}
-                  onChange={() => handleCheckboxChange(day)}
-                  mr={2}
-                  borderRadius={2}
-                  sx={{
-                    "& .chakra-checkbox__control": {
-                      _hover: { bg: "#E2E8F0"}
-                    }
-                  }}
-                >
-                  {day}
-                </Checkbox>
+                <VStack >
+                <Text fontSize="16px">{day}</Text>
+                  <Checkbox
+                    key={day}
+                    isChecked={day in tempSelectedDays}
+                    onChange={() => handleCheckboxChange(day)}
+                    borderRadius={2}
+                    _checked={{"& .chakra-checkbox__control": { background: "#4441C8" , borderWidth: 0}}}
+                    _hover={{"& .chakra-checkbox__control": { background: "#E2E8F0" }}}
+                  >
+                  </Checkbox>
+                </VStack>
               ))}
             </Flex>
 
-            {/* time selection for each selected day */}
-            {Object.keys(tempSelectedDays).map((day) => (
-              <Flex key={day} mb={3} alignItems="center">
-                <Text w="20%">{day}</Text>
-                <Input
-                  type="time"
-                  value={tempSelectedDays[day].start}
-                  onChange={(e) => handleTimeChange(day, "start", e.target.value)}
-                  w="30%"
-                />
-                <Text mx={2}>-</Text>
-                <Input
-                  type="time"
-                  value={tempSelectedDays[day].end}
-                  onChange={(e) => handleTimeChange(day, "end", e.target.value)}
-                  w="30%"
-                />
-              </Flex>
-            ))}
+            {/* Time selection for each selected day */}
+            {Object.keys(tempSelectedDays)
+              .sort((a, b) => dayOrder.indexOf(dayFullNames[a]) - dayOrder.indexOf(dayFullNames[b])) // Sort by predefined order
+              .map((day) => (
+                <Flex key={day} mb={7} alignItems="center" w="100%">
+                  <Text width={150}>{dayFullNames[day]}</Text>
+                  <Input
+                    type="time"
+                    value={tempSelectedDays[day].start}
+                    onChange={(e) => handleTimeChange(day, "start", e.target.value)}
+                    w="30%"
+                  />
+                  <Text mx={2}>-</Text>
+                  <Input
+                    type="time"
+                    value={tempSelectedDays[day].end}
+                    onChange={(e) => handleTimeChange(day, "end", e.target.value)}
+                    w="30%"
+                  />
+                </Flex>
+              ))}
 
           </ModalBody>
           <ModalFooter>
