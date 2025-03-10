@@ -277,7 +277,7 @@ function InvoicesTable({filteredInvoices, isPaidColor, seasonColor}){
                 </Flex>
               </Td>
               <Td>{invoice.eventName}</Td>
-              <Td>{invoice.name}</Td>
+              <Td>{invoice.payers.join(", ")}</Td>
               <Td>
                 {new Date(invoice.endDate).toLocaleDateString("en-US", {
                   month: "2-digit", day: "2-digit", year: "numeric"
