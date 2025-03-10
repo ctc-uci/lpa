@@ -1,14 +1,14 @@
-import { useEffect, useState, useRef } from "react";
-import './EditProgram.css';
-
 import {
   Button,
   Icon,
 } from "@chakra-ui/react";
 
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
+import './EditProgram.css';
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { IoCloseOutline } from "react-icons/io5";
+import { CiCircleMore } from "react-icons/ci";
 import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
@@ -21,14 +21,13 @@ import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
 import { DateInputs } from "./programComponents/DateInputs";
 import { TimeInputs } from "./programComponents/TimeInputs";
 
-
-export const EditProgram = () => {
+export const AddProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
-  const {id} = useParams();
   const [locations, setLocations] = useState({}); // rooms.id rooms.name
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState("");
@@ -52,12 +51,62 @@ export const EditProgram = () => {
   const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+  const initialState = useRef(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  useEffect(() => {
+    initialState.current = JSON.stringify({
+      eventName,
+      generalInformation,
+      selectedLocationId,
+      selectedInstructors,
+      selectedPayees,
+      repeatType,
+      repeatInterval,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      selectedDays
+    });
+  }, []); // Runs only once when component mounts
 
 
   useEffect(() => {
-    getInitialEventData();
-    getInitialBookingData();
-    getInitialAssignmentsData();
+    const currentState = JSON.stringify({
+      eventName,
+      generalInformation,
+      selectedLocationId,
+      selectedInstructors,
+      selectedPayees,
+      repeatType,
+      repeatInterval,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      selectedDays
+    });
+
+    setHasChanges(currentState !== initialState.current);
+  }, [
+    eventName,
+    generalInformation,
+    selectedLocationId,
+    selectedInstructors,
+    selectedPayees,
+    repeatType,
+    repeatInterval,
+    startTime,
+    endTime,
+    startDate,
+    endDate,
+    selectedDays
+  ]);
+
+
+  useEffect(() => {
     getInitialLocations();
   }, []);
 
@@ -73,8 +122,21 @@ export const EditProgram = () => {
     console.log("Selected location ID updated:", selectedLocationId);
 }, [selectedLocationId]);
 
-  const exit = () => {
-    navigate('/programs/' + id);
+  const exit = (newEventId = "") => {
+    console.log(newEventId);
+    if (hasChanges) {
+      setIsConfirmModalOpen(true);
+      return;
+    }
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+        navigate("/dashboard");
+    }
+  };
+
+  const saveAndExit = (newEventId = "") => {
+    navigate('/programs/' + newEventId);
   };
 
   const isFormValid = () => {
@@ -87,54 +149,6 @@ export const EditProgram = () => {
     );
   };
 
-  const getInitialEventData = async () => {
-    const eventResponse = await backend.get(`/events/${id}`);
-
-    setEventName(eventResponse.data[0].name);
-    setGeneralInformation(eventResponse.data[0].description);
-    setEventArchived(eventResponse.data[0].archived);
-  }
-
-  const getInitialBookingData = async () => {
-    const bookingResponse = await backend.get('/bookings/rooms/event/' + id);
-    if (bookingResponse.data.length > 0) {
-      setSelectedLocation(bookingResponse.data[0].name);
-      setSelectedLocationId(bookingResponse.data[0].roomId);
-      setRoomDescription(bookingResponse.data[0].description);
-      setLocationRate(bookingResponse.data[0].rate);
-      setStartTime(bookingResponse.data[0].startTime.split(':').slice(0, 2).join(':'));
-      setEndTime(bookingResponse.data[0].endTime.split(':').slice(0, 2).join(':'));
-      setStartDate(bookingResponse.data[0].date.split("T")[0]);
-
-      const ids = bookingResponse.data.map(booking => booking.bookingId);
-
-      setBookingIds(ids);
-      setEndDate(bookingResponse.data[bookingResponse.data.length - 1].date.split("T")[0]);
-    }
-  }
-
-  const getInitialAssignmentsData = async () => {
-    const eventClientResponse = await backend.get('/assignments/event/' + id);
-
-    const instructors = eventClientResponse.data
-  .filter(client => client.role === "instructor")
-  .map(client => ({
-    id: client.clientId,
-    name: client.clientName,
-    email: client.clientEmail
-  }));
-
-const payees = eventClientResponse.data
-  .filter(client => client.role === "payee")
-  .map(client => ({
-    id: client.clientId,
-    name: client.clientName,
-    email: client.clientEmail
-  }));
-    setSelectedInstructors(instructors);
-    setSelectedPayees(payees);
-  }
-
   const getInitialLocations = async () => {
     try {
       const locationResponse = await backend.get("/rooms");
@@ -143,7 +157,6 @@ const payees = eventClientResponse.data
         console.error("Error getting locations:", error);
     }
   };
-
 
   const getDatesForDays = (startDate, endDate, selectedDays, repeatInterval, customRepeatInterval, customRepeatType) => {
     console.log("in getDatesForDays", startDate, endDate, selectedDays, repeatInterval, customRepeatInterval, customRepeatType)
@@ -302,73 +315,24 @@ const payees = eventClientResponse.data
     setSearchedPayees(filteredPayees);
   };
 
-  const deleteAllBookingComments = async () => {
-  try {
-    await Promise.all(bookingIds.map(async (bookingId) => {
-      try {
-        await backend.delete('/comments/booking/' + bookingId);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.log(`No comments found for booking ${bookingId}`);
-          return;
-        }
-        throw err;
-      }
-    }));
-  } catch (error) {
-    console.error("Error deleting event bookings", error);
-    throw error;
-  }
-};
-
-  const deleteAllEventBookings = async () => {
-    try {
-      await backend.delete('/bookings/event/' + id);
-      console.log(`Deleted bookings for event ${id}`);
-    } catch (error) {
-      if (error.response?.status === 404) {
-        console.log(`No bookings found for event ${id}`);
-        return;
-      }
-      else {
-        console.error("Error deleting event bookings", error);
-      }
-    }
-  };
-
-  const deleteAllAssignments = async () => {
-    try {
-      await backend.delete('/assignments/event/' + id);
-    } catch (error) {
-      if (error.response?.status === 404) {
-          console.log(`No assignments found for event ${id}`);
-          return;
-        }
-      else {
-        console.error("Error deleting event bookings", error);
-      }
-    }
-  };
 
   const saveEvent = async () => {
-
-
     try {
-      console.log("Newly added event name:", eventName);
+      console.log("Newly added name:", eventName);
       console.log("Newly added Description:", generalInformation);
       console.log("Newly added Location ID:", selectedLocationId);
-      console.log("Newly added Selected Instructors:", selectedInstructors);
-      console.log("Newly added Selected Payees:", selectedPayees);
+      console.log("Newly added Instructors:", selectedInstructors);
+      console.log("Newly added Payees:", selectedPayees);
 
-      await backend.put('/events/' + id, {
+      const response = await backend.post('/events/', {
           name: eventName,
           description: generalInformation,
           archived: eventArchived
       });
 
-      deleteAllBookingComments();
-      deleteAllEventBookings();
-      deleteAllAssignments();
+      const newEventId = response.data.id;
+
+
 
       console.log("Newly added Start Date:", startDate);
       console.log("Newly added End Date:", endDate);
@@ -387,7 +351,7 @@ const payees = eventClientResponse.data
 
           // make object
           const bookingsData = {
-            event_id: id,
+            event_id: newEventId,
             room_id: selectedLocationId,
             start_time: start,
             end_time: end,
@@ -410,7 +374,7 @@ const payees = eventClientResponse.data
 
         // make object
         const bookingsData = {
-          event_id: id,
+          event_id: newEventId,
           room_id: selectedLocationId,
           start_time: start,
           end_time: end,
@@ -427,41 +391,45 @@ const payees = eventClientResponse.data
 
 
       console.log("Assigning instructors...");
+      console.log("Instructor object:", selectedInstructors);
       for (const instructor of selectedInstructors) {
         console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
-            eventId: id,
+            eventId: newEventId,
             clientId: instructor.id,
             role: "instructor"
         });
       }
 
-
+      console.log("payee object:", selectedPayees);
       for (const payee of selectedPayees) {
         console.log("Assigning payee:", payee);
         await backend.post("/assignments", {
-            eventId: id,
+            eventId: newEventId,
             clientId: payee.id,
             role: "payee"
         });
       }
       console.log("Save complete, navigating away...");
-      exit();
+      saveAndExit(newEventId);
 
     } catch (error) {
-        console.error("Error updating sessions", error);
+        console.error("Error getting instructors:", error);
     }
   };
 
-
   return (
-
     <Navbar>
+      <DeleteConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+      />
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
           <div id="eventInfoBody">
             <div id="title">
+              {/* <h1><b>{eventName}</b></h1> */}
 
               <TitleInformation
                 eventName={eventName}
@@ -482,8 +450,6 @@ const payees = eventClientResponse.data
               </div>
             </div>
             <div id="innerBody">
-
-
               <ReoccuranceDropdown
                 setSelectedDays={setSelectedDays}
                 repeatType={repeatType}
@@ -492,9 +458,10 @@ const payees = eventClientResponse.data
                 setRepeatInterval={setRepeatInterval}
                 customRepeatType={customRepeatType}
                 setCustomRepeatType={setCustomRepeatType}
+                newProgram={true}
               />
 
-              <TimeInputs
+             <TimeInputs
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
                 startTime={startTime}

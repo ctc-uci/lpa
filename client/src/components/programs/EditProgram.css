@@ -38,6 +38,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 #body {
   width: 100%;
+  font-family: 'Inter';
   display: flex;
   flex-direction: row;
   margin-right: auto;
@@ -88,12 +89,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 
 
-#save {
+button#save {
   background-color: var(--indigo, #4E4AE7);
   color: white;
   justify-content: center;
   align-items: center;
-  border-radius: 30px;
+  border-radius: 6px;
 }
 
 
@@ -228,11 +229,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   flex-direction: row;
   align-items: center;
   padding-right: 3%;
+  overflow: hidden;
+  background-color: #FFF;
+  border-radius: 5px 5px 5px 5px;
+
 }
 
 #instructorInput, #payeeInput {
-  border-radius: 5px 5px 0 0!important;
+  /* border-radius: 5px 5px 0 0!important; */
   border: none!important;
+  overflow: hidden;
 }
 
 #instructorInput:focus, #payeeInput:focus {
@@ -240,11 +246,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-shadow: none;
 }
 
-#instructorDropdown, #payeeDropdown {
+#instructorContainer #instructorDropdown, 
+#payeeContainer #payeeDropdown {
   width: 100%;
-  background-color: #D9D9D9;
-  border-top: #4E4AE7 3px solid;
-  border-radius: 0 0 5px 5px;
+  position: absolute;
+  background-color: #D9D9D9!important;
+  margin-top: 4px;
+  border-top: #E2E8F0;
+  border-width: 1px;
+  border-radius: 4px 4px 4px 4px;
   box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
   z-index: 10;
   max-height: 200px;
@@ -263,14 +273,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   margin-left: 3rem;
 }
 
-#roomDescription > h3, #information > h3 {
+#eventInfoBody #roomDescription > h3,
+#eventInfoBody #information > h3 {
+  margin-bottom: 24px;
   font-size: 1.5rem;
   color: #474849;
-  margin-bottom: .5rem;
-}
-
-#roomDescription > p, #information > Textarea {
-  color: #474849;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.08px;
 }
 
 #cancel {
