@@ -21,7 +21,7 @@ import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
 import { Playground } from "./components/playground/Playground";
-import { EditProgram } from "./components/programs/EditProgram";
+import { ModifyProgram } from "./components/programs/ModifyProgram";
 import { Program } from "./components/programs/Program";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Signup } from "./components/signup/Signup";
@@ -117,12 +117,16 @@ const App = () => {
                   element={<ProtectedRoute element={<EditInvoice />} />}
                 />
                 <Route
-                  path="/programs/edit/:id"
-                  element={<ProtectedRoute element={<EditProgram />} />}
-                />
-                <Route
                   path="/programs/:id"
                   element={<ProtectedRoute element={<Program />} />}
+                />
+                <Route
+                  path="/programs/edit/:id"
+                  element={<ProtectedRoute element={<ModifyProgram load={true} />} />}
+                />
+                <Route
+                  path="/addprogram"
+                  element={<ProtectedRoute element={<ModifyProgram load={false} />} />}
                 />
                 <Route
                   path="/settings"
