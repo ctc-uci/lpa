@@ -2,14 +2,12 @@ import { useState } from 'react';
 
 import {
   Box,
-  Button,
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverBody,
   Text,
   VStack,
-  Select,
 } from "@chakra-ui/react"
 
 import {DollarIcon} from '../../../assets/DollarIcon';

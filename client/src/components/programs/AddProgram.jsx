@@ -19,7 +19,7 @@ import { PayeesDropdown } from "./programComponents/PayeesDropdown"
 import { LocationDropdown } from "./programComponents/LocationDropdown"
 import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
-import { TimeFrequency } from "./programComponents/TimeFrequency"
+import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
 import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
 
@@ -69,7 +69,7 @@ export const AddProgram = () => {
       selectedDays
     });
   }, []); // Runs only once when component mounts
-  
+
 
   useEffect(() => {
     const currentState = JSON.stringify({
@@ -86,7 +86,7 @@ export const AddProgram = () => {
       endDate,
       selectedDays
     });
-  
+
     setHasChanges(currentState !== initialState.current);
   }, [
     eventName,
@@ -101,8 +101,8 @@ export const AddProgram = () => {
     startDate,
     endDate,
     selectedDays
-  ]); 
-  
+  ]);
+
 
   useEffect(() => {
     getInitialLocations();
@@ -129,7 +129,7 @@ export const AddProgram = () => {
     if (window.history.length > 1) {
       navigate(-1);
   } else {
-      navigate("/dashboard"); 
+      navigate("/dashboard");
   }
   };
 

@@ -19,8 +19,11 @@ import { PayeesDropdown } from "./programComponents/PayeesDropdown"
 import { LocationDropdown } from "./programComponents/LocationDropdown"
 import { RoomInformation } from "./programComponents/RoomInformation"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
-import { TimeFrequency } from "./programComponents/TimeFrequency"
+import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { DateInputs } from "./programComponents/DateInputs";
+import { TimeInputs } from "./programComponents/TimeInputs";
+
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();
@@ -409,16 +412,7 @@ const payees = eventClientResponse.data
             <div id="innerBody">
 
 
-              <TimeFrequency
-                startTime={startTime}
-                setStartTime={setStartTime}
-                endTime={endTime}
-                setEndTime={setEndTime}
-                startDate={startDate}
-                setStartDate={setStartDate}
-                endDate={endDate}
-                setEndDate={setEndDate}
-                selectedDays={selectedDays}
+              <ReoccuranceDropdown
                 setSelectedDays={setSelectedDays}
                 repeatType={repeatType}
                 setRepeatType={setRepeatType}
@@ -426,6 +420,17 @@ const payees = eventClientResponse.data
                 setRepeatInterval={setRepeatInterval}
                 customRepeatType={customRepeatType}
                 setCustomRepeatType={setCustomRepeatType}
+              />
+
+              <DateInputs
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+              />
+
+              <TimeInputs
+                selectedDays={selectedDays}
               />
 
               <ArtistsDropdown

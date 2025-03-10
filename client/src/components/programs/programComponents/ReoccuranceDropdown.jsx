@@ -2,13 +2,10 @@ import { useEffect, useState } from "react";
 import {
   Box,
   Flex,
-  FormControl,
-  FormLabel,
+
   Icon,
-  IconButton,
   Input,
   Text,
-  Select,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -24,21 +21,11 @@ import {
   VStack,
 } from "@chakra-ui/react";
 
-import { ClockFilledIcon } from '../../../assets/ClockFilledIcon';
-import { CalendarIcon } from '../../../assets/CalendarIcon';
+
 import { RepeatIcon } from '../../../assets/RepeatIcon';
 import {ArrowDropdown} from '../../../assets/ArrowDropdown';
 
-export const TimeFrequency = ({
-  startTime,
-  setStartTime,
-  endTime,
-  setEndTime,
-  startDate,
-  setStartDate,
-  endDate,
-  setEndDate,
-  selectedDays,
+export const ReoccuranceDropdown = ({
   setSelectedDays,
   repeatType,
   setRepeatType,
@@ -101,7 +88,7 @@ export const TimeFrequency = ({
       <Box>
         {/* repeatability dropdown */}
 
-        <Flex alignItems="center" mb={4}>
+        <Flex alignItems="center">
           <Icon fontSize={20} mr={3}><RepeatIcon/></Icon>
           <Popover placement="bottom-start" matchWidth>
             <PopoverTrigger>
@@ -338,138 +325,6 @@ export const TimeFrequency = ({
         </Modal>
 
 
-        <Flex alignItems="center">
-        <Icon fontSize={25} mr={2}><ClockFilledIcon/></Icon>
-        <Flex direction="column"  alignContent="center" gap={2}>
-          {/* Time Inputs for Selected Days */}
-          {Object.keys(selectedDays).length > 0 ? (
-            Object.keys(selectedDays).map((day) => {
-              const fullDayName = {
-                Sun: "Sunday",
-                Mon: "Monday",
-                Tue: "Tuesday",
-                Wed: "Wednesday",
-                Thu: "Thursday",
-                Fri: "Friday",
-                Sat: "Saturday"
-              }[day];
-
-              return (
-                <Flex key={day} alignItems="center" mb={4} w="100%">
-                  {/* start time */}
-                  <Input
-                    type="time"
-                    size="md"
-                    value={selectedDays[day].start}
-                    onChange={(event) => setSelectedDays({
-                      ...selectedDays,
-                      [day]: { ...selectedDays[day], start: event.target.value }
-                    })}
-                    backgroundColor="#fff"
-                    color="#2D3748"
-                    borderColor="#E2E8F0"
-                    borderWidth={1.5}
-                    borderRadius="4px"
-                    w={125}
-                    textAlign="center"
-                  />
-                  <Text mx={7} color="#2D3748">to</Text>
-                  {/* end time */}
-                  <Input
-                    type="time"
-                    size="md"
-                    value={selectedDays[day].end}
-                    onChange={(event) => setSelectedDays({
-                      ...selectedDays,
-                      [day]: { ...selectedDays[day], end: event.target.value }
-                    })}
-                    backgroundColor="#fff"
-                    color="#2D3748"
-                    borderColor="#E2E8F0"
-                    borderWidth={1.5}
-                    borderRadius="4px"
-                    w={125}
-                    textAlign="center"
-                  />
-                  <Text ml={5} w={100}>on {fullDayName}</Text>
-                </Flex>
-              );
-            })
-          ) : (
-            <Flex alignItems="center" mb={4}>
-              <Input
-                placeholder="00:00 am"
-                type="time"
-                size="md"
-                value={startTime}
-                onChange={(event) => setStartTime(event.target.value)}
-                backgroundColor="#fff"
-                color="#2D3748"
-                borderColor="#E2E8F0"
-                borderWidth={1.5}
-                borderRadius="4px"
-                w={125}
-                textAlign="center"
-              />
-              <Text mx={7} color="#2D3748">to</Text>
-              <Input
-                type="time"
-                size="md"
-                value={endTime}
-                onChange={(event) => setEndTime(event.target.value)}
-                backgroundColor="#fff"
-                color="#2D3748"
-                borderColor="#E2E8F0"
-                borderWidth={1.5}
-                borderRadius="4px"
-                w={125}
-                textAlign="center"
-              />
-            </Flex>
-          )}
-        </Flex>
-        </Flex>
-
-        {/* Date Inputs */}
-        <Flex alignItems="center">
-          <Icon fontSize={25} mr={2}><CalendarIcon/></Icon>
-          <Text mr={5}color="#2D3748">Starts on</Text>
-          <Input
-            type="date"
-            size="md"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            backgroundColor="#fff"
-            color="#2D3748"
-            _placeholder={{
-              color: "#E2E8F0",
-            }}
-            borderColor="#E2E8F0"
-            borderWidth={1.5}
-            borderRadius="4px"
-            w={150}
-            textAlign="center"
-          />
-
-          <Text mr={5} ml={5} color="#2D3748">and ends on</Text>
-
-          <Input
-            type="date"
-            size="md"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            backgroundColor="#fff"
-            color="#2D3748"
-            _placeholder={{
-              color: "#E2E8F0",
-            }}
-            borderColor="#E2E8F0"
-            borderWidth={1.5}
-            borderRadius="4px"
-            w={150}
-            textAlign="center"
-          />
-        </Flex>
       </Box>
     );
 };
