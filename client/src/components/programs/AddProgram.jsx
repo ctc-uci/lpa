@@ -130,9 +130,13 @@ export const AddProgram = () => {
     }
     if (window.history.length > 1) {
       navigate(-1);
-  } else {
-      navigate("/dashboard");
-  }
+    } else {
+        navigate("/dashboard");
+    }
+  };
+
+  const saveAndExit = (newEventId = "") => {
+    navigate('/programs/' + newEventId);
   };
 
   const isFormValid = () => {
@@ -197,13 +201,13 @@ export const AddProgram = () => {
     let addFunction = addDays;
 
     switch (repeatInterval) {
-      case "Every Week":
+      case "Every week":
         step = 7;
         break;
-      case "Every Month":
+      case "Every month":
         addFunction = addMonths;
         break;
-      case "Every Year":
+      case "Every year":
         addFunction = addYears;
         break;
       case "Custom":
@@ -407,7 +411,7 @@ export const AddProgram = () => {
         });
       }
       console.log("Save complete, navigating away...");
-      exit(newEventId);
+      saveAndExit(newEventId);
 
     } catch (error) {
         console.error("Error getting instructors:", error);

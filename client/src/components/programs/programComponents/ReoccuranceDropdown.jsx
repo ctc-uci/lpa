@@ -111,7 +111,7 @@ export const ReoccuranceDropdown = ({
                 _hover={{ backgroundColor: "#EDF2F7" }}
                 cursor="pointer"
               >
-                {newProgram ? "Does not repeat" : (!newProgram && hasEdits) ? repeatType : "Reset all bookings"}
+                {newProgram && hasEdits ? repeatType : newProgram ? "Does not repeat" : (!newProgram && hasEdits) ? repeatType : "Reset all bookings"}
                 <ArrowDropdown />
               </Box>
             </PopoverTrigger>

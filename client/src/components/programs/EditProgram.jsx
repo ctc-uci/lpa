@@ -188,13 +188,13 @@ const payees = eventClientResponse.data
     let addFunction = addDays;
 
     switch (repeatInterval) {
-      case "Every Week":
+      case "Every week":
         step = 7;
         break;
-      case "Every Month":
+      case "Every month":
         addFunction = addMonths;
         break;
-      case "Every Year":
+      case "Every year":
         addFunction = addYears;
         break;
       case "Custom":
