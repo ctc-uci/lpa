@@ -422,15 +422,15 @@ const payees = eventClientResponse.data
                 setCustomRepeatType={setCustomRepeatType}
               />
 
+              <TimeInputs
+                selectedDays={selectedDays}
+              />
+
               <DateInputs
                 startDate={startDate}
                 setStartDate={setStartDate}
                 endDate={endDate}
                 setEndDate={setEndDate}
-              />
-
-              <TimeInputs
-                selectedDays={selectedDays}
               />
 
               <ArtistsDropdown

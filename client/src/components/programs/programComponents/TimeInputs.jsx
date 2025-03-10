@@ -6,16 +6,15 @@ import {
 } from "@chakra-ui/react";
 import { ClockFilledIcon } from '../../../assets/ClockFilledIcon';
 
-// Reusable TimeInput component
 const TimeInput = ({ value, onChange }) => (
   <Input
     type="time"
     size="md"
-    value={value}
+    defaultValue="00:00"
     onChange={onChange}
     backgroundColor="#fff"
-    color="#2D3748"
-    borderColor="#E2E8F0"
+    color={!value ? "#E2E8F0" : "#2D3748"}
+    borderColor={"#E2E8F0"}
     borderWidth={1.5}
     borderRadius="4px"
     w={125}
@@ -23,7 +22,8 @@ const TimeInput = ({ value, onChange }) => (
   />
 );
 
-// Function to map day abbreviation to full day name
+
+
 const getFullDayName = (day) => {
   const dayMapping = {
     Sun: "Sunday",
@@ -71,7 +71,8 @@ export const TimeInputs = ({ selectedDays, setSelectedDays }) => {
                     })
                   }
                 />
-                <Text ml={5} w={100}>on {fullDayName}</Text>
+                <Text ml={7} mr={7}>on</Text>
+                <Text> {fullDayName} </Text>
               </Flex>
             );
           })
