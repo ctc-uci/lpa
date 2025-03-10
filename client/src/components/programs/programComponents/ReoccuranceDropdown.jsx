@@ -32,7 +32,8 @@ export const ReoccuranceDropdown = ({
   repeatInterval,
   setRepeatInterval,
   customRepeatType,
-  setCustomRepeatType
+  setCustomRepeatType,
+  newProgram = false
 }) => {
 
   const [hasEdits, setHasEdits] = useState(false); // whether or not edits have been made
@@ -54,7 +55,9 @@ export const ReoccuranceDropdown = ({
   // opens the dropdown if custom is selected
   const handleDropdownChange = (event) => {
     setRepeatType(event.target.value);
-    setIsModalOpen(true);
+    if (repeatType != "Does not repeat") {
+      setIsModalOpen(true);
+    }
   };
 
   // handles which time rows are displayed
@@ -108,7 +111,7 @@ export const ReoccuranceDropdown = ({
                 _hover={{ backgroundColor: "#EDF2F7" }}
                 cursor="pointer"
               >
-                {hasEdits ? repeatType : "Reset all bookings"}
+                {newProgram ? "Does not repeat" : (!newProgram && hasEdits) ? repeatType : "Reset all bookings"}
                 <ArrowDropdown />
               </Box>
             </PopoverTrigger>

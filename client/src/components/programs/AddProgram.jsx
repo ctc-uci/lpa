@@ -22,6 +22,8 @@ import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
 import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
+import { DateInputs } from "./programComponents/DateInputs";
+import { TimeInputs } from "./programComponents/TimeInputs";
 
 export const AddProgram = () => {
   const { backend } = useBackendContext();
@@ -136,7 +138,7 @@ export const AddProgram = () => {
   const isFormValid = () => {
     return (
       eventName.trim() !== "" &&
-      Object.keys(selectedDays).length > 0 &&
+      startDate && endDate &&
       selectedLocationId !== "" &&
       selectedInstructors.length > 0 &&
       selectedPayees.length > 0
@@ -152,8 +154,9 @@ export const AddProgram = () => {
     }
   };
 
-  const getDatesForDays = (startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType) => {
-    const daysMap = {
+  const getDatesForDays = (startDate, endDate, selectedDays, repeatInterval, customRepeatInterval, customRepeatType) => {
+    console.log("in getDatesForDays", startDate, endDate, selectedDays, repeatInterval, customRepeatInterval, customRepeatType)
+    const dayMap = {
       "Sun": 0,
       "Mon": 1,
       "Tue": 2,
@@ -162,45 +165,96 @@ export const AddProgram = () => {
       "Fri": 5,
       "Sat": 6,
     };
+    const selectedDayNumbers = Object.keys(selectedDays).map((day) => dayMap[day]);
 
-    const daysIndices = Object.keys(selectedDays).map((day) => daysMap[day]);
-
+    const start = new Date(startDate + "T00:00:00"); // Add time to avoid UTC conversion
+    const end = new Date(endDate + "T23:59:59");
     const dates = [];
 
-    const currentDate = new Date(startDate);
-    const lastDate = new Date(endDate);
 
-    while (currentDate <= lastDate) {
-      // // Adjust forward to the next matching day
-      // while (!daysIndices.includes(currentDate.getUTCDay()) && currentDate <= lastDate) {
-      //   currentDate.setDate(currentDate.getDate() + 1);
-      // }
+    // add x days to a date
+    const addDays = (date, days) => {
+      const newDate = new Date(date);
+      newDate.setDate(newDate.getDate() + days);
+      return newDate;
+    };
 
-      if (daysIndices.includes(currentDate.getUTCDay())) {
-        dates.push(new Date(currentDate).toISOString().split("T")[0]);
-      }
+    // add x months to a date
+    const addMonths = (date, months) => {
+      const newDate = new Date(date);
+      newDate.setMonth(newDate.getMonth() + months);
+      return newDate;
+    };
 
-      if (repeatType === "Every week") {
-        currentDate.setDate(currentDate.getDate() + 7);
-      } else if (repeatType === "Every month") {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-      } else if (repeatType === "Every year") {
-        currentDate.setFullYear(currentDate.getFullYear() + 1);
-      } else if (repeatType === "Custom" && repeatInterval && customRepeatType) {
-        if (customRepeatType === "Week") {
-          currentDate.setDate(currentDate.getDate() + 7 * repeatInterval);
-        } else if (customRepeatType === "Month") {
-          currentDate.setMonth(currentDate.getMonth() + repeatInterval);
-        } else if (customRepeatType === "Year") {
-          currentDate.setFullYear(currentDate.getFullYear() + repeatInterval);
+    // add x years to a date
+    const addYears = (date, years) => {
+      const newDate = new Date(date);
+      newDate.setFullYear(newDate.getFullYear() + years);
+      return newDate;
+    };
+
+    let step = 1;
+    let addFunction = addDays;
+
+    switch (repeatInterval) {
+      case "Every Week":
+        step = 7;
+        break;
+      case "Every Month":
+        addFunction = addMonths;
+        break;
+      case "Every Year":
+        addFunction = addYears;
+        break;
+      case "Custom":
+        step = customRepeatInterval;
+        switch (customRepeatType) {
+          case "Week":
+            step *= 7; // (ie. step is 2 * 7 (14 days) when n = 2)
+            break;
+          case "Month":
+            addFunction = addMonths;
+            break;
+          case "Year":
+            addFunction = addYears;
+            break;
+          default:
+            throw new Error("Invalid customRepeatType");
         }
-      } else {
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
+        break;
+      default:
+        throw new Error("Invalid repeatInterval");
     }
 
-    return dates;
+    // iterate through the date range
+    let currentDate = start;
+    while (currentDate <= end) {
+      // check for each selected day and add the matching ones
+      selectedDayNumbers.forEach(dayNum => {
+        // Find the closest matching day in the current week
+        const daysUntilNext = (dayNum - currentDate.getDay() + 7) % 7;
+        const nextMatchingDay = addDays(currentDate, daysUntilNext);
+
+        if (nextMatchingDay <= end && selectedDays[Object.keys(dayMap)[dayNum]].start) {
+          // add the date and its start/end time to the result
+          dates.push({
+            date: new Date(nextMatchingDay),
+            startTime: selectedDays[Object.keys(dayMap)[dayNum]].start,
+            endTime: selectedDays[Object.keys(dayMap)[dayNum]].end,
+          });
+        }
+      });
+
+      // move to the next date based on the repeat logic
+      currentDate = addFunction(currentDate, step);
+    }
+
+    console.log(dates)
+
+    return dates
   };
+
+
 
   const getInstructorResults = async (search) => {
     try {
@@ -280,32 +334,57 @@ export const AddProgram = () => {
       console.log("Newly added End Date:", endDate);
       console.log("Newly added Selected Days:", selectedDays);
 
-      // TODO add , selectedDays as argument
-      const dates = getDatesForDays(startDate, endDate, selectedDays, repeatType, repeatInterval);
+      let dates;
+      if (repeatType !== "Does not repeat") {
+        dates = getDatesForDays(startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType);
+        for (const date of dates) {
+          console.log(date)
+          const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
+          const dayOfWeek = daysMap[(new Date(date.date).getDay())]; // get which day of the week it is during the date
 
-      console.log("Newly added bookings for dates:", dates);
+          const start = selectedDays[dayOfWeek].start
+          const end = selectedDays[dayOfWeek].end
 
-      for (const date of dates) {
-        const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
+          // make object
+          const bookingsData = {
+            event_id: newEventId,
+            room_id: selectedLocationId,
+            start_time: start,
+            end_time: end,
+            date: date.date,
+            archived: eventArchived,
+          };
 
-        const dayOfWeek = new Date(date).getUTCDay(); //0-6
-        const dayName = daysMap[dayOfWeek];
+          console.log("Saving event with location ID:", selectedLocationId, "for date:", date, "with times:", start, "-", end);
+          await backend.post('/bookings', bookingsData);
+        }
 
-        // Get start and end times from selectedDays
-        const { start, end } = selectedDays[dayName];
 
+      }
+      else {
+        const date = { date: new Date(startDate), start: startTime, end: endTime };
+        console.log(date)
+
+        const start = date.start
+        const end = date.end
+
+        // make object
         const bookingsData = {
           event_id: newEventId,
           room_id: selectedLocationId,
           start_time: start,
           end_time: end,
-          date: date,
+          date: date.date,
           archived: eventArchived,
         };
 
         console.log("Saving event with location ID:", selectedLocationId, "for date:", date, "with times:", start, "-", end);
         await backend.post('/bookings', bookingsData);
       }
+
+      console.log("Newly added bookings for dates:", dates);
+
+
 
       console.log("Assigning instructors...");
       console.log("Instructor object:", selectedInstructors);
@@ -367,18 +446,7 @@ export const AddProgram = () => {
               </div>
             </div>
             <div id="innerBody">
-
-
-              <TimeFrequency
-                startTime={startTime}
-                setStartTime={setStartTime}
-                endTime={endTime}
-                setEndTime={setEndTime}
-                startDate={startDate}
-                setStartDate={setStartDate}
-                endDate={endDate}
-                setEndDate={setEndDate}
-                selectedDays={selectedDays}
+              <ReoccuranceDropdown
                 setSelectedDays={setSelectedDays}
                 repeatType={repeatType}
                 setRepeatType={setRepeatType}
@@ -386,6 +454,23 @@ export const AddProgram = () => {
                 setRepeatInterval={setRepeatInterval}
                 customRepeatType={customRepeatType}
                 setCustomRepeatType={setCustomRepeatType}
+                newProgram={true}
+              />
+
+             <TimeInputs
+                selectedDays={selectedDays}
+                setSelectedDays={setSelectedDays}
+                startTime={startTime}
+                endTime={endTime}
+                setStartTime={setStartTime}
+                setEndTime={setEndTime}
+              />
+
+              <DateInputs
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
               />
 
               <ArtistsDropdown

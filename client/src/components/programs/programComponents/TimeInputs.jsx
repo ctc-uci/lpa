@@ -37,7 +37,7 @@ const getFullDayName = (day) => {
   return dayMapping[day] || day;
 };
 
-export const TimeInputs = ({ selectedDays, setSelectedDays }) => {
+export const TimeInputs = ({ selectedDays, setSelectedDays, startTime, endTime, setStartTime, setEndTime }) => {
   return (
     <Flex alignItems="center">
       <Icon fontSize={25} mr={2}>
@@ -79,12 +79,12 @@ export const TimeInputs = ({ selectedDays, setSelectedDays }) => {
         ) : (
           <Flex alignItems="center">
             <TimeInput
-              value=""
+              value={startTime}
               onChange={(event) => setStartTime(event.target.value)}
             />
             <Text mx={7} color="#2D3748">to</Text>
             <TimeInput
-              value=""
+              value={endTime}
               onChange={(event) => setEndTime(event.target.value)}
             />
           </Flex>
