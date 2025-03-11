@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-
 import archiveSvg from "../../assets/icons/archive.svg";
 import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
 import plusSvg from "../../assets/icons/plus.svg";
-import { AddClassModal } from "../AddClassModal";
+import { useNavigate } from "react-router-dom";
+
 
 export const HeaderRowComponent = () => {
-  const [isAddClassOpen, setIsAddClassOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="header-row">
@@ -41,7 +40,7 @@ export const HeaderRowComponent = () => {
 
         <div
           className="new-program"
-          onClick={() => setIsAddClassOpen(true)}
+          onClick={() => navigate("/addprogram")}
         >
           <img
             src={plusSvg}
@@ -51,11 +50,6 @@ export const HeaderRowComponent = () => {
           <span className="new-program-text">New Program</span>
         </div>
       </div>
-
-      <AddClassModal
-        isOpen={isAddClassOpen}
-        onClose={() => setIsAddClassOpen(false)}
-      />
     </div>
   );
 };
