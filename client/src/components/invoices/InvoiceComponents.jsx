@@ -7,12 +7,14 @@ import {
   Card,
   Flex,
   Image,
+  Icon,
   Input,
   PopoverTrigger,
   Popover,
   PopoverContent,
   Select,
   Table,
+  Tag,
   TableContainer,
   Tbody,
   Td,
@@ -23,6 +25,8 @@ import {
   } from '@chakra-ui/react'
 import filterIcon from  "../../assets/filter.svg";
 import { CalendarIcon } from '@chakra-ui/icons';
+import { TbCaretUpDown } from "react-icons/tb";
+import { FaUser, FaCircle } from "react-icons/fa";
 import personIcon from "../../assets/person.svg"
 import PDFButtonInvoice from "./PDFButtonInvoice"
 
@@ -216,33 +220,80 @@ const InvoicePayments = ({ comments }) => {
     );
 }
 
-function InvoicesTable({filteredInvoices, isPaidColor, isPaid}){
+function InvoicesTable({filteredInvoices, isPaidColor, seasonColor}){
 
   return (
     <TableContainer paddingTop="8px" border='1px solid var(--gray-200, #E2E8F0)' borderRadius='12px' >
       <Table variant='striped'>
         <Thead>
           <Tr>
-            <Th>Program</Th>
-            <Th>Status</Th>
-            <Th>Payee</Th>
-            <Th>Date Due</Th>
-            <Th>Download</Th>
+            <Th textTransform="none" fontSize="md">
+              <Flex align="center">
+                <Text>Status</Text>
+                <TbCaretUpDown style={{ marginLeft: '8px' }}/>
+              </Flex>
+            </Th>
+            <Th textTransform="none" fontSize="md">Invoice Sent</Th>
+            <Th textTransform="none" fontSize="md">
+              <Flex align="center">
+                <Text>Program</Text>
+                <TbCaretUpDown style={{ marginLeft: '8px' }}/>
+              </Flex>
+            </Th>
+            <Th textTransform="none" fontSize="md">
+              <Flex align="center">
+                <FaUser style={{ marginRight: '8px' }} />
+                <Text>Payer(s)</Text>
+              </Flex>
+            </Th>
+            <Th textTransform="none" fontSize="md">
+              <Flex align="center">
+                <CalendarIcon color="#767778" style={{ marginRight: '8px' }} />
+                <Text>Deadline</Text>
+                <TbCaretUpDown style={{ marginLeft: '8px' }}/>
+              </Flex>
+            </Th>
+            <Th textTransform="none" fontSize="md">Season</Th>
+            <Th textTransform="none" fontSize="md">Download</Th>
           </Tr>
         </Thead>
         <Tbody>
         {filteredInvoices.map((invoice, index) => (
             <Tr key={index}>
-              <Td >{invoice.eventName}</Td>
-              <Td  style={{ backgroundColor: isPaidColor(invoice) }}> {isPaid(invoice)} </Td>
-              <Td >{invoice.name}</Td>
-              <Td fontWeight="700">
+              <Td style={{
+                color: isPaidColor(invoice),
+                textDecoration: invoice.isPaid === 'Past Due' ? 'underline' : 'none',
+                fontWeight: invoice.isPaid === 'Past Due' ? 'bold' : 'normal',
+              }}>
+                {invoice.isPaid}
+              </Td>
+              <Td>
+                <Flex justifyContent="center" align="center" w="60%">
+                  {invoice.isSent ? (
+                    <Icon as={FaCircle} color="#0C824D" boxSize={4} />
+                  ) : (
+                    <Icon as={FaCircle} color="#EA4335" boxSize={4} />
+                  )}
+                </Flex>
+              </Td>
+              <Td>{invoice.eventName}</Td>
+              <Td>
+              {invoice.payers.length > 1
+              ? `${invoice.payers[0].trim()},...`
+              : invoice.payers[0].trim()}
+              </Td>
+              <Td>
                 {new Date(invoice.endDate).toLocaleDateString("en-US", {
                   month: "2-digit", day: "2-digit", year: "numeric"
                 })}
               </Td>
               <Td>
-                <Flex  ml="18px">
+                <Tag bg={seasonColor(invoice)} color="white">
+                  {invoice.season}
+                </Tag>
+              </Td>
+              <Td>
+                <Flex ml="18px">
                   <PDFButtonInvoice invoice={invoice} />
                 </Flex>
               </Td>
@@ -261,11 +312,11 @@ function InvoicesFilter({invoices, filter, setFilter}) {
       <Popover placement='bottom-start'>
         <PopoverTrigger>
           <Button
-            backgroundColor="transparent"
-            border="1px solid rgba(71, 72, 73, 0.20)"
+            backgroundColor="#F0F1F4"
             borderRadius="15px"
             h="48px"
             px="12px"
+            textColor="#767778"
             >
               <Image src={filterIcon} alt="Filter" boxSize="20px" mr="4px" /> Filters
           </Button>

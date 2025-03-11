@@ -25,22 +25,47 @@ const InvoicesDashboard = () => {
 
   const isPaidColor = (invoice) => {
     if (invoice.isSent && invoice.paymentStatus === "full") {
-        return "#6CE65C";
+        return "#474849";
     }
     if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
         return "none";
     }
-    return "#FF4D4D";
+    return "#90080F";
   };
+
+  const seasonColor = (invoice) => {
+    if (invoice.season === "Winter") {
+      return "#3182CE";
+    } else if (invoice.season === "Summer") {
+      return "#805AD5";
+    } else if (invoice.season === "Fall") {
+      return "#DD6B20";
+    } else {
+      return "#db323b";
+    }
+  }
+
+  const getSeason = (invoice) => {
+    const month = new Date(invoice.endDate).getMonth();
+    if (month >= 1 && month <= 4) {
+      return "Winter";
+    } else if (month >= 5 && month <= 8) {
+      return "Summer";
+    } else if (month >= 9 && month <= 12) {
+      return "Fall";
+    } else {
+      return "N/A";
+    }
+  }
 
   const isPaid = (invoice) => {
     if (invoice.isSent && invoice.paymentStatus === "full") {
-        return "PAID";
+        return "Paid";
     }
     if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
-        return "NOT PAID";
+        return "Not Paid";
     }
-    return "PAST DUE";
+    return "Past Due";
   };
 
 
@@ -48,7 +73,32 @@ const InvoicesDashboard = () => {
     const fetchInvoicesData = async () => {
       try {
         const invoicesResponse = await backend.get("/invoicesAssignments/");
-        setInvoices(invoicesResponse.data);
+        console.log(invoicesResponse);
+        const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
+          const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
+          if (invoice.role === "instructor") return acc;
+          if (!acc[key]) {
+              // Create a new entry with a payers array
+              acc[key] = {
+                  ...invoice,
+                  payers: [invoice.name] // Store payers in an array
+              };
+          } else {
+              // Append the payer only if it's not already in the list (avoid duplicates)
+              if (!acc[key].payers.includes(invoice.name)) {
+                  acc[key].payers.push(invoice.name);
+              }
+          }
+
+          return acc;
+        }, {});
+        const invoices = Object.values(groupedInvoices).map(invoice => ({
+            ...invoice,
+            season: getSeason(invoice),
+            isPaid: isPaid(invoice)
+          }
+        ));
+        setInvoices(invoices);
       }
       catch (err) {
         console.log(err);
@@ -126,11 +176,9 @@ const InvoicesDashboard = () => {
   return(
     <Navbar>
       <Flex>
-        <Flex w='100%' m='120px 40px' flexDirection='column' padding="48px">
+        <Flex w='95%' m='120px 40px' flexDirection='column' padding="48px">
           <Flex justifyContent='space-between' mb='40px'>
-            {/* <Button backgroundColor='transparent' border="1px solid rgba(71, 72, 73, 0.20)" borderRadius='15px' h='48px'> */}
               <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} />
-            {/* </Button> */}
 
             <InputGroup w='400px' borderColor='transparent' >
             <InputRightElement pointerEvents='none' bgColor="rgba(71, 72, 73, 0.20)" borderRadius='0px 15px 15px 0px'>
@@ -146,7 +194,7 @@ const InvoicesDashboard = () => {
             </InputGroup>
           </Flex>
 
-          <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} isPaid={isPaid}/>
+          <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
         </Flex>
       </Flex>
     </Navbar>
