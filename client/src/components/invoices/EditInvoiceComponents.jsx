@@ -307,7 +307,10 @@ const StatementComments = ({
         minH="24"
         px="12px"
       >
-        <Box>
+        <Box
+        maxH="400px"
+        overflowY="auto"
+        >
         <Table
           color="#EDF2F7"
           style={{ width: "100%" }}
@@ -378,10 +381,12 @@ const StatementComments = ({
                       px={0}
                       pr={4}
                       borderBottom="none"
+                      overflow="visible"
                     >
                       <VStack
                         position="absolute"
-                        left="-44px"
+                        left="-30px"
+                        zIndex='10'
                         top="50%"
                         transform="translateY(-60%)"
                         gap="-4"
@@ -398,6 +403,7 @@ const StatementComments = ({
                               bgSize="contain"
                               bgRepeat="no-repeat"
                               bgPos="center"
+                              zIndex='11'
                             />
                           }
                           colorScheme="purple"
