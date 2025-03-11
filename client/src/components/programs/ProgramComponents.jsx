@@ -117,7 +117,7 @@ export const ProgramSummary = ({
   } = useDisclosure();
 
   const exit = () => {
-    navigate("/home");
+    navigate('/programs');
   };
 
   const toEditProgram = () => {
