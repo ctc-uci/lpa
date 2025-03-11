@@ -1,0 +1,124 @@
+:root {
+  --white: #fff;
+  --border-color: #d2d2d2;
+  --hover-bg: #f0f1f4;
+  --text-color: #767778;
+  --font-family: "Inter", sans-serif;
+  --font-size: 16px;
+  --font-weight: 600;
+  --line-height: normal;
+}
+
+.chakra-menu__menuitem {
+  border-radius: 15px !important;
+  transition:
+    background 0s ease,
+    border-radius 0s ease !important;
+}
+.chakra-menu__menuitem:hover,
+.chakra-menu__menuitem:focus {
+  background: var(--hover-bg) !important;
+  border-radius: 15px !important;
+}
+
+/* General icon/text style */
+.icon-style {
+  color: var(--text-color);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  font-style: normal;
+  font-weight: var(--font-weight);
+  line-height: var(--line-height);
+}
+
+/* MenuButton arrow icon */
+.menu-button-icon {
+  width: 16px !important;
+  height: 16px !important;
+  margin: 4px;
+  display: block;
+}
+
+/* Triangle icons inside the popups */
+.triangle-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-color) !important;
+  fill: var(--text-color) !important;
+}
+
+/* Program sorting popup */
+.program-sorting-popup {
+  width: 129px !important;
+  min-width: 129px !important;
+  max-width: 129px !important;
+  height: 129px !important;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  border: 1px solid var(--border-color);
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+/* Force inner container to respect width */
+.program-sorting-popup > div {
+  width: 113px !important;
+  min-width: 113px !important;
+  max-width: 113px !important;
+}
+
+/* Each menu item inside the program popup */
+.program-sorting-popup .sort-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 8px;
+  border-radius: 15px;
+}
+.program-sorting-popup .sort-menu-item:hover {
+  background: var(--hover-bg);
+}
+
+/* Date sorting popup */
+.date-sorting-popup {
+  width: 285px !important;
+  height: 129px !important;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  border: 1px solid var(--border-color);
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+/* Each menu item inside the date popup */
+.date-sorting-popup .sort-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 8px;
+  border-radius: 15px;
+}
+.date-sorting-popup .sort-menu-item:hover {
+  background: var(--hover-bg);
+}
+
+/* Override Chakra UI's internal styles */
+.chakra-menu__menu-list {
+  --menu-list-width: auto !important;
+}
+
+/* Target Chakra's internal width control specifically for program sorting popup */
+div[role="menu"].program-sorting-popup {
+  width: 129px !important;
+  min-width: 129px !important;
+  max-width: 129px !important;
+}

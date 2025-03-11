@@ -1,39 +1,39 @@
 import { React, useEffect, useState } from "react";
-import {InfoIconRed} from '../../assets/InfoIconRed';
-import {CancelIcon} from '../../assets/CancelIcon';
-import './Program.css';
-import {EditIcon} from '../../assets/EditIcon';
-import {DuplicateIcon} from '../../assets/DuplicateIcon';
-import {ReactivateIcon} from '../../assets/ReactivateIcon';
-import {DeleteIconRed} from '../../assets/DeleteIconRed';
+
+import { CancelIcon } from "../../assets/CancelIcon";
+import { InfoIconRed } from "../../assets/InfoIconRed";
+
+import "./Program.css";
 
 import {
   CalendarIcon,
-  DownloadIcon,
-  DeleteIcon,
-  EmailIcon,
-  TimeIcon,
-  InfoIcon,
   ChevronDownIcon,
+  DeleteIcon,
+  DownloadIcon,
+  EmailIcon,
+  InfoIcon,
+  TimeIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
-  AlertIcon,
-  AlertTitle,
   AlertDescription,
+  AlertTitle,
   Box,
   Button,
   Card,
   CardBody,
-  Container,
   Checkbox,
+  Container,
   Flex,
   FormControl,
-  FormLabel,
   Heading,
   Icon,
   IconButton,
   Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -41,10 +41,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Popover,
   PopoverBody,
   PopoverContent,
@@ -63,7 +59,6 @@ import {
   useDisclosure,
   Wrap,
   WrapItem,
-  Select,
 } from "@chakra-ui/react";
 
 import {
@@ -75,44 +70,50 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import {
-  ChevronLeftIcon,
-  Delete,
   EllipsisIcon,
   FileTextIcon,
-  UserIcon,
   Info,
-  Boxes,
+  UserIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+import { ArchiveIcon } from "../../assets/ArchiveIcon";
+import { DeleteIconRed } from "../../assets/DeleteIconRed";
+import { DuplicateIcon } from "../../assets/DuplicateIcon";
+import { EditIcon } from "../../assets/EditIcon";
 import {
   filterButton,
   filterDateCalendar,
   sessionsCalendar,
   sessionsClock,
-  sessionsDownArrow,
   sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
   sessionsMapPin,
-  sessionsUpArrow,
 } from "../../assets/icons/ProgramIcons";
+import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import {ArchiveIcon} from '../../assets/ArchiveIcon';
+import DateSortingModal from "../filters/DateFilter";
 
-
-export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived, eventId }) => {
+export const ProgramSummary = ({
+  program,
+  bookingInfo,
+  isArchived,
+  setIsArchived,
+  eventId,
+}) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const {
     isOpen: modalIsOpen,
     onOpen: modalOnOpen,
-    onClose: modalOnClose
+    onClose: modalOnClose,
   } = useDisclosure();
 
   const {
-    isOpen: popoverIsOpen ,
+    isOpen: popoverIsOpen,
     onOpen: popoverOnOpen,
-    onClose: popoverOnClose
+    onClose: popoverOnClose,
   } = useDisclosure();
 
   const exit = () => {
@@ -120,7 +121,7 @@ export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived
   };
 
   const toEditProgram = () => {
-    navigate('/programs/edit/' + eventId);
+    navigate("/programs/edit/" + eventId);
   };
   const [selectedAction, setSelectedAction] = useState("Archive");
   const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
@@ -148,50 +149,62 @@ export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived
   };
 
   const setArchived = async (boolean) => {
-    await backend.put(`/programs/` + eventId, {archived: boolean});
-  }
+    await backend.put(`/programs/` + eventId, { archived: boolean });
+  };
 
- const duplicateProgram = async () => {
-    const eventResponse = await backend.get('/events/allInfo/' + eventId);
+  const duplicateProgram = async () => {
+    const eventResponse = await backend.get("/events/allInfo/" + eventId);
     console.log(eventResponse);
     const eventName = eventResponse.data[0].eventname;
     const generalInformation = eventResponse.data[0].eventdescription;
 
-    const dates = [...new Set(eventResponse.data.map(item => item.date))];
+    const dates = [...new Set(eventResponse.data.map((item) => item.date))];
     const locationId = eventResponse.data[0].roomId;
-    const startTime = eventResponse.data[0].startTime.split(':').slice(0, 2).join(':');
-    const endTime = eventResponse.data[0].endTime.split(':').slice(0, 2).join(':');
+    const startTime = eventResponse.data[0].startTime
+      .split(":")
+      .slice(0, 2)
+      .join(":");
+    const endTime = eventResponse.data[0].endTime
+      .split(":")
+      .slice(0, 2)
+      .join(":");
 
-    const instructors = Array.from (
-      new Map (
+    const instructors = Array.from(
+      new Map(
         eventResponse.data
-        .filter(instructor => instructor.clientrole === "instructor")
-        .map (instructor => [instructor.email, {
-          id: instructor.clientId,
-          name: instructor.clientname,
-          email: instructor.email
-        }])
+          .filter((instructor) => instructor.clientrole === "instructor")
+          .map((instructor) => [
+            instructor.email,
+            {
+              id: instructor.clientId,
+              name: instructor.clientname,
+              email: instructor.email,
+            },
+          ])
       ).values()
     );
 
-    const payees = Array.from (
-      new Map (
+    const payees = Array.from(
+      new Map(
         eventResponse.data
-        .filter(client => client.clientrole === "payee")
-        .map (client => [client.email, {
-          id: client.clientId,
-          name: client.clientname,
-          email: client.email
-        }])
+          .filter((client) => client.clientrole === "payee")
+          .map((client) => [
+            client.email,
+            {
+              id: client.clientId,
+              name: client.clientname,
+              email: client.email,
+            },
+          ])
       ).values()
     );
 
     const eventInfo = {
       name: "[Unarchived] " + eventName,
-      description: generalInformation
-    }
+      description: generalInformation,
+    };
 
-    const response = await backend.post('/events', eventInfo);
+    const response = await backend.post("/events", eventInfo);
     const newEventId = response.data.id;
     for (const date of dates) {
       const bookingInfo = {
@@ -200,32 +213,32 @@ export const ProgramSummary = ({ program, bookingInfo, isArchived, setIsArchived
         start_time: startTime,
         end_time: endTime,
         date: date,
-        archived: false
-      }
-      await backend.post('/bookings', bookingInfo);
+        archived: false,
+      };
+      await backend.post("/bookings", bookingInfo);
     }
-console.log("event response ", response.data.id)
+    console.log("event response ", response.data.id);
     const duplicateId = response.data.id;
 
     for (const instructor of instructors) {
       const instructorInfo = {
         eventId: newEventId,
         clientId: instructor.id,
-        role: "instructor"
+        role: "instructor",
       };
-      await backend.post('/assignments', instructorInfo);
+      await backend.post("/assignments", instructorInfo);
     }
 
     for (const payee of payees) {
       const payeeInfo = {
         eventId: newEventId,
         clientId: payee.id,
-        role: "payee"
+        role: "payee",
       };
-      await backend.post('/assignments', payeeInfo);
+      await backend.post("/assignments", payeeInfo);
     }
 
-    navigate('/programs/' + duplicateId);
+    navigate("/programs/" + duplicateId);
   };
 
   const handleDeactivate = () => {
@@ -233,25 +246,25 @@ console.log("event response ", response.data.id)
   };
 
   const handleArchive = async () => {
-    console.log(program[0].id)
+    console.log(program[0].id);
     try {
       await backend.put(`/events/${program[0].id}`, {
-        archived: true
+        archived: true,
       });
       onClose();
       window.location.reload();
     } catch (error) {
       console.log("Couldn't deactivate", error);
     }
-  }
+  };
 
   const handleConfirm = async () => {
     if (selectedAction === "Archive") {
-      await handleArchive()
-    } else if (selectedAction === "Delete"){
+      await handleArchive();
+    } else if (selectedAction === "Delete") {
       await handleDelete();
     }
-  }
+  };
 
   const handleDelete = async () => {
     console.log("Starting delete process...");
@@ -300,7 +313,10 @@ console.log("event response ", response.data.id)
         width="100%"
         py={8}
       >
-        <Container maxW="90%" p={0}>
+        <Container
+          maxW="90%"
+          p={0}
+        >
           <Card
             shadow="md"
             border="1px"
@@ -338,7 +354,10 @@ console.log("event response ", response.data.id)
       py={8}
       paddingTop="1rem"
     >
-      <Container minW="100%" p={0}>
+      <Container
+        minW="100%"
+        p={0}
+      >
         <Flex>
           <Card
             shadow="md"
@@ -380,100 +399,131 @@ console.log("event response ", response.data.id)
                   align="center"
                   gap={2}
                 >
-
-                  <Popover id="popTrigger" placement='bottom-start'
-                      isOpen={popoverIsOpen}
-                      onOpen={popoverOnOpen}
-                      onClose={popoverOnClose}>
+                  <Popover
+                    id="popTrigger"
+                    placement="bottom-start"
+                    isOpen={popoverIsOpen}
+                    onOpen={popoverOnOpen}
+                    onClose={popoverOnClose}
+                  >
                     {({ isOpen, onClose }) => (
                       <>
-                    <PopoverTrigger asChild>
-                      <Icon boxSize="5"><EllipsisIcon/></Icon>
-                    </PopoverTrigger>
-                      <PopoverContent style={{width:"100%"}}>
+                        <PopoverTrigger asChild>
+                          <Icon boxSize="5">
+                            <EllipsisIcon />
+                          </Icon>
+                        </PopoverTrigger>
+                        <PopoverContent style={{ width: "100%" }}>
                           <PopoverBody>
-                          {!isArchived ?
-                            <div>
-                              <div id="popoverChoice" color="#767778">
-                                <EditIcon/>
-                                <p onClick={toEditProgram}>Edit</p>
+                            {!isArchived ? (
+                              <div>
+                                <div
+                                  id="popoverChoice"
+                                  color="#767778"
+                                >
+                                  <EditIcon />
+                                  <p onClick={toEditProgram}>Edit</p>
+                                </div>
+                                <div
+                                  id="cancelBody"
+                                  onClick={() => {
+                                    onClose();
+                                    setIsArchived(true);
+                                    setArchived(true);
+                                  }}
+                                >
+                                  <Icon fontSize="1xl">
+                                    <CancelIcon id="cancelIcon" />
+                                  </Icon>
+                                  <p>Deactivate</p>
+                                </div>
                               </div>
-                              <div id="cancelBody" onClick={() => {onClose(); setIsArchived(true); setArchived(true);}}>
-                                <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
-                                <p>Deactivate</p>
+                            ) : (
+                              <div>
+                                <Button
+                                  id="popoverChoice"
+                                  onClick={duplicateProgram}
+                                >
+                                  <DuplicateIcon />
+                                  <p>Duplicate</p>
+                                </Button>
+                                <Button
+                                  id="popoverChoice"
+                                  onClick={() => {
+                                    onClose();
+                                    setIsArchived(false);
+                                    setArchived(false);
+                                  }}
+                                >
+                                  <ReactivateIcon />
+                                  <p>Reactivate</p>
+                                </Button>
+                                <Button
+                                  id="deleteBody"
+                                  onClick={modalOnOpen}
+                                >
+                                  <DeleteIconRed />
+                                  <p>Delete</p>
+                                </Button>
                               </div>
-                            </div> :
-                            <div>
-                              <Button id="popoverChoice" onClick={duplicateProgram}>
-                                <DuplicateIcon/>
-                                <p>Duplicate</p>
-                              </Button>
-                              <Button id="popoverChoice" onClick={() => { onClose(); setIsArchived(false); setArchived(false);}}>
-                                <ReactivateIcon/>
-                                <p>Reactivate</p>
-                              </Button>
-                              <Button id="deleteBody" onClick={modalOnOpen}>
-                                <DeleteIconRed/>
-                                <p>Delete</p>
-                              </Button>
-                            </div>
-                            }
+                            )}
                           </PopoverBody>
-                      </PopoverContent>
-                  </>
-                        )}
+                        </PopoverContent>
+                      </>
+                    )}
                   </Popover>
- <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
+                  <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
                     Invoice
                   </PDFButton>
-                  <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
+                  <Modal
+                    isOpen={modalIsOpen}
+                    onClose={modalOnClose}
+                  >
                     <ModalOverlay />
                     <ModalContent>
                       <ModalHeader>Delete Program?</ModalHeader>
                       <ModalCloseButton />
                       <ModalBody>
                         <div id="deactivateDeadlineBox">
-                          <Box backgroundColor = "#F4E6E7" borderRadius="15px" id="deactivateDeadlineInnerBox">
-                            <InfoIconRed fontSize="2xl" id="infoIcon"/>
-                            <p id="deactivateDeadlineText">Program will be permanently deleted from Archives.</p>
+                          <Box
+                            backgroundColor="#F4E6E7"
+                            borderRadius="15px"
+                            id="deactivateDeadlineInnerBox"
+                          >
+                            <InfoIconRed
+                              fontSize="2xl"
+                              id="infoIcon"
+                            />
+                            <p id="deactivateDeadlineText">
+                              Program will be permanently deleted from Archives.
+                            </p>
                           </Box>
-                          </div>
+                        </div>
                       </ModalBody>
 
-                      <ModalFooter style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button variant='ghost' onClick={modalOnClose}>
+                      <ModalFooter
+                        style={{ display: "flex", justifyContent: "flex-end" }}
+                      >
+                        <Button
+                          variant="ghost"
+                          onClick={modalOnClose}
+                        >
                           Exit
                         </Button>
-                        <Button  colorScheme='red' mr={3} id="deactivateConfirm" onClick={() => {handleDelete(); exit();}}>Confirm</Button>
+                        <Button
+                          colorScheme="red"
+                          mr={3}
+                          id="deactivateConfirm"
+                          onClick={() => {
+                            handleDelete();
+                            exit();
+                          }}
+                        >
+                          Confirm
+                        </Button>
                       </ModalFooter>
                     </ModalContent>
                   </Modal>
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      icon={<Icon as={EllipsisIcon} />}
-                      aria-label="Options"
-                      border="0.5px"
-                      bg="gray.50"
-                      size="sm"
-                      variant="ghost"
-                      borderRadius="20px"
-                    />
-                    <MenuList>
-                      <MenuItem
-                        icon={<Icon as={EditIcon} />}
-                        onClick={handleEdit}
-                      >
-                        Edit
-                      </MenuItem>
-                      <MenuItem
-                        icon={<Icon as={CancelIcon} />}
-                        onClick={handleDeactivate}
-                      >
-                        Deactivate
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
                 </Flex>
               </Flex>
 
@@ -631,64 +681,144 @@ console.log("event response ", response.data.id)
           </Card>
         </Flex>
       </Container>
-      <Modal isOpen={modalIsOpen} onClose={modalOnClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Deactivate Program?</ModalHeader>
-            <ModalBody>
-              <Alert status="error" borderRadius="md" p={4} display="flex" flexDirection="column">
-                <Box color="#90080F">
-                  <Flex alignitems="center">
-                    <Box color="#90080F0" mr={2} display="flex" alignItems = "center">
-                      <Info />
-                    </Box>
-                    <AlertTitle color="#90080F" fontSize="md" fontWeight = "500">The deactivation fee deadline for this program is <AlertDescription fontSize="md" fontWeight="bold">
-                      Thu. 1/2/2025.
-                      </AlertDescription>
-                    </AlertTitle>
-                  </Flex>
-                  <Flex mt={4} align="center" justify="center" width="100%">
-                    <Checkbox fontWeight="500" sx={{".chakra-checkbox__control": {bg: "white", border: "#D2D2D2"}}}>Waive fee</Checkbox>
-                  </Flex>
-                </Box>
-              </Alert>
-              <Box mt={4}>
-                <Text fontWeight="medium" mb={2}>
-                  Reason for Deactivation:
-                </Text>
-                <Textarea bg="#F0F1F4" placeholder="..." size="md" borderRadius="md" />
-              </Box>
-              <Box mt={4} display="flex" justifyContent="right">
-                <Menu>
-                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} bg="#F0F1F4" variant="outline" width="50%" justify="right">
-                    {selectedIcon} {selectedAction}
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem
-                    icon={<Box display="inline-flex" alignItems="center">
-                      <Icon as={ArchiveIcon} boxSize={4} />
-                    </Box>}
-                    onClick ={() => handleSelect("Archive", ArchiveIcon)}
+      <Modal
+        isOpen={modalIsOpen}
+        onClose={modalOnClose}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Deactivate Program?</ModalHeader>
+          <ModalBody>
+            <Alert
+              status="error"
+              borderRadius="md"
+              p={4}
+              display="flex"
+              flexDirection="column"
+            >
+              <Box color="#90080F">
+                <Flex alignitems="center">
+                  <Box
+                    color="#90080F0"
+                    mr={2}
                     display="flex"
                     alignItems="center"
+                  >
+                    <Info />
+                  </Box>
+                  <AlertTitle
+                    color="#90080F"
+                    fontSize="md"
+                    fontWeight="500"
+                  >
+                    The deactivation fee deadline for this program is{" "}
+                    <AlertDescription
+                      fontSize="md"
+                      fontWeight="bold"
                     >
-                      Archive
-                    </MenuItem>
-                    <MenuItem
-                    icon = {<DeleteIcon/>}
-                    onClick={() => handleSelect("Delete", <DeleteIcon/>)}
-                    >
-                      Delete
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
+                      Thu. 1/2/2025.
+                    </AlertDescription>
+                  </AlertTitle>
+                </Flex>
+                <Flex
+                  mt={4}
+                  align="center"
+                  justify="center"
+                  width="100%"
+                >
+                  <Checkbox
+                    fontWeight="500"
+                    sx={{
+                      ".chakra-checkbox__control": {
+                        bg: "white",
+                        border: "#D2D2D2",
+                      },
+                    }}
+                  >
+                    Waive fee
+                  </Checkbox>
+                </Flex>
               </Box>
-            </ModalBody>
-            <ModalFooter>
-              <Button bg ="transparent" onClick={modalOnClose} color="#767778" borderRadius="30px" mr={3}>Exit</Button>
-              <Button onClick={handleConfirm} style={{backgroundColor: "#90080F"}} colorScheme = "white" borderRadius="30px">Confirm</Button>
-            </ModalFooter>
-          </ModalContent>
+            </Alert>
+            <Box mt={4}>
+              <Text
+                fontWeight="medium"
+                mb={2}
+              >
+                Reason for Deactivation:
+              </Text>
+              <Textarea
+                bg="#F0F1F4"
+                placeholder="..."
+                size="md"
+                borderRadius="md"
+              />
+            </Box>
+            <Box
+              mt={4}
+              display="flex"
+              justifyContent="right"
+            >
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  rightIcon={<ChevronDownIcon />}
+                  bg="#F0F1F4"
+                  variant="outline"
+                  width="50%"
+                  justify="right"
+                >
+                  {selectedIcon} {selectedAction}
+                </MenuButton>
+                <MenuList>
+                  <MenuItem
+                    icon={
+                      <Box
+                        display="inline-flex"
+                        alignItems="center"
+                      >
+                        <Icon
+                          as={ArchiveIcon}
+                          boxSize={4}
+                        />
+                      </Box>
+                    }
+                    onClick={() => handleSelect("Archive", ArchiveIcon)}
+                    display="flex"
+                    alignItems="center"
+                  >
+                    Archive
+                  </MenuItem>
+                  <MenuItem
+                    icon={<DeleteIcon />}
+                    onClick={() => handleSelect("Delete", <DeleteIcon />)}
+                  >
+                    Delete
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              bg="transparent"
+              onClick={modalOnClose}
+              color="#767778"
+              borderRadius="30px"
+              mr={3}
+            >
+              Exit
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              style={{ backgroundColor: "#90080F" }}
+              colorScheme="white"
+              borderRadius="30px"
+            >
+              Confirm
+            </Button>
+          </ModalFooter>
+        </ModalContent>
       </Modal>
     </Box>
   );
@@ -701,6 +831,76 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [status, setStatus] = useState("All");
   const [selectedRoom, setSelectedRoom] = useState("All");
+
+  const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
+  const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
+  // At the top of your Sessions component where other state variables are defined
+  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
+    []
+  );
+
+  // Add this effect to handle both filtering and sorting whenever relevant dependencies change
+  useEffect(() => {
+    if (!sessions || !rooms) return;
+
+    // Step 1: Filter the sessions
+    const filtered = sessions.filter((session) => {
+      const sessionDate = new Date(session.date);
+      const sessionStartTime = session.startTime;
+      const sessionEndTime = session.endTime;
+
+      const isDateInRange =
+        (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
+        (!dateRange.end || sessionDate <= new Date(dateRange.end));
+      const isTimeInRange =
+        (!timeRange.start || timeRange.start <= sessionStartTime) &&
+        (!timeRange.end || sessionEndTime <= timeRange.end);
+      const isStatusMatch =
+        status === "All" ||
+        (status === "Active" && !hasTimePassed(session.date)) ||
+        (status === "Past" && hasTimePassed(session.date));
+      const isRoomMatch =
+        selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
+
+      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
+    });
+
+    // Step 2: Sort the filtered sessions
+    const sorted = [...filtered];
+    if (sortKey === "date") {
+      sorted.sort((a, b) => {
+        const aInvalid = !a.date || a.date === "N/A";
+        const bInvalid = !b.date || b.date === "N/A";
+
+        if (aInvalid && bInvalid) return 0;
+        if (aInvalid) return 1; // Push invalid dates to the end
+        if (bInvalid) return -1;
+
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    }
+
+    // Step 3: Set the filtered and sorted sessions
+    setFilteredAndSortedSessions(sorted);
+  }, [
+    dateRange,
+    timeRange,
+    status,
+    selectedRoom,
+    sessions,
+    rooms,
+    sortKey,
+    sortOrder,
+  ]);
+
+  // Function to update sorting
+  const handleSortChange = (key, order) => {
+    setSortKey(key);
+    setSortOrder(order);
+  };
 
   const formatDate = (isoString) => {
     const date = new Date(isoString);
@@ -746,29 +946,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     return <div>Loading...</div>; // Possibly change loading indicator
   }
 
-  const filterSessions = () => {
-    return sessions.filter((session) => {
-      const sessionDate = new Date(session.date);
-      const sessionStartTime = session.startTime;
-      const sessionEndTime = session.endTime;
-
-      const isDateInRange =
-        (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
-        (!dateRange.end || sessionDate <= new Date(dateRange.end));
-      const isTimeInRange =
-        (!timeRange.start || timeRange.start <= sessionStartTime) &&
-        (!timeRange.end || sessionEndTime <= timeRange.end);
-      const isStatusMatch =
-        status === "All" ||
-        (status === "Active" && !hasTimePassed(session.date)) ||
-        (status === "Past" && hasTimePassed(session.date));
-      const isRoomMatch =
-        selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
-
-      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
-    });
-  };
-
   const handleDateChange = (field, value) => {
     setDateRange((prev) => ({ ...prev, [field]: value }));
   };
@@ -808,18 +985,36 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                 Sessions{" "}
               </Text>
             </Flex>
-            <Flex>
+            <Flex
+              gap="12px"
+              alignItems="center"
+            >
+              <Button
+                bg="#f2f6fb"
+                color="#1e293b"
+                fontWeight="bold"
+                fontSize="16px"
+                borderRadius="8px"
+                backgroundColor="#F0F1F4"
+                height="45px"
+                mt="10px"
+                mb="15px"
+                px="20px"
+                _hover={{ bg: "#e0e6ed" }}
+              >
+                Select
+              </Button>
               <Popover onClose={onClose}>
                 <PopoverTrigger>
                   <Button
-                    color="#767778"
+                    color="#1e293b"
+                    fontWeight="bold"
                     backgroundColor="#F0F1F4"
                     variant="outline"
                     minWidth="auto"
                     height="45px"
                     mt="10px"
                     mb="15px"
-                    borderRadius="30px"
                     onClick={onOpen}
                     border="none"
                   >
@@ -1149,17 +1344,20 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   color="#D2D2D2"
                 >
                   <Tr>
-                {!isArchived ?
-                    <Th>
-                      <Text
-                        textTransform="none"
-                        color="#767778"
-                        fontSize="16px"
-                        fontStyle="normal"
-                      >
-                        Status
-                      </Text>
-                    </Th> : <div></div>}
+                    {!isArchived ? (
+                      <Th>
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          Status
+                        </Text>
+                      </Th>
+                    ) : (
+                      <div></div>
+                    )}
                     <Th>
                       <Box
                         display="flex"
@@ -1183,8 +1381,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           alignItems="flex-start"
                           gap="2px"
                         >
-                          <Icon as={sessionsUpArrow} />
-                          <Icon as={sessionsDownArrow} />
+                          <DateSortingModal onSortChange={handleSortChange} />
                         </Box>
                       </Box>
                     </Th>
@@ -1237,28 +1434,30 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filterSessions().length > 0 ? (
-
-                    filterSessions().map((session) => (
+                  {filteredAndSortedSessions.length > 0 ? (
+                    filteredAndSortedSessions.map((session) => (
                       <Tr key={session.id}>
-{!isArchived ?
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                          >
+                        {!isArchived ? (
+                          <Td>
                             <Box
-                              height="14px"
-                              width="14px"
-                              borderRadius="50%"
-                              bg={
-                                hasTimePassed(session.date)
-                                  ? "#DAB434"
-                                  : "#0C824D"
-                              }
-                            ></Box>
-                          </Box>
-                        </Td> : <div></div> }
+                              display="flex"
+                              justifyContent="center"
+                            >
+                              <Box
+                                height="14px"
+                                width="14px"
+                                borderRadius="50%"
+                                bg={
+                                  hasTimePassed(session.date)
+                                    ? "#DAB434"
+                                    : "#0C824D"
+                                }
+                              ></Box>
+                            </Box>
+                          </Td>
+                        ) : (
+                          <div></div>
+                        )}
                         <Td>
                           <Box
                             display="flex"
