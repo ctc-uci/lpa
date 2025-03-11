@@ -216,20 +216,18 @@ const StatementComments = ({
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [expandedCommentIndex, setExpandedCommentIndex] = useState(null); // Track which row is expanded
   const [rowHoveredIndex, setRowHoveredIndex] = useState(null);
+  const [newSubtotalValue, setNewSubtotalValue] = useState(0);
+  const [inputValues, setInputValues] = useState(Array(comments.length).fill("")); // Initialize local state for input values
 
   const handleCommentToggle = (index) => {
     setExpandedCommentIndex(expandedCommentIndex === index ? null : index);
   };
 
   useEffect(() => {
-    if (comments && comments.length > 0) {
-      setComments(comments);
-      setBooking(booking);
-      setRoom(room);
-
-      // Calculate individual session totals
-      if (booking && room && room.length > 0) {
-        const totals = comments.map((comment) => {
+    // Calculate subtotal on initial load
+    const calculateSubtotal = () => {
+      if (comments && comments.length > 0 && booking && room && room.length > 0) {
+        const totals = comments.map(() => {
           if (!booking.startTime || !booking.endTime) return 0;
 
           const timeToMinutes = (timeStr) => {
@@ -245,16 +243,23 @@ const StatementComments = ({
           return parseFloat((totalHours * room[0]?.rate).toFixed(2));
         });
 
-        setSessionTotals(totals);
-
-        // Calculate new subtotal based on session totals
         const newSubtotal = totals.reduce((sum, total) => sum + total, 0);
-        if (onSubtotalChange && newSubtotal !== subtotal) {
+        setSessionTotals(totals);
+        if (onSubtotalChange) {
           onSubtotalChange(newSubtotal);
+          setNewSubtotalValue(newSubtotal);
         }
       }
+    };
+
+    calculateSubtotal();
+
+    if (comments && comments.length > 0) {
+      setComments(comments);
+      setBooking(booking);
+      setRoom(room);
     }
-  }, [comments, booking, room, onSubtotalChange, subtotal]);
+  }, [comments, booking, room]);
 
   // Handle adjustmentType change
   const handleAdjustmentChange = (index, value) => {
@@ -271,14 +276,30 @@ const StatementComments = ({
   // Handle session total change
   const handleSessionTotalChange = (index, value) => {
     const newTotals = [...sessionTotals];
-    newTotals[index] = parseFloat(value);
+
+    // Update the session total based on the adjustment type
+    if (commentsState[index].adjustmentType === "total") {
+      newTotals[index] += parseFloat(value); // Set the total directly from the input
+    } else if (commentsState[index].adjustmentType === "rate_flat") {
+      room[0].rate = parseFloat(value);
+    } else if (commentsState[index].adjustmentType === "rate_percent") {
+      room[0].rate *= parseFloat(value) / 100;
+    }
+    console.log("inputValues", inputValues)
     setSessionTotals(newTotals);
 
     // Calculate new subtotal
     const newSubtotal = newTotals.reduce((sum, total) => sum + total, 0);
     if (onSubtotalChange) {
       onSubtotalChange(newSubtotal);
+      setNewSubtotalValue(newSubtotal);
     }
+
+    setInputValues((prev) => {
+      const newValues = [...prev];
+      newValues[index] = newTotals[index].toFixed(2);
+      return newValues;
+    });
   };
 
   const handleCommentsChange = (updatedComments) => {
@@ -308,8 +329,10 @@ const StatementComments = ({
         px="12px"
       >
         <Box
+        position="relative"
         maxH="400px"
         overflowY="auto"
+        p="3"
         >
         <Table
           color="#EDF2F7"
@@ -567,37 +590,19 @@ const StatementComments = ({
                           px="2"
                           textAlign="center"
                           fontSize="14px"
-                          value={
-                            sessionTotals[index]
-                              ? sessionTotals[index].toFixed(2)
-                              : booking.startTime && booking.endTime
-                                ? (() => {
-                                    const timeToMinutes = (timeStr) => {
-                                      const [hours, minutes] = timeStr
-                                        .split(":")
-                                        .map(Number);
-                                      return hours * 60 + minutes;
-                                    };
-
-                                    const startMinutes = timeToMinutes(
-                                      booking.startTime.substring(0, 5)
-                                    );
-                                    const endMinutes = timeToMinutes(
-                                      booking.endTime.substring(0, 5)
-                                    );
-                                    const diff = endMinutes - startMinutes;
-
-                                    const totalHours = Math.ceil(diff / 60);
-
-                                    return (totalHours * room[0]?.rate).toFixed(
-                                      2
-                                    );
-                                  })()
-                                : "0.00"
-                          }
-                          onChange={(e) =>
-                            handleSessionTotalChange(index, e.target.value)
-                          }
+                          value={inputValues[index] || sessionTotals[index]?.toFixed(2) || "0.00"} // Use local state value
+                          onChange={(e) => {
+                            setInputValues((prev) => {
+                              const newValues = [...prev];
+                              newValues[index] = e.target.value; // Update local state
+                              return newValues;
+                            });
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleSessionTotalChange(index, inputValues[index]); // Call function on Enter
+                            }
+                          }}
                         />
                       </Flex>
                     </Td>
@@ -655,7 +660,7 @@ const StatementComments = ({
                 py="8"
                 textAlign="right"
               >
-                <Text textAlign="center">{`$ ${subtotal?.toFixed(2)}`}</Text>
+                <Text textAlign="center">{`$ ${newSubtotalValue?.toFixed(2)}`}</Text>
               </Td>
             </Tr>
           </Tbody>
@@ -673,6 +678,8 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
   useEffect(() => {
     setSubtotalValue(subtotal);
   }, [subtotal]);
+
+  const totalAmountDue = pastDueValue + subtotalValue;
 
   const handleSubtotalChange = (e) => {
     const newValue = parseFloat(e.target.value);
@@ -835,9 +842,9 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
                       p="2"
                       fontSize="14px"
                       borderRadius="md"
-                      width={`${(pastDue + subtotalValue).toFixed(2).length + 3}ch`}
+                      width={`${totalAmountDue.toFixed(2).length + 3}ch`}
                     >
-                      {(pastDue + subtotalValue).toFixed(2)}
+                      {totalAmountDue.toFixed(2)}
                     </Text>
                   </Flex>
                 </Td>

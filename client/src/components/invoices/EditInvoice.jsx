@@ -112,6 +112,8 @@ export const EditInvoice = () => {
     pastDue: 0
   });
 
+  const [subtotalValue, setSubtotalValue] = useState(0);
+
   useEffect(() => {
     if (id) {
       sessionStorage.setItem('userId', id);
@@ -258,6 +260,8 @@ export const EditInvoice = () => {
             invoice_id: comment.invoiceId,
             user_id: comment.userId
           };
+
+          console.log(commentData);
           
           try {
             if (comment.id) {
@@ -308,6 +312,7 @@ export const EditInvoice = () => {
   // Handler for subtotal updates
   const handleSubtotalUpdate = (newSubtotal) => {
     setEditedSubtotal(newSubtotal);
+    setSubtotalValue(newSubtotal);
     setEditedFields({
       ...editedFields,
       subtotal: newSubtotal
@@ -353,7 +358,7 @@ export const EditInvoice = () => {
               />
               <InvoiceSummary
                 pastDue={pastDue}
-                subtotal={editedSubtotal}
+                subtotal={subtotalValue}
                 onSubtotalChange={handleSubtotalUpdate}
               />
               <FooterDescription />
