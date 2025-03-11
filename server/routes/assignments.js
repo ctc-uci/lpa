@@ -58,11 +58,13 @@ assignmentsRouter.post("/", async (req, res) => {
         text: 'INSERT INTO assignments (event_id, client_id, role) VALUES ($1, $2, $3) RETURNING *',
         values: [eventId, clientId, role],
       };
-    res.status(200).json(keysToCamel(data));
+      const result = await db.query(query);
+    res.status(200).json(keysToCamel(result));
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
+
 
 assignmentsRouter.get("/client/:client_id", async (req, res) => {
   try {
