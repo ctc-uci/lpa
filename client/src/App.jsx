@@ -118,7 +118,7 @@ const App = () => {
                   element={<ProtectedRoute element={<EditInvoice />} />}
                 />
                 <Route
-                  path="/invoices/savededits"
+                  path="/invoices/savededits/:id"
                   element={<ProtectedRoute element={<SavedEdit />} />}
                 />
 

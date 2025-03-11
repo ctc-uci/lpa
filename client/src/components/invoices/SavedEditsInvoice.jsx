@@ -10,7 +10,7 @@ import {
   Image,
   VStack,
 } from "@chakra-ui/react";
-import { useNavigate} from "react-router-dom";
+import { useNavigate, useParams} from "react-router-dom";
 
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
@@ -69,8 +69,7 @@ const SavedInvoiceNavBar = ({ onBack, id }) => {
   };
 
 export const SavedEdit = () => {
-  const id = sessionStorage.getItem("userId");
-
+  const { id } = useParams();
   const { backend } = useBackendContext();
   const navigate = useNavigate();
 
@@ -118,6 +117,7 @@ export const SavedEdit = () => {
 
         // get comments
         const commentsResponse = await backend.get("/comments/invoice/" + id);
+        console.log(commentsResponse)
         setComments(commentsResponse.data);
 
         // get program name

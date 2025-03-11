@@ -51,6 +51,9 @@ const SavedStatementComments = ({
         minH="24"
         px="12px"
       >
+        <Box
+        maxHeight="50vh"
+        overflowY="auto">
         <Table
           color="#EDF2F7"
           style={{ width: "100%" }}
@@ -262,6 +265,7 @@ const SavedStatementComments = ({
             </Tr>
           </Tbody>
         </Table>
+        </Box>
       </Flex>
     </Flex>
   );

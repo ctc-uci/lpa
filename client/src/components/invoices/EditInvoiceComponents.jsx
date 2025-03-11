@@ -32,29 +32,28 @@ import commentsIcon from "../../assets/icons/comments.svg";
 import plusIcon from "../../assets/icons/plus.svg";
 import logo from "../../assets/logo/logo.png";
 
-//TODO comment buttons
-//TODO comment button dropdown
-//TODO change comments put router to change from camel to snake
+const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
+  if (comments.length > 0) {
+    const latestComment = comments.sort(
+      (a, b) => new Date(b.datetime) - new Date(a.datetime)
+    )[0];
+
+    const latestDate = new Date(latestComment.datetime);
+    const month = latestDate.toLocaleString("default", { month: "long" });
+    const day = latestDate.getDate();
+    const year = latestDate.getFullYear();
+
+    return includeDay 
+      ? `${month} ${day}, ${year}` 
+      : `${month} ${year}`;
+  } else if (invoice) {
+    return invoice["startDate"];
+  } else {
+    return "No Date Found";
+  }
+};
 
 const EditInvoiceTitle = ({ comments, invoice }) => {
-  const getGeneratedDate = () => {
-    if (comments.length > 0) {
-      const latestComment = comments?.sort(
-        (a, b) => new Date(b.datetime) - new Date(a.datetime)
-      )[0];
-
-      const latestDate = new Date(latestComment.datetime);
-      const month = latestDate.toLocaleString("default", { month: "long" });
-      const day = latestDate.getDate();
-      const year = latestDate.getFullYear();
-
-      return `${month} ${day}, ${year}`;
-    } else if (invoice) {
-      return invoice["startDate"];
-    } else {
-      return "No Date Found";
-    }
-  };
 
   return (
     <Flex
@@ -76,8 +75,8 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
           color="#718096"
           fontSize="16px"
         >
-          {getGeneratedDate()}
-        </Text>
+          {getGeneratedDate(comments, invoice, true)}
+          </Text>
       </Stack>
       <Flex
         direction={{ base: "column", md: "row" }}
@@ -110,24 +109,6 @@ const EditInvoiceDetails = ({
   comments,
   invoice,
 }) => {
-  const getGeneratedDate = () => {
-    if (comments.length > 0) {
-      const latestComment = comments.sort(
-        (a, b) => new Date(b.datetime) - new Date(a.datetime)
-      )[0];
-
-      // Extract month, day, and year from the latest comment
-      const latestDate = new Date(latestComment.datetime);
-      const month = latestDate.toLocaleString("default", { month: "long" });
-      const year = latestDate.getFullYear();
-
-      return `${month} ${year}`;
-    } else if (invoice) {
-      return invoice["startDate"];
-    } else {
-      return "No Date Found";
-    }
-  };
 
   return (
     <VStack
@@ -150,8 +131,8 @@ const EditInvoiceDetails = ({
           color="#2D3748"
           fontWeight="500"
         >
-          {getGeneratedDate()}
-        </Heading>
+          {getGeneratedDate(comments, invoice, false)}
+          </Heading>
       </VStack>
 
       <SimpleGrid
@@ -320,6 +301,7 @@ const StatementComments = ({
         minH="24"
         px="12px"
       >
+        <Box>
         <Table
           color="#EDF2F7"
           style={{ width: "100%" }}
@@ -671,6 +653,7 @@ const StatementComments = ({
             </Tr>
           </Tbody>
         </Table>
+        </Box>
       </Flex>
     </Flex>
   );
