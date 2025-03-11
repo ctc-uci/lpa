@@ -76,7 +76,7 @@ const InvoicesDashboard = () => {
         console.log(invoicesResponse);
         const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
           const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
-          if (invoice.role === "instructor") return acc; 
+          if (invoice.role === "instructor") return acc;
           if (!acc[key]) {
               // Create a new entry with a payers array
               acc[key] = {
@@ -89,7 +89,7 @@ const InvoicesDashboard = () => {
                   acc[key].payers.push(invoice.name);
               }
           }
-      
+
           return acc;
         }, {});
         const invoices = Object.values(groupedInvoices).map(invoice => ({
@@ -176,7 +176,7 @@ const InvoicesDashboard = () => {
   return(
     <Navbar>
       <Flex>
-        <Flex w='100%' m='120px 40px' flexDirection='column' padding="48px">
+        <Flex w='95%' m='120px 40px' flexDirection='column' padding="48px">
           <Flex justifyContent='space-between' mb='40px'>
               <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} />
 

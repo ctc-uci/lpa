@@ -260,12 +260,12 @@ function InvoicesTable({filteredInvoices, isPaidColor, seasonColor}){
         <Tbody>
         {filteredInvoices.map((invoice, index) => (
             <Tr key={index}>
-              <Td style={{ 
-                color: isPaidColor(invoice), 
+              <Td style={{
+                color: isPaidColor(invoice),
                 textDecoration: invoice.isPaid === 'Past Due' ? 'underline' : 'none',
                 fontWeight: invoice.isPaid === 'Past Due' ? 'bold' : 'normal',
-              }}> 
-                {invoice.isPaid} 
+              }}>
+                {invoice.isPaid}
               </Td>
               <Td>
                 <Flex justifyContent="center" align="center" w="60%">
@@ -277,7 +277,11 @@ function InvoicesTable({filteredInvoices, isPaidColor, seasonColor}){
                 </Flex>
               </Td>
               <Td>{invoice.eventName}</Td>
-              <Td>{invoice.payers.join(", ")}</Td>
+              <Td>
+              {invoice.payers.length > 1
+              ? `${invoice.payers[0].trim()},...`
+              : invoice.payers[0].trim()}
+              </Td>
               <Td>
                 {new Date(invoice.endDate).toLocaleDateString("en-US", {
                   month: "2-digit", day: "2-digit", year: "numeric"
