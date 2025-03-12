@@ -249,6 +249,15 @@ export const EditInvoice = () => {
     setIsSaving(true);
     try {
       // console.log("editedComments", editedComments)
+      const roomData = {
+        ...room[0],
+        rate: room[0].rate,
+      };
+
+      console.log("roomData", roomData);
+      const roomResponse = await backend.put(`/rooms/${room[0].id}`, roomData);
+      console.log("roomResponse", roomResponse);
+
       for (const comment of editedComments) {
           const commentData = {
             adjustment_type: comment.adjustmentType || null,
@@ -261,7 +270,10 @@ export const EditInvoice = () => {
             user_id: comment.userId
           };
 
-          console.log(commentData);
+
+          
+
+          console.log("roomData", roomData)
           
           try {
             if (comment.id) {
@@ -273,6 +285,8 @@ export const EditInvoice = () => {
               const response = await backend.post(`/comments`, commentData);
               console.log("Created new comment:", response.data);
             }
+
+
             // const response = await backend.put(`/comments/${comment.id}`, commentData);
             // console.log("response.data", response.data)
           } catch (error) {
@@ -349,17 +363,21 @@ export const EditInvoice = () => {
                 invoice={invoice?.data}
               />
               <StatementComments
-                comments={editedComments}
                 booking={booking}
                 room={room}
                 subtotal={editedSubtotal}
+                comments={editedComments}
                 onCommentsChange={handleCommentUpdate}
                 onSubtotalChange={handleSubtotalUpdate}
               />
               <InvoiceSummary
                 pastDue={pastDue}
                 subtotal={subtotalValue}
+                comments={editedComments}
+                onCommentsChange={handleCommentUpdate}
                 onSubtotalChange={handleSubtotalUpdate}
+                room={room}
+                setRoom={setRoom}
               />
               <FooterDescription />
               {/* <RadioDropdown/> */}

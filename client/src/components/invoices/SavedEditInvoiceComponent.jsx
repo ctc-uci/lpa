@@ -21,7 +21,7 @@ const SavedStatementComments = ({
   booking = [],
   room = [],
   subtotal = 0.0,
-  onSubtotalChange
+  setSubtotal
 }) => {
   const [commentsState, setComments] = useState(comments);
   const [bookingState, setBooking] = useState(booking);
@@ -44,7 +44,8 @@ const SavedStatementComments = ({
     const totalHours = Math.ceil(diff / 60);
     
     const total = (totalHours * rate).toFixed(2);
-  
+    
+    
     return total;
   };
  
@@ -53,6 +54,7 @@ const SavedStatementComments = ({
       setComments(comments);
       setBooking(booking);
       setRoom(room);
+      
     }
   }, [booking, comments, room]);
 
@@ -77,7 +79,8 @@ const SavedStatementComments = ({
             setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
           });
         }
-
+        
+        setSubtotal(subtotalSum)
         // Set flag to prevent future reruns of this effect
         setIsDataLoaded(true);
       }
@@ -305,7 +308,82 @@ const SavedStatementComments = ({
   );
 };
 
-const SavedInvoiceSummary = ({ pastDue, subtotal }) => {
+const SavedInvoiceSummary = ({
+  comments = [],
+  booking = [],
+  room = [],
+  subtotal = 0.0,
+  setSubtotal,
+  pastDue
+}) => {
+
+  //! THIS RECALCULATES EVERYTHING BUT PASSING IT BETWEEN COMPONENTS WASNT WORKING
+
+  const [commentsState, setComments] = useState(comments);
+  const [bookingState, setBooking] = useState(booking);
+  const [roomState, setRoom] = useState(room);
+  const [subtotalSum, setSubtotalSum] = useState(subtotal);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  const handleSubtotalSum = (startTime, endTime, rate) => {
+    if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
+    
+    const timeToMinutes = (timeStr) => {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+  
+    const startMinutes = timeToMinutes(startTime.substring(0, 5));
+    const endMinutes = timeToMinutes(endTime.substring(0, 5));
+    const diff = endMinutes - startMinutes;
+  
+    const totalHours = Math.ceil(diff / 60);
+    
+    const total = (totalHours * rate).toFixed(2);
+    
+    
+    return total;
+  };
+ 
+  useEffect(() => {
+    if (comments && comments.length > 0) {
+      setComments(comments);
+      setBooking(booking);
+      setRoom(room);
+      
+    }
+  }, [booking, comments, room]);
+
+  
+
+    useEffect(() => {
+      // Ensure all required values are available and this only runs once
+      if (
+        bookingState &&
+        room &&
+        bookingState.startTime &&
+        bookingState.endTime &&
+        room[0]?.rate &&
+        !isDataLoaded
+      ) {
+        console.log("CHECK", bookingState.startTime, bookingState.endTime, room[0]?.rate);
+        const total = handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate);
+        
+        // Add subtotal for each comment (this logic is now inside useEffect)
+        if (commentsState && commentsState.length > 0) {
+          commentsState.forEach(() => {
+            setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
+          });
+        }
+        
+        setSubtotal(subtotalSum)
+        // Set flag to prevent future reruns of this effect
+        setIsDataLoaded(true);
+      }
+    }, [bookingState, room, commentsState, isDataLoaded]); 
+
+
+
   return (
     <Box mt={8} color="#2D3748">
       <VStack align="stretch" spacing={4}>
@@ -389,9 +467,9 @@ const SavedInvoiceSummary = ({ pastDue, subtotal }) => {
                       p="2"
                       fontSize="14px"
                       borderRadius="md"
-                      width={`${subtotal.toFixed(2).length + 3}ch`}
+                      width={`${subtotalSum.toFixed(2).length + 3}ch`}
                     >
-                      {subtotal.toFixed(2)}
+                      {subtotalSum.toFixed(2)}
                     </Text>
                   </Flex>
                 </Td>
@@ -410,7 +488,7 @@ const SavedInvoiceSummary = ({ pastDue, subtotal }) => {
                       borderRadius="md"
                       width={`${(subtotal + pastDue).toFixed(2).length + 3}ch`}
                     >
-                      {(subtotal + pastDue).toFixed(2)}
+                      {(pastDue + subtotalSum).toFixed(2)}
                     </Text>
                   </Flex>
                 </Td>

@@ -83,6 +83,7 @@ export const SavedEdit = () => {
 
   const [subtotal, setSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -244,10 +245,15 @@ export const SavedEdit = () => {
                 booking={booking}
                 room={room}
                 subtotal={subtotal}
+                setSubtotal={setSubtotal} 
               />
             <SavedInvoiceSummary
-              pastDue={pastDue}
+              comments={comments}
+              booking={booking}
+              room={room}
               subtotal={subtotal}
+              setSubtotal={setSubtotal} 
+              pastDue={pastDue}
             />
             <FooterDescription />
           </Box>

@@ -235,7 +235,7 @@ const StatementComments = ({
             return hours * 60 + minutes;
           };
 
-          const startMinutes = timeToMinutes(booking.startTime.substring(0, 5));
+          const startMinutes = timeToMinutes(booking.startTime.substring(0, 5)); 
           const endMinutes = timeToMinutes(booking.endTime.substring(0, 5));
           const diff = endMinutes - startMinutes;
           const totalHours = Math.ceil(diff / 60);
@@ -285,7 +285,6 @@ const StatementComments = ({
     } else if (commentsState[index].adjustmentType === "rate_percent") {
       room[0].rate *= parseFloat(value) / 100;
     }
-    console.log("inputValues", inputValues)
     setSessionTotals(newTotals);
 
     // Calculate new subtotal
@@ -671,21 +670,49 @@ const StatementComments = ({
   );
 };
 
-const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
+const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange, room, setRoom }) => {
   const pastDueValue = pastDue;
   const [subtotalValue, setSubtotalValue] = useState(subtotal);
+  const [pendingSubtotalValue, setPendingSubtotalValue] = useState(subtotal.toFixed(2));
+  const [adjustmentType, setAdjustmentType] = useState("");
+
 
   useEffect(() => {
     setSubtotalValue(subtotal);
+    setPendingSubtotalValue(subtotal.toFixed(2));
   }, [subtotal]);
+
 
   const totalAmountDue = pastDueValue + subtotalValue;
 
   const handleSubtotalChange = (e) => {
-    const newValue = parseFloat(e.target.value);
-    setSubtotalValue(newValue);
-    if (onSubtotalChange) {
-      onSubtotalChange(newValue);
+    setPendingSubtotalValue(e.target.value);
+  };
+  
+  const handleSubtotalSubmit = (e) => {
+    if (e.key === "Enter") {
+      const value = parseFloat(pendingSubtotalValue);
+      if (!isNaN(value)) {
+        if (adjustmentType === "total") {
+          setSubtotalValue((prevValue) => {
+            const newSubtotal = prevValue + value;
+            if (onSubtotalChange) {
+              onSubtotalChange(newSubtotal);
+            }
+            return newSubtotal;
+          });
+        } else if (adjustmentType === "rate_flat") {
+          const updatedRoom = room.map((r, index) =>
+            index === 0 ? { ...r, rate: value } : r
+          );
+          setRoom(updatedRoom);
+        } else if (adjustmentType === "rate_percent") {
+          const updatedRoom = room.map((r, index) =>
+            index === 0 ? { ...r, rate: r.rate * (value / 100) } : r
+          );
+          setRoom(updatedRoom);
+        }
+      }
     }
   };
 
@@ -788,10 +815,9 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
               <Tr>
                 <Td fontSize="14px">Current Statement Subtotal</Td>
                 <Td>
-                  <RadioDropdown
-                    onSelectionChange={(value) =>
-                      handleAdjustmentChange(index, value)
-                    }
+                  <RadioDropdownSummary
+                      adjustmentType={adjustmentType}
+                      setAdjustmentType={setAdjustmentType}
                   />
                 </Td>
                 <Td>
@@ -810,9 +836,10 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange }) => {
                       textAlign="center"
                       px="0"
                       fontSize="14px"
-                      value={subtotalValue.toFixed(2)}
-                      width={`${subtotalValue.toFixed(2).length + 1}ch`}
+                      value={pendingSubtotalValue}
+                      width={`${pendingSubtotalValue.length + 1}ch`}
                       onChange={handleSubtotalChange}
+                      onKeyDown={handleSubtotalSubmit} // Listen for Enter key
                     />
                   </Flex>
                 </Td>
@@ -1047,6 +1074,118 @@ const RadioDropdown = ({
     </Box>
   );
 };
+
+const RadioDropdownSummary = ({adjustmentType, setAdjustmentType}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("");
+  const menuRef = useRef(null);
+
+  const options = [ 
+    { id: "rate_percent", label: "Room fee %" },
+    { id: "rate_flat", label: "Room fee $" },
+    { id: "total", label: "Manual Calculation" },
+  ];
+
+  const handleOptionChange = (optionId) => {
+    setSelectedOption(optionId);
+    setAdjustmentType(optionId);
+    console.log("optionId", optionId);
+    setIsOpen(false);
+  };
+
+  // Display selected option in button
+  const getButtonText = () => {
+    if (!selectedOption) return "Click to select";
+    const selected = options.find((option) => option.id === selectedOption);
+    return selected ? selected.label : "Click to select";
+  };
+
+  // Close the menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <Box
+      position="relative"
+      ref={menuRef}
+    >
+      <Button
+        onClick={() => setIsOpen(!isOpen)}
+        rightIcon={<ChevronDownIcon />}
+        w="100%"
+        h="50px"
+        bg="white"
+        color="#718096"
+        size="sm"
+        border="2px solid #E2E8F0"
+        borderRadius="md"
+        justifyContent="space-between"
+        fontWeight="normal"
+        textAlign="left"
+        _hover={{ bg: "white" }}
+        _active={{ bg: "white" }}
+      >
+        {getButtonText()}
+      </Button>
+
+      {isOpen && (
+        <Box
+          position="absolute"
+          top="calc(100% + 5px)"
+          left="0"
+          width="100%"
+          bg="white"
+          boxShadow="md"
+          borderRadius="md"
+          zIndex="dropdown"
+          p={2}
+          border="1px solid #E2E8F0"
+        >
+          <RadioGroup
+            value={selectedOption}
+            onChange={handleOptionChange}
+          >
+            {options.map((option) => (
+              <Flex
+                key={option.id}
+                py={2}
+                px={3}
+                alignItems="center"
+                _hover={{ bg: "#F7FAFC" }}
+                borderRadius="md"
+                cursor="pointer"
+              >
+                <Radio
+                  value={option.id}
+                  colorScheme="blue"
+                  mr={3}
+                  size="md"
+                >
+                  <Text
+                    fontSize="xs"
+                    color="#2D3748"
+                  >
+                    {option.label}
+                  </Text>
+                </Radio>
+              </Flex>
+            ))}
+          </RadioGroup>
+        </Box>
+      )}
+    </Box>
+  );
+};
 export {
   StatementComments,
   EditInvoiceTitle,
@@ -1055,3 +1194,4 @@ export {
   FooterDescription,
   RadioDropdown,
 };
+
