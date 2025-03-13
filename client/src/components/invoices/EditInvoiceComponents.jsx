@@ -43,9 +43,7 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
     const day = latestDate.getDate();
     const year = latestDate.getFullYear();
 
-    return includeDay 
-      ? `${month} ${day}, ${year}` 
-      : `${month} ${year}`;
+    return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
   } else if (invoice) {
     return invoice["startDate"];
   } else {
@@ -54,7 +52,6 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
 };
 
 const EditInvoiceTitle = ({ comments, invoice }) => {
-
   return (
     <Flex
       justifyContent="space-between"
@@ -76,7 +73,7 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
           fontSize="16px"
         >
           {getGeneratedDate(comments, invoice, true)}
-          </Text>
+        </Text>
       </Stack>
       <Flex
         direction={{ base: "column", md: "row" }}
@@ -109,7 +106,6 @@ const EditInvoiceDetails = ({
   comments,
   invoice,
 }) => {
-
   return (
     <VStack
       spacing={6}
@@ -132,7 +128,7 @@ const EditInvoiceDetails = ({
           fontWeight="500"
         >
           {getGeneratedDate(comments, invoice, false)}
-          </Heading>
+        </Heading>
       </VStack>
 
       <SimpleGrid
@@ -217,7 +213,9 @@ const StatementComments = ({
   const [expandedCommentIndex, setExpandedCommentIndex] = useState(null); // Track which row is expanded
   const [rowHoveredIndex, setRowHoveredIndex] = useState(null);
   const [newSubtotalValue, setNewSubtotalValue] = useState(0);
-  const [inputValues, setInputValues] = useState(Array(comments.length).fill("")); // Initialize local state for input values
+  const [inputValues, setInputValues] = useState(
+    Array(comments.length).fill("")
+  ); // Initialize local state for input values
 
   const handleCommentToggle = (index) => {
     setExpandedCommentIndex(expandedCommentIndex === index ? null : index);
@@ -226,7 +224,13 @@ const StatementComments = ({
   useEffect(() => {
     // Calculate subtotal on initial load
     const calculateSubtotal = () => {
-      if (comments && comments.length > 0 && booking && room && room.length > 0) {
+      if (
+        comments &&
+        comments.length > 0 &&
+        booking &&
+        room &&
+        room.length > 0
+      ) {
         const totals = comments.map(() => {
           if (!booking.startTime || !booking.endTime) return 0;
 
@@ -235,7 +239,7 @@ const StatementComments = ({
             return hours * 60 + minutes;
           };
 
-          const startMinutes = timeToMinutes(booking.startTime.substring(0, 5)); 
+          const startMinutes = timeToMinutes(booking.startTime.substring(0, 5));
           const endMinutes = timeToMinutes(booking.endTime.substring(0, 5));
           const diff = endMinutes - startMinutes;
           const totalHours = Math.ceil(diff / 60);
@@ -305,7 +309,7 @@ const StatementComments = ({
     setComments(updatedComments);
     onCommentsChange(updatedComments);
     console.log(updatedComments);
-  }
+  };
 
   return (
     <Flex
@@ -328,367 +332,385 @@ const StatementComments = ({
         px="12px"
       >
         <Box
-        position="relative"
-        maxH="400px"
-        overflowY="auto"
-        p="3"
+          position="relative"
+          maxH="400px"
+          overflowY="auto"
+          p="3"
         >
-        <Table
-          color="#EDF2F7"
-          style={{ width: "100%" }}
-          textAlign="center"
-        >
-          <Thead>
-            <Tr color="#4A5568">
-              <Th
-                textTransform="none"
-                fontSize="14px"
-              >
-                Date
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="14px"
-              >
-                Classroom
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="14px"
-              >
-                Rental Hours
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="14px"
-              >
-                Room Fee
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="14px"
-              >
-                Adjustment Type(s)
-              </Th>
-              <Th
-                textTransform="none"
-                textAlign="end"
-                pr="40px"
-                fontSize="14px"
-              >
-                Total
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody color="#2D3748">
-            {commentsState.length > 0 ? (
-              commentsState
-                .map((comment, index) => [
-                  <Tr
-                    key={`comment-${comment.id || "unknown"}-${index}`}
-                    position="relative"
-                    borderBottom={
-                      expandedCommentIndex === index
-                        ? "none" // No bottom border for the row with expanded comment
-                        : hoveredIndex === index
-                          ? "1.5px solid purple" // Apply purple bottom border when hovered
-                          : "1px solid #e0e0e0" // Default bottom border
-                    }
-                    onMouseEnter={() => setRowHoveredIndex(index)} // When mouse enters, set hovered index
-                    onMouseLeave={() => setRowHoveredIndex(null)}
-                    borderTop="none"
-                  >
-                    <Td
-                      position="relative"
-                      px={0}
-                      pr={4}
-                      borderBottom="none"
-                      overflow="visible"
-                    >
-                      <VStack
-                        position="absolute"
-                        left="-30px"
-                        zIndex='10'
-                        top="50%"
-                        transform="translateY(-60%)"
-                        gap="-4"
-                        opacity={rowHoveredIndex === index ? 1 : 0} // Control visibility based on hover
-                        transition="opacity 0.3s ease" // Smooth transition for opacity change
-                      >
-                        <IconButton
-                          aria-label="Plus Icon"
-                          icon={
-                            <Box
-                              w="20px"
-                              h="20px"
-                              bgImage={`url(${plusIcon})`}
-                              bgSize="contain"
-                              bgRepeat="no-repeat"
-                              bgPos="center"
-                              zIndex='11'
-                            />
-                          }
-                          colorScheme="purple"
-                          size="xs"
-                          borderRadius="full"
-                          onMouseEnter={() => setHoveredIndex(index)} // When mouse enters, set hovered index
-                          onMouseLeave={() => setHoveredIndex(null)} // When mouse leaves, reset hovered index
-                          onClick={() => {
-                            const newComment = {
-                              adjustmentType: "paid",
-                              adjustmentValue: "5",
-                              bookingId: 955,
-                              comment: "ADDED COMMENT (ALL DUMMY VALUES)",
-                              datetime: "2025-02-01T23:15:25.877Z",
-                              invoiceId: 22,
-                              userId: 48,
-                            };
-
-                            handleCommentsChange([...commentsState, newComment])
-                          }}
-                        />
-                        <IconButton
-                          icon={
-                            <Box
-                              w="60px" // Customize size of the icon
-                              h="60px" // Customize size of the icon
-                              bgImage={`url(${commentsIcon})`}
-                              bgSize="contain"
-                              bgRepeat="no-repeat"
-                              bgPos="center"
-                            />
-                          }
-                          variant="unstyled" // No surrounding button appearance
-                          size="xs" // Optional: Adjust this based on the overall size
-                          p={0} // Remove padding around the icon
-                          isRound // Makes the button round (optional)
-                          aria-label="Icon only" // Ensures accessibility
-                          onClick={() => handleCommentToggle(index)} // Toggle comment visibility
-                        />
-                      </VStack>
-                      <Text
-                        width="100px"
-                        fontSize="14px"
-                        ml="6"
-                      >
-                        {format(new Date(comment.datetime), "M/d/yy")}
-                      </Text>
-                    </Td>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      borderBottom="none"
-                    >
-                      <Text fontSize="14px">
-                        {room && room.length > 0 ? `${room[0].name}` : "N/A"}
-                      </Text>
-                    </Td>
-                    {/* Rest of the row content remains the same */}
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      borderBottom="none"
-                    >
-                      <Flex
-                        align="center"
-                        justifyContent="space-evenly"
-                        gap="2"
-                      >
-                        <Text
-                          w="85px"
-                          px="2"
-                          textAlign="center"
-                          fontSize="14px"
-                        >
-                          {booking.startTime
-                            ? (() => {
-                                const startTime = booking.startTime
-                                  .split("-")[0]
-                                  .substring(0, 5);
-                                const formatTime = (timeStr) => {
-                                  const [hours, minutes] = timeStr
-                                    .split(":")
-                                    .map(Number);
-                                  const period = hours >= 12 ? "pm" : "am";
-                                  const hour12 = hours % 12 || 12;
-                                  return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
-                                };
-
-                                return `${formatTime(startTime)}`;
-                              })()
-                            : "N/A"}
-                        </Text>
-                        <Text fontSize="14px">to</Text>
-                        <Text
-                          w="85px"
-                          px="2"
-                          fontSize="14px"
-                          textAlign="center"
-                        >
-                          {booking.endTime
-                            ? (() => {
-                                const endTime = booking.endTime
-                                  .split("-")[0]
-                                  .substring(0, 5);
-                                const formatTime = (timeStr) => {
-                                  const [hours, minutes] = timeStr
-                                    .split(":")
-                                    .map(Number);
-                                  const period = hours >= 12 ? "pm" : "am";
-                                  const hour12 = hours % 12 || 12;
-                                  return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
-                                };
-
-                                return `${formatTime(endTime)}`;
-                              })()
-                            : "N/A"}
-                        </Text>
-                      </Flex>
-                    </Td>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      borderBottom="none"
-                    >
-                      <Flex
-                        align="center"
-                        gap="1"
-                      >
-                        <Text
-                          fontSize="14"
-                          w="95px"
-                        >
-                          {room && room.length > 0 ? `$${room[0].rate}` : "N/A"}
-                        </Text>
-                        <Text fontSize="14px">/hr</Text>
-                      </Flex>
-                    </Td>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      borderBottom="none"
-                    >
-                      <RadioDropdown
-                        index={index}
-                        onSelectionChange={(value) => {
-                          handleAdjustmentChange(index, value);
-                        }}
-                        commentsState={commentsState}
-                        setComments={setComments}
-                      />
-                    </Td>
-                    <Td
-                      fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                      textAlign="center"
-                      borderBottom="none"
-                    >
-                      <Flex
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="2"
-                      >
-                        <Text fontSize="14px">$</Text>
-                        <Input
-                          w="85px"
-                          px="2"
-                          textAlign="center"
-                          fontSize="14px"
-                          value={inputValues[index] || sessionTotals[index]?.toFixed(2) || "0.00"} // Use local state value
-                          onChange={(e) => {
-                            setInputValues((prev) => {
-                              const newValues = [...prev];
-                              newValues[index] = e.target.value; // Update local state
-                              return newValues;
-                            });
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleSessionTotalChange(index, inputValues[index]); // Call function on Enter
-                            }
-                          }}
-                        />
-                      </Flex>
-                    </Td>
-                  </Tr>,
-                  expandedCommentIndex === index && (
+          <Table
+            color="#EDF2F7"
+            style={{ width: "100%" }}
+            textAlign="center"
+          >
+            <Thead>
+              <Tr color="#4A5568">
+                <Th
+                  textTransform="none"
+                  fontSize="14px"
+                >
+                  Date
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="14px"
+                >
+                  Classroom
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="14px"
+                >
+                  Rental Hours
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="14px"
+                >
+                  Room Fee
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="14px"
+                >
+                  Adjustment Type(s)
+                </Th>
+                <Th
+                  textTransform="none"
+                  textAlign="end"
+                  pr="40px"
+                  fontSize="14px"
+                >
+                  Total
+                </Th>
+              </Tr>
+            </Thead>
+            <Tbody color="#2D3748">
+              {commentsState.length > 0 ? (
+                commentsState
+                  .map((comment, index) => [
                     <Tr
-                      key={`comment-text-expanded-${comment.id || "unknown"}-${index}`}
+                      key={`comment-${comment.id || "unknown"}-${index}`}
+                      position="relative"
                       borderBottom={
-                        hoveredIndex === index
-                          ? "1px solid purple"
-                          : "1px solid rgb(240, 240, 240)"
-                      } // Add bottom border to the expanded comment
+                        expandedCommentIndex === index
+                          ? "none" // No bottom border for the row with expanded comment
+                          : hoveredIndex === index
+                            ? "1.5px solid purple" // Apply purple bottom border when hovered
+                            : "1px solid #e0e0e0" // Default bottom border
+                      }
+                      onMouseEnter={() => setRowHoveredIndex(index)} // When mouse enters, set hovered index
+                      onMouseLeave={() => setRowHoveredIndex(null)}
+                      borderTop="none"
                     >
                       <Td
-                        colSpan={6}
-                        textAlign="left"
-                        py={2}
-                        borderTop="none"
+                        position="relative"
+                        px={0}
+                        pr={4}
                         borderBottom="none"
+                        overflow="visible"
                       >
-                        <Text
-                          fontSize="14px"
-                          fontStyle="italic"
-                          fontWeight="500"
+                        <VStack
+                          position="absolute"
+                          left="-30px"
+                          zIndex="10"
+                          top="50%"
+                          transform="translateY(-60%)"
+                          gap="-4"
+                          opacity={rowHoveredIndex === index ? 1 : 0} // Control visibility based on hover
+                          transition="opacity 0.3s ease" // Smooth transition for opacity change
                         >
-                          {comment.comment || "No comment available"}
+                          <IconButton
+                            aria-label="Plus Icon"
+                            icon={
+                              <Box
+                                w="20px"
+                                h="20px"
+                                bgImage={`url(${plusIcon})`}
+                                bgSize="contain"
+                                bgRepeat="no-repeat"
+                                bgPos="center"
+                                zIndex="11"
+                              />
+                            }
+                            colorScheme="purple"
+                            size="xs"
+                            borderRadius="full"
+                            onMouseEnter={() => setHoveredIndex(index)} // When mouse enters, set hovered index
+                            onMouseLeave={() => setHoveredIndex(null)} // When mouse leaves, reset hovered index
+                            onClick={() => {
+                              const newComment = {
+                                adjustmentType: "paid",
+                                adjustmentValue: "5",
+                                bookingId: 955,
+                                comment: "ADDED COMMENT (ALL DUMMY VALUES)",
+                                datetime: "2025-02-01T23:15:25.877Z",
+                                invoiceId: 22,
+                                userId: 48,
+                              };
+
+                              handleCommentsChange([
+                                ...commentsState,
+                                newComment,
+                              ]);
+                            }}
+                          />
+                          <IconButton
+                            icon={
+                              <Box
+                                w="60px" // Customize size of the icon
+                                h="60px" // Customize size of the icon
+                                bgImage={`url(${commentsIcon})`}
+                                bgSize="contain"
+                                bgRepeat="no-repeat"
+                                bgPos="center"
+                              />
+                            }
+                            variant="unstyled" // No surrounding button appearance
+                            size="xs" // Optional: Adjust this based on the overall size
+                            p={0} // Remove padding around the icon
+                            isRound // Makes the button round (optional)
+                            aria-label="Icon only" // Ensures accessibility
+                            onClick={() => handleCommentToggle(index)} // Toggle comment visibility
+                          />
+                        </VStack>
+                        <Text
+                          width="100px"
+                          fontSize="14px"
+                          ml="6"
+                        >
+                          {format(new Date(comment.datetime), "M/d/yy")}
                         </Text>
                       </Td>
-                    </Tr>
-                  ),
-                ])
-                .flat()
-            ) : (
+                      <Td
+                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                        borderBottom="none"
+                      >
+                        <Text fontSize="14px">
+                          {room && room.length > 0 ? `${room[0].name}` : "N/A"}
+                        </Text>
+                      </Td>
+                      {/* Rest of the row content remains the same */}
+                      <Td
+                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                        borderBottom="none"
+                      >
+                        <Flex
+                          align="center"
+                          justifyContent="space-evenly"
+                          gap="2"
+                        >
+                          <Text
+                            w="85px"
+                            px="2"
+                            textAlign="center"
+                            fontSize="14px"
+                          >
+                            {booking.startTime
+                              ? (() => {
+                                  const startTime = booking.startTime
+                                    .split("-")[0]
+                                    .substring(0, 5);
+                                  const formatTime = (timeStr) => {
+                                    const [hours, minutes] = timeStr
+                                      .split(":")
+                                      .map(Number);
+                                    const period = hours >= 12 ? "pm" : "am";
+                                    const hour12 = hours % 12 || 12;
+                                    return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                  };
+
+                                  return `${formatTime(startTime)}`;
+                                })()
+                              : "N/A"}
+                          </Text>
+                          <Text fontSize="14px">to</Text>
+                          <Text
+                            w="85px"
+                            px="2"
+                            fontSize="14px"
+                            textAlign="center"
+                          >
+                            {booking.endTime
+                              ? (() => {
+                                  const endTime = booking.endTime
+                                    .split("-")[0]
+                                    .substring(0, 5);
+                                  const formatTime = (timeStr) => {
+                                    const [hours, minutes] = timeStr
+                                      .split(":")
+                                      .map(Number);
+                                    const period = hours >= 12 ? "pm" : "am";
+                                    const hour12 = hours % 12 || 12;
+                                    return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                  };
+
+                                  return `${formatTime(endTime)}`;
+                                })()
+                              : "N/A"}
+                          </Text>
+                        </Flex>
+                      </Td>
+                      <Td
+                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                        borderBottom="none"
+                      >
+                        <Flex
+                          align="center"
+                          gap="1"
+                        >
+                          <Text
+                            fontSize="14"
+                            w="95px"
+                          >
+                            {room && room.length > 0
+                              ? `$${room[0].rate}`
+                              : "N/A"}
+                          </Text>
+                          <Text fontSize="14px">/hr</Text>
+                        </Flex>
+                      </Td>
+                      <Td
+                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                        borderBottom="none"
+                      >
+                        <RadioDropdown
+                          index={index}
+                          onSelectionChange={(value) => {
+                            handleAdjustmentChange(index, value);
+                          }}
+                          commentsState={commentsState}
+                          setComments={setComments}
+                        />
+                      </Td>
+                      <Td
+                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                        textAlign="center"
+                        borderBottom="none"
+                      >
+                        <Flex
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="2"
+                        >
+                          <Text fontSize="14px">$</Text>
+                          <Input
+                            w="85px"
+                            px="2"
+                            textAlign="center"
+                            fontSize="14px"
+                            value={
+                              inputValues[index] ||
+                              sessionTotals[index]?.toFixed(2) ||
+                              "0.00"
+                            } // Use local state value
+                            onChange={(e) => {
+                              setInputValues((prev) => {
+                                const newValues = [...prev];
+                                newValues[index] = e.target.value; // Update local state
+                                return newValues;
+                              });
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleSessionTotalChange(
+                                  index,
+                                  inputValues[index]
+                                ); // Call function on Enter
+                              }
+                            }}
+                          />
+                        </Flex>
+                      </Td>
+                    </Tr>,
+                    expandedCommentIndex === index && (
+                      <Tr
+                        key={`comment-text-expanded-${comment.id || "unknown"}-${index}`}
+                        borderBottom={
+                          hoveredIndex === index
+                            ? "1px solid purple"
+                            : "1px solid rgb(240, 240, 240)"
+                        } // Add bottom border to the expanded comment
+                      >
+                        <Td
+                          colSpan={6}
+                          textAlign="left"
+                          py={2}
+                          borderTop="none"
+                          borderBottom="none"
+                        >
+                          <Text
+                            fontSize="14px"
+                            fontStyle="italic"
+                            fontWeight="500"
+                          >
+                            {comment.comment || "No comment available"}
+                          </Text>
+                        </Td>
+                      </Tr>
+                    ),
+                  ])
+                  .flat()
+              ) : (
+                <Tr>
+                  <Td
+                    colSpan={7}
+                    textAlign="center"
+                  >
+                    No comments available.
+                  </Td>
+                </Tr>
+              )}
+
               <Tr>
                 <Td
-                  colSpan={7}
-                  textAlign="center"
+                  py="8"
+                  textAlign="right"
+                  colSpan={5}
+                  fontSize="16px"
                 >
-                  No comments available.
+                  <Text fontWeight="bold">Subtotal</Text>
+                </Td>
+                <Td
+                  fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                  py="8"
+                  textAlign="right"
+                >
+                  <Text textAlign="center">{`$ ${newSubtotalValue?.toFixed(2)}`}</Text>
                 </Td>
               </Tr>
-            )}
-
-            <Tr>
-              <Td
-                py="8"
-                textAlign="right"
-                colSpan={5}
-                fontSize="16px"
-              >
-                <Text fontWeight="bold">Subtotal</Text>
-              </Td>
-              <Td
-                fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                py="8"
-                textAlign="right"
-              >
-                <Text textAlign="center">{`$ ${newSubtotalValue?.toFixed(2)}`}</Text>
-              </Td>
-            </Tr>
-          </Tbody>
-        </Table>
+            </Tbody>
+          </Table>
         </Box>
       </Flex>
     </Flex>
   );
 };
 
-const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange, room, setRoom }) => {
+const InvoiceSummary = ({
+  pastDue,
+  subtotal,
+  onSubtotalChange,
+  room,
+  setRoom,
+}) => {
   const pastDueValue = pastDue;
   const [subtotalValue, setSubtotalValue] = useState(subtotal);
-  const [pendingSubtotalValue, setPendingSubtotalValue] = useState(subtotal.toFixed(2));
+  const [pendingSubtotalValue, setPendingSubtotalValue] = useState(
+    subtotal.toFixed(2)
+  );
   const [adjustmentType, setAdjustmentType] = useState("");
-
 
   useEffect(() => {
     setSubtotalValue(subtotal);
     setPendingSubtotalValue(subtotal.toFixed(2));
   }, [subtotal]);
 
-
   const totalAmountDue = pastDueValue + subtotalValue;
 
   const handleSubtotalChange = (e) => {
     setPendingSubtotalValue(e.target.value);
   };
-  
+
   const handleSubtotalSubmit = (e) => {
     if (e.key === "Enter") {
       const value = parseFloat(pendingSubtotalValue);
@@ -771,13 +793,7 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange, room, setRoom }) 
                 >
                   Past Due Balance
                 </Td>
-                <Td border="none">
-                  <RadioDropdown
-                    onSelectionChange={(value) =>
-                      handleAdjustmentChange(index, value)
-                    }
-                  />
-                </Td>
+                <Td border={"none"}></Td>
                 <Td border="none">
                   <Flex
                     alignItems="center"
@@ -787,15 +803,8 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange, room, setRoom }) 
                       mr={1}
                       fontSize="14px"
                     >
-                      $
+                      ${pastDueValue.toFixed(2)}
                     </Text>
-                    <Input
-                      textAlign="center"
-                      p="0"
-                      fontSize="14px"
-                      value={pastDueValue.toFixed(2)}
-                      width={`${pastDueValue.toFixed(2).length + 1}ch`}
-                    />
                   </Flex>
                 </Td>
               </Tr>
@@ -816,8 +825,8 @@ const InvoiceSummary = ({ pastDue, subtotal, onSubtotalChange, room, setRoom }) 
                 <Td fontSize="14px">Current Statement Subtotal</Td>
                 <Td>
                   <RadioDropdownSummary
-                      adjustmentType={adjustmentType}
-                      setAdjustmentType={setAdjustmentType}
+                    adjustmentType={adjustmentType}
+                    setAdjustmentType={setAdjustmentType}
                   />
                 </Td>
                 <Td>
@@ -953,7 +962,7 @@ const RadioDropdown = ({
   const [selectedOption, setSelectedOption] = useState("");
   const menuRef = useRef(null);
 
-  const options = [ 
+  const options = [
     { id: "rate_percent", label: "Room fee %" },
     { id: "rate_flat", label: "Room fee $" },
     { id: "total", label: "Manual Calculation" },
@@ -1075,12 +1084,12 @@ const RadioDropdown = ({
   );
 };
 
-const RadioDropdownSummary = ({adjustmentType, setAdjustmentType}) => {
+const RadioDropdownSummary = ({ adjustmentType, setAdjustmentType }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState("");
   const menuRef = useRef(null);
 
-  const options = [ 
+  const options = [
     { id: "rate_percent", label: "Room fee %" },
     { id: "rate_flat", label: "Room fee $" },
     { id: "total", label: "Manual Calculation" },
@@ -1194,4 +1203,3 @@ export {
   FooterDescription,
   RadioDropdown,
 };
-
