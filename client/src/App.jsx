@@ -14,6 +14,7 @@ import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { SingleInvoice } from "./components/invoices/SingleInvoice";
 import { EditInvoice } from "./components/invoices/EditInvoice";
+import { SavedEdit } from "./components/invoices/SavedEditsInvoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
@@ -118,6 +119,10 @@ const App = () => {
                 <Route
                   path="/invoices/edit/:id"
                   element={<ProtectedRoute element={<EditInvoice />} />}
+                />
+                <Route
+                  path="/invoices/savededits/:id"
+                  element={<ProtectedRoute element={<SavedEdit />} />}
                 />
                 <Route
                   path="/programs/:id"
