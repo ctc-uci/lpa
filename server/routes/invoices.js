@@ -10,7 +10,6 @@ invoicesRouter.use(express.json());
 invoicesRouter.get("/", async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    //     console.log("Query params:", startDate, endDate);
 
     if (startDate && endDate) {
       const invoices = await db.any(
@@ -32,28 +31,64 @@ invoicesRouter.get("/", async (req, res) => {
   }
 });
 
+invoicesRouter.get("/notificationCount", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const params = [];
+    let dateFilter = '';
+
+    if (startDate && endDate) {
+      dateFilter = 'AND start_date >= $1 AND end_date <= $2';
+      params.push(startDate, endDate);
+    }
+
+    const query = `
+      SELECT
+          (SELECT COUNT(*) FROM invoices WHERE is_sent = true
+            AND payment_status IN ('partial', 'none')
+            AND end_date < CURRENT_DATE
+            ${dateFilter})
+          +
+          (SELECT COUNT(*) FROM invoices WHERE is_sent = false
+            AND payment_status IN ('partial', 'none')
+            AND end_date < CURRENT_DATE
+            ${dateFilter})
+          +
+          (SELECT COUNT(*) FROM invoices WHERE is_sent = false
+            AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')
+            ${dateFilter}) AS notificationcount
+    `;
+
+    const result = await db.query(query, params);
+
+    res.status(200).json(keysToCamel(result));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 // Get all overdue invoices with optional date range filtering
 invoicesRouter.get("/overdue", async (req, res) => {
   try {
     // const { startDate, endDate } = req.query;
-    
+
     // Base query for overdue invoices
     const query = `
-      SELECT * FROM invoices 
-      WHERE is_sent = true 
-      AND payment_status IN ('partial', 'none') 
+      SELECT * FROM invoices
+      WHERE is_sent = true
+      AND payment_status IN ('partial', 'none')
       AND end_date < CURRENT_DATE`;
 
     const params = [];
-    
+
     // // Add date range filtering if both dates are provided
     // if (startDate && endDate) {
     //   query = `
-    //     SELECT * FROM invoices 
-    //     WHERE is_sent = false 
-    //     AND payment_status IN ('partial', 'none') 
+    //     SELECT * FROM invoices
+    //     WHERE is_sent = false
+    //     AND payment_status IN ('partial', 'none')
     //     AND end_date < CURRENT_DATE
-    //     AND start_date >= $1 
+    //     AND start_date >= $1
     //     AND end_date <= $2`;
     //   params.push(startDate, endDate);
     // }
@@ -68,14 +103,14 @@ invoicesRouter.get("/overdue", async (req, res) => {
 invoicesRouter.get("/highpriority", async (req, res) => {
   try {
     // const { startDate, endDate } = req.query;
-    
+
     // Base query for overdue invoices
     const query = `
-      SELECT * FROM invoices 
-      WHERE is_sent = false 
-      AND payment_status IN ('partial', 'none') 
+      SELECT * FROM invoices
+      WHERE is_sent = false
+      AND payment_status IN ('partial', 'none')
       AND end_date < CURRENT_DATE`;
-    
+
     const highPriorityInvoices = await db.query(query);
     res.status(200).json(keysToCamel(highPriorityInvoices));
   } catch (err) {
@@ -294,8 +329,7 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-
-invoicesRouter.get("/total/:id", async (req, res) => {
+/*invoicesRouter.get("/total/:id", async (req, res) => {
   try {
     const { id } = req.params; //invoice id
 
@@ -375,6 +409,107 @@ invoicesRouter.get("/total/:id", async (req, res) => {
 
     totalComments.map((comment) => {
       totalCost += Number(comment.adjustment_value);
+    });
+
+    const result = {
+      total: totalCost,
+    };
+
+    res.status(200).json(keysToCamel(result));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});*/
+invoicesRouter.get("/total/:id", async (req, res) => {
+  try {
+    const { id } = req.params; //invoice id
+
+    const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [
+      id,
+    ]);
+    const invoice = invoiceRes[0];
+
+    // Use the event_id from the invoice record.
+    const eventRes = await db.query("SELECT * FROM events WHERE id = $1", [
+      invoice.event_id,
+    ]);
+    const event = eventRes[0];
+
+    const comments = await db.query(
+      "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id IS NULL"
+    );
+
+    const bookings = await db.query(
+      "SELECT * FROM bookings WHERE event_id = $1 AND date BETWEEN $2 AND $3",
+      [event.id, invoice.start_date, invoice.end_date]
+    );
+
+    const totalAdjustments = await db.query(
+      "SELECT * FROM comments WHERE adjustment_type = 'total'"
+    );
+
+    const bookingCosts = await Promise.all(
+      bookings.map(async (booking) => {
+        const roomRateBooking = await db.query(
+          "SELECT rooms.name, rooms.rate FROM rooms JOIN bookings ON rooms.id = bookings.room_id WHERE bookings.id = $1",
+          [booking.id]
+        );
+
+        if (!roomRateBooking.length) return 0; // if room not found, cost is 0
+
+        let totalRate = Number(roomRateBooking[0].rate);
+
+        comments.forEach((adj) => {
+          if (adj.adjustment_type === "rate_percent") {
+            totalRate *= 1 + Number(adj.adjustment_value) / 100;
+          } else if (adj.adjustment_type === "rate_flat") {
+            totalRate += Number(adj.adjustment_value);
+          }
+        });
+
+        const commentsBooking = await db.query(
+          "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id = $1",
+          [booking.id]
+        );
+
+        commentsBooking.forEach((adj) => {
+          if (adj.adjustment_type === "rate_percent") {
+            totalRate *= 1 + Number(adj.adjustment_value) / 100;
+          } else if (adj.adjustment_type === "rate_flat") {
+            totalRate += Number(adj.adjustment_value);
+          }
+        });
+
+        // Calculate booking duration in hours.
+        const startTime = new Date(
+          `1970-01-01T${booking.start_time.substring(0, booking.start_time.length - 3)}Z`
+        );
+        const endTime = new Date(
+          `1970-01-01T${booking.end_time.substring(0, booking.start_time.length - 3)}Z`
+        );
+        const durationHours = (endTime - startTime) / (1000 * 60 * 60);
+
+        // Calculate booking cost.
+        let bookingCost = totalRate * durationHours;
+
+        // Apply 'total' adjustments specific to this booking
+        totalAdjustments.forEach((comment) => {
+          if (comment.booking_id === booking.id) {
+            bookingCost += Number(comment.adjustment_value);
+          }
+        });
+        
+        return bookingCost;
+      })
+    );
+
+    let totalCost = bookingCosts.reduce((acc, cost) => acc + cost, 0);
+
+    // Apply 'total' adjustments that do not have a booking_id (global adjustments)
+    totalAdjustments.forEach((comment) => {
+      if (!comment.booking_id) {
+        totalCost += Number(comment.adjustment_value);
+      }
     });
 
     const result = {

@@ -1,41 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import './EditProgram.css';
 
 import {
-  Box,
   Button,
-  Flex,
-  FormControl,
-  FormLabel,
   Icon,
-  IconButton,
-  Input,
-  Select,
-  Textarea,
-  Tag,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverBody,
 } from "@chakra-ui/react";
 
-
-import {CancelIcon} from '../../assets/CancelIcon';
-import {RepeatIcon} from '../../assets/RepeatIcon';
-import {ClockFilledIcon} from '../../assets/ClockFilledIcon';
-import {CalendarIcon} from '../../assets/CalendarIcon';
-import {PlusFilledIcon} from '../../assets/PlusFilledIcon';
-import {CloseFilledIcon} from '../../assets/CloseFilledIcon';
-import {EmailIcon} from '../../assets/EmailIcon';
-import {LocationIcon} from '../../assets/LocationIcon';
-import {DollarIcon} from '../../assets/DollarIcon';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useNavigate } from 'react-router-dom';
 import { IoCloseOutline } from "react-icons/io5";
-import { CiCircleMore } from "react-icons/ci";
 import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
+
+import { TitleInformation } from "./programComponents/TitleInformation";
+import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
+import { PayeesDropdown } from "./programComponents/PayeesDropdown"
+import { LocationDropdown } from "./programComponents/LocationDropdown"
+import { RoomInformation } from "./programComponents/RoomInformation"
+import { ProgramInformation } from "./programComponents/ProgramInformation"
+import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown"
+import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { DateInputs } from "./programComponents/DateInputs";
+import { TimeInputs } from "./programComponents/TimeInputs";
 
 
 export const EditProgram = () => {
@@ -48,12 +35,15 @@ export const EditProgram = () => {
   const [locationRate, setLocationRate] = useState("--.--");
   const [roomDescription, setRoomDescription] = useState("N/A");
   const [eventName, setEventName] = useState("");
-  const [eventArchived, setEventArchived] = useState("");
+  const [eventArchived, setEventArchived] = useState(false);
   const [searchedInstructors, setSearchedInstructors] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [searchedPayees, setSearchedPayees] = useState([]);
   const [selectedPayees, setSelectedPayees] = useState([]);
   const [generalInformation, setGeneralInformation] = useState("");
+  const [repeatType, setRepeatType] = useState("Does not repeat");
+  const [repeatInterval, setRepeatInterval] = useState(1);
+  const [customRepeatType, setCustomRepeatType] = useState("Week");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -79,9 +69,22 @@ export const EditProgram = () => {
     getPayeeResults(payeeSearchTerm);
   }, [selectedPayees, payeeSearchTerm]);
 
+  useEffect(() => {
+    console.log("Selected location ID updated:", selectedLocationId);
+}, [selectedLocationId]);
 
   const exit = () => {
     navigate('/programs/' + id);
+  };
+
+  const isFormValid = () => {
+    return (
+      eventName.trim() !== "" &&
+      startDate && endDate &&
+      selectedLocationId !== "" &&
+      selectedInstructors.length > 0 &&
+      selectedPayees.length > 0
+    );
   };
 
   const getInitialEventData = async () => {
@@ -141,22 +144,108 @@ const payees = eventClientResponse.data
     }
   };
 
-  const getDatesForDays = (startDate, endDate, selectedDays) => {
-    const daysMap = { 'Su': 0, 'M': 1, 'Tu': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 6 };
-    const daysIndices = selectedDays.map((day) => daysMap[day]);
 
+  const getDatesForDays = (startDate, endDate, selectedDays, repeatInterval, customRepeatInterval, customRepeatType) => {
+    console.log("in getDatesForDays", startDate, endDate, selectedDays, repeatInterval, customRepeatInterval, customRepeatType)
+    const dayMap = {
+      "Sun": 0,
+      "Mon": 1,
+      "Tue": 2,
+      "Wed": 3,
+      "Thu": 4,
+      "Fri": 5,
+      "Sat": 6,
+    };
+    const selectedDayNumbers = Object.keys(selectedDays).map((day) => dayMap[day]);
+
+    const start = new Date(startDate + "T00:00:00"); // Add time to avoid UTC conversion
+    const end = new Date(endDate + "T23:59:59");
     const dates = [];
-    const currentDate = new Date(startDate);
-    const lastDate = new Date(endDate);
 
-    while (currentDate <= lastDate) {
-      if (daysIndices.includes(currentDate.getUTCDay())) {
-        dates.push(new Date(currentDate).toISOString().split("T")[0]);
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
+
+    // add x days to a date
+    const addDays = (date, days) => {
+      const newDate = new Date(date);
+      newDate.setDate(newDate.getDate() + days);
+      return newDate;
+    };
+
+    // add x months to a date
+    const addMonths = (date, months) => {
+      const newDate = new Date(date);
+      newDate.setMonth(newDate.getMonth() + months);
+      return newDate;
+    };
+
+    // add x years to a date
+    const addYears = (date, years) => {
+      const newDate = new Date(date);
+      newDate.setFullYear(newDate.getFullYear() + years);
+      return newDate;
+    };
+
+    let step = 1;
+    let addFunction = addDays;
+
+    switch (repeatInterval) {
+      case "Every week":
+        step = 7;
+        break;
+      case "Every month":
+        addFunction = addMonths;
+        break;
+      case "Every year":
+        addFunction = addYears;
+        break;
+      case "Custom":
+        step = customRepeatInterval;
+        switch (customRepeatType) {
+          case "Week":
+            step *= 7; // (ie. step is 2 * 7 (14 days) when n = 2)
+            break;
+          case "Month":
+            addFunction = addMonths;
+            break;
+          case "Year":
+            addFunction = addYears;
+            break;
+          default:
+            throw new Error("Invalid customRepeatType");
+        }
+        break;
+      default:
+        throw new Error("Invalid repeatInterval");
     }
-    return dates;
+
+    // iterate through the date range
+    let currentDate = start;
+    while (currentDate <= end) {
+      // check for each selected day and add the matching ones
+      selectedDayNumbers.forEach(dayNum => {
+        // Find the closest matching day in the current week
+        const daysUntilNext = (dayNum - currentDate.getDay() + 7) % 7;
+        const nextMatchingDay = addDays(currentDate, daysUntilNext);
+
+        if (nextMatchingDay <= end && selectedDays[Object.keys(dayMap)[dayNum]].start) {
+          // add the date and its start/end time to the result
+          dates.push({
+            date: new Date(nextMatchingDay),
+            startTime: selectedDays[Object.keys(dayMap)[dayNum]].start,
+            endTime: selectedDays[Object.keys(dayMap)[dayNum]].end,
+          });
+        }
+      });
+
+      // move to the next date based on the repeat logic
+      currentDate = addFunction(currentDate, step);
+    }
+
+    console.log(dates)
+
+    return dates
   };
+
+
 
   const getInstructorResults = async (search) => {
     try {
@@ -234,7 +323,8 @@ const payees = eventClientResponse.data
 
   const deleteAllEventBookings = async () => {
     try {
-      await backend.delete('/bookings/byEvent/' + id);
+      await backend.delete('/bookings/event/' + id);
+      console.log(`Deleted bookings for event ${id}`);
     } catch (error) {
       if (error.response?.status === 404) {
         console.log(`No bookings found for event ${id}`);
@@ -261,7 +351,15 @@ const payees = eventClientResponse.data
   };
 
   const saveEvent = async () => {
+
+
     try {
+      console.log("Newly added event name:", eventName);
+      console.log("Newly added Description:", generalInformation);
+      console.log("Newly added Location ID:", selectedLocationId);
+      console.log("Newly added Selected Instructors:", selectedInstructors);
+      console.log("Newly added Selected Payees:", selectedPayees);
+
       await backend.put('/events/' + id, {
           name: eventName,
           description: generalInformation,
@@ -272,21 +370,65 @@ const payees = eventClientResponse.data
       deleteAllEventBookings();
       deleteAllAssignments();
 
-      const dates = getDatesForDays(startDate, endDate, selectedDays);
-      for (const date of dates) {
+      console.log("Newly added Start Date:", startDate);
+      console.log("Newly added End Date:", endDate);
+      console.log("Newly added Selected Days:", selectedDays);
+
+      let dates;
+      if (repeatType !== "Does not repeat") {
+        dates = getDatesForDays(startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType);
+        for (const date of dates) {
+          console.log(date)
+          const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
+          const dayOfWeek = daysMap[(new Date(date.date).getDay())]; // get which day of the week it is during the date
+
+          const start = selectedDays[dayOfWeek].start
+          const end = selectedDays[dayOfWeek].end
+
+          // make object
+          const bookingsData = {
+            event_id: id,
+            room_id: selectedLocationId,
+            start_time: start,
+            end_time: end,
+            date: date.date,
+            archived: eventArchived,
+          };
+
+          console.log("Saving event with location ID:", selectedLocationId, "for date:", date, "with times:", start, "-", end);
+          await backend.post('/bookings', bookingsData);
+        }
+
+
+      }
+      else {
+        const date = { date: new Date(startDate), start: startTime, end: endTime };
+        console.log(date)
+
+        const start = date.start
+        const end = date.end
+
+        // make object
         const bookingsData = {
           event_id: id,
           room_id: selectedLocationId,
-          start_time: startTime,
-          end_time: endTime,
-          date: date,
+          start_time: start,
+          end_time: end,
+          date: date.date,
           archived: eventArchived,
         };
 
+        console.log("Saving event with location ID:", selectedLocationId, "for date:", date, "with times:", start, "-", end);
         await backend.post('/bookings', bookingsData);
       }
 
+      console.log("Newly added bookings for dates:", dates);
+
+
+
+      console.log("Assigning instructors...");
       for (const instructor of selectedInstructors) {
+        console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
             eventId: id,
             clientId: instructor.id,
@@ -294,270 +436,122 @@ const payees = eventClientResponse.data
         });
       }
 
+
       for (const payee of selectedPayees) {
+        console.log("Assigning payee:", payee);
         await backend.post("/assignments", {
             eventId: id,
             clientId: payee.id,
             role: "payee"
         });
       }
+      console.log("Save complete, navigating away...");
       exit();
 
     } catch (error) {
-        console.error("Error getting instructors:", error);
+        console.error("Error updating sessions", error);
     }
   };
 
+
   return (
+
     <Navbar>
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
           <div id="eventInfoBody">
             <div id="title">
-              <h1><b>{eventName}</b></h1>
+
+              <TitleInformation
+                eventName={eventName}
+                setEventName={setEventName}
+              />
+
               <div id = "saveCancel">
-                <Button id="save" onClick={saveEvent}>Save</Button>
-                <Popover id="popTrigger">
-                  <PopoverTrigger asChild>
-                    <Icon boxSize="5"><CiCircleMore/></Icon>
-                  </PopoverTrigger>
-                    <PopoverContent style={{width:"100%"}}>
-                      <PopoverBody onClick={exit}>
-                        <div id="cancelBody">
-                          <Icon fontSize="1xl"><CancelIcon id="cancelIcon"/></Icon>
-                          <p id="cancel">Cancel</p>
-                        </div>
-                      </PopoverBody>
-                    </PopoverContent>
-                </Popover>
+                <Button
+                  id="save"
+                  onClick={saveEvent}
+                  isDisabled={!isFormValid()}
+                  backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
+                  _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
+                >
+                  Save
+
+                </Button>
               </div>
             </div>
             <div id="innerBody">
-              <div id="dateTimeDiv" style={{fontSize:"1rem"}}>
-                <div>
-                  <Icon boxSize={6} fontSize="sm"><ClockFilledIcon/></Icon>
-                  <Input id = "time1" placeholder="00:00 am" type='time' variant="outline" size="md" value={startTime} onChange={(event) => setStartTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-                </div>
-                to
-                <div>
-                  <Icon boxSize={6} fontSize="lg"><ClockFilledIcon/></Icon>
-                  <Input id = "time2" placeholder="00:00 pm" type='time' variant="outline" size="md" value={endTime} onChange={(event) => setEndTime(event.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-                </div>
-                from
-                <div>
-                  <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
-                  <Input id = "date1" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={startDate} onChange={(e) => setStartDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-                </div>
-                to
-                <div>
-                  <Icon boxSize={6} fontSize="lg"><CalendarIcon /></Icon>
-                  <Input id = "date2" placeholder="Day. MM/DD/YYYY" type='date' variant="outline" size="md" value={endDate} onChange={(e) => setEndDate(e.target.value)} backgroundColor="#F6F6F6" color="#767778"/>
-                </div>
-              </div>
 
-              <div id="repeatDiv">
-                <Icon fontSize="100%"><RepeatIcon /></Icon>
-                <FormLabel style={{margin:"0", fontSize:"1rem", color:"#474849"}}>Repeats</FormLabel>
-                <FormControl >
-                  <Flex id="repeatContainer">
-                    {["Su", "M", "Tu", "W", "Th", "F", "S"].map((day) => (
-                      <IconButton
-                        key={day}
-                        isRound={true}
-                        variant={selectedDays.includes(day) ? "solid" : "outline"}
-                        aria-label={`Toggle ${day}`}
-                        fontSize="20px"
-                        backgroundColor={selectedDays.includes(day) ? "#D2D2D2" : "#F6F6F6"}
-                        icon={<Box as="span" color="#767778">{day}</Box>}
-                        value={day}
-                        onClick={() => {
-                          if (selectedDays.includes(day)) {
-                            setSelectedDays(selectedDays.filter((d) => d !== day));
-                          } else {
-                            setSelectedDays([...selectedDays, day]);
-                          }
-                        }}
-                      />
-                    ))}
-                  </Flex>
-                </FormControl>
-              </div>
 
-              <div id="instructorContainer">
-                <div id="instructors">
-                  <div id="instructorSelection">
-                    <Box>
-                      <div id="instructorInputContainer">
-                        <Input
-                          placeholder="Instructor..."
-                          onChange={(e) => {
-                            getInstructorResults(e.target.value);
-                            setInstructorSearchTerm(e.target.value);
-                          }}
-                          value={instructorSearchTerm} id="instructorInput"/>
-                        <PlusFilledIcon />
-                      </div>
+              <ReoccuranceDropdown
+                setSelectedDays={setSelectedDays}
+                repeatType={repeatType}
+                setRepeatType={setRepeatType}
+                repeatInterval={repeatInterval}
+                setRepeatInterval={setRepeatInterval}
+                customRepeatType={customRepeatType}
+                setCustomRepeatType={setCustomRepeatType}
+              />
 
-                      {searchedInstructors.length > 0 && (
-                        <Box id="instructorDropdown">
-                          {searchedInstructors.map((instructor) => (
-                            <Box
-                              key={instructor.id}
-                              onClick={() => {
-                                const alreadySelected = selectedInstructors.find(
-                                  (instr) => instr.id.toString() === instructor.id
-                                );
-                                if (instructor && !alreadySelected) {
-                                  setSelectedInstructors((prevItems) => [...prevItems, instructor]);
-                                  const filteredInstructors = searchedInstructors.filter(
-                                    (instr) => instructor.id !== instr.id.toString()
-                                  );
-                                  setSearchedInstructors(filteredInstructors);
-                                }
-                              }}
-                              style={{
-                                padding: "10px",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                transition: "0.2s",
-                              }}
-                              bg="#F6F6F6"
-                              _hover={{ bg: "#D9D9D9" }}
-                            >
-                              {instructor.name}
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
-                    </Box>
-                  </div>
-                </div>
-                <div id="instructorTags">
-                  {selectedInstructors.length > 0 ? (
-                    selectedInstructors.map((instructor, ind) => (
-                      <div className="instructorTag" key={ind}>
-                        <Icon fontSize="lg" onClick={() => {
-                            setSelectedInstructors(prevItems =>
-                              prevItems.filter(item => item.id !== instructor.id));
-                          }}><CloseFilledIcon /></Icon>
-                        <Tag value={instructor.id}>
-                          {instructor.name}
-                        </Tag>
-                      </div>
-                    ))
-                  ) : <div></div> }
-                </div>
-              </div>
+              <TimeInputs
+                selectedDays={selectedDays}
+                setSelectedDays={setSelectedDays}
+                startTime={startTime}
+                endTime={endTime}
+                setStartTime={setStartTime}
+                setEndTime={setEndTime}
+              />
 
-              <div id="payeeContainer">
-                <div id="payees">
-                  <div id="payeeSelection">
-                    <Box>
-                      <div id="payeeInputContainer">
-                        <Input
-                          placeholder="Payee..."
-                          onChange={(e) => {
-                            getPayeeResults(e.target.value);
-                            setPayeeSearchTerm(e.target.value);
-                          }}
-                          value={payeeSearchTerm} id="payeeInput"/>
-                        <PlusFilledIcon />
-                      </div>
+              <DateInputs
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+              />
 
-                      {searchedPayees.length > 0 && (
-                        <Box id="payeeDropdown">
-                          {searchedPayees.map((payee) => (
-                            <Box
-                              key={payee.id}
-                              onClick={() => {
-                                const alreadySelected = selectedPayees.find(
-                                  (pay) => pay.id.toString() === payee.id
-                                );
+              <ArtistsDropdown
+                instructorSearchTerm={instructorSearchTerm}
+                searchedInstructors={searchedInstructors}
+                selectedInstructors={selectedInstructors}
+                setSelectedInstructors={setSelectedInstructors}
+                setSearchedInstructors={setSearchedInstructors}
+                getInstructorResults={getInstructorResults}
+                setInstructorSearchTerm={setInstructorSearchTerm}
+              />
 
-                                if (payee && !alreadySelected) {
-                                  setSelectedPayees((prevItems) => [...prevItems, payee]);
-                                  const filteredPayees = searchedPayees.filter(
-                                    (pay) => payee.id !== pay.id.toString()
-                                  );
-                                  setSearchedPayees(filteredPayees);
-                                }
-                              }}
-                              style={{
-                                padding: "10px",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                transition: "0.2s",
-                              }}
-                              bg="#F6F6F6"
-                              _hover={{ bg: "#D9D9D9" }}
-                            >
-                              {payee.name}
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
-                    </Box>
-                  </div>
-                </div>
-                  <div id="payeeTags">
-                    {selectedPayees.length > 0 ? (
-                      selectedPayees.map((payee, ind) => (
-                        <div className="payeeTag" key={ind}>
-                          <Icon fontSize="lg" onClick={() => {
-                              setSelectedPayees(prevItems =>
-                                prevItems.filter(item => item.id !== payee.id));
-                            }}><CloseFilledIcon /></Icon>
-                          <Tag value={payee.id}>
-                            {payee.name}
-                          </Tag>
-                        </div>
-                      ))
-                    ) : <div></div> }
-                  </div>
-              </div>
+              <PayeesDropdown
+                payeeSearchTerm={payeeSearchTerm}
+                searchedPayees={searchedPayees}
+                selectedPayees={selectedPayees}
+                getPayeeResults={getPayeeResults}
+                setPayeeSearchTerm={setPayeeSearchTerm}
+                setSelectedPayees={setSelectedPayees}
+                setSearchedPayees={setSearchedPayees}
+              />
 
-              <div id="payeeEmails">
-                <EmailIcon />
-                {selectedPayees.map(payee => payee.email).join(", ")}
-              </div>
+              <EmailDropdown
+                selectedPayees={selectedPayees}
+              />
 
-              <div id="location">
-                <LocationIcon />
-                {locations && locations.length > 0 ? (
-                      <Select width="30%" backgroundColor="#F6F6F6"  value={selectedLocationId === "" ? 'DEFAULT' : selectedLocationId}
-                        onChange={(event) => {
-                          const selectedId = parseInt(event.target.value);
-                          const location = locations.find(loc => loc.id === selectedId);
-                          setSelectedLocation(location.name);
-                          setSelectedLocationId(location.id);
-                          setRoomDescription(location.description);
-                          setLocationRate(location.rate);
-                        }}
-                      >
-                      <option value={'DEFAULT'} disabled>Location...</option>
-                        {locations.map((location) => (
-                          <option value={location.id} key={location.id}>
-                            {location.name}
-                          </option>
-                        ))}
-                      </Select>
-                    ) : <div></div>  }
-                <div id="locationRate">
-                  <DollarIcon />
-                  <p>{locationRate} / hour</p>
-                </div>
-              </div>
+              <LocationDropdown
+                locations={locations}
+                locationRate={locationRate}
+                selectedLocationId={selectedLocationId}
+                setSelectedLocation={setSelectedLocation}
+                setSelectedLocationId={setSelectedLocationId}
+                setRoomDescription={setRoomDescription}
+                setLocationRate={setLocationRate}
+              />
 
-              <div id="roomDescription">
-                <h3>Room Description</h3>
-                <p>{roomDescription}</p>
-              </div>
+              <RoomInformation
+                roomDescription={roomDescription}
+              />
 
-              <div id="information">
-                <h3>General Information</h3>
-                <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="#F6F6F6"></Textarea>
-              </div>
+              <ProgramInformation
+                generalInformation={generalInformation}
+                setGeneralInformation={setGeneralInformation}
+              />
             </div>
           </div>
         </div>

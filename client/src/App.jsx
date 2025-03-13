@@ -6,6 +6,8 @@ import {
   BrowserRouter as Router,
   Routes,
 } from "react-router-dom";
+import React, { createContext, useState, useEffect, useContext } from 'react';
+
 
 import { Admin } from "./components/admin/Admin";
 import { CatchAll } from "./components/CatchAll";
@@ -22,7 +24,7 @@ import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
 import { Playground } from "./components/playground/Playground";
-import { EditProgram } from "./components/programs/EditProgram";
+import { ModifyProgram } from "./components/programs/ModifyProgram";
 import { Program } from "./components/programs/Program";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Signup } from "./components/signup/Signup";
@@ -30,12 +32,13 @@ import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
-import { Home } from "./components/home/Home";
 import { EditBooking } from "./components/bookings/EditBooking";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
+import { Home } from  "./components/home/Home";
 import { Settings } from "./components/settings/Settings";
 
 const App = () => {
+
   return (
     <CookiesProvider>
       <BackendProvider>
@@ -94,7 +97,7 @@ const App = () => {
                   element={<Playground />}
                 />
                 <Route
-                  path ="/home"
+                  path ="/programs"
                   element={<ProtectedRoute element={<Home />} />}
                 />
                 <Route
@@ -121,14 +124,17 @@ const App = () => {
                   path="/invoices/savededits/:id"
                   element={<ProtectedRoute element={<SavedEdit />} />}
                 />
-
-                <Route
-                  path="/programs/edit/:id"
-                  element={<ProtectedRoute element={<EditProgram />} />}
-                />
                 <Route
                   path="/programs/:id"
                   element={<ProtectedRoute element={<Program />} />}
+                />
+                <Route
+                  path="/programs/edit/:id"
+                  element={<ProtectedRoute element={<ModifyProgram load={true} />} />}
+                />
+                <Route
+                  path="/addprogram"
+                  element={<ProtectedRoute element={<ModifyProgram load={false} />} />}
                 />
                 <Route
                   path="/settings"
