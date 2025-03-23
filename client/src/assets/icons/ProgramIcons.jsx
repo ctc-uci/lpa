@@ -154,6 +154,10 @@ export const deleteIcon = (props) => {
   )
 };
 
-
-
-
+export const BackIcon = () => {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M11.41 3.41L10 2L4 8L10 14L11.41 12.59L6.83 8L11.41 3.41Z" fill="#2D3748" />
+        </svg>
+    );
+};
