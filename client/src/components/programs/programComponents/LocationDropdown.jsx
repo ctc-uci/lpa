@@ -14,6 +14,10 @@ import {DollarIcon} from '../../../assets/DollarIcon';
 import {LocationIcon} from '../../../assets/LocationIcon';
 import {ArrowDropdown} from '../../../assets/ArrowDropdown';
 
+const formatNumericString = (numericString) => {
+    return !isNaN(numericString) ? parseFloat(numericString).toFixed(2) : numericString;
+}
+
 export const LocationDropdown = ( { locations, locationRate, selectedLocationId, setSelectedLocation, setSelectedLocationId, setRoomDescription, setLocationRate }) => {
   const [selectedLocationName, setSelectedLocationName] = useState("Room");
 
@@ -64,7 +68,7 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
                       setSelectedLocation(location.name);
                       setSelectedLocationId(location.id);
                       setRoomDescription(location.description);
-                      setLocationRate(location.rate);
+                      setLocationRate(formatNumericString(location.rate));
                     }}
                   >
                     <Text margin="10px">{location.name}</Text>
