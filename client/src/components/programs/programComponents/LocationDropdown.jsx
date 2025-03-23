@@ -84,7 +84,7 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
 
       <div id="locationRate">
         <DollarIcon />
-        <p>{locationRate} / hour</p>
+        <p>{formatNumericString(locationRate)} / hour</p>
       </div>
     </div>
   );
