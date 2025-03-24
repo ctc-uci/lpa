@@ -31,8 +31,6 @@ import {
     PopoverContent,
     PopoverTrigger,
     Portal,
-    Spinner,
-    Stack,
     Table,
     TableContainer,
     Tbody,
@@ -40,8 +38,10 @@ import {
     Text,
     Th,
     Thead,
+    Tooltip,
     Tr,
     useDisclosure,
+    useToast,
     Wrap,
     WrapItem,
 } from "@chakra-ui/react";
@@ -64,6 +64,7 @@ import {
     sessionsEllipsis,
     sessionsFilterClock,
     sessionsFilterMapPin,
+    TooltipIcon
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
@@ -87,6 +88,7 @@ export const ArchivedPrograms = () => {
     const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
     const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
     const navigate = useNavigate();
+    const reactivationToast = useToast();
 
     const handleSortChange = (key, order) => {
         setSortKey(key);
@@ -418,21 +420,30 @@ export const ArchivedPrograms = () => {
         }
     };
 
-    const handleDuplicate = async (programId) => {
+    const handleDuplicate = async (programId, programName) => {
         try {
             await duplicateArchivedProgram(programId);
+            navigate(`/programs/edit/${programId}`, { state: { duplicated: true, programName } })
         } catch (error) {
             console.log("Couldn't duplicate program", error);
         }
     };
 
-    const handleReactivate = async (programId) => {
+    const handleReactivate = async (programId, programName) => {
         try {
             await reactivateArchivedProgram(programId);
             // Update local state
             setArchivedProgramSessions((prevSessions) =>
                 prevSessions.filter((session) => session.programId !== programId)
             );
+            reactivationToast({
+                title: "Program Reactivated",
+                description: programName,
+                status: "success",
+                duration: 5000,
+                isClosable: true
+            })
+            navigate("/programs");
         } catch (error) {
             console.log("Couldn't reactivate program", error);
         }
@@ -959,7 +970,10 @@ export const ArchivedPrograms = () => {
                                                             <MenuList>
                                                                 <MenuItem
                                                                     onClick={() =>
-                                                                        handleDuplicate(programSession.programId)
+                                                                        handleDuplicate(
+                                                                            programSession.programId,
+                                                                            programSession.programName
+                                                                        )
                                                                     }
                                                                 >
                                                                     <Box
@@ -970,11 +984,18 @@ export const ArchivedPrograms = () => {
                                                                     >
                                                                         <Icon as={duplicateIcon} />
                                                                         <Text color="#767778">Duplicate</Text>
+                                                                        <Tooltip label="For applying changes to program/session">
+                                                                            <TooltipIcon>
+                                                                            </TooltipIcon>
+                                                                        </Tooltip>
                                                                     </Box>
                                                                 </MenuItem>
                                                                 <MenuItem
                                                                     onClick={() =>
-                                                                        handleReactivate(programSession.programId)
+                                                                        handleReactivate(
+                                                                            programSession.programId,
+                                                                            programSession.programName
+                                                                        )
                                                                     }
                                                                 >
                                                                     <Box
@@ -985,6 +1006,9 @@ export const ArchivedPrograms = () => {
                                                                     >
                                                                         <Icon as={reactivateIcon} />
                                                                         <Text color="#767778">Reactivate</Text>
+                                                                        <Tooltip label="No changes will be applied to program/session">
+                                                                            <TooltipIcon></TooltipIcon>
+                                                                        </Tooltip>
                                                                     </Box>
                                                                 </MenuItem>
                                                                 <MenuItem

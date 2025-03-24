@@ -5,11 +5,12 @@ import {
     Button,
     Icon,
 } from "@chakra-ui/react";
-import { useDisclosure } from "@chakra-ui/react";;
+import { useDisclosure, useToast } from "@chakra-ui/react";;
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { IoCloseOutline } from "react-icons/io5";
 import { useParams } from "react-router";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
@@ -57,6 +58,12 @@ export const EditProgram = () => {
         onOpen: onDeleteConfirmationModalOpen,
         onClose: onDeleteConfirmationModalClose
     } = useDisclosure()
+    const location = useLocation();
+    const navigate = useNavigate();
+    const isDuplicated = location.state?.duplicated || false;
+    const duplicatedProgramName = location.state?.programName || "";
+    const duplicationToast = useToast();
+
 
     useEffect(() => {
         getInitialEventData();
@@ -78,7 +85,7 @@ export const EditProgram = () => {
     }, [selectedLocationId]);
 
     const exit = () => {
-        onDeleteConfirmationModalOpen();
+        navigate("/programs");
     };
 
     const isFormValid = () => {
@@ -355,8 +362,6 @@ export const EditProgram = () => {
     };
 
     const saveEvent = async () => {
-
-
         try {
             console.log("Newly added event name:", eventName);
             console.log("Newly added Description:", generalInformation);
@@ -450,6 +455,16 @@ export const EditProgram = () => {
                 });
             }
             console.log("Save complete, navigating away...");
+            if (isDuplicated) {
+                duplicationToast({
+                    title: "Program Duplicated",
+                    description: duplicatedProgramName,
+                    status: "success",
+                    duration: 5000,
+                    isClosable: true
+                });
+                navigate("/programs");
+            }
             exit();
 
         } catch (error) {
@@ -464,7 +479,7 @@ export const EditProgram = () => {
             <div id="body">
                 <div id="programsBody">
                     <div>
-                        <Icon fontSize="2xl" onClick={exit} id="leftCancel">
+                        <Icon fontSize="2xl" onClick={() => {onDeleteConfirmationModalOpen();}} id="leftCancel">
                             <IoCloseOutline />
                         </Icon>
                         <DeleteConfirmationModal
@@ -495,8 +510,6 @@ export const EditProgram = () => {
                             </div>
                         </div>
                         <div id="innerBody">
-
-
                             <ReoccuranceDropdown
                                 setSelectedDays={setSelectedDays}
                                 repeatType={repeatType}
