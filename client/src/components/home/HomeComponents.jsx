@@ -38,7 +38,7 @@ import {
 import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { ArchiveIcon } from "../../assets/ArchiveIcon";
+// import { ArchiveIcon } from "../../assets/ArchiveIcon";
 // Icon imports - consider using React.memo for these components
 import actionsSvg from "../../assets/icons/actions.svg";
 import activeSvg from "../../assets/icons/active.svg";
@@ -56,6 +56,8 @@ import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
+import { ArchiveIcon } from "../../assets/ArchiveIcon";
+import { CancelProgram } from "./CancelProgramComponent";
 
 import "./Home.css";
 
@@ -129,6 +131,11 @@ const TableRow = React.memo(
     handleEdit,
     handleDeactivate,
     truncateNames,
+    selectedIcon,
+    selectedAction,
+    onOpen,
+    isOpen,
+    onClose
   }) => {
     const rowClass = "programs-table__row--even";
 
@@ -180,7 +187,7 @@ const TableRow = React.memo(
                 icon={<Icon as={CancelIcon} />}
                 onClick={() => handleDeactivate(program.id)}
               >
-                Deactivate
+                Cancel
               </MenuItem>
             </MenuList>
           </Menu>
@@ -288,8 +295,8 @@ export const ProgramsTable = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const toast = useToast();
-  const [selectedAction, setSelectedAction] = useState("Archive");
-  const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
+  // const [selectedAction, setSelectedAction] = useState("Archive");
+  // const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
 
   // Memoize expensive functions
   const formatDate = useCallback((dateString) => {
@@ -529,74 +536,6 @@ export const ProgramsTable = () => {
     [onOpen]
   );
 
-  const handleSelect = useCallback((action, iconSrc) => {
-    setSelectedAction(action);
-    setSelectedIcon(iconSrc);
-  }, []);
-
-  const handleArchive = useCallback(async () => {
-    try {
-      await backend.put(`/events/${programToDelete}`, {
-        archived: true,
-      });
-      setPrograms((prev) => prev.filter((p) => p.id !== programToDelete));
-      onClose();
-      toast({
-        title: "Program archived",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.log("Couldn't archive", error);
-      toast({
-        title: "Archive failed",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  }, [backend, programToDelete, onClose, toast]);
-
-  const handleDelete = useCallback(async () => {
-    try {
-      const response = await backend.delete(`/events/${programToDelete}`);
-      if (response.data.result === "success") {
-        setPrograms((prev) => prev.filter((p) => p.id !== programToDelete));
-        toast({
-          title: "Program deleted",
-          description:
-            "The program and all related records have been successfully deleted.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        throw new Error("Failed to delete program");
-      }
-    } catch (error) {
-      console.error("Failed to delete program:", error);
-      toast({
-        title: "Delete failed",
-        description:
-          error.response?.data?.message ||
-          "An error occurred while deleting the program.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-    onClose();
-  }, [backend, programToDelete, onClose, toast]);
-
-  const handleConfirm = useCallback(async () => {
-    if (selectedAction === "Archive") {
-      await handleArchive();
-    } else if (selectedAction === "Delete") {
-      await handleDelete();
-    }
-  }, [selectedAction, handleArchive, handleDelete]);
-
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
     setSortOrder(order);
@@ -608,6 +547,13 @@ export const ProgramsTable = () => {
 
   return (
     <>
+      <CancelProgram
+        programId={programToDelete}
+        setPrograms={setPrograms}
+        onOpen={onOpen}
+        isOpen={isOpen}
+        onClose={onClose}
+      />
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">
           <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
@@ -656,6 +602,9 @@ export const ProgramsTable = () => {
                     handleEdit={handleEdit}
                     handleDeactivate={handleDeactivate}
                     truncateNames={truncateNames}
+                    onOpen={onOpen}
+                    isOpen={isOpen}
+                    onClose={onClose}
                   />
                 ))
               )}
@@ -663,146 +612,6 @@ export const ProgramsTable = () => {
           </Table>
         </TableContainer>
       </Box>
-
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Deactivate Program?</ModalHeader>
-          <ModalBody>
-            <Alert
-              status="error"
-              borderRadius="md"
-              p={4}
-              display="flex"
-              flexDirection="column"
-            >
-              <Box color="#90080F">
-                <Flex alignitems="center">
-                  <Box
-                    color="#90080F0"
-                    mr={2}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    <Info />
-                  </Box>
-                  <AlertTitle
-                    color="#90080F"
-                    fontSize="md"
-                    fontWeight="500"
-                  >
-                    The deactivation fee deadline for this program is{" "}
-                    <AlertDescription
-                      fontSize="md"
-                      fontWeight="bold"
-                    >
-                      Thu. 1/2/2025.
-                    </AlertDescription>
-                  </AlertTitle>
-                </Flex>
-                <Flex
-                  mt={4}
-                  align="center"
-                  justify="center"
-                  width="100%"
-                >
-                  <Checkbox
-                    fontWeight="500"
-                    sx={{
-                      ".chakra-checkbox__control": {
-                        bg: "white",
-                        border: "#D2D2D2",
-                      },
-                    }}
-                  >
-                    Waive fee
-                  </Checkbox>
-                </Flex>
-              </Box>
-            </Alert>
-            <Box mt={4}>
-              <Text
-                fontWeight="medium"
-                mb={2}
-              >
-                Reason for Deactivation:
-              </Text>
-              <Textarea
-                bg="#F0F1F4"
-                placeholder="..."
-                size="md"
-                borderRadius="md"
-              />
-            </Box>
-            <Box
-              mt={4}
-              display="flex"
-              justifyContent="right"
-            >
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  rightIcon={<ChevronDownIcon />}
-                  bg="#F0F1F4"
-                  variant="outline"
-                  width="50%"
-                  justify="right"
-                >
-                  {selectedIcon} {selectedAction}
-                </MenuButton>
-                <MenuList>
-                  <MenuItem
-                    icon={
-                      <Box
-                        display="inline-flex"
-                        alignItems="center"
-                      >
-                        <Icon
-                          as={ArchiveIcon}
-                          boxSize={4}
-                        />
-                      </Box>
-                    }
-                    onClick={() => handleSelect("Archive", ArchiveIcon)}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    Archive
-                  </MenuItem>
-                  <MenuItem
-                    icon={<DeleteIcon />}
-                    onClick={() => handleSelect("Delete", <DeleteIcon />)}
-                  >
-                    Delete
-                  </MenuItem>
-                </MenuList>
-              </Menu>
-            </Box>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              bg="transparent"
-              onClick={onClose}
-              color="#767778"
-              borderRadius="30px"
-              mr={3}
-            >
-              Exit
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              style={{ backgroundColor: "#90080F" }}
-              colorScheme="white"
-              borderRadius="30px"
-            >
-              Confirm
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </>
   );
 };
