@@ -33,6 +33,7 @@ import { DiscardEmailModal } from "./DiscardEmailModal";
 import { EmailConfirmationModal } from "./EmailConfirmationModal";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useParams } from "react-router-dom";
+import { SendEmailButton } from "./SendEmailButton";
 
 export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const { backend } = useBackendContext();
@@ -45,7 +46,6 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const [ccEmails, setCcEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
   
-
   const btnRef = useRef();
 
   useEffect(() => {
@@ -54,10 +54,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         const payeeEmails = payeesResponse.data.map((payee) => payee.email);
         
-        // Directly add the emails to the set
         setEmails((prevEmails) => {
           const updatedEmails = new Set(prevEmails);
-          payeeEmails.forEach(email => updatedEmails.add(email)); // Add each email to the Set
+          payeeEmails.forEach(email => updatedEmails.add(email));
           return updatedEmails;
         });
       } catch (error) {
@@ -68,12 +67,8 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    console.log(emails);
-  }, [emails])
-
   const handleAddEmail = () => {
-    if (toInput.includes("@") && toInput.includes(".") && !emails.has(toInput)) {
+    if (validateEmail(toInput) && !emails.has(toInput)) {
       setEmails(new Set(emails.add(toInput)));
       setToInput(""); // Clear the input after adding
     }
@@ -86,14 +81,14 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   };
 
   const handleAddCcEmail = () => {
-    if (ccInput.includes("@") && ccInput.includes(".") && !ccEmails.includes(ccInput)) {
+    if (validateEmail(ccInput)&& !ccEmails.includes(ccInput)) {
       setCcEmails((prev) => [...prev, ccInput]);
       setCcInput("");
     }
   };
 
   const handleAddBccEmail = () => {
-    if (bccInput.includes("@") && bccInput.includes(".") && !bccEmails.includes(bccInput)) {
+    if (validateEmail(bccInput) && !bccEmails.includes(bccInput)) {
       setBccEmails((prev) => [...prev, bccInput]);
       setBccInput("");
     }
@@ -111,6 +106,11 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
     }
   };
 
+  const validateEmail = (email) => {
+    const regex = /\S+@\S+\.\S+/;
+    return regex.test(email);
+  };
+
   const message = `Dear John Doe,
 
     This is a friendly reminder regarding your upcoming payment. Please ensure that all the necessary details have been updated in our records for timely processing. If there are any changes or concerns regarding the payment, please don't hesitate to reach out to us.
@@ -124,6 +124,25 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
     La Peña Cultural Center
     3105 Shattuck Ave., Berkeley, CA 94705
     lapena.org`;
+
+    
+    const sendEmail = async () => {
+      for (const email of emails) {
+        try {
+          const response = await backend.post("/email/send", {
+            to: "brendanlieu05@gmail.com",
+            subject: "Invoice",
+            text: message,
+            html: `<p>${message.replace(/\n/g, '<br />')}</p>`
+          });
+    
+          console.log(response.data);
+        } catch (error) {
+          console.error("Error sending email:", error);
+        }
+      }
+    };
+
 
   return (
     <>
@@ -420,8 +439,10 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                   />
                 }
                 bgColor="#4441C8"
+                onClick={sendEmail}
               ></IconButton>
             </Flex>
+            
 
             <DiscardEmailModal />
             <EmailConfirmationModal />
