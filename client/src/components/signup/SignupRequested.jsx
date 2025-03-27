@@ -1,38 +1,39 @@
-import {
-  Box,
-  Button,
-  Divider,
-  Heading,
-  VStack,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Button, Heading, Text, VStack } from "@chakra-ui/react";
 
-import logo from "../../assets/logo/logo.png";
 import { Link } from "react-router-dom";
 
+import logo from "../../assets/logo/logo.png";
+
+import "./SignupRequested.css";
+
 export const SignupRequested = () => {
-    return (
-      <VStack 
-        spacing={4}
-        mt={"44"}
+  return (
+    <VStack
+      spacing={4}
+      className="request-container"
+    >
+      <Box
+        as="img"
+        src={logo}
+        className="logo"
+      />
+      <div className="header-container">
+        <Heading className="request-heading">Account Request Sent!</Heading>
+        <Text className="account-info-text">
+          Your account is waiting approval.
+        </Text>
+        <Text className="contact-text">
+          For questions, please contact rocio@lapena.org
+        </Text>
+      </div>
+      <Button
+        as={Link}
+        to="/login"
+        className="back-button"
+        mt="20px"
       >
-        <Box as="img" src={logo} height="150px" width="280px" />
-        <Heading fontSize="40px" fontFamily="'Inter', sans-serif" color={"#4E4AE7"}>Request Sent!</Heading>
-        <Divider h={"2px"} opacity="1" borderColor={"#4E4AE7"} w="25%"/>
-        <Text fontColor="#474849" fontFamily="'Inter', sans-serif">Your account is waiting approval.</Text>
-        <Text fontColor="#474849" fontFamily="'Inter', sans-serif">For questions, please contact La Peña admin at rocio@lapena.org</Text>
-        <Button 
-            as={Link} 
-            to="/login" 
-            width={"200px"}
-            mt={"20px"}
-            fontFamily="'Inter', sans-serif"
-            borderRadius={"20px"}
-            bg={"#4E4AE7"}
-            textColor={"white"}
-        > 
-            Back to Login
-        </Button>
-      </VStack>
-    );
-  };
+        Back to Login
+      </Button>
+    </VStack>
+  );
+};

@@ -1,174 +1,188 @@
 import { useState } from "react";
 
 import {
-    Box,
-    Button,
-    Divider,
-    FormControl,
-    FormErrorMessage,
-    Heading,
-    HStack,
-    Input,
-    InputGroup,
-    InputLeftElement,
-    InputRightElement,
-    VStack,
-    Text,
-  } from "@chakra-ui/react";
-  
-import logo from "../../assets/logo/logo.png";
-import programSvg from "../../assets/icons/program.svg";
-import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
-import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+  Box,
+  Button,
+  Link as ChakraLink,
+  FormControl,
+  FormErrorMessage,
+  Heading,
+  HStack,
+  Icon,
+  Input,
+  Stack,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { AiFillEye, AiFillLock, AiFillMail } from "react-icons/ai";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
+import logo from "../../assets/logo/logo.png";
 
-const setNewPasswordSchema = z.object({
-    password: z.string().min(6, "Password must be at least 6 characters long"),
-    confirmPassword: z.string().min(6, "Confirm Password must be at least 6 characters long"),
-})
-    .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
+import "../signup/Signup.css";
+
+const resetPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
 export const ResetPassword = () => {
-    const {
-      register,
-      watch,
-      handleSubmit,
-      formState: { errors },
-    } = useForm({
-      resolver: zodResolver(setNewPasswordSchema),
-      mode: "onBlur", 
-    });
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(resetPasswordSchema),
+    mode: "onBlur",
+  });
 
-    const password = watch("password", "");
-    const confirmPassword = watch("confirmPassword", "");
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-    const onSubmit = (data) => {
-        // Functionality will be added later
-        console.log("New password set:", data);
-    };
-  
-    return (
-        <VStack 
-            spacing={5}
-            sx={{ width: 550, marginX: "auto", mt:"44"}}
-        >
-            <Box as="img" src={logo} height="150px" width="280px" />
-            <Heading fontSize="40px" color={"#4E4AE7"}>Set New Password</Heading>
-            <Divider h={"2px"}opacity="1" borderColor={"#4E4AE7"}/>
-            <Text fontSize="20px" fontColor="#474849">Enter a new password for your account</Text>
+  const onSubmit = (data) => {
+    // Reset password functionality can be added here.
+    console.log("Reset password data:", data);
+    navigate("/resetpassword/success");
+  };
 
-            <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
+  return (
+    <VStack
+      spacing={5}
+      className="signup-container"
+    >
+      <Box
+        as="img"
+        src={logo}
+        className="logo"
+      />
+      <div className="header-container">
+        <Heading className="create-account-heading">Set New Password</Heading>
+        <Text className="account-info-text">
+          Please enter a new password for your account.
+        </Text>
+      </div>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="signup-form"
+      >
+        <Stack spacing={2}>
+          <div className="fields-container">
+            {/* Email Field */}
+            <FormControl
+              isInvalid={!!errors.email}
+              className="form-field-container"
+            >
+              <label
+                htmlFor="email"
+                className="form-label"
+              >
+                Email
+              </label>
+              <div className="input-outer">
+                <div className="input-icon-container">
+                  <Icon
+                    as={AiFillMail}
+                    boxSize="22px"
+                    color="#718096"
+                  />
+                </div>
+                <div className="input-text-container">
+                  <Input
+                    id="email"
+                    placeholder="Your email"
+                    type="text"
+                    variant="unstyled"
+                    className="input-text"
+                    {...register("email")}
+                    isRequired
+                    autoComplete="email"
+                  />
+                </div>
+                <div className="input-right-icon-container">
+                  {/* No right icon for email */}
+                </div>
+              </div>
+              <FormErrorMessage className="form-error">
+                {errors.email?.message?.toString()}
+              </FormErrorMessage>
+            </FormControl>
 
-                <FormControl isInvalid={!!errors.password}>
-                    <label htmlFor="password"></label>
-                    <InputGroup mt="20px">
-                        <InputLeftElement 
-                            pointerEvents="none"
-                            display="flex"
-                            alignItems="center"
-                            h="100%"
-                        >
-                            <Box as="img" src={programSvg} boxSize="20px" />
-                        </InputLeftElement>
-                        <Input
-                            placeholder="New Password"
-                            type={isPasswordVisible ? 'text' : 'password'}
-                            size={"lg"}
-                            {...register("password")}
-                            name="password"
-                            isRequired
-                            autoComplete="password"
-                            borderRadius="10px"
-                        />
-                        <InputRightElement 
-                            display="flex"
-                            alignItems="center"
-                            h="100%"
-                        >
-                            <button onClick={() => {setIsPasswordVisible((prev) => !prev)}} style={{ background: 'none', border: 'none' }}>
-                                {isPasswordVisible ? <AiOutlineEyeInvisible color="gray" /> : <AiOutlineEye color="gray" />}
-                            </button>
-                        </InputRightElement>
-                    </InputGroup>
-                    <FormErrorMessage minH={"20px"}>
-                    {errors.password?.message?.toString()}
-                    </FormErrorMessage>
-                </FormControl>
-                <FormControl isInvalid={!!errors.confirmPassword}>
-                <label htmlFor="confirmPassword"></label>
-                <InputGroup mt="20px">
-                    <InputLeftElement 
-                    pointerEvents="none"
-                    display="flex"
-                    alignItems="center"
-                    h="100%"
-                    >
-                    <Box as="img" src={programSvg} boxSize="20px" />
-                    </InputLeftElement>
-                    <Input
-                        placeholder="Confirm Password"
-                        type= {isConfirmPasswordVisible ? 'text' : 'password'} 
-                        size={"lg"}
-                        {...register("confirmPassword")}
-                        name="confirmPassword"
-                        isRequired
-                        autoComplete="password"
-                        borderRadius="10px"
+            {/* Password Field */}
+            <FormControl
+              isInvalid={!!errors.password}
+              className="form-field-container"
+            >
+              <label
+                htmlFor="password"
+                className="form-label"
+              >
+                Password
+              </label>
+              <div className="input-outer">
+                <div className="input-icon-container">
+                  <Icon
+                    as={AiFillLock}
+                    boxSize="24px"
+                    color="#718096"
+                  />
+                </div>
+                <div className="input-text-container">
+                  <Input
+                    id="password"
+                    placeholder="New Password"
+                    type={isPasswordVisible ? "text" : "password"}
+                    variant="unstyled"
+                    className="input-text"
+                    {...register("password")}
+                    isRequired
+                    autoComplete="new-password"
+                  />
+                </div>
+                <div className="input-right-icon-container">
+                  <button
+                    type="button"
+                    onClick={() => setIsPasswordVisible((prev) => !prev)}
+                    className="icon-button"
+                  >
+                    <Icon
+                      as={AiFillEye}
+                      boxSize="24px"
+                      color="#718096"
                     />
-                    <InputRightElement 
-                        display="flex"
-                        alignItems="center"
-                        h="100%"
-                    >
-                        <button onClick={() => {setIsConfirmPasswordVisible((prev) => !prev)}} style={{ background: 'none', border: 'none' }}>
-                            {isConfirmPasswordVisible ? <AiOutlineEyeInvisible color="gray" /> : <AiOutlineEye color="gray" />}
-                        </button>
-                    </InputRightElement>
-                </InputGroup>
-                <FormErrorMessage minH={"20px"}>
-                    {errors.confirmPassword?.message}
-                </FormErrorMessage>
-                </FormControl>
-
-                <HStack
-                    display="flex"
-                    alignItems={"center"}
-                    justifyContent={"center"}
-                    mt="30px"
-                    gap="10px"
-                >
-                    <Button 
-                        as={Link} 
-                        to="/login" 
-                        size={"lg"}
-                        sx={{ width: "40%" }}
-                        borderRadius={"25px"}
-                    > 
-                        Back to Login
-                    </Button>
-
-                    <Button
-                        as={Link} 
-                        to="/resetpassword/success" 
-                        size={"lg"}
-                        sx={{ width: "40%" }}
-                        borderRadius={"25px"}
-                        bg={"#4E4AE7"}
-                        textColor={"white"}
-                        isDisabled={Object.keys(errors).length > 0 || password.trim() === "" || confirmPassword.trim() === ""}
-                    >
-                        Enter
-                    </Button>
-                </HStack>
-            </form>
-        </VStack>
-    );
+                  </button>
+                </div>
+              </div>
+              <FormErrorMessage className="form-error">
+                {errors.password?.message?.toString()}
+              </FormErrorMessage>
+            </FormControl>
+          </div>
+          <HStack className="button-group">
+            <Button
+              type="button"
+              className="cancel-button"
+            >
+              <ChakraLink
+                as={Link}
+                to="/login"
+              >
+                Back to Login
+              </ChakraLink>
+            </Button>
+            <Button
+              type="submit"
+              className="submit-button"
+              isDisabled={Object.keys(errors).length > 0}
+            >
+              Reset Password
+            </Button>
+          </HStack>
+        </Stack>
+      </form>
+    </VStack>
+  );
 };

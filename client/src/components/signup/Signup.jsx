@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
   Box,
   Button,
@@ -14,6 +15,7 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { AiFillEye, AiFillLock, AiFillMail } from "react-icons/ai";
@@ -23,15 +25,22 @@ import { z } from "zod";
 import logo from "../../assets/logo/logo.png";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+
 import "./Signup.css";
 
 const signupSchema = z
   .object({
-    first_name: z.string("Invalid first name").min(1, { message: "First name required" }),
-    last_name: z.string("Invalid last name").min(1, { message: "Last name required" }),
+    first_name: z
+      .string("Invalid first name")
+      .min(1, { message: "First name required" }),
+    last_name: z
+      .string("Invalid last name")
+      .min(1, { message: "Last name required" }),
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters long"),
-    confirmPassword: z.string().min(6, "Confirm Password must be at least 6 characters long"),
+    confirmPassword: z
+      .string()
+      .min(6, "Confirm Password must be at least 6 characters long"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -45,9 +54,14 @@ export const Signup = () => {
   const { backend } = useBackendContext();
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(signupSchema),
     mode: "onBlur",
   });
@@ -80,23 +94,44 @@ export const Signup = () => {
   }, [backend, handleRedirectResult, navigate, toast]);
 
   return (
-    <VStack spacing={5} className="signup-container">
-      <Box as="img" src={logo} className="logo" />
+    <VStack
+      spacing={5}
+      className="signup-container"
+    >
+      <Box
+        as="img"
+        src={logo}
+        className="logo"
+      />
       <div className="header-container">
         <Heading className="create-account-heading">Create Account</Heading>
         <Text className="account-info-text">
           Please enter your account information.
         </Text>
       </div>
-      <form onSubmit={handleSubmit(handleSignup)} className="signup-form">
+      <form
+        onSubmit={handleSubmit(handleSignup)}
+        className="signup-form"
+      >
         <Stack spacing={2}>
           {/* Name Fields */}
           <div className="name-fields">
-            <HStack align="start" style={{ width: "363px", justifyContent: "space-between" }}>
-              <VStack align="flex-start" w="173px">
+            <HStack
+              align="start"
+              style={{ width: "363px", justifyContent: "space-between" }}
+            >
+              <VStack
+                align="flex-start"
+                w="173px"
+              >
                 <FormControl isInvalid={!!errors.first_name}>
                   <div className="name-field-container">
-                    <label htmlFor="first" className="form-label">First Name</label>
+                    <label
+                      htmlFor="first"
+                      className="form-label"
+                    >
+                      First Name
+                    </label>
                     <div className="name-input-outer">
                       <div className="name-input-container">
                         <Input
@@ -117,10 +152,18 @@ export const Signup = () => {
                 </FormControl>
               </VStack>
 
-              <VStack align="flex-start" w="173px">
+              <VStack
+                align="flex-start"
+                w="173px"
+              >
                 <FormControl isInvalid={!!errors.last_name}>
                   <div className="name-field-container">
-                    <label htmlFor="last" className="form-label">Last Name</label>
+                    <label
+                      htmlFor="last"
+                      className="form-label"
+                    >
+                      Last Name
+                    </label>
                     <div className="name-input-outer">
                       <div className="name-input-container">
                         <Input
@@ -146,11 +189,23 @@ export const Signup = () => {
           {/* Fields Container */}
           <div className="fields-container">
             {/* Email Field */}
-            <FormControl isInvalid={!!errors.email} className="form-field-container">
-              <label htmlFor="email" className="form-label">Email</label>
+            <FormControl
+              isInvalid={!!errors.email}
+              className="form-field-container"
+            >
+              <label
+                htmlFor="email"
+                className="form-label"
+              >
+                Email
+              </label>
               <div className="input-outer">
                 <div className="input-icon-container">
-                  <Icon as={AiFillMail} boxSize="22px" color="#718096" />
+                  <Icon
+                    as={AiFillMail}
+                    boxSize="22px"
+                    color="#718096"
+                  />
                 </div>
                 <div className="input-text-container">
                   <Input
@@ -174,11 +229,23 @@ export const Signup = () => {
             </FormControl>
 
             {/* Password Field */}
-            <FormControl isInvalid={!!errors.password} className="form-field-container">
-              <label htmlFor="password" className="form-label">Password</label>
+            <FormControl
+              isInvalid={!!errors.password}
+              className="form-field-container"
+            >
+              <label
+                htmlFor="password"
+                className="form-label"
+              >
+                Password
+              </label>
               <div className="input-outer">
                 <div className="input-icon-container">
-                  <Icon as={AiFillLock} boxSize="24px" color="#718096" />
+                  <Icon
+                    as={AiFillLock}
+                    boxSize="24px"
+                    color="#718096"
+                  />
                 </div>
                 <div className="input-text-container">
                   <Input
@@ -195,10 +262,14 @@ export const Signup = () => {
                 <div className="input-right-icon-container">
                   <button
                     type="button"
-                    onClick={() => setIsPasswordVisible(prev => !prev)}
+                    onClick={() => setIsPasswordVisible((prev) => !prev)}
                     className="icon-button"
                   >
-                    <Icon as={AiFillEye} boxSize="24px" color="#718096" />
+                    <Icon
+                      as={AiFillEye}
+                      boxSize="24px"
+                      color="#718096"
+                    />
                   </button>
                 </div>
               </div>
@@ -208,11 +279,23 @@ export const Signup = () => {
             </FormControl>
 
             {/* Confirm Password Field */}
-            <FormControl isInvalid={!!errors.confirmPassword} className="form-field-container">
-              <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+            <FormControl
+              isInvalid={!!errors.confirmPassword}
+              className="form-field-container"
+            >
+              <label
+                htmlFor="confirmPassword"
+                className="form-label"
+              >
+                Confirm Password
+              </label>
               <div className="input-outer">
                 <div className="input-icon-container">
-                  <Icon as={AiFillLock} boxSize="24px" color="#718096" />
+                  <Icon
+                    as={AiFillLock}
+                    boxSize="24px"
+                    color="#718096"
+                  />
                 </div>
                 <div className="input-text-container">
                   <Input
@@ -229,10 +312,14 @@ export const Signup = () => {
                 <div className="input-right-icon-container">
                   <button
                     type="button"
-                    onClick={() => setIsConfirmPasswordVisible(prev => !prev)}
+                    onClick={() => setIsConfirmPasswordVisible((prev) => !prev)}
                     className="icon-button"
                   >
-                    <Icon as={AiFillEye} boxSize="24px" color="#718096" />
+                    <Icon
+                      as={AiFillEye}
+                      boxSize="24px"
+                      color="#718096"
+                    />
                   </button>
                 </div>
               </div>
@@ -244,10 +331,22 @@ export const Signup = () => {
 
           {/* Button Group */}
           <HStack className="button-group">
-            <Button type="button" className="cancel-button">
-              <ChakraLink as={Link} to="/login">Back to Login</ChakraLink>
+            <Button
+              type="button"
+              className="cancel-button"
+            >
+              <ChakraLink
+                as={Link}
+                to="/login"
+              >
+                Back to Login
+              </ChakraLink>
             </Button>
-            <Button type="submit" className="submit-button" isDisabled={Object.keys(errors).length > 0}>
+            <Button
+              type="submit"
+              className="submit-button"
+              isDisabled={Object.keys(errors).length > 0}
+            >
               Create Account
             </Button>
           </HStack>

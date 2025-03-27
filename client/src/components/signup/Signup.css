@@ -4,18 +4,24 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, rgba(255,207,113,0.30) 10.44%, rgba(145,162,167,0.28) 55.22%, rgba(35,118,221,0.25) 100%), #FFF !important;
+  background: linear-gradient(
+      135deg,
+      rgba(255, 207, 113, 0.3) 10.44%,
+      rgba(145, 162, 167, 0.28) 55.22%,
+      rgba(35, 118, 221, 0.25) 100%
+    ),
+    #fff !important;
 }
 
 :root {
-  --Secondary-7: #4A5568;
-  --Secondary-8: #2D3748;
-  --Secondary-2-Default: #EDF2F7;
-  --Secondary-3: #E2E8F0;
-  --Primary-5-Default: #4441C8;
-  --Secondary-4: #CBD5E0;
-  --white: #FFF;
-  --font-primary: 'Inter', sans-serif;
+  --Secondary-7: #4a5568;
+  --Secondary-8: #2d3748;
+  --Secondary-2-Default: #edf2f7;
+  --Secondary-3: #e2e8f0;
+  --Primary-5-Default: #4441c8;
+  --Secondary-4: #cbd5e0;
+  --white: #fff;
+  --font-primary: "Inter", sans-serif;
 }
 
 /* GENERAL CONTAINER */
@@ -32,7 +38,7 @@ body {
   width: 164.135px;
   height: 75px;
   flex-shrink: 0;
-  aspect-ratio: 164.13 / 75.00;
+  aspect-ratio: 164.13 / 75;
   display: block;
   margin: 0 auto;
 }
@@ -70,6 +76,7 @@ body {
   line-height: normal;
   letter-spacing: 0.08px;
   align-self: stretch;
+  margin-bottom: 8px;
 }
 
 /* NAME FIELDS */
@@ -77,7 +84,7 @@ body {
   display: inline-flex;
   justify-content: space-between;
   width: 363px;
-  margin-bottom: 0; /* Remove extra gap below name fields */
+  margin-bottom: 0;
 }
 .signup-container .name-field-container {
   display: flex;
@@ -118,7 +125,7 @@ body {
   padding: 0;
 }
 
-/* FIELDS CONTAINER (Email/Password/Confirm) */
+/* FIELDS CONTAINER (EMAIL/PASSWORDS) */
 .signup-container .fields-container {
   display: flex;
   width: 363px;
@@ -224,12 +231,12 @@ body {
   letter-spacing: 0.07px;
 }
 .signup-container .cancel-button {
-  background: var(--Secondary-2-Default, #EDF2F7);
+  background: var(--Secondary-2-Default, #edf2f7);
   color: var(--Secondary-8);
 }
 .signup-container .submit-button {
-  background: var(--Primary-5-Default, #4441C8);
-  color: #FFF;
+  background: var(--Primary-5-Default, #4441c8);
+  color: #fff;
 }
 
 /* ERROR MESSAGE */
@@ -257,11 +264,21 @@ body {
 }
 
 .signup-container .form-label {
-  color: var(--Secondary-7, #4A5568);
-  font-family: 'Inter', sans-serif;
+  color: var(--Secondary-7, #4a5568);
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: normal;
   letter-spacing: 0.07px;
+}
+
+.signup-container .cancel-button:hover {
+  background: var(--Secondary-2-Default, #edf2f7);
+  color: var(--Secondary-8);
+}
+
+.signup-container .submit-button:hover {
+  background: var(--Primary-5-Default, #4441c8);
+  color: #fff;
 }
