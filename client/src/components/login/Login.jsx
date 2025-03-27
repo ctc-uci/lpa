@@ -84,7 +84,7 @@ export const Login = () => {
         }
       };
 
-      navigate("/dashboard");
+      navigate("/programs");
     } catch (err) {
       const errorCode = err.code;
       const firebaseErrorMsg = err.message;
