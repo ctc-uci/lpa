@@ -50,139 +50,141 @@ export const ResetPassword = () => {
   };
 
   return (
-    <VStack
-      spacing={5}
-      className="signup-container"
-    >
-      <Box
-        as="img"
-        src={logo}
-        className="logo"
-      />
-      <div className="header-container">
-        <Heading className="create-account-heading">Set New Password</Heading>
-        <Text className="account-info-text">
-          Please enter a new password for your account.
-        </Text>
-      </div>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="signup-form"
+    <div className="entry-page">
+      <VStack
+        spacing={5}
+        className="signup-container"
       >
-        <Stack spacing={2}>
-          <div className="fields-container">
-            {/* Email Field */}
-            <FormControl
-              isInvalid={!!errors.email}
-              className="form-field-container"
-            >
-              <label
-                htmlFor="email"
-                className="form-label"
+        <Box
+          as="img"
+          src={logo}
+          className="logo"
+        />
+        <div className="header-container">
+          <Heading className="create-account-heading">Set New Password</Heading>
+          <Text className="account-info-text">
+            Please enter a new password for your account.
+          </Text>
+        </div>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="signup-form"
+        >
+          <Stack spacing={2}>
+            <div className="fields-container">
+              {/* Email Field */}
+              <FormControl
+                isInvalid={!!errors.email}
+                className="form-field-container"
               >
-                Email
-              </label>
-              <div className="input-outer">
-                <div className="input-icon-container">
-                  <Icon
-                    as={AiFillMail}
-                    boxSize="22px"
-                    color="#718096"
-                  />
-                </div>
-                <div className="input-text-container">
-                  <Input
-                    id="email"
-                    placeholder="Your email"
-                    type="text"
-                    variant="unstyled"
-                    className="input-text"
-                    {...register("email")}
-                    isRequired
-                    autoComplete="email"
-                  />
-                </div>
-                <div className="input-right-icon-container">
-                  {/* No right icon for email */}
-                </div>
-              </div>
-              <FormErrorMessage className="form-error">
-                {errors.email?.message?.toString()}
-              </FormErrorMessage>
-            </FormControl>
-
-            {/* Password Field */}
-            <FormControl
-              isInvalid={!!errors.password}
-              className="form-field-container"
-            >
-              <label
-                htmlFor="password"
-                className="form-label"
-              >
-                Password
-              </label>
-              <div className="input-outer">
-                <div className="input-icon-container">
-                  <Icon
-                    as={AiFillLock}
-                    boxSize="24px"
-                    color="#718096"
-                  />
-                </div>
-                <div className="input-text-container">
-                  <Input
-                    id="password"
-                    placeholder="New Password"
-                    type={isPasswordVisible ? "text" : "password"}
-                    variant="unstyled"
-                    className="input-text"
-                    {...register("password")}
-                    isRequired
-                    autoComplete="new-password"
-                  />
-                </div>
-                <div className="input-right-icon-container">
-                  <button
-                    type="button"
-                    onClick={() => setIsPasswordVisible((prev) => !prev)}
-                    className="icon-button"
-                  >
+                <label
+                  htmlFor="email"
+                  className="form-label"
+                >
+                  Email
+                </label>
+                <div className="input-outer">
+                  <div className="input-icon-container">
                     <Icon
-                      as={AiFillEye}
+                      as={AiFillMail}
+                      boxSize="22px"
+                      color="#718096"
+                    />
+                  </div>
+                  <div className="input-text-container">
+                    <Input
+                      id="email"
+                      placeholder="Your email"
+                      type="text"
+                      variant="unstyled"
+                      className="input-text"
+                      {...register("email")}
+                      isRequired
+                      autoComplete="email"
+                    />
+                  </div>
+                  <div className="input-right-icon-container">
+                    {/* No right icon for email */}
+                  </div>
+                </div>
+                <FormErrorMessage className="form-error">
+                  {errors.email?.message?.toString()}
+                </FormErrorMessage>
+              </FormControl>
+
+              {/* Password Field */}
+              <FormControl
+                isInvalid={!!errors.password}
+                className="form-field-container"
+              >
+                <label
+                  htmlFor="password"
+                  className="form-label"
+                >
+                  Password
+                </label>
+                <div className="input-outer">
+                  <div className="input-icon-container">
+                    <Icon
+                      as={AiFillLock}
                       boxSize="24px"
                       color="#718096"
                     />
-                  </button>
+                  </div>
+                  <div className="input-text-container">
+                    <Input
+                      id="password"
+                      placeholder="New Password"
+                      type={isPasswordVisible ? "text" : "password"}
+                      variant="unstyled"
+                      className="input-text"
+                      {...register("password")}
+                      isRequired
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  <div className="input-right-icon-container">
+                    <button
+                      type="button"
+                      onClick={() => setIsPasswordVisible((prev) => !prev)}
+                      className="icon-button"
+                    >
+                      <Icon
+                        as={AiFillEye}
+                        boxSize="24px"
+                        color="#718096"
+                      />
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <FormErrorMessage className="form-error">
-                {errors.password?.message?.toString()}
-              </FormErrorMessage>
-            </FormControl>
-          </div>
-          <HStack className="button-group">
-            <Button
-              type="button"
-              className="cancel-button"
-            >
-              <ChakraLink
-                as={Link}
-                to="/login"
+                <FormErrorMessage className="form-error">
+                  {errors.password?.message?.toString()}
+                </FormErrorMessage>
+              </FormControl>
+            </div>
+            <HStack className="button-group">
+              <Button
+                type="button"
+                className="cancel-button"
               >
-                Back to Login
-              </ChakraLink>
-            </Button>
-            <Button
-              type="submit"
-              className="submit-button"
-              isDisabled={Object.keys(errors).length > 0}
-            >
-              Reset Password
-            </Button>
-          </HStack>
-        </Stack>
-      </form>
-    </VStack>
+                <ChakraLink
+                  as={Link}
+                  to="/login"
+                >
+                  Back to Login
+                </ChakraLink>
+              </Button>
+              <Button
+                type="submit"
+                className="submit-button"
+                isDisabled={Object.keys(errors).length > 0}
+              >
+                Reset Password
+              </Button>
+            </HStack>
+          </Stack>
+        </form>
+      </VStack>
+    </div>
   );
 };

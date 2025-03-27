@@ -94,264 +94,268 @@ export const Signup = () => {
   }, [backend, handleRedirectResult, navigate, toast]);
 
   return (
-    <VStack
-      spacing={5}
-      className="signup-container"
-    >
-      <Box
-        as="img"
-        src={logo}
-        className="logo"
-      />
-      <div className="header-container">
-        <Heading className="create-account-heading">Create Account</Heading>
-        <Text className="account-info-text">
-          Please enter your account information.
-        </Text>
-      </div>
-      <form
-        onSubmit={handleSubmit(handleSignup)}
-        className="signup-form"
+    <div className="entry-page">
+      <VStack
+        spacing={5}
+        className="signup-container"
       >
-        <Stack spacing={2}>
-          {/* Name Fields */}
-          <div className="name-fields">
-            <HStack
-              align="start"
-              style={{ width: "363px", justifyContent: "space-between" }}
-            >
-              <VStack
-                align="flex-start"
-                w="173px"
+        <Box
+          as="img"
+          src={logo}
+          className="logo"
+        />
+        <div className="header-container">
+          <Heading className="create-account-heading">Create Account</Heading>
+          <Text className="account-info-text">
+            Please enter your account information.
+          </Text>
+        </div>
+        <form
+          onSubmit={handleSubmit(handleSignup)}
+          className="signup-form"
+        >
+          <Stack spacing={2}>
+            {/* Name Fields */}
+            <div className="name-fields">
+              <HStack
+                align="start"
+                style={{ width: "363px", justifyContent: "space-between" }}
               >
-                <FormControl isInvalid={!!errors.first_name}>
-                  <div className="name-field-container">
-                    <label
-                      htmlFor="first"
-                      className="form-label"
-                    >
-                      First Name
-                    </label>
-                    <div className="name-input-outer">
-                      <div className="name-input-container">
-                        <Input
-                          id="first"
-                          placeholder="First name"
-                          type="text"
-                          variant="unstyled"
-                          className="name-input-text"
-                          {...register("first_name")}
-                          isRequired
-                        />
+                <VStack
+                  align="flex-start"
+                  w="173px"
+                >
+                  <FormControl isInvalid={!!errors.first_name}>
+                    <div className="name-field-container">
+                      <label
+                        htmlFor="first"
+                        className="form-label"
+                      >
+                        First Name
+                      </label>
+                      <div className="name-input-outer">
+                        <div className="name-input-container">
+                          <Input
+                            id="first"
+                            placeholder="First name"
+                            type="text"
+                            variant="unstyled"
+                            className="name-input-text"
+                            {...register("first_name")}
+                            isRequired
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <FormErrorMessage className="form-error">
-                    {errors.first_name?.message?.toString()}
-                  </FormErrorMessage>
-                </FormControl>
-              </VStack>
+                    <FormErrorMessage className="form-error">
+                      {errors.first_name?.message?.toString()}
+                    </FormErrorMessage>
+                  </FormControl>
+                </VStack>
 
-              <VStack
-                align="flex-start"
-                w="173px"
-              >
-                <FormControl isInvalid={!!errors.last_name}>
-                  <div className="name-field-container">
-                    <label
-                      htmlFor="last"
-                      className="form-label"
-                    >
-                      Last Name
-                    </label>
-                    <div className="name-input-outer">
-                      <div className="name-input-container">
-                        <Input
-                          id="last"
-                          placeholder="Last name"
-                          type="text"
-                          variant="unstyled"
-                          className="name-input-text"
-                          {...register("last_name")}
-                          isRequired
-                        />
+                <VStack
+                  align="flex-start"
+                  w="173px"
+                >
+                  <FormControl isInvalid={!!errors.last_name}>
+                    <div className="name-field-container">
+                      <label
+                        htmlFor="last"
+                        className="form-label"
+                      >
+                        Last Name
+                      </label>
+                      <div className="name-input-outer">
+                        <div className="name-input-container">
+                          <Input
+                            id="last"
+                            placeholder="Last name"
+                            type="text"
+                            variant="unstyled"
+                            className="name-input-text"
+                            {...register("last_name")}
+                            isRequired
+                          />
+                        </div>
                       </div>
                     </div>
+                    <FormErrorMessage className="form-error">
+                      {errors.last_name?.message?.toString()}
+                    </FormErrorMessage>
+                  </FormControl>
+                </VStack>
+              </HStack>
+            </div>
+
+            {/* Fields Container */}
+            <div className="fields-container">
+              {/* Email Field */}
+              <FormControl
+                isInvalid={!!errors.email}
+                className="form-field-container"
+              >
+                <label
+                  htmlFor="email"
+                  className="form-label"
+                >
+                  Email
+                </label>
+                <div className="input-outer">
+                  <div className="input-icon-container">
+                    <Icon
+                      as={AiFillMail}
+                      boxSize="22px"
+                      color="#718096"
+                    />
                   </div>
-                  <FormErrorMessage className="form-error">
-                    {errors.last_name?.message?.toString()}
-                  </FormErrorMessage>
-                </FormControl>
-              </VStack>
+                  <div className="input-text-container">
+                    <Input
+                      id="email"
+                      placeholder="Your email"
+                      type="text"
+                      variant="unstyled"
+                      className="input-text"
+                      {...register("email")}
+                      isRequired
+                      autoComplete="email"
+                    />
+                  </div>
+                  <div className="input-right-icon-container">
+                    {/* No right icon for email */}
+                  </div>
+                </div>
+                <FormErrorMessage className="form-error">
+                  {errors.email?.message?.toString()}
+                </FormErrorMessage>
+              </FormControl>
+
+              {/* Password Field */}
+              <FormControl
+                isInvalid={!!errors.password}
+                className="form-field-container"
+              >
+                <label
+                  htmlFor="password"
+                  className="form-label"
+                >
+                  Password
+                </label>
+                <div className="input-outer">
+                  <div className="input-icon-container">
+                    <Icon
+                      as={AiFillLock}
+                      boxSize="24px"
+                      color="#718096"
+                    />
+                  </div>
+                  <div className="input-text-container">
+                    <Input
+                      id="password"
+                      placeholder="Your password"
+                      type={isPasswordVisible ? "text" : "password"}
+                      variant="unstyled"
+                      className="input-text"
+                      {...register("password")}
+                      isRequired
+                      autoComplete="password"
+                    />
+                  </div>
+                  <div className="input-right-icon-container">
+                    <button
+                      type="button"
+                      onClick={() => setIsPasswordVisible((prev) => !prev)}
+                      className="icon-button"
+                    >
+                      <Icon
+                        as={AiFillEye}
+                        boxSize="24px"
+                        color="#718096"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <FormErrorMessage className="form-error">
+                  {errors.password?.message?.toString()}
+                </FormErrorMessage>
+              </FormControl>
+
+              {/* Confirm Password Field */}
+              <FormControl
+                isInvalid={!!errors.confirmPassword}
+                className="form-field-container"
+              >
+                <label
+                  htmlFor="confirmPassword"
+                  className="form-label"
+                >
+                  Confirm Password
+                </label>
+                <div className="input-outer">
+                  <div className="input-icon-container">
+                    <Icon
+                      as={AiFillLock}
+                      boxSize="24px"
+                      color="#718096"
+                    />
+                  </div>
+                  <div className="input-text-container">
+                    <Input
+                      id="confirmPassword"
+                      placeholder="Your password"
+                      type={isConfirmPasswordVisible ? "text" : "password"}
+                      variant="unstyled"
+                      className="input-text"
+                      {...register("confirmPassword")}
+                      isRequired
+                      autoComplete="password"
+                    />
+                  </div>
+                  <div className="input-right-icon-container">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setIsConfirmPasswordVisible((prev) => !prev)
+                      }
+                      className="icon-button"
+                    >
+                      <Icon
+                        as={AiFillEye}
+                        boxSize="24px"
+                        color="#718096"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <FormErrorMessage className="form-error">
+                  {errors.confirmPassword?.message}
+                </FormErrorMessage>
+              </FormControl>
+            </div>
+
+            {/* Button Group */}
+            <HStack className="button-group">
+              <Button
+                type="button"
+                className="cancel-button"
+              >
+                <ChakraLink
+                  as={Link}
+                  to="/login"
+                >
+                  Back to Login
+                </ChakraLink>
+              </Button>
+              <Button
+                type="submit"
+                className="submit-button"
+                isDisabled={Object.keys(errors).length > 0}
+              >
+                Create Account
+              </Button>
             </HStack>
-          </div>
-
-          {/* Fields Container */}
-          <div className="fields-container">
-            {/* Email Field */}
-            <FormControl
-              isInvalid={!!errors.email}
-              className="form-field-container"
-            >
-              <label
-                htmlFor="email"
-                className="form-label"
-              >
-                Email
-              </label>
-              <div className="input-outer">
-                <div className="input-icon-container">
-                  <Icon
-                    as={AiFillMail}
-                    boxSize="22px"
-                    color="#718096"
-                  />
-                </div>
-                <div className="input-text-container">
-                  <Input
-                    id="email"
-                    placeholder="Your email"
-                    type="text"
-                    variant="unstyled"
-                    className="input-text"
-                    {...register("email")}
-                    isRequired
-                    autoComplete="email"
-                  />
-                </div>
-                <div className="input-right-icon-container">
-                  {/* No right icon for email */}
-                </div>
-              </div>
-              <FormErrorMessage className="form-error">
-                {errors.email?.message?.toString()}
-              </FormErrorMessage>
-            </FormControl>
-
-            {/* Password Field */}
-            <FormControl
-              isInvalid={!!errors.password}
-              className="form-field-container"
-            >
-              <label
-                htmlFor="password"
-                className="form-label"
-              >
-                Password
-              </label>
-              <div className="input-outer">
-                <div className="input-icon-container">
-                  <Icon
-                    as={AiFillLock}
-                    boxSize="24px"
-                    color="#718096"
-                  />
-                </div>
-                <div className="input-text-container">
-                  <Input
-                    id="password"
-                    placeholder="Your password"
-                    type={isPasswordVisible ? "text" : "password"}
-                    variant="unstyled"
-                    className="input-text"
-                    {...register("password")}
-                    isRequired
-                    autoComplete="password"
-                  />
-                </div>
-                <div className="input-right-icon-container">
-                  <button
-                    type="button"
-                    onClick={() => setIsPasswordVisible((prev) => !prev)}
-                    className="icon-button"
-                  >
-                    <Icon
-                      as={AiFillEye}
-                      boxSize="24px"
-                      color="#718096"
-                    />
-                  </button>
-                </div>
-              </div>
-              <FormErrorMessage className="form-error">
-                {errors.password?.message?.toString()}
-              </FormErrorMessage>
-            </FormControl>
-
-            {/* Confirm Password Field */}
-            <FormControl
-              isInvalid={!!errors.confirmPassword}
-              className="form-field-container"
-            >
-              <label
-                htmlFor="confirmPassword"
-                className="form-label"
-              >
-                Confirm Password
-              </label>
-              <div className="input-outer">
-                <div className="input-icon-container">
-                  <Icon
-                    as={AiFillLock}
-                    boxSize="24px"
-                    color="#718096"
-                  />
-                </div>
-                <div className="input-text-container">
-                  <Input
-                    id="confirmPassword"
-                    placeholder="Your password"
-                    type={isConfirmPasswordVisible ? "text" : "password"}
-                    variant="unstyled"
-                    className="input-text"
-                    {...register("confirmPassword")}
-                    isRequired
-                    autoComplete="password"
-                  />
-                </div>
-                <div className="input-right-icon-container">
-                  <button
-                    type="button"
-                    onClick={() => setIsConfirmPasswordVisible((prev) => !prev)}
-                    className="icon-button"
-                  >
-                    <Icon
-                      as={AiFillEye}
-                      boxSize="24px"
-                      color="#718096"
-                    />
-                  </button>
-                </div>
-              </div>
-              <FormErrorMessage className="form-error">
-                {errors.confirmPassword?.message}
-              </FormErrorMessage>
-            </FormControl>
-          </div>
-
-          {/* Button Group */}
-          <HStack className="button-group">
-            <Button
-              type="button"
-              className="cancel-button"
-            >
-              <ChakraLink
-                as={Link}
-                to="/login"
-              >
-                Back to Login
-              </ChakraLink>
-            </Button>
-            <Button
-              type="submit"
-              className="submit-button"
-              isDisabled={Object.keys(errors).length > 0}
-            >
-              Create Account
-            </Button>
-          </HStack>
-        </Stack>
-      </form>
-    </VStack>
+          </Stack>
+        </form>
+      </VStack>
+    </div>
   );
 };
