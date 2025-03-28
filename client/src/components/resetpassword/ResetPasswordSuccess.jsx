@@ -1,36 +1,38 @@
-import {
-    Box,
-    Button,
-    Divider,
-    Heading,
-    VStack,
-  } from "@chakra-ui/react";
-  
-import logo from "../../assets/logo/logo.png";
+import { Box, Button, Heading, Text, VStack } from "@chakra-ui/react";
+
 import { Link } from "react-router-dom";
 
+import logo from "../../assets/logo/logo.png";
+
+import "../signup/SignupRequested.css";
+
 export const ResetPasswordSuccess = () => {
-    return (
-        <VStack 
-            spacing={5}
-            sx={{ width: 550, marginX: "auto", mt:"44"}}
+  return (
+    <div className="entry-page">
+      <VStack
+        spacing={4}
+        className="request-container"
+      >
+        <Box
+          as="img"
+          src={logo}
+          className="logo"
+        />
+        <div className="header-container">
+          <Heading className="request-heading">New Password is Set!</Heading>
+          <Text className="account-info-text">
+            Please login with your new password.
+          </Text>
+        </div>
+        <Button
+          as={Link}
+          to="/login"
+          className="back-button"
+          mt="20px"
         >
-            <Box as="img" src={logo} height="150px" width="280px" />
-            <Heading fontSize="40px" fontFamily="'Inter', sans-serif" color={"#4E4AE7"}>Password is Set!</Heading>
-            <Divider h={"2px"}opacity="1" borderColor={"#4E4AE7"}/>
-            <Button 
-                as={Link} 
-                to="/login" 
-                size={"lg"}
-                mt={"30px"}
-                sx={{ width: "50%" }}
-                fontFamily="'Inter', sans-serif"
-                borderRadius={"25px"}
-                bg={"#4E4AE7"}
-                textColor={"white"}
-            > 
-                Back to Login
-            </Button>
-        </VStack>
-    );
+          Back to Login
+        </Button>
+      </VStack>
+    </div>
+  );
 };
