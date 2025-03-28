@@ -45,6 +45,8 @@ export const Login = () => {
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  const [boxChecked, setBoxChecked] = useState(false);
+
   const togglePasswordVisibility = () => {
     setIsPasswordVisible((prev) => !prev);
   };
@@ -71,11 +73,11 @@ export const Login = () => {
   );
 
   const handleLogin = async (data) => {
-    try {
+    try {      
       await login({
         email: data.email,
         password: data.password,
-      });
+      }, boxChecked);
 
       const permitCheck = await backend.get(`/users/email/${data.email}`);
       if (permitCheck.data.editPerms === false) {
@@ -83,7 +85,7 @@ export const Login = () => {
           code: "auth/no-permission",
         }
       };
-
+      
       navigate("/programs");
     } catch (err) {
       const errorCode = err.code;
@@ -124,8 +126,8 @@ export const Login = () => {
   }, [backend, handleRedirectResult, navigate, toast]);
 
   return (
-    <Center h="100vh">
-      <VStack spacing={4} w="100%" maxW="500px" textAlign="center">
+    <Center h="100vh" className="entry-page">
+      <VStack spacing={4} className="signup-container">
         <Image
           src="src/assets/logo/logo.png"
           alt="Logo"
@@ -133,17 +135,11 @@ export const Login = () => {
           objectFit="contain"
         />
 
-        <Heading color="#4E4AE7" fontSize="4xl">
-          Sign In
+        <Heading className="create-account-heading">
+          Log In
         </Heading>
-        <Box
-          w="45%"
-          h="3px"
-          bg="#4E4AE7"
-          borderRadius="full"
-        />
 
-        <Text fontSize="lg" color="#474849" mb={6}>
+        <Text className="account-info-text">
           Please enter your login information.
         </Text>
 
@@ -197,7 +193,7 @@ export const Login = () => {
             </FormControl>
 
             <Flex justify="space-between" align="center" w="100%" mb={6}>
-              <Checkbox size="md" color="#767778">
+              <Checkbox size="md" color="#767778" onChange={() => setBoxChecked(!boxChecked)}>
                 Keep me signed in
               </Checkbox>
               <ChakraLink as={Link} to="/forgotpassword" fontSize="md" color="#767778">
