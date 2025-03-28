@@ -64,13 +64,13 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
         <Heading
           color="#2D3748"
           fontWeight="600"
-          fontSize="45px"
+          fontSize="2.5em"
         >
           INVOICE
         </Heading>
         <Text
           color="#718096"
-          fontSize="16px"
+          fontSize="1em"
         >
           {getGeneratedDate(comments, invoice, true)}
         </Text>
@@ -117,7 +117,7 @@ const EditInvoiceDetails = ({
       <VStack gap="0">
         <Heading
           textAlign="center"
-          size="lg"
+          fontSize="1.8em"
         >
           Classroom Rental Monthly Statement
         </Heading>
@@ -320,7 +320,7 @@ const StatementComments = ({
       color="#2D3748"
     >
       <Heading
-        fontSize="22px"
+        fontSize="1.2em"
         mb="4"
       >
         Sessions

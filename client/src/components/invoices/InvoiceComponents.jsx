@@ -4,11 +4,16 @@ import { CalendarIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
-  Card,
+  Grid,
   Flex,
   Icon,
+  IconButton,
   Image,
   Input,
+  Menu,
+  MenuList,
+  MenuItem,
+  MenuButton,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -24,21 +29,30 @@ import {
   Tr,
 } from "@chakra-ui/react";
 
+import {
+  deleteIcon,
+  sessionsEllipsis,
+} from "../../assets/icons/ProgramIcons";
+
 import { format } from "date-fns";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 import { TbCaretUpDown } from "react-icons/tb";
+import { DollarIcon } from "../../assets/DollarIcon";
 
 import filterIcon from "../../assets/filter.svg";
 import personIcon from "../../assets/person.svg";
 import PDFButtonInvoice from "./PDFButtonInvoice";
+import { EditIcon } from "../../assets/EditIcon";
+import { CancelIcon } from "../../assets/CancelIcon";
 
-const InvoiceTitle = ({ title }) => {
+const InvoiceTitle = ({ title, isSent, paymentStatus }) => {
   return (
     <Flex
       direction="row"
       width="100%"
       alignItems="center"
+      gap={5}
     >
       <Text
         fontSize="clamp(1rem, 1.5rem, 2rem)"
@@ -46,20 +60,36 @@ const InvoiceTitle = ({ title }) => {
         fontWeight="bold"
         marginRight="0.5rem"
       >
-        Program:
-      </Text>
-      <Text
-        fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-        color="#474849"
-      >
         {title}
       </Text>
+
+      <Flex gap={2}>
+        {/* is sent button */}
+        <Button
+          backgroundColor={isSent ? "#F0FFF4" : "#FFF5F5"}
+          color={isSent ? "#38A169" : "#E53E3E"}
+          variant="solid"
+        >
+          {isSent ? "Sent" : "Not Sent"}
+        </Button>
+
+        {/* paymentStatus */}
+        <Button
+          backgroundColor={paymentStatus === "full" ? "#F0FFF4" : "#FFF5F5"}
+          color={paymentStatus === "full" ? "#38A169" : "#E53E3E"}
+          variant="solid"
+        >
+          {paymentStatus === "full" ? "Paid" : "Unpaid"}
+        </Button>
+      </Flex>
+
+
     </Flex>
   );
 };
 
 const InvoiceStats = ({
-  payees,
+  roomRate,
   billingPeriod,
   amountDue,
   remainingBalance,
@@ -74,150 +104,99 @@ const InvoiceStats = ({
 
   return (
     <Flex
-      direction="row"
+      direction="column"
       h="auto"
       w="100%"
-      gap="2rem"
+      gap={5}
     >
-      {/* Billed To Section */}
-      <Card
-        flex={1}
-        h="7em"
-        width="25%"
-        borderRadius={15}
-        borderWidth="1px"
-        boxShadow="none"
-        display="flex"
-        p={4}
-        color="#D2D2D2"
-        gap={2}
-        flexDirection="column"
-        overflowY="auto"
-        justifyContent="flex-start"
-      >
-        <Text
-          fontSize="clamp(1rem, 1.5rem, 2rem)"
-          fontWeight="bold"
-          color="#474849"
-        >
-          {" "}
-          Billed to:{" "}
-        </Text>
-        {payees && payees.length > 0 ? (
-          payees.map((payee) => (
-            <Box
-              key={payee.id}
-              mb="0.5rem"
-            >
-              <Text
-                fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-                color="#474849"
-              >
-                {payee.name}
-              </Text>
-              <Text
-                fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-                color="#474849"
-              >
-                {payee.email}
-              </Text>
-            </Box>
-          ))
-        ) : (
+      {/* Invoice Details Section */}
+      <Grid templateColumns="1fr 2fr" gap="1rem" alignItems="end">
+        {/* billing period */}
+        <Box h={7}>
           <Text
-            fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
+            fontWeight="bold"
+            fontSize="clamp(.5rem, 1rem, 1.5rem)"
             color="#474849"
           >
-            N/A
+            Billing Period
           </Text>
-        )}
-      </Card>
-
-      {/* Invoice Details Section */}
-      <Card
-        flex={3}
-        h="7em"
-        borderRadius={15}
-        borderWidth="1px"
-        color="#D2D2D2"
-        boxShadow="none"
-        width="75%"
-        padding="1.5em"
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-      >
-        <Flex
-          width="100%"
-          justifyContent="space-between"
-        >
-          <Box>
+        </Box>
+        <Box h={7}>
+          {billingPeriod && billingPeriod["startDate"] ? (
             <Text
-              fontWeight="bold"
-              fontSize="clamp(1rem, 1.5rem, 2rem)"
               color="#474849"
+              fontSize="clamp(.5rem, 1rem, 1.5rem)"
             >
-              {" "}
-              Billing Period{" "}
+              {formatDate(billingPeriod["startDate"])} -{" "}
+              {formatDate(billingPeriod["endDate"])}
             </Text>
-
-            {billingPeriod && billingPeriod["startDate"] ? (
-              <Text
-                color="#474849"
-                fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-              >
-                {formatDate(billingPeriod["startDate"])} -{" "}
-                {formatDate(billingPeriod["endDate"])}
-              </Text>
-            ) : (
-              <Text
-                color="#474849"
-                fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-              >
-                N/A - N/A
-              </Text>
-            )}
-          </Box>
-          <Box>
-            <Text
-              fontWeight="bold"
-              fontSize="clamp(1rem, 1.5rem, 2rem)"
-              color="#474849"
-            >
-              {" "}
-              Amount Due{" "}
-            </Text>
+          ) : (
             <Text
               color="#474849"
               fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
             >
-              {" "}
-              {amountDue ? `$${Number(amountDue).toFixed(2)}` : "N/A"}{" "}
+              N/A - N/A
             </Text>
-          </Box>
-          <Box>
+          )}
+        </Box>
+
+        {/* amount due */}
+        <Box h={7}>
+          <Text
+            fontWeight="bold"
+            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+            color="#474849"
+          >
+            Amount Due
+          </Text>
+        </Box>
+        <Box h={7}>
+          <Text
+            color="#474849"
+            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+          >
+            {amountDue ? `$${Number(amountDue).toFixed(2)}` : "N/A"}
+          </Text>
+        </Box>
+
+        {/* remaining balance */}
+        <Box h={7}>
+          <Text
+            fontWeight="bold"
+            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+            color="#474849"
+          >
+            Remaining Balance
+          </Text>
+        </Box>
+
+        <Box h={7}>
+          <Flex gap={2} alignItems="start">
             <Text
-              fontWeight="bold"
-              fontSize="clamp(1rem, 1.5rem, 2rem)"
               color="#474849"
+              fontSize="clamp(.5rem, 1rem, 1.5rem)"
             >
-              {" "}
-              Remaining Balance{" "}
-            </Text>
-            <Text
-              color="#474849"
-              fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-            >
-              {" "}
-              {remainingBalance !== 0
+              {roomRate !== 0
                 ? `$${Number(remainingBalance).toFixed(2)}`
-                : "N/A"}{" "}
+                : "N/A"}
             </Text>
-          </Box>
-        </Flex>
-      </Card>
+            <Button backgroundColor="#EDF2F7">
+              View Previous Invoice
+            </Button>
+          </Flex>
+        </Box>
+      </Grid>
+
+
+      {/* room rate section */}
+      <Flex gap={3} alignItems="center">
+        <DollarIcon />
+        <Text>{roomRate ? `${Number(roomRate).toFixed(2)} / hour` : "N/A"}</Text>
+      </Flex>
+
     </Flex>
   );
+
 };
 
 const InvoicePayments = ({ comments }) => {
@@ -271,7 +250,7 @@ const InvoicePayments = ({ comments }) => {
           variant="striped"
           color="#EDF2F7"
         >
-          <Thead>
+          {/* <Thead>
             <Tr>
               <Th
                 fontSize="clamp(.5rem, 1rem, 1.5rem)"
@@ -295,21 +274,61 @@ const InvoicePayments = ({ comments }) => {
                 Amount{" "}
               </Th>
             </Tr>
-          </Thead>
+          </Thead> */}
           <Tbody color="#2D3748">
             {comments && comments.length > 0 ? (
               currentPageComments.map((comment) => (
                 <Tr key={comment.id}>
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                    {format(new Date(comment.datetime), "M/d/yy")}
+                    {format(new Date(comment.datetime), "EEE. M/d/yy")}
                   </Td>
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                  {/* <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                     {comment.comment}
-                  </Td>
+                  </Td> */}
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                     {comment.adjustmentValue
                       ? `$${Number(comment.adjustmentValue).toFixed(2)}`
                       : "N/A"}
+                  </Td>
+                  <Td>
+                    <Menu>
+                              <MenuButton
+                                as={IconButton}
+                                height="30px"
+                                width="30px"
+                                rounded="full"
+                                variant="ghost"
+                                icon={<Icon as={sessionsEllipsis} />}
+                              />
+                              <MenuList>
+                                <MenuItem
+                                  //onClick={}
+                                >
+                                  <Box
+                                    display="flex"
+                                    padding="12px 16px"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Icon as={EditIcon} />
+                                    <Text color="#767778">Edit</Text>
+                                  </Box>
+                                </MenuItem>
+                                <MenuItem
+                                  //onClick={}
+                                >
+                                  <Box
+                                    display="flex"
+                                    padding="12px 16px"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Icon as={CancelIcon} />
+                                    <Text color="#90080F">Cancel</Text>
+                                  </Box>
+                                </MenuItem>
+                              </MenuList>
+                    </Menu>
                   </Td>
                 </Tr>
               ))

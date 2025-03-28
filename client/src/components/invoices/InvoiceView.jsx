@@ -6,8 +6,6 @@ import {
   Image,
 } from "@chakra-ui/react";
 
-import { format } from "date-fns";
-
 
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
@@ -30,7 +28,7 @@ const InvoiceView = ({
   return (
       <>
         <Image
-          w="80%"
+          w="100%"
           position="relative"
           src={InvoiceHeaderBackground}
           backgroundSize="100%"
@@ -75,7 +73,7 @@ const InvoiceView = ({
           </Box>
         </VStack>
         <Image
-          w="80%"
+          w="100%"
           position="relative"
           src={InvoiceFooterBackground}
           backgroundSize="100%"

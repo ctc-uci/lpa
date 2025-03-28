@@ -220,7 +220,6 @@ export const SavedEdit = () => {
           setSubtotal={setSubtotal}
           pastDue={pastDue}
           payees={payees}
-
           programName={programName}
           instructors={instructors}
           invoice={invoice?.data}
