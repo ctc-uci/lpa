@@ -30,7 +30,7 @@ import {
 import IoPaperPlane from "../../assets/IoPaperPlane.svg";
 import logo from "../../assets/logo/logo.png";
 import { DiscardEmailModal } from "./DiscardEmailModal";
-import { EmailConfirmationModal } from "./EmailConfirmationModal";
+import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useParams } from "react-router-dom";
 import { SendEmailButton } from "./SendEmailButton";
@@ -42,11 +42,20 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const [toInput, setToInput] = useState("");
   const [ccInput, setCcInput] = useState("");
   const [bccInput, setBccInput] = useState("");
+  const [changesPresent, setChangesPresent] = useState(false);
   const [emails, setEmails] = useState(new Set());
   const [ccEmails, setCcEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
+
+  const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   
   const btnRef = useRef();
+
+  useEffect(() => {
+    if (toInput || ccInput || bccInput) {
+      setChangesPresent(true);
+    }
+  }, [toInput, ccInput, bccInput]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,6 +75,16 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   
     fetchData();
   }, []);
+
+  const emptyInputs = () => {
+    setToInput("");
+    setBccInput("");
+    setCcInput("");
+    setEmails(new Set());
+    setCcEmails([]);
+    setBccEmails([]);
+    setChangesPresent(false);
+  }
 
   const handleAddEmail = () => {
     if (validateEmail(toInput) && !emails.has(toInput)) {
@@ -146,6 +165,11 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
 
   return (
     <>
+      <DiscardEmailModal
+        isOpen={isDiscardModalOpen}
+        onClose={() => setisDiscardModalOpen(false)}
+        emptyInputs={emptyInputs}
+      />
       <Button
         ref={btnRef}
         onClick={onOpen}
@@ -180,7 +204,16 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
         <DrawerOverlay />
         <DrawerContent>
           {/* CANT MOVE CLOSE BUTTON TO LEFT SIDE */}
-          <DrawerCloseButton />
+          <DrawerCloseButton 
+            onClick={() => {
+              console.log(changesPresent);
+              if (changesPresent) {
+                setisDiscardModalOpen(true);
+              } else {
+                return false;
+              }
+            }}
+          />
           <DrawerHeader
             ml="4"
             mt="12"
@@ -444,8 +477,8 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
             </Flex>
             
 
-            <DiscardEmailModal />
-            <EmailConfirmationModal />
+            {/* <DiscardEmailModal /> */}
+            <ConfirmEmailModal />
           </DrawerBody>
         </DrawerContent>
       </Drawer>

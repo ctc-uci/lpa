@@ -1,7 +1,5 @@
 import React from 'react'
 
-import { useNavigate } from 'react-router-dom';
-
 import {
     Modal,
     ModalOverlay,
@@ -10,20 +8,14 @@ import {
     ModalBody,
     ModalFooter,
     Button,
-    useDisclosure,
-    ModalCloseButton,
   } from "@chakra-ui/react";
 
   
 
-export const DiscardEmailModal = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const navigate = useNavigate();
+export const DiscardEmailModal = ({ isOpen, onClose, emptyInputs }) => {
 
   return (
     <>
-      <Button onClick={onOpen}>Discard Modal</Button>
-
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
@@ -39,7 +31,10 @@ export const DiscardEmailModal = () => {
               <Button 
                 background='#90080F' 
                 color="white" 
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                  emptyInputs();
+                  onClose();
+                }}
               >
                 Confirm
               </Button>
