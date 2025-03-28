@@ -16,7 +16,7 @@ import {
 
 // TODO:
 // Must pass in the subject of the email and the recipients
-export const EmailConfirmationModal = () => {
+export const ConfirmEmailModal = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   
