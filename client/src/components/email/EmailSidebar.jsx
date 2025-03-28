@@ -39,6 +39,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
 
+  const [title, setTitle] = useState("");
   const [toInput, setToInput] = useState("");
   const [ccInput, setCcInput] = useState("");
   const [bccInput, setBccInput] = useState("");
@@ -48,6 +49,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const [bccEmails, setBccEmails] = useState([]);
 
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
+  const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   
   const btnRef = useRef();
 
@@ -77,6 +79,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   }, []);
 
   const emptyInputs = () => {
+    setTitle("");
     setToInput("");
     setBccInput("");
     setCcInput("");
@@ -168,6 +171,16 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
       <DiscardEmailModal
         isOpen={isDiscardModalOpen}
         onClose={() => setisDiscardModalOpen(false)}
+        emptyInputs={emptyInputs}
+      />
+
+      <ConfirmEmailModal 
+        isOpen={isConfirmModalOpen}
+        onClose= {() => setisConfirmModalOpen(false)}
+        title={title}
+        emails={emails}
+        ccEmails={ccEmails}
+        bccEmails={bccEmails}
         emptyInputs={emptyInputs}
       />
       <Button
@@ -472,13 +485,12 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                   />
                 }
                 bgColor="#4441C8"
-                onClick={sendEmail}
+                onClick={() => {
+                  sendEmail();
+                  setisConfirmModalOpen(true);
+                }}
               ></IconButton>
             </Flex>
-            
-
-            {/* <DiscardEmailModal /> */}
-            <ConfirmEmailModal />
           </DrawerBody>
         </DrawerContent>
       </Drawer>
