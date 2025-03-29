@@ -177,6 +177,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
       <ConfirmEmailModal 
         isOpen={isConfirmModalOpen}
         onClose= {() => setisConfirmModalOpen(false)}
+        closeDrawer={onClose}
         title={title}
         emails={emails}
         ccEmails={ccEmails}

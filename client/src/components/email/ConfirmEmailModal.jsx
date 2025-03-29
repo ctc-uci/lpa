@@ -12,9 +12,11 @@ import {
 
 // TODO:
 // Must pass in the subject of the email and the recipients
-export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bccEmails, emptyInputs }) => {
+export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bccEmails, emptyInputs, closeDrawer }) => {
   const combinedArray = [...emails, ...ccEmails, ...bccEmails];
   const uniqueEmails = [... new Set(combinedArray)];
+
+  console.log(title);
   
   return (
     <>
@@ -34,6 +36,7 @@ export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bc
               onClick={() => {
                 emptyInputs();
                 onClose();
+                closeDrawer();
               }}
             >
                 Confirm
