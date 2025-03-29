@@ -25,7 +25,7 @@ export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bc
         <ModalContent>
           <ModalHeader>Email Confirmation Sent!</ModalHeader>
           <ModalBody>
-            {title} has been sent to {uniqueEmails.join(", ")}
+            [{title}] has been sent to {uniqueEmails.join(", ")}
           </ModalBody>
 
           <ModalFooter>

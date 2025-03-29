@@ -295,7 +295,17 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
               </Flex>
               <Flex gap="4" justifyContent="start" wrap="wrap">
                 {[...emails].map((email, index) => (
-                  <Tag key={index} size="lg" borderRadius="full" variant="solid">
+                  <Tag 
+                    key={index} 
+                    size="lg" 
+                    borderRadius="full" 
+                    variant="solid" 
+                    bg={"white"} 
+                    border={"1px solid"} 
+                    borderColor={"#E2E8F0"} 
+                    textColor={"#080A0E"}
+                    fontWeight={"normal"}
+                  >
                     <TagLabel>{email}</TagLabel>
                     <TagCloseButton
                       onClick={() =>
@@ -305,6 +315,13 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                           return updatedEmails;
                         })
                       }
+                      bgColor={"#718096"}
+                      opacity={"none"}
+                      _hover={{
+                        bg: "#4441C8"
+                      }}
+                      textColor={"white"}
+                      
                     />
                   </Tag>
                 ))}
@@ -374,12 +391,23 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                     size="lg"
                     borderRadius="full"
                     variant="solid"
+                    bg={"white"} 
+                    border={"1px solid"} 
+                    borderColor={"#E2E8F0"} 
+                    textColor={"#080A0E"}
+                    fontWeight={"normal"}
                   >
                     <TagLabel>{email}</TagLabel>
                     <TagCloseButton
                       onClick={() =>
                         setCcEmails(ccEmails.filter((e) => e !== email))
                       }
+                      bgColor={"#718096"}
+                      opacity={"none"}
+                      _hover={{
+                        bg: "#4441C8"
+                      }}
+                      textColor={"white"}
                     />
                   </Tag>
                 ))}
@@ -449,12 +477,23 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                     size="lg"
                     borderRadius="full"
                     variant="solid"
+                    bg={"white"} 
+                    border={"1px solid"} 
+                    borderColor={"#E2E8F0"} 
+                    textColor={"#080A0E"}
+                    fontWeight={"normal"}
                   >
                     <TagLabel>{email}</TagLabel>
                     <TagCloseButton
                       onClick={() =>
                         setBccEmails(bccEmails.filter((e) => e !== email))
                       }
+                      bgColor={"#718096"}
+                      opacity={"none"}
+                      _hover={{
+                        bg: "#4441C8"
+                      }}
+                      textColor={"white"}
                     />
                   </Tag>
                 ))}
@@ -490,6 +529,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                   sendEmail();
                   setisConfirmModalOpen(true);
                 }}
+                isDisabled={!changesPresent}
               ></IconButton>
             </Flex>
           </DrawerBody>
