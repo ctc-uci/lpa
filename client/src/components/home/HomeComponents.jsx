@@ -548,11 +548,12 @@ export const ProgramsTable = () => {
   return (
     <>
       <CancelProgram
-        programId={programToDelete}
+        id={programToDelete}
         setPrograms={setPrograms}
         onOpen={onOpen}
         isOpen={isOpen}
         onClose={onClose}
+        type={"Program"}
       />
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">

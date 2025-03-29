@@ -29,7 +29,7 @@ import { ChevronDownIcon, DeleteIcon } from "@chakra-ui/icons";
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
-export const CancelProgram = ( {programId, setPrograms, onOpen, isOpen, onClose} ) => {
+export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} ) => {
     const [selectedAction, setSelectedAction] = useState("Archive");
     const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
     const [cancelReason, setCancelReason] = useState("")
@@ -39,27 +39,29 @@ export const CancelProgram = ( {programId, setPrograms, onOpen, isOpen, onClose}
 
     useEffect(() => { // get event description
       const fetchData = async () => {
-        const request = await backend.get(`events/${programId}`);
+        const request = await backend.get(`events/${id}`);
         setEventDescription(request.data[0].description);
         console.log("event description: ", request.data[0].description);
       }
       fetchData();
-    }, [backend, programId]);
+    }, [backend, id]);
 
     const handleSelect = useCallback((action, iconSrc) => {
         setSelectedAction(action);
         setSelectedIcon(iconSrc);
       }, []);
 
-    const handleArchive = useCallback(async () => {
+    const handleProgramArchive = useCallback(async () => {
       try {
         console.log("concat: ");
         console.log( eventDescription + '\n' + cancelReason);
-        await backend.put(`/events/${programId}`, {
+        await backend.put(`/events/${id}`, {
           archived: true,
           description: eventDescription + '\n' + cancelReason,
         });
-        setPrograms((prev) => prev.filter((p) => p.id !== programId));
+        if (setPrograms) {
+          setPrograms((prev) => prev.filter((p) => p.id !== id));
+        }
         onClose();
         toast({
           title: "Program archived",
@@ -70,19 +72,47 @@ export const CancelProgram = ( {programId, setPrograms, onOpen, isOpen, onClose}
       } catch (error) {
         console.log("Couldn't archive", error);
         toast({
-          title: "Archive failed",
+          title: "Archive program failed",
           status: "error",
           duration: 3000,
           isClosable: true,
         });
       }
-    }, [backend, programId, onClose, toast, cancelReason]);
+    }, [backend, id, onClose, toast, cancelReason]);
 
-    const handleDelete = useCallback(async () => {
+    const handleBookingArchive = useCallback(async () => {
       try {
-        const response = await backend.delete(`/events/${programId}`);
+        await backend.put(`/bookings/${id}`, {
+          archived: true,
+        });
+        if (setPrograms) {
+          setPrograms((prev) => prev.filter((p) => p.id !== id));
+        }
+        onClose();
+        toast({
+          title: "Booking archived",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.log("Couldn't archive", error);
+        toast({
+          title: "Archive booking failed",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }, [backend, id, onClose, toast, cancelReason]);
+
+    const handleProgamDelete = useCallback(async () => {
+      try {
+        const response = await backend.delete(`/events/${id}`);
         if (response.data.result === "success") {
-          setPrograms((prev) => prev.filter((p) => p.id !== programId));
+          if (setPrograms) {
+          setPrograms((prev) => prev.filter((p) => p.id !== id));
+          }
           toast({
             title: "Program deleted",
             description:
@@ -107,15 +137,58 @@ export const CancelProgram = ( {programId, setPrograms, onOpen, isOpen, onClose}
         });
       }
       onClose();
-    }, [backend, programId, onClose, toast]);
+    }, [backend, id, onClose, toast]);
+
+    const handleBookingDelete = useCallback(async () => {
+      try {
+        const response = await backend.delete(`/bookings/${id}`);
+        if (response.data.result === "success") {
+          if (setPrograms) {
+          setPrograms((prev) => prev.filter((p) => p.id !== id));
+          }
+          toast({
+            title: "Booking deleted",
+            description:
+              "The booking and all related records have been successfully deleted.",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else {
+          throw new Error("Failed to delete booking");
+        }
+      } catch (error) {
+        console.error("Failed to delete booking:", error);
+        toast({
+          title: "Delete failed",
+          description:
+            error.response?.data?.message ||
+            "An error occurred while deleting the booking.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+      onClose();
+    }, [backend, id, onClose, toast]);
 
     const handleConfirm = useCallback(async () => {
       if (selectedAction === "Archive") {
-        await handleArchive();
+        if (type === "Program") {
+          await handleProgramArchive();
+        }
+        else if (type === "Booking") {
+          await handleBookingArchive();
+        }
       } else if (selectedAction === "Delete") {
-        await handleDelete();
+        if (type === "Program") {
+          await handleProgramDelete();
+        }
+        else if (type === "Booking") {
+          await handleBookingDelete();
+        }
       }
-    }, [selectedAction, handleArchive, handleDelete]);
+    }, [selectedAction, handleProgramArchive, handleBookingArchive, handleProgamDelete]);
 
   return (
     <Modal
@@ -124,12 +197,12 @@ export const CancelProgram = ( {programId, setPrograms, onOpen, isOpen, onClose}
     >
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Cancel Program?</ModalHeader>
+        <ModalHeader>Cancel {type}?</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
             <Box>
               <Flex alignitems="center">
-                <Text>The cancellation fee deadline for this program is Thu. 1/2/2025.</Text>
+                <Text>The cancellation fee deadline for this {type.toLowerCase()} is Thu. 1/2/2025.</Text>
               </Flex>
             </Box>
           <Box mt={4}>
