@@ -235,6 +235,7 @@ const InvoicePayments = ({ comments }) => {
         fontWeight="bold"
         fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
         color="#474849"
+        mb={3}
       >
         Payments
       </Text>
@@ -250,31 +251,6 @@ const InvoicePayments = ({ comments }) => {
           variant="striped"
           color="#EDF2F7"
         >
-          {/* <Thead>
-            <Tr>
-              <Th
-                fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                textTransform="none"
-              >
-                {" "}
-                Date{" "}
-              </Th>
-              <Th
-                fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                textTransform="none"
-              >
-                {" "}
-                Comment{" "}
-              </Th>
-              <Th
-                fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                textTransform="none"
-              >
-                {" "}
-                Amount{" "}
-              </Th>
-            </Tr>
-          </Thead> */}
           <Tbody color="#2D3748">
             {comments && comments.length > 0 ? (
               currentPageComments.map((comment) => (
