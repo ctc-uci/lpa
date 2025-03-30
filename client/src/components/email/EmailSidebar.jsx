@@ -54,10 +54,12 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const btnRef = useRef();
 
   useEffect(() => {
-    if (toInput || ccInput || bccInput) {
+    if (emails.size > 0 || ccEmails.length > 0 || bccEmails.length > 0) {
       setChangesPresent(true);
+    } else {
+      setChangesPresent(false);
     }
-  }, [toInput, ccInput, bccInput]);
+  }, [emails, ccEmails, bccEmails]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -149,11 +151,12 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
 
     
     const sendEmail = async () => {
+      console.log("Sending email...");
       for (const email of emails) {
         try {
           const response = await backend.post("/email/send", {
-            to: "brendanlieu05@gmail.com",
-            subject: "Invoice",
+            to: email, 
+            subject: title, 
             text: message,
             html: `<p>${message.replace(/\n/g, '<br />')}</p>`
           });
@@ -182,7 +185,6 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
         emails={emails}
         ccEmails={ccEmails}
         bccEmails={bccEmails}
-        emptyInputs={emptyInputs}
       />
       <Button
         ref={btnRef}

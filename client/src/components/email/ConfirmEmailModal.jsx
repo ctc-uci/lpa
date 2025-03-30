@@ -12,7 +12,7 @@ import {
 
 // TODO:
 // Must pass in the subject of the email and the recipients
-export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bccEmails, emptyInputs, closeDrawer }) => {
+export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bccEmails, closeDrawer }) => {
   const combinedArray = [...emails, ...ccEmails, ...bccEmails];
   const uniqueEmails = [... new Set(combinedArray)];
 
@@ -34,7 +34,6 @@ export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bc
               colorScheme='purple' 
               mr={3} 
               onClick={() => {
-                emptyInputs();
                 onClose();
                 closeDrawer();
               }}
