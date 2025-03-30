@@ -106,7 +106,7 @@ export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} 
       }
     }, [backend, id, onClose, toast, cancelReason]);
 
-    const handleProgamDelete = useCallback(async () => {
+    const handleProgramDelete = useCallback(async () => {
       try {
         const response = await backend.delete(`/events/${id}`);
         if (response.data.result === "success") {
@@ -188,7 +188,7 @@ export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} 
           await handleBookingDelete();
         }
       }
-    }, [selectedAction, handleProgramArchive, handleBookingArchive, handleProgamDelete]);
+    }, [selectedAction, handleProgramArchive, handleBookingArchive, handleProgramDelete, handleBookingDelete]);
 
   return (
     <Modal
