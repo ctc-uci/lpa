@@ -59,6 +59,7 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
       mx="4"
       fontFamily="Inter"
       color="#2D3748"
+      gap={20}
     >
       <Stack>
         <Heading
