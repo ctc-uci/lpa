@@ -46,7 +46,18 @@ import PDFButtonInvoice from "./PDFButtonInvoice";
 import { EditIcon } from "../../assets/EditIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 
-const InvoiceTitle = ({ title, isSent, paymentStatus }) => {
+const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
+  const isPaid = () => {
+    if (isSent && paymentStatus === "full") {
+        return "Paid";
+    }
+    if (!isSent && new Date() < new Date(endDate) && paymentStatus !== "full") {
+        return "Not Paid";
+    }
+    return "Past Due";
+  };
+
+
   return (
     <Flex
       direction="row"
@@ -75,11 +86,11 @@ const InvoiceTitle = ({ title, isSent, paymentStatus }) => {
 
         {/* paymentStatus */}
         <Button
-          backgroundColor={paymentStatus === "full" ? "#F0FFF4" : "#FFF5F5"}
-          color={paymentStatus === "full" ? "#38A169" : "#E53E3E"}
+          backgroundColor={isPaid() === "Paid" ? "#F0FFF4" : "#FFF5F5"}
+          color={isPaid() === "Paid" ? "#38A169" : "#E53E3E"}
           variant="solid"
         >
-          {paymentStatus === "full" ? "Paid" : "Unpaid"}
+          {isPaid() === "Paid" ? "Paid" : (isPaid() === "Not Paid" ? "Not Paid" : "Past Due")}
         </Button>
       </Flex>
 
@@ -248,7 +259,6 @@ const InvoicePayments = ({ comments }) => {
         mb={3}
       >
         <Table
-          variant="striped"
           color="#EDF2F7"
         >
           <Tbody color="#2D3748">
@@ -261,9 +271,9 @@ const InvoicePayments = ({ comments }) => {
                   {/* <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                     {comment.comment}
                   </Td> */}
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" color="#0C824D" fontWeight="bold">
                     {comment.adjustmentValue
-                      ? `$${Number(comment.adjustmentValue).toFixed(2)}`
+                      ? `$${Number(comment.adjustmentValue).toFixed(0)}`
                       : "N/A"}
                   </Td>
                   <Td>
@@ -380,7 +390,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       border="1px solid var(--gray-200, #E2E8F0)"
       borderRadius="12px"
     >
-      <Table variant="striped">
+      <Table>
         <Thead>
           <Tr>
             <Th

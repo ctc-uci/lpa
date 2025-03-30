@@ -4,6 +4,7 @@ import {
   Box,
   VStack,
   Image,
+  Flex,
 } from "@chakra-ui/react";
 
 
@@ -26,7 +27,7 @@ const InvoiceView = ({
 }) => {
 
   return (
-      <>
+      <Flex direction="column" alignItems="center">
         <Image
           w="100%"
           position="relative"
@@ -35,12 +36,11 @@ const InvoiceView = ({
           backgroundRepeat="no-repeat"
         />
         <VStack
-          width="80%"
+          width="95%"
           spacing={4}
           px={8}
-          // mt={36}
         >
-          <Box>
+          <Box w="100%">
             <EditInvoiceTitle
                 comments={comments}
                 invoice={invoice?.data}
@@ -68,8 +68,6 @@ const InvoiceView = ({
               pastDue={pastDue}
             />
             <FooterDescription />
-
-
           </Box>
         </VStack>
         <Image
@@ -79,7 +77,7 @@ const InvoiceView = ({
           backgroundSize="100%"
           backgroundRepeat="no-repeat"
         />
-    </>
+    </Flex>
   )
 
 }

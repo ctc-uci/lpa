@@ -81,18 +81,6 @@ export const SingleInvoice = () => {
               setTotal(total);
               setSubtotal(total);
 
-               // get program name
-              const programNameResponse = await backend.get(
-                "/events/" + currentInvoice.eventId
-              );
-              setProgramName(programNameResponse.data[0].name);
-
-              // get instructors
-              const instructorResponse = await backend.get(
-                "/assignments/instructors/" + currentInvoice.eventId
-              );
-              setInstructors(instructorResponse.data);
-
               // calculate sum of unpaid/remaining invoices
               const unpaidInvoicesResponse = await backend.get("/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]);
               const unpaidTotals = await Promise.all(
@@ -111,6 +99,18 @@ export const SingleInvoice = () => {
 
               setRemainingBalance(remainingBalance);
               setPastDue(remainingBalance);
+
+              // get program name
+              const programNameResponse = await backend.get(
+                "/events/" + currentInvoice.eventId
+              );
+              setProgramName(programNameResponse.data[0].name);
+
+              // get instructors
+              const instructorResponse = await backend.get(
+                "/assignments/instructors/" + currentInvoice.eventId
+              );
+              setInstructors(instructorResponse.data);
 
               // set billing period
               setBillingPeriod({
@@ -133,9 +133,6 @@ export const SingleInvoice = () => {
               // get corresponding event
               const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
               setEvent(eventResponse.data)
-
-              console.log(invoice)
-
           } catch (error) {
               // Invoice/field does not exist
               console.error("Error fetching data:", error);
@@ -197,7 +194,8 @@ export const SingleInvoice = () => {
               <InvoiceTitle
                 title={event ? event.name : "N/A"}
                 isSent={invoice?.data?.[0]?.isSent}
-                paymentStatus={invoice?.data?.[0]?.paymentStatus}>
+                paymentStatus={invoice?.data?.[0]?.paymentStatus}
+                endDate={invoice?.data?.[0]?.endDate}>
               </InvoiceTitle>
 
               {/* buttons */}
@@ -220,7 +218,7 @@ export const SingleInvoice = () => {
             </Flex>
             <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
               <Flex direction="row" width="100%" gap={5}>
-                <Flex direction="column" height="40%" width="100%" padding="2.5vw" gap="1.25vw">
+                <Flex direction="column" height="100%" width="50%" padding="2.5vw" gap="1.25vw">
                   <InvoiceStats
                     roomRate={roomRate}
                     billingPeriod={billingPeriod}
@@ -231,8 +229,7 @@ export const SingleInvoice = () => {
                   <EmailHistory emails={emails}></EmailHistory>
                 </Flex>
 
-                <Flex direction="column" height="100%" width="40%" padding="2.5vw" gap="1.25vw">
-                  <Box  borderWidth={25} borderRadius={18} borderColor="#D9D9D933" overflow="hidden">
+                <Flex direction="column" height="100%" width="50%"  gap="1.25vw" borderWidth={25} borderRadius={18} borderColor="#D9D9D933" overflow="hidden">
                     <InvoiceView
                       comments={comments}
                       booking={booking}
@@ -245,7 +242,7 @@ export const SingleInvoice = () => {
                       instructors={instructors}
                       invoice={invoice?.data}
                     />
-                  </Box>
+                  {/* </Box> */}
                 </Flex>
 
 
