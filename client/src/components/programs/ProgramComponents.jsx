@@ -8,6 +8,8 @@ import "./Program.css";
 import {
   CalendarIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   DeleteIcon,
   DownloadIcon,
   EmailIcon,
@@ -27,6 +29,7 @@ import {
   Flex,
   FormControl,
   Heading,
+  HStack,
   Icon,
   IconButton,
   Input,
@@ -836,18 +839,44 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [status, setStatus] = useState("All");
   const [selectedRoom, setSelectedRoom] = useState("All");
 
-  const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
-  const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
-  // At the top of your Sessions component where other state variables are defined
+  const [sortKey, setSortKey] = useState("date"); 
+  const [sortOrder, setSortOrder] = useState("asc"); 
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
     []
   );
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; 
+  
+  // Calculate pagination values
+  const totalSessions = filteredAndSortedSessions?.length || 0;
+  const totalPages = Math.ceil(totalSessions / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalSessions);
+  
+  // Get current page data
+  const currentPageSessions = filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
+  
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
-  // Add this effect to handle both filtering and sorting whenever relevant dependencies change
   useEffect(() => {
     if (!sessions || !rooms) return;
 
-    // Step 1: Filter the sessions
     const filtered = sessions.filter((session) => {
       const sessionDate = new Date(session.date);
       const sessionStartTime = session.startTime;
@@ -869,7 +898,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
       return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
     });
 
-    // Step 2: Sort the filtered sessions
     const sorted = [...filtered];
     if (sortKey === "date") {
       sorted.sort((a, b) => {
@@ -877,7 +905,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         const bInvalid = !b.date || b.date === "N/A";
 
         if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1; // Push invalid dates to the end
+        if (aInvalid) return 1; 
         if (bInvalid) return -1;
 
         const dateA = new Date(a.date);
@@ -886,9 +914,9 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
     }
-
-    // Step 3: Set the filtered and sorted sessions
     setFilteredAndSortedSessions(sorted);
+    
+    setCurrentPage(1);
   }, [
     dateRange,
     timeRange,
@@ -909,11 +937,10 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const formatDate = (isoString) => {
     const date = new Date(isoString);
 
-    // Format the date to "Mon 01/17/2025"
     const options = {
-      weekday: "short", // "Mon"
-      year: "numeric", // "2025"
-      month: "2-digit", // "01"
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
       day: "2-digit",
     };
     let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
@@ -928,7 +955,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     const period = hours >= 12 ? "p.m." : "a.m.";
 
     // Convert to 12-hour format
-    const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+    const formattedHours = hours % 12 || 12;
 
     // Return formatted time
     return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
@@ -947,7 +974,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   // }
   // Make sure rooms is fetched before rendering
   if (!rooms || rooms.length === 0) {
-    return <div>Loading...</div>; // Possibly change loading indicator
+    return <div>Loading...</div>; 
   }
 
   const handleDateChange = (field, value) => {
@@ -1307,9 +1334,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                                 </WrapItem>
                                 {Array.from(rooms.values()).map(
                                   (room, index) => (
-                                    <WrapItem>
+                                    <WrapItem key={index}>
                                       <Button
-                                        key={index}
                                         borderRadius="30px"
                                         borderWidth="1px"
                                         minWidth="auto"
@@ -1438,8 +1464,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filteredAndSortedSessions.length > 0 ? (
-                    filteredAndSortedSessions.map((session) => (
+                  {currentPageSessions.length > 0 ? (
+                    currentPageSessions.map((session) => (
                       <Tr key={session.id}>
                         {!isArchived ? (
                           <Td>
@@ -1504,13 +1530,12 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                     ))
                   ) : (
                     <Tr>
-                      <Td>
+                      <Td colSpan={isArchived ? 4 : 5}>
                         <Box
                           textAlign="center"
                           py={6}
                           color="gray.500"
                           fontSize="md"
-                          width={"300px"}
                         >
                           No sessions available
                         </Box>
@@ -1520,6 +1545,49 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                 </Tbody>
               </Table>
             </TableContainer>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <Flex justifyContent="center" mt={4} mb={2}>
+                <Button
+                  leftIcon={<ChevronLeftIcon />}
+                  onClick={goToPreviousPage}
+                  isDisabled={currentPage === 1}
+                  size="sm"
+                  mr={2}
+                  variant="outline"
+                  colorScheme="blue"
+                >
+                  Prev
+                </Button>
+                
+                <HStack spacing={1}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      size="sm"
+                      colorScheme={currentPage === page ? "blue" : "gray"}
+                      variant={currentPage === page ? "solid" : "outline"}
+                      onClick={() => goToPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </HStack>
+                
+                <Button
+                  rightIcon={<ChevronRightIcon />}
+                  onClick={goToNextPage}
+                  isDisabled={currentPage === totalPages}
+                  size="sm"
+                  ml={2}
+                  variant="outline"
+                  colorScheme="blue"
+                >
+                  Next
+                </Button>
+              </Flex>
+            )}
           </Flex>
         </CardBody>
       </Card>

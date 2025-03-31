@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ChevronDownIcon, DeleteIcon } from "@chakra-ui/icons";
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
@@ -284,6 +289,10 @@ export const ProgramsTable = () => {
     payee: "all",
   });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Show 5 items per page as per requirements
+
   const { backend } = useBackendContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
@@ -291,7 +300,6 @@ export const ProgramsTable = () => {
   const [selectedAction, setSelectedAction] = useState("Archive");
   const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
 
-  // Memoize expensive functions
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "No bookings";
     const date = new Date(dateString);
@@ -319,7 +327,6 @@ export const ProgramsTable = () => {
     return `${formatSingleTime(startTime)} - ${formatSingleTime(endTime)}`;
   }, []);
 
-  // Fetch Programs with optimized mapping
   const fetchPrograms = useCallback(async () => {
     try {
       const response = await backend.get("/programs");
@@ -330,14 +337,10 @@ export const ProgramsTable = () => {
         return;
       }
 
-      // Filter active programs first to reduce mapping work
       const activePrograms = response.data.filter(
         (program) => program.archived === false
       );
-
-      // Format programs data for display - optimized mapping
       const programsData = activePrograms.map((program) => {
-        // Handle multiple instructors or payees with a single operation
         const instructor = Array.isArray(program.instructorName)
           ? program.instructorName.join(", ")
           : program.instructorName || "N/A";
@@ -369,7 +372,8 @@ export const ProgramsTable = () => {
       });
 
       setPrograms(programsData);
-      setFilteredPrograms(programsData); // Initialize filtered programs
+      setFilteredPrograms(programsData);
+      setCurrentPage(1);
     } catch (error) {
       console.error("Failed to fetch programs:", error);
     }
@@ -379,20 +383,17 @@ export const ProgramsTable = () => {
     fetchPrograms();
   }, [fetchPrograms]);
 
-  // Truncate long lists of instructors/payees - memoized
   const truncateNames = useCallback((names, maxLength = 30) => {
     if (!names || names.length <= maxLength) return names;
     return `${names.substring(0, maxLength)}...`;
   }, []);
 
-  // Apply Filters - optimized with early returns
   const applyFilters = useCallback(() => {
     if (!programs.length) return [];
 
     let result = [...programs];
     const hasSearchTerm = searchTerm.trim() !== "";
 
-    // Apply search filter first as it's likely to filter out many items
     if (hasSearchTerm) {
       const searchLower = searchTerm.toLowerCase();
       result = result.filter((program) =>
@@ -400,7 +401,6 @@ export const ProgramsTable = () => {
       );
     }
 
-    // Only apply other filters if we have a non-empty result
     if (result.length > 0) {
       // Date Range filter
       if (filters.dateRange.start || filters.dateRange.end) {
@@ -416,7 +416,6 @@ export const ProgramsTable = () => {
         });
       }
 
-      // Status filter (faster than time range filter)
       if (filters.status !== "all") {
         const statusLower = filters.status.toLowerCase();
         result = result.filter(
@@ -424,12 +423,10 @@ export const ProgramsTable = () => {
         );
       }
 
-      // Room filter (simple equality check)
       if (filters.room !== "all") {
         result = result.filter((program) => program.room === filters.room);
       }
 
-      // Time Range filter (more expensive)
       if (filters.timeRange.start || filters.timeRange.end) {
         result = result.filter((program) => {
           if (program.upcomingTime === "N/A") return false;
@@ -445,7 +442,6 @@ export const ProgramsTable = () => {
         });
       }
 
-      // Instructor filter
       if (filters.instructor !== "all") {
         const instructorLower = filters.instructor.toLowerCase();
         result = result.filter(
@@ -468,13 +464,12 @@ export const ProgramsTable = () => {
     return result;
   }, [programs, filters, searchTerm]);
 
-  // Apply filters when dependencies change
   useEffect(() => {
     const filteredResults = applyFilters();
     setFilteredPrograms(filteredResults);
+    setCurrentPage(1);
   }, [applyFilters]);
 
-  // Memoize sorted programs to avoid recalculation
   const sortedPrograms = useMemo(() => {
     if (!filteredPrograms.length) return [];
 
@@ -490,8 +485,8 @@ export const ProgramsTable = () => {
         const aInvalid = !a.date || a.date === "N/A";
         const bInvalid = !b.date || b.date === "N/A";
         if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1; // a is invalid, push to end
-        if (bInvalid) return -1; // b is invalid, push to end
+        if (aInvalid) return 1;
+        if (bInvalid) return -1;
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
@@ -500,7 +495,31 @@ export const ProgramsTable = () => {
     return sorted;
   }, [filteredPrograms, sortKey, sortOrder]);
 
-  // Handlers - memoized to prevent recreation on each render
+  const totalPrograms = sortedPrograms.length;
+  const totalPages = Math.ceil(totalPrograms / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalPrograms);
+
+  // Get current page data
+  const currentPagePrograms = sortedPrograms.slice(startIndex, endIndex);
+
+  // Pagination navigation handlers
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   const handleApplyFilters = useCallback((newFilters) => {
     setFilters(newFilters);
     setIsFiltersModalOpen(false);
@@ -638,7 +657,7 @@ export const ProgramsTable = () => {
               sortOrder={sortOrder}
             />
             <Tbody>
-              {sortedPrograms.length === 0 ? (
+              {currentPagePrograms.length === 0 ? (
                 <Tr>
                   <Td
                     colSpan={8}
@@ -648,7 +667,7 @@ export const ProgramsTable = () => {
                   </Td>
                 </Tr>
               ) : (
-                sortedPrograms.map((program) => (
+                currentPagePrograms.map((program) => (
                   <TableRow
                     key={program.id}
                     program={program}
@@ -662,6 +681,115 @@ export const ProgramsTable = () => {
             </Tbody>
           </Table>
         </TableContainer>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Flex
+            justifyContent="center"
+            mt={4}
+            mb={4}
+          >
+            <Button
+              leftIcon={<ChevronLeftIcon />}
+              onClick={goToPreviousPage}
+              isDisabled={currentPage === 1}
+              size="sm"
+              mr={2}
+              variant="outline"
+              colorScheme="blue"
+            >
+              Prev
+            </Button>
+
+            <HStack spacing={1}>
+              {(() => {
+                const pageButtons = [];
+
+                // Always show first page
+                if (totalPages > 0) {
+                  pageButtons.push(
+                    <Button
+                      key={1}
+                      size="sm"
+                      colorScheme={currentPage === 1 ? "blue" : "gray"}
+                      variant={currentPage === 1 ? "solid" : "outline"}
+                      onClick={() => goToPage(1)}
+                    >
+                      1
+                    </Button>
+                  );
+                }
+
+                let startPage = Math.max(2, currentPage - 2);
+                let endPage = Math.min(currentPage + 2, totalPages - 1);
+
+                if (startPage > 2) {
+                  pageButtons.push(
+                    <Text
+                      key="ellipsis-start"
+                      mx={1}
+                    >
+                      ...
+                    </Text>
+                  );
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                  pageButtons.push(
+                    <Button
+                      key={i}
+                      size="sm"
+                      colorScheme={currentPage === i ? "blue" : "gray"}
+                      variant={currentPage === i ? "solid" : "outline"}
+                      onClick={() => goToPage(i)}
+                    >
+                      {i}
+                    </Button>
+                  );
+                }
+
+                if (endPage < totalPages - 1) {
+                  pageButtons.push(
+                    <Text
+                      key="ellipsis-end"
+                      mx={1}
+                    >
+                      ...
+                    </Text>
+                  );
+                }
+
+                if (totalPages > 1) {
+                  pageButtons.push(
+                    <Button
+                      key={totalPages}
+                      size="sm"
+                      colorScheme={currentPage === totalPages ? "blue" : "gray"}
+                      variant={currentPage === totalPages ? "solid" : "outline"}
+                      onClick={() => goToPage(totalPages)}
+                    >
+                      {totalPages}
+                    </Button>
+                  );
+                }
+
+                return pageButtons;
+              })()}
+            </HStack>
+
+            <Button
+              rightIcon={<ChevronRightIcon />}
+              onClick={goToNextPage}
+              isDisabled={currentPage === totalPages}
+              size="sm"
+              ml={2}
+              variant="outline"
+              colorScheme="blue"
+            >
+              Next
+            </Button>
+          </Flex>
+        )}
       </Box>
 
       <Modal
