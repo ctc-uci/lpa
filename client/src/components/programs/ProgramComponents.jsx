@@ -150,6 +150,10 @@ export const ProgramSummary = ({
 
   const setArchived = async (boolean) => {
     await backend.put(`/programs/` + eventId, { archived: boolean });
+    await backend.put(
+      `/programs/updateSessionArchive/` + eventId,
+      { archived: boolean }
+    );
   };
 
   const duplicateProgram = async () => {

@@ -353,6 +353,10 @@ export const ArchivedPrograms = () => {
       await backend.put(`/events/${programId}`, {
         archived: false,
       });
+      // unarchive all related sessions(bookings)
+      await backend.put(`/programs/updateSessionArchive/${programId}`, {
+        archived: false,
+      });
     } catch (error) {
       console.log("Couldn't reactivate", error);
     }
