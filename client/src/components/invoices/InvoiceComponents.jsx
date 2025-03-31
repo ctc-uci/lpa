@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import { CalendarIcon } from "@chakra-ui/icons";
 import {
@@ -380,28 +380,28 @@ const InvoicePayments = ({ comments }) => {
 
 function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; 
-  
+  const itemsPerPage = 5;
+
   const totalInvoices = filteredInvoices?.length || 0;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
-  
+
   // Get current page data
   const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
-  
+
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
-  
+
   const goToPreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
-  
+
   const goToPage = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -412,7 +412,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 
   const renderPageButtons = () => {
     const pageButtons = [];
-    
+
     // Always show first page
     if (totalPages > 0) {
       pageButtons.push(
@@ -428,16 +428,21 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         </Button>
       );
     }
-    
-    let startPage = Math.max(2, currentPage - 1);
-    let endPage = Math.min(currentPage + 1, totalPages - 1);
-    
+
+    const startPage = Math.max(2, currentPage - 2);
+    const endPage = Math.min(currentPage + 2, totalPages - 1);
+
     if (startPage > 2) {
       pageButtons.push(
-        <Text key="ellipsis-start" mx={1}>...</Text>
+        <Text
+          key="ellipsis-start"
+          mx={1}
+        >
+          ...
+        </Text>
       );
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pageButtons.push(
         <Button
@@ -452,13 +457,18 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         </Button>
       );
     }
-    
+
     if (endPage < totalPages - 1) {
       pageButtons.push(
-        <Text key="ellipsis-end" mx={1}>...</Text>
+        <Text
+          key="ellipsis-end"
+          mx={1}
+        >
+          ...
+        </Text>
       );
     }
-    
+
     if (totalPages > 1) {
       pageButtons.push(
         <Button
@@ -473,7 +483,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         </Button>
       );
     }
-    
+
     return pageButtons;
   };
 
@@ -621,7 +631,11 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
             })}
             {currentInvoices.length === 0 && (
               <Tr>
-                <Td colSpan={7} textAlign="center" py={4}>
+                <Td
+                  colSpan={7}
+                  textAlign="center"
+                  py={4}
+                >
                   No invoices found
                 </Td>
               </Tr>
@@ -629,10 +643,14 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
           </Tbody>
         </Table>
       </TableContainer>
-      
+
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <Flex justifyContent="center" mt={4} mb={4}>
+        <Flex
+          justifyContent="center"
+          mt={4}
+          mb={4}
+        >
           <Button
             leftIcon={<FaAngleLeft />}
             onClick={goToPreviousPage}
@@ -643,11 +661,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
           >
             Prev
           </Button>
-          
-          <Flex align="center">
-            {renderPageButtons()}
-          </Flex>
-          
+
+          <Flex align="center">{renderPageButtons()}</Flex>
+
           <Button
             rightIcon={<FaAngleRight />}
             onClick={goToNextPage}

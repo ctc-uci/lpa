@@ -287,7 +287,7 @@ export const ProgramsTable = () => {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; 
+  const itemsPerPage = 5;
 
   const { backend } = useBackendContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -713,8 +713,8 @@ export const ProgramsTable = () => {
                   );
                 }
 
-                let startPage = Math.max(2, currentPage - 2);
-                let endPage = Math.min(currentPage + 2, totalPages - 1);
+                const startPage = Math.max(2, currentPage - 2);
+                const endPage = Math.min(currentPage + 2, totalPages - 1);
 
                 if (startPage > 2) {
                   pageButtons.push(

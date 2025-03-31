@@ -1,42 +1,44 @@
-import React, { useState, useEffect } from "react";
-import { Box, Flex, Text, Button, HStack } from "@chakra-ui/react";
+import React, { useEffect, useState } from "react";
+
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
+
 import { MdEmail } from "react-icons/md";
 
 const NotificationsComponents = ({ notifications }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; 
-  
+  const itemsPerPage = 5;
+
   const totalNotifications = notifications?.length || 0;
   const totalPages = Math.ceil(totalNotifications / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalNotifications);
-  
+
   const currentNotifications = notifications?.slice(startIndex, endIndex) || [];
-  
+
   useEffect(() => {
     setCurrentPage(1);
   }, [notifications]);
-  
+
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
-  
+
   const goToPreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
-  
+
   const goToPage = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
   const renderPageButtons = () => {
     const pageButtons = [];
-    
+
     if (totalPages > 0) {
       pageButtons.push(
         <Button
@@ -51,16 +53,21 @@ const NotificationsComponents = ({ notifications }) => {
         </Button>
       );
     }
-    
-    let startPage = Math.max(2, currentPage - 1);
-    let endPage = Math.min(currentPage + 1, totalPages - 1);
-    
+
+    const startPage = Math.max(2, currentPage - 2);
+    const endPage = Math.min(currentPage + 2, totalPages - 1);
+
     if (startPage > 2) {
       pageButtons.push(
-        <Text key="ellipsis-start" mx={1}>...</Text>
+        <Text
+          key="ellipsis-start"
+          mx={1}
+        >
+          ...
+        </Text>
       );
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pageButtons.push(
         <Button
@@ -75,13 +82,18 @@ const NotificationsComponents = ({ notifications }) => {
         </Button>
       );
     }
-    
+
     if (endPage < totalPages - 1) {
       pageButtons.push(
-        <Text key="ellipsis-end" mx={1}>...</Text>
+        <Text
+          key="ellipsis-end"
+          mx={1}
+        >
+          ...
+        </Text>
       );
     }
-    
+
     // Always show last page if there's more than one page
     if (totalPages > 1) {
       pageButtons.push(
@@ -97,7 +109,7 @@ const NotificationsComponents = ({ notifications }) => {
         </Button>
       );
     }
-    
+
     return pageButtons;
   };
 
@@ -108,7 +120,7 @@ const NotificationsComponents = ({ notifications }) => {
           fontSize="sm"
           color="#767778"
         >
-          Payment for {" "}
+          Payment for{" "}
           <span
             style={{
               color: "#2E79C3",
@@ -145,7 +157,7 @@ const NotificationsComponents = ({ notifications }) => {
           fontSize="sm"
           color="#767778"
         >
-          Missing an email for {" "}
+          Missing an email for{" "}
           <span
             style={{
               color: "#2E79C3",
@@ -242,7 +254,11 @@ const NotificationsComponents = ({ notifications }) => {
             paymentRow(item.eventName, item.payStatus, item.dueTime, index)
           )
         ) : (
-          <Flex justify="center" align="center" p={6}>
+          <Flex
+            justify="center"
+            align="center"
+            p={6}
+          >
             <Text color="gray.500">No notifications to display</Text>
           </Flex>
         )}
@@ -250,7 +266,11 @@ const NotificationsComponents = ({ notifications }) => {
 
       {/* Pagination Controls - only show if there's more than one page */}
       {totalPages > 1 && (
-        <Flex justifyContent="center" mt={4} mb={2}>
+        <Flex
+          justifyContent="center"
+          mt={4}
+          mb={2}
+        >
           <Button
             leftIcon={<ChevronLeftIcon />}
             onClick={goToPreviousPage}
@@ -262,11 +282,9 @@ const NotificationsComponents = ({ notifications }) => {
           >
             Prev
           </Button>
-          
-          <HStack spacing={1}>
-            {renderPageButtons()}
-          </HStack>
-          
+
+          <HStack spacing={1}>{renderPageButtons()}</HStack>
+
           <Button
             rightIcon={<ChevronRightIcon />}
             onClick={goToNextPage}
