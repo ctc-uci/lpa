@@ -845,17 +845,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     []
   );
   
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; 
   
-  // Calculate pagination values
   const totalSessions = filteredAndSortedSessions?.length || 0;
   const totalPages = Math.ceil(totalSessions / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalSessions);
   
-  // Get current page data
   const currentPageSessions = filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
   
   const goToNextPage = () => {

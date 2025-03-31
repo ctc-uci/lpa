@@ -64,7 +64,6 @@ import StatusTooltip from "./StatusIcon";
 
 import "./Home.css";
 
-// Memoize icon components
 const ActiveStatusIcon = React.memo(() => (
   <img
     src={activeSvg}
@@ -126,7 +125,6 @@ const PersonIcon = React.memo(() => (
   />
 ));
 
-// Memoize the TableRow component to prevent unnecessary re-renders
 const TableRow = React.memo(
   ({
     program,
@@ -195,7 +193,6 @@ const TableRow = React.memo(
   }
 );
 
-// Memoize table headers for better performance
 const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
   <Thead>
     <Tr>
@@ -289,9 +286,8 @@ export const ProgramsTable = () => {
     payee: "all",
   });
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Show 5 items per page as per requirements
+  const itemsPerPage = 5; 
 
   const { backend } = useBackendContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -402,7 +398,6 @@ export const ProgramsTable = () => {
     }
 
     if (result.length > 0) {
-      // Date Range filter
       if (filters.dateRange.start || filters.dateRange.end) {
         result = result.filter((program) => {
           if (!program.date) return false;
@@ -451,7 +446,6 @@ export const ProgramsTable = () => {
         );
       }
 
-      // Payee filter
       if (filters.payee !== "all") {
         const payeeLower = filters.payee.toLowerCase();
         result = result.filter(
@@ -503,7 +497,6 @@ export const ProgramsTable = () => {
   // Get current page data
   const currentPagePrograms = sortedPrograms.slice(startIndex, endIndex);
 
-  // Pagination navigation handlers
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);

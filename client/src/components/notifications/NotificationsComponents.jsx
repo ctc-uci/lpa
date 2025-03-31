@@ -4,25 +4,20 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { MdEmail } from "react-icons/md";
 
 const NotificationsComponents = ({ notifications }) => {
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Show 5 notifications per page as required
+  const itemsPerPage = 5; 
   
-  // Calculate pagination values
   const totalNotifications = notifications?.length || 0;
   const totalPages = Math.ceil(totalNotifications / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalNotifications);
   
-  // Get current page data
   const currentNotifications = notifications?.slice(startIndex, endIndex) || [];
   
-  // Reset to first page when notifications change
   useEffect(() => {
     setCurrentPage(1);
   }, [notifications]);
   
-  // Pagination navigation handlers
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -39,11 +34,9 @@ const NotificationsComponents = ({ notifications }) => {
     setCurrentPage(pageNumber);
   };
 
-  // Render pagination buttons with ellipsis for large page counts
   const renderPageButtons = () => {
     const pageButtons = [];
     
-    // Always show first page
     if (totalPages > 0) {
       pageButtons.push(
         <Button
@@ -59,18 +52,15 @@ const NotificationsComponents = ({ notifications }) => {
       );
     }
     
-    // Calculate range of pages to show around current page
     let startPage = Math.max(2, currentPage - 1);
     let endPage = Math.min(currentPage + 1, totalPages - 1);
     
-    // Add ellipsis if needed between 1 and startPage
     if (startPage > 2) {
       pageButtons.push(
         <Text key="ellipsis-start" mx={1}>...</Text>
       );
     }
     
-    // Add page buttons within range
     for (let i = startPage; i <= endPage; i++) {
       pageButtons.push(
         <Button
@@ -86,7 +76,6 @@ const NotificationsComponents = ({ notifications }) => {
       );
     }
     
-    // Add ellipsis if needed between endPage and totalPages
     if (endPage < totalPages - 1) {
       pageButtons.push(
         <Text key="ellipsis-end" mx={1}>...</Text>

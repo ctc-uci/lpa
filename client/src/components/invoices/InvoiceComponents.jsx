@@ -379,11 +379,9 @@ const InvoicePayments = ({ comments }) => {
 };
 
 function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Show 5 items per page as per requirements
+  const itemsPerPage = 5; 
   
-  // Calculate pagination values
   const totalInvoices = filteredInvoices?.length || 0;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -392,7 +390,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   // Get current page data
   const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
   
-  // Pagination navigation handlers
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -409,12 +406,10 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     setCurrentPage(pageNumber);
   };
 
-  // Reset page when filteredInvoices changes
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredInvoices]);
 
-  // Generate page buttons with ellipsis
   const renderPageButtons = () => {
     const pageButtons = [];
     
@@ -434,18 +429,15 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       );
     }
     
-    // Calculate range of pages to show around current page
     let startPage = Math.max(2, currentPage - 1);
     let endPage = Math.min(currentPage + 1, totalPages - 1);
     
-    // Add ellipsis if needed between 1 and startPage
     if (startPage > 2) {
       pageButtons.push(
         <Text key="ellipsis-start" mx={1}>...</Text>
       );
     }
     
-    // Add page buttons within range
     for (let i = startPage; i <= endPage; i++) {
       pageButtons.push(
         <Button
@@ -461,14 +453,12 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       );
     }
     
-    // Add ellipsis if needed between endPage and totalPages
     if (endPage < totalPages - 1) {
       pageButtons.push(
         <Text key="ellipsis-end" mx={1}>...</Text>
       );
     }
     
-    // Always show last page if there's more than one page
     if (totalPages > 1) {
       pageButtons.push(
         <Button
