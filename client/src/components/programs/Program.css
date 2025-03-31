@@ -60,7 +60,15 @@
   align-items: center;
 }
 
-
+#backProgramButton {
+  display: flex;
+  height: 40px;
+  padding: 0px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+}
 
 
 

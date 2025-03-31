@@ -31,7 +31,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} ) => {
     const [selectedAction, setSelectedAction] = useState("Archive");
-    const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
+    const [selectedIcon, setSelectedIcon] = useState(<ArchiveIcon/>);
     const [cancelReason, setCancelReason] = useState("")
     const [eventDescription, setEventDescription] = useState("")
     const { backend } = useBackendContext();
@@ -233,24 +233,14 @@ export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} 
                 width="50%"
                 justify="right"
               >
-                {selectedIcon} {selectedAction}
+                <div id="actionChoice">
+                  {selectedIcon} {selectedAction}
+                </div>
               </MenuButton>
               <MenuList>
                 <MenuItem
-                  icon={
-                    <Box
-                      display="inline-flex"
-                      alignItems="center"
-                    >
-                      <Icon
-                        as={ArchiveIcon}
-                        boxSize={4}
-                      />
-                    </Box>
-                  }
-                  onClick={() => handleSelect("Archive", ArchiveIcon)}
-                  display="flex"
-                  alignItems="center"
+                  icon={<ArchiveIcon/>}
+                  onClick={() => handleSelect("Archive", <ArchiveIcon />)}
                 >
                   Archive
                 </MenuItem>

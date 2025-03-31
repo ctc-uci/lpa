@@ -397,10 +397,10 @@ export const ProgramSummary = ({
                 align="center"
               >
                 <Flex
+                  id="backProgramButton"
                   align="center"
-                  gap={2}
                   bg="#EDF2F7"
-                  onClick={(e) => {navigate("/programs")}}
+                  onClick={() => {navigate("/programs")}}
                 >
                   <Flex
                     align="center"
