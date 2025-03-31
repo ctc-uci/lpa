@@ -45,6 +45,9 @@ import personIcon from "../../assets/person.svg";
 import PDFButtonInvoice from "./PDFButtonInvoice";
 import { EditIcon } from "../../assets/EditIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
+import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useParams } from "react-router";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -211,8 +214,10 @@ const InvoiceStats = ({
 };
 
 const InvoicePayments = ({ comments }) => {
+  const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [adjustValue, setAdjustValue] = useState("--.--");
 
   const totalPages = Math.ceil((comments ?? []).length / commentsPerPage) || 1;
   const currentPageComments = (comments ?? []).slice(
@@ -220,36 +225,89 @@ const InvoicePayments = ({ comments }) => {
     currentPageNumber * commentsPerPage
   );
 
-  const handleCommentsPerPageChange = (event) => {
-    setCommentsPerPage(Number(event.target.value));
-    setCurrentPageNumber(1);
-  };
+  // const handleCommentsPerPageChange = (event) => {
+  //   setCommentsPerPage(Number(event.target.value));
+  //   setCurrentPageNumber(1);
+  // };
 
-  const handlePrevPage = () => {
-    if (currentPageNumber > 1) {
-      setCurrentPageNumber(currentPageNumber - 1);
+  // const handlePrevPage = () => {
+  //   if (currentPageNumber > 1) {
+  //     setCurrentPageNumber(currentPageNumber - 1);
+  //   }
+  // };
+
+  // const handleNextPage = () => {
+  //   if (currentPageNumber < totalPages) {
+  //     setCurrentPageNumber(currentPageNumber + 1);
+  //   }
+  // };
+
+  const handleDeleteComment = async () => {
+    try {
+      await backend.delete("/comments/" + id);
+      exit();
+    }catch (error) {
+      console.error("Error deleting:", error);
     }
   };
 
-  const handleNextPage = () => {
-    if (currentPageNumber < totalPages) {
-      setCurrentPageNumber(currentPageNumber + 1);
+  // const handleEditComment = async () => {
+  //   try {
+      
+  //   }
+  // }
+
+  const saveComment = async () => {
+    try {
+      const commentsData = {
+        adjustment_value: adjustValue,
+      };
+      await backend.put("/comments/" + id, commentsData);
+      exit();
+    } catch (error) {
+      console.error("Error saving:", error);
     }
   };
 
+  const handleAddComment = async () => {
+    try {
+      const commentsData = {
+        user_id: comments.user_id,
+        booking_id: comments.booking_id,
+        invoice_id: comments.invoice_id,
+        datetime: comments.datetime,
+        comment: comments.comment,
+        adjustment_type: comments.adjustment_type,
+        adjustment_value: adjustValue,
+      }
+      await backend.post("/comments", commentsData);
+      exit();
+    } catch (error) {
+    console.error("Error adding:", error);
+    }
+  }
   return (
     <Flex
       direction="column"
       w="100%"
     >
-      <Text
-        fontWeight="bold"
-        fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-        color="#474849"
-        mb={3}
-      >
-        Payments
-      </Text>
+      <Flex 
+        direction="row"
+        width="100%" justifyContent="space-between"
+        marginBottom="12px"
+        marginTop="26px">
+        <Text
+          fontWeight="bold"
+          fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
+          color="#474849"
+          mb={3}
+        >
+          Payments
+        </Text>
+        <Button onClick={handleAddComment} leftIcon={<DarkPlusIcon />}>
+          Add
+        </Button>
+      </Flex>
 
       <Flex
         borderRadius={15}
@@ -261,10 +319,10 @@ const InvoicePayments = ({ comments }) => {
         <Table
           color="#EDF2F7"
         >
-          <Tbody color="#2D3748">
+          <Tbody color="#2D3748" width="100%">
             {comments && comments.length > 0 ? (
               currentPageComments.map((comment) => (
-                <Tr key={comment.id}>
+                <Tr position="relative" justifyContent="space-between" key={comment.id} >
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                     {format(new Date(comment.datetime), "EEE. M/d/yy")}
                   </Td>
@@ -276,19 +334,19 @@ const InvoicePayments = ({ comments }) => {
                       ? `$${Number(comment.adjustmentValue).toFixed(0)}`
                       : "N/A"}
                   </Td>
-                  <Td>
+                  <Td position="absolute" right={0} marginLeft="auto">
                     <Menu>
                               <MenuButton
                                 as={IconButton}
-                                height="30px"
-                                width="30px"
-                                rounded="full"
+                                height="24px"
+                                width="24px"
                                 variant="ghost"
+                                borderRadius={6}
                                 icon={<Icon as={sessionsEllipsis} />}
                               />
                               <MenuList>
                                 <MenuItem
-                                  //onClick={}
+                                  //onClick={handleEditComment}
                                 >
                                   <Box
                                     display="flex"
@@ -301,7 +359,7 @@ const InvoicePayments = ({ comments }) => {
                                   </Box>
                                 </MenuItem>
                                 <MenuItem
-                                  //onClick={}
+                                  onClick={handleDeleteComment}
                                 >
                                   <Box
                                     display="flex"
@@ -323,10 +381,11 @@ const InvoicePayments = ({ comments }) => {
                 <Td colSpan={3}>No comments available.</Td>
               </Tr>
             )}
+            <Tr></Tr> {/*Add row element for Add functionality*/}
           </Tbody>
         </Table>
       </Flex>
-      <Flex
+      {/* <Flex
         direction="row"
         width="100%"
         alignItems="center"
@@ -378,8 +437,8 @@ const InvoicePayments = ({ comments }) => {
             <FaAngleRight></FaAngleRight>
           </Button>
         </Flex>
-      </Flex>
-    </Flex>
+      </Flex> */}
+    </Flex> 
   );
 };
 

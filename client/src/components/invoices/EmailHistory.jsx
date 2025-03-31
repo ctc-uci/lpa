@@ -88,7 +88,7 @@ const EmailHistory = ({ emails }) => {
                   </Tbody>
               </Table>
           </Flex>
-          <Flex direction="row" width="100%" alignItems="center" mb={5}>
+          {/* <Flex direction="row" width="100%" alignItems="center" mb={5}>
               <Text fontSize="clamp(.5rem, 1rem, 1.5rem)" marginRight="0.5rem"> Show: </Text>
               <Select width="auto" marginRight="0.5rem" value={emailsPerPage} onChange={handleEmailsPerPageChange}>
                   <option value={3}>3</option>
@@ -106,7 +106,7 @@ const EmailHistory = ({ emails }) => {
                       <FaAngleRight></FaAngleRight>
                   </Button>
               </Flex>
-          </Flex>
+          </Flex> */}
       </Flex>
   );
 }
