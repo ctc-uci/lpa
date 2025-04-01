@@ -94,7 +94,6 @@ import {
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
-
 export const ProgramSummary = ({
   program,
   bookingInfo,
@@ -839,6 +838,10 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     []
   );
 
+  const handleStatusChange = (newStatus) => {
+    setStatus(newStatus);
+  };
+
   // Add this effect to handle both filtering and sorting whenever relevant dependencies change
   useEffect(() => {
     if (!sessions || !rooms) return;
@@ -1162,100 +1165,12 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                               </Box>
                             </Box>
                           </FormControl>
-                          <FormControl id="status">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Text
-                                fontWeight="bold"
-                                color="#767778"
-                              >
-                                Status
-                              </Text>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("All")}
-                                  backgroundColor={
-                                    status === "All" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "All" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  All
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Active")}
-                                  backgroundColor={
-                                    status === "Active" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Active" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    gap="4px"
-                                  >
-                                    <Box
-                                      width="10px"
-                                      height="10px"
-                                      borderRadius="50%"
-                                      bg="#0C824D"
-                                    />
-                                    Active
-                                  </Box>
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Past")}
-                                  backgroundColor={
-                                    status === "Past" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Past" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    gap="4px"
-                                  >
-                                    <Box
-                                      width="10px"
-                                      height="10px"
-                                      borderRadius="50%"
-                                      bg="#DAB434"
-                                    />
-                                    Past
-                                  </Box>
-                                </Button>
-                              </Box>
-                            </Box>
-                          </FormControl>
+
+                          {/* <ProgramStatusFilter
+                            initialStatus={status}
+                            onStatusChange={handleStatusChange}
+                          /> */}
+
                           <FormControl id="room">
                             <Box
                               display="flex"
