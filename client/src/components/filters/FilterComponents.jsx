@@ -24,6 +24,7 @@ import {
 import { CalendarIcon, TimeIcon, SeasonIcon, EmailIcon, RoomIcon, LeadArtistIcon, PayerIcon } from "../../assets/FilterIcons";
 import pastSvg from "../../assets/icons/past.svg";
 import activeSvg from "../../assets/icons/active.svg";
+import archivedSvg from "../../assets/icons/archived.svg";
 import locationSvg from "../../assets/icons/location.svg";
 import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
 import { PlusFilledIcon } from '../../assets/PlusFilledIcon';
@@ -88,6 +89,84 @@ export const ProgramStatusFilter = () => {
               boxSize="20px"
             />
             <Text ml="2">Past</Text>
+          </Button>
+        </ButtonGroup>
+      </HStack>
+    </FormControl>
+  );
+};
+
+export const SessionStatusFilter = () => {
+  const [status, setStatus] = useState('all');
+
+  const handleStatusChange = (status) => {
+    setSelected(status);
+  };
+
+  return (
+    <FormControl>
+      <FormLabel color="#718096">Status</FormLabel>
+      <HStack alignItems="center">
+        <ButtonGroup
+          variant="outline"
+          spacing={3}
+          colorScheme="purple"
+        >
+          <Button
+            borderRadius="full"
+            borderWidth="2px"
+            color={status === "all" ? "purple.500" : "gray.300"}
+            _hover={{ bg: "purple.100" }}
+            onClick={() => setStatus("all")}
+          >
+            <Text mb="0">All</Text>
+          </Button>
+          <Button
+            borderRadius="full"
+            borderWidth="2px"
+            color={status === "active" ? "purple.500" : "gray.300"}
+            onClick={() => setStatus("active")}
+          >
+            <Box
+              as="img"
+              src={activeSvg}
+              alt="Active Icon"
+              boxSize="20px"
+            />
+            <Text
+              ml="2"
+              mb="0"
+            >
+              Active
+            </Text>
+          </Button>
+          <Button
+            borderRadius="full"
+            borderWidth="2px"
+            color={status === "past" ? "purple.500" : "gray.300"}
+            onClick={() => setStatus("past")}
+          >
+            <Box
+              as="img"
+              src={pastSvg}
+              alt="Past Icon"
+              boxSize="20px"
+            />
+            <Text ml="2">Past</Text>
+          </Button>
+          <Button
+            borderRadius="full"
+            borderWidth="2px"
+            color={status === "archived" ? "purple.500" : "gray.300"}
+            onClick={() => setStatus("archived")}
+          >
+            <Box
+              as="img"
+              src={archivedSvg}
+              alt="Past Icon"
+              boxSize="20px"
+            />
+            <Text ml="2">Archived</Text>
           </Button>
         </ButtonGroup>
       </HStack>
@@ -178,8 +257,11 @@ export const DayFilter = () => {
                 {day}
               </Text>
               <Checkbox
+                _checked={{
+                  "& .chakra-checkbox__control": { background: "#4441C8" }
+                }}
                 size="lg"
-                colorScheme="purple"
+                colorScheme="white"
                 isChecked={selectedDays.includes(day)}
                 onChange={() => handleDayToggle(day)}
                 borderColor="gray.200"

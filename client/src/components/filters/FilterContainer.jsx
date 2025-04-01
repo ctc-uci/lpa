@@ -25,6 +25,8 @@ import {
     useDisclosure
   } from "@chakra-ui/react";
 
+import { FilterIcon } from "../../assets/FilterIcons";
+
 // Children will be the different filterModals to be passed in
 export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -42,7 +44,13 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
 
   return (
     <>
-      <Button onClick={onOpen}>Open Filters</Button>
+      <Button
+        onClick={onOpen}
+        leftIcon={<Icon as={FilterIcon}/>}
+        width="100px"
+      >
+        Filters
+      </Button>
       <Drawer
         isOpen={isOpen}
         placement="right"

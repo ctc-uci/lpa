@@ -10,7 +10,7 @@ import {
 import Navbar from "../navbar/Navbar";
 
 import { SendEmailButton } from "../email/SendEmailButton";
-import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, LeadArtistFilter, RoomFilter, PayerFilter, ProgramStatusFilter } from '../filters/FilterComponents';
+import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, SessionStatusFilter, LeadArtistFilter, RoomFilter, PayerFilter, ProgramStatusFilter, InvoiceStatusFilter, SessionStatusFilter } from '../filters/FilterComponents';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { FilterContainer } from '../filters/FilterContainer';
 import { Filter } from 'lucide-react';
@@ -119,8 +119,8 @@ export const Playground = () => {
         setSelectedPayees={setSelectedPayees}
         setSearchedPayees={setSearchedPayees}
       /> */}
-      <FilterContainer pageName={"Program"}>
-        <ProgramStatusFilter/>
+      <FilterContainer pageName={"Session"}>
+        <SessionStatusFilter/>
         <DayFilter/>
         <DateFilter/>
         <TimeFilter/>
