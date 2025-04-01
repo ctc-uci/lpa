@@ -218,6 +218,8 @@ const InvoicePayments = ({ comments }) => {
   const [commentsPerPage, setCommentsPerPage] = useState(3);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [adjustValue, setAdjustValue] = useState("--.--");
+  const [showInputRow, setShowInputRow] = useState(false);
+  const [valueEntered, setValueEntered] = useState(false);
 
   const totalPages = Math.ceil((comments ?? []).length / commentsPerPage) || 1;
   const currentPageComments = (comments ?? []).slice(
@@ -257,12 +259,14 @@ const InvoicePayments = ({ comments }) => {
   //   }
   // }
 
-  const saveComment = async () => {
+  const handleSaveComment = async () => {
     try {
       const commentsData = {
         adjustment_value: adjustValue,
       };
       await backend.put("/comments/" + id, commentsData);
+      setShowInputRow(false);
+      setAdjustValue("--.--");
       exit();
     } catch (error) {
       console.error("Error saving:", error);
@@ -270,21 +274,7 @@ const InvoicePayments = ({ comments }) => {
   };
 
   const handleAddComment = async () => {
-    try {
-      const commentsData = {
-        user_id: comments.user_id,
-        booking_id: comments.booking_id,
-        invoice_id: comments.invoice_id,
-        datetime: comments.datetime,
-        comment: comments.comment,
-        adjustment_type: comments.adjustment_type,
-        adjustment_value: adjustValue,
-      }
-      await backend.post("/comments", commentsData);
-      exit();
-    } catch (error) {
-    console.error("Error adding:", error);
-    }
+    setShowInputRow(true);
   }
   return (
     <Flex
@@ -304,9 +294,15 @@ const InvoicePayments = ({ comments }) => {
         >
           Payments
         </Text>
-        <Button onClick={handleAddComment} leftIcon={<DarkPlusIcon />}>
-          Add
-        </Button>
+        {!showInputRow ? (
+          <Button onClick={handleAddComment} leftIcon={<DarkPlusIcon />}>
+            Add
+          </Button>
+        ) : (
+          <Button onClick={handleSaveComment} disabled={!valueEntered}>
+            Save
+          </Button>
+        )}
       </Flex>
 
       <Flex
@@ -381,7 +377,41 @@ const InvoicePayments = ({ comments }) => {
                 <Td colSpan={3}>No comments available.</Td>
               </Tr>
             )}
-            <Tr></Tr> {/*Add row element for Add functionality*/}
+            {showInputRow && (
+            <Tr position="relative" justifyContent="space-between" tableLayout="fixed">
+              <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                Date
+                    {/* {format(new Date(datetime), "EEE. M/d/yy")} */}
+              </Td>
+              <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" fontWeight="bold">
+                <Flex alignItems="center" >
+                  <Text color="#0C824D" fontWeight="bold">$</Text>
+                  <Input 
+                    type="number" 
+                    placeholder="__.__" 
+                    value={adjustValue} 
+                    w="60px"
+                    color="#0C824D"
+                    fontWeight="bold"
+                    variant="unstyled"
+                    onChange={(e) => setAdjustValue(e.target.value)}>
+                  </Input>
+                </Flex>
+              </Td>
+              <Td position="absolute" right={0} marginLeft="auto">
+                    <Menu>
+                        <MenuButton
+                          as={IconButton}
+                          height="24px"
+                          width="24px"
+                          variant="ghost"
+                          borderRadius={6}
+                          icon={<Icon as={sessionsEllipsis} />}
+                        />
+                    </Menu>
+              </Td>
+            </Tr>
+            )}
           </Tbody>
         </Table>
       </Flex>
