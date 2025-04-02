@@ -19,6 +19,7 @@ import {
   Tag,
   Text,
   VStack,
+  Select,
   useColorModeValue
 } from "@chakra-ui/react";
 import { CalendarIcon, TimeIcon, SeasonIcon, EmailIcon, RoomIcon, LeadArtistIcon, PayerIcon } from "../../assets/FilterIcons";
@@ -461,36 +462,27 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
 
 
 export const LeadArtistFilter = ({ clientsList, value, onChange }) => {
-  const [selectedArtists, setselectedArtists] = useState(value || []);
+  const [selectedArtist, setSelectedArtist] = useState(value || 'all');
 
   const handleArtistChange = (e) => {
     const selectedValue = e.target.value;
-    let newSelectedArtists;
-
-    if (selectedValue === "all") {
-      newSelectedArtists = [];
-    } else if (selectedArtists.includes(selectedValue)) {
-      newSelectedArtists = selectedArtists.filter(artist => artist !== selectedValue);
-    } else {
-      newSelectedArtists = [...selectedArtists, selectedValue];
-    }
-
-    setSelectedArtists(newSelectedArtists);
-    onChange("leadArtists", newSelectedArtists);
+    setSelectedArtist(selectedValue);
+    onChange("instructor", selectedValue);
   };
 
   return (
     <FormControl>
       <HStack>
         <Box
-          as={BsPaletteFill}
+          as="img"
+          src={BsPaletteFill}
           color="gray.500"
           boxSize="20px"
         />
-        <FormLabel>Lead Artist(s)</FormLabel>
+        <FormLabel color="#718096">Lead Artist(s)</FormLabel>
       </HStack>
       <Select
-        value={selectedArtists.length === 0 ? 'all' : selectedArtists[selectedArtists.length - 1]}
+        value={selectedArtist}
         onChange={handleArtistChange}
         placeholder="Name"
       >
@@ -745,36 +737,27 @@ export const PayerFilter = ( { clientsList, value, onChange} ) => {
   //         </div>
   //     </div>
   //   </VStack>
-  const [selectedPayers, setselectedPayers] = useState(value || []);
+  const [selectedPayer, setSelectedPayer] = useState(value || 'all');
 
   const handlePayerChange = (e) => {
     const selectedValue = e.target.value;
-    let newSelectedPayers;
-
-    if (selectedValue === "all") {
-      newSelectedPayers = [];
-    } else if (selectedPayers.includes(selectedValue)) {
-      newSelectedPayers = selectedPayers.filter(artist => artist !== selectedValue);
-    } else {
-      newSelectedPayers = [...selectedPayers, selectedValue];
-    }
-
-    setselectedPayers(newSelectedPayers);
-    onChange("payers", newSelectedPayers);
+    setSelectedPayer(selectedValue);
+    onChange("payee", selectedValue);
   };
 
   return (
     <FormControl>
       <HStack>
         <Box
-          as={personSvg}
+          as="img"
+          src={personSvg}
           color="gray.500"
           boxSize="20px"
         />
-        <FormLabel>Payer(s)</FormLabel>
+        <FormLabel color="#718096">Payer(s)</FormLabel>
       </HStack>
       <Select
-        value={selectedPayers.length === 0 ? 'all' : selectedPayers[selectedPayers.length - 1]}
+        value={selectedPayer}
         onChange={handlePayerChange}
         placeholder="Name"
       >

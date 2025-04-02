@@ -161,13 +161,21 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         });
       }
 
-      // if (filters.instructor !== "all") {
-      //   filtered = filtered.filter(program => program.instructor.includes(filters.instructor));
-      // }
+      if (filters.instructor && filters.instructor !== "all") {
+        const instructorLower = filters.instructor.toLowerCase();
+        filtered = filtered.filter(program =>
+          program.instructor &&
+          program.instructor.toLowerCase().includes(instructorLower)
+        );
+      }
 
-      // if (filters.payee !== "all") {
-      //   filtered = filtered.filter(program => program.payee.includes(filters.payee));
-      // }
+      if (filters.payee && filters.payee !== "all") {
+        const payeeLower = filters.payee.toLowerCase();
+        filtered = filtered.filter(program =>
+          program.payee &&
+          program.payee.toLowerCase().includes(payeeLower)
+        );
+      }
 
       setFilteredPrograms(filtered);
       console.log("updated with filters", filtered);
@@ -180,8 +188,8 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         dateRange: { start: "", end: "" },
         timeRange: { start: "", end: "" },
         room: "all",
-        leadArtists: [],
-        payers: [],
+        instructor: "all",
+        payee: "all",
       });
       setFilteredPrograms(programs);
     }
@@ -217,14 +225,14 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
           roomMap={roomMap}
           onChange={updateFilter}
           room={filters.room}/>
-        {/* <LeadArtistFilter
+        <LeadArtistFilter
           clientsList={clients}
-          value={filters.leadArtists}
+          value={filters.instructor}
           onChange={updateFilter}/>
         <PayerFilter
           clientsList={clients}
-          value={filters.payers}
-          onChange={updateFilter}/> */}
+          value={filters.payee}
+          onChange={updateFilter}/>
       </ FilterContainer>
     );
 };
