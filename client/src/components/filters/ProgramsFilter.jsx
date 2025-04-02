@@ -1,4 +1,4 @@
-import { React, useState, useEffect, useCallback, useRef } from "react";
+import { React, useState, useEffect } from "react";
 import { FilterContainer } from "./FilterContainer";
 import { DateFilter, DayFilter, ProgramStatusFilter, TimeFilter, RoomFilter, LeadArtistFilter, PayerFilter } from "./FilterComponents";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";

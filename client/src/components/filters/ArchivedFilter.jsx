@@ -1,8 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FilterContainer } from "./FilterContainer";
 import { DateFilter, TimeFilter, DayFilter, RoomFilter, LeadArtistFilter, PayerFilter } from "./FilterComponents";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
+    const {backend} = useBackendContext();
+    const [clients, setClients] = useState([]);
+
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const clientsResponse = await backend.get("/clients");
+          setClients(clientsResponse.data);
+        } catch (error) {
+          console.error("Failed to fetch filter data:", error);
+        }
+      };
+      fetchData();
+    }, [backend]);
 
     const [filters, setFilters] = useState({
       days: [],
@@ -81,21 +96,21 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
         filtered = filtered.filter(program => timeToMinutes(program.sessionEnd) <= timeToMinutes(filters.endTime));
       }
 
-      if (filters.instructor && filters.instructor !== "all") {
-        const instructorLower = filters.instructor.toLowerCase();
-        filtered = filtered.filter(program =>
-          program.instructor &&
-          program.instructor.toLowerCase().includes(instructorLower)
-        );
-      }
+      // if (filters.instructor && filters.instructor !== "all") {
+      //   const instructorLower = filters.instructor.toLowerCase();
+      //   filtered = filtered.filter(program =>
+      //     program.instructor &&
+      //     program.instructor.toLowerCase().includes(instructorLower)
+      //   );
+      // }
 
-      if (filters.payee && filters.payee !== "all") {
-        const payeeLower = filters.payee.toLowerCase();
-        filtered = filtered.filter(program =>
-          program.payee &&
-          program.payee.toLowerCase().includes(payeeLower)
-        );
-      }
+      // if (filters.payee && filters.payee !== "all") {
+      //   const payeeLower = filters.payee.toLowerCase();
+      //   filtered = filtered.filter(program =>
+      //     program.payee &&
+      //     program.payee.toLowerCase().includes(payeeLower)
+      //   );
+      // }
       console.log("NEW FILTERED", filtered);
       setArchivedPrograms(filtered);
     };
@@ -118,6 +133,7 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
       <FilterContainer
         onApply={applyFilters}
         onReset={resetFilter}
+        pageName="Archived"
       >
         <DateFilter
           startDate={filters.startDate}
@@ -146,8 +162,6 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
           value={filters.payee}
           onChange={updateFilter}
         /> */}
-
-
       </ FilterContainer>
     );
 };

@@ -185,11 +185,16 @@ export const SessionStatusFilter = ({ value, onChange }) => {
   );
 };
 
-export const InvoiceStatusFilter = () => {
-  const [status, setStatus] = useState('all');
+export const InvoiceStatusFilter = ({ value, onChange }) => {
+  const [localStatus, setLocalStatus] = useState(value);
 
-  const handleStatusChange = (status) => {
-    setStatus(status);
+  useEffect(() => {
+    setLocalStatus(value);
+  }, [value]);
+
+  const handleStatusChange = (newStatus) => {
+    setLocalStatus(newStatus);
+    onChange("status", newStatus);
   };
 
   return (
@@ -204,18 +209,18 @@ export const InvoiceStatusFilter = () => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={status === "all" ? "purple.500" : "gray.300"}
+            color={localStatus === "all" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setStatus("all")}
+            onClick={() => handleStatusChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={status === "paid" ? "purple.500" : "gray.300"}
+            color={localStatus === "paid" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setStatus("paid")}
+            onClick={() => handleStatusChange("paid")}
           >
             <Text>
               Paid
@@ -224,18 +229,18 @@ export const InvoiceStatusFilter = () => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={status === "notpaid" ? "purple.500" : "gray.300"}
+            color={localStatus === "notpaid" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setStatus("notpaid")}
+            onClick={() => handleStatusChange("notpaid")}
           >
             <Text>Not Paid</Text>
           </Button>
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={status === "pastdue" ? "purple.500" : "gray.300"}
+            color={localStatus === "pastdue" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setStatus("pastdue")}
+            onClick={() => handleStatusChange("pastdue")}
           >
             <Text>Past Due</Text>
           </Button>
@@ -484,7 +489,7 @@ export const LeadArtistFilter = ({ clientsList, value, onChange }) => {
       <Select
         value={selectedArtist}
         onChange={handleArtistChange}
-        placeholder="Name"
+        // placeholder="Name"
       >
         <option value="all">All</option>
         {clientsList.map((client) => (
@@ -759,7 +764,7 @@ export const PayerFilter = ({ clientsList, value, onChange }) => {
       <Select
         value={selectedPayer}
         onChange={handlePayerChange}
-        placeholder="Name"
+        // placeholder="Name"
       >
         <option value="all">All</option>
         {clientsList.map((client) => (
@@ -802,13 +807,17 @@ export const PayerFilter = ({ clientsList, value, onChange }) => {
   //   </FormControl>
 
 
-export const SeasonFilter = () => {
-  const [season, setSeason] = useState('all');
+export const SeasonFilter = ({ value, onChange }) => {
+  const [localSeason, setLocalSeason] = useState(value);
 
-  const handleStatusChange = (season) => {
-    setSelected(season);
+  useEffect(() => {
+    setLocalSeason(value);
+  }, [value]);
+
+  const handleSeasonChange = (newStatus) => {
+    setLocalSeason(newStatus);
+    onChange("season", newStatus);
   };
-
   return (
     <FormControl>=
       <FormLabel>
@@ -826,18 +835,18 @@ export const SeasonFilter = () => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={season === "all" ? "purple.500" : "gray.300"}
+            color={localSeason === "all" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setSeason("all")}
+            onClick={() => handleSeasonChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={season === "summer" ? "purple.500" : "gray.300"}
+            color={localSeason === "Summer" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setSeason("summer")}
+            onClick={() => handleSeasonChange("Summer")}
           >
             <Text>
               Summer
@@ -846,18 +855,18 @@ export const SeasonFilter = () => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={season === "fall" ? "purple.500" : "gray.300"}
+            color={localSeason === "Fall" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setSeason("fall")}
+            onClick={() => handleSeasonChange("Fall")}
           >
             <Text>Fall</Text>
           </Button>
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={season === "winter" ? "purple.500" : "gray.300"}
+            color={localSeason === "Winter" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setSeason("winter")}
+            onClick={() => handleSeasonChange("Winter")}
           >
             <Text>Winter</Text>
           </Button>
