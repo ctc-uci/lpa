@@ -876,11 +876,16 @@ export const SeasonFilter = ({ value, onChange }) => {
   );
 };
 
-export const EmailFilter = () => {
-  const [emailStatus, setEmailStatus] = useState('all');
+export const EmailFilter = ({ value, onChange}) => {
+  const [localEmail, setLocalEmail] = useState(value);
 
-  const handleStatusChange = (email) => {
-    setSelected(email);
+  useEffect(() => {
+    setLocalEmail(value);
+  }, [value]);
+
+  const handleEmailChange = (newStatus) => {
+    setLocalEmail(newStatus);
+    onChange("email", newStatus);
   };
 
   return (
@@ -900,18 +905,18 @@ export const EmailFilter = () => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={emailStatus === "all" ? "purple.500" : "gray.300"}
+            color={localEmail === "all" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setEmailStatus("all")}
+            onClick={() => handleEmailChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={emailStatus === "sent" ? "purple.500" : "gray.300"}
+            color={localEmail === "true" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setEmailStatus("sent")}
+            onClick={() => handleEmailChange("true")}
           >
             <Text>
               Sent
@@ -920,9 +925,9 @@ export const EmailFilter = () => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={emailStatus === "notsent" ? "purple.500" : "gray.300"}
+            color={localEmail === "" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setEmailStatus("notsent")}
+            onClick={() => handleEmailChange("")}
           >
             <Text>Not Sent</Text>
           </Button>

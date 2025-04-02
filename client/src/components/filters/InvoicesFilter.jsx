@@ -1,6 +1,6 @@
 import { React, useState, useEffect } from "react";
 import { FilterContainer } from "./FilterContainer";
-import { DateFilter, DayFilter, ProgramStatusFilter, TimeFilter, RoomFilter, LeadArtistFilter, PayerFilter, InvoiceStatusFilter, SeasonFilter } from "./FilterComponents";
+import { DateFilter, LeadArtistFilter, PayerFilter, InvoiceStatusFilter, SeasonFilter, EmailFilter } from "./FilterComponents";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
@@ -55,6 +55,10 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
 
       if (filters.status !== "all") {
         filtered = filtered.filter(invoice => invoice.paymentStatus === filters.status);
+      }
+
+      if (filters.email != "all"){
+        filtered = filtered.filter(invoice => invoice.isSent === Boolean(filters.email));
       }
 
       // if (filters.instructor && filters.instructor !== "all") {
@@ -112,6 +116,11 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         <SeasonFilter
           value={filters.season}
           onChange={updateFilter}
+        />
+
+        <EmailFilter
+          value = {filters.email}
+          onChange ={updateFilter}
         />
 
         {/* <LeadArtistFilter
