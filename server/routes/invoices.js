@@ -630,7 +630,7 @@ invoicesRouter.post("/backupInvoice/:id", upload.single("file"), async (req, res
     const { comment } = req.body;
 
     if (!file) {
-      return res.status(400).json({ error: "File is required" });
+      return res.status(500).json({ error: "File is required" });
     }
 
     // Upload to S3
