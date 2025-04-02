@@ -108,7 +108,7 @@ const App = () => {
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
                 />
-                <Route
+                {/* <Route
                   path="/invoices"
                   element={<ProtectedRoute element={<InvoicesDashboard />} />}
                 />
@@ -123,7 +123,26 @@ const App = () => {
                 <Route
                   path="/invoices/savededits/:id"
                   element={<ProtectedRoute element={<SavedEdit />} />}
+                /> */}
+                <Route
+                  path="/invoices"
+                  element={<InvoicesDashboard />}
                 />
+                <Route
+                  path="/invoices/:id"
+                  element={<SingleInvoice />}
+                />
+                <Route
+                  path="/invoices/edit/:id"
+                  element={<EditInvoice />}
+                />
+                <Route
+                  path="/invoices/savededits/:id"
+                  element={<SavedEdit />}
+                />
+
+
+
                 <Route
                   path="/programs/:id"
                   element={<ProtectedRoute element={<Program />} />}

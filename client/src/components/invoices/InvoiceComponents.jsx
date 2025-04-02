@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { CalendarIcon } from "@chakra-ui/icons";
 import {
@@ -27,6 +27,7 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
 } from "@chakra-ui/react";
 
 import {
@@ -48,6 +49,9 @@ import { CancelIcon } from "../../assets/CancelIcon";
 import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useParams } from "react-router";
+
+import { useAuthContext } from "../../contexts/hooks/useAuthContext";
+
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -213,19 +217,54 @@ const InvoiceStats = ({
 
 };
 
-const InvoicePayments = ({ comments }) => {
+const InvoicePayments = ({ comments, setComments }) => {
+  const { id } = useParams()
   const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [adjustValue, setAdjustValue] = useState("--.--");
   const [showInputRow, setShowInputRow] = useState(false);
   const [valueEntered, setValueEntered] = useState(false);
+  const { isOpen: isOpen, onOpen: onOpen, onClose: onClose } = useDisclosure();
+  const [editID, setEditID] = useState(null);
 
-  const totalPages = Math.ceil((comments ?? []).length / commentsPerPage) || 1;
-  const currentPageComments = (comments ?? []).slice(
-    (currentPageNumber - 1) * commentsPerPage,
-    currentPageNumber * commentsPerPage
-  );
+  const {
+    isOpen: cancelIsOpen,
+    onOpen: cancelOnOpen,
+    onClose: cancelOnClose,
+  } = useDisclosure();
+
+  const { currentUser } = useAuthContext();
+  const [uid, setUid] = useState(null);
+
+  useEffect(() => {
+    const fetchUid = async () => {
+      console.log("In fetchUid")
+      console.log("In fetchUid", currentUser.email)
+      try {
+        const uidResponse = await backend.get("/users/email/" + currentUser.email);
+        console.log(uidResponse);
+  
+        setUid(uidResponse.data?.id || null);
+      } catch (err) {
+        console.error("Error fetching UID:", err);
+      }
+    };
+  
+    fetchUid();
+  }, [currentUser]);
+
+  
+
+
+
+  // const totalPages = Math.ceil((comments ?? []).length / commentsPerPage) || 1;
+  // const currentPageComments = (comments ?? []).slice(
+  //   (currentPageNumber - 1) * commentsPerPage,
+  //   currentPageNumber * commentsPerPage
+  // );
+
+  const currentPageComments = comments ?? []
 
   // const handleCommentsPerPageChange = (event) => {
   //   setCommentsPerPage(Number(event.target.value));
@@ -247,27 +286,46 @@ const InvoicePayments = ({ comments }) => {
   const handleDeleteComment = async () => {
     try {
       await backend.delete("/comments/" + id);
-      exit();
+      refresh();
     }catch (error) {
       console.error("Error deleting:", error);
     }
   };
 
-  // const handleEditComment = async () => {
-  //   try {
-      
-  //   }
-  // }
+  const handleEditComment = (edit) => {
+    try {
+      setEditID(edit);
+      setShowInputRow(true);
+    } catch (error) {
+      console.error("Error editing:", error);
+    }
+  }
+
 
   const handleSaveComment = async () => {
     try {
       const commentsData = {
-        adjustment_value: adjustValue,
+        user_id: uid,
+        invoice_id: id, 
+        booking_id: null,
+        datetime: (new Date()).toISOString(),
+        comment: "",
+        adjustment_type: "paid",
+        adjustment_value: Number(adjustValue)
       };
-      await backend.put("/comments/" + id, commentsData);
+
+      console.log({ uid, id, commentsData });
+
+
+      await backend.post("/comments/" , commentsData);
+      console.log(comments)
+
+      const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
+      setComments(commentsResponse.data);
+
       setShowInputRow(false);
       setAdjustValue("--.--");
-      exit();
+
     } catch (error) {
       console.error("Error saving:", error);
     }
@@ -276,6 +334,7 @@ const InvoicePayments = ({ comments }) => {
   const handleAddComment = async () => {
     setShowInputRow(true);
   }
+  
   return (
     <Flex
       direction="column"
@@ -304,7 +363,7 @@ const InvoicePayments = ({ comments }) => {
           </Button>
         )}
       </Flex>
-
+      
       <Flex
         borderRadius={15}
         borderWidth=".07em"
@@ -326,9 +385,25 @@ const InvoicePayments = ({ comments }) => {
                     {comment.comment}
                   </Td> */}
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" color="#0C824D" fontWeight="bold">
-                    {comment.adjustmentValue
+                  {comment.id === editID ? (
+                    <Flex alignItems="center">
+                      <Text color="#0C824D" fontWeight="bold">$</Text>
+                      <Input 
+                        type="number" 
+                        placeholder="__.__" 
+                        value={adjustValue} 
+                        w="60px"
+                        color="#0C824D"
+                        fontWeight="bold"
+                        variant="unstyled"
+                        onChange={(e) => setAdjustValue(e.target.value)}
+                      />
+                    </Flex>
+                  ) : (
+                    comment.adjustmentValue
                       ? `$${Number(comment.adjustmentValue).toFixed(0)}`
-                      : "N/A"}
+                      : "N/A"
+                  )} 
                   </Td>
                   <Td position="absolute" right={0} marginLeft="auto">
                     <Menu>
@@ -338,11 +413,12 @@ const InvoicePayments = ({ comments }) => {
                                 width="24px"
                                 variant="ghost"
                                 borderRadius={6}
+                                color="#EDF2F"
                                 icon={<Icon as={sessionsEllipsis} />}
                               />
                               <MenuList>
                                 <MenuItem
-                                  //onClick={handleEditComment}
+                                  // onClick={handleEditComment}
                                 >
                                   <Box
                                     display="flex"
@@ -380,8 +456,7 @@ const InvoicePayments = ({ comments }) => {
             {showInputRow && (
             <Tr position="relative" justifyContent="space-between" tableLayout="fixed">
               <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                Date
-                    {/* {format(new Date(datetime), "EEE. M/d/yy")} */}
+                {format(new Date(), "EEE. M/d/yy")}
               </Td>
               <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" fontWeight="bold">
                 <Flex alignItems="center" >

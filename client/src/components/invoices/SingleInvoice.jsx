@@ -7,12 +7,15 @@ import {
 } from "react-router-dom";
 
 import {
-    Heading,
     Flex,
     Button,
     IconButton,
-    Box,
-    Text
+    Modal,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    useDisclosure
 } from "@chakra-ui/react";
 
 import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
@@ -49,6 +52,13 @@ export const SingleInvoice = () => {
     const [programName, setProgramName] = useState("");
     const [instructors, setInstructors] = useState([]);
     const [invoice, setInvoice] = useState([]);
+    const { isOpen: isModalOpen, onOpen: openModal, onClose: closeModal } = useDisclosure();
+    const {
+        isOpen: cancelIsOpen,
+        onOpen: cancelOnOpen,
+        onClose: cancelOnClose,
+      } = useDisclosure();
+
 
     useEffect(() => {
       const fetchData = async () => {
@@ -179,12 +189,50 @@ export const SingleInvoice = () => {
       <Navbar>
         <Flex direction="row" height="100%" width="100%">
           <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
+              <Modal isOpen={isModalOpen} onClose={closeModal}>
+                          <ModalOverlay />
+                          <ModalContent>
+                            <ModalHeader
+                              textAlign="center"
+                              paddingBottom="0"
+                            >
+                              Leave without saving changes?
+                            </ModalHeader>
+                            <ModalFooter
+                              style={{ display: "flex", justifyContent: "flex-end" }}
+                            >
+                              <Button
+                                variant="ghost"
+                                onClick={cancelOnClose}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                colorScheme="red"
+                                mr={3}
+                                id="deactivateConfirm"
+                                onClick={() => {
+                                  closeModal();
+                                  navigate("/invoices"); // Navigate after closing the modal
+                                }}
+                              >
+                                Ok
+                              </Button>
+                            </ModalFooter>
+                          </ModalContent>
+                </Modal>
             <Flex direction="row" width="100%">
               {/* back button */}
               <IconButton
                 icon={<FaAngleLeft />}
                 onClick={() => {
-                  navigate("/invoices");
+                  if (isModalOpen) {
+                    console.log("Open modal")
+                    openModal(); // Open the modal if the condition is met
+                  } else {
+                    console.log("No modal")
+                    navigate("/invoices"); // Otherwise, navigate directly
+                  }
                 }}
                 variant="link"
                 color="#474849"
@@ -225,7 +273,7 @@ export const SingleInvoice = () => {
                     amountDue={total}
                     remainingBalance={!remainingBalance}
                   ></InvoiceStats>
-                  <InvoicePayments comments={comments}></InvoicePayments>
+                  <InvoicePayments comments={comments} setComments={setComments}></InvoicePayments>
                   <EmailHistory emails={emails}></EmailHistory>
                 </Flex>
 
