@@ -33,15 +33,6 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
       setFilters((prev) => ({ ...prev, [type]: value }));
     };
 
-    // const handleInputChange = (event) => {
-    //     const { type, value } = event.target;
-
-    //     setFilters((prev) => ({
-    //         ...prev,
-    //         [name] : value ? new Date('1970-01-01T${value}') : null
-    //     }));
-    // };
-
     // Apply the filters to the sessions page
     const applyFilters = () => {
       console.log("Applying filters:", filters);
@@ -50,8 +41,22 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
 
       // Update based on status filter
       if (filters.status !== "all") {
-        filtered = filtered.filter(session => session.status === filters.status);
+        const now = new Date().toISOString();
+        console.log("now:", now);
+        filtered = filtered.filter(session => {
+          switch (filters.status) {
+            case "active":
+              return session.date > now;
+            case "past":
+              return session.date <= now && !session.archived;
+            case "archived":
+              return session.archived;
+            default:
+              return true;
+          }
+        });
       }
+      console.log("filtered:", filtered);
 
       if (filters.room !== "all") {
         filtered = filtered.filter(session => session.roomId === filters.room);
@@ -96,10 +101,10 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
         onReset={resetFilter}
         pageName="Session"
       >
-        {/* <SessionStatusFilter
+        <SessionStatusFilter
           value={filters.status}
-          onChange={(value) => updateFilter('status', value)}
-        /> */}
+          onChange={updateFilter}
+        />
 
         <TimeFilter
           startTime={filters.startTime}

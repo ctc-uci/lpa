@@ -96,12 +96,7 @@ export const ProgramStatusFilter = () => {
   );
 };
 
-export const SessionStatusFilter = () => {
-  const [status, setStatus] = useState('all');
-
-  const handleStatusChange = (status) => {
-    setStatus(status);
-  };
+export const SessionStatusFilter = ({ status, onChange }) => {
 
   return (
     <FormControl>
@@ -117,7 +112,7 @@ export const SessionStatusFilter = () => {
             borderWidth="2px"
             color={status === "all" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => setStatus("all")}
+            onClick={() => onChange("status", "all")}
           >
             <Text mb="0">All</Text>
           </Button>
@@ -125,7 +120,7 @@ export const SessionStatusFilter = () => {
             borderRadius="full"
             borderWidth="2px"
             color={status === "active" ? "purple.500" : "gray.300"}
-            onClick={() => setStatus("active")}
+            onClick={() => onChange("status", "active")}
           >
             <Box
               as="img"
@@ -144,7 +139,7 @@ export const SessionStatusFilter = () => {
             borderRadius="full"
             borderWidth="2px"
             color={status === "past" ? "purple.500" : "gray.300"}
-            onClick={() => setStatus("past")}
+            onClick={() => onChange("status", "past")}
           >
             <Box
               as="img"
@@ -158,7 +153,7 @@ export const SessionStatusFilter = () => {
             borderRadius="full"
             borderWidth="2px"
             color={status === "archived" ? "purple.500" : "gray.300"}
-            onClick={() => setStatus("archived")}
+            onClick={() => onChange("status", "archived")}
           >
             <Box
               as="img"
@@ -312,6 +307,7 @@ export const DateFilter = ({startDate, endDate, onChange}) => {
             backgroundColor="#F6F6F6"
             width="40%"
             type="date"
+            value={startDate || ''}
             placeholder="MM/DD/YYYY"
             onChange={(e) =>
               onChange("startDate", e.target.value)
@@ -325,6 +321,7 @@ export const DateFilter = ({startDate, endDate, onChange}) => {
             backgroundColor="#F6F6F6"
             width="40%"
             type="date"
+            value={endDate || ''}
             placeholder="MM/DD/YYYY"
             colorScheme="gray"
             onChange={(e) =>
