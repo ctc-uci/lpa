@@ -275,7 +275,7 @@ export const DayFilter = () => {
   );
 };
 
-export const DateFilter = () => {
+export const DateFilter = ({startDate, endDate, onChange}) => {
   return (
     <FormControl id="date">
       <Box
@@ -314,7 +314,7 @@ export const DateFilter = () => {
             type="date"
             placeholder="MM/DD/YYYY"
             onChange={(e) =>
-              handleDateChange("start", e.target.value)
+              onChange("startDate", e.target.value)
             }
           />
           <Text> - </Text>
@@ -328,7 +328,7 @@ export const DateFilter = () => {
             placeholder="MM/DD/YYYY"
             colorScheme="gray"
             onChange={(e) =>
-              handleDateChange("end", e.target.value)
+              onChange("endDate", e.target.value)
             }
           />
         </Box>

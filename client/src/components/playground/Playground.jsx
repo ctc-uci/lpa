@@ -136,6 +136,7 @@ export const Playground = () => {
         <Table variant="unstyled">
           <Th>Name</Th>
           <Th>Time</Th>
+          <Th>Date</Th>
           <Th>Room</Th>
           <Tbody>
             {filteredSessions.length > 0 ? (
@@ -144,6 +145,7 @@ export const Playground = () => {
                   {/* ... render program data ... */}
                   <Td>{sessions.name}</Td>
                   <Td>{sessions.startTime} - {sessions.endTime}</Td>
+                  <Td>{sessions.date}</Td>
                   <Td>{sessions.roomId}</Td>
                 </Tr>
               ))

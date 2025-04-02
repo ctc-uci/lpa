@@ -66,12 +66,13 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
         filtered = filtered.filter(session => session.endTime <= filters.endTime);
       }
 
+      // Date
       if (filters.startDate) {
-        filtered = filtered.filter(session => new Date(session.date) >= new Date(filters.startDate));
+        filtered = filtered.filter(session => session.date >= filters.startDate);
       }
 
       if (filters.endDate) {
-        filtered = filtered.filter(session => new Date(session.date) <= new Date(filters.endDate));
+        filtered = filtered.filter(session => session.date <= filters.endDate);
       }
       setFilteredSessions(filtered);
     };
@@ -103,6 +104,10 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
         <TimeFilter
           startTime={filters.startTime}
           endTime={filters.endTime}
+          onChange={updateFilter}/>
+        <DateFilter
+          startDate={filters.startDate}
+          endDate={filters.endDate}
           onChange={updateFilter}/>
       </ FilterContainer>
     );
