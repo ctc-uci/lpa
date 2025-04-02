@@ -42,4 +42,27 @@ const getS3UploadURL = async () => {
   return uploadURL;
 };
 
-export { s3, getS3UploadURL };
+const uploadPDF = async (file: Buffer) => {
+  const uploadURL = await getS3UploadURL();
+
+  const response = await fetch(uploadURL, {
+    method: 'PUT',
+    body: file.buffer,
+    headers: {
+      'Content-Type': 'application/pdf'
+    }
+  });
+
+  let fileURL = ""
+  if (response.ok) {
+    // The URL where your PDF is now accessible (remove the query parameters)
+    fileURL = uploadURL.split('?')[0] || "";
+    console.log('PDF uploaded successfully to:', fileURL);
+  } else {
+    console.error('Failed to upload PDF:', response.statusText);
+    throw new Error('Failed to upload PDF');
+  }
+  return fileURL;
+}
+
+export { s3, uploadPDF };
