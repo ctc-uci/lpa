@@ -337,7 +337,7 @@ export const DateFilter = () => {
   );
 };
 
-export const TimeFilter = (startTime, endTime, change) => {
+export const TimeFilter = ({startTime, endTime, onChange}) => {
 
   return (
     <FormControl id="time">
@@ -372,7 +372,7 @@ export const TimeFilter = (startTime, endTime, change) => {
             type="time"
             value={startTime || ''}
             placeholder="00:00 am"
-            onChange={(e) => change("startTime", e.target.value)}
+            onChange={(e) => onChange("startTime", e.target.value)}
           />
           <Text> - </Text>
           <Input
@@ -384,7 +384,7 @@ export const TimeFilter = (startTime, endTime, change) => {
             type="time"
             value={endTime || ''}
             placeholder="00:00 am"
-            onChange={(e) => change("endTime", e.target.value)}
+            onChange={(e) => onChange("endTime", e.target.value)}
           />
         </Box>
       </Box>

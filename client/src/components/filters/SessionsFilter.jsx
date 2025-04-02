@@ -59,19 +59,11 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
 
       // Time
       if (filters.startTime) {
-        filtered = filtered.filter(session => {
-          const sessionTime = new Date(`1970-01-01T${session.startTime}`);
-          const filterTime = new Date(`1970-01-01T${filters.startTime}`);
-          return sessionTime >= filterTime;
-        });
+        filtered = filtered.filter(session => session.startTime >= filters.startTime);
       }
 
       if (filters.endTime) {
-        filtered = filtered.filter(session => {
-          const sessionTime = new Date(`1970-01-01T${session.endTime}`);
-          const filterTime = new Date(`1970-01-01T${filters.endTime}`);
-          return sessionTime <= filterTime;
-        });
+        filtered = filtered.filter(session => session.endTime <= filters.endTime);
       }
 
       if (filters.startDate) {
@@ -81,7 +73,6 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
       if (filters.endDate) {
         filtered = filtered.filter(session => new Date(session.date) <= new Date(filters.endDate));
       }
-      console.log(filtered)
       setFilteredSessions(filtered);
     };
 
@@ -112,7 +103,7 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
         <TimeFilter
           startTime={filters.startTime}
           endTime={filters.endTime}
-          change={updateFilter}/>
+          onChange={updateFilter}/>
       </ FilterContainer>
     );
 };
