@@ -2,9 +2,12 @@ import express, { Router } from "express";
 
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
+import { getS3UploadURL } from "../common/s3";
+import multer from 'multer';
 
 const invoicesRouter = Router();
 invoicesRouter.use(express.json());
+const upload = multer();
 
 // Get all invoices
 invoicesRouter.get("/", async (req, res) => {
@@ -605,6 +608,42 @@ invoicesRouter.delete("/:id", async (req, res) => {
     }
 
     res.status(200).json({ result: "success" });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+invoicesRouter.post("/uploadInvoice", upload.single("file"), async (req, res) => {
+  // Upload an invoice PDF to S3, returning the viewable URL
+  try {
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: "File is required" });
+    }
+
+    // Upload to S3
+    const uploadURL = await getS3UploadURL();
+
+    const response = await fetch(uploadURL, {
+      method: 'PUT',
+      body: file.buffer,
+      headers: {
+        'Content-Type': 'application/pdf'
+      }
+    });
+
+    let fileURL = ""
+    if (response.ok) {
+      // The URL where your PDF is now accessible (remove the query parameters)
+      fileURL = uploadURL.split('?')[0];
+      console.log('PDF uploaded successfully to:', fileURL);
+    } else {
+      console.error('Failed to upload PDF:', response.statusText);
+      throw new Error('Failed to upload PDF');
+    }
+    
+    res.status(201).json(fileURL);
   } catch (err) {
     res.status(500).send(err.message);
   }

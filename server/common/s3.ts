@@ -5,15 +5,15 @@ import crypto from "crypto";
 import aws from "aws-sdk";
 
 const region =
-  process.env.NODE_ENV === "DEVELOPMENT"
+  process.env.NODE_ENV === "development"
     ? process.env.DEV_S3_REGION
     : process.env.PROD_S3_REGION;
 const accessKeyId =
-  process.env.NODE_ENV === "DEVELOPMENT"
+  process.env.NODE_ENV === "development"
     ? process.env.DEV_S3_ACCESS_KEY_ID
     : process.env.PROD_S3_ACCESS_KEY_ID;
 const secretAccessKey =
-  process.env.NODE_ENV === "DEVELOPMENT"
+  process.env.NODE_ENV === "development"
     ? process.env.DEV_SECRET_ACCESS_KEY
     : process.env.PROD_S3_SECRET_ACCESS_KEY;
 
@@ -27,12 +27,12 @@ const s3 = new aws.S3({
 
 const getS3UploadURL = async () => {
   // generate a unique name for image
-  const imageName = crypto.randomBytes(16).toString("hex");
+  const fileName = crypto.randomBytes(16).toString("hex");
 
   // set up s3 params
   const params = {
     Bucket: process.env.S3_BUCKET_NAME,
-    Key: imageName,
+    Key: fileName,
     Expires: 60,
   };
 
