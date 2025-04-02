@@ -32,88 +32,53 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
         );
       }
 
-      console.log("THERE IS FILTER DAYS?", filters.days)
       // Day
       if (filters.days.length > 0) {
         filtered = filtered.filter(program => {
           if (program.sessionDate) {
-            console.log("PRGRAM DATE:", program.sessionDate);
             const programDay = new Date(program.sessionDate).toLocaleString('en-US', { weekday: 'short' });
-            console.log("PRGRAM day:", programDay);
             return filters.days.includes(programDay);
           }
           return false;
         });
       }
 
+      // Update date filters
       if (filters.startDate) {
-        filtered = filtered.filter(program => program.date && new Date(program.date) >= new Date(filters.startDate));
+        filtered = filtered.filter(program => program.sessionDate && new Date(program.sessionDate) >= new Date(filters.startDate));
       }
 
       if (filters.endDate) {
-        filtered = filtered.filter(program => program.date && new Date(program.date) <= new Date(filters.endDate));
+        filtered = filtered.filter(program => program.sessionDate && new Date(program.sessionDate) <= new Date(filters.endDate));
       }
-      function compareTimeStrings(time1, time2) {
-        // Helper function to convert time string to minutes since midnight
-        function timeToMinutes(timeStr) {
-          let [time, modifier] = timeStr.split(' ');
-          let [hours, minutes] = time.split(':');
 
-          hours = parseInt(hours);
-          minutes = parseInt(minutes);
 
-          if (hours === 12) {
-            hours = 0;
-          }
+      function timeToMinutes(timeStr) {
+        let [time, offset] = timeStr.split('+');
+        let [hours, minutes, seconds] = time.split(':').map(Number);
 
-          if (modifier && modifier.toLowerCase() === 'pm') {
-            hours = hours + 12;
-          }
-
-          return hours * 60 + minutes;
+        // If there's no offset, we assume it's in the same timezone as the other time
+        if (offset) {
+          // Adjust for timezone if needed
+          let offsetHours = Number(offset.slice(0, 2));
+          let offsetMinutes = Number(offset.slice(2));
+          hours -= offsetHours; // Subtract because +00 means ahead of UTC
+          minutes -= offsetMinutes;
         }
 
-        // Convert both times to minutes and compare
-        const minutes1 = timeToMinutes(time1);
-        const minutes2 = timeToMinutes(time2);
+        // Ensure hours are within 0-23 range
+        hours = (hours + 24) % 24;
 
-        if (minutes1 < minutes2) {
-          return -1; // time1 is earlier
-        } else if (minutes1 > minutes2) {
-          return 1;  // time1 is later
-        } else {
-          return 0;  // times are equal
-        }
+        return hours * 60 + minutes;
       }
 
-      function isTimeBefore(time1, time2) {
-        return compareTimeStrings(time1, time2) < 0;
-      }
 
       if (filters.startTime) {
-        filtered = filtered.filter(program => {
-          if (program.upcomingTime !== "N/A") {
-            const [start] = program.upcomingTime.split(" - ");
-            console.log("start", start);
-            console.log(filters.startTime);
-            console.log(isTimeBefore(start, filters.startTime));
-            return isTimeBefore(start, filters.startTime) <= 0;
-          }
-          return false;
-        });
+        filtered = filtered.filter(program => timeToMinutes(program.sessionStart) >= timeToMinutes(filters.startTime));
       }
 
       if (filters.endTime) {
-        filtered = filtered.filter(program => {
-          if (program.upcomingTime !== "N/A") {
-            const [, end] = program.upcomingTime.split(" - ");
-            console.log("end", end);
-            console.log(filters.endTime);
-            console.log(isTimeBefore(end, filters.endTime));
-            return isTimeBefore(end, filters.endTime) <= 0;
-          }
-          return false;
-        });
+        filtered = filtered.filter(program => timeToMinutes(program.sessionEnd) <= timeToMinutes(filters.endTime));
       }
 
       if (filters.instructor && filters.instructor !== "all") {
