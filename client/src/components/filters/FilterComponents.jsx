@@ -239,16 +239,19 @@ export const InvoiceStatusFilter = () => {
   );
 };
 
-export const DayFilter = () => {
-  const [selectedDays, setSelectedDays] = useState([]);
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'];
+export const DayFilter = ({ value = [], onChange }) => {
+  const [selectedDays, setSelectedDays] = useState(value);
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const handleDayToggle = (day) => {
+    let newSelectedDays;
     if (selectedDays.includes(day)) {
-      setSelectedDays(selectedDays.filter(d => d !== day));
+      newSelectedDays = selectedDays.filter(d => d !== day);
     } else {
-      setSelectedDays([...selectedDays, day]);
+      newSelectedDays = [...selectedDays, day];
     }
+    setSelectedDays(newSelectedDays);
+    onChange("days", newSelectedDays);
   };
 
   return (

@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { FilterContainer } from "./FilterContainer";
-import { DateFilter, RoomFilter, SessionStatusFilter, TimeFilter } from "./FilterComponents";
+import { DateFilter, DayFilter, RoomFilter, SessionStatusFilter, TimeFilter } from "./FilterComponents";
 
 export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
 
@@ -42,7 +42,6 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
       // Update based on status filter
       if (filters.status !== "all") {
         const now = new Date().toISOString();
-        console.log("now:", now);
         filtered = filtered.filter(session => {
           switch (filters.status) {
             case "active":
@@ -60,9 +59,16 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
       console.log("roomsList", rooms);
 
       if (filters.room !== "all") {
-        console.log("filters.room", filters.room);
-        console.log("rooms.get", rooms.get(66));
         filtered = filtered.filter(session => rooms.get(session.roomId) === filters.room);
+      }
+
+      // Day
+      if (filters.days.length > 0) {
+        filtered = filtered.filter(session => {
+          const sessionDate = new Date(session.date);
+          const day = sessionDate.toLocaleString('en-US', { weekday: 'short' });
+          return filters.days.includes(day);
+        });
       }
 
       // Time
@@ -82,11 +88,6 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
       if (filters.endDate) {
         filtered = filtered.filter(session => session.date <= filters.endDate);
       }
-
-      // Rooms
-      // if (filters.room !== "all") {
-      //   filtered = filtered.filter(session => session.roomId === filters.endDate);
-      // }
       setFilteredSessions(filtered);
     };
 
@@ -113,14 +114,16 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
           value={filters.status}
           onChange={updateFilter}
         />
-
-        <TimeFilter
-          startTime={filters.startTime}
-          endTime={filters.endTime}
+        <DayFilter
+          value={filters.days}
           onChange={updateFilter}/>
         <DateFilter
           startDate={filters.startDate}
           endDate={filters.endDate}
+          onChange={updateFilter}/>
+        <TimeFilter
+          startTime={filters.startTime}
+          endTime={filters.endTime}
           onChange={updateFilter}/>
         <RoomFilter
           roomMap={rooms}
