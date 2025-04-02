@@ -96,7 +96,17 @@ export const ProgramStatusFilter = () => {
   );
 };
 
-export const SessionStatusFilter = ({ status, onChange }) => {
+export const SessionStatusFilter = ({ value, onChange }) => {
+  const [localStatus, setLocalStatus] = useState(value);
+
+  useEffect(() => {
+    setLocalStatus(value);
+  }, [value]);
+
+  const handleStatusChange = (newStatus) => {
+    setLocalStatus(newStatus);
+    onChange("status", newStatus);
+  };
 
   return (
     <FormControl>
@@ -110,17 +120,17 @@ export const SessionStatusFilter = ({ status, onChange }) => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={status === "all" ? "purple.500" : "gray.300"}
+            color={localStatus === "all" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => onChange("status", "all")}
+            onClick={() => handleStatusChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={status === "active" ? "purple.500" : "gray.300"}
-            onClick={() => onChange("status", "active")}
+            color={localStatus === "active" ? "purple.500" : "gray.300"}
+            onClick={() => handleStatusChange("active")}
           >
             <Box
               as="img"
@@ -138,8 +148,8 @@ export const SessionStatusFilter = ({ status, onChange }) => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={status === "past" ? "purple.500" : "gray.300"}
-            onClick={() => onChange("status", "past")}
+            color={localStatus === "past" ? "purple.500" : "gray.300"}
+            onClick={() => handleStatusChange("past")}
           >
             <Box
               as="img"
@@ -152,8 +162,8 @@ export const SessionStatusFilter = ({ status, onChange }) => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={status === "archived" ? "purple.500" : "gray.300"}
-            onClick={() => onChange("status", "archived")}
+            color={localStatus === "archived" ? "purple.500" : "gray.300"}
+            onClick={() => handleStatusChange("archived")}
           >
             <Box
               as="img"
@@ -390,14 +400,16 @@ export const TimeFilter = ({startTime, endTime, onChange}) => {
 };
 
 export const RoomFilter = ({ roomMap, onChange, room }) => {
-  // const[rooms, setRoom] = useState("all");
+  const [localRoom, setLocalRoom] = useState(room);
 
-  // const roomsData = [
-  //   { id: 1, name: "Room 1" },
-  //   { id: 2, name: "Room 2" },
-  //   { id: 3, name: "Room 3" },
-  //   { id: 4, name: "Studio" }
-  // ];
+  useEffect(() => {
+    setLocalRoom(room);
+  }, [room]);
+
+  const handleRoomChange = (newRoom) => {
+    setLocalRoom(newRoom);
+    onChange("room", newRoom);
+  };
 
   return (
     <FormControl>
@@ -415,9 +427,9 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
         variant="outline"
         borderRadius="full"
         borderWidth="2px"
-        color={onChange.room === "all" ? "purple.500" : "gray.300"}
+        color={localRoom === "all" ? "purple.500" : "gray.300"}
         colorScheme="purple"
-        onClick={() => onChange("room", "all")}
+        onClick={() => handleRoomChange("all")}
       >
         All
       </Button>
@@ -427,9 +439,9 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
           variant="outline"
           borderRadius="full"
           borderWidth="2px"
-          color={onChange.room === roomName ? "purple.500" : "gray.300"}
+          color={localRoom === roomName ? "purple.500" : "gray.300"}
           colorScheme="purple"
-          onClick={() => onChange("room", roomName)}
+          onClick={() => handleRoomChange(roomName)}
         >
           {roomName}
         </Button>
@@ -638,23 +650,6 @@ export const PayerFilter = ( {payeeSearchTerm, searchedPayees, selectedPayees, g
                                       onClick={() => {
                                           setPayeeSearchTerm(payee.name); // Fill input field
                                           setDropdownVisible(false); // Hide dropdown after selecting
-                                      // const alreadySelected = selectedPayees.find(
-                                      //     (pay) => pay.id.toString() === payee.id
-                                      // );
-
-                                      // if (!alreadySelected) {
-                                      //     setSelectedPayees((prevItems) => [...prevItems, payee]);
-                                      //     setPayeeSearchTerm(""); // Clears input
-                                      //     setSearchedPayees([]); // Closes dropdown
-                                      // }
-
-                                      // if (payee && !alreadySelected) {
-                                      //     setSelectedPayees((prevItems) => [...prevItems, payee]);
-                                      //     const filteredPayees = searchedPayees.filter(
-                                      //     (pay) => payee.id !== pay.id.toString()
-                                      //     );
-                                      //     setSearchedPayees(filteredPayees);
-                                      // }
                                   }}
                                       style={{
                                           padding: "10px",
