@@ -32,11 +32,14 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
         );
       }
 
+      console.log("THERE IS FILTER DAYS?", filters.days)
       // Day
       if (filters.days.length > 0) {
         filtered = filtered.filter(program => {
-          if (program.date) {
-            const programDay = new Date(program.date).toLocaleString('en-US', { weekday: 'short' });
+          if (program.sessionDate) {
+            console.log("PRGRAM DATE:", program.sessionDate);
+            const programDay = new Date(program.sessionDate).toLocaleString('en-US', { weekday: 'short' });
+            console.log("PRGRAM day:", programDay);
             return filters.days.includes(programDay);
           }
           return false;
