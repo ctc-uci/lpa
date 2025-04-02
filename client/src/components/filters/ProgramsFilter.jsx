@@ -1,11 +1,9 @@
-import { React, useState, useEffect, useCallback } from "react";
+import { React, useState, useEffect, useCallback, useRef } from "react";
 import { FilterContainer } from "./FilterContainer";
 import { DateFilter, DayFilter, ProgramStatusFilter, TimeFilter, RoomFilter, LeadArtistFilter, PayerFilter } from "./FilterComponents";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
-    // const [programs, setPrograms] = useState([]); // TO contain original program data
-    // const [filteredPrograms, setFilteredPrograms] = useState([]); // To contain filteredPrograms (will be displayed if filters applied
     const { backend } = useBackendContext();
 
     const [rooms, setRooms] = useState([]);
@@ -66,13 +64,6 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       console.log("Applying filters:", filters);
       console.log("Original programs:", programs);
       let filtered = programs;
-
-      // Update based on status filter
-      if (filters.status !== "all") {
-        filtered = filtered.filter(program =>
-          program.status.toLowerCase() === filters.status.toLowerCase()
-        );
-      }
 
       if (filters.room !== "all"){
         filtered = filtered.filter(program =>
@@ -185,8 +176,10 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       setFilters({
         status: "all",
         days: [],
-        dateRange: { start: "", end: "" },
-        timeRange: { start: "", end: "" },
+        startTime: null,
+        endTime: null,
+        startDate: null,
+        endDate: null,
         room: "all",
         instructor: "all",
         payee: "all",
@@ -228,11 +221,13 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         <LeadArtistFilter
           clientsList={clients}
           value={filters.instructor}
-          onChange={updateFilter}/>
+          onChange={updateFilter}
+        />
         <PayerFilter
           clientsList={clients}
           value={filters.payee}
-          onChange={updateFilter}/>
+          onChange={updateFilter}
+          />
       </ FilterContainer>
     );
 };

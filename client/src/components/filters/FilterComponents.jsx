@@ -611,7 +611,7 @@ export const LeadArtistFilter = ({ clientsList, value, onChange }) => {
 
 
 
-export const PayerFilter = ( { clientsList, value, onChange} ) => {
+export const PayerFilter = ({ clientsList, value, onChange }) => {
   // const [dropdownVisible, setDropdownVisible] = useState(false);
 
   // useEffect(() => {

@@ -66,6 +66,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
+import { ArchivedFilter } from "../filters/ArchivedFilter";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -83,6 +84,7 @@ export const ArchivedPrograms = () => {
   const [programToDelete, setProgramToDelete] = useState(null);
   const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+  const [filteredArchived, setFilteredArchived] = useState([]);
 
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -181,15 +183,16 @@ export const ArchivedPrograms = () => {
           instructors: thisAssignments.instructors,
           payees: thisAssignments.payees,
         };
-        console.log("THIS SESSION", thisSession);
+        // console.log("THIS SESSION", thisSession);
         info.push(thisSession);
       }
 
       // Store this data in state
       setArchivedProgramSessions(info);
+      setFilteredArchived(info);
       setUniqueRooms([...allRoomIds]);
-      console.log("here");
-      console.log(archivedSessions);
+      // console.log("here");
+      // console.log(archivedSessions);
     } catch (error) {
       console.log("From getArchivedProgramSessions: ", error);
     }
@@ -298,7 +301,9 @@ export const ArchivedPrograms = () => {
   };
 
   const sortedArchivedSessions = useMemo(() => {
-    const filtered = filterSessions();
+    // Filtered should be the results of the archivedfilter update
+    // const filtered = filterSessions();
+    const filtered = filteredArchived;
     console.log(
       "Filtered session dates:",
       filtered.map((s) => s.sessionDate)
@@ -338,7 +343,7 @@ export const ArchivedPrograms = () => {
       sorted.map((s) => s.sessionDate)
     );
     return sorted;
-  }, [filterSessions(), sortKey, sortOrder]);
+  }, [filteredArchived, sortKey, sortOrder]);
 
   const deleteArchivedProgram = async (programId) => {
     try {
@@ -490,7 +495,11 @@ export const ArchivedPrograms = () => {
                 marginBottom="15px"
               >
                 <Flex marginRight="auto">
-                  <Popover>
+                  <ArchivedFilter
+                    archived={archivedSessions}
+                    setArchivedPrograms={setFilteredArchived}
+                    roomMap={roomNames}/>
+                  {/* <Popover>
                     <PopoverTrigger>
                       <Button
                         backgroundColor="#F0F1F4"
@@ -730,7 +739,7 @@ export const ArchivedPrograms = () => {
                         </Box>
                       </PopoverContent>
                     </Portal>
-                  </Popover>
+                  </Popover> */}
                 </Flex>
                 <Flex>
                   <InputGroup
