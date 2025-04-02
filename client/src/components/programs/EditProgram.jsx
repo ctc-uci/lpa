@@ -483,7 +483,6 @@ const payees = eventClientResponse.data
             </div>
             <div id="innerBody">
 
-
               <ReoccuranceDropdown
                 setSelectedDays={setSelectedDays}
                 repeatType={repeatType}

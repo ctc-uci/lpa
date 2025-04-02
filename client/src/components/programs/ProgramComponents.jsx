@@ -94,6 +94,8 @@ import {
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
+import {ProgramFilter} from "../filters/ProgramsFilter"
+
 export const ProgramSummary = ({
   program,
   bookingInfo,
@@ -1166,7 +1168,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                             </Box>
                           </FormControl>
 
-                          {/* <ProgramStatusFilter
+                           {/* <ProgramStatusFilter
                             initialStatus={status}
                             onStatusChange={handleStatusChange}
                           /> */}

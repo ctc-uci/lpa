@@ -36,7 +36,7 @@ export const ProgramStatusFilter = () => {
   const [status, setStatus] = useState('all');
 
   const handleStatusChange = (status) => {
-    setSelected(status);
+    setStatus(status);
   };
 
   return (
@@ -100,7 +100,7 @@ export const SessionStatusFilter = () => {
   const [status, setStatus] = useState('all');
 
   const handleStatusChange = (status) => {
-    setSelected(status);
+    setStatus(status);
   };
 
   return (
@@ -178,7 +178,7 @@ export const InvoiceStatusFilter = () => {
   const [status, setStatus] = useState('all');
 
   const handleStatusChange = (status) => {
-    setSelected(status);
+    setStatus(status);
   };
 
   return (
@@ -337,7 +337,8 @@ export const DateFilter = () => {
   );
 };
 
-export const TimeFilter = () => {
+export const TimeFilter = (startTime, endTime, change) => {
+
   return (
     <FormControl id="time">
       <Box
@@ -355,11 +356,7 @@ export const TimeFilter = () => {
           alignSelf="stretch"
         >
           <Icon as={TimeIcon} />
-          <Text
-            color="#718096"
-          >
-            Time
-          </Text>
+          <Text color="#718096">Time</Text>
         </Box>
         <Box
           display="flex"
@@ -373,10 +370,9 @@ export const TimeFilter = () => {
             backgroundColor="#F6F6F6"
             width="30%"
             type="time"
+            value={startTime || ''}
             placeholder="00:00 am"
-            onChange={(e) =>
-              handleTimeChange("start", e.target.value)
-            }
+            onChange={(e) => change("startTime", e.target.value)}
           />
           <Text> - </Text>
           <Input
@@ -386,10 +382,9 @@ export const TimeFilter = () => {
             backgroundColor="#F6F6F6"
             width="30%"
             type="time"
+            value={endTime || ''}
             placeholder="00:00 am"
-            onChange={(e) =>
-              handleTimeChange("end", e.target.value)
-            }
+            onChange={(e) => change("endTime", e.target.value)}
           />
         </Box>
       </Box>

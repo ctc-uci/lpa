@@ -1,19 +1,28 @@
 import { React, useState, useEffect } from 'react';
 
 import {
+    Box,
     VStack,
     FormLabel,
     FormControl,
-
+    Table,
+    Thead,
+    Tbody,
+    Tr,
+    Th,
+    Td,
+    TableContainer
   } from "@chakra-ui/react";
 
 import Navbar from "../navbar/Navbar";
 
 import { SendEmailButton } from "../email/SendEmailButton";
-import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, SessionStatusFilter, LeadArtistFilter, RoomFilter, PayerFilter, ProgramStatusFilter, InvoiceStatusFilter, SessionStatusFilter } from '../filters/FilterComponents';
+import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, LeadArtistFilter, RoomFilter, PayerFilter, ProgramStatusFilter, InvoiceStatusFilter, SessionStatusFilter } from '../filters/FilterComponents';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { FilterContainer } from '../filters/FilterContainer';
 import { Filter } from 'lucide-react';
+import {ProgramFilter} from '../filters/ProgramsFilter';
+import { SessionFilter } from '../filters/SessionsFilter';
 
 
 export const Playground = () => {
@@ -23,7 +32,10 @@ export const Playground = () => {
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [searchedPayees, setSearchedPayees] = useState([]);
   const [selectedPayees, setSelectedPayees] = useState([]);
-
+  const [programs, setPrograms] = useState([]);
+  // const [filtered, setFiltered] = useState([]);
+  const [filteredSessions, setFilteredSessions] = useState([]);
+  const [sessions, setSessions] = useState([]);
 
 
   const [room, setRoom] = useState("all");
@@ -73,21 +85,39 @@ export const Playground = () => {
     }
   };
 
+  const getAllSessions = async () => {
+    try {
+      const sessionsResponse = await backend.get(`/bookings/byEvent/213`);
+      const sessionsData = sessionsResponse.data;
+      setSessions(sessionsData); // programData should have what Events table in DB model contains
+      // setIsArchived(programData[0].archived);
+      // console.log(sessionsData);
+    } catch {
+      console.log("From getAllSessions: ", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const roomsResponse = await backend.get("/rooms");
-        setRooms(roomsResponse.data);
+    getAllSessions();
+  });
 
-        const clientsResponse = await backend.get("/clients");
-        setClients(clientsResponse.data);
-      } catch (error) {
-        console.error("Failed to fetch filter data:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const roomsResponse = await backend.get("/rooms");
+  //       setRooms(roomsResponse.data);
 
-    fetchData();
-  }, [backend]);
+  //       const clientsResponse = await backend.get("/clients");
+  //       setClients(clientsResponse.data);
+  //     } catch (error) {
+  //       console.error("Failed to fetch filter data:", error);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [backend]);
+
+
   return (
     // <Navbar>
     // <VStack
@@ -100,51 +130,36 @@ export const Playground = () => {
     // <SeasonFilter></SeasonFilter>
     // <EmailFilter></EmailFilter>
     <div>
-      {/* <RoomFilter room={room}></RoomFilter>
-      <LeadArtistFilter
-      instructorSearchTerm={instructorSearchTerm}
-        searchedInstructors={searchedInstructors}
-        selectedInstructors={selectedInstructors}
-        setSelectedInstructors={setSelectedInstructors}
-        setSearchedInstructors={setSearchedInstructors}
-        getInstructorResults={getInstructorResults}
-        setInstructorSearchTerm={setInstructorSearchTerm}
-      ></LeadArtistFilter>
-      <PayersFilter
-        payeeSearchTerm={payeeSearchTerm}
-        searchedPayees={searchedPayees}
-        selectedPayees={selectedPayees}
-        getPayeeResults={getPayeeResults}
-        setPayeeSearchTerm={setPayeeSearchTerm}
-        setSelectedPayees={setSelectedPayees}
-        setSearchedPayees={setSearchedPayees}
-      /> */}
-      <FilterContainer pageName={"Session"}>
-        <SessionStatusFilter/>
-        <DayFilter/>
-        <DateFilter/>
-        <TimeFilter/>
-        {/* Pass in rooms list */}
-        <RoomFilter/>
-        <LeadArtistFilter
-          instructorSearchTerm={instructorSearchTerm}
-          searchedInstructors={searchedInstructors}
-          selectedInstructors={selectedInstructors}
-          setSelectedInstructors={setSelectedInstructors}
-          setSearchedInstructors={setSearchedInstructors}
-          getInstructorResults={getInstructorResults}
-          setInstructorSearchTerm={setInstructorSearchTerm}
-        />
-        <PayerFilter
-          payeeSearchTerm={payeeSearchTerm}
-          searchedPayees={searchedPayees}
-          selectedPayees={selectedPayees}
-          getPayeeResults={getPayeeResults}
-          setPayeeSearchTerm={setPayeeSearchTerm}
-          setSelectedPayees={setSelectedPayees}
-          setSearchedPayees={setSearchedPayees}
-        />
-      </FilterContainer>
+      <>
+      <SessionFilter sessions={sessions} setFilteredSessions={setFilteredSessions} />
+      <TableContainer>
+        <Table variant="unstyled">
+          <Th>Name</Th>
+          <Th>Time</Th>
+          <Th>Room</Th>
+          <Tbody>
+            {filteredSessions.length > 0 ? (
+              filteredSessions.map((sessions) => (
+                <Tr key={sessions.id}>
+                  {/* ... render program data ... */}
+                  <Td>{sessions.name}</Td>
+                  <Td>{sessions.startTime} - {sessions.endTime}</Td>
+                  <Td>{sessions.roomId}</Td>
+                </Tr>
+              ))
+            ) : (
+              <Tr>
+                <Td colSpan={6}>
+                  <Box textAlign="center" py={6} color="gray.500" fontSize="md">
+                    No programs available
+                  </Box>
+                </Td>
+              </Tr>
+            )}
+          </Tbody>
+        </Table>
+      </TableContainer>
+    </>
     </div>
   );
 };

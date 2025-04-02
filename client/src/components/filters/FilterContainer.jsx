@@ -31,6 +31,21 @@ import { FilterIcon } from "../../assets/FilterIcons";
 export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isFiltering, setIsFiltering] = useState(false);
+  // const [filters, setFilters] = useState({
+  //   status: "all",
+  //   day: null,
+  //   startDate: null,
+  //   endDate: null,
+  //   startTime: null,
+  //   endTime: null,
+  //   room: "all",
+  //   season: "all",
+  //   email: "all",
+  //   leadArtists: [],
+  //   payers: []
+  // });
+
+  
 
   const handleApply = () => {
     onApply();
