@@ -14,9 +14,9 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { FilterContainer } from "./FilterContainer";
-import { DateFilter, SessionStatusFilter, TimeFilter } from "./FilterComponents";
+import { DateFilter, RoomFilter, SessionStatusFilter, TimeFilter } from "./FilterComponents";
 
-export const SessionFilter = ({ sessions, setFilteredSessions }) => {
+export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
 
     const [filters, setFilters] = useState({
       status: "all",
@@ -57,9 +57,12 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
         });
       }
       console.log("filtered:", filtered);
+      console.log("roomsList", rooms);
 
       if (filters.room !== "all") {
-        filtered = filtered.filter(session => session.roomId === filters.room);
+        console.log("filters.room", filters.room);
+        console.log("rooms.get", rooms.get(66));
+        filtered = filtered.filter(session => rooms.get(session.roomId) === filters.room);
       }
 
       // Time
@@ -79,6 +82,11 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
       if (filters.endDate) {
         filtered = filtered.filter(session => session.date <= filters.endDate);
       }
+
+      // Rooms
+      // if (filters.room !== "all") {
+      //   filtered = filtered.filter(session => session.roomId === filters.endDate);
+      // }
       setFilteredSessions(filtered);
     };
 
@@ -114,6 +122,10 @@ export const SessionFilter = ({ sessions, setFilteredSessions }) => {
           startDate={filters.startDate}
           endDate={filters.endDate}
           onChange={updateFilter}/>
+        <RoomFilter
+          roomMap={rooms}
+          onChange={updateFilter}
+          room={filters.room}/>
       </ FilterContainer>
     );
 };

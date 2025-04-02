@@ -389,19 +389,15 @@ export const TimeFilter = ({startTime, endTime, onChange}) => {
   );
 };
 
-export const RoomFilter = ({room}) => {
-  const[rooms, setRoom] = useState("all");
+export const RoomFilter = ({ roomMap, onChange, room }) => {
+  // const[rooms, setRoom] = useState("all");
 
-  const roomsData = [
-    { id: 1, name: "Room 1" },
-    { id: 2, name: "Room 2" },
-    { id: 3, name: "Room 3" },
-    { id: 4, name: "Studio" }
-  ];
-
-  const handleStatusChange= (room) => {
-    setRoom(room);
-  };
+  // const roomsData = [
+  //   { id: 1, name: "Room 1" },
+  //   { id: 2, name: "Room 2" },
+  //   { id: 3, name: "Room 3" },
+  //   { id: 4, name: "Studio" }
+  // ];
 
   return (
     <FormControl>
@@ -419,23 +415,23 @@ export const RoomFilter = ({room}) => {
         variant="outline"
         borderRadius="full"
         borderWidth="2px"
-        color={rooms === "all" ? "purple.500" : "gray.300"}
+        color={onChange.room === "all" ? "purple.500" : "gray.300"}
         colorScheme="purple"
-        onClick={() => setRoom("all")}
+        onClick={() => onChange("room", "all")}
       >
         All
       </Button>
-      {roomsData.map((r) => (
+      {Array.from(roomMap.values()).map((roomName) => (
         <Button
-          key={r.id}
+          key={roomName}
           variant="outline"
           borderRadius="full"
           borderWidth="2px"
-          color={rooms === r.name ? "purple.500" : "gray.300"}
+          color={onChange.room === roomName ? "purple.500" : "gray.300"}
           colorScheme="purple"
-          onClick={() => setRoom(r.name)}
+          onClick={() => onChange("room", roomName)}
         >
-          {r.name}
+          {roomName}
         </Button>
       ))}
     </HStack>

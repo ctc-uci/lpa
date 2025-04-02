@@ -1018,6 +1018,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               <SessionFilter
                 sessions={sessions}
                 setFilteredSessions={setFilteredSessions}
+                rooms={rooms}
               />
             </Flex>
             <TableContainer>
