@@ -1,18 +1,4 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Checkbox,
-  FormControl,
-  FormLabel,
-  HStack,
-  Input,
-  VStack,
-  Tag,
-  Text,
-  IconButton,
-} from "@chakra-ui/react";
-import { AddIcon } from "@chakra-ui/icons";
 import { FilterContainer } from "./FilterContainer";
 import { DateFilter, DayFilter, RoomFilter, SessionStatusFilter, TimeFilter } from "./FilterComponents";
 

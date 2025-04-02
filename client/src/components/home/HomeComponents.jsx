@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   Checkbox,
+  filter,
   Flex,
   HStack,
   Icon,
@@ -56,6 +57,7 @@ import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
+import { ProgramFilter } from "../filters/ProgramsFilter";
 
 import "./Home.css";
 
@@ -606,11 +608,14 @@ export const ProgramsTable = () => {
     setSearchTerm(e.target.value);
   }, []);
 
+  // console.log("filterprograms", filteredPrograms);
+
   return (
     <>
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">
-          <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
+          {/* <ProgramFiltersModal onApplyFilters={handleApplyFilters} /> */}
+          <ProgramFilter programs={programs} setFilteredPrograms={setFilteredPrograms}/>
           <Box flex="1" />
           <div className="search-wrapper">
             <div className="searchbar-container">
