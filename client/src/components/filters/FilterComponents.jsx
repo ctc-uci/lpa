@@ -218,9 +218,9 @@ export const InvoiceStatusFilter = ({ value, onChange }) => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={localStatus === "paid" ? "purple.500" : "gray.300"}
+            color={localStatus === "full" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => handleStatusChange("paid")}
+            onClick={() => handleStatusChange("full")}
           >
             <Text>
               Paid
@@ -238,9 +238,9 @@ export const InvoiceStatusFilter = ({ value, onChange }) => {
           <Button
             borderRadius="full"
             borderWidth="2px"
-            color={localStatus === "pastdue" ? "purple.500" : "gray.300"}
+            color={localStatus === "none" ? "purple.500" : "gray.300"}
             _hover={{ bg: "purple.100" }}
-            onClick={() => handleStatusChange("pastdue")}
+            onClick={() => handleStatusChange("none")}
           >
             <Text>Past Due</Text>
           </Button>

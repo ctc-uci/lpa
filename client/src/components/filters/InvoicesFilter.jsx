@@ -42,15 +42,19 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       let filtered = invoices;
 
       if (filters.startDate) {
-        filtered = filtered.filter(invoice => invoice.date && new Date(invoice.date) >= new Date(filters.startDate));
+        filtered = filtered.filter(invoice => invoice.endDate && invoice.endDate >= filters.startDate);
       }
 
       if (filters.endDate) {
-        filtered = filtered.filter(invoice => invoice.date && new Date(invoice.date) <= new Date(filters.endDate));
+        filtered = filtered.filter(invoice => invoice.endDate && invoice.endDate <= filters.endDate);
       }
 
       if (filters.season !== "all") {
         filtered = filtered.filter(invoice => invoice.season === filters.season);
+      }
+
+      if (filters.status !== "all") {
+        filtered = filtered.filter(invoice => invoice.paymentStatus === filters.status);
       }
 
       // if (filters.instructor && filters.instructor !== "all") {
