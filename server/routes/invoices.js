@@ -614,6 +614,15 @@ invoicesRouter.delete("/:id", async (req, res) => {
 });
 
 invoicesRouter.post("/backupInvoice/:id", upload.single("file"), async (req, res) => {
+  // Backup a invoice PDF to S3 and store the URL in the database
+  // Params:
+  //  id - the invoice id
+  // Body:
+  //  file - the invoice PDF file
+  //  comment - optional comment for the invoice
+  // Returns:
+  //  fileURL - the viewable URL of the uploaded PDF
+
   // Upload an invoice PDF to S3, returning the viewable URL
   try {
     const file = req.file;
