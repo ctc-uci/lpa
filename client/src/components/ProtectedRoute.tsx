@@ -23,7 +23,7 @@ export const ProtectedRoute = ({
     role === "admin" && editPerms ? (
       <Navigate to={"/programs"} />
     ) : (
-      <Navigate to={"/dashboard"} />
+      <Navigate to={"/signup/requested"} />
     )
   ) : (
     <Navigate to={"/"} />
