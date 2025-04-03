@@ -19,7 +19,7 @@ export const DiscardEmailModal = ({ isOpen, onClose, emptyInputs }) => {
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Discard Changes?</ModalHeader>
+          <ModalHeader>Discard Email Draft</ModalHeader>
           <ModalBody>
             Would you like to discard email?
           </ModalBody>

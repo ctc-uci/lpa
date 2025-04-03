@@ -229,10 +229,13 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                 return false;
               }
             }}
+            position={"initial"}
+            ml={"11px"}
+            mt={"15px"}
           />
           <DrawerHeader
             ml="4"
-            mt="12"
+            mt="5"
             fontSize="md"
           >
             <Text>Immigrant Rights Solidarity Week Invoice</Text>
