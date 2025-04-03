@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { useBackendContext } from '../../contexts/hooks/useBackendContext';
-import { IconButton } from "@chakra-ui/react";
+import { IconButton, Button } from "@chakra-ui/react";
 import { DownloadIcon } from "@chakra-ui/icons";
 
 
@@ -51,8 +51,8 @@ const styles = StyleSheet.create({
   }
 });
 
-const MyDocument = ({ bookingData }) => { 
-  return ( 
+const MyDocument = ({ bookingData }) => {
+  return (
     <Document>
       <Page size="A4" style={styles.page}>
         {bookingData && bookingData.map((element) => (
@@ -96,14 +96,18 @@ const PDFButtonInvoice = ({invoice}) => {
     <PDFDownloadLink
         document={<MyDocument bookingData={bookingData} />}
         fileName="bookingdata.pdf"
-      >
-       <IconButton
-        icon={<DownloadIcon boxSize="20px" />}
-        backgroundColor="transparent"
+    >
+       <Button
+        leftIcon={<DownloadIcon boxSize="20px" />}
+        height="100%"
+        backgroundColor="#EDF2F7"
+        fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
+        gap={1}
         aria-label="Download PDF"
-      />
+        > Download
+      </Button>
     </PDFDownloadLink>
   );
 };
-  
+
 export default PDFButtonInvoice;

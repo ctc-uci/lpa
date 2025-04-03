@@ -59,18 +59,19 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
       mx="4"
       fontFamily="Inter"
       color="#2D3748"
+      gap={20}
     >
       <Stack>
         <Heading
           color="#2D3748"
           fontWeight="600"
-          fontSize="45px"
+          fontSize="2.5em"
         >
           INVOICE
         </Heading>
         <Text
           color="#718096"
-          fontSize="16px"
+          fontSize="1em"
         >
           {getGeneratedDate(comments, invoice, true)}
         </Text>
@@ -85,14 +86,14 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
           align="flex-end"
           spacing={0}
         >
-          <Text fontSize="16px">La Peña Cultural Center</Text>
-          <Text fontSize="16px">3105 Shattuck Ave., Berkeley, CA 94705</Text>
-          <Text fontSize="16px">lapena.org</Text>
+          <Text fontSize="1em">La Peña Cultural Center</Text>
+          <Text fontSize="1em">3105 Shattuck Ave., Berkeley, CA 94705</Text>
+          <Text fontSize="1em">lapena.org</Text>
         </VStack>
         <Image
           src={logo}
           alt="La Peña Logo"
-          w="125px"
+          w={100}
         />
       </Flex>
     </Flex>
@@ -117,7 +118,7 @@ const EditInvoiceDetails = ({
       <VStack gap="0">
         <Heading
           textAlign="center"
-          size="lg"
+          fontSize="1.8em"
         >
           Classroom Rental Monthly Statement
         </Heading>
@@ -320,7 +321,7 @@ const StatementComments = ({
       color="#2D3748"
     >
       <Heading
-        fontSize="22px"
+        fontSize="1.2em"
         mb="4"
       >
         Sessions
@@ -759,6 +760,12 @@ const InvoiceSummary = ({
           borderRadius="18px"
           minH="24"
         >
+          <Box
+          position="relative"
+          maxH="400px"
+          overflowY="auto"
+          p="3"
+        >
           <Table>
             <Thead color="#4A5568">
               <Tr>
@@ -887,6 +894,7 @@ const InvoiceSummary = ({
               </Tr>
             </Tbody>
           </Table>
+          </Box>
         </Flex>
       </VStack>
     </Box>
@@ -905,6 +913,7 @@ const FooterDescription = () => {
         pb={2}
         spacing={0}
         align="start"
+        mb={10}
       >
         <Text
           fontWeight="bold"

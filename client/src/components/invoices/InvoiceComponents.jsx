@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { CalendarIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
-  Card,
+  Grid,
   Flex,
   Icon,
+  IconButton,
   Image,
   Input,
+  Menu,
+  MenuList,
+  MenuItem,
+  MenuButton,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -22,23 +27,50 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
 } from "@chakra-ui/react";
+
+import {
+  deleteIcon,
+  sessionsEllipsis,
+} from "../../assets/icons/ProgramIcons";
 
 import { format } from "date-fns";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 import { TbCaretUpDown } from "react-icons/tb";
+import { DollarIcon } from "../../assets/DollarIcon";
 
 import filterIcon from "../../assets/filter.svg";
 import personIcon from "../../assets/person.svg";
 import PDFButtonInvoice from "./PDFButtonInvoice";
+import { EditIcon } from "../../assets/EditIcon";
+import { CancelIcon } from "../../assets/CancelIcon";
+import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useParams } from "react-router";
 
-const InvoiceTitle = ({ title }) => {
+import { useAuthContext } from "../../contexts/hooks/useAuthContext";
+
+
+const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
+  const isPaid = () => {
+    if (isSent && paymentStatus === "full") {
+        return "Paid";
+    }
+    if (!isSent && new Date() < new Date(endDate) && paymentStatus !== "full") {
+        return "Not Paid";
+    }
+    return "Past Due";
+  };
+
+
   return (
     <Flex
       direction="row"
       width="100%"
       alignItems="center"
+      gap={5}
     >
       <Text
         fontSize="clamp(1rem, 1.5rem, 2rem)"
@@ -46,20 +78,36 @@ const InvoiceTitle = ({ title }) => {
         fontWeight="bold"
         marginRight="0.5rem"
       >
-        Program:
-      </Text>
-      <Text
-        fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-        color="#474849"
-      >
         {title}
       </Text>
+
+      <Flex gap={2}>
+        {/* is sent button */}
+        <Button
+          backgroundColor={isSent ? "#F0FFF4" : "#FFF5F5"}
+          color={isSent ? "#38A169" : "#E53E3E"}
+          variant="solid"
+        >
+          {isSent ? "Sent" : "Not Sent"}
+        </Button>
+
+        {/* paymentStatus */}
+        <Button
+          backgroundColor={isPaid() === "Paid" ? "#F0FFF4" : "#FFF5F5"}
+          color={isPaid() === "Paid" ? "#38A169" : "#E53E3E"}
+          variant="solid"
+        >
+          {isPaid() === "Paid" ? "Paid" : (isPaid() === "Not Paid" ? "Not Paid" : "Past Due")}
+        </Button>
+      </Flex>
+
+
     </Flex>
   );
 };
 
 const InvoiceStats = ({
-  payees,
+  roomRate,
   billingPeriod,
   amountDue,
   remainingBalance,
@@ -74,192 +122,248 @@ const InvoiceStats = ({
 
   return (
     <Flex
-      direction="row"
+      direction="column"
       h="auto"
       w="100%"
-      gap="2rem"
+      gap={5}
     >
-      {/* Billed To Section */}
-      <Card
-        flex={1}
-        h="7em"
-        width="25%"
-        borderRadius={15}
-        borderWidth="1px"
-        boxShadow="none"
-        display="flex"
-        p={4}
-        color="#D2D2D2"
-        gap={2}
-        flexDirection="column"
-        overflowY="auto"
-        justifyContent="flex-start"
-      >
-        <Text
-          fontSize="clamp(1rem, 1.5rem, 2rem)"
-          fontWeight="bold"
-          color="#474849"
-        >
-          {" "}
-          Billed to:{" "}
-        </Text>
-        {payees && payees.length > 0 ? (
-          payees.map((payee) => (
-            <Box
-              key={payee.id}
-              mb="0.5rem"
-            >
-              <Text
-                fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-                color="#474849"
-              >
-                {payee.name}
-              </Text>
-              <Text
-                fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-                color="#474849"
-              >
-                {payee.email}
-              </Text>
-            </Box>
-          ))
-        ) : (
+      {/* Invoice Details Section */}
+      <Grid templateColumns="1fr 2fr" gap="1rem" alignItems="end">
+        {/* billing period */}
+        <Box h={7}>
           <Text
-            fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
+            fontWeight="bold"
+            fontSize="clamp(.5rem, 1rem, 1.5rem)"
             color="#474849"
           >
-            N/A
+            Billing Period
           </Text>
-        )}
-      </Card>
-
-      {/* Invoice Details Section */}
-      <Card
-        flex={3}
-        h="7em"
-        borderRadius={15}
-        borderWidth="1px"
-        color="#D2D2D2"
-        boxShadow="none"
-        width="75%"
-        padding="1.5em"
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-      >
-        <Flex
-          width="100%"
-          justifyContent="space-between"
-        >
-          <Box>
+        </Box>
+        <Box h={7}>
+          {billingPeriod && billingPeriod["startDate"] ? (
             <Text
-              fontWeight="bold"
-              fontSize="clamp(1rem, 1.5rem, 2rem)"
               color="#474849"
+              fontSize="clamp(.5rem, 1rem, 1.5rem)"
             >
-              {" "}
-              Billing Period{" "}
+              {formatDate(billingPeriod["startDate"])} -{" "}
+              {formatDate(billingPeriod["endDate"])}
             </Text>
-
-            {billingPeriod && billingPeriod["startDate"] ? (
-              <Text
-                color="#474849"
-                fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-              >
-                {formatDate(billingPeriod["startDate"])} -{" "}
-                {formatDate(billingPeriod["endDate"])}
-              </Text>
-            ) : (
-              <Text
-                color="#474849"
-                fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-              >
-                N/A - N/A
-              </Text>
-            )}
-          </Box>
-          <Box>
-            <Text
-              fontWeight="bold"
-              fontSize="clamp(1rem, 1.5rem, 2rem)"
-              color="#474849"
-            >
-              {" "}
-              Amount Due{" "}
-            </Text>
+          ) : (
             <Text
               color="#474849"
               fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
             >
-              {" "}
-              {amountDue ? `$${Number(amountDue).toFixed(2)}` : "N/A"}{" "}
+              N/A - N/A
             </Text>
-          </Box>
-          <Box>
+          )}
+        </Box>
+
+        {/* amount due */}
+        <Box h={7}>
+          <Text
+            fontWeight="bold"
+            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+            color="#474849"
+          >
+            Amount Due
+          </Text>
+        </Box>
+        <Box h={7}>
+          <Text
+            color="#474849"
+            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+          >
+            {amountDue ? `$${Number(amountDue).toFixed(2)}` : "N/A"}
+          </Text>
+        </Box>
+
+        {/* remaining balance */}
+        <Box h={7}>
+          <Text
+            fontWeight="bold"
+            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+            color="#474849"
+          >
+            Remaining Balance
+          </Text>
+        </Box>
+
+        <Box h={7}>
+          <Flex gap={2} alignItems="start">
             <Text
-              fontWeight="bold"
-              fontSize="clamp(1rem, 1.5rem, 2rem)"
               color="#474849"
+              fontSize="clamp(.5rem, 1rem, 1.5rem)"
             >
-              {" "}
-              Remaining Balance{" "}
-            </Text>
-            <Text
-              color="#474849"
-              fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-            >
-              {" "}
-              {remainingBalance !== 0
+              {roomRate !== 0
                 ? `$${Number(remainingBalance).toFixed(2)}`
-                : "N/A"}{" "}
+                : "N/A"}
             </Text>
-          </Box>
-        </Flex>
-      </Card>
+            <Button backgroundColor="#EDF2F7">
+              View Previous Invoice
+            </Button>
+          </Flex>
+        </Box>
+      </Grid>
+
+
+      {/* room rate section */}
+      <Flex gap={3} alignItems="center">
+        <DollarIcon />
+        <Text>{roomRate ? `${Number(roomRate).toFixed(2)} / hour` : "N/A"}</Text>
+      </Flex>
+
     </Flex>
   );
+
 };
 
-const InvoicePayments = ({ comments }) => {
+const InvoicePayments = ({ comments, setComments }) => {
+  const { id } = useParams()
+  const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [adjustValue, setAdjustValue] = useState("--.--");
+  const [showInputRow, setShowInputRow] = useState(false);
+  const [valueEntered, setValueEntered] = useState(false);
+  const { isOpen: isOpen, onOpen: onOpen, onClose: onClose } = useDisclosure();
+  const [editID, setEditID] = useState(null);
 
-  const totalPages = Math.ceil((comments ?? []).length / commentsPerPage) || 1;
-  const currentPageComments = (comments ?? []).slice(
-    (currentPageNumber - 1) * commentsPerPage,
-    currentPageNumber * commentsPerPage
-  );
+  const {
+    isOpen: cancelIsOpen,
+    onOpen: cancelOnOpen,
+    onClose: cancelOnClose,
+  } = useDisclosure();
 
-  const handleCommentsPerPageChange = (event) => {
-    setCommentsPerPage(Number(event.target.value));
-    setCurrentPageNumber(1);
-  };
+  const { currentUser } = useAuthContext();
+  const [uid, setUid] = useState(null);
 
-  const handlePrevPage = () => {
-    if (currentPageNumber > 1) {
-      setCurrentPageNumber(currentPageNumber - 1);
+  useEffect(() => {
+    const fetchUid = async () => {
+      console.log("In fetchUid")
+      console.log("In fetchUid", currentUser.email)
+      try {
+        const uidResponse = await backend.get("/users/email/" + currentUser.email);
+        console.log(uidResponse);
+  
+        setUid(uidResponse.data?.id || null);
+      } catch (err) {
+        console.error("Error fetching UID:", err);
+      }
+    };
+  
+    fetchUid();
+  }, [currentUser]);
+
+  
+
+
+
+  // const totalPages = Math.ceil((comments ?? []).length / commentsPerPage) || 1;
+  // const currentPageComments = (comments ?? []).slice(
+  //   (currentPageNumber - 1) * commentsPerPage,
+  //   currentPageNumber * commentsPerPage
+  // );
+
+  const currentPageComments = comments ?? []
+
+  // const handleCommentsPerPageChange = (event) => {
+  //   setCommentsPerPage(Number(event.target.value));
+  //   setCurrentPageNumber(1);
+  // };
+
+  // const handlePrevPage = () => {
+  //   if (currentPageNumber > 1) {
+  //     setCurrentPageNumber(currentPageNumber - 1);
+  //   }
+  // };
+
+  // const handleNextPage = () => {
+  //   if (currentPageNumber < totalPages) {
+  //     setCurrentPageNumber(currentPageNumber + 1);
+  //   }
+  // };
+
+  const handleDeleteComment = async () => {
+    try {
+      await backend.delete("/comments/" + id);
+      refresh();
+    }catch (error) {
+      console.error("Error deleting:", error);
     }
   };
 
-  const handleNextPage = () => {
-    if (currentPageNumber < totalPages) {
-      setCurrentPageNumber(currentPageNumber + 1);
+  const handleEditComment = (edit) => {
+    try {
+      setEditID(edit);
+      setShowInputRow(true);
+    } catch (error) {
+      console.error("Error editing:", error);
+    }
+  }
+
+
+  const handleSaveComment = async () => {
+    try {
+      const commentsData = {
+        user_id: uid,
+        invoice_id: id, 
+        booking_id: null,
+        datetime: (new Date()).toISOString(),
+        comment: "",
+        adjustment_type: "paid",
+        adjustment_value: Number(adjustValue)
+      };
+
+      console.log({ uid, id, commentsData });
+
+
+      await backend.post("/comments/" , commentsData);
+      console.log(comments)
+
+      const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
+      setComments(commentsResponse.data);
+
+      setShowInputRow(false);
+      setAdjustValue("--.--");
+
+    } catch (error) {
+      console.error("Error saving:", error);
     }
   };
 
+  const handleAddComment = async () => {
+    setShowInputRow(true);
+  }
+  
   return (
     <Flex
       direction="column"
       w="100%"
     >
-      <Text
-        fontWeight="bold"
-        fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-        color="#474849"
-      >
-        Payments
-      </Text>
-
+      <Flex 
+        direction="row"
+        width="100%" justifyContent="space-between"
+        marginBottom="12px"
+        marginTop="26px">
+        <Text
+          fontWeight="bold"
+          fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
+          color="#474849"
+          mb={3}
+        >
+          Payments
+        </Text>
+        {!showInputRow ? (
+          <Button onClick={handleAddComment} leftIcon={<DarkPlusIcon />}>
+            Add
+          </Button>
+        ) : (
+          <Button onClick={handleSaveComment} disabled={!valueEntered}>
+            Save
+          </Button>
+        )}
+      </Flex>
+      
       <Flex
         borderRadius={15}
         borderWidth=".07em"
@@ -268,48 +372,79 @@ const InvoicePayments = ({ comments }) => {
         mb={3}
       >
         <Table
-          variant="striped"
           color="#EDF2F7"
         >
-          <Thead>
-            <Tr>
-              <Th
-                fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                textTransform="none"
-              >
-                {" "}
-                Date{" "}
-              </Th>
-              <Th
-                fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                textTransform="none"
-              >
-                {" "}
-                Comment{" "}
-              </Th>
-              <Th
-                fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                textTransform="none"
-              >
-                {" "}
-                Amount{" "}
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody color="#2D3748">
+          <Tbody color="#2D3748" width="100%">
             {comments && comments.length > 0 ? (
               currentPageComments.map((comment) => (
-                <Tr key={comment.id}>
+                <Tr position="relative" justifyContent="space-between" key={comment.id} >
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                    {format(new Date(comment.datetime), "M/d/yy")}
+                    {format(new Date(comment.datetime), "EEE. M/d/yy")}
                   </Td>
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                  {/* <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                     {comment.comment}
+                  </Td> */}
+                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" color="#0C824D" fontWeight="bold">
+                  {comment.id === editID ? (
+                    <Flex alignItems="center">
+                      <Text color="#0C824D" fontWeight="bold">$</Text>
+                      <Input 
+                        type="number" 
+                        placeholder="__.__" 
+                        value={adjustValue} 
+                        w="60px"
+                        color="#0C824D"
+                        fontWeight="bold"
+                        variant="unstyled"
+                        onChange={(e) => setAdjustValue(e.target.value)}
+                      />
+                    </Flex>
+                  ) : (
+                    comment.adjustmentValue
+                      ? `$${Number(comment.adjustmentValue).toFixed(0)}`
+                      : "N/A"
+                  )} 
                   </Td>
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                    {comment.adjustmentValue
-                      ? `$${Number(comment.adjustmentValue).toFixed(2)}`
-                      : "N/A"}
+                  <Td position="absolute" right={0} marginLeft="auto">
+                    <Menu>
+                              <MenuButton
+                                as={IconButton}
+                                height="24px"
+                                width="24px"
+                                variant="ghost"
+                                borderRadius={6}
+                                color="#EDF2F"
+                                icon={<Icon as={sessionsEllipsis} />}
+                              />
+                              <MenuList>
+                                <MenuItem
+                                  // onClick={handleEditComment}
+                                >
+                                  <Box
+                                    display="flex"
+                                    padding="12px 16px"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Icon as={EditIcon} />
+                                    <Text color="#767778">Edit</Text>
+                                  </Box>
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={handleDeleteComment}
+                                >
+                                  <Box
+                                    display="flex"
+                                    padding="12px 16px"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Icon as={CancelIcon} />
+                                    <Text color="#90080F">Cancel</Text>
+                                  </Box>
+                                </MenuItem>
+                              </MenuList>
+                    </Menu>
                   </Td>
                 </Tr>
               ))
@@ -318,10 +453,44 @@ const InvoicePayments = ({ comments }) => {
                 <Td colSpan={3}>No comments available.</Td>
               </Tr>
             )}
+            {showInputRow && (
+            <Tr position="relative" justifyContent="space-between" tableLayout="fixed">
+              <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                {format(new Date(), "EEE. M/d/yy")}
+              </Td>
+              <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" fontWeight="bold">
+                <Flex alignItems="center" >
+                  <Text color="#0C824D" fontWeight="bold">$</Text>
+                  <Input 
+                    type="number" 
+                    placeholder="__.__" 
+                    value={adjustValue} 
+                    w="60px"
+                    color="#0C824D"
+                    fontWeight="bold"
+                    variant="unstyled"
+                    onChange={(e) => setAdjustValue(e.target.value)}>
+                  </Input>
+                </Flex>
+              </Td>
+              <Td position="absolute" right={0} marginLeft="auto">
+                    <Menu>
+                        <MenuButton
+                          as={IconButton}
+                          height="24px"
+                          width="24px"
+                          variant="ghost"
+                          borderRadius={6}
+                          icon={<Icon as={sessionsEllipsis} />}
+                        />
+                    </Menu>
+              </Td>
+            </Tr>
+            )}
           </Tbody>
         </Table>
       </Flex>
-      <Flex
+      {/* <Flex
         direction="row"
         width="100%"
         alignItems="center"
@@ -373,8 +542,8 @@ const InvoicePayments = ({ comments }) => {
             <FaAngleRight></FaAngleRight>
           </Button>
         </Flex>
-      </Flex>
-    </Flex>
+      </Flex> */}
+    </Flex> 
   );
 };
 
@@ -385,7 +554,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       border="1px solid var(--gray-200, #E2E8F0)"
       borderRadius="12px"
     >
-      <Table variant="striped">
+      <Table>
         <Thead>
           <Tr>
             <Th
