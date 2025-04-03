@@ -49,7 +49,7 @@ export const Login = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const { login, handleRedirectResult } = useAuthContext();
+  const { login, handleRedirectResult, currentUser } = useAuthContext();
   const { backend } = useBackendContext();
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -134,8 +134,20 @@ export const Login = () => {
   };
 
   useEffect(() => {
-    handleRedirectResult(backend, navigate, toast);
-  }, [backend, handleRedirectResult, navigate, toast]);
+    const checkAuthAndPermissions = async () => {
+      if (currentUser) {
+        try {
+          const permitCheck = await backend.get(`users/email/${currentUser.email}`);
+          if (permitCheck.data.editPerms !== false) {
+            navigate("/programs");
+          }
+        } catch (err) {
+          console.error("Error checking permissions:", err);
+        }
+      }
+    }
+    checkAuthAndPermissions();
+  }, [backend, currentUser, navigate]);
 
   return (
     <Center
