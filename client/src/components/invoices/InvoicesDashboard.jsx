@@ -1,4 +1,4 @@
-import { Text, Box, Flex, Input, Image, InputGroup, InputRightElement, Heading, useToast } from "@chakra-ui/react";
+import { Text, Flex, Input, Image, InputGroup, InputRightElement, Heading, useToast } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
@@ -6,7 +6,6 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom'
 import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
 import AlertIcon from "../../assets/alertIcon.svg"
-import { FaCircleXmark } from "react-icons/fa6";
 
 
 const InvoicesDashboard = () => {

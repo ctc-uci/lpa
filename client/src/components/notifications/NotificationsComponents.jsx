@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
-  Box,
   Button,
   Flex,
   Icon,
@@ -15,7 +14,6 @@ import {
   Th,
   Thead,
   Tr,
-  Tooltip,
   HStack,
 } from "@chakra-ui/react";
 import { AiOutlineInfoCircle } from "react-icons/ai";
