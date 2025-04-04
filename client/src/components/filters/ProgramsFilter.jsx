@@ -1,6 +1,6 @@
 import { React, useState, useEffect } from "react";
 import { FilterContainer } from "./FilterContainer";
-import { DateFilter, DayFilter, ProgramStatusFilter, TimeFilter, RoomFilter, LeadArtistFilter, PayerFilter } from "./FilterComponents";
+import { DateFilter, DayFilter, ProgramStatusFilter, TimeFilter, RoomFilter, LeadArtistFilter } from "./FilterComponents";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
@@ -50,8 +50,8 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       startDate: null,
       endDate: null,
       room: "all",
-      instructor: "all",
-      payee: "all"
+      instructor: [],
+      payee: []
     });
 
     const updateFilter = (type, value) => {
@@ -152,20 +152,36 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         });
       }
 
-      if (filters.instructor && filters.instructor !== "all") {
-        const instructorLower = filters.instructor.toLowerCase();
-        filtered = filtered.filter(program =>
-          program.instructor &&
-          program.instructor.toLowerCase().includes(instructorLower)
-        );
+      // Filter for instructor
+      if (filters.instructor.length > 0) {
+        filtered = filtered.filter(program => {
+          if (program.instructor) {
+            // Split the program.instructor string into an array of names
+            const instructorNames = program.instructor.split(',').map(name => name.trim().toLowerCase());
+
+            // Check if any of the filters.instructor names are in the instructorNames array
+            return filters.instructor.some(filterName =>
+              instructorNames.includes(filterName.name.toLowerCase())
+            );
+          }
+          return false;
+        });
       }
 
-      if (filters.payee && filters.payee !== "all") {
-        const payeeLower = filters.payee.toLowerCase();
-        filtered = filtered.filter(program =>
-          program.payee &&
-          program.payee.toLowerCase().includes(payeeLower)
-        );
+      // Filter for payee
+      if (filters.payee.length > 0) {
+        filtered = filtered.filter(program => {
+          if (program.payee) {
+            // Split the program.instructor string into an array of names
+            const payeeNames = program.payee.split(',').map(name => name.trim().toLowerCase());
+
+            // Check if any of the filters.instructor names are in the instructorNames array
+            return filters.payee.some(filterName =>
+              payeeNames.includes(filterName.name.toLowerCase())
+            );
+          }
+          return false;
+        });
       }
 
       setFilteredPrograms(filtered);
@@ -181,8 +197,8 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         startDate: null,
         endDate: null,
         room: "all",
-        instructor: "all",
-        payee: "all",
+        instructor: [],
+        payee: [],
       });
       setFilteredPrograms(programs);
     }
@@ -222,12 +238,20 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
           clientsList={clients}
           value={filters.instructor}
           onChange={updateFilter}
+          type="lead"
         />
-        <PayerFilter
+        <LeadArtistFilter
+          clientsList={clients}
+          value={filters.instructor}
+          onChange={updateFilter}
+          type="payee"
+        />
+
+        {/* <PayerFilter
           clientsList={clients}
           value={filters.payee}
           onChange={updateFilter}
-          />
+          /> */}
       </ FilterContainer>
     );
 };

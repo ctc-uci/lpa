@@ -1,6 +1,6 @@
 import { React, useState, useEffect } from "react";
 import { FilterContainer } from "./FilterContainer";
-import { DateFilter, LeadArtistFilter, PayerFilter, InvoiceStatusFilter, SeasonFilter, EmailFilter } from "./FilterComponents";
+import { DateFilter, LeadArtistFilter, InvoiceStatusFilter, SeasonFilter, EmailFilter } from "./FilterComponents";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {

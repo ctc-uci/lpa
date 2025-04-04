@@ -17,7 +17,7 @@ import {
 import Navbar from "../navbar/Navbar";
 
 import { SendEmailButton } from "../email/SendEmailButton";
-import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, LeadArtistFilter, RoomFilter, PayerFilter, ProgramStatusFilter, InvoiceStatusFilter, SessionStatusFilter } from '../filters/FilterComponents';
+import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, LeadArtistFilter, RoomFilter, ProgramStatusFilter, InvoiceStatusFilter, SessionStatusFilter } from '../filters/FilterComponents';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { FilterContainer } from '../filters/FilterContainer';
 import { Filter } from 'lucide-react';
@@ -130,38 +130,7 @@ export const Playground = () => {
     // <SeasonFilter></SeasonFilter>
     // <EmailFilter></EmailFilter>
     <div>
-      <>
-      <SessionFilter sessions={sessions} setFilteredSessions={setFilteredSessions} />
-      <TableContainer>
-        <Table variant="unstyled">
-          <Th>Name</Th>
-          <Th>Time</Th>
-          <Th>Date</Th>
-          <Th>Room</Th>
-          <Tbody>
-            {filteredSessions.length > 0 ? (
-              filteredSessions.map((sessions) => (
-                <Tr key={sessions.id}>
-                  {/* ... render program data ... */}
-                  <Td>{sessions.name}</Td>
-                  <Td>{sessions.startTime} - {sessions.endTime}</Td>
-                  <Td>{sessions.date}</Td>
-                  <Td>{sessions.roomId}</Td>
-                </Tr>
-              ))
-            ) : (
-              <Tr>
-                <Td colSpan={6}>
-                  <Box textAlign="center" py={6} color="gray.500" fontSize="md">
-                    No programs available
-                  </Box>
-                </Td>
-              </Tr>
-            )}
-          </Tbody>
-        </Table>
-      </TableContainer>
-    </>
+      <LeadArtistFilter/>
     </div>
   );
 };

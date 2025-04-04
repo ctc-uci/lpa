@@ -5,6 +5,7 @@ import {
 } from "../../assets/icons/ProgramIcons";
 
 import {
+  Badge,
   Box,
   Button,
   ButtonGroup,
@@ -466,347 +467,413 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
 };
 
 
-export const LeadArtistFilter = ({ clientsList, value, onChange }) => {
-  const [selectedArtist, setSelectedArtist] = useState(value || 'all');
+export const LeadArtistFilter = ({ clientsList, value, onChange, type }) => {
+  const [instructorSearchTerm, setInstructorSearchTerm] = useState('');
+  const [searchedInstructors, setSearchedInstructors] = useState([]);
+  const [selectedInstructors, setSelectedInstructors] = useState(value || []);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const handleArtistChange = (e) => {
-    const selectedValue = e.target.value;
-    setSelectedArtist(selectedValue);
-    onChange("instructor", selectedValue);
+  // Update parent component when selection changes
+  const handleLeadArtistChange = (artist) => {
+    let newSelectedInstructors;
+    if (selectedInstructors.includes(artist)) {
+      newSelectedInstructors = selectedInstructors.filter(a => a !== artist);
+    } else {
+      newSelectedInstructors = [...selectedInstructors, artist];
+      console.log("new selected:", newSelectedInstructors);
+    }
+    setSelectedInstructors(newSelectedInstructors);
+    if (type == "lead") {
+      onChange("instructor", newSelectedInstructors);
+    } else {
+      onChange("payee", newSelectedInstructors);
+    }
+
+  };
+
+  // Filter clients based on search term
+  const getInstructorResults = (searchTerm) => {
+    if (!searchTerm || searchTerm.trim() === '') {
+      setSearchedInstructors([]);
+      return;
+    }
+
+    const filteredClients = clientsList.filter(client =>
+      client.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !selectedInstructors.some(selected => selected.id === client.id)
+    );
+
+    setSearchedInstructors(filteredClients);
   };
 
   return (
-    <FormControl>
-      <HStack>
-        <Box
-          as="img"
-          src={BsPaletteFill}
-          color="gray.500"
-          boxSize="20px"
-        />
-        <FormLabel color="#718096">Lead Artist(s)</FormLabel>
+    <VStack align="stretch" spacing={4}>
+      <HStack spacing="6px">
+        <Icon as={LeadArtistIcon} />
+        <Text color="#718096">
+          {type === "lead" ? "Lead Artist(s)" : "Payer(s)"}
+        </Text>
       </HStack>
-      <Select
-        value={selectedArtist}
-        onChange={handleArtistChange}
-        // placeholder="Name"
-      >
-        <option value="all">All</option>
-        {clientsList.map((client) => (
-          <option
-            key={client.id}
-            value={client.name}
-          >
-            {client.name}
-          </option>
-        ))}
-      </Select>
-    </FormControl>
+      <div id="instructorContainer">
+        <div id="instructors">
+          <div id="instructorSelection">
+            <Box position="relative">
+              <div id="instructorInputContainer" style={{
+                display: 'flex',
+                alignItems: 'center',
+                border: '1px solid #E2E8F0',
+                borderRadius: '4px',
+                padding: '4px 8px'
+              }}>
+                <Input
+                  placeholder="Name"
+                  onChange={(e) => {
+                    getInstructorResults(e.target.value);
+                    setInstructorSearchTerm(e.target.value);
+                    setDropdownVisible(true);
+                  }}
+                  value={instructorSearchTerm}
+                  id="instructorInput"
+                  variant="unstyled"
+                />
+                <Box
+                  as="button"
+                  onClick={() => {
+                    if (instructorSearchTerm.trim() !== "") {
+                      // Find the instructor from the searched list
+                      const instructor = searchedInstructors.find(
+                        (instr) => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()
+                      );
+                      // If instructor exists and is not already selected, add it as a tag
+                      if (instructor && !selectedInstructors.some(instr => instr.id === instructor.id)) {
+                        console.log("instructor", instructor);
+                        setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                        handleLeadArtistChange(instructor);
+                      }
+                      console.log("Selected Instructors is now", selectedInstructors);
+                      setInstructorSearchTerm(""); // reset search
+                      setSearchedInstructors([]); // reset searched instructors
+                      setDropdownVisible(false); // hide dropdown
+                    }
+                  }}
+                  disabled={
+                    instructorSearchTerm.trim() === "" ||
+                    !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
+                  }
+                  cursor={
+                    instructorSearchTerm.trim() === "" ||
+                    !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
+                      ? "not-allowed" : "pointer"
+                  }
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: "4px",
+                    borderRadius: "50%"
+                  }}
+                >
+                  <Icon as={PlusFilledIcon}
+                    color={
+                      instructorSearchTerm.trim() !== "" &&
+                      searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
+                        ? "#4441C8" : "#718096"
+                    }
+                  />
+                </Box>
+              </div>
+
+              {dropdownVisible && searchedInstructors.length > 0 && instructorSearchTerm.length > 0 && (
+                <Box
+                  id="instructorDropdown"
+                  w="100%"
+                  maxW="195px"
+                  position="absolute"
+                  zIndex={10}
+                  boxShadow="md"
+                  bg="white"
+                  borderRadius="md"
+                  mt={1}
+                >
+                  {searchedInstructors.map((instructor) => (
+                    <Box
+                      key={instructor.id}
+                      onClick={() => {
+                        setInstructorSearchTerm(instructor.name); // Populate input field
+                        setDropdownVisible(false);
+                      }}
+                      style={{
+                        padding: "10px",
+                        fontSize: "16px",
+                        cursor: "pointer",
+                        transition: "0.2s",
+                        backgroundColor: "#FFF",
+                      }}
+                      bg="#F6F6F6"
+                      _hover={{ bg: "#D9D9D9" }}
+                    >
+                      {instructor.name}
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          </div>
+        </div>
+        <div id="instructorTags" style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px',
+          marginTop: '8px'
+        }}>
+          {selectedInstructors.length > 0 ? (
+            selectedInstructors.map((instructor, ind) => (
+              <div className="instructorTag" key={ind} style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}>
+                <Badge
+                  colorScheme="blue"
+                  borderRadius="full"
+                  px={3}
+                  py={1}
+                  display="flex"
+                  alignItems="center"
+                >
+                  {instructor.name}
+                  <Box
+                    as="span"
+                    ml={1}
+                    backgroundColor="red"
+                    cursor="pointer"
+                    onClick={() => {
+                      // Remove the instructor from the list
+                      const newSelectedInstructors = selectedInstructors.filter(
+                        (artist) => artist.id !== instructor.id
+                      );
+                      setSelectedInstructors(newSelectedInstructors);
+                      // Notify parent component of the change
+                      if (type === "lead") {
+                        onChange("instructor", newSelectedInstructors);
+                      } else {
+                        onChange("payee", newSelectedInstructors);
+                      }
+                    }}
+                  >
+                    <Icon
+                      fontSize="sm"
+                      color="#718096"
+                      _hover={{ color: "#4441C8" }}
+                      as={CloseFilledIcon}
+                    />
+                  </Box>
+                </Badge>
+              </div>
+            ))
+          ) : <div></div>}
+        </div>
+      </div>
+    </VStack>
   );
-};
-
-    {/* // <VStack align="stretch" spacing={4}>
-    //   <HStack spacing="6px">
-    //     <Icon as={LeadArtistIcon} />
-    //     <Text color="#718096"> Lead Artist(s) </Text>
-    //   </HStack>
-    //   <div id="instructorContainer">
-    //     <div id="instructors">
-    //       <div id="instructorSelection">
-    //         <Box>
-    //           <div id="instructorInputContainer"> */}
-    {/* //             <Input
-    //                 placeholder="Name"
-    //                 onChange={(e) => {
-    //                   getInstructorResults(e.target.value);
-    //                   setInstructorSearchTerm(e.target.value);
-    //                   setDropdownVisible(true);
-    //                 }}
-    //                 value={instructorSearchTerm}
-    //                 id="instructorInput"/>
-    //               <Box
-    //                 as="button"
-    //                 onClick={() => {
-    //                   if (instructorSearchTerm.trim() !== "") {
-    //                     // Find the instructor from the searched list
-    //                     const instructor = searchedInstructors.find(
-    //                       (instr) => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()
-    //                     );
-    //                     // If instructor exists and is not already selected, add it as a tag
-    //                     if (instructor && !selectedInstructors.some(instr => instr.id === instructor.id)) {
-    //                       setSelectedInstructors((prevItems) => [...prevItems, instructor]);
-    //                     }
-    //                     setInstructorSearchTerm("");
-    //                     setSearchedInstructors([]);
-    //                     getInstructorResults(")")
-    //                   }
-    //                 }}
-    //                 disabled={
-    //                   instructorSearchTerm.trim() === "" ||
-    //                   !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
-    //                 }
-    //                 cursor={
-    //                   instructorSearchTerm.trim()==="" ||
-    //                   !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
-    //                   ? "not-allowed" : "pointer"
-    //                 }
-    //               >
-    //                 <PlusFilledIcon
-    //                   color={
-    //                     instructorSearchTerm.trim() !== "" &&
-    //                       searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
-    //                       ? "#4441C8" : "#718096"
-    //                   }
-    //                 />
-    //               </Box>
-    //             </div>
-
-    //             {dropdownVisible && searchedInstructors.length > 0 && instructorSearchTerm.length > 0 && (
-    //               <Box id="instructorDropdown" w="100%" maxW="195px">
-    //                 {searchedInstructors.map((instructor) => (
-    //                   <Box
-    //                     key={instructor.id}
-    //                     onClick={() => {
-    //                       setInstructorSearchTerm(instructor.name); // Populate input field
-    //                       setDropdownVisible(false);
-    //                     }}
-    //                       style={{
-    //                         padding: "10px",
-    //                         fontSize: "16px",
-    //                         cursor: "pointer",
-    //                         transition: "0.2s",
-    //                         backgroundColor:"#FFF",
-    //                       }}
-    //                       bg="#F6F6F6"
-    //                       _hover={{ bg: "#D9D9D9" }}
-    //                     >
-    //                       {instructor.name}
-    //                     </Box>
-    //                   ))}
-    //                 </Box>
-    //               )}
-    //             </Box>
-    //           </div>
-    //         </div>
-    //         <div id="instructorTags">
-    //           {selectedInstructors.length > 0 ? (
-    //             selectedInstructors.map((instructor, ind) => (
-    //               <div className="instructorTag" key={ind}>
-    //                 <Tag value={instructor.id}>
-    //                   {instructor.name}
-    //                 </Tag>
-    //                 <Icon
-    //                     fontSize="lg"
-    //                     color = "#718096"
-    //                     _hover={{ color: "#4441C8" }}
-    //                     cursor="pointer"
-    //                     onClick={() => {
-    //                         setSelectedInstructors(prevItems =>
-    //                         prevItems.filter(item => item.id !== instructor.id));
-    //                     }}
-    //                 >
-    //                     <CloseFilledIcon color="currentColor"/>
-    //                 </Icon>
-    //               </div>
-    //             ))
-    //         ) : <div></div> }
-    //     </div>
-    //   </div>
-    // </VStack> */}
+}
 
 
+// export const PayerFilter = ({ clientsList, value, onChange }) => {
+//   const [instructorSearchTerm, setInstructorSearchTerm] = useState('');
+//   const [searchedInstructors, setSearchedInstructors] = useState([]);
+//   const [selectedInstructors, setSelectedInstructors] = useState(value || []);
+//   const [dropdownVisible, setDropdownVisible] = useState(false);
 
-export const PayerFilter = ({ clientsList, value, onChange }) => {
-  // const [dropdownVisible, setDropdownVisible] = useState(false);
+//   // Update parent component when selection changes
+//   const handleLeadArtistChange = (artist) => {
+//     let newSelectedInstructors;
+//     if (selectedInstructors.includes(artist)) {
+//       newSelectedInstructors = selectedInstructors.filter(a => a !== artist);
+//     } else {
+//       newSelectedInstructors = [...selectedInstructors, artist];
+//       console.log("new selected:", newSelectedInstructors);
+//     }
+//     setSelectedInstructors(newSelectedInstructors);
+//     onChange("instructor", newSelectedInstructors);
+//   };
 
-  // useEffect(() => {
-  //     const handleClickOutside = (event) => {
-  //         if (!event.target.closest("#payeeContainer")) {
-  //             setDropdownVisible(false);
-  //         }
-  //     }
+//   // Filter clients based on search term
+//   const getInstructorResults = (searchTerm) => {
+//     if (!searchTerm || searchTerm.trim() === '') {
+//       setSearchedInstructors([]);
+//       return;
+//     }
 
-  //     document.addEventListener("click", handleClickOutside);
-  //     return () => {
-  //         document.removeEventListener("click", handleClickOutside);
-  //     }
-  // }, []);
+//     const filteredClients = clientsList.filter(client =>
+//       client.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+//       !selectedInstructors.some(selected => selected.id === client.id)
+//     );
 
-  // return (
-  //   <VStack align="stretch" spacing="4px">
-  //     <HStack spacing="6px">
-  //       <Icon as={PayerIcon}/>
-  //       <Text color="#718096"> Payer(s) </Text>
-  //     </HStack>
-  //     {/* <Box as="img" src={personSvg} boxSize="20px" /> */}
-  //     <div id="payeeContainer">
-  //         <div id="payees">
-  //             <div id="payeeSelection">
-  //                 <Box>
-  //                     <div id="payeeInputContainer">
-  //                         <Input
-  //                             placeholder="Name"
-  //                             onChange={(e) => {
-  //                             getPayeeResults(e.target.value);
-  //                             setPayeeSearchTerm(e.target.value);
-  //                             setDropdownVisible(true);
-  //                             }}
-  //                             value={payeeSearchTerm} id="payeeInput"/>
-  //                         <Box
-  //                             as="button"
-  //                             onClick={() => {
-  //                             if (payeeSearchTerm.trim() !== "") {
-  //                                 // Find the instructor from the searched list
-  //                                 const payee = searchedPayees.find(
-  //                                 (p) => p.name.toLowerCase() === payeeSearchTerm.toLowerCase()
-  //                                 );
-  //                                 // If instructor exists and is not already selected, add it as a tag
-  //                                 if (payee && !selectedPayees.some(p => p.id === payee.id)) {
-  //                                 setSelectedPayees((prevItems) => [...prevItems, payee]);
-  //                                 }
-  //                                 setPayeeSearchTerm("");
-  //                                 setSearchedPayees([]);
-  //                                 getPayeeResults(")")
-  //                             }
-  //                             }}
-  //                             disabled={
-  //                             payeeSearchTerm.trim() === "" ||
-  //                             !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
-  //                             }
-  //                             cursor={
-  //                             payeeSearchTerm.trim()==="" ||
-  //                             !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
-  //                             ? "not-allowed" : "pointer"
-  //                             }
-  //                             _hover={{ color: payeeSearchTerm.trim() !== "" ? "#800080" : "inherit" }}
-  //                         >
-  //                             <PlusFilledIcon
-  //                                 color={
-  //                                     payeeSearchTerm.trim() !== "" &&
-  //                                       searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
-  //                                       ? "#4441C8" : "#718096"
-  //                                 }
-  //                             />
-  //                         </Box>
-  //                     </div>
+//     setSearchedInstructors(filteredClients);
+//   };
 
-  //                     {dropdownVisible && searchedPayees.length > 0 && payeeSearchTerm.length > 0 && (
-  //                         <Box id="payeeDropdown" w="100%" maxW="195px">
-  //                             {searchedPayees.map((payee) => (
-  //                                 <Box
-  //                                     key={payee.id}
-  //                                     onClick={() => {
-  //                                         setPayeeSearchTerm(payee.name); // Fill input field
-  //                                         setDropdownVisible(false); // Hide dropdown after selecting
-  //                                 }}
-  //                                     style={{
-  //                                         padding: "10px",
-  //                                         fontSize: "16px",
-  //                                         cursor: "pointer",
-  //                                         transition: "0.2s",
-  //                                         backgroundColor: "#FFF"
-  //                                     }}
-  //                                     bg="#F6F6F6"
-  //                                     _hover={{ bg: "#D9D9D9" }}
-  //                                 >
-  //                                     {payee.name}
-  //                                 </Box>
-  //                             ))}
-  //                         </Box>
-  //                     )}
-  //                 </Box>
-  //             </div>
-  //         </div>
-  //             <div id="payeeTags">
-  //                 {selectedPayees.length > 0 ? (
-  //                     selectedPayees.map((payee, ind) => (
-  //                     <div className="payeeTag" key={ind}>
-  //                         <Tag value={payee.id}>
-  //                             {payee.name}
-  //                         </Tag>
-  //                         <Icon
-  //                             fontSize="lg"
-  //                             color = "#718096"
-  //                             _hover={{ color: "#4441C8" }}
-  //                             cursor="pointer"
-  //                             onClick={() => {
-  //                                 setSelectedPayees(prevItems =>
-  //                                 prevItems.filter(item => item.id !== payee.id));
-  //                             }}
-  //                         >
-  //                             <CloseFilledIcon color="currentColor"/>
-  //                         </Icon>
-  //                     </div>
-  //                 ))
-  //             ) : <div></div> }
-  //         </div>
-  //     </div>
-  //   </VStack>
-  const [selectedPayer, setSelectedPayer] = useState(value || 'all');
+//   return (
+//     <VStack align="stretch" spacing={4}>
+//       <HStack spacing="6px">
+//         <Icon as={LeadArtistIcon} />
+//         <Text color="#718096"> Lead Artist(s) </Text>
+//       </HStack>
+//       <div id="instructorContainer">
+//         <div id="instructors">
+//           <div id="instructorSelection">
+//             <Box position="relative">
+//               <div id="instructorInputContainer" style={{
+//                 display: 'flex',
+//                 alignItems: 'center',
+//                 border: '1px solid #E2E8F0',
+//                 borderRadius: '4px',
+//                 padding: '4px 8px'
+//               }}>
+//                 <Input
+//                   placeholder="Name"
+//                   onChange={(e) => {
+//                     getInstructorResults(e.target.value);
+//                     setInstructorSearchTerm(e.target.value);
+//                     setDropdownVisible(true);
+//                   }}
+//                   value={instructorSearchTerm}
+//                   id="instructorInput"
+//                   variant="unstyled"
+//                 />
+//                 <Box
+//                   as="button"
+//                   onClick={() => {
+//                     if (instructorSearchTerm.trim() !== "") {
+//                       // Find the instructor from the searched list
+//                       const instructor = searchedInstructors.find(
+//                         (instr) => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()
+//                       );
+//                       // If instructor exists and is not already selected, add it as a tag
+//                       if (instructor && !selectedInstructors.some(instr => instr.id === instructor.id)) {
+//                         console.log("instructor", instructor);
+//                         setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+//                         handleLeadArtistChange(instructor);
+//                       }
+//                       console.log("Selected Instructors is now", selectedInstructors);
+//                       setInstructorSearchTerm(""); // reset search
+//                       setSearchedInstructors([]); // reset searched instructors
+//                       setDropdownVisible(false); // hide dropdown
+//                     }
+//                   }}
+//                   disabled={
+//                     instructorSearchTerm.trim() === "" ||
+//                     !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
+//                   }
+//                   cursor={
+//                     instructorSearchTerm.trim() === "" ||
+//                     !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
+//                       ? "not-allowed" : "pointer"
+//                   }
+//                   style={{
+//                     background: "none",
+//                     border: "none",
+//                     padding: "4px",
+//                     borderRadius: "50%"
+//                   }}
+//                 >
+//                   <Icon as={PlusFilledIcon}
+//                     color={
+//                       instructorSearchTerm.trim() !== "" &&
+//                       searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
+//                         ? "#4441C8" : "#718096"
+//                     }
+//                   />
+//                 </Box>
+//               </div>
 
-  const handlePayerChange = (e) => {
-    const selectedValue = e.target.value;
-    setSelectedPayer(selectedValue);
-    onChange("payee", selectedValue);
-  };
-
-  return (
-    <FormControl>
-      <HStack>
-        <Box
-          as="img"
-          src={personSvg}
-          color="gray.500"
-          boxSize="20px"
-        />
-        <FormLabel color="#718096">Payer(s)</FormLabel>
-      </HStack>
-      <Select
-        value={selectedPayer}
-        onChange={handlePayerChange}
-        // placeholder="Name"
-      >
-        <option value="all">All</option>
-        {clientsList.map((client) => (
-          <option
-            key={client.id}
-            value={client.name}
-          >
-            {client.name}
-          </option>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
-  // return (
-  //   <FormControl>
-  //     <HStack>
-  //       <Box
-  //         as="img"
-  //         src={personSvg}
-  //         alt="Person Icon"
-  //         boxSize="20px"
-  //       />
-  //       <FormLabel>Payee</FormLabel>
-  //     </HStack>
-  //     <Select
-  //       value={payee}
-  //       onChange={(e) => setPayee(e.target.value)}
-  //     >
-  //       <option value="all">All</option>
-  //       {clients.map((client) => (
-  //         <option
-  //           key={client.id}
-  //           value={client.name}
-  //         >
-  //           {client.name}
-  //         </option>
-  //       ))}
-  //     </Select>
-  //   </FormControl>
-
-
+//               {dropdownVisible && searchedInstructors.length > 0 && instructorSearchTerm.length > 0 && (
+//                 <Box
+//                   id="instructorDropdown"
+//                   w="100%"
+//                   maxW="195px"
+//                   position="absolute"
+//                   zIndex={10}
+//                   boxShadow="md"
+//                   bg="white"
+//                   borderRadius="md"
+//                   mt={1}
+//                 >
+//                   {searchedInstructors.map((instructor) => (
+//                     <Box
+//                       key={instructor.id}
+//                       onClick={() => {
+//                         setInstructorSearchTerm(instructor.name); // Populate input field
+//                         setDropdownVisible(false);
+//                       }}
+//                       style={{
+//                         padding: "10px",
+//                         fontSize: "16px",
+//                         cursor: "pointer",
+//                         transition: "0.2s",
+//                         backgroundColor: "#FFF",
+//                       }}
+//                       bg="#F6F6F6"
+//                       _hover={{ bg: "#D9D9D9" }}
+//                     >
+//                       {instructor.name}
+//                     </Box>
+//                   ))}
+//                 </Box>
+//               )}
+//             </Box>
+//           </div>
+//         </div>
+//         <div id="instructorTags" style={{
+//           display: 'flex',
+//           flexWrap: 'wrap',
+//           gap: '8px',
+//           marginTop: '8px'
+//         }}>
+//           {selectedInstructors.length > 0 ? (
+//             selectedInstructors.map((instructor, ind) => (
+//               <div className="instructorTag" key={ind} style={{
+//                 display: 'flex',
+//                 alignItems: 'center',
+//               }}>
+//                 <Badge
+//                   colorScheme="blue"
+//                   borderRadius="full"
+//                   px={3}
+//                   py={1}
+//                   display="flex"
+//                   alignItems="center"
+//                 >
+//                   {instructor.name}
+//                   <Box
+//                     as="span"
+//                     ml={1}
+//                     backgroundColor="red"
+//                     cursor="pointer"
+//                     onClick={() => {
+//                       // Remove the instructor from the list
+//                       const newSelectedInstructors = selectedInstructors.filter(
+//                         (artist) => artist.id !== instructor.id
+//                       );
+//                       setSelectedInstructors(newSelectedInstructors);
+//                       // Notify parent component of the change
+//                       onChange("instructor", newSelectedInstructors);
+//                     }}
+//                   >
+//                     <Icon
+//                       fontSize="sm"
+//                       color="#718096"
+//                       _hover={{ color: "#4441C8" }}
+//                       as={CloseFilledIcon}
+//                     />
+//                   </Box>
+//                 </Badge>
+//               </div>
+//             ))
+//           ) : <div></div>}
+//         </div>
+//       </div>
+//     </VStack>
+//   );
+// };
 export const SeasonFilter = ({ value, onChange }) => {
   const [localSeason, setLocalSeason] = useState(value);
 
