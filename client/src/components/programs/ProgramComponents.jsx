@@ -72,12 +72,7 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import {
-  EllipsisIcon,
-  FileTextIcon,
-  Info,
-  UserIcon,
-} from "lucide-react";
+import { EllipsisIcon, FileTextIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
@@ -120,7 +115,7 @@ export const ProgramSummary = ({
   } = useDisclosure();
 
   const exit = () => {
-    navigate('/programs');
+    navigate("/programs");
   };
 
   const toEditProgram = () => {
@@ -153,10 +148,9 @@ export const ProgramSummary = ({
 
   const setArchived = async (boolean) => {
     await backend.put(`/programs/` + eventId, { archived: boolean });
-    await backend.put(
-      `/programs/updateSessionArchive/` + eventId,
-      { archived: boolean }
-    );
+    await backend.put(`/programs/updateSessionArchive/` + eventId, {
+      archived: boolean,
+    });
   };
 
   const duplicateProgram = async () => {
@@ -839,34 +833,35 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [status, setStatus] = useState("All");
   const [selectedRoom, setSelectedRoom] = useState("All");
 
-  const [sortKey, setSortKey] = useState("date"); 
-  const [sortOrder, setSortOrder] = useState("asc"); 
+  const [sortKey, setSortKey] = useState("date");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
     []
   );
-  
+
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; 
-  
+  const itemsPerPage = 5;
+
   const totalSessions = filteredAndSortedSessions?.length || 0;
   const totalPages = Math.ceil(totalSessions / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalSessions);
-  
-  const currentPageSessions = filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
-  
+
+  const currentPageSessions =
+    filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
+
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
-  
+
   const goToPreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
-  
+
   const goToPage = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -902,7 +897,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         const bInvalid = !b.date || b.date === "N/A";
 
         if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1; 
+        if (aInvalid) return 1;
         if (bInvalid) return -1;
 
         const dateA = new Date(a.date);
@@ -912,7 +907,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
       });
     }
     setFilteredAndSortedSessions(sorted);
-    
+
     setCurrentPage(1);
   }, [
     dateRange,
@@ -971,7 +966,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   // }
   // Make sure rooms is fetched before rendering
   if (!rooms || rooms.length === 0) {
-    return <div>Loading...</div>; 
+    return <div>Loading...</div>;
   }
 
   const handleDateChange = (field, value) => {
@@ -993,7 +988,12 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         borderColor="gray.300"
         borderRadius="15px"
       >
-        <CardBody m={6}>
+        <CardBody
+          m={6}
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+        >
           <Flex
             direction="column"
             justify="space-between"
@@ -1454,10 +1454,47 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         </Text>
                       </Box>
                     </Th>
-                    {/* Empty headers as space for the menu ellipsis button */}
-                    <Th> </Th>
-                    <Th> </Th>
-                    <Th> </Th>
+                    {/* Add Lead Artist column */}
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        {/* <PersonIcon /> */}
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          Lead Artist(s)
+                        </Text>
+                      </Box>
+                    </Th>
+                    {/* Add Payees column */}
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        {/* <PersonIcon /> */}
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          Payee(s)
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -1513,8 +1550,31 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                             {rooms.get(session.roomId)}
                           </Box>
                         </Td>
+                        {/* Add Lead Artist data */}
                         <Td>
-                          {/* Slight "bug": hovering shows shadow larger than button */}
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {session.instructor
+                              ? truncateNames(session.instructor)
+                              : "N/A"}
+                          </Box>
+                        </Td>
+                        {/* Add Payees data */}
+                        <Td>
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {session.payee
+                              ? truncateNames(session.payee)
+                              : "N/A"}
+                          </Box>
+                        </Td>
+                        <Td>
                           <IconButton
                             height="30px"
                             width="30px"
@@ -1527,7 +1587,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                     ))
                   ) : (
                     <Tr>
-                      <Td colSpan={isArchived ? 4 : 5}>
+                      <Td colSpan={isArchived ? 6 : 7}>
                         <Box
                           textAlign="center"
                           py={6}
@@ -1542,50 +1602,54 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                 </Tbody>
               </Table>
             </TableContainer>
-            
-            {/* Pagination Controls */}
+          </Flex>
+
+          {/* Pagination Controls - moved to bottom right */}
+          <Box
+            width="100%"
+            display="flex"
+            justifyContent="flex-end"
+            mt="auto"
+            pt={4}
+          >
             {totalPages > 1 && (
-              <Flex justifyContent="center" mt={4} mb={2}>
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                mb={2}
+              >
+                <Text
+                  mr={2}
+                  fontSize="sm"
+                  color="#474849"
+                >
+                  {currentPage} of {totalPages}
+                </Text>
                 <Button
-                  leftIcon={<ChevronLeftIcon />}
                   onClick={goToPreviousPage}
                   isDisabled={currentPage === 1}
                   size="sm"
-                  mr={2}
-                  variant="outline"
-                  colorScheme="blue"
+                  variant="ghost"
+                  padding={0}
+                  minWidth="auto"
+                  color="gray.500"
                 >
-                  Prev
+                  <ChevronLeftIcon />
                 </Button>
-                
-                <HStack spacing={1}>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      size="sm"
-                      colorScheme={currentPage === page ? "blue" : "gray"}
-                      variant={currentPage === page ? "solid" : "outline"}
-                      onClick={() => goToPage(page)}
-                    >
-                      {page}
-                    </Button>
-                  ))}
-                </HStack>
-                
                 <Button
-                  rightIcon={<ChevronRightIcon />}
                   onClick={goToNextPage}
                   isDisabled={currentPage === totalPages}
                   size="sm"
-                  ml={2}
-                  variant="outline"
-                  colorScheme="blue"
+                  variant="ghost"
+                  padding={0}
+                  minWidth="auto"
+                  color="gray.500"
                 >
-                  Next
+                  <ChevronRightIcon />
                 </Button>
               </Flex>
             )}
-          </Flex>
+          </Box>
         </CardBody>
       </Card>
     </Box>

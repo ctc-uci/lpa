@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
+import {
   Alert,
   AlertTitle,
   Box,
@@ -63,9 +69,9 @@ import {
   sessionsFilterMapPin,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import Navbar from "../navbar/Navbar";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
+import Navbar from "../navbar/Navbar";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -83,6 +89,10 @@ export const ArchivedPrograms = () => {
   const [programToDelete, setProgramToDelete] = useState(null);
   const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
 
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -339,6 +349,29 @@ export const ArchivedPrograms = () => {
     );
     return sorted;
   }, [filterSessions(), sortKey, sortOrder]);
+
+  const totalPrograms = sortedArchivedSessions?.length || 0;
+  const totalPages = Math.ceil(totalPrograms / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalPrograms);
+
+  // Get current page data
+  const currentPagePrograms = sortedArchivedSessions.slice(
+    startIndex,
+    endIndex
+  );
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   const deleteArchivedProgram = async (programId) => {
     try {
@@ -897,7 +930,7 @@ export const ArchivedPrograms = () => {
                   </Thead>
                   <Tbody>
                     {sortedArchivedSessions.length > 0 ? (
-                      sortedArchivedSessions.map((programSession) => (
+                      currentPagePrograms.map((programSession) => (
                         <Tr key={programSession.programId}>
                           <Td>{programSession.programName}</Td>
                           <Td>
@@ -1021,6 +1054,51 @@ export const ArchivedPrograms = () => {
             </Flex>
           </CardBody>
         </Card>
+        <Box
+          width="100%"
+          display="flex"
+          justifyContent="flex-end"
+          mt="auto"
+          pt={4}
+        >
+          {totalPages > 1 && (
+            <Flex
+              alignItems="center"
+              justifyContent="center"
+              mb={2}
+            >
+              <Text
+                mr={2}
+                fontSize="sm"
+                color="#474849"
+              >
+                {currentPage} of {totalPages}
+              </Text>
+              <Button
+                onClick={goToPreviousPage}
+                isDisabled={currentPage === 1}
+                size="sm"
+                variant="ghost"
+                padding={0}
+                minWidth="auto"
+                color="gray.500"
+              >
+                <ChevronLeftIcon />
+              </Button>
+              <Button
+                onClick={goToNextPage}
+                isDisabled={currentPage === totalPages}
+                size="sm"
+                variant="ghost"
+                padding={0}
+                minWidth="auto"
+                color="gray.500"
+              >
+                <ChevronRightIcon />
+              </Button>
+            </Flex>
+          )}
+        </Box>
         <Modal
           isOpen={isOpen}
           onClose={onClose}
