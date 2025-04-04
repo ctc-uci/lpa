@@ -22,13 +22,17 @@ import {
   Th,
   Thead,
   Tr,
+  HStack,
+  IconButton,
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
-import { TbCaretUpDown } from "react-icons/tb";
+import { archiveCalendar } from "../../assets/icons/ProgramIcons";
+import { FiMoreHorizontal } from "react-icons/fi";
 
+import arrowsSvg from "../../assets/icons/right-icon.svg";
 import filterIcon from "../../assets/filter.svg";
 import personIcon from "../../assets/person.svg";
 import PDFButtonInvoice from "./PDFButtonInvoice";
@@ -387,6 +391,18 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
 
+  const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date
+        .toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        })
+        .replace(/,/g, ".");
+    };
+
   // Get current page data
   const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
 
@@ -489,37 +505,39 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 
   return (
     <>
-      <TableContainer
-        paddingTop="8px"
-        border="1px solid var(--gray-200, #E2E8F0)"
-        borderRadius="12px"
-      >
-        <Table variant="striped">
+      <TableContainer>
+        <Table>
           <Thead>
             <Tr>
               <Th
                 textTransform="none"
                 fontSize="md"
               >
-                <Flex align="center">
-                  <Text>Status</Text>
-                  <TbCaretUpDown style={{ marginLeft: "8px" }} />
-                </Flex>
+                <HStack
+                  spacing={2}
+                  alignItems="center"
+                >
+                  <Text>STATUS</Text>
+                  <Image src={arrowsSvg} />
+                </HStack>
               </Th>
               <Th
                 textTransform="none"
                 fontSize="md"
               >
-                Invoice Sent
+                INVOICE SENT
               </Th>
               <Th
                 textTransform="none"
                 fontSize="md"
               >
-                <Flex align="center">
-                  <Text>Program</Text>
-                  <TbCaretUpDown style={{ marginLeft: "8px" }} />
-                </Flex>
+                <HStack
+                  spacing={2}
+                  alignItems="center"
+                >
+                  <Text>PROGRAM</Text>
+                  <Image src={arrowsSvg} />
+                </HStack>
               </Th>
               <Th
                 textTransform="none"
@@ -527,33 +545,33 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
               >
                 <Flex align="center">
                   <FaUser style={{ marginRight: "8px" }} />
-                  <Text>Payer(s)</Text>
+                  <Text>PAYER(S)</Text>
                 </Flex>
               </Th>
               <Th
                 textTransform="none"
                 fontSize="md"
               >
-                <Flex align="center">
-                  <CalendarIcon
-                    color="#767778"
-                    style={{ marginRight: "8px" }}
-                  />
-                  <Text>Deadline</Text>
-                  <TbCaretUpDown style={{ marginLeft: "8px" }} />
-                </Flex>
+                <HStack
+                  spacing={2}
+                  alignItems="flex-end"
+                >
+                  <Icon as={archiveCalendar} />
+                  <Text>DEADLINE</Text>
+                  <Image src={arrowsSvg} />
+                </HStack>
               </Th>
               <Th
                 textTransform="none"
                 fontSize="md"
               >
-                Season
+                SEASON
               </Th>
               <Th
                 textTransform="none"
                 fontSize="md"
               >
-                Download
+                DOWNLOADS
               </Th>
             </Tr>
           </Thead>
@@ -564,13 +582,12 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     (payer) => payer && typeof payer === "string"
                   )
                 : [];
+              const [tagBgColor, tagTextColor] = seasonColor(invoice);
               return (
                 <Tr key={index}>
                   <Td
                     style={{
                       color: isPaidColor(invoice),
-                      textDecoration:
-                        invoice.isPaid === "Past Due" ? "underline" : "none",
                       fontWeight:
                         invoice.isPaid === "Past Due" ? "bold" : "normal",
                     }}
@@ -607,16 +624,12 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                         : "N/A"}
                   </Td>
                   <Td>
-                    {new Date(invoice.endDate).toLocaleDateString("en-US", {
-                      month: "2-digit",
-                      day: "2-digit",
-                      year: "numeric",
-                    })}
+                    {formatDate(invoice.endDate)}
                   </Td>
                   <Td>
                     <Tag
-                      bg={seasonColor(invoice)}
-                      color="white"
+                      bg={tagBgColor}
+                      color={tagTextColor}
                     >
                       {invoice.season}
                     </Tag>
@@ -625,6 +638,15 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     <Flex ml="18px">
                       <PDFButtonInvoice invoice={invoice} />
                     </Flex>
+                  </Td>
+                  <Td>
+                    <IconButton
+                      icon={<FiMoreHorizontal />}
+                      size="sm"
+                      bg="#EDF2F7"
+                      color="#000000"
+                      borderRadius="md"
+                    />
                   </Td>
                 </Tr>
               );
@@ -686,11 +708,11 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
       <Popover placement="bottom-start">
         <PopoverTrigger>
           <Button
-            backgroundColor="#F0F1F4"
-            borderRadius="15px"
+            backgroundColor="#EDF2F7"
+            borderRadius="6px"
             h="48px"
             px="12px"
-            textColor="#767778"
+            textColor="#2D3748"
           >
             <Image
               src={filterIcon}

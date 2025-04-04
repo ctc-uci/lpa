@@ -2,11 +2,9 @@ import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import { CounterComponent } from "./Counter";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
-import { InboxTab } from "./InboxTab";
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
@@ -115,11 +113,9 @@ export const Notifications = () => {
         >
           <div className={styles.titleContainer}>
             <h1 className={styles.title}>Invoice Notifications</h1>
-            <CounterComponent count={notifications.length} />
           </div>
         </div>
         <div style={{display: "flex", flexDirection: "row", gap: "50px", marginBottom: "20px"}}>
-          <InboxTab/>
           <FilterButton
             setFilterType={setFilterType}
             currentFilter={filterType}
