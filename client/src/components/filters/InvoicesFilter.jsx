@@ -26,8 +26,8 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       endDate: null,
       season: "all",
       email: "all",
-      instructor: "all",
-      payee: "all"
+      instructor: [],
+      payee: []
     });
 
     const updateFilter = (type, value) => {
@@ -61,21 +61,16 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         filtered = filtered.filter(invoice => invoice.isSent === Boolean(filters.email));
       }
 
-      // if (filters.instructor && filters.instructor !== "all") {
-      //   const instructorLower = filters.instructor.toLowerCase();
-      //   filtered = filtered.filter(program =>
-      //     program.instructor &&
-      //     program.instructor.toLowerCase().includes(instructorLower)
-      //   );
-      // }
-
-      // if (filters.payee && filters.payee !== "all") {
-      //   const payeeLower = filters.payee.toLowerCase();
-      //   filtered = filtered.filter(program =>
-      //     program.payee &&
-      //     program.payee.toLowerCase().includes(payeeLower)
-      //   );
-      // }
+      // Filter for payee
+      if (filters.payee.length > 0) {
+        filtered = filtered.filter(program => {
+          if (program.payers && program.payers.length > 0) {
+            // Check if any string in program.payers matches the name property of any object in filters.payee
+            return program.payers.some(payerName => filters.payee.some(payeeObj => payeeObj.name === payerName));
+          }
+          return false;
+        });
+      }
 
       setFilteredInvoices(filtered);
       console.log("updated with filters", filtered);
@@ -88,8 +83,8 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         endDate: null,
         season: "all",
         email: "all",
-        instructor: "all",
-        payee: "all"
+        instructor: [],
+        payee: []
       });
       setFilteredInvoices(invoices);
     }
@@ -122,17 +117,12 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
           value = {filters.email}
           onChange ={updateFilter}
         />
-
-        {/* <LeadArtistFilter
-          clientsList={clients}
-          value={filters.instructor}
-          onChange={updateFilter}
-        />
-        <PayerFilter
+        <LeadArtistFilter
           clientsList={clients}
           value={filters.payee}
           onChange={updateFilter}
-          /> */}
+          type="payee"
+          />
       </ FilterContainer>
     );
 };
