@@ -73,7 +73,7 @@ export const FilterButton = ({ setFilterType, currentFilter }) => {
               onClick={() => handleFilterSelect("highpriority")}
               className={`${styles.filterButton} ${currentFilter.type === "highpriority" ? styles.active : ""}`}
             >
-              High Priority
+              Both
             </Button>
             <Button
               onClick={() => handleFilterSelect("overdue")}
