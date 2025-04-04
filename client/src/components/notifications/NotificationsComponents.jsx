@@ -1,9 +1,26 @@
 import React, { useEffect, useState } from "react";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
-
-import { MdEmail } from "react-icons/md";
+import {
+  Box,
+  Button,
+  Flex,
+  Icon,
+  Image,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  Tooltip,
+  HStack,
+} from "@chakra-ui/react";
+import { AiOutlineInfoCircle } from "react-icons/ai";
+import arrowsSvg from "../../assets/icons/right-icon.svg";
+import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 
 const NotificationsComponents = ({ notifications }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -113,6 +130,42 @@ const NotificationsComponents = ({ notifications }) => {
     return pageButtons;
   };
 
+  const getNotifType = (payStatus) => {
+    const statusMap = {
+      overdue: {
+        label: "Past Due",
+        color: "#90080F",
+        tooltip: "This payment is overdue",
+      },
+      neardue: {
+        label: "Email Not Sent",
+        color: "#2D3748",
+        tooltip: "Invoice is near due but email not sent",
+      },
+      highpriority: {
+        label: "Both",
+        color: "#90080F",
+        tooltip: "High priority and overdue",
+      },
+      default: {
+        label: "Other",
+        color: "#2D3748",
+        tooltip: "Status not categorized",
+      },
+    };
+  
+    const { label, color } = statusMap[payStatus] || statusMap.default;
+  
+    return (
+      <HStack spacing={1}>
+        <Text color={color} fontWeight={payStatus === "overdue" || payStatus === "highpriority" ? "bold" : "normal"}>
+          {label}
+        </Text>
+        <AiOutlineInfoCircle color="#4A5568"/>
+      </HStack>
+    );
+  };
+
   const paymentText = (eventName, payStatus) => {
     if (payStatus === "overdue") {
       return (
@@ -123,7 +176,7 @@ const NotificationsComponents = ({ notifications }) => {
           Payment for{" "}
           <span
             style={{
-              color: "#2E79C3",
+              color: "#29267D",
               textDecoration: "underline",
               cursor: "pointer",
             }}
@@ -141,7 +194,7 @@ const NotificationsComponents = ({ notifications }) => {
         >
           <span
             style={{
-              color: "#2E79C3",
+              color: "#29267D",
               textDecoration: "underline",
               cursor: "pointer",
             }}
@@ -160,7 +213,7 @@ const NotificationsComponents = ({ notifications }) => {
           Missing an email for{" "}
           <span
             style={{
-              color: "#2E79C3",
+              color: "#29267D",
               textDecoration: "underline",
               cursor: "pointer",
             }}
@@ -173,96 +226,56 @@ const NotificationsComponents = ({ notifications }) => {
     }
   };
 
-  const paymentRow = (eventName, payStatus, dueTime, index) => {
-    let notifType = "";
-    if (payStatus === "overdue") {
-      notifType = "Payment Past Due";
-    } else if (payStatus === "neardue") {
-      notifType = "Email Not Sent";
-    } else if (payStatus === "highpriority") {
-      notifType = "High Priority";
-    }
-
-    return (
-      <Flex
-        key={index}
-        p={4}
-        align="center"
-        justify="space-between"
-      >
-        <Flex align="center">
-          <Box
-            borderLeft="4px solid"
-            borderColor={
-              payStatus === "overdue"
-                ? "#90080F"
-                : payStatus === "neardue"
-                  ? "#DAB434"
-                  : "#ffa500"
-            }
-            h="40px"
-            mr={3}
-          ></Box>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            borderRadius="full"
-            border="1px solid"
-            borderColor="gray.300"
-            boxSize="40px"
-            mr={3}
-          >
-            <MdEmail
-              size={20}
-              color="#474849"
-            />
-          </Box>
-          <Box>
-            <div style={{ display: "flex", flexDirection: "row" }}>
-              <Text
-                color={"var(--dark-grey)"}
-                fontFamily={"Inter, sans-serif"}
-                fontSize={"18px"}
-                width={"200px"}
-              >
-                {notifType}
-              </Text>
-              {paymentText(eventName, payStatus)}
-            </div>{" "}
-          </Box>
-        </Flex>
-        <Text
-          fontSize="sm"
-          color="#767778"
-        >
-          {dueTime}
-        </Text>
-      </Flex>
-    );
-  };
-
   return (
     <>
-      <Box
-        border="1px solid"
-        borderColor="gray.200"
-        borderRadius="md"
-      >
-        {currentNotifications.length > 0 ? (
-          currentNotifications.map((item, index) =>
-            paymentRow(item.eventName, item.payStatus, item.dueTime, index)
-          )
-        ) : (
-          <Flex
-            justify="center"
-            align="center"
-            p={6}
-          >
-            <Text color="gray.500">No notifications to display</Text>
-          </Flex>
-        )}
-      </Box>
+      <TableContainer>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th textTransform="none" fontSize="md">  
+                <Text>STATUS</Text>
+              </Th>
+              <Th textTransform="none" fontSize="md">
+                <HStack spacing={2} alignItems="center">
+                  <Text>DESCRIPTION</Text>
+                  <Image src={arrowsSvg} />
+                </HStack>
+              </Th>
+              <Th textTransform="none" fontSize="md">
+                <HStack spacing={2} alignItems="center">
+                  <Icon as={archiveCalendar} />
+                  <Text>DATE</Text>
+                  <Image src={arrowsSvg} />
+                </HStack>
+              </Th>
+            </Tr>
+          </Thead>
+
+          <Tbody>
+            {currentNotifications.length > 0 ? (
+              currentNotifications.map((item, index) => (
+                <Tr key={index}>
+                  <Td>{getNotifType(item.payStatus)}</Td>
+                  <Td>{paymentText(item.eventName, item.payStatus)}</Td>
+                  <Td>
+                    <Text fontSize="sm" color="#767778">
+                      {item.dueTime}
+                    </Text>
+                  </Td>
+                </Tr>
+              ))
+            ) : (
+              <Tr>
+                <Td colSpan={3}>
+                  <Flex justify="center" align="center" p={6}>
+                    <Text color="gray.500">No notifications to display</Text>
+                  </Flex>
+                </Td>
+              </Tr>
+            )}
+          </Tbody>
+        </Table>
+      </TableContainer>
 
       {/* Pagination Controls - only show if there's more than one page */}
       {totalPages > 1 && (

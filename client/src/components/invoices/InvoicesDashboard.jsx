@@ -176,7 +176,7 @@ const InvoicesDashboard = () => {
 
   return(
     <Navbar>
-      <Flex w='95%' m='120px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px"> 
+      <Flex w='95%' m='50px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px"> 
         <Flex justifyContent='space-between' mb='40px'>
           <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} />
 

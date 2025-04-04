@@ -39,10 +39,9 @@ export const FilterButton = ({ setFilterType, currentFilter }) => {
           justifyContent="center"
           alignItems="center"
           flexShrink={0}
-          borderRadius={30}
-          border="1px solid var(--medium-light-grey, #D2D2D2)"
+          borderRadius={6}
           background="#F0F1F4"
-          color="var(--medium-grey, #767778)"
+          color="#2D3748"
           fontFamily="Inter, sans-serif"
           fontSize="15px"
           fontStyle="bold"
