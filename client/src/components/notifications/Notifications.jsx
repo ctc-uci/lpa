@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import { CounterComponent } from "./Counter";
+import {
+  Flex
+} from "@chakra-ui/react";
 import { FilterButton } from "./FilterButton";
+import { AiFillMail } from "react-icons/ai";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
-import { InboxTab } from "./InboxTab";
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
@@ -17,6 +19,25 @@ export const Notifications = () => {
     startDate: null,
     endDate: null,
   }); // all, overdue, neardue
+
+  const getDueTime = (endDate) => {
+    const now = new Date();
+    const msInDay = 1000 * 60 * 60 * 24;
+    const daysDiff = (endDate - now) / msInDay;
+
+    console.log("Days difference:", daysDiff);
+    if (daysDiff >= 0 && daysDiff <= 7) {
+      return formatDistanceToNow(endDate, { addSuffix: true });
+    } else {
+      return endDate.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      })
+      .replace(/,/g, ".");
+    }
+  };
 
   useEffect(() => {
     const fetchNotifs = async () => {
@@ -52,7 +73,7 @@ export const Notifications = () => {
               ]);
 
               const endDate = new Date(invoice.endDate);
-              const dueTime = formatDistanceToNow(endDate, { addSuffix: true });
+              const dueTime = getDueTime(endDate);
               let payStatus = "";
               if (endDate < today && invoice.isSent) {
                 payStatus = "overdue";
@@ -97,36 +118,19 @@ export const Notifications = () => {
 
   return (
     <Navbar currentPage="notifications">
-      <div
-        style={{
-          marginLeft: "57px",
-          marginTop: "90px",
-          marginRight: "57px",
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div className={styles.titleContainer}>
-            <h1 className={styles.title}>Invoice Notifications</h1>
-            <CounterComponent count={notifications.length} />
-          </div>
-        </div>
-        <div style={{display: "flex", flexDirection: "row", gap: "50px", marginBottom: "20px"}}>
-          <InboxTab/>
+      <Flex align="center" margin="50px" gap={5}>
+        <AiFillMail size={24} /> 
+        <h1 className={styles.title}>Invoice Notifications</h1>
+      </Flex>
+      <Flex w='95%' m='10px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px"> 
+        <Flex justifyContent='space-between' mb='40px'>
           <FilterButton
             setFilterType={setFilterType}
             currentFilter={filterType}
           />
-        </div>
+        </Flex>
         <NotificationsComponents notifications={notifications} />
-      </div>
+      </Flex>
     </Navbar>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { CalendarIcon } from "@chakra-ui/icons";
 import {
@@ -22,13 +22,17 @@ import {
   Th,
   Thead,
   Tr,
+  HStack,
+  IconButton,
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
-import { TbCaretUpDown } from "react-icons/tb";
+import { archiveCalendar } from "../../assets/icons/ProgramIcons";
+import { FiMoreHorizontal } from "react-icons/fi";
 
+import arrowsSvg from "../../assets/icons/right-icon.svg";
 import filterIcon from "../../assets/filter.svg";
 import personIcon from "../../assets/person.svg";
 import PDFButtonInvoice from "./PDFButtonInvoice";
@@ -379,150 +383,322 @@ const InvoicePayments = ({ comments }) => {
 };
 
 function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalInvoices = filteredInvoices?.length || 0;
+  const totalPages = Math.ceil(totalInvoices / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
+
+  const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date
+        .toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        })
+        .replace(/,/g, ".");
+    };
+
+  // Get current page data
+  const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredInvoices]);
+
+  const renderPageButtons = () => {
+    const pageButtons = [];
+
+    // Always show first page
+    if (totalPages > 0) {
+      pageButtons.push(
+        <Button
+          key={1}
+          size="sm"
+          colorScheme={currentPage === 1 ? "blue" : "gray"}
+          variant={currentPage === 1 ? "solid" : "outline"}
+          onClick={() => goToPage(1)}
+          mx={1}
+        >
+          1
+        </Button>
+      );
+    }
+
+    const startPage = Math.max(2, currentPage - 2);
+    const endPage = Math.min(currentPage + 2, totalPages - 1);
+
+    if (startPage > 2) {
+      pageButtons.push(
+        <Text
+          key="ellipsis-start"
+          mx={1}
+        >
+          ...
+        </Text>
+      );
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageButtons.push(
+        <Button
+          key={i}
+          size="sm"
+          colorScheme={currentPage === i ? "blue" : "gray"}
+          variant={currentPage === i ? "solid" : "outline"}
+          onClick={() => goToPage(i)}
+          mx={1}
+        >
+          {i}
+        </Button>
+      );
+    }
+
+    if (endPage < totalPages - 1) {
+      pageButtons.push(
+        <Text
+          key="ellipsis-end"
+          mx={1}
+        >
+          ...
+        </Text>
+      );
+    }
+
+    if (totalPages > 1) {
+      pageButtons.push(
+        <Button
+          key={totalPages}
+          size="sm"
+          colorScheme={currentPage === totalPages ? "blue" : "gray"}
+          variant={currentPage === totalPages ? "solid" : "outline"}
+          onClick={() => goToPage(totalPages)}
+          mx={1}
+        >
+          {totalPages}
+        </Button>
+      );
+    }
+
+    return pageButtons;
+  };
+
   return (
-    <TableContainer
-      paddingTop="8px"
-      border="1px solid var(--gray-200, #E2E8F0)"
-      borderRadius="12px"
-    >
-      <Table variant="striped">
-        <Thead>
-          <Tr>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              <Flex align="center">
-                <Text>Status</Text>
-                <TbCaretUpDown style={{ marginLeft: "8px" }} />
-              </Flex>
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              Invoice Sent
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              <Flex align="center">
-                <Text>Program</Text>
-                <TbCaretUpDown style={{ marginLeft: "8px" }} />
-              </Flex>
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              <Flex align="center">
-                <FaUser style={{ marginRight: "8px" }} />
-                <Text>Payer(s)</Text>
-              </Flex>
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              <Flex align="center">
-                <CalendarIcon
-                  color="#767778"
-                  style={{ marginRight: "8px" }}
-                />
-                <Text>Deadline</Text>
-                <TbCaretUpDown style={{ marginLeft: "8px" }} />
-              </Flex>
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              Season
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              Download
-            </Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {filteredInvoices.map((invoice, index) => {
-            const validPayers = Array.isArray(invoice.payers)
-              ? invoice.payers.filter(
-                  (payer) => payer && typeof payer === "string"
-                )
-              : [];
-            return (
-              <Tr key={index}>
-                <Td
-                  style={{
-                    color: isPaidColor(invoice),
-                    textDecoration:
-                      invoice.isPaid === "Past Due" ? "underline" : "none",
-                    fontWeight:
-                      invoice.isPaid === "Past Due" ? "bold" : "normal",
-                  }}
+    <>
+      <TableContainer>
+        <Table>
+          <Thead>
+            <Tr>
+              <Th
+                textTransform="none"
+                fontSize="md"
+              >
+                <HStack
+                  spacing={2}
+                  alignItems="center"
                 >
-                  {invoice.isPaid}
-                </Td>
-                <Td>
-                  <Flex
-                    justifyContent="center"
-                    align="center"
-                    w="60%"
+                  <Text>STATUS</Text>
+                  <Image src={arrowsSvg} />
+                </HStack>
+              </Th>
+              <Th
+                textTransform="none"
+                fontSize="md"
+              >
+                INVOICE SENT
+              </Th>
+              <Th
+                textTransform="none"
+                fontSize="md"
+              >
+                <HStack
+                  spacing={2}
+                  alignItems="center"
+                >
+                  <Text>PROGRAM</Text>
+                  <Image src={arrowsSvg} />
+                </HStack>
+              </Th>
+              <Th
+                textTransform="none"
+                fontSize="md"
+              >
+                <Flex align="center">
+                  <FaUser style={{ marginRight: "8px" }} />
+                  <Text>PAYER(S)</Text>
+                </Flex>
+              </Th>
+              <Th
+                textTransform="none"
+                fontSize="md"
+              >
+                <HStack
+                  spacing={2}
+                  alignItems="flex-end"
+                >
+                  <Icon as={archiveCalendar} />
+                  <Text>DEADLINE</Text>
+                  <Image src={arrowsSvg} />
+                </HStack>
+              </Th>
+              <Th
+                textTransform="none"
+                fontSize="md"
+              >
+                SEASON
+              </Th>
+              <Th
+                textTransform="none"
+                fontSize="md"
+              >
+                DOWNLOADS
+              </Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {currentInvoices.map((invoice, index) => {
+              const validPayers = Array.isArray(invoice.payers)
+                ? invoice.payers.filter(
+                    (payer) => payer && typeof payer === "string"
+                  )
+                : [];
+              const [tagBgColor, tagTextColor] = seasonColor(invoice);
+              return (
+                <Tr key={index}>
+                  <Td
+                    style={{
+                      color: isPaidColor(invoice),
+                      fontWeight:
+                        invoice.isPaid === "Past Due" ? "bold" : "normal",
+                    }}
                   >
-                    {invoice.isSent ? (
-                      <Icon
-                        as={FaCircle}
-                        color="#0C824D"
-                        boxSize={4}
-                      />
-                    ) : (
-                      <Icon
-                        as={FaCircle}
-                        color="#EA4335"
-                        boxSize={4}
-                      />
-                    )}
-                  </Flex>
-                </Td>
-                <Td>{invoice.eventName}</Td>
-                <Td>
-                  {validPayers.length > 1
-                    ? `${validPayers[0].trim()},...`
-                    : validPayers.length === 1
-                      ? validPayers[0].trim()
-                      : "N/A"}
-                </Td>
-                <Td>
-                  {new Date(invoice.endDate).toLocaleDateString("en-US", {
-                    month: "2-digit",
-                    day: "2-digit",
-                    year: "numeric",
-                  })}
-                </Td>
-                <Td>
-                  <Tag
-                    bg={seasonColor(invoice)}
-                    color="white"
-                  >
-                    {invoice.season}
-                  </Tag>
-                </Td>
-                <Td>
-                  <Flex ml="18px">
-                    <PDFButtonInvoice invoice={invoice} />
-                  </Flex>
+                    {invoice.isPaid}
+                  </Td>
+                  <Td>
+                    <Flex
+                      justifyContent="center"
+                      align="center"
+                      w="60%"
+                    >
+                      {invoice.isSent ? (
+                        <Icon
+                          as={FaCircle}
+                          color="#0C824D"
+                          boxSize={4}
+                        />
+                      ) : (
+                        <Icon
+                          as={FaCircle}
+                          color="#EA4335"
+                          boxSize={4}
+                        />
+                      )}
+                    </Flex>
+                  </Td>
+                  <Td>{invoice.eventName}</Td>
+                  <Td>
+                    {validPayers.length > 1
+                      ? `${validPayers[0].trim()},...`
+                      : validPayers.length === 1
+                        ? validPayers[0].trim()
+                        : "N/A"}
+                  </Td>
+                  <Td>
+                    {formatDate(invoice.endDate)}
+                  </Td>
+                  <Td>
+                    <Tag
+                      bg={tagBgColor}
+                      color={tagTextColor}
+                    >
+                      {invoice.season}
+                    </Tag>
+                  </Td>
+                  <Td>
+                    <Flex ml="18px">
+                      <PDFButtonInvoice invoice={invoice} />
+                    </Flex>
+                  </Td>
+                  <Td>
+                    <IconButton
+                      icon={<FiMoreHorizontal />}
+                      size="sm"
+                      bg="#EDF2F7"
+                      color="#000000"
+                      borderRadius="md"
+                    />
+                  </Td>
+                </Tr>
+              );
+            })}
+            {currentInvoices.length === 0 && (
+              <Tr>
+                <Td
+                  colSpan={7}
+                  textAlign="center"
+                  py={4}
+                >
+                  No invoices found
                 </Td>
               </Tr>
-            );
-          })}
-        </Tbody>
-      </Table>
-    </TableContainer>
+            )}
+          </Tbody>
+        </Table>
+      </TableContainer>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <Flex
+          justifyContent="center"
+          mt={4}
+          mb={4}
+        >
+          <Button
+            leftIcon={<FaAngleLeft />}
+            onClick={goToPreviousPage}
+            isDisabled={currentPage === 1}
+            size="sm"
+            mr={2}
+            borderRadius="30px 0 0 30px"
+          >
+            Prev
+          </Button>
+
+          <Flex align="center">{renderPageButtons()}</Flex>
+
+          <Button
+            rightIcon={<FaAngleRight />}
+            onClick={goToNextPage}
+            isDisabled={currentPage === totalPages}
+            size="sm"
+            ml={2}
+            borderRadius="0 30px 30px 0"
+          >
+            Next
+          </Button>
+        </Flex>
+      )}
+    </>
   );
 }
 
@@ -532,11 +708,11 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
       <Popover placement="bottom-start">
         <PopoverTrigger>
           <Button
-            backgroundColor="#F0F1F4"
-            borderRadius="15px"
+            backgroundColor="#EDF2F7"
+            borderRadius="6px"
             h="48px"
             px="12px"
-            textColor="#767778"
+            textColor="#2D3748"
           >
             <Image
               src={filterIcon}
