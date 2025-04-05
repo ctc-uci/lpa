@@ -15,7 +15,8 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    useDisclosure
+    useDisclosure,
+    useToast
 } from "@chakra-ui/react";
 
 import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
@@ -53,6 +54,7 @@ export const SingleInvoice = () => {
     const [instructors, setInstructors] = useState([]);
     const [invoice, setInvoice] = useState([]);
     const { isOpen: isModalOpen, onOpen: openModal, onClose: closeModal } = useDisclosure();
+    const toast = useToast();
     const {
         isOpen: cancelIsOpen,
         onOpen: cancelOnOpen,
@@ -248,7 +250,7 @@ export const SingleInvoice = () => {
 
               {/* buttons */}
               <Flex direction="row" marginLeft="auto" gap={1}>
-                <PDFButtonInvoice invoice={id}></PDFButtonInvoice>
+                <PDFButtonInvoice invoice={id}></PDFButtonInvoice>f
 
                 <Button
                   height="100%"

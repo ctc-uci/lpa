@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { CalendarIcon } from "@chakra-ui/icons";
+import { CalendarIcon, CheckCircleIcon} from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -10,10 +10,18 @@ import {
   IconButton,
   Image,
   Input,
+  HStack,
   Menu,
   MenuList,
   MenuItem,
   MenuButton,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -28,6 +36,7 @@ import {
   Thead,
   Tr,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 
 import {
@@ -224,18 +233,14 @@ const InvoicePayments = ({ comments, setComments }) => {
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [adjustValue, setAdjustValue] = useState("--.--");
   const [showInputRow, setShowInputRow] = useState(false);
+  const [showEditRow, setShowEditRow] = useState(false);
   const [valueEntered, setValueEntered] = useState(false);
   const { isOpen: isOpen, onOpen: onOpen, onClose: onClose } = useDisclosure();
   const [editID, setEditID] = useState(null);
 
-  const {
-    isOpen: cancelIsOpen,
-    onOpen: cancelOnOpen,
-    onClose: cancelOnClose,
-  } = useDisclosure();
-
   const { currentUser } = useAuthContext();
   const [uid, setUid] = useState(null);
+  const toast = useToast();
 
   useEffect(() => {
     const fetchUid = async () => {
@@ -283,10 +288,13 @@ const InvoicePayments = ({ comments, setComments }) => {
   //   }
   // };
 
-  const handleDeleteComment = async () => {
+  const handleDeleteComment = async (commentID) => {
     try {
-      await backend.delete("/comments/" + id);
-      refresh();
+      await backend.delete("/comments/" + commentID);
+      // setComments(commentsResponse.data);
+      const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
+      setComments(commentsResponse.data);
+      onClose();
     }catch (error) {
       console.error("Error deleting:", error);
     }
@@ -295,7 +303,7 @@ const InvoicePayments = ({ comments, setComments }) => {
   const handleEditComment = (edit) => {
     try {
       setEditID(edit);
-      setShowInputRow(true);
+      setShowEditRow(true);
     } catch (error) {
       console.error("Error editing:", error);
     }
@@ -314,15 +322,41 @@ const InvoicePayments = ({ comments, setComments }) => {
         adjustment_value: Number(adjustValue)
       };
 
-      console.log({ uid, id, commentsData });
+      // console.log({ uid, id, commentsData });
 
-
-      await backend.post("/comments/" , commentsData);
-      console.log(comments)
-
+      if (showEditRow) {
+        await backend.put("/comments/" + editID, commentsData);
+        toast({
+          position: "bottom-right",
+          duration: 3000,
+          status: "success",
+          render: () => (
+            <HStack
+              bg="green.100"
+              p={4}
+              borderRadius="md"
+              boxShadow="md"
+              spacing={3}
+              align="center"
+            >
+              <Icon as={CheckCircleIcon} color="green.600" boxSize={5} />
+              <Box>
+                <Text fontWeight="bold">Payment Saved</Text>
+                <Text> Timmm </Text>
+                {/* <Text fontSize="sm">
+                Insert the required text here (pdf name)
+                </Text> */}
+              </Box>
+            </HStack>
+          ),
+        });
+      } else {
+        await backend.post("/comments/", commentsData);
+      }
+      // console.log(comments)
       const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
       setComments(commentsResponse.data);
-
+      setShowEditRow(false);
       setShowInputRow(false);
       setAdjustValue("--.--");
 
@@ -353,7 +387,7 @@ const InvoicePayments = ({ comments, setComments }) => {
         >
           Payments
         </Text>
-        {!showInputRow ? (
+        {!showInputRow && !showEditRow ? (
           <Button onClick={handleAddComment} leftIcon={<DarkPlusIcon />}>
             Add
           </Button>
@@ -385,7 +419,7 @@ const InvoicePayments = ({ comments, setComments }) => {
                     {comment.comment}
                   </Td> */}
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" color="#0C824D" fontWeight="bold">
-                  {comment.id === editID ? (
+                  {showEditRow && comment.id === editID ? (
                     <Flex alignItems="center">
                       <Text color="#0C824D" fontWeight="bold">$</Text>
                       <Input 
@@ -418,7 +452,7 @@ const InvoicePayments = ({ comments, setComments }) => {
                               />
                               <MenuList>
                                 <MenuItem
-                                  // onClick={handleEditComment}
+                                  onClick={() => handleEditComment(comment.id)}
                                 >
                                   <Box
                                     display="flex"
@@ -431,7 +465,7 @@ const InvoicePayments = ({ comments, setComments }) => {
                                   </Box>
                                 </MenuItem>
                                 <MenuItem
-                                  onClick={handleDeleteComment}
+                                  onClick={onOpen}
                                 >
                                   <Box
                                     display="flex"
@@ -440,11 +474,53 @@ const InvoicePayments = ({ comments, setComments }) => {
                                     gap="8px"
                                   >
                                     <Icon as={CancelIcon} />
-                                    <Text color="#90080F">Cancel</Text>
+                                    <Text color="#90080F">Delete</Text>
                                   </Box>
                                 </MenuItem>
                               </MenuList>
                     </Menu>
+                    <Modal
+              isOpen={isOpen}
+              onClose={onClose}
+            >
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Delete Comment?</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <div id="deactivateReason">
+                    Reason for Deletion
+                    <Input placeholder="..." />
+                  </div>
+                  <div
+                    id="archive"
+                    style={{ display: "flex", justifyContent: "flex-end" }}
+                  >
+                  </div>
+                </ModalBody>
+
+                <ModalFooter
+                  style={{ display: "flex", justifyContent: "flex-end" }}
+                >
+                  <Button
+                    variant="ghost"
+                    onClick={onClose}
+                  >
+                    Exit
+                  </Button>
+                  <Button
+                    colorScheme="red"
+                    mr={3}
+                    id="deactivateConfirm"
+                    onClick={() => {
+                      handleDeleteComment(comment.id)
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
                   </Td>
                 </Tr>
               ))

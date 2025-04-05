@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { useBackendContext } from '../../contexts/hooks/useBackendContext';
-import { IconButton, Button } from "@chakra-ui/react";
-import { DownloadIcon } from "@chakra-ui/icons";
+import { IconButton, Button, useToast, HStack, Box, Icon} from "@chakra-ui/react";
+import { DownloadIcon, CheckCircleIcon } from "@chakra-ui/icons";
 
 
 const styles = StyleSheet.create({
@@ -75,6 +75,7 @@ const PDFButtonInvoice = ({invoice}) => {
   const { backend } = useBackendContext();
   const [bookingData, setBookingData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const toast = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,6 +105,32 @@ const PDFButtonInvoice = ({invoice}) => {
         fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
         gap={1}
         aria-label="Download PDF"
+        onClick={() => {
+          if (!isLoading) {
+            toast({
+              position: "bottom-right",
+              duration: 3000,
+              render: () => (
+                <HStack
+                  bg="green.100"
+                  p={4}
+                  borderRadius="md"
+                  boxShadow="md"
+                  spacing={3}
+                  align="center"
+                >
+                  <Icon as={CheckCircleIcon} color="green.600" boxSize={5} />
+                  <Box>
+                    <Text fontWeight="bold">Invoice Downloaded</Text>
+                    {/* <Text fontSize="sm">
+                    Insert the required text here (pdf name)
+                    </Text> */}
+                  </Box>
+                </HStack>
+              ),
+            });
+          }
+        }}
         > Download
       </Button>
     </PDFDownloadLink>
