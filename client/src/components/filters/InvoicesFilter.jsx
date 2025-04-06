@@ -72,7 +72,6 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       }
 
       setFilteredInvoices(filtered);
-      console.log("updated with filters", filtered);
     };
 
     const resetFilter = (type, value) => {
