@@ -174,11 +174,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
     <>
       <DiscardEmailModal
         isOpen={isDiscardModalOpen}
-        onClose={() => {
-          setisDiscardModalOpen(false);
-          setisDrawerOpen(false);
-        }}
+        onClose={() => setisDiscardModalOpen(false)}
         emptyInputs={emptyInputs}
+        setisDrawerOpen={setisDrawerOpen}
       />
 
       <ConfirmEmailModal 
@@ -536,13 +534,13 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
 
             <Flex
               justifyContent="end"
-              mt="40px"
+              mt="30px"
             >
               <IconButton
                 icon={
                   <Image
                     src={IoPaperPlane}
-                    w="20px"
+                    w="19px"
                   />
                 }
                 bgColor="#4441C8"
@@ -551,6 +549,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                   setisConfirmModalOpen(true);
                 }}
                 isDisabled={!changesPresent}
+                width={"50px"}
+                height={"30px"}
+                borderRadius={"10px"}
               ></IconButton>
             </Flex>
           </DrawerBody>

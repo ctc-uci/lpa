@@ -12,7 +12,7 @@ import {
 
   
 
-export const DiscardEmailModal = ({ isOpen, onClose, emptyInputs }) => {
+export const DiscardEmailModal = ({ isOpen, onClose, emptyInputs, setisDrawerOpen }) => {
 
   return (
     <>
@@ -25,19 +25,28 @@ export const DiscardEmailModal = ({ isOpen, onClose, emptyInputs }) => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme='gray' mr={3} onClick={onClose}>
+            <Button
+             colorScheme='gray' 
+             mr={3} 
+             onClick={() => {
+              setisDrawerOpen(true);
+              onClose();
+             }}
+            
+            >
                 Cancel
-              </Button>
-              <Button 
-                background='#90080F' 
-                color="white" 
-                onClick={() => {
-                  emptyInputs();
-                  onClose();
-                }}
-              >
-                Confirm
-              </Button>
+            </Button>
+            <Button 
+              background='#90080F' 
+              color="white" 
+              onClick={() => {
+                setisDrawerOpen(false);
+                emptyInputs();
+                onClose();
+              }}
+            >
+              Confirm
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
