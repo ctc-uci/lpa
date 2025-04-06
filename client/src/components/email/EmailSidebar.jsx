@@ -174,13 +174,20 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
     <>
       <DiscardEmailModal
         isOpen={isDiscardModalOpen}
-        onClose={() => setisDiscardModalOpen(false)}
+        onClose={() => {
+          setisDiscardModalOpen(false);
+          setisDrawerOpen(false);
+        }}
         emptyInputs={emptyInputs}
       />
 
       <ConfirmEmailModal 
         isOpen={isConfirmModalOpen}
-        onClose= {() => setisConfirmModalOpen(false)}
+        onClose= {() => {
+          setisConfirmModalOpen(false);
+          setisDrawerOpen(false);
+          emptyInputs();
+        }}
         closeDrawer={onClose}
         title={title}
         emails={emails}
@@ -215,8 +222,10 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
         isOpen={isDrawerOpen}
         placement="right"
         onClose={() => {
-          if (isDiscardModalOpen) {
-            setisDrawerOpen(false)
+          if (changesPresent) {
+            setisDiscardModalOpen(true); 
+          } else {
+            setisDrawerOpen(false); 
           }
         }}
         finalFocusRef={btnRef}
