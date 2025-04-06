@@ -37,7 +37,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useParams } from "react-router-dom";
 import { SendEmailButton } from "./SendEmailButton";
 
-export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
+export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
 
@@ -53,6 +53,8 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
+
+  const [names, setNames] = useState(payees?.map(p => p.name))
   
   const btnRef = useRef();
 
@@ -63,6 +65,10 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
       setChangesPresent(false);
     }
   }, [emails, ccEmails, bccEmails]);
+
+  useEffect(() => {
+    console.log(names)
+  }, [names])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -142,7 +148,18 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
     return regex.test(email);
   };
 
-  const message = `Dear John Doe,
+  
+
+  const getPayeeNames = (payees) => {
+    if (!Array.isArray(payees) || payees.length === 0) return "";
+  
+    const names = payees.map(p => p.name);
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} and ${names[1]}`;
+    return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+  };
+  
+  const message = `Dear ${getPayeeNames(payees)},
 
     This is a friendly reminder regarding your upcoming payment. Please ensure that all the necessary details have been updated in our records for timely processing. If there are any changes or concerns regarding the payment, please don't hesitate to reach out to us.
 

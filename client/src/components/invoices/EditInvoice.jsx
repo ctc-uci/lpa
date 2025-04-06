@@ -98,7 +98,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments }) => {
           Save
         </Button>
         <HStack>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose}/>
+          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees}/>
         </HStack>
       </HStack>
     </Flex>
