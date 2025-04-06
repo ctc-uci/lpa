@@ -46,7 +46,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const [ccInput, setCcInput] = useState("");
   const [bccInput, setBccInput] = useState("");
   const [changesPresent, setChangesPresent] = useState(false);
-  const [emails, setEmails] = useState(new Set());
+  const [emails, setEmails] = useState([]);
   const [ccEmails, setCcEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
 
@@ -57,7 +57,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const btnRef = useRef();
 
   useEffect(() => {
-    if (emails.size > 0 || ccEmails.length > 0 || bccEmails.length > 0) {
+    if (emails.length > 0 || ccEmails.length > 0 || bccEmails.length > 0) {
       setChangesPresent(true);
     } else {
       setChangesPresent(false);
@@ -71,9 +71,13 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
         const payeeEmails = payeesResponse.data.map((payee) => payee.email);
         
         setEmails((prevEmails) => {
-          const updatedEmails = new Set(prevEmails);
-          payeeEmails.forEach(email => updatedEmails.add(email));
-          return updatedEmails;
+          const newEmails = [...prevEmails];
+          payeeEmails.forEach((email) => {
+            if (!newEmails.includes(email)) {
+              newEmails.push(email);
+            }
+          });
+          return newEmails;
         });
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -88,15 +92,15 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
     setToInput("");
     setBccInput("");
     setCcInput("");
-    setEmails(new Set());
+    setEmails([]);
     setCcEmails([]);
     setBccEmails([]);
     setChangesPresent(false);
   }
 
   const handleAddEmail = () => {
-    if (validateEmail(toInput) && !emails.has(toInput)) {
-      setEmails(new Set(emails.add(toInput)));
+    if (validateEmail(toInput) && !emails.includes(toInput)) {
+      setEmails((prev) => [...prev, toInput]);
       setToInput(""); // Clear the input after adding
     }
   };
@@ -155,20 +159,20 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
     
     const sendEmail = async () => {
       console.log("Sending email...");
-      for (const email of emails) {
         try {
           const response = await backend.post("/email/send", {
-            to: email, 
+            to: emails, 
             subject: title, 
             text: message,
-            html: `<p>${message.replace(/\n/g, '<br />')}</p>`
+            html: `<p>${message.replace(/\n/g, '<br />')}</p>`,
+            cc: ccEmails,
+            bcc: bccEmails
           });
     
           console.log(response.data);
         } catch (error) {
           console.error("Error sending email:", error);
         }
-      }
     };
 
 
@@ -304,11 +308,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                     <TagLabel>{email}</TagLabel>
                     <TagCloseButton
                       onClick={() =>
-                        setEmails((prevEmails) => {
-                          const updatedEmails = new Set(prevEmails);
-                          updatedEmails.delete(email);
-                          return updatedEmails;
-                        })
+                        setEmails((prevEmails) => prevEmails.filter((e) => e !== email))
                       }
                       bgColor={"#718096"}
                       opacity={"none"}
@@ -316,7 +316,6 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                         bg: "#4441C8"
                       }}
                       textColor={"white"}
-                      
                     />
                   </Tag>
                 ))}
