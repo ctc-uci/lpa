@@ -15,8 +15,6 @@ import {
 export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bccEmails, closeDrawer }) => {
   const combinedArray = [...emails, ...ccEmails, ...bccEmails];
   const uniqueEmails = [... new Set(combinedArray)];
-
-  console.log(title);
   
   return (
     <>

@@ -27,7 +27,6 @@ async function sendEmail(to, subject, text, html, cc, bcc) {
         mailOptions.bcc = Array.isArray(bcc) ? bcc.join(", ") : bcc;
     }
 
-    console.log(mailOptions); // For testing
     const info = await transporter.sendMail(mailOptions);
     return info;
 }

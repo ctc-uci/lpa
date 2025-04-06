@@ -158,7 +158,6 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
 
     
     const sendEmail = async () => {
-      console.log("Sending email...");
         try {
           const response = await backend.post("/email/send", {
             to: emails, 
@@ -169,7 +168,6 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
             bcc: bccEmails
           });
     
-          console.log(response.data);
         } catch (error) {
           console.error("Error sending email:", error);
         }
@@ -227,11 +225,8 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
           {/* CANT MOVE CLOSE BUTTON TO LEFT SIDE */}
           <DrawerCloseButton 
             onClick={() => {
-              console.log(changesPresent);
-              console.log("Drawer Open?", isDrawerOpen);
               if (changesPresent) {
                 setisDiscardModalOpen(true);
-                console.log("Drawer Open?", isDrawerOpen);
               } else {
                 setisDrawerOpen(false);
               }
