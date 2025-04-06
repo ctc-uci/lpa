@@ -50,6 +50,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
 
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
+  const [isDrawerOpen, setisDrawerOpen] = useState(false);
   
   const btnRef = useRef();
 
@@ -188,7 +189,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
       />
       <Button
         ref={btnRef}
-        onClick={onOpen}
+        onClick={() => setisDrawerOpen(true)}
         leftIcon={
           //TODO FIX IMPORT LATER
           <svg
@@ -211,9 +212,13 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
         Email
       </Button>
       <Drawer
-        isOpen={isOpen}
+        isOpen={isDrawerOpen}
         placement="right"
-        onClose={onClose}
+        onClose={() => {
+          if (isDiscardModalOpen) {
+            setisDrawerOpen(false)
+          }
+        }}
         finalFocusRef={btnRef}
         size="sm"
       >
@@ -223,10 +228,12 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
           <DrawerCloseButton 
             onClick={() => {
               console.log(changesPresent);
+              console.log("Drawer Open?", isDrawerOpen);
               if (changesPresent) {
                 setisDiscardModalOpen(true);
+                console.log("Drawer Open?", isDrawerOpen);
               } else {
-                return false;
+                setisDrawerOpen(false);
               }
             }}
             position={"initial"}
