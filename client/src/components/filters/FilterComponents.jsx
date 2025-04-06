@@ -1,10 +1,6 @@
 import { React, useEffect, useState } from "react";
 
 import {
-  filterDateCalendar,
-} from "../../assets/icons/ProgramIcons";
-
-import {
   Badge,
   Box,
   Button,
@@ -16,22 +12,15 @@ import {
   HStack,
   Icon,
   Input,
-  InputGroup,
-  Tag,
   Text,
   VStack,
-  Select,
-  useColorModeValue
 } from "@chakra-ui/react";
 import { CalendarIcon, TimeIcon, SeasonIcon, EmailIcon, RoomIcon, LeadArtistIcon, PayerIcon } from "../../assets/FilterIcons";
 import pastSvg from "../../assets/icons/past.svg";
 import activeSvg from "../../assets/icons/active.svg";
 import archivedSvg from "../../assets/icons/archived.svg";
-import locationSvg from "../../assets/icons/location.svg";
 import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
 import { PlusFilledIcon } from '../../assets/PlusFilledIcon';
-import BsPaletteFill from "../../assets/icons/BsPaletteFill.svg";
-import personSvg from "../../assets/person.svg";
 
 
 export const ProgramStatusFilter = ({ value, onChange }) => {
@@ -509,7 +498,7 @@ export const LeadArtistFilter = ({ clientsList, value, onChange, type }) => {
   return (
     <VStack align="stretch" spacing={4}>
       <HStack spacing="6px">
-        <Icon as={LeadArtistIcon} />
+        <Icon as={type === "lead" ? LeadArtistIcon : PayerIcon} />
         <Text color="#718096">
           {type === "lead" ? "Lead Artist(s)" : "Payer(s)"}
         </Text>
@@ -688,7 +677,7 @@ export const SeasonFilter = ({ value, onChange }) => {
     onChange("season", newStatus);
   };
   return (
-    <FormControl>=
+    <FormControl>
       <FormLabel>
         <Flex alignItems="center">
           <Icon as={SeasonIcon} />

@@ -150,31 +150,6 @@ const InvoicesDashboard = () => {
     getUnpaidInvoices();
   }, [invoices]);
 
-  // const filteredInvoices = invoices
-  //   .filter(invoice => invoice.eventName.toLowerCase().includes(query.toLowerCase()))
-  //   .filter(invoice => {
-
-  //     // Exclude invoices where the role is "instructor"
-  //     if (invoice.role === "instructor") return false;
-
-  //     // Status filter
-  //     if (filter.status !== 'all' && isPaid(invoice).toLowerCase() !== filter.status.toLowerCase()) return false;
-
-  //     // Instructor filter
-  //     // Filters for events that have an instructor, and gets the event while ensuring only showing a single events even if they have both instructor and payee
-  //     if (filter.instructor.toLowerCase() !== 'all' && invoice.role !== "instructor" && !invoices.some(inv => inv.eventName === invoice.eventName && inv.role === "instructor" && inv.name.toLowerCase() === filter.instructor.toLowerCase()))
-  //       return false;
-
-  //     //Payee filter
-  //     if (filter.payee.toLowerCase() !== 'all' && invoice.role === "payee" && invoice.name.toLowerCase() !== filter.payee.toLowerCase()) return false;
-
-  //     // Date range filters
-  //     if (filter.startDate && new Date(invoice.endDate) < new Date(filter.startDate)) return false;
-  //     if (filter.endDate && new Date(invoice.endDate) > new Date(new Date(filter.endDate).setDate(new Date(filter.endDate).getDate() + 1))) return false; //to make date range inclusive
-
-  //     return true;
-  // });
-
   return(
     <Navbar>
       <Flex>
