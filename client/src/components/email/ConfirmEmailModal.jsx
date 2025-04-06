@@ -31,7 +31,11 @@ export const ConfirmEmailModal = ({ isOpen, onClose, title, emails, ccEmails, bc
           <ModalFooter>
             {/*TODO: Make sure that when person confirms, it closes the whole drawer */}
             <Button 
-              colorScheme='purple' 
+              opacity={"none"}
+              bg='#4441C8' 
+              colorScheme='white'
+              height={"45px"}
+              borderRadius={"6px"}
               mr={3} 
               onClick={() => {
                 onClose();

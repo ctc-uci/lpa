@@ -39,7 +39,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState("Immigrant Rights Solidarity Week Invoice"); // Change to empty once Title is editable
   const [toInput, setToInput] = useState("");
   const [ccInput, setCcInput] = useState("");
   const [bccInput, setBccInput] = useState("");
@@ -82,7 +82,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
   }, []);
 
   const emptyInputs = () => {
-    setTitle("");
+    setTitle("Immigrant Rights Solidarity Week Invoice"); // Default title for now, change once Title is editable
     setToInput("");
     setBccInput("");
     setCcInput("");
@@ -252,7 +252,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
             mt="5"
             fontSize="md"
           >
-            <Text>Immigrant Rights Solidarity Week Invoice</Text>
+            <Text fontSize={"18px"} color={"black"}>{title}</Text>
           </DrawerHeader>
           <DrawerBody ml="4">
             <Stack
@@ -549,7 +549,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose }) => {
                   setisConfirmModalOpen(true);
                 }}
                 isDisabled={!changesPresent}
-                width={"50px"}
+                width={"45px"}
                 height={"30px"}
                 borderRadius={"10px"}
               ></IconButton>
