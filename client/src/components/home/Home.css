@@ -35,7 +35,7 @@
 .header-row {
   display: flex;
   width: 100%;
-  justify-content: space-between;
+  justify-content: right;
   align-items: center;
   gap: 24px;
   align-self: stretch;
@@ -43,14 +43,12 @@
 
 .google-calendar {
   display: flex;
-  height: 54.795px;
-  padding: 4px 16px;
+  padding: 12px 16px;
   justify-content: center;
   align-items: center;
   gap: 4px;
   border-radius: 15px;
-  border: 1px solid var(--medium-grey);
-  background: var(--light-grey);
+  background: #EDF2F7;
   cursor: pointer;
 }
 
@@ -60,20 +58,14 @@
 }
 
 .google-calendar-text {
-  color: var(--medium-grey);
+  color: #2D3748;
   font-family: var(--font-inter);
   font-size: 16px;
   font-weight: 600;
 }
 
-.header-right {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 24px;
-}
-
 .archive {
+  margin-right: 24px;
   display: flex;
   height: 54.795px;
   padding: 4px 16px;
@@ -83,6 +75,8 @@
   border: none;
   border-radius: 0;
   cursor: pointer;
+  background-color: #EDF2F7;
+  border-radius: 15px !important;
 }
 
 .archive-icon {
@@ -91,7 +85,7 @@
 }
 
 .archive-text {
-  color: var(--medium-grey);
+  color: #2D3748;
   font-family: var(--font-inter);
   font-size: 16px;
   font-weight: 600;
@@ -103,7 +97,7 @@
   justify-content: center;
   align-items: center;
   gap: 4px;
-  border-radius: 30px;
+  border-radius: 15px;
   background: var(--indigo);
   cursor: pointer;
 }
@@ -127,7 +121,7 @@
 .programs-table {
   width: 100%;
   margin: 40px auto 0 auto;
-  border: 1px solid var(--medium-light-grey);
+  border: 1px solid var(--Secondary-3, #E2E8F0);
   border-radius: 20px;
   padding: 16px;
 }
@@ -174,17 +168,17 @@
   min-height: 54.795px !important;
   padding: 8px 16px !important;
   border-radius: 15px !important;
-  border: 1px solid var(--medium-light-grey) !important;
   background: var(--white) !important;
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
   gap: 4px;
   cursor: pointer;
+  background-color: #EDF2F7!important;
 }
 
 .filter-box-text {
-  color: var(--medium-grey);
+  color: #2D3748;
   font-family: var(--font-inter);
   font-size: 16px;
   font-weight: 600;
@@ -195,6 +189,8 @@
   align-items: center;
   gap: 0;
   height: 54.795px;
+  border: 1px solid var(--Secondary-3, #E2E8F0);
+  border-radius: 15px;
 }
 
 .searchbar-container {
@@ -207,8 +203,7 @@
   align-self: stretch;
   padding: 0px 16px;
   border-radius: 15px 0px 0px 15px;
-  border: 2px solid var(--medium-light-grey);
-  background: var(--white);
+  background: var(--Secondary-1, #F7FAFC);
 }
 
 .searchbar-container input {
@@ -217,6 +212,7 @@
   width: 400px;
   font-family: var(--font-inter);
   font-size: 16px;
+  background: transparent;
 }
 
 .searchbar-icon-container {
@@ -228,7 +224,7 @@
   align-items: center;
   gap: 10px;
   border-radius: 0px 15px 15px 0px;
-  background: var(--medium-light-grey);
+  background: #EDF2F7;
 }
 
 /* ========================= */
@@ -237,13 +233,13 @@
 
 .actions-container {
   display: flex;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
   background-color: transparent;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px!important;
+  background: var(--Secondary-2-Default, #EDF2F7);
 }
 
 .actions-container:hover,
@@ -253,10 +249,10 @@
 
 .menu-list-custom {
   border-radius: 15px !important;
-  border: 1px solid var(--medium-light-grey, #d2d2d2) !important;
   background: var(--light-grey, #f6f6f6) !important;
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
   padding: 8px !important;
+  width: 10rem!important;
 }
 
 .menu-list-custom .chakra-menu__menuitem {
@@ -317,3 +313,51 @@
   line-height: 20px;
   text-transform: none;
 }
+
+/* ========================= */
+/* Cancel Modal */
+/* ========================= */
+.cancelModalHeader, .cancelModalText, .cancelModalCancelReason, .cancelActionsContainer {
+font-family: Inter;
+font-style: normal;
+  line-height: normal;
+}
+
+.cancelModalHeader, .cancelModalCancelReason {
+  color: var(--Secondary-7, #4A5568);
+  font-size: 16px;
+  font-weight: 700!important;
+  letter-spacing: 0.08px;
+  margin-top: 1rem;
+}
+
+.cancelModalText {
+  color: #474849;
+  font-size: 14px;
+
+  font-weight: 500;
+  letter-spacing: 0.07px;
+  align-items: center;
+}
+
+.cancelModalCancelReason {
+  font-size: 14px;
+  letter-spacing: 0.07px;
+  margin: 1.5rem 0 .5rem 0;
+}
+
+.cancelActionsContainer{
+  background-color: #F0F1F4;
+  width: 8.5rem;
+}
+
+.cancelActionsContainer > * {
+  color: var(--Secondary-8, #2D3748);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.07px;
+  align-items:center;
+  display: flex;
+  gap: 5px;
+}
+

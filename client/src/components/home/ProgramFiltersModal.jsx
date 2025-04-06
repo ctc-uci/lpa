@@ -19,19 +19,11 @@ import {
 import activeSvg from "../../assets/icons/active.svg";
 import calendarSvg from "../../assets/icons/calendar.svg";
 import clockSvg from "../../assets/icons/clock.svg";
-import filterSvg from "../../assets/icons/filter.svg";
 import locationSvg from "../../assets/icons/location.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-
-// Icon component for Filters
-const FiltersIcon = () => (
-  <img
-    src={filterSvg}
-    alt="Filters"
-  />
-);
+import { ProgramFilterIcon } from "../../assets/ProgramFilterIcon";
 
 export const ProgramFiltersModal = ({ onApplyFilters }) => {
   // Filter state variables
@@ -93,7 +85,7 @@ export const ProgramFiltersModal = ({ onApplyFilters }) => {
         as={Button}
         variant="unstyled"
         className="filter-box"
-        leftIcon={<FiltersIcon />}
+        leftIcon={<ProgramFilterIcon />}
         _hover={{ bg: "transparent" }}
         _active={{ bg: "transparent" }}
       >

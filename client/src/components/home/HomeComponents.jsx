@@ -38,13 +38,13 @@ import {
 import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// import { ArchiveIcon } from "../../assets/ArchiveIcon";
 // Icon imports - consider using React.memo for these components
-import actionsSvg from "../../assets/icons/actions.svg";
+import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
+import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
 import activeSvg from "../../assets/icons/active.svg";
-import cancelSvg from "../../assets/icons/cancel.svg";
+import { CancelIcon } from "../../assets/CancelIcon";
 import clockSvg from "../../assets/icons/clock.svg";
-import editSvg from "../../assets/icons/edit.svg";
+import { EditIcon } from "../../assets/EditIcon";
 import locationSvg from "../../assets/icons/location.svg";
 import noneSvg from "../../assets/icons/none.svg";
 import pastSvg from "../../assets/icons/past.svg";
@@ -81,20 +81,20 @@ const NoneStatusIcon = React.memo(() => (
   />
 ));
 const ActionsIcon = React.memo(() => (
-  <img
-    src={actionsSvg}
+  <Icon
+    as={MenuOptionsIcon}
     alt="Actions"
   />
 ));
-const EditIcon = React.memo(() => (
-  <img
-    src={editSvg}
+const EditPencilIcon = React.memo(() => (
+  <Icon
+    as={EditIcon}
     alt="Edit"
   />
 ));
-const CancelIcon = React.memo(() => (
-  <img
-    src={cancelSvg}
+const CancelXIcon = React.memo(() => (
+  <Icon
+    as={CancelIcon}
     alt="Cancel"
   />
 ));
@@ -171,7 +171,6 @@ const TableRow = React.memo(
               aria-label="Options"
               icon={<ActionsIcon />}
               variant="ghost"
-              bg="transparent"
               _hover={{ bg: "transparent" }}
               className="actions-container"
             />
@@ -180,13 +179,14 @@ const TableRow = React.memo(
                 onClick={(e) => handleEdit(program.id, e)}
                 className="menu-item menu-item--edit"
               >
-                <EditIcon style={{ marginRight: "6px" }} />
-                <Text>Edit</Text>
+                <EditPencilIcon style={{ marginRight: "6px" }} />
+                <Text color="#2D3748">Edit</Text>
               </MenuItem>
               <MenuItem
-                icon={<Icon as={CancelIcon} />}
                 onClick={() => handleDeactivate(program.id)}
+                color="#90080F"
               >
+                <CancelXIcon style={{ marginRight: "6px" }} />
                 Cancel
               </MenuItem>
             </MenuList>
@@ -232,7 +232,7 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
               fontSize="16px"
               fontStyle="normal"
             >
-              Upcoming Date
+              Date
             </Text>
           </Box>
           <Box flexShrink={0}>
@@ -260,16 +260,15 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
       <Th>
         <HStack>
           <PersonIcon />
-          <Text className="table-header-text">Instructor</Text>
+          <Text className="table-header-text">Lead Artist(s)</Text>
         </HStack>
       </Th>
       <Th>
         <HStack>
           <PersonIcon />
-          <Text className="table-header-text">Payee</Text>
+          <Text className="table-header-text">Payer(s)</Text>
         </HStack>
       </Th>
-      <Th></Th>
     </Tr>
   </Thead>
 ));
@@ -557,6 +556,14 @@ export const ProgramsTable = () => {
       />
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">
+          <div className="archive">
+            <Icon
+              as={ProgramArchiveIcon}
+              alt="Archived"
+              className="archive-icon"
+            />
+            <span className="archive-text">Archives</span>
+          </div>
           <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
           <Box flex="1" />
           <div className="search-wrapper">

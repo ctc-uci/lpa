@@ -26,12 +26,12 @@ import {
 } from "@chakra-ui/react";
 import { Info } from "lucide-react";
 import { ChevronDownIcon, DeleteIcon } from "@chakra-ui/icons";
-import { ArchiveIcon } from "../../assets/ArchiveIcon";
+import { CancelArchiveIcon } from "../../assets/CancelArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} ) => {
     const [selectedAction, setSelectedAction] = useState("Archive");
-    const [selectedIcon, setSelectedIcon] = useState(<ArchiveIcon/>);
+    const [selectedIcon, setSelectedIcon] = useState(<CancelArchiveIcon/>);
     const [cancelReason, setCancelReason] = useState("")
     const [eventDescription, setEventDescription] = useState("")
     const { backend } = useBackendContext();
@@ -197,23 +197,22 @@ export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} 
     >
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Cancel {type}?</ModalHeader>
-        <ModalCloseButton />
+        <ModalHeader className="cancelModalHeader">Cancel {type}?</ModalHeader>
         <ModalBody>
             <Box>
-              <Flex alignitems="center">
+              <Flex className="cancelModalText" >
                 <Text>The cancellation fee deadline for this {type.toLowerCase()} is Thu. 1/2/2025.</Text>
               </Flex>
             </Box>
           <Box mt={4}>
             <Text
               fontWeight="medium"
-              mb={2}
+              className="cancelModalCancelReason"
             >
               Reason for Cancellation:
             </Text>
             <Textarea
-              bg="#F0F1F4"
+              bg="transparent"
               size="md"
               borderRadius="md"
               onChange={(e) => {setCancelReason(e.target.value);console.log(cancelReason);}}
@@ -227,20 +226,17 @@ export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} 
             <Menu>
               <MenuButton
                 as={Button}
-                rightIcon={<ChevronDownIcon />}
-                bg="#F0F1F4"
+                rightIcon={<ChevronDownIcon boxSize={5}/>}
                 variant="outline"
-                width="50%"
                 justify="right"
+                className="cancelActionsContainer"
               >
-                <div id="actionChoice">
-                  {selectedIcon} {selectedAction}
-                </div>
+                {selectedIcon} {selectedAction}
               </MenuButton>
               <MenuList>
                 <MenuItem
-                  icon={<ArchiveIcon/>}
-                  onClick={() => handleSelect("Archive", <ArchiveIcon />)}
+                  icon={<CancelArchiveIcon/>}
+                  onClick={() => handleSelect("Archive", <CancelArchiveIcon />)}
                 >
                   Archive
                 </MenuItem>
@@ -256,19 +252,19 @@ export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} 
         </ModalBody>
         <ModalFooter>
           <Button
-            bg="transparent"
             onClick={onClose}
-            color="#767778"
-            borderRadius="30px"
+            bg="#EDF2F7"
+            color="#2D3748"
+            borderRadius="6px"
             mr={3}
           >
             Exit
           </Button>
           <Button
             onClick={handleConfirm}
-            style={{ backgroundColor: "#90080F" }}
-            colorScheme="white"
-            borderRadius="30px"
+            bg="#90080F"
+            color="white"
+            borderRadius="6px"
           >
             Confirm
           </Button>
