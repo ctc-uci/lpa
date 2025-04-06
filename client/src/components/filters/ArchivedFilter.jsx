@@ -26,8 +26,8 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
       startDate: null,
       endDate: null,
       room: "all",
-      instructor: "all",
-      payee: "all"
+      instructor: [],
+      payee: []
     });
 
     const updateFilter = (type, value) => {
@@ -96,21 +96,33 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
         filtered = filtered.filter(program => timeToMinutes(program.sessionEnd) <= timeToMinutes(filters.endTime));
       }
 
-      // if (filters.instructor && filters.instructor !== "all") {
-      //   const instructorLower = filters.instructor.toLowerCase();
-      //   filtered = filtered.filter(program =>
-      //     program.instructor &&
-      //     program.instructor.toLowerCase().includes(instructorLower)
-      //   );
-      // }
+      // Filter for instructor
+      if (filters.instructor.length > 0) {
+        filtered = filtered.filter(program => {
+          if (program.instructors && Object.keys(program.instructors).length > 0) {
+            return Object.values(program.instructors).some(instructor =>
+              filters.instructor.some(filterInstructor =>
+                instructor.clientName.toLowerCase() === filterInstructor.name.toLowerCase()
+              )
+            );
+          }
+          return false;
+      });
+    }
+      // Filter for payee
+        if (filters.payee.length > 0) {
+          filtered = filtered.filter(program => {
+            if (program.payees && Object.keys(program.payees).length > 0) {
+              return Object.values(program.payees).some(payee =>
+                filters.payee.some(filterPayee =>
+                  payee.clientName.toLowerCase() === filterPayee.name.toLowerCase()
+                )
+              );
+            }
+            return false;
+        });
+      }
 
-      // if (filters.payee && filters.payee !== "all") {
-      //   const payeeLower = filters.payee.toLowerCase();
-      //   filtered = filtered.filter(program =>
-      //     program.payee &&
-      //     program.payee.toLowerCase().includes(payeeLower)
-      //   );
-      // }
       console.log("NEW FILTERED", filtered);
       setArchivedPrograms(filtered);
     };
@@ -123,8 +135,8 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
         startDate: null,
         endDate: null,
         room: "all",
-        instructor: "all",
-        payee: "all",
+        instructor: [],
+        payee: [],
       });
       setArchivedPrograms(archived);
     }
@@ -152,16 +164,18 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
           roomMap={roomMap}
           onChange={updateFilter}
           room={filters.room}/>
-        {/* <LeadArtistFilter
+        <LeadArtistFilter
           clientsList={clients}
           value={filters.instructor}
           onChange={updateFilter}
+          type="lead"
         />
-        <PayerFilter
+        <LeadArtistFilter
           clientsList={clients}
           value={filters.payee}
           onChange={updateFilter}
-        /> */}
+          type="payee"
+        />
       </ FilterContainer>
     );
 };

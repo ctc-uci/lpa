@@ -26,7 +26,6 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       endDate: null,
       season: "all",
       email: "all",
-      instructor: [],
       payee: []
     });
 
@@ -83,7 +82,6 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         endDate: null,
         season: "all",
         email: "all",
-        instructor: [],
         payee: []
       });
       setFilteredInvoices(invoices);
