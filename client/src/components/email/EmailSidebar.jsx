@@ -67,6 +67,21 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
   }, [emails, ccEmails, bccEmails]);
 
   useEffect(() => {
+    // If the title changes, set changesPresent to true
+    if (title !== pdf_title) {
+      setChangesPresent(true);
+    } else {
+      setChangesPresent(false);
+    }
+  }, [title, pdf_title]);
+
+  useEffect(() => {
+    // If the pdf_title changes, update the title
+    // This could happen when the parent page finishes loading
+    setTitle(pdf_title);
+  }, [pdf_title]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const payeesResponse = await backend.get("/invoices/payees/" + id);

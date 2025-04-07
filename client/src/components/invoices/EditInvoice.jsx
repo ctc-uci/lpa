@@ -107,7 +107,7 @@ export const EditInvoice = () => {
   const [payees, setPayees] = useState([]);
   const [booking, setBookingDetails] = useState([]);
   const [room, setRoom] = useState([]);
-  const [pdfTitle, setPdfTitle] = useState("TEST");
+  const [pdfTitle, setPdfTitle] = useState("Loading...");
 
   const [subtotal, setSubtotal] = useState(0);
   const [editedSubtotal, setEditedSubtotal] = useState(0);
@@ -214,6 +214,16 @@ export const EditInvoice = () => {
           subtotal: subtotalResponse.data.total,
           pastDue: remainingBalance,
         });
+
+        const month = new Date(invoice.data[0].endDate).toLocaleString(
+          "default",
+          { month: "long" }
+        );
+        const year = new Date(invoice.data[0].endDate).getFullYear();
+        // first 3 words of the program name
+        const programName = programNameResponse.data[0].name.split(" ").slice(0, 3).join(" ");
+        const title = `${programName}, ${month} ${year} Invoice`;
+        setPdfTitle(title);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
