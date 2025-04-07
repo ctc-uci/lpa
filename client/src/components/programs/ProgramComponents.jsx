@@ -1622,6 +1622,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   mr={2}
                   fontSize="sm"
                   color="#474849"
+                  fontFamily="Inter, sans-serif"
                 >
                   {currentPage} of {totalPages}
                 </Text>

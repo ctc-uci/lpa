@@ -619,51 +619,38 @@ export const ProgramsTable = () => {
   }, []);
 
   useEffect(() => {
-    // Function to calculate how many rows can fit in the viewport
     const calculateRowsPerPage = () => {
-      const rowHeight = 56;
-
       const viewportHeight = window.innerHeight;
-      const navbarHeight = 60;
-      const filterRowHeight = 60;
-      const tableHeaderHeight = 60;
-      const paginationHeight = 60;
-      const margins = 180;
-
-      const availableHeight =
-        viewportHeight -
-        navbarHeight -
-        filterRowHeight -
-        tableHeaderHeight -
-        paginationHeight -
-        margins;
-
-      return Math.max(3, Math.min(10, Math.floor(availableHeight / rowHeight)));
+      const rowHeight = 56;
+      
+      const availableHeight = viewportHeight * 0.4;
+      
+      console.log(availableHeight / rowHeight)
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
     };
-
+  
     setItemsPerPage(calculateRowsPerPage());
-
+  
     const handleResize = () => {
       setItemsPerPage(calculateRowsPerPage());
     };
-
+  
     window.addEventListener("resize", handleResize);
-
+  
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
   return (
     <>
       <Box
         width="100%"
-        height="100%"
+        height="80vh"
         display="flex"
         flexDirection="column"
         justifyContent="space-between"
       >
-        <Box className="programs-table">
+        <Box className="programs-table" >
           <Flex className="programs-table__filter-row">
             <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
             <Box flex="1" />
@@ -740,6 +727,7 @@ export const ProgramsTable = () => {
                 mr={2}
                 fontSize="sm"
                 color="#474849"
+                fontFamily="Inter, sans-serif"
               >
                 {currentPage} of {totalPages}
               </Text>
@@ -751,6 +739,7 @@ export const ProgramsTable = () => {
                 padding={0}
                 minWidth="auto"
                 color="gray.500"
+                mr="16px"
               >
                 <ChevronLeftIcon />
               </Button>

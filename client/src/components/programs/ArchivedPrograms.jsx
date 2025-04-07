@@ -93,6 +93,29 @@ export const ArchivedPrograms = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  useEffect(() => {
+    const calculateRowsPerPage = () => {
+      const viewportHeight = window.innerHeight;
+      const rowHeight = 56;
+
+      const availableHeight = viewportHeight * 0.48;
+
+      console.log(availableHeight / rowHeight);
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
+    };
+
+    setItemsPerPage(calculateRowsPerPage());
+
+    const handleResize = () => {
+      setItemsPerPage(calculateRowsPerPage());
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -1071,6 +1094,7 @@ export const ArchivedPrograms = () => {
                 mr={2}
                 fontSize="sm"
                 color="#474849"
+                fontFamily="Inter, sans-serif"
               >
                 {currentPage} of {totalPages}
               </Text>
@@ -1082,6 +1106,7 @@ export const ArchivedPrograms = () => {
                 padding={0}
                 minWidth="auto"
                 color="gray.500"
+                mr="16px"
               >
                 <ChevronLeftIcon />
               </Button>
