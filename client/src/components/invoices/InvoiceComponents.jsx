@@ -412,6 +412,7 @@ const InvoicePayments = ({ comments, setComments }) => {
             {comments && comments.length > 0 ? (
               currentPageComments.map((comment) => (
                 <Tr position="relative" justifyContent="space-between" key={comment.id} >
+                  <Text>{comment.id}</Text>
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                     {format(new Date(comment.datetime), "EEE. M/d/yy")}
                   </Td>

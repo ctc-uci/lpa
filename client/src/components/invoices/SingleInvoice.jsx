@@ -54,7 +54,6 @@ export const SingleInvoice = () => {
     const [instructors, setInstructors] = useState([]);
     const [invoice, setInvoice] = useState([]);
     const { isOpen: isModalOpen, onOpen: openModal, onClose: closeModal } = useDisclosure();
-    const toast = useToast();
     const {
         isOpen: cancelIsOpen,
         onOpen: cancelOnOpen,
@@ -181,7 +180,7 @@ export const SingleInvoice = () => {
       };
 
       fetchBookingDetails();
-    }, [comments, backend]);
+    }, [comments, backend, room]);
 
     const handlePreviewClick = () => {
       navigate(`/invoices/savededits/${id}`);
@@ -250,7 +249,7 @@ export const SingleInvoice = () => {
 
               {/* buttons */}
               <Flex direction="row" marginLeft="auto" gap={1}>
-                <PDFButtonInvoice invoice={id}></PDFButtonInvoice>f
+                <PDFButtonInvoice invoice={id}></PDFButtonInvoice>
 
                 <Button
                   height="100%"
