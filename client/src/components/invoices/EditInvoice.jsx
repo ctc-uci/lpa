@@ -32,7 +32,7 @@ import {
 import { EmailSidebar } from "../email/EmailSidebar";
 import { BackArrowIcon } from "../../assets/BackArrowIcon";
 
-const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments }) => {
+const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getGeneratedDate = () => {
@@ -71,7 +71,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments }) => {
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{`${payees?.map((payee) => payee.name).join("_")}_${getGeneratedDate()}`}</Text>
+        <Text fontWeight="700">{title}</Text>
       </HStack>
       <HStack>
         <Button
@@ -86,7 +86,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments }) => {
           Save
         </Button>
         <HStack>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees}/>
+          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} pdf_title={title}/>
         </HStack>
       </HStack>
     </Flex>
@@ -107,6 +107,7 @@ export const EditInvoice = () => {
   const [payees, setPayees] = useState([]);
   const [booking, setBookingDetails] = useState([]);
   const [room, setRoom] = useState([]);
+  const [pdfTitle, setPdfTitle] = useState("TEST");
 
   const [subtotal, setSubtotal] = useState(0);
   const [editedSubtotal, setEditedSubtotal] = useState(0);
@@ -347,8 +348,8 @@ export const EditInvoice = () => {
           onBack={handleBack}
           onSave={handleSave}
           isSaving={isSaving}
-          payees={payees}
           comments={comments}
+          title={pdfTitle}
         />
         <Image
           w="80%"

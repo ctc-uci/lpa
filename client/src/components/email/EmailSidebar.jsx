@@ -36,25 +36,25 @@ import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useParams } from "react-router-dom";
 import { SendEmailButton } from "./SendEmailButton";
+import { use } from "react";
 
-export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
+export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
 
-  const [title, setTitle] = useState("Immigrant Rights Solidarity Week Invoice"); // Change to empty once Title is editable
+  const [title, setTitle] = useState(pdf_title);
   const [toInput, setToInput] = useState("");
   const [ccInput, setCcInput] = useState("");
   const [bccInput, setBccInput] = useState("");
   const [changesPresent, setChangesPresent] = useState(false);
   const [emails, setEmails] = useState([]);
+  const [originalEmails, setOriginalEmails] = useState([]);
   const [ccEmails, setCcEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
 
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
-
-  const [names, setNames] = useState(payees?.map(p => p.name))
   
   const btnRef = useRef();
 
@@ -65,10 +65,6 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
       setChangesPresent(false);
     }
   }, [emails, ccEmails, bccEmails]);
-
-  useEffect(() => {
-    console.log(names)
-  }, [names])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,6 +81,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
           });
           return newEmails;
         });
+        setOriginalEmails(emails);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -94,11 +91,11 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
   }, []);
 
   const emptyInputs = () => {
-    setTitle("Immigrant Rights Solidarity Week Invoice"); // Default title for now, change once Title is editable
+    setTitle(pdf_title);  
     setToInput("");
     setBccInput("");
     setCcInput("");
-    setEmails([]);
+    setEmails(originalEmails);
     setCcEmails([]);
     setBccEmails([]);
     setChangesPresent(false);
@@ -147,19 +144,8 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
     const regex = /\S+@\S+\.\S+/;
     return regex.test(email);
   };
-
   
-
-  const getPayeeNames = (payees) => {
-    if (!Array.isArray(payees) || payees.length === 0) return "";
-  
-    const names = payees.map(p => p.name);
-    if (names.length === 1) return names[0];
-    if (names.length === 2) return `${names[0]} and ${names[1]}`;
-    return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
-  };
-  
-  const message = `Dear ${getPayeeNames(payees)},
+  const message = `Hello,
 
     This is a friendly reminder regarding your upcoming payment. Please ensure that all the necessary details have been updated in our records for timely processing. If there are any changes or concerns regarding the payment, please don't hesitate to reach out to us.
 
@@ -176,7 +162,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
     
     const sendEmail = async () => {
         try {
-          const response = await backend.post("/email/send", {
+          const _ = await backend.post("/email/send", {
             to: emails, 
             subject: title, 
             text: message,
@@ -239,7 +225,6 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
       >
         <DrawerOverlay />
         <DrawerContent>
-          {/* CANT MOVE CLOSE BUTTON TO LEFT SIDE */}
           <DrawerCloseButton 
             onClick={() => {
               if (changesPresent) {
@@ -257,7 +242,20 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
             mt="5"
             fontSize="md"
           >
-            <Text fontSize={"18px"} color={"black"}>{title}</Text>
+            {/* <Text fontSize={"18px"} color={"black"}>{title}</Text> */}
+            <Input
+              placeholder="Subject"
+              value={title}
+              onChange={(e) => {setTitle(e.target.value)}}
+              borderColor="#E2E8F0"
+              _focus={{ borderColor: "#4441C8" }}
+              _placeholder={{ color: "#A0AEC0" }}
+              borderRadius="8px"
+              fontSize="18px"
+              fontWeight="bold"
+              color="#474849"
+              backgroundColor="white"
+            />
           </DrawerHeader>
           <DrawerBody ml="4">
             <Stack
@@ -509,7 +507,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, payees }) => {
                   sendEmail();
                   setisConfirmModalOpen(true);
                 }}
-                isDisabled={!changesPresent}
+                isDisabled={!changesPresent || !title}
                 width={"45px"}
                 height={"30px"}
                 borderRadius={"10px"}
