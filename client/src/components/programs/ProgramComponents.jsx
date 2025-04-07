@@ -77,7 +77,6 @@ import {
   UserIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import actionsSvg from "../../assets/icons/actions.svg";
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
 import { DuplicateIcon } from "../../assets/DuplicateIcon";
@@ -95,7 +94,8 @@ import {
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
-import { CancelProgram } from  "../home/CancelProgramComponent";
+import { CancelProgram } from  "../cancelModal/CancelProgramComponent";
+import { EditCancelPopup } from  "../cancelModal/EditCancelPopup";
 
 export const ProgramSummary = ({
   program,
@@ -719,12 +719,6 @@ export const ProgramSummary = ({
   );
 };
 
-const ActionsIcon = React.memo(() => (
-  <img
-    src={actionsSvg}
-    alt="Actions"
-  />
-));
 
 export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -1414,34 +1408,11 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                               {rooms.get(session.roomId)}
                             </Box>
                           </Td>
-                            <Menu>
-                            <Td>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label="Options"
-                                icon={<ActionsIcon />}
-                                variant="ghost"
-                                bg="transparent"
-                                _hover={{ bg: "transparent" }}
-                                className="actions-container"
-                              /></Td>
-                              <MenuList className="menu-list-custom">
-                                <MenuItem
-                                  onClick={(e) => handleEdit(session.id, e)}
-                                  className="menu-item menu-item--edit"
-                                >
-                                  <EditIcon style={{ marginRight: "6px" }} />
-                                  <Text>Edit</Text>
-                                </MenuItem>
-                                <MenuItem
-                                  icon={<Icon as={CancelIcon} />}
-                                  onClick={() => handleDeactivate(session.id)}
-                                >
-                                  Cancel
-                                </MenuItem>
-                              </MenuList>
-                            </Menu>
-
+                          <EditCancelPopup
+                            handleEdit={handleEdit}
+                            handleDeactivate={handleDeactivate}
+                            id={session.id}
+                          />
                         </Tr>
                       ))
                     ) : (

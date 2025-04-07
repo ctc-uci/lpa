@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import './CancelProgramComponent.css';
 
 import {
   Modal,
@@ -233,17 +234,19 @@ export const CancelProgram = ( {id, setPrograms, onOpen, isOpen, onClose, type} 
               >
                 {selectedIcon} {selectedAction}
               </MenuButton>
-              <MenuList>
+              <MenuList className="menu-list-custom">
                 <MenuItem
-                  icon={<CancelArchiveIcon/>}
                   onClick={() => handleSelect("Archive", <CancelArchiveIcon />)}
+                  className="menu-item"
                 >
+                  <CancelArchiveIcon/>
                   Archive
                 </MenuItem>
                 <MenuItem
-                  icon={<DeleteIcon />}
                   onClick={() => handleSelect("Delete", <DeleteIcon />)}
+                  className="menu-item"
                 >
+                  <DeleteIcon />
                   Delete
                 </MenuItem>
               </MenuList>

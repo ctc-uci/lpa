@@ -40,6 +40,7 @@ import { useNavigate } from "react-router-dom";
 
 // Icon imports - consider using React.memo for these components
 import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
+import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
 import activeSvg from "../../assets/icons/active.svg";
 import { CancelIcon } from "../../assets/CancelIcon";
@@ -57,7 +58,7 @@ import ProgramSortingModal from "../filters/ProgramFilter";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
-import { CancelProgram } from "./CancelProgramComponent";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 
 import "./Home.css";
 
@@ -161,37 +162,11 @@ const TableRow = React.memo(
         <Td>{program.room}</Td>
         <Td>{truncateNames(program.instructor)}</Td>
         <Td>{truncateNames(program.payee)}</Td>
-        <Td
-          borderRightRadius="12px"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Menu>
-            <MenuButton
-              as={IconButton}
-              aria-label="Options"
-              icon={<ActionsIcon />}
-              variant="ghost"
-              _hover={{ bg: "transparent" }}
-              className="actions-container"
-            />
-            <MenuList className="menu-list-custom">
-              <MenuItem
-                onClick={(e) => handleEdit(program.id, e)}
-                className="menu-item menu-item--edit"
-              >
-                <EditPencilIcon style={{ marginRight: "6px" }} />
-                <Text color="#2D3748">Edit</Text>
-              </MenuItem>
-              <MenuItem
-                onClick={() => handleDeactivate(program.id)}
-                color="#90080F"
-              >
-                <CancelXIcon style={{ marginRight: "6px" }} />
-                Cancel
-              </MenuItem>
-            </MenuList>
-          </Menu>
-        </Td>
+        <EditCancelPopup
+          handleEdit={handleEdit}
+          handleDeactivate={handleDeactivate}
+          id={program.id}
+        />
       </Tr>
     );
   }

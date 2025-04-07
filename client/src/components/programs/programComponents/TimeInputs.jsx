@@ -15,7 +15,7 @@ const TimeInput = ({ value, onChange }) => (
     backgroundColor="#fff"
     color={!value ? "#E2E8F0" : "#2D3748"}
     borderColor={"#E2E8F0"}
-    borderWidth={1.5}
+    borderWidth="1px"
     borderRadius="4px"
     w={125}
     textAlign="center"

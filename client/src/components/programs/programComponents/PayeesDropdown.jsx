@@ -14,7 +14,7 @@ import personSvg from "../../../assets/person.svg";
 
 export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees, getPayeeResults, setPayeeSearchTerm, setSelectedPayees, setSearchedPayees} ) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
-    
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (!event.target.closest("#payeeContainer")) {
@@ -31,21 +31,23 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
     return (
     <HStack gap="12px">
         <Box as="img" src={personSvg} boxSize="20px" />
-        <div id="payeeContainer">
-            <div id="payees">
-                <div id="payeeSelection">
-                    <Box>
+        <div id="payeeContainer" >
+            <div id="payees" className="inputElement">
+                <div id="payeeSelection" >
+                    <Box >
                         <div id="payeeInputContainer">
                             <Input
                                 placeholder="Payee(s)"
+                                _placeholder={{ color: '#CBD5E0' }}
                                 onChange={(e) => {
                                 getPayeeResults(e.target.value);
                                 setPayeeSearchTerm(e.target.value);
                                 setDropdownVisible(true);
                                 }}
-                                value={payeeSearchTerm} id="payeeInput"/>
-                            <Box 
-                                as="button" 
+                                value={payeeSearchTerm}
+                                id="payeeInput"/>
+                            <Box
+                                as="button"
                                 onClick={() => {
                                 if (payeeSearchTerm.trim() !== "") {
                                     // Find the instructor from the searched list
@@ -61,13 +63,13 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                     getPayeeResults(")")
                                 }
                                 }}
-                                disabled={ 
-                                payeeSearchTerm.trim() === "" || 
-                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase()) 
+                                disabled={
+                                payeeSearchTerm.trim() === "" ||
+                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
                                 }
                                 cursor={
-                                payeeSearchTerm.trim()==="" || 
-                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase()) 
+                                payeeSearchTerm.trim()==="" ||
+                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
                                 ? "not-allowed" : "pointer"
                                 }
                                 _hover={{ color: payeeSearchTerm.trim() !== "" ? "#800080" : "inherit" }}

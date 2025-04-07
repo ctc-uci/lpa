@@ -21,7 +21,7 @@ export const DateInputs = ( { startDate, setStartDate, endDate, setEndDate } ) =
           color: "#E2E8F0",
         }}
         borderColor="#E2E8F0"
-        borderWidth={1.5}
+        borderWidth="1px"
         borderRadius="4px"
         w={150}
         textAlign="center"
@@ -38,7 +38,7 @@ export const DateInputs = ( { startDate, setStartDate, endDate, setEndDate } ) =
           color: "#E2E8F0",
         }}
         borderColor="#E2E8F0"
-        borderWidth={1.5}
+        borderWidth="1px"
         borderRadius="4px"
         w={150}
         textAlign="center"

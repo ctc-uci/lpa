@@ -31,20 +31,21 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
     <HStack gap="12px">
       <Box as="img" src={BsPaletteFill} boxSize="20px" />
       <div id="instructorContainer">
-        <div id="instructors">
+        <div id="instructors" className="inputElement">
           <div id="instructorSelection">
             <Box>
               <div id="instructorInputContainer">
                 <Input
                     placeholder="Lead Artist(s)"
+                    _placeholder={{ color: '#CBD5E0' }}
                     onChange={(e) => {
                       getInstructorResults(e.target.value);
                       setInstructorSearchTerm(e.target.value);
                       setDropdownVisible(true);
                     }}
-                    value={instructorSearchTerm} id="instructorInput"/>
-                  <Box 
-                    as="button" 
+                    value={instructorSearchTerm} id="instructorInput" />
+                  <Box
+                    as="button"
                     onClick={() => {
                       if (instructorSearchTerm.trim() !== "") {
                         // Find the instructor from the searched list
@@ -60,13 +61,13 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                         getInstructorResults(")")
                       }
                     }}
-                    disabled={ 
-                      instructorSearchTerm.trim() === "" || 
-                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
+                    disabled={
+                      instructorSearchTerm.trim() === "" ||
+                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
                     }
                     cursor={
-                      instructorSearchTerm.trim()==="" || 
-                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
+                      instructorSearchTerm.trim()==="" ||
+                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
                       ? "not-allowed" : "pointer"
                     }
                   >

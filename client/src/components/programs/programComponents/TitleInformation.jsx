@@ -8,13 +8,13 @@ export const TitleInformation = ( {eventName, setEventName} ) => {
         <Input
             defaultValue={eventName}
             onChange={(e) => setEventName(e.target.value)}
-            width="800px"
+            width="100%"
             height="50px"
             borderRightColor="transparent"
             borderLeftColor="transparent"
             borderTopColor="transparent"
             borderRadius="0"
-            sx={{ borderBottomWidth: "3px", borderBottomColor:"gray", padding: "3px", fontSize: "40px", fontWeight: "bold" }}
+            sx={{ borderBottomWidth: "3px", borderBottomColor:"gray", padding: "3px", fontSize: "22px", fontWeight: "bold" }}
         />
   )
 }

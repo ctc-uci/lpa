@@ -474,114 +474,117 @@ export const EditProgram = () => {
 
 
     return (
+      <Navbar>
+          <div id="body">
+              <div id="programsBody">
+                  <div>
+                      <Icon fontSize="xl" onClick={() => {onDeleteConfirmationModalOpen();}} id="leftCancel">
+                          <IoCloseOutline />
+                      </Icon>
+                      <DeleteConfirmationModal
+                          isOpen={isDeleteConfirmationModalOpen}
+                          onClose={onDeleteConfirmationModalClose}
+                      >
+                      </DeleteConfirmationModal>
+                  </div>
+                  <div id="eventInfoBody">
+                      <div id="title">
+                          <TitleInformation
+                            eventName={eventName}
+                            setEventName={setEventName}
+                          />
+                      </div>
+                      <div id="innerBody">
+                          <ReoccuranceDropdown
+                              setSelectedDays={setSelectedDays}
+                              repeatType={repeatType}
+                              setRepeatType={setRepeatType}
+                              repeatInterval={repeatInterval}
+                              setRepeatInterval={setRepeatInterval}
+                              customRepeatType={customRepeatType}
+                              setCustomRepeatType={setCustomRepeatType}
+                              className="inputElement"
+                          />
 
-        <Navbar>
-            <div id="body">
-                <div id="programsBody">
-                    <div>
-                        <Icon fontSize="2xl" onClick={() => {onDeleteConfirmationModalOpen();}} id="leftCancel">
-                            <IoCloseOutline />
-                        </Icon>
-                        <DeleteConfirmationModal
-                            isOpen={isDeleteConfirmationModalOpen}
-                            onClose={onDeleteConfirmationModalClose}
-                        >
-                        </DeleteConfirmationModal>
-                    </div>
-                    <div id="eventInfoBody">
-                        <div id="title">
+                          <TimeInputs
+                              selectedDays={selectedDays}
+                              setSelectedDays={setSelectedDays}
+                              startTime={startTime}
+                              endTime={endTime}
+                              setStartTime={setStartTime}
+                              setEndTime={setEndTime}
+                              className="inputElement"
+                          />
 
-                            <TitleInformation
-                                eventName={eventName}
-                                setEventName={setEventName}
-                            />
+                          <DateInputs
+                              startDate={startDate}
+                              setStartDate={setStartDate}
+                              endDate={endDate}
+                              setEndDate={setEndDate}
+                              className="inputElement"
+                          />
 
-                            <div id="saveCancel">
-                                <Button
-                                    id="save"
-                                    onClick={saveEvent}
-                                    isDisabled={!isFormValid()}
-                                    backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
-                                    _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
-                                >
-                                    Save
+                          <ArtistsDropdown
+                              instructorSearchTerm={instructorSearchTerm}
+                              searchedInstructors={searchedInstructors}
+                              selectedInstructors={selectedInstructors}
+                              setSelectedInstructors={setSelectedInstructors}
+                              setSearchedInstructors={setSearchedInstructors}
+                              getInstructorResults={getInstructorResults}
+                              setInstructorSearchTerm={setInstructorSearchTerm}
+                              className="inputElement"
+                          />
 
-                                </Button>
-                            </div>
-                        </div>
-                        <div id="innerBody">
-                            <ReoccuranceDropdown
-                                setSelectedDays={setSelectedDays}
-                                repeatType={repeatType}
-                                setRepeatType={setRepeatType}
-                                repeatInterval={repeatInterval}
-                                setRepeatInterval={setRepeatInterval}
-                                customRepeatType={customRepeatType}
-                                setCustomRepeatType={setCustomRepeatType}
-                            />
+                          <PayeesDropdown
+                              payeeSearchTerm={payeeSearchTerm}
+                              searchedPayees={searchedPayees}
+                              selectedPayees={selectedPayees}
+                              getPayeeResults={getPayeeResults}
+                              setPayeeSearchTerm={setPayeeSearchTerm}
+                              setSelectedPayees={setSelectedPayees}
+                              setSearchedPayees={setSearchedPayees}
+                              className="inputElement"
+                          />
 
-                            <TimeInputs
-                                selectedDays={selectedDays}
-                                setSelectedDays={setSelectedDays}
-                                startTime={startTime}
-                                endTime={endTime}
-                                setStartTime={setStartTime}
-                                setEndTime={setEndTime}
-                            />
+                          <EmailDropdown
+                              selectedPayees={selectedPayees}
+                              className="inputElement"
+                          />
 
-                            <DateInputs
-                                startDate={startDate}
-                                setStartDate={setStartDate}
-                                endDate={endDate}
-                                setEndDate={setEndDate}
-                            />
+                          <LocationDropdown
+                              locations={locations}
+                              locationRate={locationRate}
+                              selectedLocationId={selectedLocationId}
+                              setSelectedLocation={setSelectedLocation}
+                              setSelectedLocationId={setSelectedLocationId}
+                              setRoomDescription={setRoomDescription}
+                              setLocationRate={setLocationRate}
+                              className="inputElement"
+                          />
 
-                            <ArtistsDropdown
-                                instructorSearchTerm={instructorSearchTerm}
-                                searchedInstructors={searchedInstructors}
-                                selectedInstructors={selectedInstructors}
-                                setSelectedInstructors={setSelectedInstructors}
-                                setSearchedInstructors={setSearchedInstructors}
-                                getInstructorResults={getInstructorResults}
-                                setInstructorSearchTerm={setInstructorSearchTerm}
-                            />
+                          <RoomInformation
+                              roomDescription={roomDescription}
+                          />
 
-                            <PayeesDropdown
-                                payeeSearchTerm={payeeSearchTerm}
-                                searchedPayees={searchedPayees}
-                                selectedPayees={selectedPayees}
-                                getPayeeResults={getPayeeResults}
-                                setPayeeSearchTerm={setPayeeSearchTerm}
-                                setSelectedPayees={setSelectedPayees}
-                                setSearchedPayees={setSearchedPayees}
-                            />
-
-                            <EmailDropdown
-                                selectedPayees={selectedPayees}
-                            />
-
-                            <LocationDropdown
-                                locations={locations}
-                                locationRate={locationRate}
-                                selectedLocationId={selectedLocationId}
-                                setSelectedLocation={setSelectedLocation}
-                                setSelectedLocationId={setSelectedLocationId}
-                                setRoomDescription={setRoomDescription}
-                                setLocationRate={setLocationRate}
-                            />
-
-                            <RoomInformation
-                                roomDescription={roomDescription}
-                            />
-
-                            <ProgramInformation
-                                generalInformation={generalInformation}
-                                setGeneralInformation={setGeneralInformation}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Navbar>
+                          <ProgramInformation
+                              generalInformation={generalInformation}
+                              setGeneralInformation={setGeneralInformation}
+                          />
+                      </div>
+                  </div>
+                  <div id="saveCancel">
+                    <Button
+                        id="saveProgram"
+                        onClick={saveEvent}
+                        isDisabled={!isFormValid()}
+                        backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
+                        _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
+                    >
+                        Save
+                    </Button>
+                  </div>
+              </div>
+          </div>
+      </Navbar>
     );
 };

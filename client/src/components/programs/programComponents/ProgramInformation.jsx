@@ -4,12 +4,11 @@ import {
 } from '@chakra-ui/react'
 
 export const ProgramInformation = ({ generalInformation, setGeneralInformation }) => {
-
     return (
-        <div id="information">
-            <h3>Program Information</h3>
-            <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="#F6F6F6"></Textarea>
-        </div>
+      <div id="information">
+          <h3>Program Information</h3>
+          <Textarea defaultValue={generalInformation} onChange={(e) => {setGeneralInformation(e.target.value);}} backgroundColor="transparent"></Textarea>
+      </div>
     )
 }
 
