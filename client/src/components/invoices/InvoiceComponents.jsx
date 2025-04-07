@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 
-import { CalendarIcon } from "@chakra-ui/icons";
+import {
+  CalendarIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@chakra-ui/icons";
 import {
   Box,
   Button,
   Card,
   Flex,
+  HStack,
   Icon,
+  IconButton,
   Image,
   Input,
   Popover,
@@ -22,18 +28,16 @@ import {
   Th,
   Thead,
   Tr,
-  HStack,
-  IconButton,
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
-import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import { FiMoreHorizontal } from "react-icons/fi";
 
-import arrowsSvg from "../../assets/icons/right-icon.svg";
 import filterIcon from "../../assets/filter.svg";
+import { archiveCalendar } from "../../assets/icons/ProgramIcons";
+import arrowsSvg from "../../assets/icons/right-icon.svg";
 import personIcon from "../../assets/person.svg";
 import PDFButtonInvoice from "./PDFButtonInvoice";
 
@@ -384,7 +388,7 @@ const InvoicePayments = ({ comments }) => {
 
 function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const totalInvoices = filteredInvoices?.length || 0;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
@@ -392,16 +396,16 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
 
   const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      return date
-        .toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "2-digit",
-          day: "2-digit",
-          year: "numeric",
-        })
-        .replace(/,/g, ".");
-    };
+    const date = new Date(dateString);
+    return date
+      .toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      })
+      .replace(/,/g, ".");
+  };
 
   // Get current page data
   const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
@@ -426,278 +430,312 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     setCurrentPage(1);
   }, [filteredInvoices]);
 
-  const renderPageButtons = () => {
-    const pageButtons = [];
+  // const renderPageButtons = () => {
+  //   const pageButtons = [];
 
-    // Always show first page
-    if (totalPages > 0) {
-      pageButtons.push(
-        <Button
-          key={1}
-          size="sm"
-          colorScheme={currentPage === 1 ? "blue" : "gray"}
-          variant={currentPage === 1 ? "solid" : "outline"}
-          onClick={() => goToPage(1)}
-          mx={1}
-        >
-          1
-        </Button>
-      );
-    }
+  //   // Always show first page
+  //   if (totalPages > 0) {
+  //     pageButtons.push(
+  //       <Button
+  //         key={1}
+  //         size="sm"
+  //         colorScheme={currentPage === 1 ? "blue" : "gray"}
+  //         variant={currentPage === 1 ? "solid" : "outline"}
+  //         onClick={() => goToPage(1)}
+  //         mx={1}
+  //       >
+  //         1
+  //       </Button>
+  //     );
+  //   }
 
-    const startPage = Math.max(2, currentPage - 2);
-    const endPage = Math.min(currentPage + 2, totalPages - 1);
+  //   const startPage = Math.max(2, currentPage - 2);
+  //   const endPage = Math.min(currentPage + 2, totalPages - 1);
 
-    if (startPage > 2) {
-      pageButtons.push(
-        <Text
-          key="ellipsis-start"
-          mx={1}
-        >
-          ...
-        </Text>
-      );
-    }
+  //   if (startPage > 2) {
+  //     pageButtons.push(
+  //       <Text
+  //         key="ellipsis-start"
+  //         mx={1}
+  //       >
+  //         ...
+  //       </Text>
+  //     );
+  //   }
 
-    for (let i = startPage; i <= endPage; i++) {
-      pageButtons.push(
-        <Button
-          key={i}
-          size="sm"
-          colorScheme={currentPage === i ? "blue" : "gray"}
-          variant={currentPage === i ? "solid" : "outline"}
-          onClick={() => goToPage(i)}
-          mx={1}
-        >
-          {i}
-        </Button>
-      );
-    }
+  //   for (let i = startPage; i <= endPage; i++) {
+  //     pageButtons.push(
+  //       <Button
+  //         key={i}
+  //         size="sm"
+  //         colorScheme={currentPage === i ? "blue" : "gray"}
+  //         variant={currentPage === i ? "solid" : "outline"}
+  //         onClick={() => goToPage(i)}
+  //         mx={1}
+  //       >
+  //         {i}
+  //       </Button>
+  //     );
+  //   }
 
-    if (endPage < totalPages - 1) {
-      pageButtons.push(
-        <Text
-          key="ellipsis-end"
-          mx={1}
-        >
-          ...
-        </Text>
-      );
-    }
+  //   if (endPage < totalPages - 1) {
+  //     pageButtons.push(
+  //       <Text
+  //         key="ellipsis-end"
+  //         mx={1}
+  //       >
+  //         ...
+  //       </Text>
+  //     );
+  //   }
 
-    if (totalPages > 1) {
-      pageButtons.push(
-        <Button
-          key={totalPages}
-          size="sm"
-          colorScheme={currentPage === totalPages ? "blue" : "gray"}
-          variant={currentPage === totalPages ? "solid" : "outline"}
-          onClick={() => goToPage(totalPages)}
-          mx={1}
-        >
-          {totalPages}
-        </Button>
-      );
-    }
+  //   if (totalPages > 1) {
+  //     pageButtons.push(
+  //       <Button
+  //         key={totalPages}
+  //         size="sm"
+  //         colorScheme={currentPage === totalPages ? "blue" : "gray"}
+  //         variant={currentPage === totalPages ? "solid" : "outline"}
+  //         onClick={() => goToPage(totalPages)}
+  //         mx={1}
+  //       >
+  //         {totalPages}
+  //       </Button>
+  //     );
+  //   }
 
-    return pageButtons;
-  };
+  //   return pageButtons;
+  // };
+
+  useEffect(() => {
+    const calculateRowsPerPage = () => {
+      const viewportHeight = window.innerHeight;
+      const rowHeight = 56;
+
+      const availableHeight = viewportHeight * 0.5;
+
+      console.log(availableHeight / rowHeight);
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
+    };
+
+    setItemsPerPage(calculateRowsPerPage());
+
+    const handleResize = () => {
+      setItemsPerPage(calculateRowsPerPage());
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
     <>
-      <TableContainer>
-        <Table>
-          <Thead>
-            <Tr>
-              <Th
-                textTransform="none"
-                fontSize="md"
-              >
-                <HStack
-                  spacing={2}
-                  alignItems="center"
+      <Box position="relative">
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th
+                  textTransform="none"
+                  fontSize="md"
                 >
-                  <Text>STATUS</Text>
-                  <Image src={arrowsSvg} />
-                </HStack>
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="md"
-              >
-                INVOICE SENT
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="md"
-              >
-                <HStack
-                  spacing={2}
-                  alignItems="center"
-                >
-                  <Text>PROGRAM</Text>
-                  <Image src={arrowsSvg} />
-                </HStack>
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="md"
-              >
-                <Flex align="center">
-                  <FaUser style={{ marginRight: "8px" }} />
-                  <Text>PAYER(S)</Text>
-                </Flex>
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="md"
-              >
-                <HStack
-                  spacing={2}
-                  alignItems="flex-end"
-                >
-                  <Icon as={archiveCalendar} />
-                  <Text>DEADLINE</Text>
-                  <Image src={arrowsSvg} />
-                </HStack>
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="md"
-              >
-                SEASON
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="md"
-              >
-                DOWNLOADS
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {currentInvoices.map((invoice, index) => {
-              const validPayers = Array.isArray(invoice.payers)
-                ? invoice.payers.filter(
-                    (payer) => payer && typeof payer === "string"
-                  )
-                : [];
-              const [tagBgColor, tagTextColor] = seasonColor(invoice);
-              return (
-                <Tr key={index}>
-                  <Td
-                    style={{
-                      color: isPaidColor(invoice),
-                      fontWeight:
-                        invoice.isPaid === "Past Due" ? "bold" : "normal",
-                    }}
+                  <HStack
+                    spacing={2}
+                    alignItems="center"
                   >
-                    {invoice.isPaid}
-                  </Td>
-                  <Td>
-                    <Flex
-                      justifyContent="center"
-                      align="center"
-                      w="60%"
+                    <Text>STATUS</Text>
+                    <Image src={arrowsSvg} />
+                  </HStack>
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="md"
+                >
+                  INVOICE SENT
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="md"
+                >
+                  <HStack
+                    spacing={2}
+                    alignItems="center"
+                  >
+                    <Text>PROGRAM</Text>
+                    <Image src={arrowsSvg} />
+                  </HStack>
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="md"
+                >
+                  <Flex align="center">
+                    <FaUser style={{ marginRight: "8px" }} />
+                    <Text>PAYER(S)</Text>
+                  </Flex>
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="md"
+                >
+                  <HStack
+                    spacing={2}
+                    alignItems="flex-end"
+                  >
+                    <Icon as={archiveCalendar} />
+                    <Text>DEADLINE</Text>
+                    <Image src={arrowsSvg} />
+                  </HStack>
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="md"
+                >
+                  SEASON
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize="md"
+                >
+                  DOWNLOADS
+                </Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {currentInvoices.map((invoice, index) => {
+                const validPayers = Array.isArray(invoice.payers)
+                  ? invoice.payers.filter(
+                      (payer) => payer && typeof payer === "string"
+                    )
+                  : [];
+                const [tagBgColor, tagTextColor] = seasonColor(invoice);
+                return (
+                  <Tr key={index}>
+                    <Td
+                      style={{
+                        color: isPaidColor(invoice),
+                        fontWeight:
+                          invoice.isPaid === "Past Due" ? "bold" : "normal",
+                      }}
                     >
-                      {invoice.isSent ? (
-                        <Icon
-                          as={FaCircle}
-                          color="#0C824D"
-                          boxSize={4}
-                        />
-                      ) : (
-                        <Icon
-                          as={FaCircle}
-                          color="#EA4335"
-                          boxSize={4}
-                        />
-                      )}
-                    </Flex>
-                  </Td>
-                  <Td>{invoice.eventName}</Td>
-                  <Td>
-                    {validPayers.length > 1
-                      ? `${validPayers[0].trim()},...`
-                      : validPayers.length === 1
-                        ? validPayers[0].trim()
-                        : "N/A"}
-                  </Td>
-                  <Td>
-                    {formatDate(invoice.endDate)}
-                  </Td>
-                  <Td>
-                    <Tag
-                      bg={tagBgColor}
-                      color={tagTextColor}
-                    >
-                      {invoice.season}
-                    </Tag>
-                  </Td>
-                  <Td>
-                    <Flex ml="18px">
-                      <PDFButtonInvoice invoice={invoice} />
-                    </Flex>
-                  </Td>
-                  <Td>
-                    <IconButton
-                      icon={<FiMoreHorizontal />}
-                      size="sm"
-                      bg="#EDF2F7"
-                      color="#000000"
-                      borderRadius="md"
-                    />
+                      {invoice.isPaid}
+                    </Td>
+                    <Td>
+                      <Flex
+                        justifyContent="center"
+                        align="center"
+                        w="60%"
+                      >
+                        {invoice.isSent ? (
+                          <Icon
+                            as={FaCircle}
+                            color="#0C824D"
+                            boxSize={4}
+                          />
+                        ) : (
+                          <Icon
+                            as={FaCircle}
+                            color="#EA4335"
+                            boxSize={4}
+                          />
+                        )}
+                      </Flex>
+                    </Td>
+                    <Td>{invoice.eventName}</Td>
+                    <Td>
+                      {validPayers.length > 1
+                        ? `${validPayers[0].trim()},...`
+                        : validPayers.length === 1
+                          ? validPayers[0].trim()
+                          : "N/A"}
+                    </Td>
+                    <Td>{formatDate(invoice.endDate)}</Td>
+                    <Td>
+                      <Tag
+                        bg={tagBgColor}
+                        color={tagTextColor}
+                      >
+                        {invoice.season}
+                      </Tag>
+                    </Td>
+                    <Td>
+                      <Flex ml="18px">
+                        <PDFButtonInvoice invoice={invoice} />
+                      </Flex>
+                    </Td>
+                    <Td>
+                      <IconButton
+                        icon={<FiMoreHorizontal />}
+                        size="sm"
+                        bg="#EDF2F7"
+                        color="#000000"
+                        borderRadius="md"
+                      />
+                    </Td>
+                  </Tr>
+                );
+              })}
+              {currentInvoices.length === 0 && (
+                <Tr>
+                  <Td
+                    colSpan={7}
+                    textAlign="center"
+                    py={4}
+                  >
+                    No invoices found
                   </Td>
                 </Tr>
-              );
-            })}
-            {currentInvoices.length === 0 && (
-              <Tr>
-                <Td
-                  colSpan={7}
-                  textAlign="center"
-                  py={4}
-                >
-                  No invoices found
-                </Td>
-              </Tr>
-            )}
-          </Tbody>
-        </Table>
-      </TableContainer>
+              )}
+            </Tbody>
+          </Table>
+        </TableContainer>
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <Flex
-          justifyContent="center"
-          mt={4}
-          mb={4}
-        >
-          <Button
-            leftIcon={<FaAngleLeft />}
-            onClick={goToPreviousPage}
-            isDisabled={currentPage === 1}
-            size="sm"
-            mr={2}
-            borderRadius="30px 0 0 30px"
+        {/* Pagination Controls - now right-aligned */}
+        {totalPages > 1 && (
+          <Flex
+            alignItems="center"
+            justifyContent="flex-end"
+            mt={4}
+            mb={4}
+            pr={4}
           >
-            Prev
-          </Button>
-
-          <Flex align="center">{renderPageButtons()}</Flex>
-
-          <Button
-            rightIcon={<FaAngleRight />}
-            onClick={goToNextPage}
-            isDisabled={currentPage === totalPages}
-            size="sm"
-            ml={2}
-            borderRadius="0 30px 30px 0"
-          >
-            Next
-          </Button>
-        </Flex>
-      )}
+            <Text
+              mr={2}
+              fontSize="sm"
+              color="#474849"
+              fontFamily="Inter, sans-serif"
+            >
+              {currentPage} of {totalPages}
+            </Text>
+            <Button
+              onClick={goToPreviousPage}
+              isDisabled={currentPage === 1}
+              size="sm"
+              variant="ghost"
+              padding={0}
+              minWidth="auto"
+              color="gray.500"
+              mr="16px"
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <Button
+              onClick={goToNextPage}
+              isDisabled={currentPage === totalPages}
+              size="sm"
+              variant="ghost"
+              padding={0}
+              minWidth="auto"
+              color="gray.500"
+            >
+              <ChevronRightIcon />
+            </Button>
+          </Flex>
+        )}
+      </Box>
     </>
   );
 }

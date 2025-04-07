@@ -22,7 +22,7 @@ import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 
 const NotificationsComponents = ({ notifications }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const totalNotifications = notifications?.length || 0;
   const totalPages = Math.ceil(totalNotifications / itemsPerPage);
@@ -51,82 +51,29 @@ const NotificationsComponents = ({ notifications }) => {
     setCurrentPage(pageNumber);
   };
 
-  const renderPageButtons = () => {
-    const pageButtons = [];
+  useEffect(() => {
+    const calculateRowsPerPage = () => {
+      const viewportHeight = window.innerHeight;
+      const rowHeight = 56;
 
-    if (totalPages > 0) {
-      pageButtons.push(
-        <Button
-          key={1}
-          size="sm"
-          colorScheme={currentPage === 1 ? "blue" : "gray"}
-          variant={currentPage === 1 ? "solid" : "outline"}
-          onClick={() => goToPage(1)}
-          mx={1}
-        >
-          1
-        </Button>
-      );
-    }
+      const availableHeight = viewportHeight * 0.5;
 
-    const startPage = Math.max(2, currentPage - 2);
-    const endPage = Math.min(currentPage + 2, totalPages - 1);
+      console.log(availableHeight / rowHeight);
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
+    };
 
-    if (startPage > 2) {
-      pageButtons.push(
-        <Text
-          key="ellipsis-start"
-          mx={1}
-        >
-          ...
-        </Text>
-      );
-    }
+    setItemsPerPage(calculateRowsPerPage());
 
-    for (let i = startPage; i <= endPage; i++) {
-      pageButtons.push(
-        <Button
-          key={i}
-          size="sm"
-          colorScheme={currentPage === i ? "blue" : "gray"}
-          variant={currentPage === i ? "solid" : "outline"}
-          onClick={() => goToPage(i)}
-          mx={1}
-        >
-          {i}
-        </Button>
-      );
-    }
+    const handleResize = () => {
+      setItemsPerPage(calculateRowsPerPage());
+    };
 
-    if (endPage < totalPages - 1) {
-      pageButtons.push(
-        <Text
-          key="ellipsis-end"
-          mx={1}
-        >
-          ...
-        </Text>
-      );
-    }
+    window.addEventListener("resize", handleResize);
 
-    // Always show last page if there's more than one page
-    if (totalPages > 1) {
-      pageButtons.push(
-        <Button
-          key={totalPages}
-          size="sm"
-          colorScheme={currentPage === totalPages ? "blue" : "gray"}
-          variant={currentPage === totalPages ? "solid" : "outline"}
-          onClick={() => goToPage(totalPages)}
-          mx={1}
-        >
-          {totalPages}
-        </Button>
-      );
-    }
-
-    return pageButtons;
-  };
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const getNotifType = (payStatus) => {
     const statusMap = {
@@ -277,38 +224,46 @@ const NotificationsComponents = ({ notifications }) => {
 
       {/* Pagination Controls - only show if there's more than one page */}
       {totalPages > 1 && (
-        <Flex
-          justifyContent="center"
-          mt={4}
-          mb={2}
-        >
-          <Button
-            leftIcon={<ChevronLeftIcon />}
-            onClick={goToPreviousPage}
-            isDisabled={currentPage === 1}
-            size="sm"
-            mr={2}
-            variant="outline"
-            colorScheme="blue"
-          >
-            Prev
-          </Button>
-
-          <HStack spacing={1}>{renderPageButtons()}</HStack>
-
-          <Button
-            rightIcon={<ChevronRightIcon />}
-            onClick={goToNextPage}
-            isDisabled={currentPage === totalPages}
-            size="sm"
-            ml={2}
-            variant="outline"
-            colorScheme="blue"
-          >
-            Next
-          </Button>
-        </Flex>
-      )}
+                <Flex
+                  alignItems="center"
+                  justifyContent="flex-end"
+                  mt={4}
+                  mb={4}
+                  pr={4}
+                >
+                  <Text
+                    mr={2}
+                    fontSize="sm"
+                    color="#474849"
+                    fontFamily="Inter, sans-serif"
+                  >
+                    {currentPage} of {totalPages}
+                  </Text>
+                  <Button
+                    onClick={goToPreviousPage}
+                    isDisabled={currentPage === 1}
+                    size="sm"
+                    variant="ghost"
+                    padding={0}
+                    minWidth="auto"
+                    color="gray.500"
+                    mr="16px"
+                  >
+                    <ChevronLeftIcon />
+                  </Button>
+                  <Button
+                    onClick={goToNextPage}
+                    isDisabled={currentPage === totalPages}
+                    size="sm"
+                    variant="ghost"
+                    padding={0}
+                    minWidth="auto"
+                    color="gray.500"
+                  >
+                    <ChevronRightIcon />
+                  </Button>
+                </Flex>
+              )}
     </>
   );
 };
