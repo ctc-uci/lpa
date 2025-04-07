@@ -43,7 +43,7 @@ const EmailHistory = ({ emails }) => {
 
   return (
       <Flex direction="column" w="100%">
-          <Text fontWeight="bold" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849">
+          <Text fontWeight="bold" fontSize="clamp(.75rem, 1.25rem, 1.75rem)" color="#474849" mb={3}>
               Email History
           </Text>
 
@@ -57,21 +57,21 @@ const EmailHistory = ({ emails }) => {
               <Table
                   color="#EDF2F7"
               >
-                  <Thead>
+                  {/* <Thead>
                       <Tr>
                           <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none"> Date </Th>
                           <Th fontSize="clamp(.5rem, 1rem, 1.5rem)" textTransform="none"> Change Log </Th>
                           <Th></Th>
                       </Tr>
-                  </Thead>
+                  </Thead> */}
                   <Tbody color="#2D3748">
                       {emails && emails.length > 0 ? (
                           currentPageEmails.map((email) => (
                               <Tr key={email.id}>
                                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                                      {format(new Date(email.datetime), 'M/d/yy')}
+                                      {format(new Date(email.datetime), "EEE. M/d/yyyy")}
                                   </Td>
-                                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" fontWeight="bold">
                                     <Link href={email.fileReference} isExternal color="#4E4AE7" textDecoration="underline">
                                       View PDF
                                     </Link>
@@ -88,7 +88,7 @@ const EmailHistory = ({ emails }) => {
                   </Tbody>
               </Table>
           </Flex>
-          <Flex direction="row" width="100%" alignItems="center" mb={5}>
+          {/* <Flex direction="row" width="100%" alignItems="center" mb={5}>
               <Text fontSize="clamp(.5rem, 1rem, 1.5rem)" marginRight="0.5rem"> Show: </Text>
               <Select width="auto" marginRight="0.5rem" value={emailsPerPage} onChange={handleEmailsPerPageChange}>
                   <option value={3}>3</option>
@@ -106,7 +106,7 @@ const EmailHistory = ({ emails }) => {
                       <FaAngleRight></FaAngleRight>
                   </Button>
               </Flex>
-          </Flex>
+          </Flex> */}
       </Flex>
   );
 }
