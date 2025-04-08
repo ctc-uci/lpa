@@ -1,0 +1,39 @@
+#programButton {
+  background-color: #EDF2F7!important;
+  min-width: auto!important;
+  border-radius: 6px!important;
+}
+
+.archiveHeaderText {
+  color: var(--Secondary-6, #718096);
+  font-family: Inter;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+Th {
+  padding: 12px 0px!important;
+}
+
+Td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis!important;
+  max-width: 13rem;
+  padding-left: 0!important;
+}
+
+Td:first-child, Th:first-child {
+  padding-left: 0!important;
+  display: flex;
+  justify-content: flex-start;
+  max-width: 13rem!important;
+}
+
+Td:last-child, Th:last-child {
+  padding-right: 0!important;
+  display: flex;
+  justify-content: flex-end;
+}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom"
+import "./ArchivedPrograms.css";
 
 import {
     Alert,
@@ -53,6 +54,7 @@ import {
     archiveClock,
     archiveMagnifyingGlass,
     archiveMapPin,
+    archivePaintPalette,
     archivePerson,
     BackIcon,
     deleteIcon,
@@ -65,6 +67,7 @@ import {
     sessionsFilterMapPin,
     TooltipIcon
 } from "../../assets/icons/ProgramIcons";
+import { SearchBar } from "../searchBar/SearchBar";
 import { ArchivedDropdown } from  "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -472,10 +475,24 @@ export const ArchivedPrograms = () => {
     return (
         <Navbar>
             <Box margin="40px">
+              <Flex
+                  align="center"
+                  mb="15px"
+              >
+                  <Icon as={archiveBox} />
+                  <Text
+                      fontSize="25px"
+                      fontWeight="semibold"
+                      color="#2D3748"
+                      ml="8px"
+                  >
+                      Archived
+                  </Text>
+              </Flex>
                 <Card
-                    shadow="md"
+                  shadow="none"
                     border="1px"
-                    borderColor="gray.300"
+                    borderColor="#E2E8F0"
                     borderRadius="15px"
                 >
                     <CardBody margin="6px">
@@ -483,20 +500,6 @@ export const ArchivedPrograms = () => {
                             direction="column"
                             justify="space-between"
                         >
-                            <Flex
-                                align="center"
-                                mb="15px"
-                            >
-                                <Icon as={archiveBox} />
-                                <Text
-                                    fontSize="25px"
-                                    fontWeight="semibold"
-                                    color="#474849"
-                                    ml="8px"
-                                >
-                                    Archived
-                                </Text>
-                            </Flex>
                             <Box
                                 display="flex"
                                 justify-content="space-between"
@@ -511,6 +514,7 @@ export const ArchivedPrograms = () => {
                                     alignItems="center"
                                 >
                                     <Button
+                                        id="programButton"
                                         display="flex"
                                         gap="0.25rem"
                                         onClick={
@@ -519,32 +523,36 @@ export const ArchivedPrograms = () => {
                                             }
                                         }
                                     >
-                                        <BackIcon></BackIcon>
-                                        Programs
+                                        <BackIcon/>
+                                        <Text
+                                          fontSize="sm"
+                                          color="#2D3748"
+                                        >
+                                          Programs
+                                        </Text>
                                     </Button>
                                     <Popover>
                                         <PopoverTrigger>
-                                            <Button
-                                                backgroundColor="#F0F1F4"
-                                                variant="subtle"
-                                                minWidth="auto"
-                                                borderRadius="30px"
+                                          <Button
+                                            backgroundColor="#EDF2F7"
+                                            midWidth="auto"
+                                            borderRadius="6px"
+                                          >
+                                            <Box
+                                                display="flex"
+                                                flexDirection="row"
+                                                alignItems="center"
+                                                gap="5px"
                                             >
-                                                <Box
-                                                    display="flex"
-                                                    flexDirection="row"
-                                                    alignItems="center"
-                                                    gap="5px"
+                                                <Icon as={filterButton} />
+                                                <Text
+                                                  fontSize="sm"
+                                                  color="#2D3748"
                                                 >
-                                                    <Icon as={filterButton} />
-                                                    <Text
-                                                        fontSize="sm"
-                                                        color="#767778"
-                                                    >
-                                                        Filters
-                                                    </Text>
-                                                </Box>
-                                            </Button>
+                                                    Filters
+                                                </Text>
+                                            </Box>
+                                          </Button>
                                         </PopoverTrigger>
                                         <Portal>
                                             <PopoverContent>
@@ -763,32 +771,10 @@ export const ArchivedPrograms = () => {
                                         </Portal>
                                     </Popover>
                                 </Flex>
-                                <Flex>
-                                    <InputGroup
-                                        size="md"
-                                        width="300px"
-                                        variant="outline"
-                                        borderColor="#D2D2D2"
-                                        background="white"
-                                        type="text"
-                                    >
-                                        <Input
-                                            placeholder="Search..."
-                                            borderRadius="15px"
-                                            onChange={(e) => handleSearch(e.target.value)}
-                                        />
-                                        <InputRightElement marginRight="4px">
-                                            <Button
-                                                size="sm"
-                                                borderRadius="15px"
-                                                background="#F0F1F4"
-                                                onClick={() => handleSearch(searchQuery)}
-                                            >
-                                                <Icon as={archiveMagnifyingGlass} />
-                                            </Button>
-                                        </InputRightElement>
-                                    </InputGroup>
-                                </Flex>
+                                <SearchBar
+                                  handleSearch={handleSearch}
+                                  searchQuery={searchQuery}
+                                />
                             </Box>
                             <TableContainer>
                                 <Table variant="unstyled">
@@ -804,21 +790,19 @@ export const ArchivedPrograms = () => {
                                                     justifyContent="center"
                                                     alignItems="center"
                                                     gap="8px"
+                                                    width="100%"
                                                 >
                                                     <Text
-                                                        textTransform="none"
-                                                        color="#767778"
-                                                        fontSize="16px"
-                                                        fontStyle="normal"
+                                                      className="archiveHeaderText"
+                                                      textTransform="none"
                                                     >
-                                                        Program
+                                                      PROGRAM
                                                     </Text>
                                                     <ProgramSortingModal
                                                         onSortChange={handleSortChange}
                                                     />
                                                 </Box>
                                             </Th>
-
                                             <Th>
                                                 <Flex
                                                     align="center"
@@ -829,12 +813,10 @@ export const ArchivedPrograms = () => {
                                                     </Box>
                                                     <Box>
                                                         <Text
-                                                            textTransform="none"
-                                                            color="#767778"
-                                                            fontSize="16px"
-                                                            fontStyle="normal"
+                                                          className="archiveHeaderText"
+                                                          textTransform="none"
                                                         >
-                                                            Date
+                                                            DATE
                                                         </Text>
                                                     </Box>
                                                     <Box>
@@ -846,76 +828,60 @@ export const ArchivedPrograms = () => {
                                             <Th>
                                                 <Box
                                                     display="flex"
-                                                    padding="8px"
-                                                    justifyContent="center"
                                                     alignItems="center"
                                                     gap="8px"
                                                 >
                                                     <Icon as={archiveClock} />
                                                     <Text
-                                                        textTransform="none"
-                                                        color="#767778"
-                                                        fontSize="16px"
-                                                        fontStyle="normal"
+                                                      className="archiveHeaderText"
+                                                      textTransform="none"
                                                     >
-                                                        Time
+                                                      UPCOMING  TIME
                                                     </Text>
                                                 </Box>
                                             </Th>
                                             <Th>
                                                 <Box
                                                     display="flex"
-                                                    padding="8px"
-                                                    justifyContent="center"
                                                     alignItems="center"
                                                     gap="8px"
                                                 >
                                                     <Icon as={archiveMapPin} />
                                                     <Text
-                                                        textTransform="none"
-                                                        color="#767778"
-                                                        fontSize="16px"
-                                                        fontStyle="normal"
+                                                      className="archiveHeaderText"
+                                                      textTransform="none"
                                                     >
-                                                        Room
+                                                        ROOM
                                                     </Text>
                                                 </Box>
                                             </Th>
                                             <Th>
                                                 <Box
                                                     display="flex"
-                                                    padding="8px"
-                                                    justifyContent="center"
                                                     alignItems="center"
                                                     gap="8px"
                                                 >
-                                                    <Icon as={archivePerson} />
+                                                    <Icon as={archivePaintPalette} />
                                                     <Text
-                                                        textTransform="none"
-                                                        color="#767778"
-                                                        fontSize="16px"
-                                                        fontStyle="normal"
+                                                      className="archiveHeaderText"
+                                                      textTransform="none"
                                                     >
-                                                        Lead Artist(s)
+                                                        LEAD ARTIST(S)
                                                     </Text>
                                                 </Box>
                                             </Th>
                                             <Th>
                                                 <Box
                                                     display="flex"
-                                                    padding="8px"
-                                                    justifyContent="center"
                                                     alignItems="center"
                                                     gap="8px"
                                                 >
                                                     <Icon as={archivePerson} />
                                                     <Text
+                                                      className="archiveHeaderText"
                                                         textTransform="none"
-                                                        color="#767778"
-                                                        fontSize="16px"
-                                                        fontStyle="normal"
                                                     >
-                                                        Payer(s)
+                                                        PAYER(S)
                                                     </Text>
                                                 </Box>
                                             </Th>
@@ -926,7 +892,7 @@ export const ArchivedPrograms = () => {
                                         {sortedArchivedSessions.length > 0 ? (
                                             sortedArchivedSessions.map((programSession) => (
                                                 <Tr key={programSession.programId}>
-                                                    <Td>{programSession.programName}</Td>
+                                                    <Td >{programSession.programName}</Td>
                                                     <Td>
                                                         {programSession.sessionDate !== "N/A"
                                                             ? formatDate(programSession.sessionDate)
