@@ -50,9 +50,7 @@ export const EditCancelPopup = ({handleEdit, handleDeactivate, id}) => {
           variant="ghost"
           className="actions-container"
         />
-        <MenuList className="menu-list-custom"
-          width="10rem"
-          minWidth="10rem">
+        <MenuList className="menu-list-custom">
           <MenuItem
             onClick={(e) => handleEdit(id, e)}
             className="menu-item menu-item--edit"

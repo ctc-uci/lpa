@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-
 import { useNavigate } from "react-router-dom"
 
 import {
@@ -66,6 +65,8 @@ import {
     sessionsFilterMapPin,
     TooltipIcon
 } from "../../assets/icons/ProgramIcons";
+import { ArchivedDropdown } from  "../archivedDropdown/ArchivedDropdown";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import DateSortingModal from "../filters/DateFilter";
@@ -958,78 +959,12 @@ export const ArchivedPrograms = () => {
                                                             : "N/A"}
                                                     </Td>
                                                     <Td>
-                                                        <Menu>
-                                                            <MenuButton
-                                                                as={IconButton}
-                                                                height="30px"
-                                                                width="30px"
-                                                                rounded="full"
-                                                                variant="ghost"
-                                                                icon={<Icon as={sessionsEllipsis} />}
-                                                            />
-                                                            <MenuList>
-                                                                <MenuItem
-                                                                    onClick={() =>
-                                                                        handleDuplicate(
-                                                                            programSession.programId,
-                                                                            programSession.programName
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Box
-                                                                        display="flex"
-                                                                        padding="12px 16px"
-                                                                        alignItems="center"
-                                                                        gap="8px"
-                                                                    >
-                                                                        <Icon as={duplicateIcon} />
-                                                                        <Text color="#767778">Duplicate</Text>
-                                                                        <Tooltip label="For applying changes to program/session">
-                                                                            <TooltipIcon>
-                                                                            </TooltipIcon>
-                                                                        </Tooltip>
-                                                                    </Box>
-                                                                </MenuItem>
-                                                                <MenuItem
-                                                                    onClick={() =>
-                                                                        handleReactivate(
-                                                                            programSession.programId,
-                                                                            programSession.programName
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Box
-                                                                        display="flex"
-                                                                        padding="12px 16px"
-                                                                        alignItems="center"
-                                                                        gap="8px"
-                                                                    >
-                                                                        <Icon as={reactivateIcon} />
-                                                                        <Text color="#767778">Reactivate</Text>
-                                                                        <Tooltip label="No changes will be applied to program/session">
-                                                                            <TooltipIcon></TooltipIcon>
-                                                                        </Tooltip>
-                                                                    </Box>
-                                                                </MenuItem>
-                                                                <MenuItem
-                                                                    onClick={() =>
-                                                                        handleConfirmDelete(
-                                                                            programSession.programId
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Box
-                                                                        display="flex"
-                                                                        padding="12px 16px"
-                                                                        alignItems="center"
-                                                                        gap="8px"
-                                                                    >
-                                                                        <Icon as={deleteIcon} />
-                                                                        <Text color="#90080F">Delete</Text>
-                                                                    </Box>
-                                                                </MenuItem>
-                                                            </MenuList>
-                                                        </Menu>
+                                                      <ArchivedDropdown
+                                                        programSession={programSession}
+                                                        handleDuplicate={handleDuplicate}
+                                                        handleReactivate={handleReactivate}
+                                                        handleConfirmDelete={handleConfirmDelete}
+                                                      />
                                                     </Td>
                                                 </Tr>
                                             ))
@@ -1060,69 +995,14 @@ export const ArchivedPrograms = () => {
                         </Flex>
                     </CardBody>
                 </Card>
-                <Modal
-                    isOpen={isOpen}
-                    onClose={onClose}
-                >
-                    <ModalOverlay />
-                    <ModalContent>
-                        <ModalHeader
-                            fontStyle="normal"
-                            fontWeight="400"
-                            color="#474849"
-                        >
-                            Delete Program?
-                        </ModalHeader>
-                        <ModalBody>
-                            <Alert
-                                status="error"
-                                borderRadius="md"
-                                p={4}
-                                display="flex"
-                                flexDirection="column"
-                            >
-                                <Box color="#90080F">
-                                    <Flex alignitems="center">
-                                        <Box
-                                            color="#90080F0"
-                                            mr={2}
-                                            display="flex"
-                                            alignItems="center"
-                                        >
-                                            <Info />
-                                        </Box>
-                                        <AlertTitle
-                                            color="#90080F"
-                                            fontStyle="normal"
-                                            fontWeight="500"
-                                        >
-                                            Program will be permanently deleted from Archives.
-                                        </AlertTitle>
-                                    </Flex>
-                                </Box>
-                            </Alert>
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button
-                                bg="transparent"
-                                onClick={onClose}
-                                color="#767778"
-                                borderRadius="30px"
-                                mr={3}
-                            >
-                                Exit
-                            </Button>
-                            <Button
-                                onClick={() => handleDelete(programToDelete)}
-                                style={{ backgroundColor: "#90080F" }}
-                                colorScheme="white"
-                                borderRadius="30px"
-                            >
-                                Confirm
-                            </Button>
-                        </ModalFooter>
-                    </ModalContent>
-                </Modal>
+                <CancelProgram
+                  id={programToDelete}
+                  setPrograms={setPrograms}
+                  onOpen={onOpen}
+                  isOpen={isOpen}
+                  onClose={onClose}
+                  type="Program"
+                />
             </Box>
         </Navbar>
     );

@@ -8,52 +8,29 @@
   background: var(--Secondary-2-Default, #EDF2F7);
 }
 
-.actions-container:hover {
-  background: transparent !important;
-}
-
-.cancelModalHeader, .cancelModalText, .cancelModalCancelReason, .cancelActionsContainer {
-  font-family: Inter;
-  font-style: normal;
-  line-height: normal;
-}
-
-.cancelModalHeader, .cancelModalCancelReason {
-  color: var(--Secondary-7, #4A5568);
-  font-size: 16px;
-  font-weight: 700!important;
-  letter-spacing: 0.08px;
-  margin-top: 1rem;
-}
-
-.cancelModalText {
-  color: #474849;
-  font-size: 14px;
-
-  font-weight: 500;
-  letter-spacing: 0.07px;
-  align-items: center;
-}
-
-.cancelModalCancelReason {
-  font-size: 14px;
-  letter-spacing: 0.07px;
-  margin: 1.5rem 0 .5rem 0;
-}
-
-.cancelActionsContainer{
-  background-color: #F0F1F4;
-  width: 8.5rem;
-}
-
-.cancelActionsContainer > * {
-  color: var(--Secondary-8, #2D3748);
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0.07px;
-  align-items:center;
+.menuItemBox {
   display: flex;
-  gap: 5px;
+  padding: 6px 8px;
+  align-items: center;
+  gap: 8px;
+  color: #2D3748;
+  width: 100%!important;
+  justify-content: space-between;
+}
+
+.horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+.dropdownText {
+  margin-left: 1rem;
+  color: #2D3748;
+}
+
+.dropdownTextRed {
+  margin-left: 1rem;
+  color: #90080F;
 }
 
 .menu-list-custom {
@@ -61,8 +38,8 @@
   background: #FFF!important;
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
   padding: 8px !important;
-  width: 10rem!important;
-  min-width: 10rem!important;
+  width: 13rem!important;
+  min-width: 13rem!important;
 }
 
 .menu-list-custom .chakra-menu__menuitem {
@@ -76,7 +53,7 @@
   font-size: 16px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  width: 9rem!important;
+  width: 100%!important;
 }
 
 .menu-list-custom .chakra-menu__menuitem:hover {
