@@ -26,6 +26,9 @@ export const SearchBar = ({ handleSearch, searchQuery }) => {
               placeholder="Search..."
               onChange={(e) => handleSearch(e.target.value)}
               className="searchbar-input"
+              _focusVisible={{
+                border: "none",
+              }}
           />
           <InputRightElement className="searchbar-right-element">
               <Button
