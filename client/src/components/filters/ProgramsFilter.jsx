@@ -92,7 +92,7 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       function compareTimeStrings(time1, time2) {
         // Helper function to convert time string to minutes since midnight
         function timeToMinutes(timeStr) {
-          let [time, modifier] = timeStr.split(' ');
+          const [time, modifier] = timeStr.split(' ');
           let [hours, minutes] = time.split(':');
 
           hours = parseInt(hours);

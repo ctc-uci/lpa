@@ -69,14 +69,14 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
 
 
       function timeToMinutes(timeStr) {
-        let [time, offset] = timeStr.split('+');
-        let [hours, minutes, seconds] = time.split(':').map(Number);
+        const [time, offset] = timeStr.split('+');
+        const [hours, minutes, seconds] = time.split(':').map(Number);
 
         // If there's no offset, we assume it's in the same timezone as the other time
         if (offset) {
           // Adjust for timezone if needed
-          let offsetHours = Number(offset.slice(0, 2));
-          let offsetMinutes = Number(offset.slice(2));
+          const offsetHours = Number(offset.slice(0, 2));
+          const offsetMinutes = Number(offset.slice(2));
           hours -= offsetHours; // Subtract because +00 means ahead of UTC
           minutes -= offsetMinutes;
         }

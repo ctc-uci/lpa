@@ -56,7 +56,7 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         filtered = filtered.filter(invoice => invoice.paymentStatus === filters.status);
       }
 
-      if (filters.email != "all"){
+      if (filters.email !== "all"){
         filtered = filtered.filter(invoice => invoice.isSent === Boolean(filters.email));
       }
 

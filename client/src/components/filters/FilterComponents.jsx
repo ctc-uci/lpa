@@ -472,7 +472,7 @@ export const LeadArtistFilter = ({ clientsList, value, onChange, type }) => {
       console.log("new selected:", newSelectedInstructors);
     }
     setSelectedInstructors(newSelectedInstructors);
-    if (type == "lead") {
+    if (type === "lead") {
       onChange("instructor", newSelectedInstructors);
     } else {
       onChange("payee", newSelectedInstructors);
