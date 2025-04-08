@@ -41,19 +41,21 @@ import { IoCloseOutline } from "react-icons/io5";
 import { VscAccount } from "react-icons/vsc";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
-
+import { TimeInputs } from "../programs/programComponents/TimeInputs";
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { CalendarIcon } from "../../assets/CalendarIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilledIcon } from "../../assets/ClockFilledIcon";
 import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
+import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
 import { DeleteIcon } from "../../assets/DeleteIcon";
 import { DollarIcon } from "../../assets/DollarIcon";
 import { EmailIcon } from "../../assets/EmailIcon";
-import { InfoIconPurple } from "../../assets/InfoIconPurple";
+import { EyeIcon } from "../../assets/EyeIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { LocationIcon } from "../../assets/LocationIcon";
 import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
+import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
 import { ProfileIcon } from "../../assets/ProfileIcon";
 import { RepeatIcon } from "../../assets/RepeatIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -204,49 +206,23 @@ export const EditBooking = () => {
         <div id="programsBody">
           <div>
             <Icon
-              fontSize="2xl"
+              fontSize="xl"
               onClick={cancelOnOpen}
               id="leftCancel"
             >
               <IoCloseOutline />
             </Icon>
-            <Modal
+            <UnsavedChangesModal
               isOpen={cancelIsOpen}
+              onOpen={cancelOnOpen}
               onClose={cancelOnClose}
-            >
-              <ModalOverlay />
-              <ModalContent>
-                <ModalHeader
-                  textAlign="center"
-                  paddingBottom="0"
-                >
-                  Discard unsaved changes?
-                </ModalHeader>
-                <ModalFooter
-                  style={{ display: "flex", justifyContent: "flex-end" }}
-                >
-                  <Button
-                    variant="ghost"
-                    onClick={cancelOnClose}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    colorScheme="red"
-                    mr={3}
-                    id="deactivateConfirm"
-                    onClick={exit}
-                  >
-                    Ok
-                  </Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
+              exit={exit}
+            />
           </div>
           <div id="eventInfoBody">
             <div id="info">
-              <InfoIconPurple id="infoIcon" />
-              <p>You are editing a session of this program</p>
+              <EyeIcon id="infoIcon" />
+              <p>Editing Session of Program</p>
             </div>
             <div id="title">
               <h1>
@@ -254,102 +230,67 @@ export const EditBooking = () => {
               </h1>
             </div>
             <div id="innerBody">
-              <div
-                id="dateTimeDiv"
-                style={{ fontSize: "1rem" }}
-              >
-                <div>
-                  <Icon
-                    boxSize={6}
-                    fontSize="sm"
-                  >
-                    <ClockFilledIcon />
-                  </Icon>
-                  <Input
-                    id="time1"
-                    placeholder="00:00 am"
-                    type="time"
-                    variant="outline"
-                    size="md"
-                    value={startTime}
-                    onChange={(event) => setStartTime(event.target.value)}
-                    backgroundColor="#F6F6F6"
-                    color="#767778"
-                  />
-                </div>
-                to
-                <div>
-                  <Icon
-                    boxSize={6}
-                    fontSize="lg"
-                  >
-                    <ClockFilledIcon />
-                  </Icon>
-                  <Input
-                    id="time2"
-                    placeholder="00:00 pm"
-                    type="time"
-                    variant="outline"
-                    size="md"
-                    value={endTime}
-                    onChange={(event) => setEndTime(event.target.value)}
-                    backgroundColor="#F6F6F6"
-                    color="#767778"
-                  />
-                </div>
-                from
+                <TimeInputs
+                    selectedDays={selectedDays}
+                    setSelectedDays={setSelectedDays}
+                    startTime={startTime}
+                    endTime={endTime}
+                    setStartTime={setStartTime}
+                    setEndTime={setEndTime}
+                    className="inputElement"
+                />
                 <div>
                   <Icon
                     boxSize={6}
                     fontSize="lg"
                   >
                     <CalendarIcon />
-                  </Icon>
+                  </Icon> On
                   <Input
-                    id="date1"
-                    placeholder="Day. MM/DD/YYYY"
-                    type="date"
-                    variant="outline"
+                    type="date1"
                     size="md"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    backgroundColor="#F6F6F6"
-                    color="#767778"
+                    backgroundColor="#fff"
+                    color="#2D3748"
+                    _placeholder={{
+                      color: "#E2E8F0",
+                    }}
+                    borderColor="#E2E8F0"
+                    borderWidth="1px"
+                    borderRadius="4px"
+                    w={150}
+                    textAlign="center"
+                    marginLeft="1rem"
                   />
                 </div>
-              </div>
 
-              <div id="payee">
-                <Flex
-                  align="center"
-                  gap={8.25}
-                >
-                  <ProfileIcon />
-                  <span>
-                    {" "}
-                    {selectedPayees.map((payee) => payee.name).join(", ")}{" "}
-                  </span>
-                  <ProfileIcon />
-                  <span>
-                    {" "}
-                    {selectedInstructors
-                      .map((instructors) => instructors.name)
-                      .join(", ")}{" "}
-                  </span>
-                </Flex>
-              </div>
+              <Flex id="instructor">
+                <PaintPaletteIcons />
+                <span>
+                  {selectedPayees.map((payee) => payee.name).join(", ")}
+                </span>
+              </Flex>
 
-              <div id="payeeEmails">
+              <Flex id="payee">
+                <ProfileIcon />
+                <span>
+                  {selectedInstructors.map((instructors) => instructors.name).join(", ")}
+                </span>
+              </Flex>
+
+              <Flex id="payeeEmails">
                 <EmailIcon />
-                {selectedPayees.map((payee) => payee.email).join(", ")}
-              </div>
+                <span>
+                  {selectedPayees.map((payee) => payee.email).join(", ")}
+                </span>
+              </Flex>
 
               <div id="location">
                 <LocationIcon />
                 {locations && locations.length > 0 ? (
                   <Select
                     width="30%"
-                    backgroundColor="#F6F6F6"
                     value={
                       selectedLocationId === "" ? "DEFAULT" : selectedLocationId
                     }
@@ -395,11 +336,7 @@ export const EditBooking = () => {
 
               <div id="information">
                 <h3>General Information</h3>
-                <Textarea
-                  value={generalInformation}
-                  isReadOnly
-                  backgroundColor="#F6F6F6"
-                ></Textarea>
+                <p>{generalInformation}</p>
               </div>
             </div>
           </div>
@@ -410,130 +347,6 @@ export const EditBooking = () => {
             >
               Save
             </Button>
-            <Popover id="popTrigger">
-              <PopoverTrigger asChild>
-                <Icon boxSize="10">
-                  <CiCircleMore />
-                </Icon>
-              </PopoverTrigger>
-              <PopoverContent style={{ width: "100%" }}>
-                <PopoverBody onClick={onOpen}>
-                  <div id="cancelBody">
-                    <Icon fontSize="1xl">
-                      <CancelIcon id="cancelIcon" />
-                    </Icon>
-                    <p id="cancel">Deactivate</p>
-                  </div>
-                </PopoverBody>
-              </PopoverContent>
-            </Popover>
-            <Modal
-              isOpen={isOpen}
-              onClose={onClose}
-            >
-              <ModalOverlay />
-              <ModalContent>
-                <ModalHeader>Deactivate Program?</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody>
-                  <div id="deactivateDeadlineBox">
-                    <Box
-                      padding="10px"
-                      backgroundColor="red.100"
-                      borderRadius="15px"
-                    >
-                      <div class="horizontal">
-                        <InfoIconRed fontSize="2xl" />
-                        <p id="deactivateDeadlineText">
-                          {" "}
-                          The deactivation fee deadline for this session is Thu.
-                          1/2/2025{" "}
-                        </p>
-                      </div>
-                      <Checkbox borderColor="black">Waive fee </Checkbox>
-                    </Box>
-                  </div>
-                  <div id="deactivateReason">
-                    Reason for Deactivation
-                    <Input placeholder="..." />
-                  </div>
-                  <div
-                    id="archive"
-                    style={{ display: "flex", justifyContent: "flex-end" }}
-                  >
-                    <Menu>
-                      <MenuButton
-                        as={Button}
-                        rightIcon={<ChevronDownIcon />}
-                        backgroundColor="#F6F6F6"
-                        width="30%"
-                      >
-                        <Box
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="space-between"
-                          gap="8px"
-                        >
-                          <Box
-                            as="span"
-                            display="flex"
-                            alignItems="center"
-                            gap="8px"
-                          >
-                            <Icon as={ArchiveIcon} />
-                            {deactivateOption === "archive"
-                              ? "Archive"
-                              : "Delete "}
-                          </Box>
-                        </Box>
-                      </MenuButton>
-                      <MenuList>
-                        <MenuItem
-                          icon={<ArchiveIcon />}
-                          onClick={() => {
-                            setDeactivateOption("archive");
-                            setEventArchived(true);
-                          }}
-                        >
-                          Archive
-                        </MenuItem>
-                        <MenuItem
-                          icon={<DeleteIcon />}
-                          onClick={() => {
-                            setDeactivateOption("delete");
-                            setEventArchived(false);
-                          }}
-                        >
-                          Delete
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
-                  </div>
-                </ModalBody>
-
-                <ModalFooter
-                  style={{ display: "flex", justifyContent: "flex-end" }}
-                >
-                  <Button
-                    variant="ghost"
-                    onClick={onClose}
-                  >
-                    Exit
-                  </Button>
-                  <Button
-                    colorScheme="red"
-                    mr={3}
-                    id="deactivateConfirm"
-                    onClick={() => {
-                      handleConfirm();
-                      exit();
-                    }}
-                  >
-                    Confirm
-                  </Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
           </div>
         </div>
       </div>

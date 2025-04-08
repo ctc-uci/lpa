@@ -478,8 +478,12 @@ export const EditProgram = () => {
           <div id="body">
               <div id="programsBody">
                   <div>
-                      <Icon fontSize="xl" onClick={() => {onDeleteConfirmationModalOpen();}} id="leftCancel">
-                          <IoCloseOutline />
+                      <Icon
+                        fontSize="xl"
+                        onClick={() => {onDeleteConfirmationModalOpen();}}
+                        id="leftCancel"
+                      >
+                        <IoCloseOutline />
                       </Icon>
                       <DeleteConfirmationModal
                           isOpen={isDeleteConfirmationModalOpen}
