@@ -11,6 +11,9 @@ import {
   signOut,
   User,
   UserCredential,
+  setPersistence,
+  browserSessionPersistence,
+  browserLocalPersistence
 } from "firebase/auth";
 import { NavigateFunction } from "react-router-dom";
 
@@ -20,7 +23,7 @@ import { useBackendContext } from "./hooks/useBackendContext";
 interface AuthContextProps {
   currentUser: User | null;
   signup: ({ email, password }: EmailPassword) => Promise<UserCredential>;
-  login: ({ email, password }: EmailPassword) => Promise<UserCredential>;
+  login: ({ email, password }: EmailPassword, boxChecked: boolean) => Promise<UserCredential>;
   logout: () => Promise<void>;
   resetPassword: ({ email }: Pick<EmailPassword, "email">) => Promise<void>;
   handleRedirectResult: (
@@ -66,15 +69,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return userCredential;
   };
 
-  const login = ({ email, password }: EmailPassword) => {
+  const login = async ({ email, password }: EmailPassword, boxChecked: boolean) => {
     if (currentUser) {
       signOut(auth);
     }
 
-    return signInWithEmailAndPassword(auth, email, password);
+    const permissionType = boxChecked ? browserLocalPersistence : browserSessionPersistence;
+
+    await setPersistence(auth, permissionType);
+
+    const result = await signInWithEmailAndPassword(auth, email, password);
+
+   if (boxChecked) {
+      const loginExpirationDate = new Date();
+      loginExpirationDate.setDate(loginExpirationDate.getDate() + 30);
+      localStorage.setItem("loginExpiration", loginExpirationDate.toString());
+   }
+    else {
+        localStorage.removeItem("loginExpiration");
+    }
+    return result;
   };
 
   const logout = () => {
+    if (localStorage.getItem("loginExpiration")) {
+      localStorage.removeItem("loginExpiration");
+    }
     return signOut(auth);
   };
 
@@ -125,6 +145,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setCurrentUser(user);
       setLoading(false);
     });
+
+    // on mount, check if users session expires (30 days)
+
+    const checkSessionExpiration = () => {
+      const expirationDate = localStorage.getItem("loginExpiration");
+      if (expirationDate) {
+        const date = new Date(expirationDate);
+        if (date < new Date()) {
+          logout();
+        }
+      }
+    }
+    checkSessionExpiration();
 
     return unsubscribe;
   }, []);

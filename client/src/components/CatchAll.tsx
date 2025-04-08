@@ -6,7 +6,7 @@ export const CatchAll = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate("/dashboard");
+    navigate("/404");
   }, [navigate]);
 
   return <p>Route not found... redirecting...</p>;

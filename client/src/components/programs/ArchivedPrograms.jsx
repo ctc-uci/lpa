@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
+import {
   Alert,
   AlertTitle,
   Box,
@@ -63,10 +69,10 @@ import {
   sessionsFilterMapPin,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import Navbar from "../navbar/Navbar";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import { ArchivedFilter } from "../filters/ArchivedFilter";
+import Navbar from "../navbar/Navbar";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -85,6 +91,33 @@ export const ArchivedPrograms = () => {
   const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
   const [filteredArchived, setFilteredArchived] = useState([]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    const calculateRowsPerPage = () => {
+      const viewportHeight = window.innerHeight;
+      const rowHeight = 56;
+
+      const availableHeight = viewportHeight * 0.48;
+
+      console.log(availableHeight / rowHeight);
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
+    };
+
+    setItemsPerPage(calculateRowsPerPage());
+
+    const handleResize = () => {
+      setItemsPerPage(calculateRowsPerPage());
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -345,6 +378,29 @@ export const ArchivedPrograms = () => {
     return sorted;
   }, [filteredArchived, sortKey, sortOrder]);
 
+  const totalPrograms = sortedArchivedSessions?.length || 0;
+  const totalPages = Math.ceil(totalPrograms / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalPrograms);
+
+  // Get current page data
+  const currentPagePrograms = sortedArchivedSessions.slice(
+    startIndex,
+    endIndex
+  );
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   const deleteArchivedProgram = async (programId) => {
     try {
       await backend.delete(`/events/${programId}`);
@@ -356,6 +412,10 @@ export const ArchivedPrograms = () => {
   const reactivateArchivedProgram = async (programId) => {
     try {
       await backend.put(`/events/${programId}`, {
+        archived: false,
+      });
+      // unarchive all related sessions(bookings)
+      await backend.put(`/programs/updateSessionArchive/${programId}`, {
         archived: false,
       });
     } catch (error) {
@@ -661,7 +721,7 @@ export const ArchivedPrograms = () => {
                   </Thead>
                   <Tbody>
                     {sortedArchivedSessions.length > 0 ? (
-                      sortedArchivedSessions.map((programSession) => (
+                      currentPagePrograms.map((programSession) => (
                         <Tr key={programSession.programId}>
                           <Td>{programSession.programName}</Td>
                           <Td>
@@ -785,6 +845,53 @@ export const ArchivedPrograms = () => {
             </Flex>
           </CardBody>
         </Card>
+        <Box
+          width="100%"
+          display="flex"
+          justifyContent="flex-end"
+          mt="auto"
+          pt={4}
+        >
+          {totalPages > 1 && (
+            <Flex
+              alignItems="center"
+              justifyContent="center"
+              mb={2}
+            >
+              <Text
+                mr={2}
+                fontSize="sm"
+                color="#474849"
+                fontFamily="Inter, sans-serif"
+              >
+                {currentPage} of {totalPages}
+              </Text>
+              <Button
+                onClick={goToPreviousPage}
+                isDisabled={currentPage === 1}
+                size="sm"
+                variant="ghost"
+                padding={0}
+                minWidth="auto"
+                color="gray.500"
+                mr="16px"
+              >
+                <ChevronLeftIcon />
+              </Button>
+              <Button
+                onClick={goToNextPage}
+                isDisabled={currentPage === totalPages}
+                size="sm"
+                variant="ghost"
+                padding={0}
+                minWidth="auto"
+                color="gray.500"
+              >
+                <ChevronRightIcon />
+              </Button>
+            </Flex>
+          )}
+        </Box>
         <Modal
           isOpen={isOpen}
           onClose={onClose}

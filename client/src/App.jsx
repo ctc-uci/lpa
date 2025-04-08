@@ -1,3 +1,5 @@
+import React, { createContext, useContext, useEffect, useState } from "react";
+
 import { PDFViewer } from "@react-pdf/renderer";
 import { CookiesProvider } from "react-cookie";
 import {
@@ -6,39 +8,36 @@ import {
   BrowserRouter as Router,
   Routes,
 } from "react-router-dom";
-import React, { createContext, useState, useEffect, useContext } from 'react';
-
 
 import { Admin } from "./components/admin/Admin";
+import { EditBooking } from "./components/bookings/EditBooking";
 import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
-import { SingleInvoice } from "./components/invoices/SingleInvoice";
-import { EditInvoice } from "./components/invoices/EditInvoice";
-import { SavedEdit } from "./components/invoices/SavedEditsInvoice";
-import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
-import { ResetPassword } from "./components/resetpassword/ResetPassword";
-import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
+import { Home } from "./components/home/Home";
+import { EditInvoice } from "./components/invoices/EditInvoice";
+import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
+import { SavedEdit } from "./components/invoices/SavedEditsInvoice";
+import { SingleInvoice } from "./components/invoices/SingleInvoice";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import PDFButton from "./components/PDFButton";
 import { Playground } from "./components/playground/Playground";
+import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
 import { ModifyProgram } from "./components/programs/ModifyProgram";
 import { Program } from "./components/programs/Program";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ResetPassword } from "./components/resetpassword/ResetPassword";
+import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
+import { Settings } from "./components/settings/Settings";
 import { Signup } from "./components/signup/Signup";
 import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
-import { EditBooking } from "./components/bookings/EditBooking";
-import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
-import { Home } from  "./components/home/Home";
-import { Settings } from "./components/settings/Settings";
 
 const App = () => {
-
   return (
     <CookiesProvider>
       <BackendProvider>
@@ -93,64 +92,131 @@ const App = () => {
                   element={<ResetPasswordSuccess />}
                 />
                 <Route
-                  path="/playground"
-                  element={<Playground />}
-                />
-                <Route
-                  path ="/programs"
-                  element={<ProtectedRoute element={<Home />} />}
-                />
-                <Route
-                  path="/notifications"
-                  element={<ProtectedRoute element={<Notifications />} />}
-                />
-                <Route
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
                 />
                 <Route
+                  path="/playground"
+                  element={<Playground />}
+                />
+
+                {/* ADMIN ONLY oh my goodness! */}
+                <Route
+                  path="/programs"
+                  element={
+                    <ProtectedRoute
+                      element={<Home />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/notifications"
+                  element={
+                    <ProtectedRoute
+                      element={<Notifications />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
                   path="/invoices"
-                  element={<ProtectedRoute element={<InvoicesDashboard />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<InvoicesDashboard />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="/invoices/:id"
-                  element={<ProtectedRoute element={<SingleInvoice />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<SingleInvoice />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="/invoices/edit/:id"
-                  element={<ProtectedRoute element={<EditInvoice />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<EditInvoice />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="/invoices/savededits/:id"
-                  element={<ProtectedRoute element={<SavedEdit />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<SavedEdit />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="/programs/:id"
-                  element={<ProtectedRoute element={<Program />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<Program />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="/programs/edit/:id"
-                  element={<ProtectedRoute element={<ModifyProgram load={true} />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<ModifyProgram load={true} />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="/addprogram"
-                  element={<ProtectedRoute element={<ModifyProgram load={false} />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<ModifyProgram load={false} />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="/settings"
-                  element={<ProtectedRoute element={<Settings />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<Settings />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="*"
-                  element={<ProtectedRoute element={<CatchAll />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<CatchAll />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
                   path="/bookings/edit/:id"
-                  element={<ProtectedRoute element={<EditBooking />} />}
+                  element={
+                    <ProtectedRoute
+                      element={<EditBooking />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
                 <Route
-                  path='/programs/archived'
-                  element={<ProtectedRoute element={<ArchivedPrograms/>} />}
+                  path="/programs/archived"
+                  element={
+                    <ProtectedRoute
+                      element={<ArchivedPrograms />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
                 />
               </Routes>
             </Router>

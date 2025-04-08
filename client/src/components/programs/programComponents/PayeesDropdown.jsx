@@ -43,7 +43,9 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                 setPayeeSearchTerm(e.target.value);
                                 setDropdownVisible(true);
                                 }}
-                                value={payeeSearchTerm} id="payeeInput"/>
+                                value={payeeSearchTerm} id="payeeInput"
+                                autocomplete="off"
+                                />
                             <Box 
                                 as="button" 
                                 onClick={() => {

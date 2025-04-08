@@ -37,13 +37,13 @@ const InvoicesDashboard = () => {
 
   const seasonColor = (invoice) => {
     if (invoice.season === "Winter") {
-      return "#3182CE";
+      return ["#EBF8FF", "#3182CE"];
     } else if (invoice.season === "Summer") {
-      return "#805AD5";
+      return ["#FFF5F7", "#D53F8C"];
     } else if (invoice.season === "Fall") {
-      return "#DD6B20";
+      return ["#FFFAF0", "#DD6B20"];
     } else {
-      return "#db323b";
+      return ["#008000", "#22C55E"];
     }
   }
 
@@ -155,25 +155,23 @@ const InvoicesDashboard = () => {
       <Flex>
         <Flex w='95%' m='120px 40px' flexDirection='column' padding="48px">
           <Flex justifyContent='space-between' mb='40px'>
-              {/* <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} /> */}
               <InvoiceFilter invoices={invoices} setFilteredInvoices={setFilteredInvoices}/>
-
-            <InputGroup w='400px' borderColor='transparent' >
-            <InputRightElement pointerEvents='none' bgColor="rgba(71, 72, 73, 0.20)" borderRadius='0px 15px 15px 0px'>
+          <InputGroup w='400px' borderColor='transparent' >
+            <InputRightElement pointerEvents='none' bgColor="#EDF2F7" borderRadius='0px 6px 6px 0px'>
               <SearchIcon color='#767778'/>
             </InputRightElement>
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                icon={SearchIcon} borderColor='gray.100'
-                borderRadius='15px 15px 15px 15px'
-                placeholder="Search..."
-              />
-            </InputGroup>
-          </Flex>
-
-          <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              icon={SearchIcon} borderColor='gray.100'
+              bgColor="#F7FAFC"
+              borderRadius='6px 0px 0px 6px'
+              placeholder="Search..."
+              textColor="#718096"
+            />
+          </InputGroup>
         </Flex>
+        <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
       </Flex>
     </Navbar>
   );
