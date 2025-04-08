@@ -1,30 +1,25 @@
 import { useRef, useState, useEffect } from "react";
 
 import {
-  Box,
   Button,
   Divider,
   Drawer,
   DrawerBody,
   DrawerCloseButton,
   DrawerContent,
-  DrawerFooter,
   DrawerHeader,
   DrawerOverlay,
   Flex,
-  HStack,
   IconButton,
   Image,
   Input,
   InputGroup,
   InputRightElement,
-  SimpleGrid,
   Stack,
   Tag,
   TagCloseButton,
   TagLabel,
   Text,
-  VStack,
 } from "@chakra-ui/react";
 
 import IoPaperPlane from "../../assets/IoPaperPlane.svg";
@@ -35,8 +30,6 @@ import { DiscardEmailModal } from "./DiscardEmailModal";
 import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useParams } from "react-router-dom";
-import { SendEmailButton } from "./SendEmailButton";
-import { use } from "react";
 
 export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
   const { backend } = useBackendContext();
@@ -522,7 +515,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                   sendEmail();
                   setisConfirmModalOpen(true);
                 }}
-                isDisabled={!changesPresent || !title}
+                isDisabled={!title || (emails.length === 0 && ccEmails.length === 0 && bccEmails.length === 0)}
                 width={"45px"}
                 height={"30px"}
                 borderRadius={"10px"}
