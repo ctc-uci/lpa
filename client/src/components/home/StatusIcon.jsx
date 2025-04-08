@@ -11,8 +11,8 @@ import {
 } from "@chakra-ui/react";
 
 import activeSvg from "../../assets/icons/active.svg";
-import pastSvg from "../../assets/icons/past.svg";
 import noneSvg from "../../assets/icons/none.svg";
+import pastSvg from "../../assets/icons/past.svg";
 
 const StatusTooltip = () => {
   return (
@@ -25,7 +25,7 @@ const StatusTooltip = () => {
           cursor="pointer"
           className="table-header-text"
         >
-          Status
+          STATUS
         </Text>
       </PopoverTrigger>
       <PopoverContent

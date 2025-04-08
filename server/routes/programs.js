@@ -89,6 +89,28 @@ programsRouter.put("/:id", async (req, res) => {
   }
 });
 
+// update archived status of programs based on a given event id
+programsRouter.put("/updateSessionArchive/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { archived } = req.body;
+
+    const data = await db.query(
+      `
+      UPDATE bookings
+      SET
+        archived = COALESCE($2, archived)
+      WHERE event_id = $1
+      RETURNING *;
+      `,
+      [id, archived]
+  );
+    res.status(200).json(keysToCamel(data));
+   } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 programsRouter.delete("/:id", async (req, res) => {
   try {

@@ -27,7 +27,7 @@ export const HeaderRowComponent = () => {
         <div
           className="archive"
           onClick={() => {
-            // handle archive logic
+            navigate('/programs/archived');
           }}
         >
           <img
