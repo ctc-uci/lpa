@@ -13,6 +13,7 @@ import {
   Box,
   Button,
   Checkbox,
+  filter,
   Flex,
   HStack,
   Icon,
@@ -61,6 +62,7 @@ import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
+import { ProgramFilter } from "../filters/ProgramsFilter";
 
 import "./Home.css";
 
@@ -618,54 +620,23 @@ export const ProgramsTable = () => {
     setSearchTerm(e.target.value);
   }, []);
 
-  useEffect(() => {
-    const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-      
-      const availableHeight = viewportHeight * 0.4;
-      
-      console.log(availableHeight / rowHeight)
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
-    };
-  
-    setItemsPerPage(calculateRowsPerPage());
-  
-    const handleResize = () => {
-      setItemsPerPage(calculateRowsPerPage());
-    };
-  
-    window.addEventListener("resize", handleResize);
-  
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
   return (
     <>
-      <Box
-        width="100%"
-        height="80vh"
-        display="flex"
-        flexDirection="column"
-        justifyContent="space-between"
-      >
-        <Box className="programs-table" >
-          <Flex className="programs-table__filter-row">
-            <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
-            <Box flex="1" />
-            <div className="search-wrapper">
-              <div className="searchbar-container">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                />
-              </div>
-              <div className="searchbar-icon-container">
-                <SearchIcon />
-              </div>
+      <Box className="programs-table">
+        <Flex className="programs-table__filter-row">
+          <ProgramFilter programs={programs} setFilteredPrograms={setFilteredPrograms}/>
+          <Box flex="1" />
+          <div className="search-wrapper">
+            <div className="searchbar-container">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </div>
+            <div className="searchbar-icon-container">
+              <SearchIcon />
             </div>
           </Flex>
 

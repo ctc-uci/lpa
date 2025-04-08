@@ -1,4 +1,4 @@
-import React from "react";
+import { React } from "react";
 
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import {
