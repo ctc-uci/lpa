@@ -17,7 +17,8 @@ const Navbar = ({ children }) => {
   const { backend } = useBackendContext();
   const location = useLocation();
   const currentPath = location.pathname;
-  const [count, setCount] = useState()
+  const [count, setCount] = useState();
+  const [hoveredItem, setHoveredItem] = useState(null);
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -33,8 +34,16 @@ const Navbar = ({ children }) => {
   });
 
   const menuItems = [
-    { name: "Programs", path: "/programs", icon: <NavCalendarIcon /> },
-    { name: "Invoices", path: "/invoices", icon: <DocumentIcon /> },
+    { 
+      name: "Programs", 
+      path: "/programs", 
+      icon: <NavCalendarIcon />,
+    },
+    { 
+      name: "Invoices", 
+      path: "/invoices", 
+      icon: <DocumentIcon />,
+    },
     {
       name: "Notifications",
       path: "/notifications",
@@ -45,28 +54,32 @@ const Navbar = ({ children }) => {
     {
       name: "Settings",
       path: "/settings",
-      icon: <MdSettings size="23px" />,
+      icon: <MdSettings />,
       fontSize: "xl",
     },
   ];
 
+
   return (
     <div id="navbarBody">
       <Box
-        w="240px"
         bg="#F0F0FF"
-        // boxShadow="xl" // REMOVE THIS AFTER TESTING
         bgColor="#FFF"
-        height="100vh"
-        // position="fixed"
         className="navbar-container"
-        marginTop="32px"
+        // border="1px"
+        paddingTop="26px"
+        paddingBottom="26px"
+        paddingLeft="26px"
+        paddingRight="8px"
+        w="209px"
+        h="260px"
+        gap="16px"
       >
         <VStack
-          spacing={4}
+          spacing="0px"
+          margin="0" // Remove any default margins
+          padding="0"
           align="stretch"
-          px={2}
-          mr={15}
         >
           {menuItems.map((item) => (
             <NavBarButton
@@ -76,11 +89,13 @@ const Navbar = ({ children }) => {
                 currentPath === item.path ||
                 (currentPath.startsWith(item.path + "/") && item.path !== "/")
               }
+              onMouseEnter={() => setHoveredItem(item.name)}
+              onMouseLeave={() => setHoveredItem(null)}
             />
           ))}
         </VStack>
       </Box>
-      <div style={{ width: "100%" }}>{children}</div>
+      <div style={{ width: "87%" }}>{children}</div>
     </div>
   );
 };

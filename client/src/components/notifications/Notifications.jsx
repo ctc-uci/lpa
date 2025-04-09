@@ -25,7 +25,7 @@ export const Notifications = () => {
     const msInDay = 1000 * 60 * 60 * 24;
     const daysDiff = (endDate - now) / msInDay;
 
-    console.log("Days difference:", daysDiff);
+    // console.log("Days difference:", daysDiff);
     if (daysDiff >= 0 && daysDiff <= 7) {
       return formatDistanceToNow(endDate, { addSuffix: true });
     } else {
