@@ -53,13 +53,12 @@ const Navbar = ({ children }) => {
   return (
     <div id="navbarBody">
       <Box
-        w="112px"
-        bg="white"
-        boxShadow="lg"
+        w="240px"
+        bg="#F0F0FF"
+        // boxShadow="xl" // REMOVE THIS AFTER TESTING
         bgColor="#FFF"
         height="100vh"
-        position="fixed"
-        zIndex={10}
+        // position="fixed"
         className="navbar-container"
         marginTop="32px"
       >
@@ -67,6 +66,7 @@ const Navbar = ({ children }) => {
           spacing={4}
           align="stretch"
           px={2}
+          mr={15}
         >
           {menuItems.map((item) => (
             <NavBarButton
@@ -80,7 +80,7 @@ const Navbar = ({ children }) => {
           ))}
         </VStack>
       </Box>
-      <div style={{ width: "100%", paddingLeft: "112px" }}>{children}</div>
+      <div style={{ width: "100%" }}>{children}</div>
     </div>
   );
 };
