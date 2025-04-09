@@ -10,7 +10,6 @@
 
 .menuItemBox {
   display: flex;
-  padding: 6px 8px;
   align-items: center;
   gap: 8px;
   color: #2D3748;
@@ -24,25 +23,25 @@
 }
 
 .dropdownText {
-  margin-left: 1rem;
+  margin-left: .5rem;
   color: #2D3748;
 }
 
 .dropdownTextRed {
-  margin-left: 1rem;
+  margin-left: .5rem;
   color: #90080F;
 }
 
-.menu-list-custom {
+.menu-list {
   border-radius: 6px !important;
   background: #FFF!important;
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
   padding: 8px !important;
-  width: 13rem!important;
-  min-width: 13rem!important;
+  width: 11rem!important;
+  min-width: 11rem!important;
 }
 
-.menu-list-custom .chakra-menu__menuitem {
+.menu-list .chakra-menu__menuitem {
   border-radius: 6px !important;
   background: #FFF!important;
   display: flex !important;
@@ -56,8 +55,9 @@
   width: 100%!important;
 }
 
-.menu-list-custom .chakra-menu__menuitem:hover {
+.menu-list .chakra-menu__menuitem:hover {
   background-color: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 6px !important;
 }
 
 .menu-item--edit {

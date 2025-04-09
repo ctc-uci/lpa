@@ -38,10 +38,6 @@ const EditPencilIcon = React.memo(() => (
 export const EditCancelPopup = ({handleEdit, handleDeactivate, id}) => {
 
   return (
-    <Td
-      borderRightRadius="12px"
-      onClick={(e) => e.stopPropagation()}
-    >
       <Menu>
         <MenuButton
           as={IconButton}
@@ -67,6 +63,5 @@ export const EditCancelPopup = ({handleEdit, handleDeactivate, id}) => {
           </MenuItem>
         </MenuList>
       </Menu>
-    </Td>
   );
 };

@@ -92,7 +92,6 @@ export const ArchivedPrograms = () => {
     const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
     const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
     const navigate = useNavigate();
-    const reactivationToast = useToast();
 
     const handleSortChange = (key, order) => {
         setSortKey(key);
@@ -356,106 +355,6 @@ export const ArchivedPrograms = () => {
         } catch (error) {
             console.log("Couldn't delete", error);
         }
-    };
-
-    const reactivateArchivedProgram = async (programId) => {
-        try {
-            await backend.put(`/events/${programId}`, {
-                archived: false,
-            });
-        } catch (error) {
-            console.log("Couldn't reactivate", error);
-        }
-    };
-
-    const duplicateArchivedProgram = async (programId) => {
-        try {
-            // Get original program data
-            const originalEvent = await backend.get(`/events/${programId}`);
-            const originalSessions = await backend.get(
-                `/bookings/byEvent/${programId}`
-            );
-            const originalAssignments = await backend.get(
-                `/assignments/event/${programId}`
-            );
-
-            // Create a new program
-            const newEventData = { ...originalEvent.data[0] };
-            delete newEventData.id; // Remove the original ID
-            newEventData.name = `${originalEvent.data[0].name}`;
-            newEventData.description = `${originalEvent.data[0].description}`;
-            newEventData.archived = false; // Ensure the new event is not archived
-            const newEvent = await backend.post("/events", newEventData);
-            console.log("New event created:", newEvent.data);
-            console.log(newEventData);
-
-            // Create copies of sessions for the new program
-            for (const session of originalSessions.data) {
-                const newSessionData = {
-                    event_id: newEvent.data.id,
-                    room_id: session.roomId,
-                    start_time: session.startTime,
-                    end_time: session.endTime,
-                    date: session.date,
-                    archived: false,
-                };
-                const newBooking = await backend.post("/bookings", newSessionData);
-                console.log("New booking", newSessionData);
-                console.log(newBooking);
-            }
-
-            // Create copies of assignments for the new program
-            for (const assignment of originalAssignments.data) {
-                const newAssignmentData = {
-                    event_id: newEvent.data.id, // Set the new event ID
-                    client_id: assignment.clientId, // Ensure clientId is a number
-                    role: assignment.role,
-                };
-                const newAssignment = await backend.post(
-                    "/assignments",
-                    newAssignmentData
-                );
-            }
-
-            // Return the new program data
-            return newEvent.data;
-        } catch (error) {
-            console.log("Couldn't duplicate event", error);
-        }
-    };
-
-    const handleDuplicate = async (programId, programName) => {
-        try {
-            await duplicateArchivedProgram(programId);
-            navigate(`/programs/edit/${programId}`, { state: { duplicated: true, programName } })
-        } catch (error) {
-            console.log("Couldn't duplicate program", error);
-        }
-    };
-
-    const handleReactivate = async (programId, programName) => {
-        try {
-            await reactivateArchivedProgram(programId);
-            // Update local state
-            setArchivedProgramSessions((prevSessions) =>
-                prevSessions.filter((session) => session.programId !== programId)
-            );
-            reactivationToast({
-                title: "Program Reactivated",
-                description: programName,
-                status: "success",
-                duration: 5000,
-                isClosable: true
-            })
-            navigate("/programs");
-        } catch (error) {
-            console.log("Couldn't reactivate program", error);
-        }
-    };
-
-    const handleConfirmDelete = (programId) => {
-        onOpen();
-        setProgramToDelete(programId);
     };
 
     const handleDelete = async (programId) => {
@@ -926,10 +825,11 @@ export const ArchivedPrograms = () => {
                                                     </Td>
                                                     <Td>
                                                       <ArchivedDropdown
-                                                        programSession={programSession}
-                                                        handleDuplicate={handleDuplicate}
-                                                        handleReactivate={handleReactivate}
-                                                        handleConfirmDelete={handleConfirmDelete}
+                                                        programId={programSession.programId}
+                                                        programName={programSession.programName}
+                                                        setProgramToDelete={setProgramToDelete}
+                                                        onOpen={onOpen}
+                                                        setArchivedProgramSessions={setArchivedProgramSessions}
                                                       />
                                                     </Td>
                                                 </Tr>

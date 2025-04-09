@@ -1,26 +1,65 @@
-#infoRed {
+.componentContainer {
+  min-height: 10vh;
+  width: 100%;
+  min-width: 100%;
+  padding: 1rem 0;
+  align-items: center;
+}
+
+#titleContainer {
+  margin-bottom: 1rem;
+  width: 100%;
+  height: 2rem;
+  justify-content: space-between;
+}
+
+#archivedBlurb {
   display: flex;
   flex-direction: row;
   gap: 2%;
-  border-radius: 15px;
-  border: 1px solid var(--destructive, #90080F);
   background: #F4E6E7;
   align-items: center;
-  width: 23rem;
-  padding: .5rem;
-  margin-bottom: 1rem;
+  width: 16.5rem;
+  padding: .5rem .75rem;
+  background-color: #F0F0FF;
+  justify-content: center;
 }
 
-
-#infoRed > p {
-  color: var(--destructive, #90080F);
+.text {
   font-family: Inter;
-  font-size: 16px;
   font-style: normal;
-  font-weight: 500;
-  line-height: 20px; /* 125% */
+  font-weight: 700;
+  line-height: normal;
 }
 
+.componentTitleText {
+  color: var(--Secondary-8, #2D3748);
+  font-size: 24px;
+}
+
+#archivedBlurb > p {
+  color: var(--gray-700, #2D3748);
+  font-size: 16px;
+  letter-spacing: 0.08px;
+}
+
+.invoiceButton {
+  display: flex;
+  height: 40px;
+  padding: 0px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  background: var(--Primary-5-Default, #4441C8);
+  color: white;
+  font-family: Inter;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.07px;
+}
 
 #deactivateDeadlineInnerBox {
   display: flex;

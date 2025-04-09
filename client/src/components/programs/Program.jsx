@@ -8,7 +8,6 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
-import {InfoIconRed} from '../../assets/InfoIconRed';
 
 export const Program = () => {
   const { id } = useParams();
@@ -146,19 +145,6 @@ export const Program = () => {
   return (
     <Navbar>
       <Box style={{width: "100%", padding: "20px 20px 20px 20px"}}>
-          <IconButton
-            icon={<ChevronLeftIcon />}
-            variant="ghost"
-            size="md"
-            aria-label="Go back"
-            onClick={() => navigate("/programs")}
-          />
-          { isArchived ?
-            <div id="infoRed">
-              <InfoIconRed id="infoIcon"/>
-              <p>You are viewing an archived program</p>
-            </div> : <div></div>
-          }
           <ProgramSummary
             program={program}
             bookingInfo={nextBookingInfo}

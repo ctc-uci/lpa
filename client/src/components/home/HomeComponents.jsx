@@ -59,6 +59,7 @@ import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { SearchBar } from "../searchBar/SearchBar";
 
 import "./Home.css";
 
@@ -162,11 +163,16 @@ const TableRow = React.memo(
         <Td>{program.room}</Td>
         <Td>{truncateNames(program.instructor)}</Td>
         <Td>{truncateNames(program.payee)}</Td>
-        <EditCancelPopup
-          handleEdit={handleEdit}
-          handleDeactivate={handleDeactivate}
-          id={program.id}
-        />
+        <Td
+          borderRightRadius="12px"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <EditCancelPopup
+            handleEdit={handleEdit}
+            handleDeactivate={handleDeactivate}
+            id={program.id}
+          />
+        </Td>
       </Tr>
     );
   }
@@ -515,9 +521,9 @@ export const ProgramsTable = () => {
     setSortOrder(order);
   }, []);
 
-  const handleSearchChange = useCallback((e) => {
-    setSearchTerm(e.target.value);
-  }, []);
+  const handleSearchChange = (query) => {
+    setSearchTerm(query);
+  };
 
   return (
     <>
@@ -541,19 +547,10 @@ export const ProgramsTable = () => {
           </div>
           <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
           <Box flex="1" />
-          <div className="search-wrapper">
-            <div className="searchbar-container">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-            </div>
-            <div className="searchbar-icon-container">
-              <SearchIcon />
-            </div>
-          </div>
+          <SearchBar
+             handleSearch={handleSearchChange}
+             searchQuery={searchTerm}
+          />
         </Flex>
 
         <TableContainer className="programs-table__container">

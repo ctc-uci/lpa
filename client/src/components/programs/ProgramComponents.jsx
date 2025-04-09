@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { CancelIcon } from "../../assets/CancelIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
+import {EyeIcon} from '../../assets/EyeIcon';
 
 import "./Program.css";
 
@@ -10,7 +11,6 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   DeleteIcon,
-  DownloadIcon,
   EmailIcon,
   InfoIcon,
   TimeIcon,
@@ -72,14 +72,11 @@ import {
 } from "@react-pdf/renderer";
 import {
   EllipsisIcon,
-  FileTextIcon,
   Info,
   UserIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
-import { DeleteIconRed } from "../../assets/DeleteIconRed";
-import { DuplicateIcon } from "../../assets/DuplicateIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import {
   filterButton,
@@ -90,7 +87,10 @@ import {
   sessionsFilterClock,
   sessionsFilterMapPin,
   sessionsMapPin,
+  summaryIcon,
+  DownloadIcon,
 } from "../../assets/icons/ProgramIcons";
+import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
@@ -244,7 +244,7 @@ export const ProgramSummary = ({
   };
 
   const handleDeactivate = () => {
-    onOpen();
+    modalOnOpen();
   };
 
   const handleArchive = async () => {
@@ -349,34 +349,29 @@ export const ProgramSummary = ({
   const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
 
   return (
-    <Box
-      minH="10vh"
-      width="100%"
-      minW="100%"
-      py={8}
-      paddingTop="1rem"
-    >
+    <Box className="componentContainer">
       <Flex
         align="center"
         gap={2}
+        id="titleContainer"
       >
         <Flex
           align="center"
           gap={2}
+          width="20%"
         >
-          <Icon
-            as={FileTextIcon}
-            boxSize={6}
-            color="gray.600"
-          />
-          <Text
-            fontSize="xl"
-            fontWeight="semibold"
-            color="gray.600"
-          >
+          <Icon as={summaryIcon}/>
+          <Text className="text componentTitleText">
             Summary
           </Text>
         </Flex>
+        { isArchived ?
+          <div id="archivedBlurb" className="text">
+            <EyeIcon id="infoIcon"/>
+            <p>Viewing Archived Program</p>
+          </div>: <div></div>
+        }
+        <Flex width="20%"></Flex>
       </Flex>
       <Container
         minW="100%"
@@ -425,82 +420,24 @@ export const ProgramSummary = ({
                   align="center"
                   gap={2}
                 >
-                  <Popover
-                    id="popTrigger"
-                    placement="bottom-start"
-                    isOpen={popoverIsOpen}
-                    onOpen={popoverOnOpen}
-                    onClose={popoverOnClose}
-                  >
-                    {({ isOpen, onClose }) => (
-                      <>
-                        <PopoverTrigger asChild>
-                          <Icon boxSize="5">
-                            <EllipsisIcon />
-                          </Icon>
-                        </PopoverTrigger>
-                        <PopoverContent style={{ width: "100%" }}>
-                          <PopoverBody>
-                            {!isArchived ? (
-                              <div>
-                                <div
-                                  id="popoverChoice"
-                                  color="#767778"
-                                >
-                                  <EditIcon />
-                                  <p onClick={toEditProgram}>Edit</p>
-                                </div>
-                                <div
-                                  id="cancelBody"
-                                  onClick={() => {
-                                    onClose();
-                                    setIsArchived(true);
-                                    setArchived(true);
-                                  }}
-                                >
-                                  <Icon fontSize="1xl">
-                                    <CancelIcon id="cancelIcon" />
-                                  </Icon>
-                                  <p>Deactivate</p>
-                                </div>
-                              </div>
-                            ) : (
-                              <div>
-                                <Button
-                                  id="popoverChoice"
-                                  onClick={duplicateProgram}
-                                >
-                                  <DuplicateIcon />
-                                  <p>Duplicate</p>
-                                </Button>
-                                <Button
-                                  id="popoverChoice"
-                                  onClick={() => {
-                                    onClose();
-                                    setIsArchived(false);
-                                    setArchived(false);
-                                  }}
-                                >
-                                  <ReactivateIcon />
-                                  <p>Reactivate</p>
-                                </Button>
-                                <Button
-                                  id="deleteBody"
-                                  onClick={modalOnOpen}
-                                >
-                                  <DeleteIconRed />
-                                  <p>Delete</p>
-                                </Button>
-                              </div>
-                            )}
-                          </PopoverBody>
-                        </PopoverContent>
-                      </>
-                    )}
-                  </Popover>
                   <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
                     Invoice
                   </PDFButton>
+                      {!isArchived ? (
+                        <EditCancelPopup
+                            handleEdit={handleEdit}
+                            handleDeactivate={handleDeactivate}
+                            id={program[0].id}
+                          />
+                        ) : (
+                        <ArchivedDropdown
+                          programId={program[0].id}
+                          programName={program[0].name}
+                          onOpen={modalOnOpen}
+                          setIsArchived={setIsArchived}
+                        />
+                        )}
+
                   <Modal
                     isOpen={modalIsOpen}
                     onClose={modalOnClose}
@@ -708,7 +645,7 @@ export const ProgramSummary = ({
         </Flex>
       </Container>
       <CancelProgram
-        id={eventId}
+        id={program[0].id}
         setPrograms={null}
         onOpen={modalOnOpen}
         isOpen={modalIsOpen}
@@ -877,10 +814,17 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         onClose={onClose}
         type={"Booking"}
       />
-      <Box
-        marginBottom="50px"
-        width="100%"
-      >
+      <Box className="componentContainer">
+        <Flex
+          align="center"
+          gap={2}
+          mb={4}
+        >
+          <Icon as={sessionsCalendar} />
+          <Text className="text componentTitleText">
+            Sessions
+          </Text>
+        </Flex>
         <Card
           shadow="md"
           border="1px"
@@ -892,21 +836,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               direction="column"
               justify="space-between"
             >
-              <Flex
-                align="center"
-                mb="15px"
-              >
-                <Icon as={sessionsCalendar} />
-                <Text
-                  fontSize="25px"
-                  fontWeight="semibold"
-                  color="#474849"
-                  ml="8px"
-                >
-                  {" "}
-                  Sessions{" "}
-                </Text>
-              </Flex>
               <Flex
                 gap="12px"
                 alignItems="center"
@@ -1278,7 +1207,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           </Text>
                         </Th>
                       ) : (
-                        <div></div>
+                        <></>
                       )}
                       <Th>
                         <Box
@@ -1378,7 +1307,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                               </Box>
                             </Td>
                           ) : (
-                            <div></div>
+                            <></>
                           )}
                           <Td>
                             <Box
@@ -1408,11 +1337,13 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                               {rooms.get(session.roomId)}
                             </Box>
                           </Td>
-                          <EditCancelPopup
-                            handleEdit={handleEdit}
-                            handleDeactivate={handleDeactivate}
-                            id={session.id}
-                          />
+                          <Td>
+                            <EditCancelPopup
+                              handleEdit={handleEdit}
+                              handleDeactivate={handleDeactivate}
+                              id={session.id}
+                            />
+                          </Td>
                         </Tr>
                       ))
                     ) : (
@@ -1534,20 +1465,12 @@ const PDFButton = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div>
-      <PDFDownloadLink
-        document={<MyDocument bookingData={bookingData} />}
-        fileName="bookingdata.pdf"
-      >
-        <Button
-          leftIcon={<Icon as={DownloadIcon} />}
-          colorScheme="purple"
-          size="sm"
-          borderRadius="20px"
-        >
-          Invoice
-        </Button>
-      </PDFDownloadLink>
-    </div>
+    <PDFDownloadLink className="invoiceButton"
+      document={<MyDocument bookingData={bookingData} />}
+      fileName="bookingdata.pdf"
+    >
+      <DownloadIcon/>
+      Invoice
+    </PDFDownloadLink>
   );
 };
