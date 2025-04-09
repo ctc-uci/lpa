@@ -23,18 +23,17 @@
 }
 
 .navIcon {
-  font-size: 24px;
+  font-size: 20px;
   transition: color 0.2s ease;
 }
 
 .navLink, .navIcon {
+  font-size: 20px;
   color: #767778;
 }
-
-.navItem:hover .navLink, .navItem:hover .navIcon {
+/* .navItem:hover .navLink, .navItem:hover .navIcon {
   color: #4E4AE7;
-}
-
+} */
 /* Popup button styles */
 .nav-item-wrapper {
   position: relative;
