@@ -1,9 +1,15 @@
 .componentContainer {
-  min-height: 10vh;
   width: 100%;
   min-width: 100%;
   padding: 1rem 0;
   align-items: center;
+}
+
+.componentContainer * {
+  color: var(--Secondary-8, #2D3748);
+  font-family: Inter;
+  font-style: normal;
+  line-height: normal;
 }
 
 #titleContainer {
@@ -23,22 +29,33 @@
   padding: .5rem .75rem;
   background-color: #F0F0FF;
   justify-content: center;
+  font-weight: 700;
 }
 
-.text {
-  font-family: Inter;
+.sessionsColumnContainer {
+  display: flex;
+  padding: 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sessionsColumnTitle {
+  color: var(--Secondary-6, #718096);
+  text-transform: none;
+  color: #767778;
+  font-size: 12px;
   font-style: normal;
   font-weight: 700;
   line-height: normal;
 }
 
 .componentTitleText {
-  color: var(--Secondary-8, #2D3748);
   font-size: 24px;
+  font-weight: 700;
 }
 
 #archivedBlurb > p {
-  color: var(--gray-700, #2D3748);
   font-size: 16px;
   letter-spacing: 0.08px;
 }
@@ -107,6 +124,7 @@
   align-items: center;
   gap: 4px;
   border-radius: 6px;
+  background-color: #EDF2F7;
 }
 
 

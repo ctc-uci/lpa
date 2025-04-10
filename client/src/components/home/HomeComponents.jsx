@@ -39,6 +39,7 @@ import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // Icon imports - consider using React.memo for these components
+import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
 import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
@@ -240,7 +241,7 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
       </Th>
       <Th>
         <HStack>
-          <PersonIcon />
+          <PaintPaletteIcons />
           <Text className="table-header-text">Lead Artist(s)</Text>
         </HStack>
       </Th>

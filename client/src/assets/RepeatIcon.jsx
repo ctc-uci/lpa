@@ -2,38 +2,10 @@ import React from 'react';
 
 export const RepeatIcon = ({ color = "#718096" }) => {
   return (
-   <svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="100%"
-  height="100%"
-  viewBox="0 0 20 18"
-  fill={"none"}
-  style={{
-    display: 'block',
-    margin: 'auto' }}
->
-  <path
-    d="M1.66675 9.41663C1.66675 6.64579 3.91508 4.41663 6.66675 4.41663H18.3334"
-    stroke={color}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  />
-  <path
-
-    d="M15.8334 1.91663L18.3334 4.41663L15.8334 6.91663M18.3334 8.58329C18.3334 11.3541 16.0851 13.5833 13.3334 13.5833H1.66675"
-    stroke={color}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  />
-  <path
-    d="M4.16675 16.0833L1.66675 13.5833L4.16675 11.0833"
-    stroke={color}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+  <path d="M1.66699 10.417C1.66699 7.64616 3.91533 5.41699 6.66699 5.41699H18.3337" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  <path d="M15.8337 2.91699L18.3337 5.41699L15.8337 7.91699M18.3337 9.58366C18.3337 12.3545 16.0853 14.5837 13.3337 14.5837H1.66699" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  <path d="M4.16699 17.084L1.66699 14.584L4.16699 12.084" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 </svg>
 
   );

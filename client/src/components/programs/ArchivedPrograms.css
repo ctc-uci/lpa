@@ -13,11 +13,11 @@
   line-height: normal;
 }
 
-Th {
+.th {
   padding: 12px 0px!important;
 }
 
-Td {
+.td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis!important;
@@ -25,14 +25,14 @@ Td {
   padding-left: 0!important;
 }
 
-Td:first-child, Th:first-child {
+.td:first-child, .th:first-child {
   padding-left: 0!important;
   display: flex;
   justify-content: flex-start;
   max-width: 13rem!important;
 }
 
-Td:last-child, Th:last-child {
+.td:last-child, .th:last-child {
   padding-right: 0!important;
   display: flex;
   justify-content: flex-end;

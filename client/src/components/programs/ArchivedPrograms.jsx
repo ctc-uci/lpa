@@ -682,7 +682,7 @@ export const ArchivedPrograms = () => {
                                         color="#D2D2D2"
                                     >
                                         <Tr>
-                                            <Th>
+                                            <Th className="th">
                                                 <Box
                                                     display="flex"
                                                     padding="8px"
@@ -702,7 +702,7 @@ export const ArchivedPrograms = () => {
                                                     />
                                                 </Box>
                                             </Th>
-                                            <Th>
+                                            <Th className="th">
                                                 <Flex
                                                     align="center"
                                                     gap="8px"
@@ -739,7 +739,7 @@ export const ArchivedPrograms = () => {
                                                     </Text>
                                                 </Box>
                                             </Th>
-                                            <Th>
+                                            <Th className="th">
                                                 <Box
                                                     display="flex"
                                                     alignItems="center"
@@ -754,7 +754,7 @@ export const ArchivedPrograms = () => {
                                                     </Text>
                                                 </Box>
                                             </Th>
-                                            <Th>
+                                            <Th className="th">
                                                 <Box
                                                     display="flex"
                                                     alignItems="center"
@@ -769,7 +769,7 @@ export const ArchivedPrograms = () => {
                                                     </Text>
                                                 </Box>
                                             </Th>
-                                            <Th>
+                                            <Th className="th">
                                                 <Box
                                                     display="flex"
                                                     alignItems="center"
@@ -784,30 +784,30 @@ export const ArchivedPrograms = () => {
                                                     </Text>
                                                 </Box>
                                             </Th>
-                                            <Th>{/* Empty column for ellipsis button */}</Th>
+                                            <Th className="th">{/* Empty column for ellipsis button */}</Th>
                                         </Tr>
                                     </Thead>
                                     <Tbody>
                                         {sortedArchivedSessions.length > 0 ? (
                                             sortedArchivedSessions.map((programSession) => (
                                                 <Tr key={programSession.programId}>
-                                                    <Td >{programSession.programName}</Td>
-                                                    <Td>
+                                                    <Td className="td">{programSession.programName}</Td>
+                                                    <Td className="td">
                                                         {programSession.sessionDate !== "N/A"
                                                             ? formatDate(programSession.sessionDate)
                                                             : "N/A"}
                                                     </Td>
-                                                    <Td>
+                                                    <Td className="td">
                                                         {programSession.sessionStart !== "N/A"
                                                             ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
                                                             : "N/A"}
                                                     </Td>
-                                                    <Td>
+                                                    <Td className="td">
                                                         {programSession.room !== "N/A"
                                                             ? programSession.room
                                                             : "N/A"}
                                                     </Td>
-                                                    <Td>
+                                                    <Td className="td">
                                                         {programSession.instructors &&
                                                             programSession.instructors.length > 0
                                                             ? programSession.instructors
@@ -815,7 +815,7 @@ export const ArchivedPrograms = () => {
                                                                 .join(", ")
                                                             : "N/A"}
                                                     </Td>
-                                                    <Td>
+                                                    <Td className="td">
                                                         {programSession.payees &&
                                                             programSession.payees.length > 0
                                                             ? programSession.payees
@@ -823,7 +823,7 @@ export const ArchivedPrograms = () => {
                                                                 .join(", ")
                                                             : "N/A"}
                                                     </Td>
-                                                    <Td>
+                                                    <Td className="td">
                                                       <ArchivedDropdown
                                                         programId={programSession.programId}
                                                         programName={programSession.programName}
@@ -839,6 +839,7 @@ export const ArchivedPrograms = () => {
                                                 <Td
                                                     colSpan={7}
                                                     textAlign="center"
+                                                    className="td"
                                                 >
                                                     <Box
                                                         justifyContent="center"

@@ -3,17 +3,16 @@ import React, { useCallback, useEffect, useState } from "react";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import {EyeIcon} from '../../assets/EyeIcon';
+import { LocationIcon } from "../../assets/LocationIcon";
+import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
+import { ProfileIcon } from "../../assets/ProfileIcon";
+import { EmailIcon } from "../../assets/EmailIcon";
+import { RepeatIcon } from "../../assets/RepeatIcon";
 
 import "./Program.css";
 
 import {
-  CalendarIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
-  DeleteIcon,
-  EmailIcon,
-  InfoIcon,
-  TimeIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -78,17 +77,22 @@ import {
 import { useNavigate } from "react-router-dom";
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { EditIcon } from "../../assets/EditIcon";
+import clockSvg from "../../assets/icons/clock.svg";
+import { CalendarIcon } from "../../assets/CalendarIcon";
+
 import {
   filterButton,
   filterDateCalendar,
+  archiveCalendar,
   sessionsCalendar,
-  sessionsClock,
+  archiveClock,
   sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
-  sessionsMapPin,
+  archiveMapPin,
   summaryIcon,
   DownloadIcon,
+  DollarIcon,
 } from "../../assets/icons/ProgramIcons";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
@@ -96,6 +100,13 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
 import { CancelProgram } from  "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from  "../cancelModal/EditCancelPopup";
+
+const ClockIcon = React.memo(() => (
+  <img
+    src={clockSvg}
+    alt="Clock"
+  />
+));
 
 export const ProgramSummary = ({
   program,
@@ -320,7 +331,7 @@ export const ProgramSummary = ({
           p={0}
         >
           <Card
-            shadow="md"
+            shadow="none"
             border="1px"
             borderColor="gray.300"
             borderRadius="15px"
@@ -361,12 +372,12 @@ export const ProgramSummary = ({
           width="20%"
         >
           <Icon as={summaryIcon}/>
-          <Text className="text componentTitleText">
+          <Text className="componentTitleText">
             Summary
           </Text>
         </Flex>
         { isArchived ?
-          <div id="archivedBlurb" className="text">
+          <div id="archivedBlurb">
             <EyeIcon id="infoIcon"/>
             <p>Viewing Archived Program</p>
           </div>: <div></div>
@@ -379,7 +390,7 @@ export const ProgramSummary = ({
       >
         <Flex>
           <Card
-            shadow="md"
+            shadow="none"
             border="1px"
             borderColor="gray.300"
             borderRadius="15px"
@@ -393,23 +404,18 @@ export const ProgramSummary = ({
               >
                 <Flex
                   id="backProgramButton"
-                  align="center"
-                  bg="#EDF2F7"
                   onClick={() => {navigate("/programs")}}
                 >
                   <Flex
                     align="center"
-                    gap={2}
                   >
                     <Icon
                       as={ChevronLeftIcon}
                       boxSize={6}
-                      color="gray.600"
                     />
                     <Text
-                      fontSize="xl"
-                      fontWeight="semibold"
-                      color="gray.600"
+                      fontSize="14px"
+                      fontWeight="700"
                     >
                       Programs
                     </Text>
@@ -493,26 +499,35 @@ export const ProgramSummary = ({
               <Stack spacing={6}>
                 <Heading
                   as="h2"
-                  size="md"
-                  textColor="gray.600"
+                  fontSize="24px"
                 >
                   {program[0]?.name || "Untitled Program"}
                 </Heading>
+                <Flex
+                  align="center"
+                  gap={2}
+                >
+                  <Icon as={RepeatIcon} size="md"/>
+                </Flex>
+
 
                 <Flex
                   align="center"
                   gap={2}
-                  color="gray.700"
                 >
-                  <Icon as={TimeIcon} />
+                  <Icon as={ClockIcon} />
                   <Text>
                     {nextSession
                       ? `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
                       : "No session scheduled"}
                   </Text>
-                  <Text color="gray.600">next up on</Text>
+                </Flex>
+                <Flex
+                  align="center"
+                  gap={2}
+                >
                   <Icon as={CalendarIcon} />
-                  <Text>
+                  <Text>Starts on {" "}
                     {nextSession?.date
                       ? new Date(nextSession.date).toLocaleDateString("en-US", {
                           year: "numeric",
@@ -520,43 +535,36 @@ export const ProgramSummary = ({
                           day: "2-digit",
                         })
                       : "No date available"}
+                      {" "}and ends on{" "}
                   </Text>
                 </Flex>
-
                 <Flex
-                  spacing={2}
-                  gap={6}
+                  align="center"
+                  gap={2}
                 >
-                  <Flex
-                    align="center"
-                    gap={2}
-                  >
-                    <Icon
-                      as={UserIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">
-                      {payees?.length > 0
-                        ? payees.map((payee) => payee.clientName).join(", ")
-                        : "No payees"}
-                    </Text>
-                  </Flex>
-                  <Flex
-                    align="center"
-                    gap={2}
-                  >
-                    <Icon
-                      as={UserIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">
-                      {instructors?.length > 0
-                        ? instructors
-                            .map((instructor) => instructor.clientName)
-                            .join(", ")
-                        : "No instructors"}
-                    </Text>
-                  </Flex>
+                  <Icon
+                    as={PaintPaletteIcons}
+                  />
+                  <Text>
+                    {payees?.length > 0
+                      ? payees.map((payee) => payee.clientName).join(", ")
+                      : "No payees"}
+                  </Text>
+                </Flex>
+                <Flex
+                  align="center"
+                  gap={2}
+                >
+                  <Icon
+                    as={ProfileIcon}
+                  />
+                  <Text>
+                    {instructors?.length > 0
+                      ? instructors
+                          .map((instructor) => instructor.clientName)
+                          .join(", ")
+                      : "No instructors"}
+                  </Text>
                 </Flex>
 
                 <Flex
@@ -569,9 +577,8 @@ export const ProgramSummary = ({
                   >
                     <Icon
                       as={EmailIcon}
-                      color="gray.600"
                     />
-                    <Text color="gray.600">
+                    <Text>
                       {payees?.length > 0
                         ? [...(payees || [])]
                             .map((person) => person?.clientEmail)
@@ -591,31 +598,26 @@ export const ProgramSummary = ({
                     gap={2}
                   >
                     <Icon
-                      as={InfoIcon}
-                      color="gray.600"
+                      as={LocationIcon}
                     />
-                    <Text color="gray.600">{nextRoom?.name || "-"}</Text>
+                    <Text>{nextRoom?.name || "-"}</Text>
                   </Flex>
                   <Flex
                     align="center"
                     gap={2}
                   >
-                    <Text color="gray.600">$</Text>
-                    <Text color="gray.600">{nextRoom?.rate || "-.--"}</Text>
-                    <Text color="gray.600">/ hour</Text>
+                    <DollarIcon />
+                    <Text>{nextRoom?.rate || "-.--"}</Text>
+                    <Text>/ hour</Text>
                   </Flex>
                 </Flex>
 
                 <Stack spacing={6}>
                   <Box spacing={2}>
-                    <Heading
-                      size="md"
-                      textColor="gray.600"
-                    >
+                    <Heading size="md">
                       Room Description
                     </Heading>
                     <Text
-                      color="gray.600"
                       text="xs"
                       mt={4}
                     >
@@ -626,12 +628,10 @@ export const ProgramSummary = ({
                   <Box>
                     <Heading
                       size="md"
-                      textColor="gray.600"
                     >
                       Class Description
                     </Heading>
                     <Text
-                      color="gray.600"
                       text="xs"
                       mt={4}
                     >
@@ -821,52 +821,44 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
           mb={4}
         >
           <Icon as={sessionsCalendar} />
-          <Text className="text componentTitleText">
+          <Text className="componentTitleText">
             Sessions
           </Text>
         </Flex>
         <Card
-          shadow="md"
+          shadow="none"
           border="1px"
           borderColor="gray.300"
           borderRadius="15px"
         >
-          <CardBody m={6}>
+          <CardBody m={0} p={6}>
             <Flex
               direction="column"
-              justify="space-between"
             >
               <Flex
                 gap="12px"
-                alignItems="center"
+                height="auto"
               >
                 <Button
-                  bg="#f2f6fb"
-                  color="#1e293b"
                   fontWeight="bold"
-                  fontSize="16px"
-                  borderRadius="8px"
-                  backgroundColor="#F0F1F4"
+                  fontSize="14px"
+                  borderRadius="6px"
+                  backgroundColor="#EDF2F7"
                   height="45px"
-                  mt="10px"
-                  mb="15px"
                   px="20px"
                   _hover={{ bg: "#e0e6ed" }}
                 >
                   Select
                 </Button>
-                <Popover onClose={onClose}>
+                <Popover>
                   <PopoverTrigger>
                     <Button
                       color="#1e293b"
                       fontWeight="bold"
-                      backgroundColor="#F0F1F4"
+                      backgroundColor="#EDF2F7"
                       variant="outline"
                       minWidth="auto"
                       height="45px"
-                      mt="10px"
-                      mb="15px"
-                      onClick={onOpen}
                       border="none"
                     >
                       <Box
@@ -878,7 +870,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         <Icon as={filterButton} />
                         <Text
                           fontSize="sm"
-                          color="#767778"
                         >
                           {" "}
                           Filters{" "}
@@ -1196,85 +1187,62 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   >
                     <Tr>
                       {!isArchived ? (
-                        <Th>
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Status
-                          </Text>
+                        <Th pl={0}>
+                          <Box className="sessionsColumnContainer">
+                            <Text className="sessionsColumnTitle">
+                              STATUS
+                            </Text>
+                          </Box>
                         </Th>
                       ) : (
-                        <></>
+                        <Th></Th>
                       )}
                       <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
-                        >
-                          <Icon as={filterDateCalendar} />
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
+                        <Box className="sessionsColumnContainer" justifyContent="space-between">
+                          <Flex
+                              align="center"
+                              gap="8px"
                           >
-                            Date
-                          </Text>
-                          <Box
-                            display="flex"
-                            flexDirection="column"
-                            alignItems="flex-start"
-                            gap="2px"
-                          >
-                            <DateSortingModal onSortChange={handleSortChange} />
+                            <Box>
+                                <Icon as={archiveCalendar} />
+                            </Box>
+                            <Box>
+                                <Text
+                                  className="sessionsColumnTitle"
+                                  textTransform="none"
+                                >
+                                  DATE
+                                </Text>
+                            </Box>
+                          </Flex>
+                          <Box>
+                              <DateSortingModal onSortChange={handleSortChange} />
                           </Box>
                         </Box>
                       </Th>
                       <Th>
                         <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
+                            className="sessionsColumnContainer"
                         >
-                          <Icon as={sessionsClock} />
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Time
-                          </Text>
+                            <Icon as={archiveClock} />
+                            <Text
+                              className="sessionsColumnTitle"
+                              textTransform="none"
+                            >
+                              UPCOMING  TIME
+                            </Text>
                         </Box>
                       </Th>
                       <Th>
                         <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
+                          className="sessionsColumnContainer"
                         >
-                          <Icon
-                            as={sessionsMapPin}
-                            boxSize={4}
-                            mr={1}
-                          />
+                          <Icon as={archiveMapPin} />
                           <Text
+                            className="sessionsColumnTitle"
                             textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
                           >
-                            Room
+                              ROOM
                           </Text>
                         </Box>
                       </Th>
@@ -1289,7 +1257,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                       filteredAndSortedSessions.map((session) => (
                         <Tr key={session.id}>
                           {!isArchived ? (
-                            <Td>
+                            <Td pl={0}>
                               <Box
                                 display="flex"
                                 justifyContent="center"
