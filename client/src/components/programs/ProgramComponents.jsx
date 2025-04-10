@@ -1186,38 +1186,36 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                     color="#D2D2D2"
                   >
                     <Tr>
-                      {!isArchived ? (
                         <Th pl={0}>
-                          <Box className="sessionsColumnContainer">
+                          <Box className="sessionsColumnContainer" justifyContent="left">
                             <Text className="sessionsColumnTitle">
                               STATUS
                             </Text>
                           </Box>
                         </Th>
-                      ) : (
-                        <Th></Th>
-                      )}
                       <Th>
-                        <Box className="sessionsColumnContainer" justifyContent="space-between">
-                          <Flex
-                              align="center"
-                              gap="8px"
-                          >
+                        <Box className="sessionsColumnContainer">
+                          <Flex justifyContent="space-between" width="9rem">
+                            <Flex
+                                align="center"
+                                gap="8px"
+                            >
+                              <Box>
+                                  <Icon as={archiveCalendar} />
+                              </Box>
+                              <Box>
+                                  <Text
+                                    className="sessionsColumnTitle"
+                                    textTransform="none"
+                                  >
+                                    DATE
+                                  </Text>
+                              </Box>
+                            </Flex>
                             <Box>
-                                <Icon as={archiveCalendar} />
-                            </Box>
-                            <Box>
-                                <Text
-                                  className="sessionsColumnTitle"
-                                  textTransform="none"
-                                >
-                                  DATE
-                                </Text>
+                                <DateSortingModal onSortChange={handleSortChange} />
                             </Box>
                           </Flex>
-                          <Box>
-                              <DateSortingModal onSortChange={handleSortChange} />
-                          </Box>
                         </Box>
                       </Th>
                       <Th>
@@ -1256,11 +1254,11 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                     {filteredAndSortedSessions.length > 0 ? (
                       filteredAndSortedSessions.map((session) => (
                         <Tr key={session.id}>
-                          {!isArchived ? (
                             <Td pl={0}>
                               <Box
                                 display="flex"
-                                justifyContent="center"
+                                justifyContent="left"
+                                ml="1.5rem"
                               >
                                 <Box
                                   height="14px"
@@ -1274,9 +1272,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                                 ></Box>
                               </Box>
                             </Td>
-                          ) : (
-                            <></>
-                          )}
                           <Td>
                             <Box
                               display="flex"
