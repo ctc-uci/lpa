@@ -4,6 +4,9 @@ import './EditProgram.css';
 import {
     Button,
     Icon,
+    Box,
+    Flex,
+    Text,
 } from "@chakra-ui/react";
 import { useDisclosure, useToast } from "@chakra-ui/react";;
 
@@ -25,6 +28,7 @@ import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
 import { DateInputs } from "./programComponents/DateInputs";
 import { TimeInputs } from "./programComponents/TimeInputs";
+import { GreenCheckIcon } from "../../assets/GreenCheckIcon";
 
 
 export const EditProgram = () => {
@@ -456,12 +460,51 @@ export const EditProgram = () => {
             }
             console.log("Save complete, navigating away...");
             if (isDuplicated) {
+                const maxLength = 35;
+                const displayName = duplicatedProgramName.length > maxLength
+                  ? `"${duplicatedProgramName.substring(0, maxLength)}..."`
+                  : `"${duplicatedProgramName}"`;
+
                 duplicationToast({
                     title: "Program Duplicated",
-                    description: duplicatedProgramName,
+                    description: displayName,
                     status: "success",
                     duration: 5000,
-                    isClosable: true
+                    variant: "subtle",
+                    render: ({ title, description }) => (
+                      <Box
+                        p={4}
+                        display="flex"
+                        alignItems="center"
+                        borderLeft="4px solid var(--green-500, #38A169)"
+                        background="#C6F6D5"
+                        width="400px"
+                        height="4rem"
+                      >
+                        <Flex mr={3}>
+                          <GreenCheckIcon />
+                        </Flex>
+                        <Box flex="1">
+                          <Text
+                            fontWeight="700"
+                            fontSize="16px"
+                            color="#2D3748"
+                            fontFamily="Inter"
+                            lineHeight="24px"
+                          >
+                            {title}
+                          </Text>
+                          <Text
+                            fontWeight="400"
+                            fontSize="14px"
+                            color="2#D3748"
+                            fontFamily="Inter"
+                          >
+                            {description}
+                          </Text>
+                        </Box>
+                      </Box>
+                    )
                 });
                 navigate("/programs");
             }

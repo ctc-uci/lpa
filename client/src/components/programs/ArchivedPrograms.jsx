@@ -220,7 +220,7 @@ export const ArchivedPrograms = () => {
 
     useEffect(() => {
         getArchivedPrograms();
-    }, []);
+    }, [archivedSessions]);
 
     useEffect(() => {
         // Runs whenever searchQuery, dateRange, or timeRange changes

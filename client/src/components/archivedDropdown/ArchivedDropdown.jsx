@@ -126,13 +126,18 @@ export const ArchivedDropdown = ({programId, programName, setProgramToDelete, on
           else if (setIsArchived) {
             setIsArchived(false);
           }
+
+          const maxLength = 35;
+          const displayName = programName.length > maxLength
+            ? `"${programName.substring(0, maxLength)}..."`
+            : `"${programName}"`;
+
           reactivationToast({
             title: "Program Reactivated",
-            description: `"${programName}..."`,
+            description: displayName,
             status: "success",
-            duration: 500000,
+            duration: 5000,
             variant: "subtle",
-            position: "top",
             render: ({ title, description }) => (
               <Box
                 p={4}
