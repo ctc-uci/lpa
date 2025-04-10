@@ -1,6 +1,7 @@
 import {
   Button,
   Icon,
+  useDisclosure,
 } from "@chakra-ui/react";
 
 import { useEffect, useState, useRef } from "react";
@@ -53,7 +54,7 @@ export const AddProgram = () => {
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
   const initialState = useRef(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
     initialState.current = JSON.stringify({
@@ -125,7 +126,7 @@ export const AddProgram = () => {
   const exit = (newEventId = "") => {
     console.log(newEventId);
     if (hasChanges) {
-      setIsConfirmModalOpen(true);
+      onOpen();
       return;
     }
     if (window.history.length > 1) {
@@ -421,8 +422,8 @@ export const AddProgram = () => {
   return (
     <Navbar>
       <DeleteConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
+        isOpen={isOpen}
+        onClose={onClose}
       />
       <div id="body">
         <div id="programsBody">

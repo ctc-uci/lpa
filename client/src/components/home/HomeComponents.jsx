@@ -504,7 +504,7 @@ export const ProgramsTable = () => {
   const handleEdit = useCallback(
     (id, e) => {
       e.stopPropagation();
-      navigate(`/programs/${id}`);
+      navigate(`/programs/edit/${id}`);
     },
     [navigate]
   );
@@ -544,7 +544,7 @@ export const ProgramsTable = () => {
               alt="Archived"
               className="archive-icon"
             />
-            <span className="archive-text">Archives</span>
+            <span className="archive-text" onClick={() => {navigate('/programs/archived')}}>Archived</span>
           </div>
           <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
           <Box flex="1" />

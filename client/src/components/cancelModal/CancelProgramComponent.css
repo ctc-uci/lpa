@@ -59,10 +59,9 @@
 .menu-list-custom {
   border-radius: 6px !important;
   background: #FFF!important;
-  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
   padding: 8px !important;
-  width: 10rem!important;
-  min-width: 10rem!important;
+  width: 8.5rem!important;
+  min-width: 8.5rem!important;
 }
 
 .menu-list-custom .chakra-menu__menuitem {
@@ -76,7 +75,6 @@
   font-size: 16px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  width: 9rem!important;
 }
 
 .menu-list-custom .chakra-menu__menuitem:hover {
