@@ -3,6 +3,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import "./ArchivedDropdown.css";
 
 import {
+    Flex,
     Box,
     Icon,
     IconButton,
@@ -22,6 +23,7 @@ import {
     reactivateIcon,
     TooltipIcon
 } from "../../assets/icons/ProgramIcons";
+import { GreenCheckIcon } from "../../assets/GreenCheckIcon";
 import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
 
 const ActionsIcon = React.memo(() => (
@@ -125,11 +127,46 @@ export const ArchivedDropdown = ({programId, programName, setProgramToDelete, on
             setIsArchived(false);
           }
           reactivationToast({
-              title: "Program Reactivated",
-              description: programName,
-              status: "success",
-              duration: 5000,
-              isClosable: true
+            title: "Program Reactivated",
+            description: `"${programName}..."`,
+            status: "success",
+            duration: 500000,
+            variant: "subtle",
+            position: "top",
+            render: ({ title, description }) => (
+              <Box
+                p={4}
+                display="flex"
+                alignItems="center"
+                borderLeft="4px solid var(--green-500, #38A169)"
+                background="#C6F6D5"
+                width="400px"
+                height="4rem"
+              >
+                <Flex mr={3}>
+                  <GreenCheckIcon />
+                </Flex>
+                <Box flex="1">
+                  <Text
+                    fontWeight="700"
+                    fontSize="16px"
+                    color="#2D3748"
+                    fontFamily="Inter"
+                    lineHeight="24px"
+                  >
+                    {title}
+                  </Text>
+                  <Text
+                    fontWeight="400"
+                    fontSize="14px"
+                    color="2#D3748"
+                    fontFamily="Inter"
+                  >
+                    {description}
+                  </Text>
+                </Box>
+              </Box>
+            )
           })
           navigate("/programs");
       } catch (error) {
