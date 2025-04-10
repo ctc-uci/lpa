@@ -13,6 +13,14 @@
   line-height: normal;
 }
 
+.columnContainer {
+  display: flex;
+  padding: 8px 16px 8px 0;
+  align-items: center;
+  gap: 8px;
+}
+
+
 .th {
   padding: 12px 0px!important;
 }
@@ -29,7 +37,6 @@
   padding-left: 0!important;
   display: flex;
   justify-content: flex-start;
-  max-width: 13rem!important;
 }
 
 .td:last-child, .th:last-child {

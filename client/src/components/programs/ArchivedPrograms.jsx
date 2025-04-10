@@ -682,15 +682,8 @@ export const ArchivedPrograms = () => {
                                         color="#D2D2D2"
                                     >
                                         <Tr>
-                                            <Th className="th">
-                                                <Box
-                                                    display="flex"
-                                                    padding="8px"
-                                                    justifyContent="center"
-                                                    alignItems="center"
-                                                    gap="8px"
-                                                    width="100%"
-                                                >
+                                            <Th className="th" minWidth="20rem">
+                                                <Box className="columnContainer" width="100%">
                                                     <Text
                                                       className="archiveHeaderText"
                                                       textTransform="none"
@@ -703,6 +696,7 @@ export const ArchivedPrograms = () => {
                                                 </Box>
                                             </Th>
                                             <Th className="th">
+                                              <Box className="columnContainer" justifyContent="space-between">
                                                 <Flex
                                                     align="center"
                                                     gap="8px"
@@ -718,33 +712,25 @@ export const ArchivedPrograms = () => {
                                                             DATE
                                                         </Text>
                                                     </Box>
-                                                    <Box>
-                                                        <DateSortingModal onSortChange={handleSortChange} />
-                                                    </Box>
                                                 </Flex>
+                                                <Box>
+                                                    <DateSortingModal onSortChange={handleSortChange} />
+                                                </Box>
+                                              </Box>
                                             </Th>
-
-                                            <Th>
-                                                <Box
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    gap="8px"
-                                                >
+                                            <Th className="th">
+                                                <Box className="columnContainer">
                                                     <Icon as={archiveClock} />
                                                     <Text
                                                       className="archiveHeaderText"
                                                       textTransform="none"
                                                     >
-                                                      UPCOMING  TIME
+                                                      UPCOMING TIME
                                                     </Text>
                                                 </Box>
                                             </Th>
-                                            <Th className="th">
-                                                <Box
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    gap="8px"
-                                                >
+                                            <Th className="th" maxWidth="6rem">
+                                                <Box className="columnContainer">
                                                     <Icon as={archiveMapPin} />
                                                     <Text
                                                       className="archiveHeaderText"
@@ -755,11 +741,7 @@ export const ArchivedPrograms = () => {
                                                 </Box>
                                             </Th>
                                             <Th className="th">
-                                                <Box
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    gap="8px"
-                                                >
+                                                <Box className="columnContainer">
                                                     <Icon as={archivePaintPalette} />
                                                     <Text
                                                       className="archiveHeaderText"
@@ -770,11 +752,7 @@ export const ArchivedPrograms = () => {
                                                 </Box>
                                             </Th>
                                             <Th className="th">
-                                                <Box
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    gap="8px"
-                                                >
+                                                <Box className="columnContainer">
                                                     <Icon as={archivePerson} />
                                                     <Text
                                                       className="archiveHeaderText"
@@ -791,7 +769,7 @@ export const ArchivedPrograms = () => {
                                         {sortedArchivedSessions.length > 0 ? (
                                             sortedArchivedSessions.map((programSession) => (
                                                 <Tr key={programSession.programId}>
-                                                    <Td className="td">{programSession.programName}</Td>
+                                                    <Td className="td"  minWidth="20rem">{programSession.programName}</Td>
                                                     <Td className="td">
                                                         {programSession.sessionDate !== "N/A"
                                                             ? formatDate(programSession.sessionDate)
@@ -802,7 +780,7 @@ export const ArchivedPrograms = () => {
                                                             ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
                                                             : "N/A"}
                                                     </Td>
-                                                    <Td className="td">
+                                                    <Td className="td" maxWidth="6rem">
                                                         {programSession.room !== "N/A"
                                                             ? programSession.room
                                                             : "N/A"}
