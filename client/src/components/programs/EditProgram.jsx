@@ -287,6 +287,7 @@ export const EditProgram = () => {
             )
         );
         setSearchedInstructors(filteredInstructors);
+        console.log
     };
 
     const getPayeeResults = async (search) => {

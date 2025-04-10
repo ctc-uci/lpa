@@ -382,12 +382,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   margin: .5rem;
 }
 
-#deactivateConfirm {
-  border-radius: 30px;
-  background: var(--deep-red, #90080F);
-  margin: 0;
-}
-
 .horizontal {
   display: flex;
   flex-direction: row;

@@ -10,7 +10,6 @@ const TimeInput = ({ value, onChange }) => (
   <Input
     type="time"
     size="md"
-    defaultValue="00:00"
     onChange={onChange}
     backgroundColor="#fff"
     color={!value ? "#E2E8F0" : "#2D3748"}

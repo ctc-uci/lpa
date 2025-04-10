@@ -25,10 +25,10 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
     <div id="location">
         <LocationIcon />
         {locations && locations.length > 0 ? (
-        <Popover placement="bottom-start" matchWidth>
+        <Popover placement="bottom-start">
           <PopoverTrigger>
             <Box
-              width="200px"
+              width="350px"
               height="40px"
               backgroundColor="white"
               border="1px solid #E2E8F0"
@@ -50,7 +50,7 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
             <ArrowDropdown />
             </Box>
           </PopoverTrigger>
-          <PopoverContent width="200px" boxShadow="none" outline="none" background="white">
+          <PopoverContent width="250px!important" boxShadow="none" outline="none" background="white">
             <PopoverBody>
               <VStack align="start" spacing={2}>
                 {locations.map((location) => (

@@ -14,6 +14,7 @@ import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
+import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
 import { TitleInformation } from "./programComponents/TitleInformation";
 import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { PayeesDropdown } from "./programComponents/PayeesDropdown"
@@ -55,6 +56,11 @@ export const AddProgram = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const initialState = useRef(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: cancelIsOpen,
+    onOpen: cancelOnOpen,
+    onClose : cancelOnClose,
+  } = useDisclosure();
 
   useEffect(() => {
     initialState.current = JSON.stringify({
@@ -427,11 +433,23 @@ export const AddProgram = () => {
       />
       <div id="body">
         <div id="programsBody">
-          <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
+          <div>
+            <Icon
+              fontSize="xl"
+              onClick={cancelOnOpen}
+              id="leftCancel"
+            >
+              <IoCloseOutline/>
+            </Icon>
+            <UnsavedChangesModal
+              isOpen={cancelIsOpen}
+              onOpen={cancelOnOpen}
+              onClose={cancelOnClose}
+              exit={exit}
+            />
+          </div>
           <div id="eventInfoBody">
             <div id="title">
-              {/* <h1><b>{eventName}</b></h1> */}
-
               <TitleInformation
                 eventName={eventName}
                 setEventName={setEventName}

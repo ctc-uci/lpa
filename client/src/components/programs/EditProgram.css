@@ -163,7 +163,13 @@ button#saveProgram {
   flex-direction: row!important;
   gap: 1rem;
   align-items: center;
-  font-size: 1.2rem;
+  color: var(--Secondary-8, #2D3748);
+  font-family: Inter;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: 0.07px;
 }
 
 #instructorTags, #payeeTags {
@@ -172,7 +178,7 @@ button#saveProgram {
   position: absolute;
   left: 0;
   top: 0;
-  margin: 0 0 3% 27%;
+  margin: 0 0 3% 265px!important;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -210,7 +216,7 @@ button#saveProgram {
   flex-direction: row;
   border: 1px lightgrey solid;
   border-radius: 5px;
-  width: 25%;
+  width: 250px!important;
   background: #F6F6F6;
 }
 

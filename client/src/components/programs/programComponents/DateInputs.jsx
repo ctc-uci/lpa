@@ -16,10 +16,7 @@ export const DateInputs = ( { startDate, setStartDate, endDate, setEndDate } ) =
         value={startDate}
         onChange={(e) => setStartDate(e.target.value)}
         backgroundColor="#fff"
-        color="#2D3748"
-        _placeholder={{
-          color: "#E2E8F0",
-        }}
+        color={!startDate ? "#E2E8F0" : "#2D3748"}
         borderColor="#E2E8F0"
         borderWidth="1px"
         borderRadius="4px"
@@ -33,10 +30,7 @@ export const DateInputs = ( { startDate, setStartDate, endDate, setEndDate } ) =
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
         backgroundColor="#fff"
-        color="#2D3748"
-        _placeholder={{
-          color: "#E2E8F0",
-        }}
+        color={!endDate ? "#E2E8F0" : "#2D3748"}
         borderColor="#E2E8F0"
         borderWidth="1px"
         borderRadius="4px"
