@@ -13,10 +13,17 @@ export const Program = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const [program, setProgram] = useState(null);
+  const [programName, setProgramName] = useState("");
   const [sessions, setSessions] = useState(null);
   const [roomIds, setRoomIds] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
-  const [nextBookingInfo, setNextBookingInfo] = useState(null);
+  const [nextBookingInfo, setNextBookingInfo] = useState({
+    nextSession: {},
+    nextRoom: {},
+    assignments: {},
+    instructors: [],
+    payees: [],
+  });
   const [isArchived, setIsArchived] = useState(false);
 
   const getProgram = async () => {
@@ -24,6 +31,7 @@ export const Program = () => {
       const programResponse = await backend.get(`/events/${id}`);
       const programData = programResponse.data;
       setProgram(programData); // programData should have what Events table in DB model contains
+      setProgramName(programData[0].name);
       setIsArchived(programData[0].archived);
     } catch {
       console.log("From getProgram: ", error);
@@ -92,6 +100,7 @@ export const Program = () => {
         ...new Set(sessionsData.map((session) => session.roomId)),
       ];
       setRoomIds(uniqueRoomIds);
+
     } catch (error) {
       console.log("From getSessions: ", error);
     }
@@ -129,19 +138,6 @@ export const Program = () => {
     }
   }, [program, sessions]);
 
-  // if (isArchived){
-  //   return(
-  //     <Navbar>
-  //       <Box style = {{ width : "100%", padding : "20px"}}>
-  //         <Text> Program is archived.</Text>
-  //       <Box>
-  //         <Text fontSize = "lg"> Archived Program Information </Text>
-  //       </Box>
-  //     </Box>
-  //   </Navbar>
-  //   )
-  // }
-
   return (
     <Navbar>
       <Box style={{width: "100%", padding: "20px 20px 20px 20px"}}>
@@ -153,8 +149,11 @@ export const Program = () => {
             eventId={id}
           />
           <Sessions
+            programName={programName}
             sessions={sessions}
             rooms={roomNames}
+            instructors={nextBookingInfo.instructors}
+            payees={nextBookingInfo.payees}
             isArchived={isArchived}
             setIsArchived={setIsArchived}
             eventId={id}

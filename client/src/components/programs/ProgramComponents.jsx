@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 
 import { CancelIcon } from "../../assets/CancelIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
@@ -15,6 +15,7 @@ import {
   ChevronLeftIcon,
 } from "@chakra-ui/icons";
 import {
+  HStack,
   Alert,
   AlertDescription,
   AlertTitle,
@@ -79,6 +80,7 @@ import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import clockSvg from "../../assets/icons/clock.svg";
 import { CalendarIcon } from "../../assets/CalendarIcon";
+import personSvg from "../../assets/icons/person.svg";
 
 import {
   filterButton,
@@ -100,11 +102,19 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
 import { CancelProgram } from  "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from  "../cancelModal/EditCancelPopup";
+import { SearchBar } from "../searchBar/SearchBar";
 
 const ClockIcon = React.memo(() => (
   <img
     src={clockSvg}
     alt="Clock"
+  />
+));
+
+const PersonIcon = React.memo(() => (
+  <img
+    src={personSvg}
+    alt="Person"
   />
 ));
 
@@ -657,7 +667,7 @@ export const ProgramSummary = ({
 };
 
 
-export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
+export const Sessions = ({ programName, sessions, rooms, instructors, payees, isArchived, setIsArchived }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const [programToDelete, setProgramToDelete] = useState(null);
@@ -666,12 +676,19 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [status, setStatus] = useState("All");
   const [selectedRoom, setSelectedRoom] = useState("All");
   const [programs, setPrograms] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
   const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
   // At the top of your Sessions component where other state variables are defined
-  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
-    []
-  );
+
+ const roomsMap = useMemo(() => {
+  return rooms ?? new Map();
+}, [rooms]);
+
+
+useEffect(()=>{
+  console.log(instructors)
+},[instructors]);
 
   const handleEdit = useCallback(
     (id, e) => {
@@ -689,12 +706,38 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     [onOpen]
   );
 
-  // Add this effect to handle both filtering and sorting whenever relevant dependencies change
-  useEffect(() => {
-    if (!sessions || !rooms) return;
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
 
+    // Format the date to "Mon 01/17/2025"
+    const options = {
+      weekday: "short", // "Mon"
+      year: "numeric", // "2025"
+      month: "2-digit", // "01"
+      day: "2-digit",
+    };
+    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
+    formattedDate = formattedDate.replace(",", ".");
+    return formattedDate;
+  };
+
+   const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(":").map(Number);
+
+    // Determine AM or PM suffix
+    const period = hours >= 12 ? "p.m." : "a.m.";
+
+    // Convert to 12-hour format
+    const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+
+    // Return formatted time
+    return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
+
+  // Add this effect to handle both filtering and sorting whenever relevant dependencies change
+  const filterSessions = () => {
     // Step 1: Filter the sessions
-    const filtered = sessions.filter((session) => {
+    return sessions.filter((session) => {
       const sessionDate = new Date(session.date);
       const sessionStartTime = session.startTime;
       const sessionEndTime = session.endTime;
@@ -710,14 +753,42 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         (status === "Active" && !hasTimePassed(session.date)) ||
         (status === "Past" && hasTimePassed(session.date));
       const isRoomMatch =
-        selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
+        selectedRoom === "All" || roomsMap.get(session.roomId) === selectedRoom;
 
-      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+                programName.toLowerCase().includes(searchLower) ||
+                roomsMap.get(session.roomId).toLowerCase().includes(searchLower) ||
+                (instructors &&
+                    instructors.some((instructor) =>
+                        instructor.clientName.toLowerCase().includes(searchLower)
+                    )) ||
+                (payees &&
+                    payees.some((payee) =>
+                        payee.clientName.toLowerCase().includes(searchLower)
+                    )) ||
+                session.date.includes(searchQuery) ||
+                formatDate(session.date).includes(searchQuery) ||
+                formatTime(sessionStartTime).includes(searchQuery) ||
+                sessionStartTime.includes(searchQuery) ||
+                sessionEndTime.includes(searchQuery);
+      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch && matchesSearch;
     });
+  };
 
+  const filteredAndSortedSessions = useMemo(() => {
+    if (!programName || !sessions || !roomsMap || !programName || !instructors || !payees) return;
     // Step 2: Sort the filtered sessions
+    const filtered = filterSessions();
     const sorted = [...filtered];
-    if (sortKey === "date") {
+
+    if (sortKey === "title") {
+      sorted.sort((a, b) =>
+          sortOrder === "asc"
+              ? a.programName.localeCompare(b.programName)
+              : b.programName.localeCompare(a.programName)
+      );
+    } else if (sortKey === "date") {
       sorted.sort((a, b) => {
         const aInvalid = !a.date || a.date === "N/A";
         const bInvalid = !b.date || b.date === "N/A";
@@ -734,50 +805,27 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     }
 
     // Step 3: Set the filtered and sorted sessions
-    setFilteredAndSortedSessions(sorted);
+    // setFilteredAndSortedSessions(sorted);
+    console.log("sorted: ", sorted);
+    return sorted;
   }, [
     dateRange,
     timeRange,
     status,
     selectedRoom,
     sessions,
+    instructors,
+    payees,
     rooms,
     sortKey,
     sortOrder,
+    searchQuery
   ]);
 
   // Function to update sorting
   const handleSortChange = (key, order) => {
     setSortKey(key);
     setSortOrder(order);
-  };
-
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-
-    // Format the date to "Mon 01/17/2025"
-    const options = {
-      weekday: "short", // "Mon"
-      year: "numeric", // "2025"
-      month: "2-digit", // "01"
-      day: "2-digit",
-    };
-    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
-    formattedDate = formattedDate.replace(",", ".");
-    return formattedDate;
-  };
-
-  const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(":").map(Number);
-
-    // Determine AM or PM suffix
-    const period = hours >= 12 ? "p.m." : "a.m.";
-
-    // Convert to 12-hour format
-    const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
-
-    // Return formatted time
-    return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
 
   const hasTimePassed = (dateTimeString) => {
@@ -792,7 +840,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   //   return <div>Loading...</div>; // Possibly change loading indicator
   // }
   // Make sure rooms is fetched before rendering
-  if (!rooms || rooms.length === 0) {
+  if (!rooms || roomsMap.length === 0) {
     return <div>Loading...</div>; // Possibly change loading indicator
   }
 
@@ -803,6 +851,11 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const handleTimeChange = (field, value) => {
     setTimeRange((prev) => ({ ...prev, [field]: value }));
   };
+
+  const handleSearch = (query) => {
+        // Sets query for filterSessions
+        setSearchQuery(query);
+    };
 
   return (
     <>
@@ -1143,9 +1196,9 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                                       All
                                     </Button>
                                   </WrapItem>
-                                  {Array.from(rooms.values()).map(
+                                  {Array.from(roomsMap.values()).map(
                                     (room, index) => (
-                                      <WrapItem>
+                                      <WrapItem key={index}>
                                         <Button
                                           key={index}
                                           borderRadius="30px"
@@ -1178,6 +1231,11 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                     </PopoverContent>
                   </Portal>
                 </Popover>
+                <SearchBar
+                  handleSearch={handleSearch}
+                  searchQuery={searchQuery}
+                />
+
               </Flex>
               <TableContainer>
                 <Table variant="unstyled">
@@ -1186,13 +1244,13 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                     color="#D2D2D2"
                   >
                     <Tr>
-                        <Th pl={0}>
-                          <Box className="sessionsColumnContainer" justifyContent="left">
-                            <Text className="sessionsColumnTitle">
-                              STATUS
-                            </Text>
-                          </Box>
-                        </Th>
+                      <Th pl={0}>
+                        <Box className="sessionsColumnContainer" justifyContent="left">
+                          <Text className="sessionsColumnTitle">
+                            STATUS
+                          </Text>
+                        </Box>
+                      </Th>
                       <Th>
                         <Box className="sessionsColumnContainer">
                           <Flex justifyContent="space-between" width="9rem">
@@ -1244,14 +1302,25 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           </Text>
                         </Box>
                       </Th>
-                      {/* Empty headers as space for the menu ellipsis button */}
-                      <Th> </Th>
-                      <Th> </Th>
+                      <Th>
+                        <HStack>
+                          <PaintPaletteIcons />
+                          <Text className="sessionsColumnTitle"
+                            textTransform="none">LEAD ARTIST(S)</Text>
+                        </HStack>
+                      </Th>
+                      <Th>
+                        <HStack>
+                          <PersonIcon />
+                          <Text className="sessionsColumnTitle"
+                            textTransform="none">PAYER(S)</Text>
+                        </HStack>
+                      </Th>
                       <Th> </Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {filteredAndSortedSessions.length > 0 ? (
+                    {filteredAndSortedSessions !== undefined && filteredAndSortedSessions.length > 0 ? (
                       filteredAndSortedSessions.map((session) => (
                         <Tr key={session.id}>
                             <Td pl={0}>
@@ -1273,31 +1342,33 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                               </Box>
                             </Td>
                           <Td>
-                            <Box
-                              display="flex"
-                              justifyContent="center"
-                              alignItems="center"
-                            >
+                            <Box className="sessionData">
                               {formatDate(session.date)}
                             </Box>
                           </Td>
                           <Td>
-                            <Box
-                              display="flex"
-                              justifyContent="center"
-                              alignItems="center"
-                            >
+                            <Box className="sessionData">
                               {formatTime(session.startTime)} -{" "}
                               {formatTime(session.endTime)}
                             </Box>
                           </Td>
                           <Td>
+                            <Box className="sessionData">
+                              {roomsMap.get(session.roomId)}
+                            </Box>
+                          </Td>
+                          <Td>
                             <Box
-                              display="flex"
-                              justifyContent="center"
-                              alignItems="center"
+                              className="sessionData ellipsis-box"
                             >
-                              {rooms.get(session.roomId)}
+                              {instructors.map(i => i.clientName).join(', ')}
+                            </Box>
+                          </Td>
+                          <Td>
+                            <Box
+                              className="sessionData ellipsis-box"
+                            >
+                              {payees.map(p => p.clientName).join(', ')}
                             </Box>
                           </Td>
                           <Td>

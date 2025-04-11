@@ -38,6 +38,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  max-width: 10rem;
 }
 
 .sessionsColumnTitle {
@@ -127,6 +128,21 @@
   background-color: #EDF2F7;
 }
 
+.sessionData {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ellipsis-box {
+justify-content: flex-start;
+  width: 100%;
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis!important;
+  white-space: nowrap;
+  display: block;
+}
 
 
 
