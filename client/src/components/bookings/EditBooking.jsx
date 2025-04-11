@@ -84,6 +84,7 @@ export const EditBooking = () => {
   const [endTime, setEndTime] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [day, setDay] = useState("");
   const [selectedDays, setSelectedDays] = useState([]);
   const [bookingIds, setBookingIds] = useState([]);
   const [eventId, setEventId] = useState();
@@ -142,6 +143,10 @@ export const EditBooking = () => {
           ])
       ).values()
     );
+
+    const daysMap = { 0: 'Sunday', 1: 'Monday', 2: "Tueday", 3: "Wedday", 4: "Thuday", 5: 'Friday', 6: "Satday" };
+    setDay(daysMap[(new Date(eventResponse.data[0].date.split("T")[0]).getDay())]);
+
 
     const payees = Array.from(
       new Map(
@@ -233,39 +238,35 @@ export const EditBooking = () => {
               {eventName}
             </div>
             <div id="innerBody">
-                <TimeInputs
-                    selectedDays={selectedDays}
-                    setSelectedDays={setSelectedDays}
-                    startTime={startTime}
-                    endTime={endTime}
-                    setStartTime={setStartTime}
-                    setEndTime={setEndTime}
+              <TimeInputs
+                  selectedDays={selectedDays}
+                  setSelectedDays={setSelectedDays}
+                  startTime={startTime}
+                  endTime={endTime}
+                  setStartTime={setStartTime}
+                  setEndTime={setEndTime}
+              />
+              <Flex id="bookingDate">
+                <CalendarIcon/>
+                <span>On {day}</span>
+                <Input
+                  type="date1"
+                  size="md"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  backgroundColor="#fff"
+                  color="#2D3748"
+                  _placeholder={{
+                    color: "#E2E8F0",
+                  }}
+                  borderColor="#E2E8F0"
+                  borderWidth="1px"
+                  borderRadius="4px"
+                  w={150}
+                  textAlign="center"
+                  marginLeft="1rem"
                 />
-                <div>
-                  <Icon
-                    boxSize={6}
-                    fontSize="lg"
-                  >
-                    <CalendarIcon />
-                  </Icon> On
-                  <Input
-                    type="date1"
-                    size="md"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    backgroundColor="#fff"
-                    color="#2D3748"
-                    _placeholder={{
-                      color: "#E2E8F0",
-                    }}
-                    borderColor="#E2E8F0"
-                    borderWidth="1px"
-                    borderRadius="4px"
-                    w={150}
-                    textAlign="center"
-                    marginLeft="1rem"
-                  />
-                </div>
+              </Flex>
 
               <Flex id="instructor">
                 <PaintPaletteIcons />

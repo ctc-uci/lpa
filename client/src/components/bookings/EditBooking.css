@@ -234,7 +234,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   flex-direction: column;
 }
 
-#instructor > span, #payee > span, #emails > span {
+#bookingDate {
+  align-items: center;
+}
+
+#instructor > span, #payee > span, #emails > span, #bookingDate > span {
   color: var(--Secondary-8, #2D3748);
   font-family: Inter;
   font-style: normal;
