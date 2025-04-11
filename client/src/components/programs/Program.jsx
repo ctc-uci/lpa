@@ -143,6 +143,7 @@ export const Program = () => {
       <Box style={{width: "100%", padding: "20px 20px 20px 20px"}}>
           <ProgramSummary
             program={program}
+            sessions={sessions}
             bookingInfo={nextBookingInfo}
             isArchived={isArchived}
             setIsArchived={setIsArchived}

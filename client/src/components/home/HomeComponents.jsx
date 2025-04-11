@@ -157,9 +157,13 @@ const TableRow = React.memo(
         </Td>
         <Td>{program.upcomingDate}</Td>
         <Td>{program.upcomingTime}</Td>
-        <Td>{program.room}</Td>
-        <Td>{truncateNames(program.instructor)}</Td>
-        <Td>{truncateNames(program.payee)}</Td>
+        <Td><Box maxWidth="5rem">{program.room}</Box></Td>
+        <Td>
+          <Box className="programs-ellipsis-box">{truncateNames(program.instructor)}</Box>
+        </Td>
+        <Td>
+          <Box className="programs-ellipsis-box">{truncateNames(program.payee)}</Box>
+        </Td>
         <Td
           borderRightRadius="12px"
           onClick={(e) => e.stopPropagation()}
@@ -228,18 +232,19 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
           </Text>
         </HStack>
       </Th>
-      <Th justifyContent="center">
+      <Th justifyContent="center" maxWidth="8rem">
         <HStack>
           <PaintPaletteIcons />
           <Text className="table-header-text">LEAD ARTIST(S)</Text>
         </HStack>
       </Th>
-      <Th justifyContent="center">
+      <Th justifyContent="center"  maxWidth="10rem">
         <HStack>
           <PersonIcon />
           <Text className="table-header-text">PAYER(S)</Text>
         </HStack>
       </Th>
+      <Th></Th>
     </Tr>
   </Thead>
 ));

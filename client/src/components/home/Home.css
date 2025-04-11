@@ -67,7 +67,7 @@
 .archive {
   margin-right: 24px;
   display: flex;
-  height: 54.795px;
+  height: 40px;
   padding: 4px 16px;
   justify-content: center;
   align-items: center;
@@ -164,8 +164,8 @@
 /* ========================= */
 
 .filter-box {
-  height: 54.795px !important;
-  min-height: 54.795px !important;
+  height: 40px !important;
+  min-height: 40px !important;
   padding: 8px 16px !important;
   border-radius: 6px !important;
   background: var(--white) !important;
@@ -238,6 +238,16 @@
   font-weight: 700;
   line-height: normal;
   text-transform: none;
+}
+
+.programs-ellipsis-box {
+justify-content: flex-start;
+  width: 100%;
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis!important;
+  white-space: nowrap;
+  display: block;
 }
 
 /* ========================= */

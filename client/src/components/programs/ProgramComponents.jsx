@@ -120,11 +120,13 @@ const PersonIcon = React.memo(() => (
 
 export const ProgramSummary = ({
   program,
+  sessions,
   bookingInfo,
   isArchived,
   setIsArchived,
   eventId,
 }) => {
+
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const {
@@ -132,6 +134,11 @@ export const ProgramSummary = ({
     onOpen: modalOnOpen,
     onClose: modalOnClose,
   } = useDisclosure();
+  const [repeatChoice, setRepeatChoice] = useState();
+  const [lastBooking, setLastBooking] = useState();
+  const [startDay, setStartDay] = useState();
+  const [lastDay, setLastDay] = useState();
+  const [dayTimePattern, setDayTimePattern] = useState();
 
   const {
     isOpen: popoverIsOpen,
@@ -240,6 +247,12 @@ export const ProgramSummary = ({
       };
       await backend.post("/bookings", bookingInfo);
     }
+    console.log("bookingInfo ", bookingInfo.date);
+    if (bookingInfo) {
+      setLastBooking(bookingInfo)
+    }
+
+
     console.log("event response ", response.data.id);
     const duplicateId = response.data.id;
 
@@ -264,12 +277,115 @@ export const ProgramSummary = ({
     navigate("/programs/" + duplicateId);
   };
 
+  function findDateTimePattern(bookings) {
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  const pattern = {};
+  let lastDate = null;
+
+  bookings.forEach((booking) => {
+    const dateObj = new Date(booking.date);
+    const day = dayNames[dateObj.getUTCDay()];
+    const formattedStartTime = formatTime(booking.startTime);
+    const formattedEndTime = formatTime(booking.endTime);
+
+    // Initialize array if not exists
+    if (!pattern[day]) {
+      pattern[day] = new Set();
+    }
+
+    // Record time slot
+    pattern[day].add(`${formattedStartTime} - ${formattedEndTime}`);
+
+    // Update last date
+    if (!lastDate || dateObj > new Date(lastDate)) {
+      lastDate = booking.date;
+    }
+  });
+
+  // Convert Sets to Arrays for readability
+  const readablePattern = {};
+  for (const [day, times] of Object.entries(pattern)) {
+    readablePattern[day] = Array.from(times);
+  }
+
+  return {
+    pattern: readablePattern,
+    lastDate: lastDate ? new Date(lastDate).toISOString().split("T")[0] : null,
+  };
+  }
+
+  function getDayOfWeek(date) {
+    const daysMap = ["Sun.", "Mon.", "Tues.", "Wed.", "Thurs.", "Fri.", "Sat."];
+    return daysMap[(new Date(date).getDay())]
+  }
+
+  function shortenDayOfWeek(day) {
+    const daysMap = {
+      "Sunday": "Sun.",
+      "Monday": "Mon.",
+      "Tuesday": "Tues.",
+      "Wednesday": "Wed.",
+      "Thursday": "Thurs.",
+      "Friday": "Fri.",
+      "Saturday": "Sat."
+    };
+    return daysMap[day]
+  }
+
+  useEffect(() => {
+  console.log("sessions: ", sessions);
+    if (sessions) {
+      const result = findDateTimePattern(sessions);
+      setLastBooking(result.lastDate);
+      setLastDay(getDayOfWeek(result.lastDate));
+      // const entries = Object.entries(result.pattern);
+      // const patternList = [];
+      // entries.slice(0, 2).forEach(([day, times]) => {
+      //   const seTimes= times[0].split(" - ");
+      //   console.log(formatTimeString(seTimes[0]) + " - " + formatTimeString(seTimes[1]) + " on " + day);
+      //   patternList.push(formatTimeString(seTimes[0]) + " - " + formatTimeString(seTimes[1]) + " on " + day);
+      // });
+      setDayTimePattern(Object.entries(result.pattern));
+      setDayTimePattern(Object.entries(result.pattern));
+      if (!sessions || sessions.length < 2) setRepeatChoice("Does not repeat");
+
+      const dates = sessions
+        .map(session => new Date(session.date))
+        .sort((a, b) => a - b);
+
+      // Calculate gaps in days
+      const gaps = dates.slice(1).map((date, i) => {
+        const prevDate = dates[i];
+        return Math.round((date - prevDate) / (1000 * 60 * 60 * 24)); // in days
+      });
+
+      const allSameGap = gaps.every(gap => gap === gaps[0]);
+
+      if (allSameGap) {
+        const gap = gaps[0];
+        if (gap === 7) setRepeatChoice("Every week");
+        if (gap >= 28 && gap <= 31) setRepeatChoice("Every month");
+        if (gap >= 364 && gap <= 366) setRepeatChoice("Every year");
+      }
+
+      setRepeatChoice("Custom");
+    } else {console.log("no sessions");}
+  }, [sessions]);
+
+
+// Helper function to format time like "00:00:00+00" -> "00:00"
+function formatTime(timeString) {
+  // Extract HH:MM from "HH:MM:SS+00"
+  return timeString.split(":").slice(0, 2).join(":");
+}
+
+
   const handleDeactivate = () => {
     modalOnOpen();
   };
 
   const handleArchive = async () => {
-    console.log(program[0].id);
     try {
       await backend.put(`/events/${program[0].id}`, {
         archived: true,
@@ -328,6 +444,15 @@ export const ProgramSummary = ({
     ...(bookingInfo || {}),
   };
 
+  const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
+
+
+  useEffect(() => {
+    setStartDay(getDayOfWeek(nextSession.date));
+
+  }, [nextSession]);
+
+
   // Make sure program data is fetched before rendering
   if (!program || program.length === 0) {
     return (
@@ -366,8 +491,6 @@ export const ProgramSummary = ({
       </Box>
     );
   }
-
-  const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
 
   return (
     <Box className="componentContainer">
@@ -517,7 +640,7 @@ export const ProgramSummary = ({
                   align="center"
                   gap={2}
                 >
-                  <Icon as={RepeatIcon} size="md"/>
+                  <Icon as={RepeatIcon} size="md"/>{repeatChoice}
                 </Flex>
 
 
@@ -526,27 +649,43 @@ export const ProgramSummary = ({
                   gap={2}
                 >
                   <Icon as={ClockIcon} />
-                  <Text>
-                    {nextSession
+                  <Stack>
+                    {/* {nextSession
                       ? `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
-                      : "No session scheduled"}
-                  </Text>
+                      : "No session scheduled"} */}
+                    {dayTimePattern ? dayTimePattern.map(([day, times]) => (
+                          <Flex key={day} width="25rem">
+                            <Text width="10rem">{formatTimeString(times[0].split(" - ")[0])} - {formatTimeString(times[0].split(" - ")[1])}</Text>
+                            <Text key={day} width="12rem"> on {shortenDayOfWeek(day)}</Text>
+                          </Flex>
+                        )) : "No session scheduled"}
+                  </Stack>
                 </Flex>
                 <Flex
                   align="center"
                   gap={2}
                 >
                   <Icon as={CalendarIcon} />
-                  <Text>Starts on {" "}
-                    {nextSession?.date
+                  <HStack spacing=".5rem">
+                    <Text>Starts on</Text>
+                    <Text as="span" fontWeight="500">{startDay}</Text>
+                    <Text as="span" fontWeight="500">{nextSession?.date
                       ? new Date(nextSession.date).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "2-digit",
                           day: "2-digit",
                         })
-                      : "No date available"}
-                      {" "}and ends on{" "}
-                  </Text>
+                      : "No date available"}</Text>
+                    <Text>and ends on</Text>
+                    <Text as="span" fontWeight="500">{lastDay}</Text>
+                    <Text as="span" fontWeight="500">{lastBooking?
+                      new Date(lastBooking).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        })
+                      : "No date available"}</Text>
+                  </HStack>
                 </Flex>
                 <Flex
                   align="center"
@@ -685,11 +824,6 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
   return rooms ?? new Map();
 }, [rooms]);
 
-
-useEffect(()=>{
-  console.log(instructors)
-},[instructors]);
-
   const handleEdit = useCallback(
     (id, e) => {
       e.stopPropagation();
@@ -806,7 +940,6 @@ useEffect(()=>{
 
     // Step 3: Set the filtered and sorted sessions
     // setFilteredAndSortedSessions(sorted);
-    console.log("sorted: ", sorted);
     return sorted;
   }, [
     dateRange,
