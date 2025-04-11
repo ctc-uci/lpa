@@ -195,6 +195,7 @@ const InvoicesDashboard = () => {
           </InputGroup>
         </Flex>
         <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
+        
       </Flex>
     </Navbar>
   );

@@ -536,6 +536,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                   : [];
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
                 return (
+                  <Box w="auto">
+                  <PDFButtonInvoice invoice={invoice} />
+                  
                   <Tr key={index}>
                     <Td
                       style={{
@@ -586,7 +589,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     </Td>
                     <Td>
                       <Flex ml="18px">
-                        <PDFButtonInvoice invoice={invoice} />
+                        {/* <PDFButtonInvoice invoice={invoice} /> */}
                       </Flex>
                     </Td>
                     <Td>
@@ -599,6 +602,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       />
                     </Td>
                   </Tr>
+                  </Box>
                 );
               })}
               {currentInvoices.length === 0 && (
