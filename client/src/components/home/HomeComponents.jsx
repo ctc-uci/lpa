@@ -41,6 +41,7 @@ import { useNavigate } from "react-router-dom";
 // Icon imports - consider using React.memo for these components
 import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
 import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
+import {LocationPinIcon} from '../../assets/LocationPinIcon';
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
 import activeSvg from "../../assets/icons/active.svg";
@@ -113,12 +114,7 @@ const ClockIcon = React.memo(() => (
     alt="Clock"
   />
 ));
-const LocationIcon = React.memo(() => (
-  <img
-    src={locationSvg}
-    alt="Location"
-  />
-));
+
 const PersonIcon = React.memo(() => (
   <img
     src={personSvg}
@@ -149,7 +145,7 @@ const TableRow = React.memo(
         cursor="pointer"
         className={rowClass}
       >
-        <Td borderLeftRadius="12px">{program.name}</Td>
+        <Td style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}>{program.name}</Td>
         <Td>
           {program.status?.toLowerCase() === "active" ? (
             <ActiveStatusIcon />
@@ -183,12 +179,12 @@ const TableRow = React.memo(
 const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
   <Thead>
     <Tr>
-      <Th>
+      <Th style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}>
         <HStack
           spacing={2}
           alignItems="center"
         >
-          <Text className="table-header-text">Program</Text>
+          <Text className="table-header-text">PROGRAM</Text>
           <ProgramSortingModal
             sortOption={sortOrder}
             onSortChange={handleSortChange}
@@ -208,47 +204,40 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
             <Icon as={archiveCalendar} />
           </Box>
           <Box>
-            <Text
-              textTransform="none"
-              color="#767778"
-              fontSize="16px"
-              fontStyle="normal"
-            >
-              Date
-            </Text>
+            <Text className="table-header-text">DATE</Text>
           </Box>
           <Box flexShrink={0}>
             <DateSortingModal onSortChange={handleSortChange} />
           </Box>
         </Flex>
       </Th>
-      <Th>
+      <Th justifyContent="center">
         <HStack>
           <ClockIcon />
-          <Text className="table-header-text">Upcoming Time</Text>
+          <Text className="table-header-text">UPCOMING TIME</Text>
         </HStack>
       </Th>
-      <Th>
+      <Th justifyContent="center">
         <HStack>
-          <LocationIcon />
+          <LocationPinIcon />
           <Text
             ml={-1}
             className="table-header-text"
           >
-            Room
+            ROOM
           </Text>
         </HStack>
       </Th>
-      <Th>
+      <Th justifyContent="center">
         <HStack>
           <PaintPaletteIcons />
-          <Text className="table-header-text">Lead Artist(s)</Text>
+          <Text className="table-header-text">LEAD ARTIST(S)</Text>
         </HStack>
       </Th>
-      <Th>
+      <Th justifyContent="center">
         <HStack>
           <PersonIcon />
-          <Text className="table-header-text">Payer(s)</Text>
+          <Text className="table-header-text">PAYER(S)</Text>
         </HStack>
       </Th>
     </Tr>

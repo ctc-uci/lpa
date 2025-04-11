@@ -232,11 +232,11 @@
 /* ========================= */
 
 .table-header-text {
-  color: var(--medium-grey);
+  color: #718096;
   font-family: var(--font-inter);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
   text-transform: none;
 }
 

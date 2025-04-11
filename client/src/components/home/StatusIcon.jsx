@@ -25,7 +25,7 @@ const StatusTooltip = () => {
           cursor="pointer"
           className="table-header-text"
         >
-          Status
+          STATUS
         </Text>
       </PopoverTrigger>
       <PopoverContent
