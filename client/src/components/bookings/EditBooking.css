@@ -234,11 +234,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   flex-direction: column;
 }
 
-#instructor > span, #payee > span, #payeeEmails > span {
+#instructor > span, #payee > span, #emails > span {
   color: var(--Secondary-8, #2D3748);
   font-family: Inter;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 400;
+  font-size: 14px;
   line-height: normal;
   letter-spacing: 0.07px;
   margin-left: 1rem;
@@ -303,10 +304,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   margin-left: 3rem;
 }
 
-#roomDescription > h3, #information > h3 {
+#roomDescription > h3, #information > h3, #sessionInformation > h3 {
   font-size: 16px;
   font-family: Inter;
-  font-size: 16px;
   font-style: normal;
   font-weight: 700;
   line-height: normal;
@@ -314,7 +314,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   margin-bottom: .5rem;
 }
 
-#roomDescription > p, #information > Textarea {
+#roomDescription > p, #information > p, #sessionInformation > Textarea {
   color: #474849;
 }
 

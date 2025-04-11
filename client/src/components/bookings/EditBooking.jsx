@@ -281,7 +281,7 @@ export const EditBooking = () => {
                 </span>
               </Flex>
 
-              <Flex id="payeeEmails">
+              <Flex id="emails">
                 <EmailIcon />
                 <span>
                   {selectedPayees.map((payee) => payee.email).join(", ")}
@@ -308,6 +308,15 @@ export const EditBooking = () => {
                 <h3>General Information</h3>
                 <p>{generalInformation}</p>
               </div>
+
+              <div id="sessionInformation">
+                <h3>Session Information</h3>
+                <Textarea
+                  placeholder="..."
+                >
+                </Textarea>
+              </div>
+
             </div>
           </div>
           <div id="saveCancel">

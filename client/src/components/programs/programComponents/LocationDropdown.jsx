@@ -69,7 +69,6 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocation, s
                     backgroundColor={selectedLocationId === location.id ? "#EDF2F7" : "white"}
                     _hover={{ backgroundColor: "#EDF2F7" }}
                     onClick={() => {
-                      setSelectedLocationName(location.name);
                       setSelectedLocation(location.name);
                       setSelectedLocationId(location.id);
                       setRoomDescription(location.description);

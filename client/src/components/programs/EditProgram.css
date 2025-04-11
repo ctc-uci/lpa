@@ -283,9 +283,9 @@ button#saveProgram {
 }
 
 #eventInfoBody #roomDescription > h3,
-#eventInfoBody #information > h3 {
-  margin-bottom: 24px;
-  font-size: 1.5rem;
+#eventInfoBody #information > h3,
+#eventInfoBody #sessionInformation > h3 {
+  margin-bottom: 16px;
   color: #474849;
   font-weight: 700;
   line-height: normal;
