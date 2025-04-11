@@ -187,7 +187,7 @@ export const ArchivedDropdown = ({programId, programName, setProgramToDelete, on
 
   return (
       <>
-        <Menu>
+        <Menu  autoSelect={false}>
           <MenuButton
             as={IconButton}
             aria-label="Options"

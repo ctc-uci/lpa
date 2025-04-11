@@ -16,7 +16,7 @@ const TimeInput = ({ value, onChange }) => (
     borderColor={"#E2E8F0"}
     borderWidth="1px"
     borderRadius="4px"
-    w={125}
+    width="7rem"
     textAlign="center"
   />
 );
@@ -81,7 +81,7 @@ export const TimeInputs = ({ selectedDays, setSelectedDays, startTime, endTime, 
               value={startTime}
               onChange={(event) => setStartTime(event.target.value)}
             />
-            <Text mx={7} color="#2D3748">to</Text>
+            <Text mx={3} color="#2D3748">to</Text>
             <TimeInput
               value={endTime}
               onChange={(event) => setEndTime(event.target.value)}
