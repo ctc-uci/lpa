@@ -17,7 +17,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
-import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
+import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
 import { TitleInformation } from "./programComponents/TitleInformation";
 import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { PayeesDropdown } from "./programComponents/PayeesDropdown"
@@ -89,7 +89,7 @@ export const EditProgram = () => {
     }, [selectedLocationId]);
 
     const exit = () => {
-        navigate("/programs");
+        navigate(`/programs/${id}`);
     };
 
     const isFormValid = () => {
@@ -259,8 +259,6 @@ export const EditProgram = () => {
 
         return dates
     };
-
-
 
     const getInstructorResults = async (search) => {
         try {
@@ -507,7 +505,7 @@ export const EditProgram = () => {
                       </Box>
                     )
                 });
-                navigate("/programs");
+                // navigate("/programs");
             }
             exit();
 
@@ -529,11 +527,12 @@ export const EditProgram = () => {
                       >
                         <IoCloseOutline />
                       </Icon>
-                      <DeleteConfirmationModal
-                          isOpen={isDeleteConfirmationModalOpen}
-                          onClose={onDeleteConfirmationModalClose}
-                      >
-                      </DeleteConfirmationModal>
+                      <UnsavedChangesModal
+                        isOpen={isDeleteConfirmationModalOpen}
+                        onOpen={onDeleteConfirmationModalOpen}
+                        onClose={onDeleteConfirmationModalClose}
+                        exit={exit}
+                      />
                   </div>
                   <div id="eventInfoBody">
                       <div id="title">
@@ -603,6 +602,7 @@ export const EditProgram = () => {
                               locations={locations}
                               locationRate={locationRate}
                               selectedLocationId={selectedLocationId}
+                              selectedLocation={selectedLocation}
                               setSelectedLocation={setSelectedLocation}
                               setSelectedLocationId={setSelectedLocationId}
                               setRoomDescription={setRoomDescription}

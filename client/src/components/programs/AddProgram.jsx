@@ -427,10 +427,6 @@ export const AddProgram = () => {
 
   return (
     <Navbar>
-      <DeleteConfirmationModal
-        isOpen={isOpen}
-        onClose={onClose}
-      />
       <div id="body">
         <div id="programsBody">
           <div>
@@ -455,18 +451,6 @@ export const AddProgram = () => {
                 setEventName={setEventName}
               />
 
-              <div id = "saveCancel">
-                <Button
-                  id="save"
-                  onClick={saveEvent}
-                  isDisabled={!isFormValid()}
-                  backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
-                  _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
-                >
-                  Save
-
-                </Button>
-              </div>
             </div>
             <div id="innerBody">
               <ReoccuranceDropdown
@@ -524,6 +508,7 @@ export const AddProgram = () => {
                 locations={locations}
                 locationRate={locationRate}
                 selectedLocationId={selectedLocationId}
+                selectedLocation={selectedLocation}
                 setSelectedLocation={setSelectedLocation}
                 setSelectedLocationId={setSelectedLocationId}
                 setRoomDescription={setRoomDescription}
@@ -540,6 +525,18 @@ export const AddProgram = () => {
               />
             </div>
           </div>
+          <div id = "saveCancel">
+                <Button
+                  id="save"
+                  onClick={saveEvent}
+                  isDisabled={!isFormValid()}
+                  backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
+                  _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
+                >
+                  Save
+
+                </Button>
+              </div>
         </div>
       </div>
     </Navbar>

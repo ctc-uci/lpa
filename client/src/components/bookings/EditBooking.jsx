@@ -36,6 +36,11 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 
+import { ArtistsDropdown } from "../programs/programComponents/ArtistsDropdown";
+import { PayeesDropdown } from "../programs/programComponents/PayeesDropdown"
+import { LocationDropdown } from "../programs/programComponents/LocationDropdown"
+import { RoomInformation } from "../programs/programComponents/RoomInformation"
+import { ProgramInformation } from "../programs/programComponents/ProgramInformation"
 import { CiCircleMore } from "react-icons/ci";
 import { IoCloseOutline } from "react-icons/io5";
 import { VscAccount } from "react-icons/vsc";
@@ -225,9 +230,7 @@ export const EditBooking = () => {
               <p>Editing Session of Program</p>
             </div>
             <div id="title">
-              <h1>
-                <b>{eventName}</b>
-              </h1>
+              {eventName}
             </div>
             <div id="innerBody">
                 <TimeInputs
@@ -237,7 +240,6 @@ export const EditBooking = () => {
                     endTime={endTime}
                     setStartTime={setStartTime}
                     setEndTime={setEndTime}
-                    className="inputElement"
                 />
                 <div>
                   <Icon
@@ -286,48 +288,16 @@ export const EditBooking = () => {
                 </span>
               </Flex>
 
-              <div id="location">
-                <LocationIcon />
-                {locations && locations.length > 0 ? (
-                  <Select
-                    width="30%"
-                    value={
-                      selectedLocationId === "" ? "DEFAULT" : selectedLocationId
-                    }
-                    onChange={(event) => {
-                      const selectedId = parseInt(event.target.value);
-                      const location = locations.find(
-                        (loc) => loc.id === selectedId
-                      );
-                      setSelectedLocation(location.name);
-                      setSelectedLocationId(location.id);
-                      setRoomDescription(location.description);
-                      setLocationRate(location.rate);
-                    }}
-                  >
-                    <option
-                      value={"DEFAULT"}
-                      disabled
-                    >
-                      Location...
-                    </option>
-                    {locations.map((location) => (
-                      <option
-                        value={location.id}
-                        key={location.id}
-                      >
-                        {location.name}
-                      </option>
-                    ))}
-                  </Select>
-                ) : (
-                  <div></div>
-                )}
-                <div id="locationRate">
-                  <DollarIcon />
-                  <p>{locationRate} / hour</p>
-                </div>
-              </div>
+              <LocationDropdown
+                locations={locations}
+                locationRate={locationRate}
+                selectedLocationId={selectedLocationId}
+                selectedLocation={selectedLocation}
+                setSelectedLocation={setSelectedLocation}
+                setSelectedLocationId={setSelectedLocationId}
+                setRoomDescription={setRoomDescription}
+                setLocationRate={setLocationRate}
+              />
 
               <div id="roomDescription">
                 <h3>Room Description</h3>

@@ -16,9 +16,10 @@ export const UnsavedChangesModal = ( { isOpen, onOpen, onClose, exit } ) => {
       isOpen={isOpen}
       onClose={onClose}
       id="deactivateModal"
+
     >
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent my="auto">
         <ModalHeader
           paddingBottom="0"
         >

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 
 import {
   Box,
@@ -11,19 +11,24 @@ import {
 } from "@chakra-ui/react"
 
 import {DollarIcon} from '../../../assets/DollarIcon';
-import {LocationIcon} from '../../../assets/LocationIcon';
+import {LocationPinIcon} from '../../../assets/LocationPinIcon';
 import {ArrowDropdown} from '../../../assets/ArrowDropdown';
 
 const formatNumericString = (numericString) => {
     return !isNaN(numericString) ? parseFloat(numericString).toFixed(2) : numericString;
 }
 
-export const LocationDropdown = ( { locations, locationRate, selectedLocationId, setSelectedLocation, setSelectedLocationId, setRoomDescription, setLocationRate }) => {
-  const [selectedLocationName, setSelectedLocationName] = useState("Room");
+export const LocationDropdown = ( { locations, locationRate, selectedLocation, selectedLocationId, setSelectedLocation, setSelectedLocationId, setRoomDescription, setLocationRate }) => {
+  useEffect(() => {
+      if (selectedLocation.length <= 0) {
+        setSelectedLocation("Room");
+      }
+    }, []
+  );
 
   return (
     <div id="location">
-        <LocationIcon />
+        <LocationPinIcon size="20px"/>
         {locations && locations.length > 0 ? (
         <Popover placement="bottom-start">
           <PopoverTrigger>
@@ -40,13 +45,13 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
               padding="10px"
               fontFamily="Inter"
               fontSize="16px"
-              color={selectedLocationName==="Room" ? "#CBD5E0" : "#2D3748"}
+              color={selectedLocation==="Room" ? "#CBD5E0" : "#2D3748"}
               _hover={{ backgroundColor: "#EDF2F7" }}
               overflow="hidden"
               whiteSpace="nowrap"
               textOverflow="ellipsis"
             >
-              {selectedLocationName}
+              {selectedLocation}
             <ArrowDropdown />
             </Box>
           </PopoverTrigger>

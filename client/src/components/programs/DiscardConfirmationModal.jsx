@@ -18,7 +18,6 @@ export const DeleteConfirmationModal = ({ isOpen, onClose }) => {
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Discard Changes?</ModalHeader>
-          {/* <ModalCloseButton /> */}
           <ModalBody>
 
           </ModalBody>

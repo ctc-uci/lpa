@@ -64,7 +64,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 #programsBody {
-  width: 90%;
+  width: 90%!important;
   margin: 3rem 2.5rem!important;
   display: flex;
   flex-direction: row;
@@ -75,6 +75,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   flex: 1;
   margin-left: 2.5%;
   margin-right: 2.5%;
+  width: 90vw!important;
 }
 
 
@@ -85,7 +86,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 100%!important;
   margin-bottom: 5%;
 }
-
 
 button#saveProgram {
   background-color: var(--indigo, #4E4AE7);
@@ -275,6 +275,7 @@ button#saveProgram {
   gap: 1rem;
   align-items: center;
   font-size: 1.2rem;
+  width:100%!important;
 }
 
 #locationRate {
