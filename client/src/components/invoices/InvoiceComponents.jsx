@@ -35,6 +35,7 @@ import {
   Th,
   Thead,
   Tr,
+  VStack,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
@@ -226,7 +227,7 @@ const InvoiceStats = ({
 
 };
 
-const InvoicePayments = ({ comments, setComments }) => {
+const InvoicePayments = ({ comments, setComments, onEditRowChange}) => {
   const { id } = useParams()
   const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
@@ -237,9 +238,13 @@ const InvoicePayments = ({ comments, setComments }) => {
   const [valueEntered, setValueEntered] = useState(false);
   const { isOpen: isOpen, onOpen: onOpen, onClose: onClose } = useDisclosure();
   const [editID, setEditID] = useState(null);
+  const [deleteID, setDeleteID] = useState(null);
 
   const { currentUser } = useAuthContext();
   const [uid, setUid] = useState(null);
+  const [programName, setProgramName] = useState("");
+  const [invoiceMonth, setInvoiceMonth] = useState("");
+  const [invoiceYear, setInvoiceYear] = useState("");
   const toast = useToast();
 
   useEffect(() => {
@@ -248,18 +253,32 @@ const InvoicePayments = ({ comments, setComments }) => {
       console.log("In fetchUid", currentUser.email)
       try {
         const uidResponse = await backend.get("/users/email/" + currentUser.email);
-        console.log(uidResponse);
-  
         setUid(uidResponse.data?.id || null);
       } catch (err) {
         console.error("Error fetching UID:", err);
       }
     };
-  
     fetchUid();
-  }, [currentUser]);
+  }, [backend, currentUser]);
 
-  
+useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
+        const currentInvoice = currentInvoiceResponse.data[0];
+        const date = new Date(currentInvoice.startDate);
+        setInvoiceMonth(date.toLocaleString("default", { month: "long" }))
+        setInvoiceYear(date.getFullYear())
+        const programNameResponse = await backend.get(
+          "/events/" + currentInvoice.eventId
+        );
+        setProgramName(programNameResponse.data[0].name.split(' ').slice(0, 3).join(' '));
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+      } 
+    }
+    fetchData();
+  }, [backend, id]);
 
 
 
@@ -288,10 +307,9 @@ const InvoicePayments = ({ comments, setComments }) => {
   //   }
   // };
 
-  const handleDeleteComment = async (commentID) => {
+  const handleDeleteComment = async () => {
     try {
-      await backend.delete("/comments/" + commentID);
-      // setComments(commentsResponse.data);
+      await backend.delete("/comments/" + deleteID);
       const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
       setComments(commentsResponse.data);
       onClose();
@@ -300,10 +318,20 @@ const InvoicePayments = ({ comments, setComments }) => {
     }
   };
 
+  const handleShowDelete = (commentID) => {
+    try {
+      setDeleteID(commentID);
+      onOpen();
+    } catch (error){
+      console.error("Error showing modal:", error);
+    }
+  };
+
   const handleEditComment = (edit) => {
     try {
       setEditID(edit);
       setShowEditRow(true);
+      if (onEditRowChange) onEditRowChange(true);
     } catch (error) {
       console.error("Error editing:", error);
     }
@@ -322,8 +350,6 @@ const InvoicePayments = ({ comments, setComments }) => {
         adjustment_value: Number(adjustValue)
       };
 
-      // console.log({ uid, id, commentsData });
-
       if (showEditRow) {
         await backend.put("/comments/" + editID, commentsData);
         toast({
@@ -332,32 +358,45 @@ const InvoicePayments = ({ comments, setComments }) => {
           status: "success",
           render: () => (
             <HStack
-              bg="green.100"
-              p={4}
-              borderRadius="md"
-              boxShadow="md"
-              spacing={3}
-              align="center"
-            >
-              <Icon as={CheckCircleIcon} color="green.600" boxSize={5} />
-              <Box>
-                <Text fontWeight="bold">Payment Saved</Text>
-                <Text> Timmm </Text>
-                {/* <Text fontSize="sm">
-                Insert the required text here (pdf name)
-                </Text> */}
-              </Box>
-            </HStack>
+                  bg="green.100"
+                  p={4}
+                  borderRadius="md"
+                  boxShadow="md"
+                  borderLeft = "6px solid"
+                  borderColor="green.500"
+                  spacing={3}
+                  align="center"
+                >
+                  <Icon as={CheckCircleIcon} color="green.600" boxSize={5} />
+                  <VStack align="left" spacing={0}>
+                    <Text
+                      color="#2D3748"
+                      fontFamily="Inter"
+                      fontSize="16px"
+                      fontStyle="normal"
+                      fontWeight={700}
+                      lineHeight="normal"
+                      letterSpacing="0.08px"
+                    >
+                      Payment Saved
+                    </Text>
+                    {invoiceMonth && invoiceYear && (
+                    <Text fontSize="sm">
+                      {programName}_{invoiceMonth} {invoiceYear}
+                    </Text>
+                    )}
+                  </VStack>
+                </HStack>
           ),
         });
       } else {
         await backend.post("/comments/", commentsData);
       }
-      // console.log(comments)
       const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
       setComments(commentsResponse.data);
       setShowEditRow(false);
       setShowInputRow(false);
+      if (onEditRowChange) onEditRowChange(false);
       setAdjustValue("--.--");
 
     } catch (error) {
@@ -410,15 +449,13 @@ const InvoicePayments = ({ comments, setComments }) => {
         >
           <Tbody color="#2D3748" width="100%">
             {comments && comments.length > 0 ? (
-              currentPageComments.map((comment) => (
+              [...currentPageComments]
+              .sort((a, b) => a.id - b.id)
+              .map((comment) => (
                 <Tr position="relative" justifyContent="space-between" key={comment.id} >
-                  <Text>{comment.id}</Text>
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
                     {format(new Date(comment.datetime), "EEE. M/d/yy")}
                   </Td>
-                  {/* <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
-                    {comment.comment}
-                  </Td> */}
                   <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" color="#0C824D" fontWeight="bold">
                   {showEditRow && comment.id === editID ? (
                     <Flex alignItems="center">
@@ -466,7 +503,7 @@ const InvoicePayments = ({ comments, setComments }) => {
                                   </Box>
                                 </MenuItem>
                                 <MenuItem
-                                  onClick={onOpen}
+                                  onClick={() => handleShowDelete(comment.id)}
                                 >
                                   <Box
                                     display="flex"
@@ -514,7 +551,7 @@ const InvoicePayments = ({ comments, setComments }) => {
                     mr={3}
                     id="deactivateConfirm"
                     onClick={() => {
-                      handleDeleteComment(comment.id)
+                      handleDeleteComment()
                     }}
                   >
                     Confirm

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { useBackendContext } from '../../contexts/hooks/useBackendContext';
-import { IconButton, Button, useToast, HStack, Box, Icon} from "@chakra-ui/react";
+import { IconButton, Button, useToast, HStack, VStack, Box, Icon} from "@chakra-ui/react";
 import { DownloadIcon, CheckCircleIcon } from "@chakra-ui/icons";
 
 
@@ -75,13 +75,27 @@ const PDFButtonInvoice = ({invoice}) => {
   const { backend } = useBackendContext();
   const [bookingData, setBookingData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [programName, setProgramName] = useState("");
+  const [invoiceMonth, setInvoiceMonth] = useState("");
+  const [invoiceYear, setInvoiceYear] = useState("");
   const toast = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const currentInvoiceResponse = await backend.get(`/invoices/${invoice}`);
+        const currentInvoice = currentInvoiceResponse.data[0];
+        const date = new Date(currentInvoice.startDate);
+        setInvoiceMonth(date.toLocaleString("default", { month: "long" }))
+        setInvoiceYear(date.getFullYear())
         const response = await backend.get("/bookings");
         setBookingData(Array.isArray(response.data) ? response.data : []);
+        // get program name
+        const programNameResponse = await backend.get(
+          "/events/" + currentInvoice.eventId
+        );
+        setProgramName(programNameResponse.data[0].name.split(' ').slice(0, 3).join(' '));
+
       } catch (err) {
         console.error("Error fetching bookings:", err);
       } finally {
@@ -109,23 +123,37 @@ const PDFButtonInvoice = ({invoice}) => {
           if (!isLoading) {
             toast({
               position: "bottom-right",
-              duration: 3000,
+              duration: 10000,
               render: () => (
                 <HStack
                   bg="green.100"
                   p={4}
                   borderRadius="md"
                   boxShadow="md"
+                  borderLeft = "6px solid"
+                  borderColor="green.500"
                   spacing={3}
                   align="center"
                 >
                   <Icon as={CheckCircleIcon} color="green.600" boxSize={5} />
-                  <Box>
-                    <Text fontWeight="bold">Invoice Downloaded</Text>
-                    {/* <Text fontSize="sm">
-                    Insert the required text here (pdf name)
-                    </Text> */}
-                  </Box>
+                  <VStack align="left" spacing={0}>
+                    <Text
+                      color="#2D3748"
+                      fontFamily="Inter"
+                      fontSize="16px"
+                      fontStyle="normal"
+                      fontWeight={700}
+                      lineHeight="normal"
+                      letterSpacing="0.08px"
+                    >
+                      Invoice Downloaded
+                    </Text>
+                    {invoiceMonth && invoiceYear && (
+                      <Text fontSize="sm">
+                        {programName}_{invoiceMonth} {invoiceYear}
+                      </Text>
+                    )}
+                  </VStack>
                 </HStack>
               ),
             });

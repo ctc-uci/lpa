@@ -12,7 +12,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 
 
-const Navbar = ({ children }) => {
+const Navbar = ({ children, onNavbarClick }) => {
   // Get current location from React Router
   const { backend } = useBackendContext();
   const location = useLocation();
@@ -31,6 +31,19 @@ const Navbar = ({ children }) => {
 
     fetchCount();
   });
+
+  const handleNavClick = (item) => {
+    const isSingleInvoicePage = /^\/invoices\/[^/]+$/.test(currentPath); // e.g. /invoices/123
+    if (
+      typeof onNavbarClick === "function" &&
+      isSingleInvoicePage
+    ) {
+      onNavbarClick(item.path);
+    } else {
+      navigate(item.path);
+    }
+  };
+
 
   const menuItems = [
     { name: "Programs", path: "/programs", icon: <NavCalendarIcon /> },
@@ -76,6 +89,7 @@ const Navbar = ({ children }) => {
                 currentPath === item.path ||
                 (currentPath.startsWith(item.path + "/") && item.path !== "/")
               }
+              onClick={handleNavClick}
             />
           ))}
         </VStack>

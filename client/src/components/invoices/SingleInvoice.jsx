@@ -16,7 +16,6 @@ import {
     ModalHeader,
     ModalOverlay,
     useDisclosure,
-    useToast
 } from "@chakra-ui/react";
 
 import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
@@ -54,11 +53,8 @@ export const SingleInvoice = () => {
     const [instructors, setInstructors] = useState([]);
     const [invoice, setInvoice] = useState([]);
     const { isOpen: isModalOpen, onOpen: openModal, onClose: closeModal } = useDisclosure();
-    const {
-        isOpen: cancelIsOpen,
-        onOpen: cancelOnOpen,
-        onClose: cancelOnClose,
-      } = useDisclosure();
+    const [intendedPath, setIntendedPath] = useState(null);
+    const [editMode, setEditMode] = useState(false);
 
 
     useEffect(() => {
@@ -186,8 +182,34 @@ export const SingleInvoice = () => {
       navigate(`/invoices/savededits/${id}`);
     };
 
+    const handleModalConfirm = () => {
+      console.log("Handle modal confirm executed")
+      if (intendedPath) {
+        navigate(intendedPath);
+        setIntendedPath(null);
+      } else{
+      navigate("/invoices");
+      }
+    };
+
+    const handleNavbarClick = (path) => {
+      console.log(isModalOpen)
+      if (editMode) {
+        if (!isModalOpen) {
+          setIntendedPath(path);
+          openModal();
+        }
+      } else {
+        navigate(path);
+      }
+    };
+
+    const handleEditRowChange = (isEditing) => {
+      setEditMode(isEditing);
+    };
+
     return (
-      <Navbar>
+      <Navbar onNavbarClick={handleNavbarClick}>
         <Flex direction="row" height="100%" width="100%">
           <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
               <Modal isOpen={isModalOpen} onClose={closeModal}>
@@ -204,7 +226,7 @@ export const SingleInvoice = () => {
                             >
                               <Button
                                 variant="ghost"
-                                onClick={cancelOnClose}
+                                onClick={closeModal}
                               >
                                 Cancel
                               </Button>
@@ -213,8 +235,10 @@ export const SingleInvoice = () => {
                                 mr={3}
                                 id="deactivateConfirm"
                                 onClick={() => {
+                                  console.log("Modal confirm clicked")
                                   closeModal();
-                                  navigate("/invoices"); // Navigate after closing the modal
+                                  handleModalConfirm();
+                                  //navigate("/invoices"); // Navigate after closing the modal
                                 }}
                               >
                                 Ok
@@ -226,15 +250,7 @@ export const SingleInvoice = () => {
               {/* back button */}
               <IconButton
                 icon={<FaAngleLeft />}
-                onClick={() => {
-                  if (isModalOpen) {
-                    console.log("Open modal")
-                    openModal(); // Open the modal if the condition is met
-                  } else {
-                    console.log("No modal")
-                    navigate("/invoices"); // Otherwise, navigate directly
-                  }
-                }}
+                onClick={() => handleNavbarClick("/invoices")}
                 variant="link"
                 color="#474849"
                 fontSize="1.5em"
@@ -274,7 +290,7 @@ export const SingleInvoice = () => {
                     amountDue={total}
                     remainingBalance={!remainingBalance}
                   ></InvoiceStats>
-                  <InvoicePayments comments={comments} setComments={setComments}></InvoicePayments>
+                  <InvoicePayments comments={comments} setComments={setComments} onEditRowChange={handleEditRowChange}></InvoicePayments>
                   <EmailHistory emails={emails}></EmailHistory>
                 </Flex>
 
