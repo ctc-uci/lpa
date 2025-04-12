@@ -2,9 +2,12 @@ import express, { Router } from "express";
 
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
+import { uploadPDF } from "../common/s3";
+import multer from 'multer';
 
 const invoicesRouter = Router();
 invoicesRouter.use(express.json());
+const upload = multer();
 
 // Get all invoices
 invoicesRouter.get("/", async (req, res) => {
@@ -605,6 +608,43 @@ invoicesRouter.delete("/:id", async (req, res) => {
     }
 
     res.status(200).json({ result: "success" });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+invoicesRouter.post("/backupInvoice/:id", upload.single("file"), async (req, res) => {
+  // Backup a invoice PDF to S3 and store the URL in the database
+  // Params:
+  //  id - the invoice id
+  // Body:
+  //  file - the invoice PDF file
+  //  comment - optional comment for the invoice
+  // Returns:
+  //  fileURL - the viewable URL of the uploaded PDF
+
+  // Upload an invoice PDF to S3, returning the viewable URL
+  try {
+    const file = req.file;
+    const { id } = req.params;
+    const { comment } = req.body;
+
+    if (!file) {
+      return res.status(500).json({ error: "File is required" });
+    }
+
+    // Upload to S3
+    const fileURL = await uploadPDF(file);
+
+    // Store the file URL in the database
+    await db.query(
+      `INSERT INTO historic_invoices (original_invoice, datetime, file_reference, comment)
+       VALUES ($1, $2, $3, $4)`,
+      [id, "NOW()", fileURL, comment]
+    );
+
+    
+    res.status(201).json(fileURL);
   } catch (err) {
     res.status(500).send(err.message);
   }
