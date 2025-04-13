@@ -145,7 +145,7 @@ const TableRow = React.memo(
         cursor="pointer"
         className={rowClass}
       >
-        <Td style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}>{program.name}</Td>
+        <Td style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}>{truncateNames(program.name)}</Td>
         <Td>
           {program.status?.toLowerCase() === "active" ? (
             <ActiveStatusIcon />
