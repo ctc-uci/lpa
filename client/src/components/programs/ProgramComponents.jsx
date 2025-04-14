@@ -850,6 +850,42 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const currentPageSessions =
     filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
 
+  const [selectMenuOpen, setSelectMenuOpen] = useState(false);
+  const [selectOption, setSelectOption] = useState("Select");
+  const [selectedSessions, setSelectedSessions] = useState([]);
+
+  const handleSessionSelection = (sessionId) => {
+    setSelectedSessions((prev) => {
+      if (prev.includes(sessionId)) {
+        return prev.filter((id) => id !== sessionId);
+      } else {
+        return [...prev, sessionId];
+      }
+    });
+  };
+
+  const handleSelectOption = (option) => {
+    const originalOption = option;
+    setSelectOption(option);
+    setSelectMenuOpen(false);
+
+    if (option === "Select all") {
+      setSelectedSessions(currentPageSessions.map((session) => session.id));
+    } else if (originalOption === "Deselect") {
+      // Deselect all sessions
+      setSelectedSessions([]);
+      setSelectOption("Select");
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSessions.length === currentPageSessions.length) {
+      setSelectedSessions([]);
+    } else {
+      setSelectedSessions(currentPageSessions.map((session) => session.id));
+    }
+  };
+
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -1017,21 +1053,76 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               gap="12px"
               alignItems="center"
             >
-              <Button
-                bg="#f2f6fb"
-                color="#1e293b"
-                fontWeight="bold"
-                fontSize="16px"
-                borderRadius="8px"
-                backgroundColor="#F0F1F4"
-                height="45px"
-                mt="10px"
-                mb="15px"
-                px="20px"
-                _hover={{ bg: "#e0e6ed" }}
-              >
-                Select
-              </Button>
+              <Box position="relative">
+                <Button
+                  bg="#f2f6fb"
+                  color="#1e293b"
+                  fontWeight="bold"
+                  fontSize="16px"
+                  borderRadius="8px"
+                  backgroundColor="#F0F1F4"
+                  height="45px"
+                  mt="10px"
+                  mb="15px"
+                  px="20px"
+                  _hover={{ bg: "#e0e6ed" }}
+                  onClick={() => setSelectMenuOpen(!selectMenuOpen)}
+                >
+                  {selectOption}
+                </Button>
+
+                {selectMenuOpen && (
+                  <Box
+                    position="absolute"
+                    top="55px"
+                    left="0"
+                    width="150px"
+                    bg="white"
+                    boxShadow="md"
+                    borderRadius="8px"
+                    zIndex="10"
+                    border="1px"
+                    borderColor="gray.200"
+                  >
+                    <Stack spacing="0">
+                      <Button
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => handleSelectOption("Select")}
+                        borderRadius="8px 8px 0 0"
+                        height="40px"
+                      >
+                        Select
+                      </Button>
+                      <Button
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => handleSelectOption("Select all")}
+                        borderRadius="0"
+                        height="40px"
+                      >
+                        Select all
+                      </Button>
+                      <Button
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => handleSelectOption("Deselect")}
+                        borderRadius="0 0 8px 8px"
+                        height="40px"
+                      >
+                        Deselect
+                      </Button>
+                    </Stack>
+                  </Box>
+                )}
+              </Box>
+
               <Popover onClose={onClose}>
                 <PopoverTrigger>
                   <Button
@@ -1501,6 +1592,13 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   {currentPageSessions.length > 0 ? (
                     currentPageSessions.map((session) => (
                       <Tr key={session.id}>
+                        <Td width="50px">
+                          <Checkbox
+                            isChecked={selectedSessions.includes(session.id)}
+                            onChange={() => handleSessionSelection(session.id)}
+                            colorScheme="purple"
+                          />
+                        </Td>
                         {!isArchived ? (
                           <Td>
                             <Box
