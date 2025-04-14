@@ -41,7 +41,7 @@ const InvoicesDashboard = () => {
     } else if (invoice.season === "Fall") {
       return ["#FFFAF0", "#DD6B20"];
     } else {
-      return ["#008000", "#22C55E"];
+      return ["#e6f7ec", "#008000"];
     }
   }
 
@@ -54,7 +54,7 @@ const InvoicesDashboard = () => {
     } else if (month >= 9 && month <= 12) {
       return "Fall";
     } else {
-      return "N/A";
+      return "Spring";
     }
   }
 

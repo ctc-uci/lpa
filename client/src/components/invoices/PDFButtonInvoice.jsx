@@ -71,10 +71,15 @@ const MyDocument = ({ bookingData }) => {
   );
 };
 
-const PDFButtonInvoice = ({invoice}) => {
+const PDFButtonInvoice = ({invoice, toast}) => {
   const { backend } = useBackendContext();
   const [bookingData, setBookingData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const programTitle = invoice.eventName.split(" ").slice(0, 3).join(" ");
+  const date = new Date(invoice.endDate);
+  const month = date.toLocaleString("default", { month: "long" }); // e.g. "April"
+  const year = date.getFullYear();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,6 +106,14 @@ const PDFButtonInvoice = ({invoice}) => {
         icon={<DownloadIcon boxSize="20px" />}
         backgroundColor="transparent"
         aria-label="Download PDF"
+        onClick={() => toast({
+          title: "PDF Downloaded",
+          description: `${programTitle}, ${month} ${year} Invoice`,
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+          position: "bottom-right"
+        })}
       />
     </PDFDownloadLink>
   );
