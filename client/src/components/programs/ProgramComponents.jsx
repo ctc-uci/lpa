@@ -827,7 +827,7 @@ export const ProgramSummary = ({
 
 export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
+  const [isSelected, setIsSelected] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [status, setStatus] = useState("All");
@@ -1054,45 +1054,65 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               alignItems="center"
             >
               <Box position="relative">
-                <Button
-                  bg="#f2f6fb"
-                  color="#1e293b"
-                  fontWeight="bold"
-                  fontSize="16px"
-                  borderRadius="8px"
-                  backgroundColor="#F0F1F4"
-                  height="45px"
-                  mt="10px"
-                  mb="15px"
-                  px="20px"
-                  _hover={{ bg: "#e0e6ed" }}
-                  onClick={() => setSelectMenuOpen(!selectMenuOpen)}
+                <button
+                  style={{
+                    display: "flex",
+                    height: "40px",
+                    padding: "0px 16px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "4px",
+                    flex: "1 0 0",
+                    borderRadius: "6px",
+                    backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
+                    color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    fontStyle: "normal",
+                    fontWeight: "700",
+                    lineHeight: "normal",
+                    letterSpacing: "0.07px",
+                  }}
+                  onClick={() => {
+                    setSelectMenuOpen(!selectMenuOpen);
+                    setIsSelected(true);
+                  }}
+                  data-select-menu="true"
                 >
-                  {selectOption}
-                </Button>
-
+                  Select
+                </button>
                 {selectMenuOpen && (
                   <Box
                     position="absolute"
-                    top="55px"
+                    top="45px"
                     left="0"
-                    width="150px"
-                    bg="white"
-                    boxShadow="md"
-                    borderRadius="8px"
+                    display="flex"
+                    width="85px"
+                    padding="4px"
+                    flexDirection="column"
+                    alignItems="flex-start"
+                    gap="10px"
+                    borderRadius="4px"
+                    border="1px solid var(--Secondary-3, #E2E8F0)"
+                    background="#FFF"
+                    boxShadow="0px 1px 2px 0px rgba(0, 0, 0, 0.05)"
                     zIndex="10"
-                    border="1px"
-                    borderColor="gray.200"
                   >
-                    <Stack spacing="0">
+                    <Stack
+                      spacing="0"
+                      width="100%"
+                    >
                       <Button
                         justifyContent="flex-start"
                         fontWeight="normal"
                         bg="white"
                         _hover={{ bg: "#f2f6fb" }}
                         onClick={() => handleSelectOption("Select")}
-                        borderRadius="8px 8px 0 0"
-                        height="40px"
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
                       >
                         Select
                       </Button>
@@ -1102,8 +1122,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         bg="white"
                         _hover={{ bg: "#f2f6fb" }}
                         onClick={() => handleSelectOption("Select all")}
-                        borderRadius="0"
-                        height="40px"
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
+                        letterSpacing={
+                          selectOption === "Select all" ? "0.07px" : "normal"
+                        }
                       >
                         Select all
                       </Button>
@@ -1112,9 +1138,24 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         fontWeight="normal"
                         bg="white"
                         _hover={{ bg: "#f2f6fb" }}
-                        onClick={() => handleSelectOption("Deselect")}
-                        borderRadius="0 0 8px 8px"
-                        height="40px"
+                        onClick={() => {
+                          setSelectOption(false);
+                          handleSelectOption("Deselect");
+                          setIsSelected(false);
+                        }}
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
+                        color={
+                          selectOption === "Deselect"
+                            ? "var(--Primary-5-Default, #4441C8)"
+                            : "inherit"
+                        }
+                        letterSpacing={
+                          selectOption === "Deselect" ? "0.07px" : "normal"
+                        }
                       >
                         Deselect
                       </Button>
@@ -1126,14 +1167,17 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               <Popover onClose={onClose}>
                 <PopoverTrigger>
                   <Button
-                    color="#1e293b"
-                    fontWeight="bold"
-                    backgroundColor="#F0F1F4"
-                    variant="outline"
-                    minWidth="auto"
-                    height="45px"
-                    mt="10px"
-                    mb="15px"
+                    display="flex"
+                    height="40px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    borderRadius="6px"
+                    bg="var(--Secondary-2-Default, #EDF2F7)"
+                    color="#2D3748"
+                    fontFamily="Inter"
+                    fontSize="14px"
                     onClick={onOpen}
                     border="none"
                   >
@@ -1143,10 +1187,13 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                       alignItems="center"
                       gap="5px"
                     >
-                      <Icon as={filterButton} />
+                      <Icon
+                        as={filterButton}
+                        color="#2D3748"
+                      />
                       <Text
                         fontSize="sm"
-                        color="#767778"
+                        color="#2D3748"
                       >
                         {" "}
                         Filters{" "}
@@ -1293,6 +1340,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                               <Text
                                 fontWeight="bold"
                                 color="#767778"
+                                visibility={isSelected ? "visible" : "hidden"}
                               >
                                 Status
                               </Text>
@@ -1462,6 +1510,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   color="#D2D2D2"
                 >
                   <Tr>
+                    {isSelected && <Th />}
                     {!isArchived ? (
                       <Th>
                         <Text
@@ -1592,13 +1641,18 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   {currentPageSessions.length > 0 ? (
                     currentPageSessions.map((session) => (
                       <Tr key={session.id}>
-                        <Td width="50px">
-                          <Checkbox
-                            isChecked={selectedSessions.includes(session.id)}
-                            onChange={() => handleSessionSelection(session.id)}
-                            colorScheme="purple"
-                          />
-                        </Td>
+                        {isSelected && (
+                          <Td width="50px">
+                            <Checkbox
+                              isChecked={selectedSessions.includes(session.id)}
+                              onChange={() =>
+                                handleSessionSelection(session.id)
+                              }
+                              colorScheme="purple"
+                            />
+                          </Td>
+                        )}
+
                         {!isArchived ? (
                           <Td>
                             <Box
