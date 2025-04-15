@@ -38,30 +38,30 @@ import {
 import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Icon imports - consider using React.memo for these components
-import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
-import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
-import {LocationPinIcon} from '../../assets/LocationPinIcon';
-import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
-import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
-import activeSvg from "../../assets/icons/active.svg";
+import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
-import clockSvg from "../../assets/icons/clock.svg";
 import { EditIcon } from "../../assets/EditIcon";
+import activeSvg from "../../assets/icons/active.svg";
+import clockSvg from "../../assets/icons/clock.svg";
 import locationSvg from "../../assets/icons/location.svg";
 import noneSvg from "../../assets/icons/none.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
 import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import searchSvg from "../../assets/icons/search.svg";
+import { LocationPinIcon } from "../../assets/LocationPinIcon";
+import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
+// Icon imports - consider using React.memo for these components
+import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
+import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
+import { SearchBar } from "../searchBar/SearchBar";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
-import { ArchiveIcon } from "../../assets/ArchiveIcon";
-import { CancelProgram } from "../cancelModal/CancelProgramComponent";
-import { SearchBar } from "../searchBar/SearchBar";
 
 import "./Home.css";
 
@@ -134,7 +134,7 @@ const TableRow = React.memo(
     selectedAction,
     onOpen,
     isOpen,
-    onClose
+    onClose,
   }) => {
     const rowClass = "programs-table__row--even";
 
@@ -145,8 +145,18 @@ const TableRow = React.memo(
         cursor="pointer"
         className={rowClass}
       >
-        <Td style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}>{truncateNames(program.name)}</Td>
-        <Td>
+        <Td
+          style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}
+        >
+          {truncateNames(program.name)}
+        </Td>
+        <Td
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           {program.status?.toLowerCase() === "active" ? (
             <ActiveStatusIcon />
           ) : program.status?.toLowerCase() === "past" ? (
@@ -157,12 +167,18 @@ const TableRow = React.memo(
         </Td>
         <Td>{program.upcomingDate}</Td>
         <Td>{program.upcomingTime}</Td>
-        <Td><Box maxWidth="5rem">{program.room}</Box></Td>
         <Td>
-          <Box className="programs-ellipsis-box">{truncateNames(program.instructor)}</Box>
+          <Box maxWidth="5rem">{truncateNames(program.room, true)}</Box>
         </Td>
         <Td>
-          <Box className="programs-ellipsis-box">{truncateNames(program.payee)}</Box>
+          <Box className="programs-ellipsis-box">
+            {truncateNames(program.instructor)}
+          </Box>
+        </Td>
+        <Td>
+          <Box className="programs-ellipsis-box">
+            {truncateNames(program.payee)}
+          </Box>
         </Td>
         <Td
           borderRightRadius="12px"
@@ -183,7 +199,9 @@ const TableRow = React.memo(
 const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
   <Thead>
     <Tr>
-      <Th style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}>
+      <Th
+        style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}
+      >
         <HStack
           spacing={2}
           alignItems="center"
@@ -232,13 +250,19 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
           </Text>
         </HStack>
       </Th>
-      <Th justifyContent="center" maxWidth="8rem">
+      <Th
+        justifyContent="center"
+        maxWidth="8rem"
+      >
         <HStack>
           <PaintPaletteIcons />
           <Text className="table-header-text">LEAD ARTIST(S)</Text>
         </HStack>
       </Th>
-      <Th justifyContent="center"  maxWidth="10rem">
+      <Th
+        justifyContent="center"
+        maxWidth="10rem"
+      >
         <HStack>
           <PersonIcon />
           <Text className="table-header-text">PAYER(S)</Text>
@@ -362,7 +386,10 @@ export const ProgramsTable = () => {
   }, [fetchPrograms]);
 
   // Truncate long lists of instructors/payees - memoized
-  const truncateNames = useCallback((names, maxLength = 30) => {
+  const truncateNames = useCallback((names, isRoom = false, maxLength = 30) => {
+    if (isRoom) {
+      maxLength = 10;
+    }
     if (!names || names.length <= maxLength) return names;
     return `${names.substring(0, maxLength)}...`;
   }, []);
@@ -535,16 +562,23 @@ export const ProgramsTable = () => {
           <div className="archive">
             <Icon
               as={ProgramArchiveIcon}
-              alt="Archived"
+              alt="Archives"
               className="archive-icon"
             />
-            <span className="archive-text" onClick={() => {navigate('/programs/archived')}}>Archived</span>
+            <span
+              className="archive-text"
+              onClick={() => {
+                navigate("/programs/archived");
+              }}
+            >
+              Archives
+            </span>
           </div>
           <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
           <Box flex="1" />
           <SearchBar
-             handleSearch={handleSearchChange}
-             searchQuery={searchTerm}
+            handleSearch={handleSearchChange}
+            searchQuery={searchTerm}
           />
         </Flex>
 

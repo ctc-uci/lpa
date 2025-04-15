@@ -107,7 +107,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 #save {
-  background-color: var(--indigo, #4E4AE7);
+  background-color: var(--indigo, #4441C8);
   color: white;
   justify-content: center;
   align-items: center;
@@ -250,6 +250,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 #instructors, #payees {
+  font-family: "Inter";
   display: flex;
   flex-direction: row;
   border: 1px lightgrey solid;

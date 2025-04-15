@@ -36,35 +36,36 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 
-import { ArtistsDropdown } from "../programs/programComponents/ArtistsDropdown";
-import { PayeesDropdown } from "../programs/programComponents/PayeesDropdown"
-import { LocationDropdown } from "../programs/programComponents/LocationDropdown"
-import { RoomInformation } from "../programs/programComponents/RoomInformation"
-import { ProgramInformation } from "../programs/programComponents/ProgramInformation"
 import { CiCircleMore } from "react-icons/ci";
 import { IoCloseOutline } from "react-icons/io5";
 import { VscAccount } from "react-icons/vsc";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
-import { TimeInputs } from "../programs/programComponents/TimeInputs";
+
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { CalendarIcon } from "../../assets/CalendarIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilledIcon } from "../../assets/ClockFilledIcon";
 import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
-import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
 import { DeleteIcon } from "../../assets/DeleteIcon";
 import { DollarIcon } from "../../assets/DollarIcon";
 import { EmailIcon } from "../../assets/EmailIcon";
 import { EyeIcon } from "../../assets/EyeIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { LocationIcon } from "../../assets/LocationIcon";
-import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
 import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
+import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
 import { ProfileIcon } from "../../assets/ProfileIcon";
 import { RepeatIcon } from "../../assets/RepeatIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
+import { ArtistsDropdown } from "../programs/programComponents/ArtistsDropdown";
+import { LocationDropdown } from "../programs/programComponents/LocationDropdown";
+import { PayeesDropdown } from "../programs/programComponents/PayeesDropdown";
+import { ProgramInformation } from "../programs/programComponents/ProgramInformation";
+import { RoomInformation } from "../programs/programComponents/RoomInformation";
+import { TimeInputs } from "../programs/programComponents/TimeInputs";
+import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
 
 export const EditBooking = () => {
   const { backend } = useBackendContext();
@@ -107,7 +108,9 @@ export const EditBooking = () => {
   };
 
   const getInitialEventData = async () => {
+    console.log("the id is: ", id)
     const eventResponse = await backend.get(`/bookings/displayData/${id}`);
+    console.log("eventresponse: ", eventResponse)
     setEventId(eventResponse.data[0].eventId);
     setEventName(eventResponse.data[0].eventname);
     setGeneralInformation(eventResponse.data[0].eventdescription);
@@ -144,9 +147,18 @@ export const EditBooking = () => {
       ).values()
     );
 
-    const daysMap = { 0: 'Sunday', 1: 'Monday', 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: 'Friday', 6: "Saturday" };
-    setDay(daysMap[(new Date(eventResponse.data[0].date.split("T")[0]).getDay())]);
-
+    const daysMap = {
+      0: "Sunday",
+      1: "Monday",
+      2: "Tuesday",
+      3: "Wednesday",
+      4: "Thursday",
+      5: "Friday",
+      6: "Saturday",
+    };
+    setDay(
+      daysMap[new Date(eventResponse.data[0].date.split("T")[0]).getDay()]
+    );
 
     const payees = Array.from(
       new Map(
@@ -188,7 +200,8 @@ export const EditBooking = () => {
         description: generalInformation,
       };
 
-      await backend.put("/bookings/" + id, bookingsData);
+      // await backend.put("/bookings/" + id, bookingsData);
+      console.log("bookingsData in edit: ", bookingsData);
 
       exit();
     } catch (error) {
@@ -234,20 +247,18 @@ export const EditBooking = () => {
               <EyeIcon id="infoIcon" />
               <p>Editing Session of Program</p>
             </div>
-            <div id="title">
-              {eventName}
-            </div>
+            <div id="title">{eventName}</div>
             <div id="innerBody">
               <TimeInputs
-                  selectedDays={selectedDays}
-                  setSelectedDays={setSelectedDays}
-                  startTime={startTime}
-                  endTime={endTime}
-                  setStartTime={setStartTime}
-                  setEndTime={setEndTime}
+                selectedDays={selectedDays}
+                setSelectedDays={setSelectedDays}
+                startTime={startTime}
+                endTime={endTime}
+                setStartTime={setStartTime}
+                setEndTime={setEndTime}
               />
               <Flex id="bookingDate">
-                <CalendarIcon/>
+                <CalendarIcon />
                 <span>On {day}</span>
                 <Input
                   type="date1"
@@ -271,21 +282,29 @@ export const EditBooking = () => {
               <Flex id="instructor">
                 <PaintPaletteIcons />
                 <span>
-                  {selectedPayees.map((payee) => payee.name).join(", ")}
+                  {selectedPayees?.length > 0
+                    ? selectedPayees.map((payee) => payee.name).join(", ")
+                    : "No payees"}
                 </span>
               </Flex>
 
               <Flex id="payee">
                 <ProfileIcon />
                 <span>
-                  {selectedInstructors.map((instructors) => instructors.name).join(", ")}
+                  {selectedInstructors?.length > 0
+                    ? selectedInstructors
+                        .map((instructors) => instructors.name)
+                        .join(", ")
+                    : "No instructors"}
                 </span>
               </Flex>
 
               <Flex id="emails">
                 <EmailIcon />
                 <span>
-                  {selectedPayees.map((payee) => payee.email).join(", ")}
+                  {selectedPayees?.length > 0
+                    ? selectedPayees.map((payee) => payee.email).join(", ")
+                    : "No emails"}
                 </span>
               </Flex>
 
@@ -312,12 +331,8 @@ export const EditBooking = () => {
 
               <div id="sessionInformation">
                 <h3>Session Information</h3>
-                <Textarea
-                  placeholder="..."
-                >
-                </Textarea>
+                <Textarea placeholder="..."></Textarea>
               </div>
-
             </div>
           </div>
           <div id="saveCancel">

@@ -1,21 +1,18 @@
-import React, { useCallback, useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CancelIcon } from "../../assets/CancelIcon";
+import { EmailIcon } from "../../assets/EmailIcon";
+import { EyeIcon } from "../../assets/EyeIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
-import {EyeIcon} from '../../assets/EyeIcon';
 import { LocationIcon } from "../../assets/LocationIcon";
 import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
 import { ProfileIcon } from "../../assets/ProfileIcon";
-import { EmailIcon } from "../../assets/EmailIcon";
 import { RepeatIcon } from "../../assets/RepeatIcon";
 
 import "./Program.css";
 
+import { ChevronLeftIcon } from "@chakra-ui/icons";
 import {
-  ChevronLeftIcon,
-} from "@chakra-ui/icons";
-import {
-  HStack,
   Alert,
   AlertDescription,
   AlertTitle,
@@ -28,6 +25,7 @@ import {
   Flex,
   FormControl,
   Heading,
+  HStack,
   Icon,
   IconButton,
   Input,
@@ -70,38 +68,34 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import {
-  EllipsisIcon,
-  Info,
-  UserIcon,
-} from "lucide-react";
+import { EllipsisIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
+import { CalendarIcon } from "../../assets/CalendarIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import clockSvg from "../../assets/icons/clock.svg";
-import { CalendarIcon } from "../../assets/CalendarIcon";
 import personSvg from "../../assets/icons/person.svg";
-
 import {
+  archiveCalendar,
+  archiveClock,
+  archiveMapPin,
+  DollarIcon,
+  DownloadIcon,
   filterButton,
   filterDateCalendar,
-  archiveCalendar,
   sessionsCalendar,
-  archiveClock,
   sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
-  archiveMapPin,
   summaryIcon,
-  DownloadIcon,
-  DollarIcon,
 } from "../../assets/icons/ProgramIcons";
-import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import DateSortingModal from "../filters/DateFilter";
-import { CancelProgram } from  "../cancelModal/CancelProgramComponent";
-import { EditCancelPopup } from  "../cancelModal/EditCancelPopup";
 import { SearchBar } from "../searchBar/SearchBar";
 
 const ClockIcon = React.memo(() => (
@@ -126,7 +120,6 @@ export const ProgramSummary = ({
   setIsArchived,
   eventId,
 }) => {
-
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const {
@@ -147,7 +140,7 @@ export const ProgramSummary = ({
   } = useDisclosure();
 
   const exit = () => {
-    navigate('/programs');
+    navigate("/programs");
   };
 
   const toEditProgram = () => {
@@ -249,9 +242,8 @@ export const ProgramSummary = ({
     }
     console.log("bookingInfo ", bookingInfo.date);
     if (bookingInfo) {
-      setLastBooking(bookingInfo)
+      setLastBooking(bookingInfo);
     }
-
 
     console.log("event response ", response.data.id);
     const duplicateId = response.data.id;
@@ -278,80 +270,84 @@ export const ProgramSummary = ({
   };
 
   function findDateTimePattern(bookings) {
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
 
-  const pattern = {};
-  let lastDate = null;
+    const pattern = {};
+    let lastDate = null;
 
-  bookings.forEach((booking) => {
-    const dateObj = new Date(booking.date);
-    const day = dayNames[dateObj.getUTCDay()];
-    const formattedStartTime = formatTime(booking.startTime);
-    const formattedEndTime = formatTime(booking.endTime);
+    bookings.forEach((booking) => {
+      const dateObj = new Date(booking.date);
+      const day = dayNames[dateObj.getUTCDay()];
+      const formattedStartTime = formatTime(booking.startTime);
+      const formattedEndTime = formatTime(booking.endTime);
 
-    // Initialize array if not exists
-    if (!pattern[day]) {
-      pattern[day] = new Set();
+      // Initialize array if not exists
+      if (!pattern[day]) {
+        pattern[day] = new Set();
+      }
+
+      // Record time slot
+      pattern[day].add(`${formattedStartTime} - ${formattedEndTime}`);
+
+      // Update last date
+      if (!lastDate || dateObj > new Date(lastDate)) {
+        lastDate = booking.date;
+      }
+    });
+
+    // Convert Sets to Arrays for readability
+    const readablePattern = {};
+    for (const [day, times] of Object.entries(pattern)) {
+      readablePattern[day] = Array.from(times);
     }
 
-    // Record time slot
-    pattern[day].add(`${formattedStartTime} - ${formattedEndTime}`);
-
-    // Update last date
-    if (!lastDate || dateObj > new Date(lastDate)) {
-      lastDate = booking.date;
-    }
-  });
-
-  // Convert Sets to Arrays for readability
-  const readablePattern = {};
-  for (const [day, times] of Object.entries(pattern)) {
-    readablePattern[day] = Array.from(times);
-  }
-
-  return {
-    pattern: readablePattern,
-    lastDate: lastDate ? new Date(lastDate).toISOString().split("T")[0] : null,
-  };
+    return {
+      pattern: readablePattern,
+      lastDate: lastDate
+        ? new Date(lastDate).toISOString().split("T")[0]
+        : null,
+    };
   }
 
   function getDayOfWeek(date) {
     const daysMap = ["Sun.", "Mon.", "Tues.", "Wed.", "Thurs.", "Fri.", "Sat."];
-    return daysMap[(new Date(date).getDay())]
+    return daysMap[new Date(date).getDay()];
   }
 
   function shortenDayOfWeek(day) {
     const daysMap = {
-      "Sunday": "Sun.",
-      "Monday": "Mon.",
-      "Tuesday": "Tues.",
-      "Wednesday": "Wed.",
-      "Thursday": "Thurs.",
-      "Friday": "Fri.",
-      "Saturday": "Sat."
+      Sunday: "Sun.",
+      Monday: "Mon.",
+      Tuesday: "Tues.",
+      Wednesday: "Wed.",
+      Thursday: "Thurs.",
+      Friday: "Fri.",
+      Saturday: "Sat.",
     };
-    return daysMap[day]
+    return daysMap[day];
   }
 
   useEffect(() => {
-  console.log("sessions: ", sessions);
+    console.log("sessions: ", sessions);
     if (sessions) {
       const result = findDateTimePattern(sessions);
       setLastBooking(result.lastDate);
       setLastDay(getDayOfWeek(result.lastDate));
-      // const entries = Object.entries(result.pattern);
-      // const patternList = [];
-      // entries.slice(0, 2).forEach(([day, times]) => {
-      //   const seTimes= times[0].split(" - ");
-      //   console.log(formatTimeString(seTimes[0]) + " - " + formatTimeString(seTimes[1]) + " on " + day);
-      //   patternList.push(formatTimeString(seTimes[0]) + " - " + formatTimeString(seTimes[1]) + " on " + day);
-      // });
+
       setDayTimePattern(Object.entries(result.pattern));
       setDayTimePattern(Object.entries(result.pattern));
       if (!sessions || sessions.length < 2) setRepeatChoice("Does not repeat");
 
       const dates = sessions
-        .map(session => new Date(session.date))
+        .map((session) => new Date(session.date))
         .sort((a, b) => a - b);
 
       // Calculate gaps in days
@@ -360,7 +356,7 @@ export const ProgramSummary = ({
         return Math.round((date - prevDate) / (1000 * 60 * 60 * 24)); // in days
       });
 
-      const allSameGap = gaps.every(gap => gap === gaps[0]);
+      const allSameGap = gaps.every((gap) => gap === gaps[0]);
 
       if (allSameGap) {
         const gap = gaps[0];
@@ -370,16 +366,16 @@ export const ProgramSummary = ({
       }
 
       setRepeatChoice("Custom");
-    } else {console.log("no sessions");}
+    } else {
+      console.log("no sessions");
+    }
   }, [sessions]);
 
-
-// Helper function to format time like "00:00:00+00" -> "00:00"
-function formatTime(timeString) {
-  // Extract HH:MM from "HH:MM:SS+00"
-  return timeString.split(":").slice(0, 2).join(":");
-}
-
+  // Helper function to format time like "00:00:00+00" -> "00:00"
+  function formatTime(timeString) {
+    // Extract HH:MM from "HH:MM:SS+00"
+    return timeString.split(":").slice(0, 2).join(":");
+  }
 
   const handleDeactivate = () => {
     modalOnOpen();
@@ -446,12 +442,9 @@ function formatTime(timeString) {
 
   const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
 
-
   useEffect(() => {
     setStartDay(getDayOfWeek(nextSession.date));
-
   }, [nextSession]);
-
 
   // Make sure program data is fetched before rendering
   if (!program || program.length === 0) {
@@ -504,17 +497,17 @@ function formatTime(timeString) {
           gap={2}
           width="20%"
         >
-          <Icon as={summaryIcon}/>
-          <Text className="componentTitleText">
-            Summary
-          </Text>
+          <Icon as={summaryIcon} />
+          <Text className="componentTitleText">Summary</Text>
         </Flex>
-        { isArchived ?
+        {isArchived ? (
           <div id="archivedBlurb">
-            <EyeIcon id="infoIcon"/>
+            <EyeIcon id="infoIcon" />
             <p>Viewing Archived Program</p>
-          </div>: <div></div>
-        }
+          </div>
+        ) : (
+          <div></div>
+        )}
         <Flex width="20%"></Flex>
       </Flex>
       <Container
@@ -528,6 +521,7 @@ function formatTime(timeString) {
             borderColor="gray.300"
             borderRadius="15px"
             minW="100%"
+            padding={"10px"}
           >
             <CardBody>
               <Flex
@@ -537,11 +531,11 @@ function formatTime(timeString) {
               >
                 <Flex
                   id="backProgramButton"
-                  onClick={() => {navigate("/programs")}}
+                  onClick={() => {
+                    navigate("/programs");
+                  }}
                 >
-                  <Flex
-                    align="center"
-                  >
+                  <Flex align="center">
                     <Icon
                       as={ChevronLeftIcon}
                       boxSize={6}
@@ -562,20 +556,20 @@ function formatTime(timeString) {
                   <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
                     Invoice
                   </PDFButton>
-                      {!isArchived ? (
-                        <EditCancelPopup
-                            handleEdit={handleEdit}
-                            handleDeactivate={handleDeactivate}
-                            id={program[0].id}
-                          />
-                        ) : (
-                        <ArchivedDropdown
-                          programId={program[0].id}
-                          programName={program[0].name}
-                          onOpen={modalOnOpen}
-                          setIsArchived={setIsArchived}
-                        />
-                        )}
+                  {!isArchived ? (
+                    <EditCancelPopup
+                      handleEdit={handleEdit}
+                      handleDeactivate={handleDeactivate}
+                      id={program[0].id}
+                    />
+                  ) : (
+                    <ArchivedDropdown
+                      programId={program[0].id}
+                      programName={program[0].name}
+                      onOpen={modalOnOpen}
+                      setIsArchived={setIsArchived}
+                    />
+                  )}
 
                   <Modal
                     isOpen={modalIsOpen}
@@ -640,9 +634,12 @@ function formatTime(timeString) {
                   align="center"
                   gap={2}
                 >
-                  <Icon as={RepeatIcon} size="md"/>{repeatChoice}
+                  <Icon
+                    as={RepeatIcon}
+                    size="md"
+                  />
+                  {repeatChoice}
                 </Flex>
-
 
                 <Flex
                   align="center"
@@ -653,12 +650,26 @@ function formatTime(timeString) {
                     {/* {nextSession
                       ? `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
                       : "No session scheduled"} */}
-                    {dayTimePattern ? dayTimePattern.map(([day, times]) => (
-                          <Flex key={day} width="25rem">
-                            <Text width="10rem">{formatTimeString(times[0].split(" - ")[0])} - {formatTimeString(times[0].split(" - ")[1])}</Text>
-                            <Text key={day} width="12rem"> on {shortenDayOfWeek(day)}</Text>
+                    {dayTimePattern
+                      ? dayTimePattern.map(([day, times]) => (
+                          <Flex
+                            key={day}
+                            width="25rem"
+                          >
+                            <Text width="10rem">
+                              {formatTimeString(times[0].split(" - ")[0])} -{" "}
+                              {formatTimeString(times[0].split(" - ")[1])}
+                            </Text>
+                            <Text
+                              key={day}
+                              width="12rem"
+                            >
+                              {" "}
+                              on {shortenDayOfWeek(day)}
+                            </Text>
                           </Flex>
-                        )) : "No session scheduled"}
+                        ))
+                      : "No session scheduled"}
                   </Stack>
                 </Flex>
                 <Flex
@@ -668,32 +679,53 @@ function formatTime(timeString) {
                   <Icon as={CalendarIcon} />
                   <HStack spacing=".5rem">
                     <Text>Starts on</Text>
-                    <Text as="span" fontWeight="500">{startDay}</Text>
-                    <Text as="span" fontWeight="500">{nextSession?.date
-                      ? new Date(nextSession.date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                        })
-                      : "No date available"}</Text>
+                    <Text
+                      as="span"
+                      fontWeight="500"
+                    >
+                      {startDay}
+                    </Text>
+                    <Text
+                      as="span"
+                      fontWeight="500"
+                    >
+                      {nextSession?.date
+                        ? new Date(nextSession.date).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            }
+                          )
+                        : "No date available"}
+                    </Text>
                     <Text>and ends on</Text>
-                    <Text as="span" fontWeight="500">{lastDay}</Text>
-                    <Text as="span" fontWeight="500">{lastBooking?
-                      new Date(lastBooking).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                        })
-                      : "No date available"}</Text>
+                    <Text
+                      as="span"
+                      fontWeight="500"
+                    >
+                      {lastDay}
+                    </Text>
+                    <Text
+                      as="span"
+                      fontWeight="500"
+                    >
+                      {lastBooking
+                        ? new Date(lastBooking).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          })
+                        : "No date available"}
+                    </Text>
                   </HStack>
                 </Flex>
                 <Flex
                   align="center"
                   gap={2}
                 >
-                  <Icon
-                    as={PaintPaletteIcons}
-                  />
+                  <Icon as={PaintPaletteIcons} />
                   <Text>
                     {payees?.length > 0
                       ? payees.map((payee) => payee.clientName).join(", ")
@@ -704,9 +736,7 @@ function formatTime(timeString) {
                   align="center"
                   gap={2}
                 >
-                  <Icon
-                    as={ProfileIcon}
-                  />
+                  <Icon as={ProfileIcon} />
                   <Text>
                     {instructors?.length > 0
                       ? instructors
@@ -724,9 +754,7 @@ function formatTime(timeString) {
                     align="center"
                     gap={2}
                   >
-                    <Icon
-                      as={EmailIcon}
-                    />
+                    <Icon as={EmailIcon} />
                     <Text>
                       {payees?.length > 0
                         ? [...(payees || [])]
@@ -746,9 +774,7 @@ function formatTime(timeString) {
                     align="center"
                     gap={2}
                   >
-                    <Icon
-                      as={LocationIcon}
-                    />
+                    <Icon as={LocationIcon} />
                     <Text>{nextRoom?.name || "-"}</Text>
                   </Flex>
                   <Flex
@@ -763,9 +789,7 @@ function formatTime(timeString) {
 
                 <Stack spacing={6}>
                   <Box spacing={2}>
-                    <Heading size="md">
-                      Room Description
-                    </Heading>
+                    <Heading size="md">Room Description</Heading>
                     <Text
                       text="xs"
                       mt={4}
@@ -775,11 +799,7 @@ function formatTime(timeString) {
                   </Box>
 
                   <Box>
-                    <Heading
-                      size="md"
-                    >
-                      Class Description
-                    </Heading>
+                    <Heading size="md">Class Description</Heading>
                     <Text
                       text="xs"
                       mt={4}
@@ -805,8 +825,15 @@ function formatTime(timeString) {
   );
 };
 
-
-export const Sessions = ({ programName, sessions, rooms, instructors, payees, isArchived, setIsArchived }) => {
+export const Sessions = ({
+  programName,
+  sessions,
+  rooms,
+  instructors,
+  payees,
+  isArchived,
+  setIsArchived,
+}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const [programToDelete, setProgramToDelete] = useState(null);
@@ -820,9 +847,9 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
   const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
   // At the top of your Sessions component where other state variables are defined
 
- const roomsMap = useMemo(() => {
-  return rooms ?? new Map();
-}, [rooms]);
+  const roomsMap = useMemo(() => {
+    return rooms ?? new Map();
+  }, [rooms]);
 
   const handleEdit = useCallback(
     (id, e) => {
@@ -855,7 +882,7 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
     return formattedDate;
   };
 
-   const formatTime = (timeString) => {
+  const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(":").map(Number);
 
     // Determine AM or PM suffix
@@ -891,36 +918,50 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
 
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
-                programName.toLowerCase().includes(searchLower) ||
-                roomsMap.get(session.roomId).toLowerCase().includes(searchLower) ||
-                (instructors &&
-                    instructors.some((instructor) =>
-                        instructor.clientName.toLowerCase().includes(searchLower)
-                    )) ||
-                (payees &&
-                    payees.some((payee) =>
-                        payee.clientName.toLowerCase().includes(searchLower)
-                    )) ||
-                session.date.includes(searchQuery) ||
-                formatDate(session.date).includes(searchQuery) ||
-                formatTime(sessionStartTime).includes(searchQuery) ||
-                sessionStartTime.includes(searchQuery) ||
-                sessionEndTime.includes(searchQuery);
-      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch && matchesSearch;
+        programName.toLowerCase().includes(searchLower) ||
+        roomsMap.get(session.roomId).toLowerCase().includes(searchLower) ||
+        (instructors &&
+          instructors.some((instructor) =>
+            instructor.clientName.toLowerCase().includes(searchLower)
+          )) ||
+        (payees &&
+          payees.some((payee) =>
+            payee.clientName.toLowerCase().includes(searchLower)
+          )) ||
+        session.date.includes(searchQuery) ||
+        formatDate(session.date).includes(searchQuery) ||
+        formatTime(sessionStartTime).includes(searchQuery) ||
+        sessionStartTime.includes(searchQuery) ||
+        sessionEndTime.includes(searchQuery);
+      return (
+        isDateInRange &&
+        isTimeInRange &&
+        isStatusMatch &&
+        isRoomMatch &&
+        matchesSearch
+      );
     });
   };
 
   const filteredAndSortedSessions = useMemo(() => {
-    if (!programName || !sessions || !roomsMap || !programName || !instructors || !payees) return;
+    if (
+      !programName ||
+      !sessions ||
+      !roomsMap ||
+      !programName ||
+      !instructors ||
+      !payees
+    )
+      return;
     // Step 2: Sort the filtered sessions
     const filtered = filterSessions();
     const sorted = [...filtered];
 
     if (sortKey === "title") {
       sorted.sort((a, b) =>
-          sortOrder === "asc"
-              ? a.programName.localeCompare(b.programName)
-              : b.programName.localeCompare(a.programName)
+        sortOrder === "asc"
+          ? a.programName.localeCompare(b.programName)
+          : b.programName.localeCompare(a.programName)
       );
     } else if (sortKey === "date") {
       sorted.sort((a, b) => {
@@ -952,7 +993,7 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
     rooms,
     sortKey,
     sortOrder,
-    searchQuery
+    searchQuery,
   ]);
 
   // Function to update sorting
@@ -986,9 +1027,9 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
   };
 
   const handleSearch = (query) => {
-        // Sets query for filterSessions
-        setSearchQuery(query);
-    };
+    // Sets query for filterSessions
+    setSearchQuery(query);
+  };
 
   return (
     <>
@@ -1007,9 +1048,7 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
           mb={4}
         >
           <Icon as={sessionsCalendar} />
-          <Text className="componentTitleText">
-            Sessions
-          </Text>
+          <Text className="componentTitleText">Sessions</Text>
         </Flex>
         <Card
           shadow="none"
@@ -1017,10 +1056,11 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
           borderColor="gray.300"
           borderRadius="15px"
         >
-          <CardBody m={0} p={6}>
-            <Flex
-              direction="column"
-            >
+          <CardBody
+            m={0}
+            p={6}
+          >
+            <Flex direction="column">
               <Flex
                 gap="12px"
                 height="auto"
@@ -1056,12 +1096,7 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                           gap="5px"
                         >
                           <Icon as={filterButton} />
-                          <Text
-                            fontSize="sm"
-                          >
-                            {" "}
-                            Filters{" "}
-                          </Text>
+                          <Text fontSize="sm"> Filters </Text>
                         </Box>
                       </Button>
                     </PopoverTrigger>
@@ -1114,7 +1149,10 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                                       type="date"
                                       placeholder="MM/DD/YYYY"
                                       onChange={(e) =>
-                                        handleDateChange("start", e.target.value)
+                                        handleDateChange(
+                                          "start",
+                                          e.target.value
+                                        )
                                       }
                                     />
                                     <Text> to </Text>
@@ -1172,7 +1210,10 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                                       type="time"
                                       placeholder="00:00 am"
                                       onChange={(e) =>
-                                        handleTimeChange("start", e.target.value)
+                                        handleTimeChange(
+                                          "start",
+                                          e.target.value
+                                        )
                                       }
                                     />
                                     <Text> to </Text>
@@ -1234,10 +1275,14 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                                       height="20%"
                                       onClick={() => setStatus("Active")}
                                       backgroundColor={
-                                        status === "Active" ? "#EDEDFD" : "#F6F6F6"
+                                        status === "Active"
+                                          ? "#EDEDFD"
+                                          : "#F6F6F6"
                                       }
                                       borderColor={
-                                        status === "Active" ? "#4E4AE7" : "#767778"
+                                        status === "Active"
+                                          ? "#4E4AE7"
+                                          : "#767778"
                                       }
                                     >
                                       <Box
@@ -1262,10 +1307,14 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                                       height="20%"
                                       onClick={() => setStatus("Past")}
                                       backgroundColor={
-                                        status === "Past" ? "#EDEDFD" : "#F6F6F6"
+                                        status === "Past"
+                                          ? "#EDEDFD"
+                                          : "#F6F6F6"
                                       }
                                       borderColor={
-                                        status === "Past" ? "#4E4AE7" : "#767778"
+                                        status === "Past"
+                                          ? "#4E4AE7"
+                                          : "#767778"
                                       }
                                     >
                                       <Box
@@ -1340,7 +1389,9 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                                             borderWidth="1px"
                                             minWidth="auto"
                                             height="20px"
-                                            onClick={() => setSelectedRoom(room)}
+                                            onClick={() =>
+                                              setSelectedRoom(room)
+                                            }
                                             backgroundColor={
                                               selectedRoom === room
                                                 ? "#EDEDFD"
@@ -1371,7 +1422,6 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                   handleSearch={handleSearch}
                   searchQuery={searchQuery}
                 />
-
               </Flex>
               <TableContainer>
                 <Table variant="unstyled">
@@ -1381,102 +1431,113 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                   >
                     <Tr>
                       <Th pl={0}>
-                        <Box className="sessionsColumnContainer" justifyContent="left">
-                          <Text className="sessionsColumnTitle">
-                            STATUS
-                          </Text>
+                        <Box
+                          className="sessionsColumnContainer"
+                          justifyContent="left"
+                        >
+                          <Text className="sessionsColumnTitle">STATUS</Text>
                         </Box>
                       </Th>
                       <Th>
                         <Box className="sessionsColumnContainer">
-                          <Flex justifyContent="space-between" width="9rem">
+                          <Flex
+                            justifyContent="space-between"
+                            width="9rem"
+                          >
                             <Flex
-                                align="center"
-                                gap="8px"
+                              align="center"
+                              gap="8px"
                             >
                               <Box>
-                                  <Icon as={archiveCalendar} />
+                                <Icon as={archiveCalendar} />
                               </Box>
                               <Box>
-                                  <Text
-                                    className="sessionsColumnTitle"
-                                    textTransform="none"
-                                  >
-                                    DATE
-                                  </Text>
+                                <Text
+                                  className="sessionsColumnTitle"
+                                  textTransform="none"
+                                >
+                                  DATE
+                                </Text>
                               </Box>
                             </Flex>
                             <Box>
-                                <DateSortingModal onSortChange={handleSortChange} />
+                              <DateSortingModal
+                                onSortChange={handleSortChange}
+                              />
                             </Box>
                           </Flex>
                         </Box>
                       </Th>
                       <Th>
-                        <Box
-                            className="sessionsColumnContainer"
-                        >
-                            <Icon as={archiveClock} />
-                            <Text
-                              className="sessionsColumnTitle"
-                              textTransform="none"
-                            >
-                              UPCOMING  TIME
-                            </Text>
+                        <Box className="sessionsColumnContainer">
+                          <Icon as={archiveClock} />
+                          <Text
+                            className="sessionsColumnTitle"
+                            textTransform="none"
+                          >
+                            UPCOMING TIME
+                          </Text>
                         </Box>
                       </Th>
                       <Th>
-                        <Box
-                          className="sessionsColumnContainer"
-                        >
+                        <Box className="sessionsColumnContainer">
                           <Icon as={archiveMapPin} />
                           <Text
                             className="sessionsColumnTitle"
                             textTransform="none"
                           >
-                              ROOM
+                            ROOM
                           </Text>
                         </Box>
                       </Th>
                       <Th>
                         <HStack>
                           <PaintPaletteIcons />
-                          <Text className="sessionsColumnTitle"
-                            textTransform="none">LEAD ARTIST(S)</Text>
+                          <Text
+                            className="sessionsColumnTitle"
+                            textTransform="none"
+                          >
+                            LEAD ARTIST(S)
+                          </Text>
                         </HStack>
                       </Th>
                       <Th>
                         <HStack>
                           <PersonIcon />
-                          <Text className="sessionsColumnTitle"
-                            textTransform="none">PAYER(S)</Text>
+                          <Text
+                            className="sessionsColumnTitle"
+                            textTransform="none"
+                          >
+                            PAYER(S)
+                          </Text>
                         </HStack>
                       </Th>
                       <Th> </Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {filteredAndSortedSessions !== undefined && filteredAndSortedSessions.length > 0 ? (
+                    {filteredAndSortedSessions !== undefined &&
+                    filteredAndSortedSessions.length > 0 ? (
                       filteredAndSortedSessions.map((session) => (
                         <Tr key={session.id}>
-                            <Td pl={0}>
+                          <Td pl={0}>
+                            <Box
+                              display="flex"
+                              justifyContent="left"
+                              ml="1.5rem"
+                            >
                               <Box
-                                display="flex"
-                                justifyContent="left"
-                                ml="1.5rem"
-                              >
-                                <Box
-                                  height="14px"
-                                  width="14px"
-                                  borderRadius="50%"
-                                  bg={
-                                    hasTimePassed(session.date)
-                                      ? "#DAB434"
-                                      : "#0C824D"
-                                  }
-                                ></Box>
-                              </Box>
-                            </Td>
+                                height="14px"
+                                width="14px"
+                                borderRadius="50%"
+                                bg={
+                                  hasTimePassed(session.date)
+                                    ? "#DAB434"
+                                    : "#0C824D"
+                                }
+                              ></Box>
+                            </Box>
+                          </Td>
                           <Td>
                             <Box className="sessionData">
                               {formatDate(session.date)}
@@ -1494,17 +1555,17 @@ export const Sessions = ({ programName, sessions, rooms, instructors, payees, is
                             </Box>
                           </Td>
                           <Td>
-                            <Box
-                              className="sessionData ellipsis-box"
-                            >
-                              {instructors.map(i => i.clientName).join(', ')}
+                            <Box className="sessionData ellipsis-box">
+                              {instructors?.length > 0
+                                ? instructors
+                                    .map((i) => i.clientName)
+                                    .join(", ")
+                                : "No instructors"}
                             </Box>
                           </Td>
                           <Td>
-                            <Box
-                              className="sessionData ellipsis-box"
-                            >
-                              {payees.map(p => p.clientName).join(', ')}
+                            <Box className="sessionData ellipsis-box">
+                              {payees?.length > 0 ? payees.map((p) => p.clientName).join(", "): "No payees"}
                             </Box>
                           </Td>
                           <Td>
@@ -1635,11 +1696,12 @@ const PDFButton = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <PDFDownloadLink className="invoiceButton"
+    <PDFDownloadLink
+      className="invoiceButton"
       document={<MyDocument bookingData={bookingData} />}
       fileName="bookingdata.pdf"
     >
-      <DownloadIcon/>
+      <DownloadIcon />
       Invoice
     </PDFDownloadLink>
   );

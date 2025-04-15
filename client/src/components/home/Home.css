@@ -25,7 +25,7 @@
   display: flex;
   width: 100%;
   max-width: 100%;
-  padding: 64px 32px 0px 32px;
+  padding: 26px 26px 16px 26px;
   flex-direction: column;
   align-items: flex-start;
   gap: 32px;
@@ -48,7 +48,7 @@
   align-items: center;
   gap: 4px;
   border-radius: 6px;
-  background: #EDF2F7;
+  background: #edf2f7;
   cursor: pointer;
 }
 
@@ -58,7 +58,7 @@
 }
 
 .google-calendar-text {
-  color: #2D3748;
+  color: #2d3748;
   font-family: var(--font-inter);
   font-size: 16px;
   font-weight: 600;
@@ -68,13 +68,13 @@
   margin-right: 24px;
   display: flex;
   height: 40px;
-  padding: 4px 16px;
+  padding: 0px 16px;
   justify-content: center;
   align-items: center;
   gap: 4px;
   border: none;
   cursor: pointer;
-  background-color: #EDF2F7;
+  background-color: #edf2f7;
   border-radius: 6px !important;
 }
 
@@ -84,7 +84,7 @@
 }
 
 .archive-text {
-  color: #2D3748;
+  color: #2d3748;
   font-family: var(--font-inter);
   font-size: 16px;
   font-weight: 600;
@@ -97,7 +97,7 @@
   align-items: center;
   gap: 4px;
   border-radius: 6px;
-  background: var(--indigo);
+  background: #4441c8;
   cursor: pointer;
 }
 
@@ -119,10 +119,10 @@
 
 .programs-table {
   width: 100%;
-  margin: 40px auto 0 auto;
-  border: 1px solid var(--Secondary-3, #E2E8F0);
+  margin: 0px auto 0 auto;
+  border: 1px solid var(--Secondary-3, #e2e8f0);
   border-radius: 15px;
-  padding: 16px;
+  padding: 0px 26px 16px 26px;
 }
 
 .programs-table__filter-row {
@@ -174,11 +174,11 @@
   align-items: center !important;
   gap: 4px;
   cursor: pointer;
-  background-color: #EDF2F7!important;
+  background-color: #edf2f7 !important;
 }
 
 .filter-box-text {
-  color: #2D3748;
+  color: #2d3748;
   font-family: var(--font-inter);
   font-size: 16px;
   font-weight: 600;
@@ -189,7 +189,7 @@
   align-items: center;
   gap: 0;
   height: 54.795px;
-  border: 1px solid var(--Secondary-3, #E2E8F0);
+  border: 1px solid var(--Secondary-3, #e2e8f0);
   border-radius: 6px;
 }
 
@@ -203,7 +203,7 @@
   align-self: stretch;
   padding: 0px 16px;
   border-radius: 5px 0px 0px 5px;
-  background: var(--Secondary-1, #F7FAFC);
+  background: var(--Secondary-1, #f7fafc);
 }
 
 .searchbar-container input {
@@ -224,7 +224,7 @@
   align-items: center;
   gap: 10px;
   border-radius: 0px 5px 5px 0px;
-  background: #EDF2F7;
+  background: #edf2f7;
 }
 
 /* ========================= */
@@ -241,11 +241,11 @@
 }
 
 .programs-ellipsis-box {
-justify-content: flex-start;
+  justify-content: flex-start;
   width: 100%;
   max-width: 8rem;
   overflow: hidden;
-  text-overflow: ellipsis!important;
+  text-overflow: ellipsis !important;
   white-space: nowrap;
   display: block;
 }

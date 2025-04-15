@@ -140,7 +140,7 @@ export const Program = () => {
 
   return (
     <Navbar>
-      <Box style={{width: "100%", padding: "20px 20px 20px 20px"}}>
+      <Box style={{width: "100%", padding: "26px 26px "}}>
           <ProgramSummary
             program={program}
             sessions={sessions}
