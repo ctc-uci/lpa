@@ -27,7 +27,7 @@ const InvoiceView = ({
 }) => {
 
   return (
-      <Flex direction="column" alignItems="center">
+      <Flex direction="column" alignItems="center" width={"571px"}>
         <Image
           w="100%"
           position="relative"

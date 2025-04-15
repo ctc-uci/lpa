@@ -1,320 +1,389 @@
-import React, { useState, useEffect } from "react";
-import { FaAngleLeft } from "react-icons/fa6";
-import { FiEdit, FiExternalLink } from "react-icons/fi";
-import {
-    useNavigate,
-    useParams
-} from "react-router-dom";
+import React, { useEffect, useState } from "react";
 
 import {
-    Flex,
-    Button,
-    IconButton,
-    Modal,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
-    ModalOverlay,
-    useDisclosure,
+  Button,
+  Flex,
+  IconButton,
+  Modal,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
 } from "@chakra-ui/react";
 
-import { InvoicePayments, InvoiceStats, InvoiceTitle } from "./InvoiceComponents";
-import { EmailHistory } from "./EmailHistory";
+import { FaAngleLeft } from "react-icons/fa6";
+import { FiEdit, FiExternalLink } from "react-icons/fi";
+import { useNavigate, useParams } from "react-router-dom";
 
-import Navbar from "../navbar/Navbar";
-import PDFButtonInvoice from "./PDFButtonInvoice";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-
-
+import Navbar from "../navbar/Navbar";
+import { EmailHistory } from "./EmailHistory";
 import {
-  InvoiceView,
-} from "./InvoiceView";
-
+  InvoicePayments,
+  InvoiceStats,
+  InvoiceTitle,
+} from "./InvoiceComponents";
+import { InvoiceView } from "./InvoiceView";
+import PDFButtonInvoice from "./PDFButtonInvoice";
 
 export const SingleInvoice = () => {
-    const { id } = useParams()
-    const { backend } = useBackendContext();
-    const navigate = useNavigate();
+  const { id } = useParams();
+  const { backend } = useBackendContext();
+  const navigate = useNavigate();
 
-    const [total, setTotal] = useState(0);
-    const [remainingBalance, setRemainingBalance] = useState(0);
-    const [billingPeriod, setBillingPeriod] = useState({});
-    const [comments, setComments] = useState([]);
-    const [emails, setEmails] = useState([]);
-    const [payees, setPayees] = useState([]);
-    const [event, setEvent] = useState();
+  const [total, setTotal] = useState(0);
+  const [remainingBalance, setRemainingBalance] = useState(0);
+  const [billingPeriod, setBillingPeriod] = useState({});
+  const [comments, setComments] = useState([]);
+  const [emails, setEmails] = useState([]);
+  const [payees, setPayees] = useState([]);
+  const [event, setEvent] = useState();
 
-    const [booking, setBookingDetails] = useState([]);
-    const [room, setRoom] = useState([]);
-    const [roomRate, setRoomRate] = useState(0);
-    const [subtotal, setSubtotal] = useState(0);
-    const [pastDue, setPastDue] = useState(0);
-    const [programName, setProgramName] = useState("");
-    const [instructors, setInstructors] = useState([]);
-    const [invoice, setInvoice] = useState([]);
-    const { isOpen: isModalOpen, onOpen: openModal, onClose: closeModal } = useDisclosure();
-    const [intendedPath, setIntendedPath] = useState(null);
-    const [editMode, setEditMode] = useState(false);
+  const [booking, setBookingDetails] = useState([]);
+  const [room, setRoom] = useState([]);
+  const [roomRate, setRoomRate] = useState(0);
+  const [subtotal, setSubtotal] = useState(0);
+  const [pastDue, setPastDue] = useState(0);
+  const [programName, setProgramName] = useState("");
+  const [instructors, setInstructors] = useState([]);
+  const [invoice, setInvoice] = useState([]);
+  const {
+    isOpen: isModalOpen,
+    onOpen: openModal,
+    onClose: closeModal,
+  } = useDisclosure();
+  const [intendedPath, setIntendedPath] = useState(null);
+  const [editMode, setEditMode] = useState(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get current invoice
+        const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
+        setInvoice(currentInvoiceResponse);
 
-    useEffect(() => {
-      const fetchData = async () => {
-          try {
-              // Get current invoice
-              const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
-              setInvoice(currentInvoiceResponse);
+        // If no invoice is found, set everything to null
+        if (
+          !currentInvoiceResponse.data ||
+          currentInvoiceResponse.status === 404
+        ) {
+          setTotal(null);
+          setRemainingBalance(null);
+          setBillingPeriod(null);
+          setComments(null);
+          setEmails(null);
+          setPayees(null);
+          setEvent(null);
+          setSubtotal(0.0);
+          setPastDue(0.0);
+          setProgramName("");
+          setInstructors([]);
+          return;
+        }
 
-              // If no invoice is found, set everything to null
-              if (!currentInvoiceResponse.data || currentInvoiceResponse.status === 404) {
-                  setTotal(null);
-                  setRemainingBalance(null);
-                  setBillingPeriod(null);
-                  setComments(null);
-                  setEmails(null);
-                  setPayees(null);
-                  setEvent(null);
-                  setSubtotal(0.0);
-                  setPastDue(0.0);
-                  setProgramName("");
-                  setInstructors([]);
-                  return;
-              }
+        const currentInvoice = currentInvoiceResponse.data[0];
 
-              const currentInvoice = currentInvoiceResponse.data[0];
+        // get invoice total
+        const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
+        const total = invoiceTotalResponse.data.total;
+        setTotal(total);
+        setSubtotal(total);
 
-              // get invoice total
-              const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
-              const total = invoiceTotalResponse.data.total;
-              setTotal(total);
-              setSubtotal(total);
+        // calculate sum of unpaid/remaining invoices
+        const unpaidInvoicesResponse = await backend.get(
+          "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
+        );
+        const unpaidTotals = await Promise.all(
+          unpaidInvoicesResponse.data.map((invoice) =>
+            backend.get(`/invoices/total/${invoice.id}`)
+          )
+        );
+        const partiallyPaidTotals = await Promise.all(
+          unpaidInvoicesResponse.data.map((invoice) =>
+            backend.get(`/invoices/paid/${invoice.id}`)
+          )
+        );
+        const unpaidTotal = unpaidTotals.reduce(
+          (sum, res) => sum + res.data.total,
+          0
+        );
+        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+          (sum, res) => {
+            const paidAmount = res.data.paid || 0;
+            return sum + paidAmount;
+          },
+          0
+        );
 
-              // calculate sum of unpaid/remaining invoices
-              const unpaidInvoicesResponse = await backend.get("/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]);
-              const unpaidTotals = await Promise.all(
-                unpaidInvoicesResponse.data.map(invoice => backend.get(`/invoices/total/${invoice.id}`))
-              );
-              const partiallyPaidTotals = await Promise.all(
-                  unpaidInvoicesResponse.data.map(invoice => backend.get(`/invoices/paid/${invoice.id}`))
-              );
-              const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
-              const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
-                const paidAmount = res.data.paid || 0;
-                return sum + paidAmount;
-              }, 0);
+        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
-              const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        setRemainingBalance(remainingBalance);
+        setPastDue(remainingBalance);
 
-              setRemainingBalance(remainingBalance);
-              setPastDue(remainingBalance);
+        // get program name
+        const programNameResponse = await backend.get(
+          "/events/" + currentInvoice.eventId
+        );
+        setProgramName(programNameResponse.data[0].name);
 
-              // get program name
-              const programNameResponse = await backend.get(
-                "/events/" + currentInvoice.eventId
-              );
-              setProgramName(programNameResponse.data[0].name);
+        // get instructors
+        const instructorResponse = await backend.get(
+          "/assignments/instructors/" + currentInvoice.eventId
+        );
+        setInstructors(instructorResponse.data);
 
-              // get instructors
-              const instructorResponse = await backend.get(
-                "/assignments/instructors/" + currentInvoice.eventId
-              );
-              setInstructors(instructorResponse.data);
+        // set billing period
+        setBillingPeriod({
+          startDate: currentInvoice.startDate,
+          endDate: currentInvoice.endDate,
+        });
+        // get comments
+        const commentsResponse = await backend.get(
+          "/comments/paidInvoices/" + id
+        );
+        setComments(commentsResponse.data);
+        console.log("COMMENTS: ", commentsResponse.data);
 
-              // set billing period
-              setBillingPeriod({
-                  startDate: currentInvoice.startDate,
-                  endDate: currentInvoice.endDate
-              });
-              // get comments
-              const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
-              setComments(commentsResponse.data);
-              console.log("COMMENTS: ", commentsResponse.data)
+        // get emails
+        const emailsResponse = await backend.get(
+          "/invoices/historicInvoices/" + id
+        );
+        setEmails(emailsResponse.data);
 
-              // get emails
-              const emailsResponse = await backend.get('/invoices/historicInvoices/' + id);
-              setEmails(emailsResponse.data);
+        // get payees
+        const payeesResponse = await backend.get("/invoices/payees/" + id);
+        setPayees(payeesResponse.data);
 
-              // get payees
-              const payeesResponse = await backend.get("/invoices/payees/" + id);
-              setPayees(payeesResponse.data)
+        // get corresponding event
+        const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
+        setEvent(eventResponse.data);
+      } catch (error) {
+        // Invoice/field does not exist
+        console.error("Error fetching data:", error);
+      }
+    };
 
-              // get corresponding event
-              const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
-              setEvent(eventResponse.data)
-          } catch (error) {
-              // Invoice/field does not exist
-              console.error("Error fetching data:", error);
-          }
-      };
-
-      fetchData();
+    fetchData();
   }, [backend, id]);
 
-    useEffect(() => {
-      const fetchBookingDetails = async () => {
-        try {
-          if (!comments || !Array.isArray(comments) || comments.length === 0) {
-            return;
-          }
-
-          // Find the first comment with a booking_id
-          const commentWithBookingId = comments[0].bookingId;
-
-          const bookingResponse = await backend.get(
-            `/bookings/${commentWithBookingId}`
-          );
-          // console.log("Booking details:", bookingResponse.data);
-          setBookingDetails(bookingResponse.data[0]);
-
-          const roomResponse = await backend.get(
-            `/rooms/${bookingResponse.data[0].roomId}`
-          );
-          setRoom(roomResponse.data);
-          setRoomRate(room[0].rate)
-        } catch (error) {
-          console.error("Error fetching booking details:", error);
+  useEffect(() => {
+    const fetchBookingDetails = async () => {
+      try {
+        if (!comments || !Array.isArray(comments) || comments.length === 0) {
+          return;
         }
-      };
 
-      fetchBookingDetails();
-    }, [comments, backend, room]);
+        // Find the first comment with a booking_id
+        const commentWithBookingId = comments[0].bookingId;
 
-    const handlePreviewClick = () => {
-      navigate(`/invoices/savededits/${id}`);
+        const bookingResponse = await backend.get(
+          `/bookings/${commentWithBookingId}`
+        );
+        // console.log("Booking details:", bookingResponse.data);
+        setBookingDetails(bookingResponse.data[0]);
+
+        const roomResponse = await backend.get(
+          `/rooms/${bookingResponse.data[0].roomId}`
+        );
+        setRoom(roomResponse.data);
+        setRoomRate(room[0].rate);
+      } catch (error) {
+        console.error("Error fetching booking details:", error);
+      }
     };
 
-    const handleModalConfirm = () => {
-      console.log("Handle modal confirm executed")
-      if (intendedPath) {
-        navigate(intendedPath);
-        setIntendedPath(null);
-      } else{
+    fetchBookingDetails();
+  }, [comments, backend, room]);
+
+  const handlePreviewClick = () => {
+    navigate(`/invoices/savededits/${id}`);
+  };
+
+  const handleModalConfirm = () => {
+    console.log("Handle modal confirm executed");
+    if (intendedPath) {
+      navigate(intendedPath);
+      setIntendedPath(null);
+    } else {
       navigate("/invoices");
+    }
+  };
+
+  const handleNavbarClick = (path) => {
+    console.log(isModalOpen);
+    if (editMode) {
+      if (!isModalOpen) {
+        setIntendedPath(path);
+        openModal();
       }
-    };
+    } else {
+      navigate(path);
+    }
+  };
 
-    const handleNavbarClick = (path) => {
-      console.log(isModalOpen)
-      if (editMode) {
-        if (!isModalOpen) {
-          setIntendedPath(path);
-          openModal();
-        }
-      } else {
-        navigate(path);
-      }
-    };
+  const handleEditRowChange = (isEditing) => {
+    setEditMode(isEditing);
+  };
 
-    const handleEditRowChange = (isEditing) => {
-      setEditMode(isEditing);
-    };
-
-    return (
-      <Navbar onNavbarClick={handleNavbarClick}>
-        <Flex direction="row" height="100%" width="100%">
-          <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
-              <Modal isOpen={isModalOpen} onClose={closeModal}>
-                          <ModalOverlay />
-                          <ModalContent>
-                            <ModalHeader
-                              textAlign="center"
-                              paddingBottom="0"
-                            >
-                              Leave without saving changes?
-                            </ModalHeader>
-                            <ModalFooter
-                              style={{ display: "flex", justifyContent: "flex-end" }}
-                            >
-                              <Button
-                                variant="ghost"
-                                onClick={closeModal}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                colorScheme="red"
-                                mr={3}
-                                id="deactivateConfirm"
-                                onClick={() => {
-                                  console.log("Modal confirm clicked")
-                                  closeModal();
-                                  handleModalConfirm();
-                                  //navigate("/invoices"); // Navigate after closing the modal
-                                }}
-                              >
-                                Ok
-                              </Button>
-                            </ModalFooter>
-                          </ModalContent>
-                </Modal>
-            <Flex direction="row" width="100%">
-              {/* back button */}
-              <IconButton
-                icon={<FaAngleLeft />}
-                onClick={() => handleNavbarClick("/invoices")}
-                variant="link"
-                color="#474849"
-                fontSize="1.5em"
-                mr={6}
-              ></IconButton>
-              <InvoiceTitle
-                title={event ? event.name : "N/A"}
-                isSent={invoice?.data?.[0]?.isSent}
-                paymentStatus={invoice?.data?.[0]?.paymentStatus}
-                endDate={invoice?.data?.[0]?.endDate}>
-              </InvoiceTitle>
-
-              {/* buttons */}
-              <Flex direction="row" marginLeft="auto" gap={1}>
-                <PDFButtonInvoice invoice={id}></PDFButtonInvoice>
-
+  return (
+    <Navbar onNavbarClick={handleNavbarClick}>
+      <Flex
+        direction="row"
+        height="100%"
+        width="100%"
+      >
+        <Flex
+          direction="column"
+          height="100%"
+          width="100%"
+          padding="2.5vw"
+          gap="1.25vw"
+        >
+          <Modal
+            isOpen={isModalOpen}
+            onClose={closeModal}
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader
+                textAlign="center"
+                paddingBottom="0"
+              >
+                Leave without saving changes?
+              </ModalHeader>
+              <ModalFooter
+                style={{ display: "flex", justifyContent: "flex-end" }}
+              >
                 <Button
-                  height="100%"
-                  backgroundColor="#4E4AE7"
-                  color="#FFF"
-                  fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
-                  gap={1}
-                  onClick={handlePreviewClick}
+                  variant="ghost"
+                  onClick={closeModal}
                 >
-                  <FiExternalLink></FiExternalLink>
-                  Preview
+                  Cancel
                 </Button>
+                <Button
+                  colorScheme="red"
+                  mr={3}
+                  id="deactivateConfirm"
+                  onClick={() => {
+                    console.log("Modal confirm clicked");
+                    closeModal();
+                    handleModalConfirm();
+                    //navigate("/invoices"); // Navigate after closing the modal
+                  }}
+                >
+                  Ok
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+          <Flex
+            direction="row"
+            width="100%"
+          >
+            {/* back button */}
+            <IconButton
+              icon={<FaAngleLeft />}
+              onClick={() => handleNavbarClick("/invoices")}
+              variant="link"
+              color="#474849"
+              fontSize="1.5em"
+              mr={6}
+            ></IconButton>
+            <InvoiceTitle
+              title={event ? event.name : "N/A"}
+              isSent={invoice?.data?.[0]?.isSent}
+              paymentStatus={invoice?.data?.[0]?.paymentStatus}
+              endDate={invoice?.data?.[0]?.endDate}
+            ></InvoiceTitle>
 
-              </Flex>
+            {/* buttons */}
+            <Flex
+              direction="row"
+              marginLeft="auto"
+              gap={1}
+            >
+              <PDFButtonInvoice
+                invoice={id}
+
+              ></PDFButtonInvoice>
+              <Button
+                height={"40px"}
+                backgroundColor="#4441C8"
+                color="#FFF"
+                fontFamily={"Inter"}
+                fontWeight={"700"}
+                fontSize="14px"
+                gap={"4px"}
+                padding={"0px 16px"}
+                onClick={handlePreviewClick}
+              >
+                <FiExternalLink></FiExternalLink>
+                Preview
+              </Button>
             </Flex>
-            <Flex direction="column" height="100%" width="100%" padding="2.5vw" gap="1.25vw">
-              <Flex direction="row" width="100%" gap={5}>
-                <Flex direction="column" height="100%" width="50%" padding="2.5vw" gap="1.25vw">
-                  <InvoiceStats
-                    roomRate={roomRate}
-                    billingPeriod={billingPeriod}
-                    amountDue={total}
-                    remainingBalance={!remainingBalance}
-                  ></InvoiceStats>
-                  <InvoicePayments comments={comments} setComments={setComments} onEditRowChange={handleEditRowChange}></InvoicePayments>
-                  <EmailHistory emails={emails}></EmailHistory>
-                </Flex>
+          </Flex>
+          <Flex
+            direction="column"
+            height="100%"
+            width="100%"
+            padding="50px 26px 26px 26px"
+            gap="1.25vw"
+          >
+            <Flex
+              direction="row"
+              width="100%"
+              gap={5}
+            >
+              <Flex
+                direction="column"
+                height="100%"
+                width="50%"
+                padding="2.5vw"
+                gap="1.25vw"
+              >
+                <InvoiceStats
+                  roomRate={roomRate}
+                  billingPeriod={billingPeriod}
+                  amountDue={total}
+                  remainingBalance={!remainingBalance}
+                ></InvoiceStats>
+                <InvoicePayments
+                  comments={comments}
+                  setComments={setComments}
+                  onEditRowChange={handleEditRowChange}
+                ></InvoicePayments>
+                <EmailHistory emails={emails}></EmailHistory>
+              </Flex>
 
-                <Flex direction="column" height="100%" width="50%"  gap="1.25vw" borderWidth={25} borderRadius={18} borderColor="#D9D9D933" overflow="hidden">
-                    <InvoiceView
-                      comments={comments}
-                      booking={booking}
-                      room={room}
-                      subtotal={subtotal}
-                      setSubtotal={setSubtotal}
-                      pastDue={pastDue}
-                      payees={payees}
-                      programName={programName}
-                      instructors={instructors}
-                      invoice={invoice?.data}
-                    />
-                  {/* </Box> */}
-                </Flex>
-
-
+              <Flex
+                direction="column"
+                height="100%"
+                width="50%"
+                gap="1.25vw"
+                borderWidth={25}
+                borderRadius={18}
+                borderColor="#D9D9D933"
+                overflow="hidden"
+              >
+                <InvoiceView
+                  comments={comments}
+                  booking={booking}
+                  room={room}
+                  subtotal={subtotal}
+                  setSubtotal={setSubtotal}
+                  pastDue={pastDue}
+                  payees={payees}
+                  programName={programName}
+                  instructors={instructors}
+                  invoice={invoice?.data}
+                />
+                {/* </Box> */}
               </Flex>
             </Flex>
           </Flex>
         </Flex>
-      </Navbar>
-    );
-}
+      </Flex>
+    </Navbar>
+  );
+};
