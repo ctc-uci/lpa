@@ -254,7 +254,7 @@ const InvoiceStats = ({
   );
 };
 
-const InvoicePayments = ({ comments, setComments, onEditRowChange }) => {
+const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
@@ -339,7 +339,7 @@ const InvoicePayments = ({ comments, setComments, onEditRowChange }) => {
     try {
       setEditID(edit);
       setShowEditRow(true);
-      if (onEditRowChange) onEditRowChange(true);
+      setHasUnsavedChanges(true);
     } catch (error) {
       console.error("Error editing:", error);
     }
@@ -412,7 +412,7 @@ const InvoicePayments = ({ comments, setComments, onEditRowChange }) => {
       setComments(commentsResponse.data);
       setShowEditRow(false);
       setShowInputRow(false);
-      if (onEditRowChange) onEditRowChange(false);
+      setHasUnsavedChanges(false);
       setAdjustValue("--.--");
     } catch (error) {
       console.error("Error saving:", error);
@@ -421,6 +421,7 @@ const InvoicePayments = ({ comments, setComments, onEditRowChange }) => {
 
   const handleAddComment = async () => {
     setShowInputRow(true);
+    setHasUnsavedChanges(true);
   };
 
   return (
@@ -519,19 +520,16 @@ const InvoicePayments = ({ comments, setComments, onEditRowChange }) => {
                       )}
                     </Td>
                     <Td
-                      position="absolute"
-                      right={0}
-                      marginLeft="auto"
+                      textAlign="right" width="1%"
                     >
                       <Menu>
-                        <MenuButton
-                          as={IconButton}
-                          height="16px"
-                          width="16px"
-                          variant="ghost"
-                          color="#EDF2F"
-                          icon={<Icon as={sessionsEllipsis} />}
-                        />
+                          <MenuButton
+                            as={IconButton}
+                            w={10}
+                            borderRadius={12}
+                            backgroundColor="#EDF2F7"
+                            icon={<Icon as={sessionsEllipsis} />}
+                          />
                         <MenuList>
                           <MenuItem
                             onClick={() => handleEditComment(comment.id)}
@@ -649,17 +647,14 @@ const InvoicePayments = ({ comments, setComments, onEditRowChange }) => {
                   </Flex>
                 </Td>
                 <Td
-                  position="absolute"
-                  right={0}
-                  marginLeft="auto"
+                  textAlign="right" width="1%"
                 >
                   <Menu>
                     <MenuButton
                       as={IconButton}
-                      height="24px"
-                      width="24px"
-                      variant="ghost"
-                      borderRadius={6}
+                      w={10}
+                      borderRadius={12}
+                      backgroundColor="#EDF2F7"
                       icon={<Icon as={sessionsEllipsis} />}
                     />
                   </Menu>

@@ -56,6 +56,10 @@ export const SingleInvoice = () => {
   const [intendedPath, setIntendedPath] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -211,19 +215,12 @@ export const SingleInvoice = () => {
   };
 
   const handleNavbarClick = (path) => {
-    console.log(isModalOpen);
-    if (editMode) {
-      if (!isModalOpen) {
-        setIntendedPath(path);
-        openModal();
-      }
+    if (hasUnsavedChanges) {
+      openModal();
+      setPendingNavigation(() => () => navigate(path));
     } else {
       navigate(path);
     }
-  };
-
-  const handleEditRowChange = (isEditing) => {
-    setEditMode(isEditing);
   };
 
   return (
@@ -247,32 +244,36 @@ export const SingleInvoice = () => {
             <ModalOverlay />
             <ModalContent>
               <ModalHeader
-                textAlign="center"
-                paddingBottom="0"
+                textAlign="left"
+                color="#4A5568"
+                pb={4}
               >
                 Leave without saving changes?
               </ModalHeader>
               <ModalFooter
                 style={{ display: "flex", justifyContent: "flex-end" }}
+                gap={3}
               >
                 <Button
-                  variant="ghost"
-                  onClick={closeModal}
+                  onClick={() => {
+                    closeModal();
+                    if (pendingNavigation) {
+                      pendingNavigation();
+                      setHasUnsavedChanges(false);
+                    }
+                  }}
+                  backgroundColor="#EDF2F7"
+                  color="#2D3748"
                 >
-                  Cancel
+                  Don't Save
                 </Button>
                 <Button
-                  colorScheme="red"
-                  mr={3}
-                  id="deactivateConfirm"
-                  onClick={() => {
-                    console.log("Modal confirm clicked");
-                    closeModal();
-                    handleModalConfirm();
-                    //navigate("/invoices"); // Navigate after closing the modal
-                  }}
+                  onClick={closeModal}
+                  backgroundColor="#4441C8"
+                  color="#FFFFFF"
+
                 >
-                  Ok
+                  Save
                 </Button>
               </ModalFooter>
             </ModalContent>
@@ -351,7 +352,7 @@ export const SingleInvoice = () => {
                 <InvoicePayments
                   comments={comments}
                   setComments={setComments}
-                  onEditRowChange={handleEditRowChange}
+                  setHasUnsavedChanges={setHasUnsavedChanges}
                 ></InvoicePayments>
                 <EmailHistory emails={emails}></EmailHistory>
               </Flex>
