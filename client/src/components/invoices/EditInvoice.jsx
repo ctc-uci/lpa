@@ -32,7 +32,7 @@ import {
 import { EmailSidebar } from "../email/EmailSidebar";
 import { BackArrowIcon } from "../../assets/BackArrowIcon";
 
-const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
+const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title, invoice }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getGeneratedDate = () => {
@@ -86,7 +86,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
           Save
         </Button>
         <HStack>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} pdf_title={title}/>
+          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} pdf_title={title} invoice={invoice}/>
         </HStack>
       </HStack>
     </Flex>
@@ -360,6 +360,7 @@ export const EditInvoice = () => {
           isSaving={isSaving}
           comments={comments}
           title={pdfTitle}
+          invoice={invoice}
         />
         <Image
           w="80%"

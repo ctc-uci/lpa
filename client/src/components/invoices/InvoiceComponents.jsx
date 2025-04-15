@@ -39,7 +39,7 @@ import filterIcon from "../../assets/filter.svg";
 import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import arrowsSvg from "../../assets/icons/right-icon.svg";
 import personIcon from "../../assets/person.svg";
-import PDFButtonInvoice from "./PDFButtonInvoice";
+import { PDFButtonInvoice } from "./PDFButtonInvoice";
 
 const InvoiceTitle = ({ title }) => {
   return (
@@ -538,7 +538,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 return (
                   <Box w="auto">
                   <PDFButtonInvoice invoice={invoice} />
-                  
+
                   <Tr key={index}>
                     <Td
                       style={{

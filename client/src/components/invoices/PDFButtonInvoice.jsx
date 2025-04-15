@@ -118,13 +118,13 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
   );
 };
 
-const MyDocument = ({ invoice }) => { 
-  
+const MyDocument = ({ invoice }) => {
+
   useEffect(() => {
     console.log("invoice ", invoice);
     }, [invoice]);
 
-  return ( 
+  return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View>
@@ -174,9 +174,6 @@ const MyDocument = ({ invoice }) => {
 const PDFButtonInvoice = ({invoice}) => {
   // get comments for the invoice, all relevant db data here
 
-  
-
-
   return (
     // <PDFDownloadLink
     //     document={<MyDocument invoice={invoice} />}
@@ -206,5 +203,5 @@ const PDFButtonInvoice = ({invoice}) => {
     </Box>
   );
 };
-  
-export default PDFButtonInvoice;
+
+export { PDFButtonInvoice, MyDocument};

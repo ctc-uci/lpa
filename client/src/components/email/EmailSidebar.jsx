@@ -1,4 +1,6 @@
 import { useRef, useState, useEffect } from "react";
+import { MyDocument } from "../invoices/PDFButtonInvoice";
+import { pdf } from '@react-pdf/renderer';
 
 import {
   Button,
@@ -31,10 +33,10 @@ import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useParams } from "react-router-dom";
 
-export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
+export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title, invoice }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
-
+  const [fileBlob, setFileBlob] = useState();
   const [title, setTitle] = useState(pdf_title);
   const [toInput, setToInput] = useState("");
   const [ccInput, setCcInput] = useState("");
@@ -48,7 +50,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
-  
+
   const btnRef = useRef();
 
   useEffect(() => {
@@ -79,7 +81,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
       try {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         const payeeEmails = payeesResponse.data.map((payee) => payee.email);
-        
+
         setEmails((prevEmails) => {
           const newEmails = [...prevEmails];
           payeeEmails.forEach((email) => {
@@ -94,12 +96,12 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
         console.error("Error fetching data:", error);
       }
     };
-  
+
     fetchData();
   }, []);
 
   const emptyInputs = () => {
-    setTitle(pdf_title);  
+    setTitle(pdf_title);
     setToInput("");
     setBccInput("");
     setCcInput("");
@@ -152,7 +154,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
     const regex = /\S+@\S+\.\S+/;
     return regex.test(email);
   };
-  
+
   const message = `Hello,
 
     This is a friendly reminder regarding your upcoming payment. Please ensure that all the necessary details have been updated in our records for timely processing. If there are any changes or concerns regarding the payment, please don't hesitate to reach out to us.
@@ -167,23 +169,46 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
     3105 Shattuck Ave., Berkeley, CA 94705
     lapena.org`;
 
-    
-    const sendEmail = async () => {
-        try {
-          const _ = await backend.post("/email/send", {
-            to: emails, 
-            subject: title, 
-            text: message,
-            html: `<p>${message.replace(/\n/g, '<br />')}</p>`,
-            cc: ccEmails,
-            bcc: bccEmails
-          });
-    
-        } catch (error) {
-          console.error("Error sending email:", error);
-        }
-    };
+const generatePDFBlob = async (invoice) => {
+  const pdfDocument = <MyDocument invoice={invoice} />;
+  const blob = await pdf(pdfDocument).toBlob();
 
+  return blob;
+};
+
+  const sendEmail = async () => {
+    try {
+      const blob = await generatePDFBlob(invoice);
+      setFileBlob(blob);
+      const formData = new FormData();
+      formData.append('pdfFile', blob, `${pdf_title}.pdf`);
+      formData.append('to', emails);
+      formData.append('subject', title);
+      formData.append('text', message);
+      formData.append('html', `<p>${message.replace(/\n/g, '<br />')}</p>`);
+      formData.append('cc', ccEmails);
+      formData.append('bcc', bccEmails);
+
+      const response = await backend.post("/email/send", formData);
+
+      console.log('Email sent successfully!', response.data);
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  };
+
+  const saveEmail = async () => {
+    try {
+      if (fileBlob) {
+        const response = await backend.post(`invoices/backupInvoice/` + id, {
+          comment: "",
+          file: fileBlob,
+        });
+      }
+    } catch (error) {
+      console.error("Error saving email to database:", error);
+    }
+  };
 
   return (
     <>
@@ -194,7 +219,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
         setisDrawerOpen={setisDrawerOpen}
       />
 
-      <ConfirmEmailModal 
+      <ConfirmEmailModal
         isOpen={isConfirmModalOpen}
         onClose= {() => {
           setisConfirmModalOpen(false);
@@ -217,15 +242,15 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
       >
         Email
       </Button>
-      
+
       <Drawer
         isOpen={isDrawerOpen}
         placement="right"
         onClose={() => {
           if (changesPresent) {
-            setisDiscardModalOpen(true); 
+            setisDiscardModalOpen(true);
           } else {
-            setisDrawerOpen(false); 
+            setisDrawerOpen(false);
           }
         }}
         finalFocusRef={btnRef}
@@ -233,7 +258,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
       >
         <DrawerOverlay />
         <DrawerContent>
-          <DrawerCloseButton 
+          <DrawerCloseButton
             onClick={() => {
               if (changesPresent) {
                 setisDiscardModalOpen(true);
@@ -312,14 +337,14 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
               </Flex>
               <Flex gap="4" justifyContent="start" wrap="wrap">
                 {[...emails].map((email, index) => (
-                  <Tag 
-                    key={index} 
-                    size="lg" 
-                    borderRadius="full" 
-                    variant="solid" 
-                    bg={"white"} 
-                    border={"1px solid"} 
-                    borderColor={"#E2E8F0"} 
+                  <Tag
+                    key={index}
+                    size="lg"
+                    borderRadius="full"
+                    variant="solid"
+                    bg={"white"}
+                    border={"1px solid"}
+                    borderColor={"#E2E8F0"}
                     textColor={"#080A0E"}
                     fontWeight={"normal"}
                   >
@@ -390,9 +415,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                     size="lg"
                     borderRadius="full"
                     variant="solid"
-                    bg={"white"} 
-                    border={"1px solid"} 
-                    borderColor={"#E2E8F0"} 
+                    bg={"white"}
+                    border={"1px solid"}
+                    borderColor={"#E2E8F0"}
                     textColor={"#080A0E"}
                     fontWeight={"normal"}
                   >
@@ -463,9 +488,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                     size="lg"
                     borderRadius="full"
                     variant="solid"
-                    bg={"white"} 
-                    border={"1px solid"} 
-                    borderColor={"#E2E8F0"} 
+                    bg={"white"}
+                    border={"1px solid"}
+                    borderColor={"#E2E8F0"}
                     textColor={"#080A0E"}
                     fontWeight={"normal"}
                   >
@@ -511,9 +536,10 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                   />
                 }
                 bgColor="#4441C8"
-                onClick={() => {
-                  sendEmail();
+                onClick={async () => {
+                  await sendEmail();
                   setisConfirmModalOpen(true);
+                  await saveEmail();
                 }}
                 isDisabled={!title || (emails.length === 0 && ccEmails.length === 0 && bccEmails.length === 0)}
                 width={"45px"}
