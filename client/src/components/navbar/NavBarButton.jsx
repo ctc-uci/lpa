@@ -16,7 +16,7 @@ const NavBarButton = ({ item, isActive }) => {
   // Get width based on hover state
   const getButtonWidth = () => {
     if (!isHovered && !isActive) {
-      if (item.name == "Notifications") return "60px";
+      if (item.name === "Notifications") return "60px";
       return "40px"; // Icon-only width when not hovered/active
     }
     return `${widthMap[item.name]}px`;

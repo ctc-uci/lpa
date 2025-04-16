@@ -84,17 +84,17 @@ const NotificationsComponents = ({ notifications }) => {
       overdue: {
         label: "Past Due",
         color: "#90080F",
-        tooltip: "This payment is overdue",
+        tooltip: "Payment Overdue (5+ Days)",
       },
       neardue: {
         label: "Email Not Sent",
         color: "#2D3748",
-        tooltip: "Invoice is near due but email not sent",
+        tooltip: "Email Has Not Been Sent (1+ Weeks)",
       },
       highpriority: {
         label: "Both",
         color: "#90080F",
-        tooltip: "High priority and overdue",
+        tooltip: "Past Due and Email Not Sent",
       },
       default: {
         label: "Other",
@@ -104,6 +104,7 @@ const NotificationsComponents = ({ notifications }) => {
     };
 
     const { label, color } = statusMap[payStatus] || statusMap.default;
+    const tooltipInfo = statusMap[payStatus].tooltip;
 
     return (
       <HStack spacing={1}>
@@ -118,7 +119,9 @@ const NotificationsComponents = ({ notifications }) => {
         >
           {label}
         </Text>
-        <InfoTooltip/>
+        <InfoTooltip
+          tooltipInfo={tooltipInfo}
+        />
       </HStack>
     );
   };
