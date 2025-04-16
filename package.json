@@ -40,5 +40,8 @@
   "packageManager": "yarn@1.22.22",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "gapi-script": "^1.2.0"
   }
 }
