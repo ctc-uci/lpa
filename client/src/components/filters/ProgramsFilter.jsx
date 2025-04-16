@@ -203,10 +203,6 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       setFilteredPrograms(programs);
     }
 
-    useEffect(() => {
-      applyFilters();
-    }, [filters, programs]);
-
     return (
       <FilterContainer
         onApply={applyFilters}
@@ -246,12 +242,6 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
           onChange={updateFilter}
           type="payee"
         />
-
-        {/* <PayerFilter
-          clientsList={clients}
-          value={filters.payee}
-          onChange={updateFilter}
-          /> */}
       </ FilterContainer>
     );
 };

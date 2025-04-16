@@ -255,6 +255,10 @@ export const DayFilter = ({ value = [], onChange }) => {
     onChange("days", newSelectedDays);
   };
 
+  useEffect(() => {
+    setSelectedDays(value);
+  }, [value]);
+
   return (
     <VStack align="flex-start" spacing={4} width="100%">
       <FormControl>
@@ -455,7 +459,7 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
   );
 };
 
-// Named LeadArtistFilter but works for both leadartist and payer: type="lead" || type="payee"
+// Named ClientsFilter but works for both leadartist and payer: type="lead" || type="payee"
 export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
   const [instructorSearchTerm, setInstructorSearchTerm] = useState('');
   const [searchedInstructors, setSearchedInstructors] = useState([]);

@@ -30,17 +30,24 @@ import { FilterIcon } from "../../assets/FilterIcons";
 // Children will be the different filterModals to be passed in
 export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [isFiltering, setIsFiltering] = useState(false);
-
+  const [isClearing, setIsClearing] = useState(false);
 
   const handleApply = () => {
     onApply();
     onClose();
   };
 
-  const handleReset = () => {
-    onReset();
-    setIsFiltering(false);
+  const handleReset = async () => {
+    setIsClearing(true);    
+    // Force a render cycle to update UI before continuing
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    try {
+      onReset();
+      await new Promise(resolve => setTimeout(resolve, 300));
+    } finally {
+      setIsClearing(false);
+    }
   };
 
   return (
@@ -70,7 +77,12 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
           </DrawerBody>
 
           <DrawerFooter>
-            <Button variant="outline" mr={3} onClick={handleReset}>
+            <Button 
+              variant="outline" 
+              mr={3} 
+              onClick={handleReset}
+              isLoading={isClearing}
+            >
               Clear
             </Button>
             <Button backgroundColor="#4441C8" color="white" onClick={handleApply}>

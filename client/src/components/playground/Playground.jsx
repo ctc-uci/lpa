@@ -17,7 +17,7 @@ import {
 import Navbar from "../navbar/Navbar";
 
 import { SendEmailButton } from "../email/SendEmailButton";
-import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, LeadArtistFilter, RoomFilter, ProgramStatusFilter, InvoiceStatusFilter, SessionStatusFilter } from '../filters/FilterComponents';
+import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, ClientsFilter, RoomFilter, ProgramStatusFilter, InvoiceStatusFilter, SessionStatusFilter } from '../filters/FilterComponents';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { FilterContainer } from '../filters/FilterContainer';
 import { Filter } from 'lucide-react';
@@ -130,7 +130,7 @@ export const Playground = () => {
     // <SeasonFilter></SeasonFilter>
     // <EmailFilter></EmailFilter>
     <div>
-      <LeadArtistFilter/>
+      <ClientsFilter/>
     </div>
   );
 };
