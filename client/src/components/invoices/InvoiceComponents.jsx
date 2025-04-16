@@ -501,7 +501,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                       fontSize="14px"
                       color="#0C824D"
                       fontWeight="700"
-                      paddingInlineStart="8px" 
+                      paddingInlineStart="8px"
                       paddingInlineEnd="8px"
                     >
                       {showEditRow && comment.id === editID ? (
@@ -639,7 +639,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                       fontSize="14px"
                       color="#0C824D"
                       fontWeight="700"
-                      paddingInlineStart="8px" 
+                      paddingInlineStart="8px"
                       paddingInlineEnd="8px"
                 >
                   <Flex alignItems="center">
@@ -663,13 +663,14 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                   </Flex>
                 </Td>
                 <Td
-                  textAlign="right" width="1%"
+                  textAlign="right" width="1%" paddingInlineStart="4px" paddingInlineEnd="4px"
                 >
                   <Menu>
                     <MenuButton
                       as={IconButton}
-                      w={10}
-                      borderRadius={12}
+                      minWidth="24px"
+                      height="24px"
+                      borderRadius={6}
                       backgroundColor="#EDF2F7"
                       icon={<Icon as={sessionsEllipsis} />}
                     />
