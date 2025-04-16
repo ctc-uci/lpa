@@ -21,9 +21,6 @@ import logo from "../../assets/logo/logo.png";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 // TODO FIX ENDPOINTS TO FIX CALCULATIONS
-// TODO IMPLEMENT ID DEPENDING ON INVOICE, REMOVE HARDCODED INVOICE ID 22
-// TODO DOUBLE CHECK IF ADJUSTMENT TYPE IS CALCULATING CORRECTLY
- 
 
 const styles = StyleSheet.create({
   page: {
@@ -70,22 +67,25 @@ const styles = StyleSheet.create({
   },
 });
 
-const getGeneratedDate = (comments) => {
-  if (comments?.length > 0) {
-    const latestComment = comments?.sort(
+const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
+  if (comments.length > 0) {
+    const latestComment = comments.sort(
       (a, b) => new Date(b.datetime) - new Date(a.datetime)
     )[0];
 
     const latestDate = new Date(latestComment.datetime);
     const month = latestDate.toLocaleString("default", { month: "long" });
-
+    const day = latestDate.getDate();
     const year = latestDate.getFullYear();
 
-    return `${month}  ${year}`;
+    return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
+  } else if (invoice) {
+    return invoice["startDate"];
   } else {
     return "No Date Found";
   }
 };
+
 
 const EditInvoiceTitle = ({ comments, invoice }) => {
   return (
@@ -128,7 +128,10 @@ const EditInvoiceDetailsPDF = ({
   programName,
   payees,
   comments,
+  invoice
 }) => {
+
+  console.log("invoice in editinvociedetals", invoice);
   return (
     <View
       style={{
@@ -156,7 +159,7 @@ const EditInvoiceDetailsPDF = ({
             fontWeight: 500,
           }}
         >
-          {getGeneratedDate(comments)}
+          {getGeneratedDate(comments, invoice, false)}
         </Text>
       </View>
 
@@ -199,7 +202,7 @@ const EditInvoiceDetailsPDF = ({
           <Text style={{ fontWeight: "bold", fontSize: 8, marginBottom: 4 }}>
             Lead Artist(s):
           </Text>
-          {instructors && instructors.length > 0 ? (
+          {/* {instructors && instructors.length > 0 ? (
             instructors.map((instructor, index) => (
               <Text
                 key={index}
@@ -211,6 +214,27 @@ const EditInvoiceDetailsPDF = ({
           ) : (
             <Text style={{ fontSize: 8 }}>No instructors found.</Text>
           )}
+           */}
+          <Text
+            style={{ fontSize: 8, marginBottom: 2 }}
+          >
+            Jay Sotelo - jaysotelo@gmail.com
+          </Text>
+          <Text
+            style={{ fontSize: 8, marginBottom: 2 }}
+          >
+            Jessie He - jessiehe@gmail.com
+          </Text>
+          <Text
+            style={{ fontSize: 8, marginBottom: 2 }}
+          >
+            Nate Pietrantonio - thenatepie@gmail.com
+          </Text>
+          <Text
+            style={{ fontSize: 8, marginBottom: 2 }}
+          >
+            William Garcia - willgarcia@gmail.com
+          </Text>
         </View>
       </View>
     </View>
@@ -477,7 +501,7 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue }) => {
               paddingRight: 20,
             }}
           >
-            <Text style={{ fontSize: 8 }}>$ {pastDue.toFixed(2)}</Text>
+            <Text style={{ fontSize: 8 }}>$ {remainingBalance.toFixed(2)}</Text>
           </View>
         </View>
 
@@ -498,7 +522,7 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue }) => {
           </View>
           <View
             style={{
-              ...summaryTableStyles.tableCol, 
+              ...summaryTableStyles.tableCol,
               alignItems: "flex-end",
               paddingRight: 20,
             }}
@@ -520,7 +544,9 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue }) => {
             <Text style={{ fontSize: 8 }}>Total Amount Due</Text>
           </View>
           <View>
-            <Text style={{ fontSize: 8 }}>{(pastDue + subtotalSum).toFixed(2)}</Text>
+            <Text style={{ fontSize: 8 }}>
+              {(remainingBalance + subtotalSum).toFixed(2)}
+            </Text>
           </View>
         </View>
       </View>
@@ -528,217 +554,6 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue }) => {
   );
 };
 
-// const MyDocument = ({
-//   invoice,
-//   backend,
-//   loading,
-//   setLoading,
-//   // instructors,
-//   // programName,
-//   // payees,
-//   // comments,
-//   // room,
-//   // booking,
-//   // remainingBalance,
-//   // subtotalSum,
-//   // pastDue
-// }) => {
-
-  
-//   const [instructors, setInstructors] = useState([]);
-//   const [programName, setProgramName] = useState("");
-//   const [payees, setPayees] = useState([]);
-//   const [comments, setComments] = useState([]);
-//   const [booking, setBookingDetails] = useState([]);
-//   const [room, setRoom] = useState([]);
-//   // const [loading, setLoading] = useState(true);
-//   const [remainingBalance, setRemainingBalance] = useState(0);
-//   const [subtotalSum, setSubtotalSum] = useState(0);
-
-//   const fetchData = async () => {
-//     try {
-//       console.log("invoice fetchData", invoice)
-//       const instructorResponse = await backend.get(
-//         "/assignments/instructors/" + invoice?.data[0].eventId
-//       );
-//       setInstructors(instructorResponse.data);
-//       // console.log("instructors", instructorResponse.data);
-
-//       const commentsResponse = await backend.get("/comments/invoice/22");
-//       // const commentsResponse = await backend.get("/comments/invoice/" + id);
-//       setComments(commentsResponse.data);
-//       // console.log("comments", comments);
-
-//       // get program name
-//       const programNameResponse = await backend.get(
-//         "/events/" + invoice.data[0].eventId
-//       );
-//       setProgramName(programNameResponse.data[0].name);
-//       // console.log("programName", programNameResponse.data[0].name)
-
-//       // get payees
-//       // const payeesResponse = await backend.get("/invoices/payees/" + id);
-//       const payeesResponse = await backend.get("/invoices/payees/22");
-//       setPayees(payeesResponse.data);
-//       // console.log("payees", payeesResponse.data)
-//       console.log("commentsResponse.data.length", commentsResponse.data.length)
-//       if (commentsResponse.data.length > 0) {
-//         const bookingId = commentsResponse.data[0]?.bookingId;
-        
-//         if (bookingId) {
-//           const bookingResponse = await backend.get("/bookings/" + bookingId);
-//           setBookingDetails(bookingResponse.data[0]);
-
-//           const roomResponse = await backend.get(
-//             `/rooms/${bookingResponse.data[0].roomId}`
-//           );
-//           setRoom(roomResponse.data);
-//         }
-//       }
-
-//       // get subtotal
-//       // const subtotalResponse = await backend.get("/invoices/total/22");
-
-//       const unpaidInvoicesResponse = await backend.get(
-//         "/events/remaining/" + invoice.data[0]["eventId"]
-//       );
-
-//       const unpaidTotals = await Promise.all(
-//         unpaidInvoicesResponse.data.map((invoice) =>
-//           backend.get(`/invoices/total/${invoice.id}`)
-//         )
-//       );
-
-//       const partiallyPaidTotals = await Promise.all(
-//         unpaidInvoicesResponse.data.map((invoice) =>
-//           backend.get(`/invoices/paid/${invoice.id}`)
-//         )
-//       );
-
-//       const invoiceTotal = await backend.get(`/invoices/total/22`)
-//       const unpaidTotal = unpaidTotals.reduce(
-//         (sum, res) => sum + res.data.total,
-//         0 
-//       );
-//       const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-//         (sum, res) => {
-//           if(res.data.total) // TODO FIX ENDPOINTS BECAUSE CALCULATION IS WRONG
-//             console.log("res", res.data.total, "sum", sum, "sum + Number(res.data.total)", sum + Number(res.data.total))
-//             return sum + Number(res.data.total); // Had to change to number because was causing NaN
-//         },
-//         0
-//       );
-
-//       // console.log("unpaidPartiallyPaidTotal", unpaidPartiallyPaidTotal)
-//       const remainingBal = unpaidTotal - unpaidPartiallyPaidTotal;
-//       setRemainingBalance(remainingBal);
-//       console.log("remainingBal", remainingBal)
-
-
-
-
-//       setLoading(false);
-//       console.log("setLoading(false)", false)
-//     } catch (err) {
-//       console.log("Error fetching data: ", err);
-//     }
-//   }; 
-
-//   useEffect(() => {
-//     // if (invoice && invoice.data && invoice.data[0]?.eventId) {
-//     console.log("IN HERE THIS SHOULD RUN")
-//     fetchData();
-//     // }
-//   }, [invoice, backend]);
-
-//   useEffect(() => {
-//     if (
-//       comments.length > 0 &&
-//       booking.startTime &&
-//       booking.endTime &&
-//       room.length > 0 &&
-//       room[0]?.rate
-//     ) {
-//       const total = handleSubtotalSum(
-//         booking.startTime,
-//         booking.endTime,
-//         room[0].rate
-//       );
-//       const subtotal = parseFloat(total) * comments.length;
-//       setSubtotalSum(subtotal);
-//     }
-//   }, [comments, booking, room]);
-
-//   return (
-//     <Document>
-//       <Page
-//         size="A4"
-//         style={styles.page}
-//       >
-//         <View style={{ flexGrow: 1 }}>
-//           <Image src={InvoiceHeader} />
-//           <View style={{ marginHorizontal: 16, gap: 16 }}>
-//             <View
-//               style={{
-//                 justifyContent: "space-between",
-//                 marginVertical: "8",
-//                 // marginHorizontal: "4",
-//                 // fontFamily: "Inter",
-//                 color: "#2D3748",
-//                 flexDirection: "row",
-//               }}
-//             >
-//               <View>
-//                 <Text
-//                   style={{
-//                     color: "#2D3748",
-//                     fontWeight: "700",
-//                     fontSize: "24px",
-//                   }}
-//                 >
-//                   INVOICE
-//                 </Text>
-//                 <Text
-//                   style={{
-//                     color: "#718096",
-//                     fontSize: "12px",
-//                   }}
-//                 >
-//                   {getGeneratedDate(comments)}
-//                 </Text>
-//               </View>
-//               <EditInvoiceTitle />
-//             </View>
-//             <View>
-//               <EditInvoiceDetailsPDF
-//                 invoice={invoice}
-//                 instructors={instructors}
-//                 programName={programName}
-//                 payees={payees}
-//                 comments={comments}
-//                 room={room}
-//               />
-//             </View>
-
-//             {/* Table */}
-//             <InvoiceTable
-//               booking={booking}
-//               comments={comments}
-//               room={room}
-//             />
-
-//             {/* <SummaryTable remainingBalance={remainingBalance} subtotalSum={subtotalSum} pastDue={pastDue}/> */}
-//             {/* End of Table */}
-//           </View>
-//         </View>
-//         <Image
-//           src={InvoiceFooter}
-//           style={{ width: "100%" }}
-//         />
-//       </Page>
-//     </Document>
-//   );
-// };
 const MyDocument = ({
   invoice,
   instructors,
@@ -752,8 +567,11 @@ const MyDocument = ({
 }) => {
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={{ flexGrow: 1 }}>
+      <Page
+        size="A4"
+        style={styles.page}
+      >
+        <View style={{ flex: 1, flexGrow: 1 }}>
           <Image src={InvoiceHeader} />
           <View style={{ marginHorizontal: 16, gap: 16 }}>
             <View
@@ -774,7 +592,7 @@ const MyDocument = ({
                   INVOICE
                 </Text>
                 <Text style={{ color: "#718096", fontSize: "12px" }}>
-                  {getGeneratedDate(comments)}
+                  {getGeneratedDate(comments, invoice, true)}
                 </Text>
               </View>
               <EditInvoiceTitle />
@@ -795,17 +613,23 @@ const MyDocument = ({
               room={room}
             />
 
-            {/* <SummaryTable remainingBalance={remainingBalance} subtotalSum={subtotalSum} pastDue={pastDue}/> */}
+            <SummaryTable
+              remainingBalance={remainingBalance}
+              subtotalSum={subtotalSum}
+              // pastDue={pastDue}
+            />
           </View>
         </View>
-        <Image src={InvoiceFooter} style={{ width: "100%" }} />
+          <Image
+            src={InvoiceFooter}
+            style={{ width: "100%" }}
+            />
       </Page>
     </Document>
   );
 };
 
-
-const fetchInvoiceData = async (invoice, backend) => {
+const fetchInvoiceData = async (invoice, backend, id) => {
   const eventId = invoice?.data[0]?.eventId;
 
   const [
@@ -814,14 +638,14 @@ const fetchInvoiceData = async (invoice, backend) => {
     programNameResponse,
     payeesResponse,
     unpaidInvoicesResponse,
-    invoiceTotalResponse
+    invoiceTotalResponse,
   ] = await Promise.all([
     backend.get(`/assignments/instructors/${eventId}`),
-    backend.get(`/comments/invoice/22`),
+    backend.get(`/comments/invoice/${id}`),
     backend.get(`/events/${eventId}`),
-    backend.get(`/invoices/payees/22`),
+    backend.get(`/invoices/payees/${id}`),
     backend.get(`/events/remaining/${eventId}`),
-    backend.get(`/invoices/total/22`)
+    backend.get(`/invoices/total/${id}`),
   ]);
 
   const comments = commentsResponse.data;
@@ -829,7 +653,9 @@ const fetchInvoiceData = async (invoice, backend) => {
   let room = [];
 
   if (comments.length > 0 && comments[0].bookingId) {
-    const bookingResponse = await backend.get(`/bookings/${comments[0].bookingId}`);
+    const bookingResponse = await backend.get(
+      `/bookings/${comments[0].bookingId}`
+    );
     booking = bookingResponse.data[0];
 
     const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
@@ -837,17 +663,20 @@ const fetchInvoiceData = async (invoice, backend) => {
   }
 
   const unpaidTotals = await Promise.all(
-    unpaidInvoicesResponse.data.map(invoice =>
+    unpaidInvoicesResponse.data.map((invoice) =>
       backend.get(`/invoices/total/${invoice.id}`)
     )
   );
   const partiallyPaidTotals = await Promise.all(
-    unpaidInvoicesResponse.data.map(invoice =>
+    unpaidInvoicesResponse.data.map((invoice) =>
       backend.get(`/invoices/paid/${invoice.id}`)
     )
   );
 
-  const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
+  const unpaidTotal = unpaidTotals.reduce(
+    (sum, res) => sum + res.data.total,
+    0
+  );
   const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
     return res.data.total ? sum + Number(res.data.total) : sum;
   }, 0);
@@ -855,8 +684,17 @@ const fetchInvoiceData = async (invoice, backend) => {
   const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
   let subtotalSum = 0;
-  if (comments.length && booking.startTime && booking.endTime && room[0]?.rate) {
-    const total = handleSubtotalSum(booking.startTime, booking.endTime, room[0].rate);
+  if (
+    comments.length &&
+    booking.startTime &&
+    booking.endTime &&
+    room[0]?.rate
+  ) {
+    const total = handleSubtotalSum(
+      booking.startTime,
+      booking.endTime,
+      room[0].rate
+    );
     subtotalSum = parseFloat(total) * comments.length;
   }
 
@@ -869,83 +707,26 @@ const fetchInvoiceData = async (invoice, backend) => {
     room,
     remainingBalance,
     subtotalSum,
+    id,
   };
 };
 
-const PDFButtonInvoice = () => {
+const PDFButtonInvoice = ({ id }) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [invoice, setInvoice] = useState(null);
   const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
   const fetchData = async () => {
     try {
-      const response = await backend.get("/invoices/22");
+      const response = await backend.get("/invoices/" + id);
       setInvoice(response.data);
 
-      const invoiceDataResponse = await fetchInvoiceData(response, backend);
+      const invoiceDataResponse = await fetchInvoiceData(response, backend, id);
       setInvoiceData(invoiceDataResponse);
-      console.log("invoiceDataResponse", invoiceDataResponse)
-      //   // get instructors
-    } catch (err) {
-      console.error("Error fetching invoice data:", err);
-    } 
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  return (
-    <Box>
-      {/* {loading ? (
-        <Flex
-          h="100%"
-          justifyContent="center"
-          alignItems="center"
-          gap="4"
-        >
-          <Spinner />
-          <Text>PDF Loading...</Text>
-        </Flex>
-      ) : ( */}
-      <PDFDownloadLink
-        document={
-          <MyDocument
-            invoice={invoice}
-            {...invoiceData}
-          />
-        }
-        fileName="bookingdata.pdf"
-      >
-          <IconButton
-            icon={<DownloadIcon boxSize="20px" />}
-            backgroundColor="transparent"
-            aria-label="Download PDF"
-          />
-      </PDFDownloadLink>
-    {/* )} */}
-    </Box>
-  );
-};
-
-// const TestPDFViewer = ({ invoice }) => {
-const TestPDFViewer = () => {
-  const { backend } = useBackendContext();
-  const [invoice, setInvoice] = useState(null);
-  const [invoiceData, setInvoiceData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchData = async () => {
-    try {
-      const response = await backend.get("/invoices/22");
-      setInvoice(response.data);
-
-      const invoiceDataResponse = await fetchInvoiceData(response, backend);
-      setInvoiceData(invoiceDataResponse);
-      console.log("invoiceDataResponse", invoiceDataResponse)
+      setLoading(false);
+      console.log("invoiceDataResponse", invoiceDataResponse);
       //   // get instructors
     } catch (err) {
       console.error("Error fetching invoice data:", err);
@@ -958,31 +739,86 @@ const TestPDFViewer = () => {
 
   return (
     <Box>
-      {loading || !invoice ? (
-        <Flex h="100%" justifyContent="center" alignItems="center" gap="4">
-          <Spinner />
-          <Text>PDF Loading...</Text>
+      {loading ? (
+        <Flex
+          align="center"
+          gap={2}
+        >
+          <Spinner size="sm" />
+          <Text fontSize="sm">Generating PDF...</Text>
         </Flex>
       ) : (
         <PDFDownloadLink
-          document={<MyDocument invoice={invoice} {...invoiceData} />}
+          document={
+            <MyDocument
+              invoice={invoice}
+              {...invoiceData}
+            />
+          }
           fileName="bookingdata.pdf"
         >
-          {({ loading: isGenerating }) =>
-            isGenerating ? (
-              <Flex align="center" gap={2}>
-                <Spinner size="sm" />
-                <Text fontSize="sm">Generating PDF...</Text>
-              </Flex>
-            ) : (
-              <IconButton
-                icon={<DownloadIcon boxSize="20px" />}
-                backgroundColor="transparent"
-                aria-label="Download PDF"
-              />
-            )
-          }
+          <IconButton
+            icon={<DownloadIcon boxSize="20px" />}
+            backgroundColor="transparent"
+            aria-label="Download PDF"
+          />
         </PDFDownloadLink>
+      )}
+    </Box>
+  );
+};
+
+// const TestPDFViewer = ({ invoice }) => {
+const TestPDFViewer = ({ id }) => {
+  const { backend } = useBackendContext();
+  const [invoice, setInvoice] = useState(null);
+  const [invoiceData, setInvoiceData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      console.log("id", id);
+      const response = await backend.get("/invoices/22");
+      setInvoice(response.data);
+
+      const invoiceDataResponse = await fetchInvoiceData(response, backend, 22);
+      setInvoiceData(invoiceDataResponse);
+      setLoading(false);
+      //   // get instructors
+    } catch (err) {
+      console.error("Error fetching invoice data:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  return (
+    <Box>
+      {loading ? (
+        <Flex
+          align="center"
+          gap={2}
+        >
+          <Spinner size="sm" />
+          <Text fontSize="sm">Generating PDF...</Text>
+        </Flex>
+      ) : (
+        <Box
+          height="100vh"
+          width="100%"
+        >
+          <PDFViewer
+            width="100%"
+            height="100%"
+          >
+            <MyDocument
+              invoice={invoice}
+              {...invoiceData}
+            />
+          </PDFViewer>
+        </Box>
       )}
     </Box>
   );

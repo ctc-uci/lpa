@@ -176,7 +176,7 @@ const EditInvoiceDetails = ({
           >
             <Text fontWeight="bold">Lead Artist(s):</Text>
 
-            {instructors && instructors.length > 0 ? (
+            {/* {instructors && instructors.length > 0 ? (
               instructors.map((instructor, index) => (
                 <HStack key={index}>
                   <Text
@@ -189,7 +189,31 @@ const EditInvoiceDetails = ({
               ))
             ) : (
               <Text>No instructors found.</Text>
-            )}
+            )} */}
+                  <Text
+                    size="sm"
+                    mr={2}
+                  >
+                    Jay Sotelo - jaysotelo@gmail.com
+                  </Text>
+                  <Text
+                    size="sm"
+                    mr={2}
+                  >
+                    Jessie He - jessiehe@gmail.com
+                  </Text>
+                  <Text
+                    size="sm"
+                    mr={2}
+                  >
+                    Nate Pietrantonio - thenatepie@gmail.com
+                  </Text>
+                  <Text
+                    size="sm"
+                    mr={2}
+                  >
+                    William Garcia - willgarcia@gmail.com
+                  </Text>
           </VStack>
         </HStack>
       </SimpleGrid>

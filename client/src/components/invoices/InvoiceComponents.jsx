@@ -437,7 +437,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 
       const availableHeight = viewportHeight * 0.5;
 
-      console.log(availableHeight / rowHeight);
       return Math.max(5, Math.floor(availableHeight / rowHeight));
     };
 
@@ -535,6 +534,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     )
                   : [];
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
+
                 return (
                     <Tr key={index}>
                       <Td
@@ -586,7 +586,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       </Td>
                       <Td>
                         <Flex ml="18px">
-                          <PDFButtonInvoice invoice={invoice} />
+                          <PDFButtonInvoice id={invoice.id} />
                         </Flex>
                       </Td>
                       <Td>
