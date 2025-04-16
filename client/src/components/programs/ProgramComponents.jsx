@@ -8,6 +8,8 @@ import "./Program.css";
 import {
   CalendarIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   DeleteIcon,
   DownloadIcon,
   EmailIcon,
@@ -27,6 +29,7 @@ import {
   Flex,
   FormControl,
   Heading,
+  HStack,
   Icon,
   IconButton,
   Input,
@@ -69,12 +72,7 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import {
-  EllipsisIcon,
-  FileTextIcon,
-  Info,
-  UserIcon,
-} from "lucide-react";
+import { EllipsisIcon, FileTextIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
@@ -117,7 +115,7 @@ export const ProgramSummary = ({
   } = useDisclosure();
 
   const exit = () => {
-    navigate('/programs');
+    navigate("/programs");
   };
 
   const toEditProgram = () => {
@@ -150,6 +148,9 @@ export const ProgramSummary = ({
 
   const setArchived = async (boolean) => {
     await backend.put(`/programs/` + eventId, { archived: boolean });
+    await backend.put(`/programs/updateSessionArchive/` + eventId, {
+      archived: boolean,
+    });
   };
 
   const duplicateProgram = async () => {
@@ -832,18 +833,42 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [status, setStatus] = useState("All");
   const [selectedRoom, setSelectedRoom] = useState("All");
 
-  const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
-  const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
-  // At the top of your Sessions component where other state variables are defined
+  const [sortKey, setSortKey] = useState("date");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
     []
   );
 
-  // Add this effect to handle both filtering and sorting whenever relevant dependencies change
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalSessions = filteredAndSortedSessions?.length || 0;
+  const totalPages = Math.ceil(totalSessions / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalSessions);
+
+  const currentPageSessions =
+    filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   useEffect(() => {
     if (!sessions || !rooms) return;
 
-    // Step 1: Filter the sessions
     const filtered = sessions.filter((session) => {
       const sessionDate = new Date(session.date);
       const sessionStartTime = session.startTime;
@@ -865,7 +890,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
       return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
     });
 
-    // Step 2: Sort the filtered sessions
     const sorted = [...filtered];
     if (sortKey === "date") {
       sorted.sort((a, b) => {
@@ -873,7 +897,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         const bInvalid = !b.date || b.date === "N/A";
 
         if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1; // Push invalid dates to the end
+        if (aInvalid) return 1;
         if (bInvalid) return -1;
 
         const dateA = new Date(a.date);
@@ -882,9 +906,9 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
     }
-
-    // Step 3: Set the filtered and sorted sessions
     setFilteredAndSortedSessions(sorted);
+
+    setCurrentPage(1);
   }, [
     dateRange,
     timeRange,
@@ -905,11 +929,10 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const formatDate = (isoString) => {
     const date = new Date(isoString);
 
-    // Format the date to "Mon 01/17/2025"
     const options = {
-      weekday: "short", // "Mon"
-      year: "numeric", // "2025"
-      month: "2-digit", // "01"
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
       day: "2-digit",
     };
     let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
@@ -924,7 +947,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     const period = hours >= 12 ? "p.m." : "a.m.";
 
     // Convert to 12-hour format
-    const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+    const formattedHours = hours % 12 || 12;
 
     // Return formatted time
     return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
@@ -943,7 +966,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   // }
   // Make sure rooms is fetched before rendering
   if (!rooms || rooms.length === 0) {
-    return <div>Loading...</div>; // Possibly change loading indicator
+    return <div>Loading...</div>;
   }
 
   const handleDateChange = (field, value) => {
@@ -965,7 +988,12 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         borderColor="gray.300"
         borderRadius="15px"
       >
-        <CardBody m={6}>
+        <CardBody
+          m={6}
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+        >
           <Flex
             direction="column"
             justify="space-between"
@@ -1303,9 +1331,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                                 </WrapItem>
                                 {Array.from(rooms.values()).map(
                                   (room, index) => (
-                                    <WrapItem>
+                                    <WrapItem key={index}>
                                       <Button
-                                        key={index}
                                         borderRadius="30px"
                                         borderWidth="1px"
                                         minWidth="auto"
@@ -1427,15 +1454,52 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         </Text>
                       </Box>
                     </Th>
-                    {/* Empty headers as space for the menu ellipsis button */}
-                    <Th> </Th>
-                    <Th> </Th>
-                    <Th> </Th>
+                    {/* Add Lead Artist column */}
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        {/* <PersonIcon /> */}
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          Lead Artist(s)
+                        </Text>
+                      </Box>
+                    </Th>
+                    {/* Add Payees column */}
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        {/* <PersonIcon /> */}
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          Payee(s)
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filteredAndSortedSessions.length > 0 ? (
-                    filteredAndSortedSessions.map((session) => (
+                  {currentPageSessions.length > 0 ? (
+                    currentPageSessions.map((session) => (
                       <Tr key={session.id}>
                         {!isArchived ? (
                           <Td>
@@ -1486,8 +1550,31 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                             {rooms.get(session.roomId)}
                           </Box>
                         </Td>
+                        {/* Add Lead Artist data */}
                         <Td>
-                          {/* Slight "bug": hovering shows shadow larger than button */}
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {session.instructor
+                              ? truncateNames(session.instructor)
+                              : "N/A"}
+                          </Box>
+                        </Td>
+                        {/* Add Payees data */}
+                        <Td>
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {session.payee
+                              ? truncateNames(session.payee)
+                              : "N/A"}
+                          </Box>
+                        </Td>
+                        <Td>
                           <IconButton
                             height="30px"
                             width="30px"
@@ -1500,13 +1587,12 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                     ))
                   ) : (
                     <Tr>
-                      <Td>
+                      <Td colSpan={isArchived ? 6 : 7}>
                         <Box
                           textAlign="center"
                           py={6}
                           color="gray.500"
                           fontSize="md"
-                          width={"300px"}
                         >
                           No sessions available
                         </Box>
@@ -1517,6 +1603,54 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               </Table>
             </TableContainer>
           </Flex>
+
+          {/* Pagination Controls - moved to bottom right */}
+          <Box
+            width="100%"
+            display="flex"
+            justifyContent="flex-end"
+            mt="auto"
+            pt={4}
+          >
+            {totalPages > 1 && (
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                mb={2}
+              >
+                <Text
+                  mr={2}
+                  fontSize="sm"
+                  color="#474849"
+                  fontFamily="Inter, sans-serif"
+                >
+                  {currentPage} of {totalPages}
+                </Text>
+                <Button
+                  onClick={goToPreviousPage}
+                  isDisabled={currentPage === 1}
+                  size="sm"
+                  variant="ghost"
+                  padding={0}
+                  minWidth="auto"
+                  color="gray.500"
+                >
+                  <ChevronLeftIcon />
+                </Button>
+                <Button
+                  onClick={goToNextPage}
+                  isDisabled={currentPage === totalPages}
+                  size="sm"
+                  variant="ghost"
+                  padding={0}
+                  minWidth="auto"
+                  color="gray.500"
+                >
+                  <ChevronRightIcon />
+                </Button>
+              </Flex>
+            )}
+          </Box>
         </CardBody>
       </Card>
     </Box>
