@@ -2,6 +2,7 @@ import { React, useEffect, useState } from "react";
 
 import { CancelIcon } from "../../assets/CancelIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
+import { CancelSessionModal } from "./CancelSessionModal";
 
 import "./Program.css";
 
@@ -826,6 +827,22 @@ export const ProgramSummary = ({
 };
 
 export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
+  const {
+    isOpen: cancelModalIsOpen,
+    onOpen: openCancelModal,
+    onClose: closeCancelModal,
+  } = useDisclosure();
+  const handleConfirmCancel = (action, reason, waivedFees) => {
+    console.log("Action:", action);
+    console.log("Reason:", reason);
+    console.log("Waived Fees:", waivedFees);
+    console.log("Sessions to cancel:", selectedSessions);
+
+    // Reset states after cancellation
+    setSelectedSessions([]);
+    setIsSelected(false);
+    closeCancelModal();
+  };
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isSelected, setIsSelected] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
@@ -838,6 +855,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
     []
   );
+
+  const [sessionMap, setSessionMap] = useState({});
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -853,6 +872,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [selectMenuOpen, setSelectMenuOpen] = useState(false);
   const [selectOption, setSelectOption] = useState("Select");
   const [selectedSessions, setSelectedSessions] = useState([]);
+  
 
   const handleSessionSelection = (sessionId) => {
     setSelectedSessions((prev) => {
@@ -905,10 +925,13 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   useEffect(() => {
     if (!sessions || !rooms) return;
 
+    const newSessionMap = {};
+
     const filtered = sessions.filter((session) => {
       const sessionDate = new Date(session.date);
       const sessionStartTime = session.startTime;
       const sessionEndTime = session.endTime;
+      newSessionMap[session.id] = session;
 
       const isDateInRange =
         (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
@@ -924,9 +947,13 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
 
       return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
-    });
+    })
+    setSessionMap(newSessionMap); // set sessionMap
+    ;
 
     const sorted = [...filtered];
+
+    console.log(sessionMap)
     if (sortKey === "date") {
       sorted.sort((a, b) => {
         const aInvalid = !a.date || a.date === "N/A";
@@ -1163,6 +1190,41 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   </Box>
                 )}
               </Box>
+
+              {/* Cancel button - only shows when isSelected is true */}
+              {isSelected && (
+                <button
+                  style={{
+                    display: "flex",
+                    height: "40px",
+                    padding: "0px 16px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "4px",
+                    borderRadius: "6px",
+                    background: "var(--destructive, #90080F)",
+                    color: "white",
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    fontStyle: "normal",
+                    fontWeight: "700",
+                    lineHeight: "normal",
+                    letterSpacing: "0.07px",
+                    border: "none",
+                    cursor:
+                      selectedSessions.length > 0 ? "pointer" : "not-allowed",
+                    opacity: selectedSessions.length > 0 ? 1 : 0.6,
+                  }}
+                  onClick={() => {
+                    if (selectedSessions.length > 0) {
+                      openCancelModal();
+                    }
+                  }}
+                  disabled={selectedSessions.length === 0}
+                >
+                  <CancelIcon /> {selectOption === "Select all" ? "All" : "Cancel"}
+                </button>
+              )}
 
               <Popover onClose={onClose}>
                 <PopoverTrigger>
@@ -1803,6 +1865,15 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               </Flex>
             )}
           </Box>
+          <CancelSessionModal
+            isOpen={cancelModalIsOpen}
+            onClose={closeCancelModal}
+            selectedSessions={selectedSessions.map(id => sessionMap[id]).filter(Boolean)}
+            onConfirm={handleConfirmCancel}
+            eventType={
+              selectedSessions.length === 1 ? "Workshops": "Sessions"
+            }
+          />
         </CardBody>
       </Card>
     </Box>
