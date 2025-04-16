@@ -503,7 +503,7 @@ invoicesRouter.get("/total/:id", async (req, res) => {
             bookingCost += Number(comment.adjustment_value);
           }
         });
-        
+
         return bookingCost;
       })
     );
@@ -627,9 +627,8 @@ invoicesRouter.post("/backupInvoice/:id", upload.single("file"), async (req, res
 
   // Upload an invoice PDF to S3, returning the viewable URL
   try {
-    const file = req.file;
     const { id } = req.params;
-    const { comment } = req.body;
+    const { comment, file } = req.body;
 
     if (!file) {
       return res.status(500).json({ error: "File is required" });
@@ -645,7 +644,7 @@ invoicesRouter.post("/backupInvoice/:id", upload.single("file"), async (req, res
       [id, "NOW()", fileURL, comment]
     );
 
-    
+
     res.status(201).json(fileURL);
   } catch (err) {
     res.status(500).send(err.message);

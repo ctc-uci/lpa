@@ -528,6 +528,217 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue }) => {
   );
 };
 
+// const MyDocument = ({
+//   invoice,
+//   backend,
+//   loading,
+//   setLoading,
+//   // instructors,
+//   // programName,
+//   // payees,
+//   // comments,
+//   // room,
+//   // booking,
+//   // remainingBalance,
+//   // subtotalSum,
+//   // pastDue
+// }) => {
+
+  
+//   const [instructors, setInstructors] = useState([]);
+//   const [programName, setProgramName] = useState("");
+//   const [payees, setPayees] = useState([]);
+//   const [comments, setComments] = useState([]);
+//   const [booking, setBookingDetails] = useState([]);
+//   const [room, setRoom] = useState([]);
+//   // const [loading, setLoading] = useState(true);
+//   const [remainingBalance, setRemainingBalance] = useState(0);
+//   const [subtotalSum, setSubtotalSum] = useState(0);
+
+//   const fetchData = async () => {
+//     try {
+//       console.log("invoice fetchData", invoice)
+//       const instructorResponse = await backend.get(
+//         "/assignments/instructors/" + invoice?.data[0].eventId
+//       );
+//       setInstructors(instructorResponse.data);
+//       // console.log("instructors", instructorResponse.data);
+
+//       const commentsResponse = await backend.get("/comments/invoice/22");
+//       // const commentsResponse = await backend.get("/comments/invoice/" + id);
+//       setComments(commentsResponse.data);
+//       // console.log("comments", comments);
+
+//       // get program name
+//       const programNameResponse = await backend.get(
+//         "/events/" + invoice.data[0].eventId
+//       );
+//       setProgramName(programNameResponse.data[0].name);
+//       // console.log("programName", programNameResponse.data[0].name)
+
+//       // get payees
+//       // const payeesResponse = await backend.get("/invoices/payees/" + id);
+//       const payeesResponse = await backend.get("/invoices/payees/22");
+//       setPayees(payeesResponse.data);
+//       // console.log("payees", payeesResponse.data)
+//       console.log("commentsResponse.data.length", commentsResponse.data.length)
+//       if (commentsResponse.data.length > 0) {
+//         const bookingId = commentsResponse.data[0]?.bookingId;
+        
+//         if (bookingId) {
+//           const bookingResponse = await backend.get("/bookings/" + bookingId);
+//           setBookingDetails(bookingResponse.data[0]);
+
+//           const roomResponse = await backend.get(
+//             `/rooms/${bookingResponse.data[0].roomId}`
+//           );
+//           setRoom(roomResponse.data);
+//         }
+//       }
+
+//       // get subtotal
+//       // const subtotalResponse = await backend.get("/invoices/total/22");
+
+//       const unpaidInvoicesResponse = await backend.get(
+//         "/events/remaining/" + invoice.data[0]["eventId"]
+//       );
+
+//       const unpaidTotals = await Promise.all(
+//         unpaidInvoicesResponse.data.map((invoice) =>
+//           backend.get(`/invoices/total/${invoice.id}`)
+//         )
+//       );
+
+//       const partiallyPaidTotals = await Promise.all(
+//         unpaidInvoicesResponse.data.map((invoice) =>
+//           backend.get(`/invoices/paid/${invoice.id}`)
+//         )
+//       );
+
+//       const invoiceTotal = await backend.get(`/invoices/total/22`)
+//       const unpaidTotal = unpaidTotals.reduce(
+//         (sum, res) => sum + res.data.total,
+//         0 
+//       );
+//       const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+//         (sum, res) => {
+//           if(res.data.total) // TODO FIX ENDPOINTS BECAUSE CALCULATION IS WRONG
+//             console.log("res", res.data.total, "sum", sum, "sum + Number(res.data.total)", sum + Number(res.data.total))
+//             return sum + Number(res.data.total); // Had to change to number because was causing NaN
+//         },
+//         0
+//       );
+
+//       // console.log("unpaidPartiallyPaidTotal", unpaidPartiallyPaidTotal)
+//       const remainingBal = unpaidTotal - unpaidPartiallyPaidTotal;
+//       setRemainingBalance(remainingBal);
+//       console.log("remainingBal", remainingBal)
+
+
+
+
+//       setLoading(false);
+//       console.log("setLoading(false)", false)
+//     } catch (err) {
+//       console.log("Error fetching data: ", err);
+//     }
+//   }; 
+
+//   useEffect(() => {
+//     // if (invoice && invoice.data && invoice.data[0]?.eventId) {
+//     console.log("IN HERE THIS SHOULD RUN")
+//     fetchData();
+//     // }
+//   }, [invoice, backend]);
+
+//   useEffect(() => {
+//     if (
+//       comments.length > 0 &&
+//       booking.startTime &&
+//       booking.endTime &&
+//       room.length > 0 &&
+//       room[0]?.rate
+//     ) {
+//       const total = handleSubtotalSum(
+//         booking.startTime,
+//         booking.endTime,
+//         room[0].rate
+//       );
+//       const subtotal = parseFloat(total) * comments.length;
+//       setSubtotalSum(subtotal);
+//     }
+//   }, [comments, booking, room]);
+
+//   return (
+//     <Document>
+//       <Page
+//         size="A4"
+//         style={styles.page}
+//       >
+//         <View style={{ flexGrow: 1 }}>
+//           <Image src={InvoiceHeader} />
+//           <View style={{ marginHorizontal: 16, gap: 16 }}>
+//             <View
+//               style={{
+//                 justifyContent: "space-between",
+//                 marginVertical: "8",
+//                 // marginHorizontal: "4",
+//                 // fontFamily: "Inter",
+//                 color: "#2D3748",
+//                 flexDirection: "row",
+//               }}
+//             >
+//               <View>
+//                 <Text
+//                   style={{
+//                     color: "#2D3748",
+//                     fontWeight: "700",
+//                     fontSize: "24px",
+//                   }}
+//                 >
+//                   INVOICE
+//                 </Text>
+//                 <Text
+//                   style={{
+//                     color: "#718096",
+//                     fontSize: "12px",
+//                   }}
+//                 >
+//                   {getGeneratedDate(comments)}
+//                 </Text>
+//               </View>
+//               <EditInvoiceTitle />
+//             </View>
+//             <View>
+//               <EditInvoiceDetailsPDF
+//                 invoice={invoice}
+//                 instructors={instructors}
+//                 programName={programName}
+//                 payees={payees}
+//                 comments={comments}
+//                 room={room}
+//               />
+//             </View>
+
+//             {/* Table */}
+//             <InvoiceTable
+//               booking={booking}
+//               comments={comments}
+//               room={room}
+//             />
+
+//             {/* <SummaryTable remainingBalance={remainingBalance} subtotalSum={subtotalSum} pastDue={pastDue}/> */}
+//             {/* End of Table */}
+//           </View>
+//         </View>
+//         <Image
+//           src={InvoiceFooter}
+//           style={{ width: "100%" }}
+//         />
+//       </Page>
+//     </Document>
+//   );
+// };
 const MyDocument = ({
   invoice,
   instructors,
@@ -538,14 +749,10 @@ const MyDocument = ({
   booking,
   remainingBalance,
   subtotalSum,
-  pastDue
 }) => {
   return (
     <Document>
-      <Page
-        size="A4"
-        style={styles.page}
-      >
+      <Page size="A4" style={styles.page}>
         <View style={{ flexGrow: 1 }}>
           <Image src={InvoiceHeader} />
           <View style={{ marginHorizontal: 16, gap: 16 }}>
@@ -553,9 +760,6 @@ const MyDocument = ({
               style={{
                 justifyContent: "space-between",
                 marginVertical: "8",
-                // marginHorizontal: "4",
-                // fontFamily: "Inter",
-                color: "#2D3748",
                 flexDirection: "row",
               }}
             >
@@ -569,233 +773,133 @@ const MyDocument = ({
                 >
                   INVOICE
                 </Text>
-                <Text
-                  style={{
-                    color: "#718096",
-                    fontSize: "12px",
-                  }}
-                >
+                <Text style={{ color: "#718096", fontSize: "12px" }}>
                   {getGeneratedDate(comments)}
                 </Text>
               </View>
               <EditInvoiceTitle />
             </View>
-            <View>
-              <EditInvoiceDetailsPDF
-                invoice={invoice}
-                instructors={instructors}
-                programName={programName}
-                payees={payees}
-                comments={comments}
-                room={room}
-              />
-            </View>
 
-            {/* Table */}
+            <EditInvoiceDetailsPDF
+              invoice={invoice}
+              instructors={instructors}
+              programName={programName}
+              payees={payees}
+              comments={comments}
+              room={room}
+            />
+
             <InvoiceTable
               booking={booking}
               comments={comments}
               room={room}
             />
 
-            <SummaryTable remainingBalance={remainingBalance} subtotalSum={subtotalSum} pastDue={pastDue}/>
-            {/* End of Table */}
+            {/* <SummaryTable remainingBalance={remainingBalance} subtotalSum={subtotalSum} pastDue={pastDue}/> */}
           </View>
         </View>
-        <Image
-          src={InvoiceFooter}
-          style={{ width: "100%" }}
-        />
+        <Image src={InvoiceFooter} style={{ width: "100%" }} />
       </Page>
     </Document>
   );
 };
 
-const PDFButtonInvoice = () => {
-  // get comments for the invoice, all relevant db data here
-  const { backend } = useBackendContext();
 
-  const [invoice, setInvoice] = useState(null);
+const fetchInvoiceData = async (invoice, backend) => {
+  const eventId = invoice?.data[0]?.eventId;
 
-  const fetchInvoiceData = async () => {
-    try {
-      const invoiceResponse = await backend.get("/invoices/22");
-      setInvoice(invoiceResponse);
-      //   // get instructors
-    } catch (err) {
-      console.error("Error fetching invoice data:", err);
-    }
+  const [
+    instructorResponse,
+    commentsResponse,
+    programNameResponse,
+    payeesResponse,
+    unpaidInvoicesResponse,
+    invoiceTotalResponse
+  ] = await Promise.all([
+    backend.get(`/assignments/instructors/${eventId}`),
+    backend.get(`/comments/invoice/22`),
+    backend.get(`/events/${eventId}`),
+    backend.get(`/invoices/payees/22`),
+    backend.get(`/events/remaining/${eventId}`),
+    backend.get(`/invoices/total/22`)
+  ]);
+
+  const comments = commentsResponse.data;
+  let booking = {};
+  let room = [];
+
+  if (comments.length > 0 && comments[0].bookingId) {
+    const bookingResponse = await backend.get(`/bookings/${comments[0].bookingId}`);
+    booking = bookingResponse.data[0];
+
+    const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
+    room = roomResponse.data;
+  }
+
+  const unpaidTotals = await Promise.all(
+    unpaidInvoicesResponse.data.map(invoice =>
+      backend.get(`/invoices/total/${invoice.id}`)
+    )
+  );
+  const partiallyPaidTotals = await Promise.all(
+    unpaidInvoicesResponse.data.map(invoice =>
+      backend.get(`/invoices/paid/${invoice.id}`)
+    )
+  );
+
+  const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
+  const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
+    return res.data.total ? sum + Number(res.data.total) : sum;
+  }, 0);
+
+  const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+
+  let subtotalSum = 0;
+  if (comments.length && booking.startTime && booking.endTime && room[0]?.rate) {
+    const total = handleSubtotalSum(booking.startTime, booking.endTime, room[0].rate);
+    subtotalSum = parseFloat(total) * comments.length;
+  }
+
+  return {
+    instructors: instructorResponse.data,
+    programName: programNameResponse.data[0].name,
+    payees: payeesResponse.data,
+    comments,
+    booking,
+    room,
+    remainingBalance,
+    subtotalSum,
   };
+};
 
-  useEffect(() => {
-    fetchInvoiceData();
-  }, []);
-
-  const [instructors, setInstructors] = useState([]);
-  const [programName, setProgramName] = useState("");
-  const [payees, setPayees] = useState([]);
-  const [comments, setComments] = useState([]);
-  const [booking, setBookingDetails] = useState([]);
-  const [room, setRoom] = useState([]);
+const PDFButtonInvoice = () => {
+  // // get comments for the invoice, all relevant db data here
+  const { backend } = useBackendContext();
+  const [invoice, setInvoice] = useState(null);
+  const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [remainingBalance, setRemainingBalance] = useState(0);
-  const [subtotalSum, setSubtotalSum] = useState(0);
+
 
   const fetchData = async () => {
     try {
-      const instructorResponse = await backend.get(
-        "/assignments/instructors/" + invoice.data[0].eventId
-      );
-      setInstructors(instructorResponse.data);
-      // console.log("instructors", instructorResponse.data);
+      const response = await backend.get("/invoices/22");
+      setInvoice(response.data);
 
-      const commentsResponse = await backend.get("/comments/invoice/22");
-      // const commentsResponse = await backend.get("/comments/invoice/" + id);
-      setComments(commentsResponse.data);
-      // console.log("comments", comments);
-
-      // get program name
-      const programNameResponse = await backend.get(
-        "/events/" + invoice.data[0].eventId
-      );
-      setProgramName(programNameResponse.data[0].name);
-      // console.log("programName", programNameResponse.data[0].name)
-
-      // get payees
-      // const payeesResponse = await backend.get("/invoices/payees/" + id);
-      const payeesResponse = await backend.get("/invoices/payees/22");
-      setPayees(payeesResponse.data);
-      // console.log("payees", payeesResponse.data)
-
-      if (commentsResponse.data.length > 0) {
-        const bookingId = commentsResponse.data[0]?.bookingId;
-        if (bookingId) {
-          const bookingResponse = await backend.get("/bookings/" + bookingId);
-          setBookingDetails(bookingResponse.data[0]);
-
-          const roomResponse = await backend.get(
-            `/rooms/${bookingResponse.data[0].roomId}`
-          );
-          setRoom(roomResponse.data);
-      }
-      }
-
-      // get subtotal
-      // const subtotalResponse = await backend.get("/invoices/total/22");
-
-      const unpaidInvoicesResponse = await backend.get(
-        "/events/remaining/" + invoice.data[0]["eventId"]
-      );
-
-      const unpaidTotals = await Promise.all(
-        unpaidInvoicesResponse.data.map((invoice) =>
-          backend.get(`/invoices/total/${invoice.id}`)
-        )
-      );
-
-      const partiallyPaidTotals = await Promise.all(
-        unpaidInvoicesResponse.data.map((invoice) =>
-          backend.get(`/invoices/paid/${invoice.id}`)
-        )
-      );
-
-      const invoiceTotal = await backend.get(`/invoices/total/22`)
-      const unpaidTotal = unpaidTotals.reduce(
-        (sum, res) => sum + res.data.total,
-        0 
-      );
-      const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-        (sum, res) => {
-          if(res.data.total) // TODO FIX ENDPOINTS BECAUSE CALCULATION IS WRONG
-            console.log("res", res.data.total, "sum", sum, "sum + Number(res.data.total)", sum + Number(res.data.total))
-            return sum + Number(res.data.total); // Had to change to number because was causing NaN
-        },
-        0
-      );
-
-      // console.log("unpaidPartiallyPaidTotal", unpaidPartiallyPaidTotal)
-      const remainingBal = unpaidTotal - unpaidPartiallyPaidTotal;
-      setRemainingBalance(remainingBal);
-      console.log("remainingBal", remainingBal)
-
-
-
-      setLoading(false);
+      const invoiceDataResponse = await fetchInvoiceData(response, backend);
+      setInvoiceData(invoiceDataResponse);
+      console.log("invoiceDataResponse", invoiceDataResponse)
+      //   // get instructors
     } catch (err) {
-      console.log("Error fetching data: ", err);
-    }
-  }; 
+      console.error("Error fetching invoice data:", err);
+    } 
+  };
 
   useEffect(() => {
-    if (invoice && invoice.data && invoice.data[0]?.eventId) {
-      fetchData();
-    }
-  }, [invoice]);
-
-  useEffect(() => {
-    if (
-      comments.length > 0 &&
-      booking.startTime &&
-      booking.endTime &&
-      room.length > 0 &&
-      room[0]?.rate
-    ) {
-      const total = handleSubtotalSum(
-        booking.startTime,
-        booking.endTime,
-        room[0].rate
-      );
-      const subtotal = parseFloat(total) * comments.length;
-      setSubtotalSum(subtotal);
-    }
-  }, [comments, booking, room]);
+    fetchData();
+  }, []);
 
   return (
     <Box>
-      {loading ? (
-        <Flex
-          h="100%"
-          justifyContent="center"
-          alignItems="center"
-          gap="4"
-        >
-          <Spinner />
-          <Text>PDF Loading...</Text>
-        </Flex>
-      ) : (
-        <PDFDownloadLink
-        document={<MyDocument
-          invoice={invoice}
-          instructors={instructors}
-          programName={programName}
-          payees={payees}
-          comments={comments}
-          room={room}
-          booking={booking}
-          remainingBalance={remainingBalance}
-          subtotalSum={subtotalSum}
-          pastDue={remainingBalance}
-        />}
-        fileName="bookingdata.pdf"
-      >
-        <IconButton
-          icon={<DownloadIcon boxSize="20px" />}
-          backgroundColor="transparent"
-          aria-label="Download PDF"
-        />
-      </PDFDownloadLink>
-      )}
-
-
-    </Box>
-  );
-};
-
-// const TestPDFViewer = ({ invoice }) => {
-const TestPDFViewer = () => {
-  
-  return (
-    <Box h="100vh">
       {/* {loading ? (
         <Flex
           h="100%"
@@ -806,27 +910,82 @@ const TestPDFViewer = () => {
           <Spinner />
           <Text>PDF Loading...</Text>
         </Flex>
-      ) : (
-        <PDFViewer
-          width="100%"
-          height="100%"
-        >
+      ) : ( */}
+      <PDFDownloadLink
+        document={
           <MyDocument
             invoice={invoice}
-            instructors={instructors}
-            programName={programName}
-            payees={payees}
-            comments={comments}
-            room={room}
-            booking={booking}
-            remainingBalance={remainingBalance}
-            subtotalSum={subtotalSum}
-            pastDue={remainingBalance}
+            {...invoiceData}
           />
-        </PDFViewer>
-      )} */}
+        }
+        fileName="bookingdata.pdf"
+      >
+          <IconButton
+            icon={<DownloadIcon boxSize="20px" />}
+            backgroundColor="transparent"
+            aria-label="Download PDF"
+          />
+      </PDFDownloadLink>
+    {/* )} */}
     </Box>
   );
 };
 
-export { TestPDFViewer, PDFButtonInvoice };
+// const TestPDFViewer = ({ invoice }) => {
+const TestPDFViewer = () => {
+  const { backend } = useBackendContext();
+  const [invoice, setInvoice] = useState(null);
+  const [invoiceData, setInvoiceData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      const response = await backend.get("/invoices/22");
+      setInvoice(response.data);
+
+      const invoiceDataResponse = await fetchInvoiceData(response, backend);
+      setInvoiceData(invoiceDataResponse);
+      console.log("invoiceDataResponse", invoiceDataResponse)
+      //   // get instructors
+    } catch (err) {
+      console.error("Error fetching invoice data:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  return (
+    <Box>
+      {loading || !invoice ? (
+        <Flex h="100%" justifyContent="center" alignItems="center" gap="4">
+          <Spinner />
+          <Text>PDF Loading...</Text>
+        </Flex>
+      ) : (
+        <PDFDownloadLink
+          document={<MyDocument invoice={invoice} {...invoiceData} />}
+          fileName="bookingdata.pdf"
+        >
+          {({ loading: isGenerating }) =>
+            isGenerating ? (
+              <Flex align="center" gap={2}>
+                <Spinner size="sm" />
+                <Text fontSize="sm">Generating PDF...</Text>
+              </Flex>
+            ) : (
+              <IconButton
+                icon={<DownloadIcon boxSize="20px" />}
+                backgroundColor="transparent"
+                aria-label="Download PDF"
+              />
+            )
+          }
+        </PDFDownloadLink>
+      )}
+    </Box>
+  );
+};
+
+export { TestPDFViewer, PDFButtonInvoice, MyDocument };

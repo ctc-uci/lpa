@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   Button,
@@ -22,19 +22,28 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import IoPaperPlane from "../../assets/IoPaperPlane.svg";
-import { EnvelopeIcon } from "../../assets/EnvelopeIcon.jsx";
-import { PlusFilledIcon } from "../../assets/PlusFilledIcon.jsx";
-import logo from "../../assets/logo/logo.png";
-import { DiscardEmailModal } from "./DiscardEmailModal";
-import { ConfirmEmailModal } from "./ConfirmEmailModal";
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { pdf } from "@react-pdf/renderer";
 import { useParams } from "react-router-dom";
 
-export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
+import { EnvelopeIcon } from "../../assets/EnvelopeIcon.jsx";
+import IoPaperPlane from "../../assets/IoPaperPlane.svg";
+import logo from "../../assets/logo/logo.png";
+import { PlusFilledIcon } from "../../assets/PlusFilledIcon.jsx";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { MyDocument } from "../invoices/PDFButtonInvoice";
+import { ConfirmEmailModal } from "./ConfirmEmailModal";
+import { DiscardEmailModal } from "./DiscardEmailModal";
+
+export const EmailSidebar = ({
+  isOpen,
+  onOpen,
+  onClose,
+  pdf_title,
+  invoice,
+}) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
-
+  const [fileBlob, setFileBlob] = useState();
   const [title, setTitle] = useState(pdf_title);
   const [toInput, setToInput] = useState("");
   const [ccInput, setCcInput] = useState("");
@@ -48,7 +57,10 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
-  
+
+  const [loading, setLoading] = useState(true);
+
+
   const btnRef = useRef();
 
   useEffect(() => {
@@ -79,7 +91,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
       try {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         const payeeEmails = payeesResponse.data.map((payee) => payee.email);
-        
+
         setEmails((prevEmails) => {
           const newEmails = [...prevEmails];
           payeeEmails.forEach((email) => {
@@ -94,12 +106,12 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
         console.error("Error fetching data:", error);
       }
     };
-  
+
     fetchData();
   }, []);
 
   const emptyInputs = () => {
-    setTitle(pdf_title);  
+    setTitle(pdf_title);
     setToInput("");
     setBccInput("");
     setCcInput("");
@@ -107,7 +119,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
     setCcEmails([]);
     setBccEmails([]);
     setChangesPresent(false);
-  }
+  };
 
   const handleAddEmail = () => {
     if (validateEmail(toInput) && !emails.includes(toInput)) {
@@ -123,7 +135,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
   };
 
   const handleAddCcEmail = () => {
-    if (validateEmail(ccInput)&& !ccEmails.includes(ccInput)) {
+    if (validateEmail(ccInput) && !ccEmails.includes(ccInput)) {
       setCcEmails((prev) => [...prev, ccInput]);
       setCcInput("");
     }
@@ -152,7 +164,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
     const regex = /\S+@\S+\.\S+/;
     return regex.test(email);
   };
-  
+
   const message = `Hello,
 
     This is a friendly reminder regarding your upcoming payment. Please ensure that all the necessary details have been updated in our records for timely processing. If there are any changes or concerns regarding the payment, please don't hesitate to reach out to us.
@@ -167,23 +179,278 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
     3105 Shattuck Ave., Berkeley, CA 94705
     lapena.org`;
 
+
+    const handleSubtotalSum = (startTime, endTime, rate) => {
+      if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
     
-    const sendEmail = async () => {
-        try {
-          const _ = await backend.post("/email/send", {
-            to: emails, 
-            subject: title, 
-            text: message,
-            html: `<p>${message.replace(/\n/g, '<br />')}</p>`,
-            cc: ccEmails,
-            bcc: bccEmails
-          });
+      const timeToMinutes = (timeStr) => {
+        const [hours, minutes] = timeStr.split(":").map(Number);
+        return hours * 60 + minutes;
+      };
     
-        } catch (error) {
-          console.error("Error sending email:", error);
-        }
+      const startMinutes = timeToMinutes(startTime.substring(0, 5));
+      const endMinutes = timeToMinutes(endTime.substring(0, 5));
+      const diff = endMinutes - startMinutes;
+    
+      const totalHours = Math.ceil(diff / 60);
+    
+      const total = (totalHours * rate).toFixed(2);
+    
+      return total;
     };
 
+    const fetchInvoiceData = async (invoice, backend) => {
+      const eventId = invoice?.data[0]?.eventId;
+    
+      const [
+        instructorResponse,
+        commentsResponse,
+        programNameResponse,
+        payeesResponse,
+        unpaidInvoicesResponse,
+        invoiceTotalResponse
+      ] = await Promise.all([
+        backend.get(`/assignments/instructors/${eventId}`),
+        backend.get(`/comments/invoice/22`),
+        backend.get(`/events/${eventId}`),
+        backend.get(`/invoices/payees/22`),
+        backend.get(`/events/remaining/${eventId}`),
+        backend.get(`/invoices/total/22`)
+      ]);
+    
+      const comments = commentsResponse.data;
+      let booking = {};
+      let room = [];
+    
+      if (comments.length > 0 && comments[0].bookingId) {
+        const bookingResponse = await backend.get(`/bookings/${comments[0].bookingId}`);
+        booking = bookingResponse.data[0];
+    
+        const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
+        room = roomResponse.data;
+      }
+    
+      const unpaidTotals = await Promise.all(
+        unpaidInvoicesResponse.data.map(invoice =>
+          backend.get(`/invoices/total/${invoice.id}`)
+        )
+      );
+      const partiallyPaidTotals = await Promise.all(
+        unpaidInvoicesResponse.data.map(invoice =>
+          backend.get(`/invoices/paid/${invoice.id}`)
+        )
+      );
+    
+      const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
+      const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
+        return res.data.total ? sum + Number(res.data.total) : sum;
+      }, 0);
+    
+      const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+    
+      let subtotalSum = 0;
+      if (comments.length && booking.startTime && booking.endTime && room[0]?.rate) {
+        const total = handleSubtotalSum(booking.startTime, booking.endTime, room[0].rate);
+        subtotalSum = parseFloat(total) * comments.length;
+      }
+    
+      return {
+        instructors: instructorResponse.data,
+        programName: programNameResponse.data[0].name,
+        payees: payeesResponse.data,
+        comments,
+        booking,
+        room,
+        remainingBalance,
+        subtotalSum,
+      };
+    };
+
+
+  const generatePDFBlob = async () => {
+    // Make sure the invoice data is loaded before proceeding
+    // if (!invoice || !invoice.data || invoice.data.length === 0) {
+    //   console.log("Waiting for invoice data to load...");
+    //   return null;
+    // }
+
+    const invoiceData = await fetchInvoiceData(invoice, backend);
+
+    const pdfDocument = (
+      <MyDocument
+        invoice={invoice}
+        {...invoiceData}
+      />
+    );
+
+    // const pdfDocument = (
+    //   <MyDocument
+    //     backend={backend}
+    //     invoice={invoice}
+    //     loading={loading} // Don't pass loading state to avoid circular dependencies
+    //     setLoading={setLoading}
+    //   />
+    // );
+
+    // Now generate the blob
+    // console.log("Document ready, generating PDF blob...");
+    const blob = await pdf(pdfDocument).toBlob();
+    // console.log("Blob generated successfully", blob);
+    return blob;
+  };
+
+
+  // useEffect(() => {
+  //   const makeBlob = async () => {
+  //     const pdfDocument = (
+  //       <MyDocument
+  //       backend={backend}
+  //       invoice={invoice}
+  //       loading={loading} // Don't pass loading state to avoid circular dependencies
+  //       setLoading={setLoading}
+  //       />
+  //     );
+
+  //     await waitForVariable(() => pdfDocument === true);
+  //     console.log(loading)
+      
+  //     // Now generate the blob
+  //   // console.log("Document ready, generating PDF blob...");
+  //   const blob = await pdf(pdfDocument).toBlob();
+  //   console.log("Blob generated successfully", blob);
+  //   setFileBlob(blob);
+  //   }
+ 
+  //   makeBlob();
+  // }, [backend, invoice, loading]);
+  
+  const makeBlob = async () => {
+
+    
+    const invoiceData = await fetchInvoiceData(invoice, backend);
+
+    const pdfDocument = (
+      <MyDocument
+        invoice={invoice}
+        {...invoiceData}
+      />
+    );
+    
+    // await pdf(pdfDocument2).toBlob();
+    // await waitForVariable(() => loading === false); 
+    // await new Promise(resolve => setTimeout(resolve, 30000));
+    
+    
+    // const pdfDocument = (
+      //   <MyDocument
+      //   backend={backend}
+      //   invoice={invoice}
+      //   loading={loading} // Don't pass loading state to avoid circular dependencies
+      //   setLoading={setLoading}
+      //   />
+      // );
+      
+      // Now generate the blob
+      // console.log("Document ready, generating PDF blob...");
+      const blob = await pdf(pdfDocument).toBlob();
+      // console.log("Blob generated successfully", blob);
+      // setFileBlob(blob);
+      // const url = URL.createObjectURL(blob);
+      // window.open(url); 
+      return blob;
+    }
+
+  
+
+  const handleButtonClick = async () => {
+    // try {
+      // Make sure document data is loaded first (if needed)
+      // This could be a separate function that fetches invoice data if it's not already loaded
+
+      // const blob = await generatePDFBlob();
+      // console.log("finished generatePDFBLOB");
+    //   if (blob) {
+    //     console.log("inside if blob");
+    //     setFileBlob(blob);
+        const blob = await makeBlob();
+        await sendEmail(blob);
+        // console.log("after sendEmail");
+        await saveEmail(blob);
+        setisConfirmModalOpen(true);
+    //   } else {
+    //     console.error("Failed to generate PDF blob");
+    //   }
+    // } catch (error) {
+    //   console.error("Error in PDF generation process:", error);
+    // } finally {
+    //   setLoading(false);
+    // }
+  };
+
+  // const generatePDFBlob = async () => {
+  //   // console.log("invoice in generatePDFBlob", invoice.data[0]);
+  //   // const pdfDocument = (
+  //   //   <MyDocument
+  //   //     backend={backend}
+  //   //     invoice={invoice}
+  //   //     loading={loading}
+  //   //     setLoading={setLoading}
+  //   //   />
+  //   // );
+
+  //   const blob = await pdf(pdfDocument).toBlob();
+
+  //   return blob;
+  // };
+
+  // // useEffect(() => {
+  // //   console.log("loading", loading)
+  // // }, [loading]);
+
+  // const generateBlob = async () => {
+
+  //   const blob = await generatePDFBlob();
+  //   setFileBlob(blob);
+  // }
+  // // generateBlob();
+
+  const sendEmail = async (blob) => {
+    try {
+      console.log("fileblob in sendEmail", blob);
+      if (blob) {
+        const formData = new FormData();
+        formData.append("pdfFile", blob, `${pdf_title}.pdf`);
+        formData.append("to", emails);
+        formData.append("subject", title);
+        formData.append("text", message);
+        formData.append("html", `<p>${message.replace(/\n/g, "<br />")}</p>`);
+        formData.append("cc", ccEmails);
+        formData.append("bcc", bccEmails);
+
+        const response = await backend.post("/email/send", formData);
+
+        console.log("Email sent successfully!", response.data);
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  };
+
+  const saveEmail = async (blob) => {
+    try {
+      if (blob) {
+        await backend.post(`invoices/backupInvoice/` + id, {
+          comment: "",
+          file: blob,
+        });
+      }
+      else {
+        console.log("no blob for save email");
+      }
+    } catch (error) {
+      console.error("Error saving email to database:", error);
+    }
+  };
 
   return (
     <>
@@ -194,9 +461,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
         setisDrawerOpen={setisDrawerOpen}
       />
 
-      <ConfirmEmailModal 
+      <ConfirmEmailModal
         isOpen={isConfirmModalOpen}
-        onClose= {() => {
+        onClose={() => {
           setisConfirmModalOpen(false);
           setisDrawerOpen(false);
           emptyInputs();
@@ -217,15 +484,15 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
       >
         Email
       </Button>
-      
+
       <Drawer
         isOpen={isDrawerOpen}
         placement="right"
         onClose={() => {
           if (changesPresent) {
-            setisDiscardModalOpen(true); 
+            setisDiscardModalOpen(true);
           } else {
-            setisDrawerOpen(false); 
+            setisDrawerOpen(false);
           }
         }}
         finalFocusRef={btnRef}
@@ -233,7 +500,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
       >
         <DrawerOverlay />
         <DrawerContent>
-          <DrawerCloseButton 
+          <DrawerCloseButton
             onClick={() => {
               if (changesPresent) {
                 setisDiscardModalOpen(true);
@@ -254,7 +521,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
             <Input
               placeholder="Subject"
               value={title}
-              onChange={(e) => {setTitle(e.target.value)}}
+              onChange={(e) => {
+                setTitle(e.target.value);
+              }}
               borderColor="#E2E8F0"
               _focus={{ borderColor: "#4441C8" }}
               _placeholder={{ color: "#A0AEC0" }}
@@ -294,7 +563,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                         svg: {
                           width: "16px",
                           height: "16px",
-                        }
+                        },
                       }}
                       _hover={{
                         bgColor: "transparent",
@@ -304,34 +573,40 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                       }}
                       _active={{ bgColor: "transparent" }}
                       _focus={{ boxShadow: "none" }}
-                      icon={<PlusFilledIcon/>}
+                      icon={<PlusFilledIcon />}
                       onClick={handleAddEmail}
                     />
                   </InputRightElement>
                 </InputGroup>
               </Flex>
-              <Flex gap="4" justifyContent="start" wrap="wrap">
+              <Flex
+                gap="4"
+                justifyContent="start"
+                wrap="wrap"
+              >
                 {[...emails].map((email, index) => (
-                  <Tag 
-                    key={index} 
-                    size="lg" 
-                    borderRadius="full" 
-                    variant="solid" 
-                    bg={"white"} 
-                    border={"1px solid"} 
-                    borderColor={"#E2E8F0"} 
+                  <Tag
+                    key={index}
+                    size="lg"
+                    borderRadius="full"
+                    variant="solid"
+                    bg={"white"}
+                    border={"1px solid"}
+                    borderColor={"#E2E8F0"}
                     textColor={"#080A0E"}
                     fontWeight={"normal"}
                   >
                     <TagLabel>{email}</TagLabel>
                     <TagCloseButton
                       onClick={() =>
-                        setEmails((prevEmails) => prevEmails.filter((e) => e !== email))
+                        setEmails((prevEmails) =>
+                          prevEmails.filter((e) => e !== email)
+                        )
                       }
                       bgColor={"#718096"}
                       opacity={"none"}
                       _hover={{
-                        bg: "#4441C8"
+                        bg: "#4441C8",
                       }}
                       textColor={"white"}
                     />
@@ -363,7 +638,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                         svg: {
                           width: "16px",
                           height: "16px",
-                        }
+                        },
                       }}
                       _hover={{
                         bgColor: "transparent",
@@ -374,7 +649,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                       _active={{ bgColor: "transparent" }}
                       _focus={{ boxShadow: "none" }}
                       onClick={handleAddCcEmail}
-                      icon={<PlusFilledIcon/>}
+                      icon={<PlusFilledIcon />}
                     />
                   </InputRightElement>
                 </InputGroup>
@@ -390,9 +665,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                     size="lg"
                     borderRadius="full"
                     variant="solid"
-                    bg={"white"} 
-                    border={"1px solid"} 
-                    borderColor={"#E2E8F0"} 
+                    bg={"white"}
+                    border={"1px solid"}
+                    borderColor={"#E2E8F0"}
                     textColor={"#080A0E"}
                     fontWeight={"normal"}
                   >
@@ -404,7 +679,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                       bgColor={"#718096"}
                       opacity={"none"}
                       _hover={{
-                        bg: "#4441C8"
+                        bg: "#4441C8",
                       }}
                       textColor={"white"}
                     />
@@ -436,7 +711,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                         svg: {
                           width: "16px",
                           height: "16px",
-                        }
+                        },
                       }}
                       _hover={{
                         bgColor: "transparent",
@@ -447,7 +722,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                       _active={{ bgColor: "transparent" }}
                       _focus={{ boxShadow: "none" }}
                       onClick={handleAddBccEmail}
-                      icon={<PlusFilledIcon/>}
+                      icon={<PlusFilledIcon />}
                     />
                   </InputRightElement>
                 </InputGroup>
@@ -463,9 +738,9 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                     size="lg"
                     borderRadius="full"
                     variant="solid"
-                    bg={"white"} 
-                    border={"1px solid"} 
-                    borderColor={"#E2E8F0"} 
+                    bg={"white"}
+                    border={"1px solid"}
+                    borderColor={"#E2E8F0"}
                     textColor={"#080A0E"}
                     fontWeight={"normal"}
                   >
@@ -477,7 +752,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                       bgColor={"#718096"}
                       opacity={"none"}
                       _hover={{
-                        bg: "#4441C8"
+                        bg: "#4441C8",
                       }}
                       textColor={"white"}
                     />
@@ -511,11 +786,33 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
                   />
                 }
                 bgColor="#4441C8"
-                onClick={() => {
-                  sendEmail();
-                  setisConfirmModalOpen(true);
-                }}
-                isDisabled={!title || (emails.length === 0 && ccEmails.length === 0 && bccEmails.length === 0)}
+                onClick={
+                  // const waitForDocReady = async () => {
+                  //   return new Promise((resolve) => {
+                  //     const interval = setInterval(() => {
+                  //       if (!loading) {
+                  //         clearInterval(interval);
+                  //         resolve();
+                  //       }
+                  //       console.log("loading", loading)
+                  //     }, 100);
+                  //   });
+                  handleButtonClick
+                  // };
+
+                  // await waitForDocReady();
+
+                  // await generateBlob();
+                  // await sendEmail();
+                  // setisConfirmModalOpen(true);
+                  // await saveEmail();
+                }
+                isDisabled={
+                  !title ||
+                  (emails.length === 0 &&
+                    ccEmails.length === 0 &&
+                    bccEmails.length === 0)
+                }
                 width={"45px"}
                 height={"30px"}
                 borderRadius={"10px"}
@@ -523,6 +820,7 @@ export const EmailSidebar = ({ isOpen, onOpen, onClose, pdf_title }) => {
             </Flex>
           </DrawerBody>
         </DrawerContent>
+        {/* <MyDocument invoice={invoice} backend={backend} loading={loading} setLoading={setLoading}/> */}
       </Drawer>
     </>
   );
