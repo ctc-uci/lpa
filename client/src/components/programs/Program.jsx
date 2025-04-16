@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import './Program.css';
-import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
+
+import "./Program.css";
+
+import { ChevronLeftIcon} from "@chakra-ui/icons";
+import { FileTextIcon } from "lucide-react";
+import { Box, Flex, IconButton, Text, Icon } from "@chakra-ui/react";
 
 import { useParams } from "react-router";
 
+import { InfoIconRed } from "../../assets/InfoIconRed";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
-import { ChevronLeftIcon } from "@chakra-ui/icons";
-import {InfoIconRed} from '../../assets/InfoIconRed';
 
 export const Program = () => {
   const { id } = useParams();
@@ -145,34 +148,48 @@ export const Program = () => {
 
   return (
     <Navbar>
-      <Box style={{width: "100%", padding: "20px 20px 20px 20px"}}>
-          <IconButton
-            icon={<ChevronLeftIcon />}
-            variant="ghost"
-            size="md"
-            aria-label="Go back"
-            onClick={() => navigate("/programs")}
+      <Box style={{ width: "100%", padding: "20px 20px 20px 20px" }}>
+        <Flex
+          align="center"
+          gap={2}
+        >
+          <Icon
+            as={FileTextIcon}
+            boxSize={6}
+            color="gray.600"
           />
-          { isArchived ?
-            <div id="infoRed">
-              <InfoIconRed id="infoIcon"/>
-              <p>You are viewing an archived program</p>
-            </div> : <div></div>
-          }
-          <ProgramSummary
-            program={program}
-            bookingInfo={nextBookingInfo}
-            isArchived={isArchived}
-            setIsArchived={setIsArchived}
-            eventId={id}
-          />
-          <Sessions
-            sessions={sessions}
-            rooms={roomNames}
-            isArchived={isArchived}
-            setIsArchived={setIsArchived}
-            eventId={id}
-          />
+          <Text
+            fontFamily="Inter"
+            fontSize="24px"
+            fontStyle="normal"
+            fontWeight="700"
+            lineHeight="normal"
+          >
+            Summary
+          </Text>
+        </Flex>
+        {isArchived ? (
+          <div id="infoRed">
+            <InfoIconRed id="infoIcon" />
+            <p>You are viewing an archived program</p>
+          </div>
+        ) : (
+          <div></div>
+        )}
+        <ProgramSummary
+          program={program}
+          bookingInfo={nextBookingInfo}
+          isArchived={isArchived}
+          setIsArchived={setIsArchived}
+          eventId={id}
+        />
+        <Sessions
+          sessions={sessions}
+          rooms={roomNames}
+          isArchived={isArchived}
+          setIsArchived={setIsArchived}
+          eventId={id}
+        />
       </Box>
     </Navbar>
   );

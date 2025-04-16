@@ -37,7 +37,6 @@ export const CancelSessionModal = ({
 
   const handleSelect = (action, iconSrc) => {
     setSelectedAction(action);
-    setSelectedIcon(iconSrc);
   };
 
   const handleWaiveFee = (sessionId) => {
@@ -160,8 +159,8 @@ export const CancelSessionModal = ({
                       Archive
                     </MenuItem>
                     <MenuItem
-                      icon={<DeleteIcon />}
-                      onClick={() => handleSelect("Delete", DeleteIcon)}
+                      icon={<CancelIcon />}
+                      onClick={() => handleSelect("Delete", CancelIcon)}
                     >
                       Delete
                     </MenuItem>
@@ -231,7 +230,7 @@ export const CancelSessionModal = ({
                     </MenuItem>
                     <MenuItem
                       icon={<DeleteIcon />}
-                      onClick={() => handleSelect("Delete", DeleteIcon)}
+                      onClick={() => handleSelect("Delete", CancelIcon)}
                     >
                       Delete
                     </MenuItem>

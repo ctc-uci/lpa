@@ -1,6 +1,8 @@
 import { React, useEffect, useState } from "react";
 
 import { CancelIcon } from "../../assets/CancelIcon";
+import { ClockFilled } from "../../assets/ClockFilled";
+import { CustomOption } from "../../assets/CustomOption";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { CancelSessionModal } from "./CancelSessionModal";
 
@@ -156,7 +158,6 @@ export const ProgramSummary = ({
 
   const duplicateProgram = async () => {
     const eventResponse = await backend.get("/events/allInfo/" + eventId);
-    console.log(eventResponse);
     const eventName = eventResponse.data[0].eventname;
     const generalInformation = eventResponse.data[0].eventdescription;
 
@@ -307,6 +308,8 @@ export const ProgramSummary = ({
     ...(bookingInfo || {}),
   };
 
+  // console.log(safeBookingInfo);
+
   // Make sure program data is fetched before rendering
   if (!program || program.length === 0) {
     return (
@@ -378,29 +381,33 @@ export const ProgramSummary = ({
                   align="center"
                   gap={2}
                 >
-                  <Flex
-                    align="center"
-                    gap={2}
+                  <Button
+                    display="flex"
+                    height="40px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    fontSize="14px"
+                    fontWeight="600"
+                    borderRadius="6px"
+                    onClick={exit}
                   >
                     <Icon
-                      as={FileTextIcon}
-                      boxSize={6}
-                      color="gray.600"
-                    />
-                    <Text
-                      fontSize="xl"
-                      fontWeight="semibold"
-                      color="gray.600"
-                    >
-                      Summary
-                    </Text>
-                  </Flex>
+                      as={ChevronLeftIcon}
+                      boxSize={5}
+                    />{" "}
+                    Programs
+                  </Button>
                 </Flex>
 
                 <Flex
                   align="center"
                   gap={2}
                 >
+                  <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
+                    Invoice
+                  </PDFButton>
                   <Popover
                     id="popTrigger"
                     placement="bottom-start"
@@ -474,9 +481,6 @@ export const ProgramSummary = ({
                       </>
                     )}
                   </Popover>
-                  <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
-                    Invoice
-                  </PDFButton>
                   <Modal
                     isOpen={modalIsOpen}
                     onClose={modalOnClose}
@@ -534,150 +538,178 @@ export const ProgramSummary = ({
                   as="h2"
                   size="md"
                   textColor="gray.600"
+                  fontFamily="Inter"
+                  fontSize="24px"
+                  fontStyle="normal"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  coilor="#2D3748"
                 >
                   {program[0]?.name || "Untitled Program"}
                 </Heading>
 
                 <Flex
-                  align="center"
-                  gap={2}
+                  align="flex-start"
+                  gap={4}
                   color="gray.700"
-                >
-                  <Icon as={TimeIcon} />
-                  <Text>
-                    {nextSession
-                      ? `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
-                      : "No session scheduled"}
-                  </Text>
-                  <Text color="gray.600">next up on</Text>
-                  <Icon as={CalendarIcon} />
-                  <Text>
-                    {nextSession?.date
-                      ? new Date(nextSession.date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                        })
-                      : "No date available"}
-                  </Text>
-                </Flex>
-
-                <Flex
-                  spacing={2}
-                  gap={6}
+                  direction="column"
+                  alignSelf="stretch"
                 >
                   <Flex
-                    align="center"
-                    gap={2}
+                    gap={3}
+                    textAlign={"center"}
+                    alignContent={"center"}
+                    direction={"row"}
                   >
-                    <Icon
-                      as={UserIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">
-                      {payees?.length > 0
-                        ? payees.map((payee) => payee.clientName).join(", ")
-                        : "No payees"}
-                    </Text>
+                    <CustomOption />
+                    <Text>Custom</Text>
                   </Flex>
                   <Flex
-                    align="center"
-                    gap={2}
+                    alignItems="center"
+                    gap="2"
                   >
-                    <Icon
-                      as={UserIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">
-                      {instructors?.length > 0
-                        ? instructors
-                            .map((instructor) => instructor.clientName)
-                            .join(", ")
-                        : "No instructors"}
+                    <ClockFilled />
+                    <Flex direction="column">
+                      <Text>
+                        {nextSession
+                          ? `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
+                          : "No session scheduled"}
+                      </Text>
+                    </Flex>
+                  </Flex>
+                  <Flex>
+                    <Icon as={CalendarIcon} />
+                    <Text>
+                      {nextSession?.date
+                        ? new Date(nextSession.date).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            }
+                          )
+                        : "No date available"}
                     </Text>
                   </Flex>
+
+                  <Flex
+                    spacing={2}
+                    gap={6}
+                  >
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <Icon
+                        as={UserIcon}
+                        color="gray.600"
+                      />
+                      <Text color="gray.600">
+                        {payees?.length > 0
+                          ? payees.map((payee) => payee.clientName).join(", ")
+                          : "No payees"}
+                      </Text>
+                    </Flex>
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <Icon
+                        as={UserIcon}
+                        color="gray.600"
+                      />
+                      <Text color="gray.600">
+                        {instructors?.length > 0
+                          ? instructors
+                              .map((instructor) => instructor.clientName)
+                              .join(", ")
+                          : "No instructors"}
+                      </Text>
+                    </Flex>
+                  </Flex>
+
+                  <Flex
+                    spacing={2}
+                    gap={6}
+                  >
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <Icon
+                        as={EmailIcon}
+                        color="gray.600"
+                      />
+                      <Text color="gray.600">
+                        {payees?.length > 0
+                          ? [...(payees || [])]
+                              .map((person) => person?.clientEmail)
+                              .filter(Boolean)
+                              .join(", ")
+                          : "No emails available"}
+                      </Text>
+                    </Flex>
+                  </Flex>
+
+                  <Flex
+                    align="center"
+                    gap={8}
+                  >
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <Icon
+                        as={InfoIcon}
+                        color="gray.600"
+                      />
+                      <Text color="gray.600">{nextRoom?.name || "-"}</Text>
+                    </Flex>
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <Text color="gray.600">$</Text>
+                      <Text color="gray.600">{nextRoom?.rate || "-.--"}</Text>
+                      <Text color="gray.600">/ hour</Text>
+                    </Flex>
+                  </Flex>
+
+                  <Stack spacing={6}>
+                    <Box spacing={2}>
+                      <Heading
+                        size="md"
+                        textColor="gray.600"
+                      >
+                        Room Description
+                      </Heading>
+                      <Text
+                        color="gray.600"
+                        text="xs"
+                        mt={4}
+                      >
+                        {nextRoom?.description || "No description available"}
+                      </Text>
+                    </Box>
+
+                    <Box>
+                      <Heading
+                        size="md"
+                        textColor="gray.600"
+                      >
+                        Class Description
+                      </Heading>
+                      <Text
+                        color="gray.600"
+                        text="xs"
+                        mt={4}
+                      >
+                        {program[0]?.description || "No description available"}
+                      </Text>
+                    </Box>
+                  </Stack>
                 </Flex>
-
-                <Flex
-                  spacing={2}
-                  gap={6}
-                >
-                  <Flex
-                    align="center"
-                    gap={2}
-                  >
-                    <Icon
-                      as={EmailIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">
-                      {payees?.length > 0
-                        ? [...(payees || [])]
-                            .map((person) => person?.clientEmail)
-                            .filter(Boolean)
-                            .join(", ")
-                        : "No emails available"}
-                    </Text>
-                  </Flex>
-                </Flex>
-
-                <Flex
-                  align="center"
-                  gap={8}
-                >
-                  <Flex
-                    align="center"
-                    gap={2}
-                  >
-                    <Icon
-                      as={InfoIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">{nextRoom?.name || "-"}</Text>
-                  </Flex>
-                  <Flex
-                    align="center"
-                    gap={2}
-                  >
-                    <Text color="gray.600">$</Text>
-                    <Text color="gray.600">{nextRoom?.rate || "-.--"}</Text>
-                    <Text color="gray.600">/ hour</Text>
-                  </Flex>
-                </Flex>
-
-                <Stack spacing={6}>
-                  <Box spacing={2}>
-                    <Heading
-                      size="md"
-                      textColor="gray.600"
-                    >
-                      Room Description
-                    </Heading>
-                    <Text
-                      color="gray.600"
-                      text="xs"
-                      mt={4}
-                    >
-                      {nextRoom?.description || "No description available"}
-                    </Text>
-                  </Box>
-
-                  <Box>
-                    <Heading
-                      size="md"
-                      textColor="gray.600"
-                    >
-                      Class Description
-                    </Heading>
-                    <Text
-                      color="gray.600"
-                      text="xs"
-                      mt={4}
-                    >
-                      {program[0]?.description || "No description available"}
-                    </Text>
-                  </Box>
-                </Stack>
               </Stack>
             </CardBody>
           </Card>
@@ -827,21 +859,67 @@ export const ProgramSummary = ({
 };
 
 export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
+  const { backend } = useBackendContext();
   const {
     isOpen: cancelModalIsOpen,
     onOpen: openCancelModal,
     onClose: closeCancelModal,
   } = useDisclosure();
-  const handleConfirmCancel = (action, reason, waivedFees) => {
-    console.log("Action:", action);
-    console.log("Reason:", reason);
-    console.log("Waived Fees:", waivedFees);
-    console.log("Sessions to cancel:", selectedSessions);
 
-    // Reset states after cancellation
-    setSelectedSessions([]);
-    setIsSelected(false);
-    closeCancelModal();
+  // Function to handle the cancellation of sessions
+  const handleConfirmCancel = (action, reason, waivedFees) => {
+    // Create an array of session IDs
+    const sessionIds = selectedSessions
+
+    // Close the modal first to improve perceived performance
+    onClose();
+
+    if (action === "Archive") {
+      // Call the batch archive endpoint
+      batchArchiveSessions(sessionIds, reason, waivedFees);
+    } else if (action === "Delete") {
+      // Call the batch delete endpoint
+      console.log("session IDS from handleConfirmCancel", sessionIds);
+      batchDeleteSessions(sessionIds, reason);
+    }
+  };
+
+  const batchArchiveSessions = async (sessionIds, reason, waivedFees) => {
+    try {
+      const response = await backend.post("/bookings/batch/archive", {
+        sessionIds,
+        reason,
+        waivedFees,
+      });
+
+      if (response.data.result === "success") {
+        console.log(`Successfully archived ${sessionIds.length} sessions`);
+        setSelectedSessions([]);
+        setIsSelected(false);
+      } else {
+        console.error("Error archiving sessions:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Failed to archive sessions:", error);
+    }
+  };
+
+  const batchDeleteSessions = async (sessionIds, reason) => {
+    try {
+      const response = await backend.delete("/bookings/batch/delete", {
+        data: { sessionIds, reason }, // For DELETE requests, axios requires data in a 'data' property
+      });
+
+      if (response.data.result === "success") {
+        console.log(`Successfully deleted ${sessionIds.length} sessions`);
+        setSelectedSessions([]);
+        setIsSelected(false);
+      } else {
+        console.error("Error deleting sessions:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Failed to delete sessions:", error);
+    }
   };
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isSelected, setIsSelected] = useState(false);
@@ -872,7 +950,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [selectMenuOpen, setSelectMenuOpen] = useState(false);
   const [selectOption, setSelectOption] = useState("Select");
   const [selectedSessions, setSelectedSessions] = useState([]);
-  
+
+  console.log("Selected Sessions:", selectedSessions)
 
   const handleSessionSelection = (sessionId) => {
     setSelectedSessions((prev) => {
@@ -947,13 +1026,10 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
         selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
 
       return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
-    })
+    });
     setSessionMap(newSessionMap); // set sessionMap
-    ;
-
     const sorted = [...filtered];
 
-    console.log(sessionMap)
     if (sortKey === "date") {
       sorted.sort((a, b) => {
         const aInvalid = !a.date || a.date === "N/A";
@@ -1222,7 +1298,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   }}
                   disabled={selectedSessions.length === 0}
                 >
-                  <CancelIcon /> {selectOption === "Select all" ? "All" : "Cancel"}
+                  <CancelIcon />{" "}
+                  {selectOption === "Select all" ? "All" : "Cancel"}
                 </button>
               )}
 
@@ -1868,11 +1945,11 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
           <CancelSessionModal
             isOpen={cancelModalIsOpen}
             onClose={closeCancelModal}
-            selectedSessions={selectedSessions.map(id => sessionMap[id]).filter(Boolean)}
+            selectedSessions={selectedSessions
+              .map((id) => sessionMap[id])
+              .filter(Boolean)}
             onConfirm={handleConfirmCancel}
-            eventType={
-              selectedSessions.length === 1 ? "Workshops": "Sessions"
-            }
+            eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
           />
         </CardBody>
       </Card>
@@ -1982,7 +2059,11 @@ const PDFButton = () => {
           leftIcon={<Icon as={DownloadIcon} />}
           colorScheme="purple"
           size="sm"
-          borderRadius="20px"
+          display="flex"
+          height="40px"
+          padding="0px 16px"
+          borderRadius="6px"
+          background={"var(--Primary-5-Default, #4441C8)"}
         >
           Invoice
         </Button>
