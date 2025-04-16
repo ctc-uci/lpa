@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
+
+import { Box, Flex } from "@chakra-ui/react";
+
 import { formatDistanceToNow } from "date-fns";
+import { AiFillMail } from "react-icons/ai";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import {
-  Flex
-} from "@chakra-ui/react";
 import { FilterButton } from "./FilterButton";
-import { AiFillMail } from "react-icons/ai";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
 
@@ -29,13 +30,14 @@ export const Notifications = () => {
     if (daysDiff >= 0 && daysDiff <= 7) {
       return formatDistanceToNow(endDate, { addSuffix: true });
     } else {
-      return endDate.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/,/g, ".");
+      return endDate
+        .toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        })
+        .replace(/,/g, ".");
     }
   };
 
@@ -118,19 +120,40 @@ export const Notifications = () => {
 
   return (
     <Navbar currentPage="notifications">
-      <Flex align="center" margin="50px" gap={5}>
-        <AiFillMail size={24} /> 
-        <h1 className={styles.title}>Invoice Notifications</h1>
-      </Flex>
-      <Flex w='95%' m='10px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px"> 
-        <Flex justifyContent='space-between' mb='40px'>
-          <FilterButton
-            setFilterType={setFilterType}
-            currentFilter={filterType}
-          />
+      <Box
+        padding="26px"
+        // border="1px"
+      >
+        <Flex
+          align="center"
+          gap={5}
+          height="34px"
+          padding="0px 19px 0px 8px"
+          flex-shrink="0"
+          mb="27px"
+        >
+          <AiFillMail size={28} />
+          <h1 className={styles.title}>Invoice Notifications</h1>
         </Flex>
-        <NotificationsComponents notifications={notifications} />
-      </Flex>
+        <Flex
+          w="100%"
+          flexDirection="column"
+          padding="20px"
+          border="1px solid var(--medium-light-grey)"
+          borderRadius="12px"
+        >
+          <Flex
+            justifyContent="space-between"
+            mb="27px"
+          >
+            <FilterButton
+              setFilterType={setFilterType}
+              currentFilter={filterType}
+            />
+          </Flex>
+          <NotificationsComponents notifications={notifications} />
+        </Flex>
+      </Box>
     </Navbar>
   );
 };

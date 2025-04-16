@@ -95,7 +95,7 @@ const Navbar = ({ children }) => {
           ))}
         </VStack>
       </Box>
-      <div style={{ width: "87%" }}>{children}</div>
+      <div style={{ width: "100%" }}>{children}</div>
     </div>
   );
 };
