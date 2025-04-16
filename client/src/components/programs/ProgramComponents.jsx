@@ -75,13 +75,23 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import { EllipsisIcon, FileTextIcon, Info, UserIcon } from "lucide-react";
+import {
+  Calendar,
+  EllipsisIcon,
+  FileTextIcon,
+  Info,
+  UserIcon,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
+import { ArtistIcon } from "../../assets/ArtistsIcon";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
+import { DollarBill } from "../../assets/DollarBill";
 import { DuplicateIcon } from "../../assets/DuplicateIcon";
 import { EditIcon } from "../../assets/EditIcon";
+import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
+import { FilterIcon } from "../../assets/FilterIcon";
 import {
   filterButton,
   filterDateCalendar,
@@ -92,7 +102,12 @@ import {
   sessionsFilterMapPin,
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
+import { LocationPin } from "../../assets/LocationPin";
+import { PersonIcon } from "../../assets/PersonIcon";
+import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
+import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
+import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
 import { DateRange } from "./DateRange";
@@ -434,7 +449,12 @@ export const ProgramSummary = ({
                     {({ isOpen, onClose }) => (
                       <>
                         <PopoverTrigger asChild>
-                          <Icon boxSize="5">
+                          <Icon
+                            boxSize="7"
+                            padding="5px"
+                            borderRadius="6px"
+                            backgroundColor="#EDF2F7"
+                          >
                             <EllipsisIcon />
                           </Icon>
                         </PopoverTrigger>
@@ -572,7 +592,7 @@ export const ProgramSummary = ({
                   alignSelf="stretch"
                 >
                   <Flex
-                    gap={3}
+                    gap={2}
                     textAlign={"center"}
                     alignContent={"center"}
                     direction={"row"}
@@ -596,8 +616,24 @@ export const ProgramSummary = ({
                     alignItems="center"
                     gap="2"
                   >
-                    <Icon as={CalendarIcon} />
+                    <ProgramsCalendarIcon />
                     <DateRange sessions={filteredAndSortedSessions} />
+                  </Flex>
+                  <Flex
+                    align="center"
+                    gap={2}
+                  >
+                    <ArtistIcon />
+                    <Text
+                      color="#2D3748"
+                      fontWeight="500"
+                    >
+                      {instructors?.length > 0
+                        ? instructors
+                            .map((instructor) => instructor.clientName)
+                            .join(", ")
+                        : "No instructors"}
+                    </Text>
                   </Flex>
 
                   <Flex
@@ -608,32 +644,16 @@ export const ProgramSummary = ({
                       align="center"
                       gap={2}
                     >
-                      <Icon
-                        as={UserIcon}
-                        color="gray.600"
-                      />
-                      <Text color="gray.600">
+                      <PersonIcon />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
                         {payees?.length > 0
                           ? payees.map((payee) => payee.clientName).join(", ")
                           : "No payees"}
                       </Text>
                     </Flex>
-                    <Flex
-                      align="center"
-                      gap={2}
-                    >
-                      <Icon
-                        as={UserIcon}
-                        color="gray.600"
-                      />
-                      <Text color="gray.600">
-                        {instructors?.length > 0
-                          ? instructors
-                              .map((instructor) => instructor.clientName)
-                              .join(", ")
-                          : "No instructors"}
-                      </Text>
-                    </Flex>
                   </Flex>
 
                   <Flex
@@ -644,11 +664,11 @@ export const ProgramSummary = ({
                       align="center"
                       gap={2}
                     >
-                      <Icon
-                        as={EmailIcon}
-                        color="gray.600"
-                      />
-                      <Text color="gray.600">
+                      <ProgramEmailIcon />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
                         {payees?.length > 0
                           ? [...(payees || [])]
                               .map((person) => person?.clientEmail)
@@ -661,24 +681,31 @@ export const ProgramSummary = ({
 
                   <Flex
                     align="center"
-                    gap={8}
+                    gap={12}
                   >
                     <Flex
                       align="center"
                       gap={2}
                     >
-                      <Icon
-                        as={InfoIcon}
-                        color="gray.600"
-                      />
-                      <Text color="gray.600">{nextRoom?.name || "-"}</Text>
+                      <LocationPin />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {nextRoom?.name || "-"}
+                      </Text>
                     </Flex>
                     <Flex
                       align="center"
                       gap={2}
                     >
-                      <Text color="gray.600">$</Text>
-                      <Text color="gray.600">{nextRoom?.rate || "-.--"}</Text>
+                      <DollarBill />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {nextRoom?.rate || "-.--"}
+                      </Text>
                       <Text color="gray.600">/ hour</Text>
                     </Flex>
                   </Flex>
@@ -688,13 +715,18 @@ export const ProgramSummary = ({
                       <Heading
                         size="md"
                         textColor="gray.600"
+                        fontFamily="Inter"
+                        fontSize="16px"
+                        fontWeight="700"
+                        lineHeight="normal"
                       >
                         Room Description
                       </Heading>
                       <Text
-                        color="gray.600"
-                        text="xs"
+                        color="#2D3748"
+                        fontWeight="500"
                         mt={4}
+                        fontSize={14}
                       >
                         {nextRoom?.description || "No description available"}
                       </Text>
@@ -704,13 +736,17 @@ export const ProgramSummary = ({
                       <Heading
                         size="md"
                         textColor="gray.600"
+                        fontSize="16px"
+                        fontStyle="normal"
+                        fontWeight="700"
                       >
-                        Class Description
+                        Program Description
                       </Heading>
                       <Text
-                        color="gray.600"
-                        text="xs"
+                        color="#2D3748"
+                        fontWeight="500"
                         mt={4}
+                        fontSize={14}
                       >
                         {program[0]?.description || "No description available"}
                       </Text>
@@ -865,7 +901,13 @@ export const ProgramSummary = ({
   );
 };
 
-export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
+export const Sessions = ({
+  sessions,
+  rooms,
+  isArchived,
+  setIsArchived,
+  refreshSessions,
+}) => {
   const { backend } = useBackendContext();
   const {
     isOpen: cancelModalIsOpen,
@@ -873,24 +915,32 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     onClose: closeCancelModal,
   } = useDisclosure();
 
-  // Function to handle the cancellation of sessions
-  const handleConfirmCancel = (action, reason, waivedFees) => {
+  const handleConfirmCancel = async (action, reason, waivedFees) => {
     // Create an array of session IDs
     const sessionIds = selectedSessions;
 
     // Close the modal first to improve perceived performance
-    onClose();
+    closeCancelModal();
 
-    if (action === "Archive") {
-      // Call the batch archive endpoint
-      batchArchiveSessions(sessionIds, reason, waivedFees);
-    } else if (action === "Delete") {
-      // Call the batch delete endpoint
-      console.log("session IDS from handleConfirmCancel", sessionIds);
-      batchDeleteSessions(sessionIds, reason);
+    try {
+      if (action === "Archive") {
+        // Call the batch archive endpoint
+        await batchArchiveSessions(sessionIds, reason, waivedFees);
+      } else if (action === "Delete") {
+        // Call the batch delete endpoint
+        await batchDeleteSessions(sessionIds, reason);
+      }
+
+      // Reset selected sessions
+      setSelectedSessions([]);
+      setIsSelected(false);
+
+      // Refresh the sessions data
+      refreshSessions();
+    } catch (error) {
+      console.error("Error handling session action:", error);
     }
   };
-
   const batchArchiveSessions = async (sessionIds, reason, waivedFees) => {
     try {
       const response = await backend.post("/bookings/batch/archive", {
@@ -1131,6 +1181,21 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
       marginBottom="50px"
       width="100%"
     >
+      <Flex
+        align="center"
+        mb="15px"
+        gap="2px"
+      >
+        <SessionsBookmark />
+        <Text
+          fontSize="24px"
+          fontWeight="700"
+          color="#2D3748"
+        >
+          {" "}
+          Sessions{" "}
+        </Text>
+      </Flex>
       <Card
         shadow="md"
         border="1px"
@@ -1147,21 +1212,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
             direction="column"
             justify="space-between"
           >
-            <Flex
-              align="center"
-              mb="15px"
-            >
-              <Icon as={sessionsCalendar} />
-              <Text
-                fontSize="25px"
-                fontWeight="semibold"
-                color="#474849"
-                ml="8px"
-              >
-                {" "}
-                Sessions{" "}
-              </Text>
-            </Flex>
             <Flex
               gap="12px"
               alignItems="center"
@@ -1192,7 +1242,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   }}
                   data-select-menu="true"
                 >
-                  Select
+                  {selectOption}
                 </button>
                 {selectMenuOpen && (
                   <Box
@@ -1336,10 +1386,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                       alignItems="center"
                       gap="5px"
                     >
-                      <Icon
-                        as={filterButton}
-                        color="#2D3748"
-                      />
+                      <FilterIcon />
                       <Text
                         fontSize="sm"
                         color="#2D3748"
@@ -1376,12 +1423,12 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                                 gap="5px"
                                 alignSelf="stretch"
                               >
-                                <Icon as={filterDateCalendar} />
+                                <CalendarIcon />
                                 <Text
                                   fontWeight="bold"
                                   color="#767778"
                                 >
-                                  Date
+                                  DATE
                                 </Text>
                               </Box>
                               <Box
@@ -1682,14 +1729,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         alignItems="center"
                         gap="8px"
                       >
-                        <Icon as={filterDateCalendar} />
+                        <FilledOutCalendar />
                         <Text
                           textTransform="none"
                           color="#767778"
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Date
+                          DATE
                         </Text>
                         <Box
                           display="flex"
@@ -1716,7 +1763,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Time
+                          TIME
                         </Text>
                       </Box>
                     </Th>
@@ -1739,7 +1786,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Room
+                          ROOM
                         </Text>
                       </Box>
                     </Th>
@@ -1752,14 +1799,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         alignItems="center"
                         gap="8px"
                       >
-                        {/* <PersonIcon /> */}
+                        <ArtistIcon />
                         <Text
                           textTransform="none"
                           color="#767778"
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Lead Artist(s)
+                          LEAD ARTIST(S)
                         </Text>
                       </Box>
                     </Th>
@@ -1772,14 +1819,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         alignItems="center"
                         gap="8px"
                       >
-                        {/* <PersonIcon /> */}
+                        <PersonIcon />
                         <Text
                           textTransform="none"
                           color="#767778"
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Payee(s)
+                          PAYEE(S)
                         </Text>
                       </Box>
                     </Th>
@@ -1876,13 +1923,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           </Box>
                         </Td>
                         <Td>
-                          <IconButton
-                            height="30px"
-                            width="30px"
-                            rounded="full"
-                            variant="ghost"
-                            icon={<Icon as={sessionsEllipsis} />}
-                          />
+                          <Icon
+                            boxSize="7"
+                            padding="5px"
+                            borderRadius="6px"
+                            backgroundColor="#EDF2F7"
+                          >
+                            <EllipsisIcon />
+                          </Icon>
                         </Td>
                       </Tr>
                     ))

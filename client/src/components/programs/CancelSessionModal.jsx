@@ -20,8 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { ArchiveIcon } from '../../assets/ArchiveIcon';
-import { DeleteIcon } from '@chakra-ui/icons';
-import { CancelIcon } from '../../assets/CancelIcon';
+import { DeleteIcon } from '../../assets/DeleteIcon';
 
 export const CancelSessionModal = ({ 
   isOpen, 
@@ -37,6 +36,7 @@ export const CancelSessionModal = ({
 
   const handleSelect = (action, iconSrc) => {
     setSelectedAction(action);
+    setSelectedIcon(iconSrc);
   };
 
   const handleWaiveFee = (sessionId) => {
@@ -44,6 +44,11 @@ export const CancelSessionModal = ({
       ...waivedFees,
       [sessionId]: !waivedFees[sessionId]
     });
+  };
+  
+  const handleConfirmAndClose = () => {
+    onConfirm(selectedAction, cancellationReason, waivedFees);
+    onClose(); // Close the modal after confirming
   };
   
   // Format the date from ISO string
@@ -159,8 +164,8 @@ export const CancelSessionModal = ({
                       Archive
                     </MenuItem>
                     <MenuItem
-                      icon={<CancelIcon />}
-                      onClick={() => handleSelect("Delete", CancelIcon)}
+                      icon={<DeleteIcon />}
+                      onClick={() => handleSelect("Delete", DeleteIcon)}
                     >
                       Delete
                     </MenuItem>
@@ -230,7 +235,7 @@ export const CancelSessionModal = ({
                     </MenuItem>
                     <MenuItem
                       icon={<DeleteIcon />}
-                      onClick={() => handleSelect("Delete", CancelIcon)}
+                      onClick={() => handleSelect("Delete", DeleteIcon)}
                     >
                       Delete
                     </MenuItem>
@@ -257,7 +262,7 @@ export const CancelSessionModal = ({
             color="white"
             _hover={{ bg: "#7D070D" }}
             borderRadius="30px"
-            onClick={() => onConfirm(selectedAction, cancellationReason, waivedFees)}
+            onClick={handleConfirmAndClose} // Use the new handler that calls onConfirm and onClose
           >
             Confirm
           </Button>

@@ -190,6 +190,7 @@ export const Program = () => {
           isArchived={isArchived}
           setIsArchived={setIsArchived}
           eventId={id}
+          refreshSessions={getSessions}
         />
       </Box>
     </Navbar>
