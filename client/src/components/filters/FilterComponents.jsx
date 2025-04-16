@@ -78,11 +78,10 @@ export const TimeInput = ({ value, onChange }) => {
       backgroundColor="#FFF"
       color="#2D3748"
       width="40%"
-      justifyContent={"center"}
-      alignItems={"center"}
-      display={"flex"}
       type="time"
       value={value || ''}
+      marginLeft="8px"
+      marginRight="8px"
       sx={{
         '&::-webkit-calendar-picker-indicator': {
           cursor: 'pointer',
