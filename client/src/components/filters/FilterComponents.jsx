@@ -23,7 +23,81 @@ import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
 import { PlusFilledIcon } from '../../assets/PlusFilledIcon';
 import './Filters.css';
 
+export const RoundedButton = ({ children, onClick, isActive }) => {
+  return (
+    <Button
+      borderRadius="full"
+      borderWidth="2px"
+      fontWeight="500"
+      borderColor={isActive ? "#4441C8" : "transparent"}
+      color={isActive ? "#4441C8" : "#2D3748"}
+      backgroundColor="#EDF2F7"
+      _hover={{
+        backgroundColor: "#E2E8F0",
+      }}
+      onClick={() => onClick()}
+    >
+     {children}
+    </Button>
+  );
+};
 
+export const DateInput = ({ value, onChange }) => {
+  return (
+    <Input
+      size="md"
+      borderRadius="5px"
+      borderColor="#E2E8F0"
+      backgroundColor="#FFF"
+      color="#2D3748"
+      width="40%"
+      type="date"
+      value={value || ''}
+      sx={{
+        '&::-webkit-calendar-picker-indicator': {
+          cursor: 'pointer',
+        },
+        '&:not([value=""])': {
+          color: '#2D3748',
+        },
+        '&[value=""]': {
+          color: '#A0AEC0',
+        }
+      }}
+      onChange={(e) => onChange(e)}
+    />
+  );
+};
+
+export const TimeInput = ({ value, onChange }) => {
+  return (
+    <Input
+      size="md"
+      borderRadius="5px"
+      borderColor="#E2E8F0"
+      backgroundColor="#FFF"
+      color="#2D3748"
+      width="40%"
+      justifyContent={"center"}
+      alignItems={"center"}
+      display={"flex"}
+      type="time"
+      value={value || ''}
+      sx={{
+        '&::-webkit-calendar-picker-indicator': {
+          cursor: 'pointer',
+        },
+        '&:not([value=""])': {
+          color: '#2D3748',
+        },
+        '&[value=""]': {
+          color: '#A0AEC0',
+        }
+      }}
+      onChange={(e) => onChange(e)}
+    />
+  );
+};
 
 export const ProgramStatusFilter = ({ value, onChange }) => {
   const [localStatus, setLocalStatus] = useState(value);
@@ -46,15 +120,15 @@ export const ProgramStatusFilter = ({ value, onChange }) => {
           spacing={3}
           colorScheme="purple"
         >
-          <Button
-            className={`filter-button${localStatus === "all" ? "-active" : ""}`}
+          <RoundedButton
             onClick={() => handleStatusChange("all")}
+            isActive={localStatus === "all"}
           >
             <Text mb="0">All</Text>
-          </Button>
-          <Button
-            className={`filter-button${localStatus === "active" ? "-active" : ""}`}
+          </RoundedButton>
+          <RoundedButton
             onClick={() => handleStatusChange("active")}
+            isActive={localStatus === "active"}
           >
             <Box
               as="img"
@@ -68,10 +142,10 @@ export const ProgramStatusFilter = ({ value, onChange }) => {
             >
               Active
             </Text>
-          </Button>
-          <Button
-            className={`filter-button${localStatus === "past" ? "-active" : ""}`}
+          </RoundedButton>
+          <RoundedButton
             onClick={() => handleStatusChange("past")}
+            isActive={localStatus === "past"}
           >
             <Box
               as="img"
@@ -80,7 +154,7 @@ export const ProgramStatusFilter = ({ value, onChange }) => {
               boxSize="20px"
             />
             <Text ml="2">Past</Text>
-          </Button>
+          </RoundedButton>
         </ButtonGroup>
       </HStack>
     </FormControl>
@@ -108,16 +182,15 @@ export const SessionStatusFilter = ({ value, onChange }) => {
           spacing={3}
           colorScheme="purple"
         >
-          <Button
-            className={`filter-button${localStatus === "all" ? "-active" : ""}`}
-            _hover={{ bg: "purple.100" }}
+          <RoundedButton
             onClick={() => handleStatusChange("all")}
+            isActive={localStatus === "all"}
           >
             <Text mb="0">All</Text>
-          </Button>
-          <Button
-            className={`filter-button${localStatus === "active" ? "-active" : ""}`}
+          </RoundedButton>
+          <RoundedButton
             onClick={() => handleStatusChange("active")}
+            isActive={localStatus === "active"}
           >
             <Box
               as="img"
@@ -131,10 +204,10 @@ export const SessionStatusFilter = ({ value, onChange }) => {
             >
               Active
             </Text>
-          </Button>
-          <Button
-            className={`filter-button${localStatus === "past" ? "-active" : ""}`}
+          </RoundedButton>
+          <RoundedButton
             onClick={() => handleStatusChange("past")}
+            isActive={localStatus === "past"}
           >
             <Box
               as="img"
@@ -143,10 +216,10 @@ export const SessionStatusFilter = ({ value, onChange }) => {
               boxSize="20px"
             />
             <Text ml="2">Past</Text>
-          </Button>
-          <Button
-            className={`filter-button${localStatus === "archived" ? "-active" : ""}`}
+          </RoundedButton>
+          <RoundedButton
             onClick={() => handleStatusChange("archived")}
+            isActive={localStatus === "archived"}
           >
             <Box
               as="img"
@@ -155,7 +228,7 @@ export const SessionStatusFilter = ({ value, onChange }) => {
               boxSize="20px"
             />
             <Text ml="2">Archived</Text>
-          </Button>
+          </RoundedButton>
         </ButtonGroup>
       </HStack>
     </FormControl>
@@ -183,36 +256,32 @@ export const InvoiceStatusFilter = ({ value, onChange }) => {
           spacing={3}
           colorScheme="purple"
         >
-          <Button
-            className={`filter-button${localStatus === "all" ? "-active" : ""}`}
-            _hover={{ bg: "purple.100" }}
+          <RoundedButton
             onClick={() => handleStatusChange("all")}
+            isActive={localStatus === "all"}
           >
             <Text mb="0">All</Text>
-          </Button>
-          <Button
-            className={`filter-button${localStatus === "full" ? "-active" : ""}`}
-            _hover={{ bg: "purple.100" }}
+          </RoundedButton>
+          <RoundedButton
             onClick={() => handleStatusChange("full")}
+            isActive={localStatus === "full"}
           >
             <Text>
               Paid
             </Text>
-          </Button>
-          <Button
-            className={`filter-button${localStatus === "notpaid" ? "-active" : ""}`}
-            _hover={{ bg: "purple.100" }}
+          </RoundedButton>
+          <RoundedButton
             onClick={() => handleStatusChange("notpaid")}
+            isActive={localStatus === "notpaid"}
           >
             <Text>Not Paid</Text>
-          </Button>
-          <Button
-            className={`filter-button${localStatus === "none" ? "-active" : ""}`}
-            _hover={{ bg: "purple.100" }}
+          </RoundedButton>
+          <RoundedButton
             onClick={() => handleStatusChange("none")}
+            isActive={localStatus === "none"}
           >
             <Text>Past Due</Text>
-          </Button>
+          </RoundedButton>
         </ButtonGroup>
       </HStack>
     </FormControl>
@@ -250,13 +319,16 @@ export const DayFilter = ({ value = [], onChange }) => {
               </Text>
               <Checkbox
                 _checked={{
-                  "& .chakra-checkbox__control": { background: "#4441C8" }
+                  "& .chakra-checkbox__control": { background: "#4441C8", borderColor: "transparent" },
+                }}
+                _hover={{
+                  "& .chakra-checkbox__control": { background: `${selectedDays.includes(day) ? ("#4441C8") : ("#E2E8F0")}` }
                 }}
                 size="lg"
-                colorScheme="white"
                 isChecked={selectedDays.includes(day)}
                 onChange={() => handleDayToggle(day)}
-                borderColor="gray.200"
+                borderColor="#E2E8F0"
+                backgroundColor="#FFF"
                 padding={2}
               />
             </VStack>
@@ -297,33 +369,18 @@ export const DateFilter = ({startDate, endDate, onChange}) => {
           alignItems="center"
           gap="8px"
         >
-          <Input
-            size="md"
-            borderRadius="5px"
-            borderColor="#D2D2D2"
-            backgroundColor="#F6F6F6"
-            width="40%"
-            type="date"
-            value={startDate || ''}
-            placeholder="MM/DD/YYYY"
+          <DateInput
             onChange={(e) =>
               onChange("startDate", e.target.value)
             }
+            value={startDate || ''}
           />
           <Text> - </Text>
-          <Input
-            size="md"
-            borderRadius="5px"
-            borderColor="#D2D2D2"
-            backgroundColor="#F6F6F6"
-            width="40%"
-            type="date"
-            value={endDate || ''}
-            placeholder="MM/DD/YYYY"
-            colorScheme="gray"
+          <DateInput
             onChange={(e) =>
               onChange("endDate", e.target.value)
             }
+            value={endDate || ''}
           />
         </Box>
       </Box>
@@ -357,27 +414,13 @@ export const TimeFilter = ({startTime, endTime, onChange}) => {
           alignItems="center"
           gap="8px"
         >
-          <Input
-            size="md"
-            borderRadius="5px"
-            borderColor="#D2D2D2"
-            backgroundColor="#F6F6F6"
-            width="30%"
-            type="time"
+          <TimeInput 
             value={startTime || ''}
-            placeholder="00:00 am"
             onChange={(e) => onChange("startTime", e.target.value)}
           />
           <Text> - </Text>
-          <Input
-            size="md"
-            borderRadius="5px"
-            borderColor="#D2D2D2"
-            backgroundColor="#F6F6F6"
-            width="30%"
-            type="time"
+          <TimeInput
             value={endTime || ''}
-            placeholder="00:00 am"
             onChange={(e) => onChange("endTime", e.target.value)}
           />
         </Box>
@@ -410,20 +453,20 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
       spacing={2}
       wrap="wrap"
     >
-      <Button
-        className={`filter-button${localRoom === "all" ? "-active" : ""}`}
+      <RoundedButton
         onClick={() => handleRoomChange("all")}
+        isActive={localRoom === "all"}
       >
         All
-      </Button>
+      </RoundedButton>
       {Array.from(roomMap.values()).map((roomName) => (
-        <Button
+        <RoundedButton
           key={roomName}
-          className={`filter-button${localRoom === roomName ? "-active" : ""}`}
           onClick={() => handleRoomChange(roomName)}
+          isActive={localRoom === roomName}
         >
           {roomName}
-        </Button>
+        </RoundedButton>
       ))}
     </HStack>
   </FormControl>
