@@ -366,13 +366,13 @@ const SavedInvoiceSummary = ({
         room[0]?.rate &&
         !isDataLoaded
       ) {
-        console.log("CHECK", bookingState.startTime, bookingState.endTime, room[0]?.rate);
+        // console.log("CHECK", bookingState.startTime, bookingState.endTime, room[0]?.rate);
         const total = handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate);
         
         // Add subtotal for each comment (this logic is now inside useEffect)
         if (commentsState && commentsState.length > 0) {
           commentsState.forEach(() => {
-            setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
+          setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
           });
         }
         
