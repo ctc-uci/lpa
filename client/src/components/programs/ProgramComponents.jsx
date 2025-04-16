@@ -308,7 +308,6 @@ export const ProgramSummary = ({
     ...(bookingInfo || {}),
   };
 
-  // console.log(safeBookingInfo);
 
   // Make sure program data is fetched before rendering
   if (!program || program.length === 0) {
@@ -1028,6 +1027,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
       return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
     });
     setSessionMap(newSessionMap); // set sessionMap
+
+    console.log(newSessionMap);
     const sorted = [...filtered];
 
     if (sortKey === "date") {
@@ -2027,6 +2028,8 @@ const MyDocument = ({ bookingData }) => {
     </Document>
   );
 };
+
+console.log()
 
 const PDFButton = () => {
   const { backend } = useBackendContext();
