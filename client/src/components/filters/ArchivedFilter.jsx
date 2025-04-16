@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FilterContainer } from "./FilterContainer";
-import { DateFilter, TimeFilter, DayFilter, RoomFilter, LeadArtistFilter } from "./FilterComponents";
+import { DateFilter, TimeFilter, DayFilter, RoomFilter, ClientsFilter } from "./FilterComponents";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
@@ -164,13 +164,13 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
           roomMap={roomMap}
           onChange={updateFilter}
           room={filters.room}/>
-        <LeadArtistFilter
+        <ClientsFilter
           clientsList={clients}
           value={filters.instructor}
           onChange={updateFilter}
           type="lead"
         />
-        <LeadArtistFilter
+        <ClientsFilter
           clientsList={clients}
           value={filters.payee}
           onChange={updateFilter}

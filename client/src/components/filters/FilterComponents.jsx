@@ -456,7 +456,7 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
 };
 
 // Named LeadArtistFilter but works for both leadartist and payer: type="lead" || type="payee"
-export const LeadArtistFilter = ({ clientsList, value, onChange, type }) => {
+export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
   const [instructorSearchTerm, setInstructorSearchTerm] = useState('');
   const [searchedInstructors, setSearchedInstructors] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState(value || []);
@@ -524,6 +524,7 @@ export const LeadArtistFilter = ({ clientsList, value, onChange, type }) => {
                   value={instructorSearchTerm}
                   id="instructorInput"
                   variant="unstyled"
+                  autoComplete="off"
                 />
                 <Box
                   as="button"
