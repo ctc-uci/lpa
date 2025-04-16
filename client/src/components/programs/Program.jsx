@@ -182,6 +182,7 @@ export const Program = () => {
           isArchived={isArchived}
           setIsArchived={setIsArchived}
           eventId={id}
+          sessions={sessions}
         />
         <Sessions
           sessions={sessions}

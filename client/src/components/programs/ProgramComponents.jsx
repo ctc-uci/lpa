@@ -95,6 +95,8 @@ import {
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
+import { DateRange } from "./DateRange";
+import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
 export const ProgramSummary = ({
   program,
@@ -102,6 +104,7 @@ export const ProgramSummary = ({
   isArchived,
   setIsArchived,
   eventId,
+  sessions,
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -111,6 +114,21 @@ export const ProgramSummary = ({
     onClose: modalOnClose,
   } = useDisclosure();
 
+  const getFilteredAndSortedSessions = () => {
+    if (!sessions || sessions.length === 0) return [];
+
+    const filteredSessions = sessions.filter((session) => !session.archived);
+
+    const sortedSessions = [...filteredSessions].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateA - dateB;
+    });
+
+    return sortedSessions;
+  };
+
+  const filteredAndSortedSessions = getFilteredAndSortedSessions();
   const {
     isOpen: popoverIsOpen,
     onOpen: popoverOnOpen,
@@ -307,7 +325,6 @@ export const ProgramSummary = ({
     ...defaultBookingInfo,
     ...(bookingInfo || {}),
   };
-
 
   // Make sure program data is fetched before rendering
   if (!program || program.length === 0) {
@@ -569,27 +586,18 @@ export const ProgramSummary = ({
                   >
                     <ClockFilled />
                     <Flex direction="column">
-                      <Text>
-                        {nextSession
-                          ? `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
-                          : "No session scheduled"}
-                      </Text>
+                      <WeeklyRepeatingSchedule
+                        sessions={filteredAndSortedSessions}
+                      />
                     </Flex>
                   </Flex>
-                  <Flex>
+                  <Flex
+                    direction="row"
+                    alignItems="center"
+                    gap="2"
+                  >
                     <Icon as={CalendarIcon} />
-                    <Text>
-                      {nextSession?.date
-                        ? new Date(nextSession.date).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            }
-                          )
-                        : "No date available"}
-                    </Text>
+                    <DateRange sessions={filteredAndSortedSessions} />
                   </Flex>
 
                   <Flex
@@ -868,7 +876,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   // Function to handle the cancellation of sessions
   const handleConfirmCancel = (action, reason, waivedFees) => {
     // Create an array of session IDs
-    const sessionIds = selectedSessions
+    const sessionIds = selectedSessions;
 
     // Close the modal first to improve perceived performance
     onClose();
@@ -933,6 +941,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     []
   );
 
+  console.log(filteredAndSortedSessions);
   const [sessionMap, setSessionMap] = useState({});
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -950,7 +959,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   const [selectOption, setSelectOption] = useState("Select");
   const [selectedSessions, setSelectedSessions] = useState([]);
 
-  console.log("Selected Sessions:", selectedSessions)
+  console.log("Selected Sessions:", selectedSessions);
 
   const handleSessionSelection = (sessionId) => {
     setSelectedSessions((prev) => {
@@ -2029,7 +2038,7 @@ const MyDocument = ({ bookingData }) => {
   );
 };
 
-console.log()
+console.log();
 
 const PDFButton = () => {
   const { backend } = useBackendContext();
