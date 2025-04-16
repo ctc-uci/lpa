@@ -70,7 +70,7 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
 
       function timeToMinutes(timeStr) {
         const [time, offset] = timeStr.split('+');
-        const [hours, minutes, seconds] = time.split(':').map(Number);
+        [hours, minutes, seconds] = time.split(':').map(Number);
 
         // If there's no offset, we assume it's in the same timezone as the other time
         if (offset) {
