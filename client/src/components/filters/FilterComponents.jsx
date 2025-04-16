@@ -21,6 +21,8 @@ import activeSvg from "../../assets/icons/active.svg";
 import archivedSvg from "../../assets/icons/archived.svg";
 import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
 import { PlusFilledIcon } from '../../assets/PlusFilledIcon';
+import './Filters.css';
+
 
 
 export const ProgramStatusFilter = ({ value, onChange }) => {
@@ -45,18 +47,13 @@ export const ProgramStatusFilter = ({ value, onChange }) => {
           colorScheme="purple"
         >
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "all" ? "purple.500" : "gray.300"}
-            _hover={{ bg: "purple.100" }}
+            className={`filter-button${localStatus === "all" ? "-active" : ""}`}
             onClick={() => handleStatusChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "active" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "active" ? "-active" : ""}`}
             onClick={() => handleStatusChange("active")}
           >
             <Box
@@ -73,9 +70,7 @@ export const ProgramStatusFilter = ({ value, onChange }) => {
             </Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "past" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "past" ? "-active" : ""}`}
             onClick={() => handleStatusChange("past")}
           >
             <Box
@@ -114,18 +109,14 @@ export const SessionStatusFilter = ({ value, onChange }) => {
           colorScheme="purple"
         >
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "all" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "all" ? "-active" : ""}`}
             _hover={{ bg: "purple.100" }}
             onClick={() => handleStatusChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "active" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "active" ? "-active" : ""}`}
             onClick={() => handleStatusChange("active")}
           >
             <Box
@@ -142,9 +133,7 @@ export const SessionStatusFilter = ({ value, onChange }) => {
             </Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "past" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "past" ? "-active" : ""}`}
             onClick={() => handleStatusChange("past")}
           >
             <Box
@@ -156,9 +145,7 @@ export const SessionStatusFilter = ({ value, onChange }) => {
             <Text ml="2">Past</Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "archived" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "archived" ? "-active" : ""}`}
             onClick={() => handleStatusChange("archived")}
           >
             <Box
@@ -197,18 +184,14 @@ export const InvoiceStatusFilter = ({ value, onChange }) => {
           colorScheme="purple"
         >
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "all" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "all" ? "-active" : ""}`}
             _hover={{ bg: "purple.100" }}
             onClick={() => handleStatusChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "full" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "full" ? "-active" : ""}`}
             _hover={{ bg: "purple.100" }}
             onClick={() => handleStatusChange("full")}
           >
@@ -217,18 +200,14 @@ export const InvoiceStatusFilter = ({ value, onChange }) => {
             </Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "notpaid" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "notpaid" ? "-active" : ""}`}
             _hover={{ bg: "purple.100" }}
             onClick={() => handleStatusChange("notpaid")}
           >
             <Text>Not Paid</Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localStatus === "none" ? "purple.500" : "gray.300"}
+            className={`filter-button${localStatus === "none" ? "-active" : ""}`}
             _hover={{ bg: "purple.100" }}
             onClick={() => handleStatusChange("none")}
           >
@@ -432,11 +411,7 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
       wrap="wrap"
     >
       <Button
-        variant="outline"
-        borderRadius="full"
-        borderWidth="2px"
-        color={localRoom === "all" ? "purple.500" : "gray.300"}
-        colorScheme="purple"
+        className={`filter-button${localRoom === "all" ? "-active" : ""}`}
         onClick={() => handleRoomChange("all")}
       >
         All
@@ -444,11 +419,7 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
       {Array.from(roomMap.values()).map((roomName) => (
         <Button
           key={roomName}
-          variant="outline"
-          borderRadius="full"
-          borderWidth="2px"
-          color={localRoom === roomName ? "purple.500" : "gray.300"}
-          colorScheme="purple"
+          className={`filter-button${localRoom === roomName ? "-active" : ""}`}
           onClick={() => handleRoomChange(roomName)}
         >
           {roomName}
@@ -696,19 +667,13 @@ export const SeasonFilter = ({ value, onChange }) => {
           colorScheme="purple"
         >
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localSeason === "all" ? "purple.500" : "gray.300"}
-            _hover={{ bg: "purple.100" }}
+            className={`filter-button${localSeason === "all" ? "-active" : ""}`}
             onClick={() => handleSeasonChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localSeason === "Summer" ? "purple.500" : "gray.300"}
-            _hover={{ bg: "purple.100" }}
+            className={`filter-button${localSeason === "Summer" ? "-active" : ""}`}
             onClick={() => handleSeasonChange("Summer")}
           >
             <Text>
@@ -716,19 +681,13 @@ export const SeasonFilter = ({ value, onChange }) => {
             </Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localSeason === "Fall" ? "purple.500" : "gray.300"}
-            _hover={{ bg: "purple.100" }}
+            className={`filter-button${localSeason === "Fall" ? "-active" : ""}`}
             onClick={() => handleSeasonChange("Fall")}
           >
             <Text>Fall</Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localSeason === "Winter" ? "purple.500" : "gray.300"}
-            _hover={{ bg: "purple.100" }}
+            className={`filter-button${localSeason === "Winter" ? "-active" : ""}`}
             onClick={() => handleSeasonChange("Winter")}
           >
             <Text>Winter</Text>
@@ -766,19 +725,13 @@ export const EmailFilter = ({ value, onChange}) => {
           colorScheme="purple"
         >
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localEmail === "all" ? "purple.500" : "gray.300"}
-            _hover={{ bg: "purple.100" }}
+            className={`filter-button${localSeason === "all" ? "-active" : ""}`}
             onClick={() => handleEmailChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localEmail === "true" ? "purple.500" : "gray.300"}
-            _hover={{ bg: "purple.100" }}
+            className={`filter-button${localSeason === "true" ? "-active" : ""}`}
             onClick={() => handleEmailChange("true")}
           >
             <Text>
@@ -786,10 +739,7 @@ export const EmailFilter = ({ value, onChange}) => {
             </Text>
           </Button>
           <Button
-            borderRadius="full"
-            borderWidth="2px"
-            color={localEmail === "" ? "purple.500" : "gray.300"}
-            _hover={{ bg: "purple.100" }}
+            className={`filter-button${localSeason === "" ? "-active" : ""}`}
             onClick={() => handleEmailChange("")}
           >
             <Text>Not Sent</Text>
