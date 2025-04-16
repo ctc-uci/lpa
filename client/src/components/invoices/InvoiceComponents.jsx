@@ -43,19 +43,20 @@ import {
 import { format } from "date-fns";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
+import { FiMoreHorizontal } from "react-icons/fi";
 import { TbCaretUpDown } from "react-icons/tb";
 import { useParams } from "react-router";
-
-import { FiMoreHorizontal } from "react-icons/fi";
 
 import { CancelIcon } from "../../assets/CancelIcon";
 import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
 import { DollarIcon } from "../../assets/DollarIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import filterIcon from "../../assets/filter.svg";
-
-import { deleteIcon, sessionsEllipsis } from "../../assets/icons/ProgramIcons";
-import { archiveCalendar } from "../../assets/icons/ProgramIcons";
+import {
+  archiveCalendar,
+  deleteIcon,
+  sessionsEllipsis,
+} from "../../assets/icons/ProgramIcons";
 import arrowsSvg from "../../assets/icons/right-icon.svg";
 import personIcon from "../../assets/person.svg";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
@@ -255,7 +256,10 @@ const InvoiceStats = ({
         alignItems="center"
       >
         <DollarIcon />
-        <Text fontSize="16px" fontWeight="400">
+        <Text
+          fontSize="16px"
+          fontWeight="400"
+        >
           {roomRate ? `${Number(roomRate).toFixed(2)} / hour` : "N/A"}
         </Text>
       </Flex>
@@ -499,7 +503,11 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                     gap="12px"
                     key={comment.id}
                   >
-                    <Td fontSize="14px" paddingInlineStart="8px" paddingInlineEnd="8px">
+                    <Td
+                      fontSize="14px"
+                      paddingInlineStart="8px"
+                      paddingInlineEnd="8px"
+                    >
                       {format(new Date(comment.datetime), "EEE. M/d/yy")}
                     </Td>
                     <Td
@@ -536,17 +544,20 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                       )}
                     </Td>
                     <Td
-                      textAlign="right" width="1%" paddingInlineStart="4px" paddingInlineEnd="4px"
+                      textAlign="right"
+                      width="1%"
+                      paddingInlineStart="4px"
+                      paddingInlineEnd="4px"
                     >
                       <Menu>
-                          <MenuButton
-                            as={IconButton}
-                            minWidth="24px"
-                            height="24px"
-                            borderRadius={6}
-                            backgroundColor="#EDF2F7"
-                            icon={<Icon as={sessionsEllipsis} />}
-                          />
+                        <MenuButton
+                          as={IconButton}
+                          minWidth="24px"
+                          height="24px"
+                          borderRadius={6}
+                          backgroundColor="#EDF2F7"
+                          icon={<Icon as={sessionsEllipsis} />}
+                        />
                         <MenuList>
                           <MenuItem
                             onClick={() => handleEditComment(comment.id)}
@@ -637,15 +648,19 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                 alignSelf="stretch"
                 gap="12px"
               >
-                <Td fontSize="14px" paddingInlineStart="8px" paddingInlineEnd="8px">
+                <Td
+                  fontSize="14px"
+                  paddingInlineStart="8px"
+                  paddingInlineEnd="8px"
+                >
                   {format(new Date(), "EEE. M/d/yy")}
                 </Td>
                 <Td
-                      fontSize="14px"
-                      color="#0C824D"
-                      fontWeight="700"
-                      paddingInlineStart="8px"
-                      paddingInlineEnd="8px"
+                  fontSize="14px"
+                  color="#0C824D"
+                  fontWeight="700"
+                  paddingInlineStart="8px"
+                  paddingInlineEnd="8px"
                 >
                   <Flex alignItems="center">
                     <Text
@@ -668,7 +683,10 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                   </Flex>
                 </Td>
                 <Td
-                  textAlign="right" width="1%" paddingInlineStart="4px" paddingInlineEnd="4px"
+                  textAlign="right"
+                  width="1%"
+                  paddingInlineStart="4px"
+                  paddingInlineEnd="4px"
                 >
                   <Menu>
                     <MenuButton
@@ -759,93 +777,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   }, []);
 
   return (
-    <TableContainer
-      paddingTop="8px"
-      border="1px solid var(--gray-200, #E2E8F0)"
-      borderRadius="12px"
-    >
-      <Table>
-        <Thead>
-          <Tr>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              <Flex align="center">
-                <Text>Status</Text>
-                <TbCaretUpDown style={{ marginLeft: "8px" }} />
-              </Flex>
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              Invoice Sent
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              <Flex align="center">
-                <Text>Program</Text>
-                <TbCaretUpDown style={{ marginLeft: "8px" }} />
-              </Flex>
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              <Flex align="center">
-                <FaUser style={{ marginRight: "8px" }} />
-                <Text>Payer(s)</Text>
-              </Flex>
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              <Flex align="center">
-                <CalendarIcon
-                  color="#767778"
-                  style={{ marginRight: "8px" }}
-                />
-                <Text>Deadline</Text>
-                <TbCaretUpDown style={{ marginLeft: "8px" }} />
-              </Flex>
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              Season
-            </Th>
-            <Th
-              textTransform="none"
-              fontSize="md"
-            >
-              Download
-            </Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {filteredInvoices.map((invoice, index) => {
-            const validPayers = Array.isArray(invoice.payers)
-              ? invoice.payers.filter(
-                  (payer) => payer && typeof payer === "string"
-                )
-              : [];
-            return (
-              <Tr key={index}>
-                <Td
-                  style={{
-                    color: isPaidColor(invoice),
-                    textDecoration:
-                      invoice.isPaid === "Past Due" ? "underline" : "none",
-                    fontWeight:
-                      invoice.isPaid === "Past Due" ? "bold" : "normal",
-                  }}
-
-  // main start here
     <>
       <Box position="relative">
         <TableContainer>
@@ -855,8 +786,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 <Th
                   textTransform="none"
                   fontSize="md"
-
-// main end here
                 >
                   <HStack
                     spacing={2}

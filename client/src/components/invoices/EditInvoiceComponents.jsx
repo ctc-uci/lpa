@@ -179,7 +179,13 @@ const EditInvoiceDetails = ({
                 </Text>
               ))
             ) : (
-              <Text>No payees found.</Text>
+              <Text
+                fontSize={"8.509px"}
+                mr={2}
+                borderRadius="0"
+              >
+                No payees found.
+              </Text>
             )}
           </VStack>
         </VStack>
@@ -211,7 +217,13 @@ const EditInvoiceDetails = ({
                 </HStack>
               ))
             ) : (
-              <Text>No instructors found.</Text>
+              <Text
+                fontSize={"8.509px"}
+                mr={2}
+                borderRadius="0"
+              >
+                No instructors found.
+              </Text>
             )}
           </VStack>
         </HStack>
