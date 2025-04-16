@@ -32,7 +32,7 @@ import {
 import { EmailSidebar } from "../email/EmailSidebar";
 import { BackArrowIcon } from "../../assets/BackArrowIcon";
 
-const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
+const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getGeneratedDate = () => {
@@ -71,7 +71,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{title}</Text>
+        <Text fontWeight="700">{`${payees?.map((payee) => payee.name).join("_")}_${getGeneratedDate()}`}</Text>
       </HStack>
       <HStack>
         <Button
@@ -86,7 +86,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
           Save
         </Button>
         <HStack>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} pdf_title={title}/>
+          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees}/>
         </HStack>
       </HStack>
     </Flex>
@@ -107,7 +107,6 @@ export const EditInvoice = () => {
   const [payees, setPayees] = useState([]);
   const [booking, setBookingDetails] = useState([]);
   const [room, setRoom] = useState([]);
-  const [pdfTitle, setPdfTitle] = useState("Loading...");
 
   const [subtotal, setSubtotal] = useState(0);
   const [editedSubtotal, setEditedSubtotal] = useState(0);
@@ -214,16 +213,6 @@ export const EditInvoice = () => {
           subtotal: subtotalResponse.data.total,
           pastDue: remainingBalance,
         });
-
-        const month = new Date(invoice.data[0].endDate).toLocaleString(
-          "default",
-          { month: "long" }
-        );
-        const year = new Date(invoice.data[0].endDate).getFullYear();
-        // first 3 words of the program name
-        const programName = programNameResponse.data[0].name.split(" ").slice(0, 3).join(" ");
-        const title = `${programName}, ${month} ${year} Invoice`;
-        setPdfTitle(title);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -358,8 +347,8 @@ export const EditInvoice = () => {
           onBack={handleBack}
           onSave={handleSave}
           isSaving={isSaving}
+          payees={payees}
           comments={comments}
-          title={pdfTitle}
         />
         <Image
           w="80%"

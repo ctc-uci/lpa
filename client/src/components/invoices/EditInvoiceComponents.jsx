@@ -339,7 +339,7 @@ const StatementComments = ({
         >
           <Table
             color="#EDF2F7"
-            style={{ width: "100%" }}
+            // style={{ width: "100%" }}
             textAlign="center"
           >
             <Thead>

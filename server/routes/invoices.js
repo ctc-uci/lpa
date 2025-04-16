@@ -313,9 +313,11 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
     const { id } = req.params;
 
     let result = await db.oneOrNone(
-      `SELECT SUM(c.adjustment_value) FROM
-      invoices as i, comments as c
-      WHERE i.id = $1 AND c.adjustment_type = 'paid';`,
+      `SELECT SUM(c.adjustment_value)
+      FROM invoices i
+      JOIN comments c ON c.invoice_id = i.id
+      WHERE i.id = $1 AND c.adjustment_type = 'paid';
+      `,
       [id]
     );
 
