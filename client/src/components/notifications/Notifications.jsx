@@ -41,6 +41,16 @@ export const Notifications = () => {
     }
   };
 
+  const getDescription = (payStatus) => {
+    if (payStatus === "overdue") {
+      return "Payment not recorded 5 days or more since the payment deadline for ";
+    } else if (payStatus === "neardue") {
+      return "Email has not been sent to Tim Adams 1 week prior and payment not received 5 days past the deadline for ";
+    } else {
+      return "Email has not been sent to Tim Adams 1 week before the payment deadline for ";
+    }
+  };
+
   useEffect(() => {
     const fetchNotifs = async () => {
       try {
@@ -91,6 +101,7 @@ export const Notifications = () => {
                 total: totalRes.data.total,
                 paid: paidRes.data.paid,
                 payStatus,
+                description: getDescription(payStatus),
                 dueTime,
               };
             } catch (err) {

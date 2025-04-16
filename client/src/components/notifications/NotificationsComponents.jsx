@@ -23,21 +23,59 @@ import {
 import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import { InfoTooltip } from "./InfoTooltip";
 import arrowsSvg from "../../assets/icons/right-icon.svg";
+import DateSortingModal from "../filters/DateFilter";
+import ProgramSortingModal from "../filters/ProgramFilter";
 
 const NotificationsComponents = ({ notifications }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortKey, setSortKey] = useState("date");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortedNotifications, setSortedNotifications] = useState([]);
 
-  const totalNotifications = notifications?.length || 0;
+  const totalNotifications = sortedNotifications?.length || 0;
   const totalPages = Math.ceil(totalNotifications / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalNotifications);
 
-  const currentNotifications = notifications?.slice(startIndex, endIndex) || [];
+  const currentNotifications = sortedNotifications?.slice(startIndex, endIndex) || [];
 
   useEffect(() => {
     setCurrentPage(1);
   }, [notifications]);
+
+  useEffect(() => {
+    if (!notifications) return;
+
+    const sorted = [...notifications];
+
+    if (sortKey === "date") {
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.dueTime);
+        const dateB = new Date(b.dueTime);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    } else if (sortKey === "title") {
+      // Sort by eventName (program description)
+      sorted.sort((a, b) => {
+        const totalDescriptionA = a.description + a.eventName;
+        const totalDescriptionB = b.description + b.eventName;
+        const descA = totalDescriptionA.toString()?.toLowerCase() || "";
+        const descB = totalDescriptionB.toString()?.toLowerCase() || "";
+        return sortOrder === "asc"
+          ? descA.localeCompare(descB)
+          : descB.localeCompare(descA);
+      });
+    }
+
+    setSortedNotifications(sorted);
+  }, [sortKey, sortOrder, notifications]);
+
+  // Function to update sorting
+  const handleSortChange = (key, order) => {
+    setSortKey(key);
+    setSortOrder(order);
+  };
 
   const goToNextPage = () => {
     if (currentPage < totalPages) {
@@ -126,7 +164,7 @@ const NotificationsComponents = ({ notifications }) => {
     );
   };
 
-  const paymentText = (eventName, payStatus) => {
+  const paymentText = (eventName, payStatus, description) => {
     const textStyles = {
       color: "var(--Secondary-8, #2D3748)",
       fontFamily: "Inter",
@@ -146,20 +184,20 @@ const NotificationsComponents = ({ notifications }) => {
     if (payStatus === "overdue") {
       return (
         <Text sx={textStyles}>
-          Payment not recorded 5 days or more since the payment deadline for  <span style={linkStyles}>{eventName}</span>.
+          {description} <span style={linkStyles}>{eventName}</span>.
           
         </Text>
       );
     } else if (payStatus === "neardue") {
       return (
         <Text sx={textStyles}>
-          Email has not been sent to Tim Adams 1 week prior and payment not received 5 days past the deadline for <span style={linkStyles}>{eventName}</span>.
+          {description} <span style={linkStyles}>{eventName}</span>.
         </Text>
       );
     } else {
       return (
         <Text sx={textStyles}>
-          Email has not been sent to Tim Adams 1 week before the payment deadline for <span style={linkStyles}>{eventName}</span>.
+          {description} <span style={linkStyles}>{eventName}</span>.
         </Text>
       );
     }
@@ -232,7 +270,7 @@ const NotificationsComponents = ({ notifications }) => {
                   >
                     DESCRIPTION
                   </Text>
-                  <Image src={arrowsSvg} />
+                  <ProgramSortingModal onSortChange={handleSortChange} />
                 </HStack>
               </Th>
               <Th
@@ -262,7 +300,7 @@ const NotificationsComponents = ({ notifications }) => {
                       DATE
                     </Text>
                   </HStack>
-                  <Image src={arrowsSvg} />
+                  <DateSortingModal onSortChange={handleSortChange} />
                 </HStack>
               </Th>
             </Tr>
@@ -274,7 +312,7 @@ const NotificationsComponents = ({ notifications }) => {
                 <Tr key={index}>
                   <Td paddingLeft="0px">{getNotifType(item.payStatus)}</Td>
                   <Td paddingLeft="24px">
-                    {paymentText(item.eventName, item.payStatus)}
+                    {paymentText(item.eventName, item.payStatus, item.description)}
                   </Td>
                   <Td>
                     <Text
