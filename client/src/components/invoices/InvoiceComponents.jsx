@@ -147,14 +147,14 @@ const InvoiceStats = ({
       {/* Invoice Details Section */}
       <Grid
         templateColumns="1fr 2fr"
-        gap="1rem"
+        gap="16px 17px"
         alignItems="end"
       >
         {/* billing period */}
         <Box h={7}>
           <Text
             fontWeight="700"
-            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+            fontSize="14px"
             color="#474849"
           >
             Billing Period
@@ -164,7 +164,8 @@ const InvoiceStats = ({
           {billingPeriod && billingPeriod["startDate"] ? (
             <Text
               color="#474849"
-              fontSize="clamp(.5rem, 1rem, 1.5rem)"
+              fontSize="14px"
+              fontWeight="500"
             >
               {formatDate(billingPeriod["startDate"])} -{" "}
               {formatDate(billingPeriod["endDate"])}
@@ -172,7 +173,8 @@ const InvoiceStats = ({
           ) : (
             <Text
               color="#474849"
-              fontSize="clamp(.75rem, 1.25rem, 1.75rem)"
+              fontSize="14px"
+              fontWeight="500"
             >
               N/A - N/A
             </Text>
@@ -182,8 +184,8 @@ const InvoiceStats = ({
         {/* amount due */}
         <Box h={7}>
           <Text
-            fontWeight="bold"
-            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+            fontWeight="700"
+            fontSize="14px"
             color="#474849"
           >
             Amount Due
@@ -192,7 +194,8 @@ const InvoiceStats = ({
         <Box h={7}>
           <Text
             color="#474849"
-            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+            fontSize="14px"
+            fontWeight="500"
           >
             {amountDue ? `$${Number(amountDue).toFixed(2)}` : "N/A"}
           </Text>
@@ -202,7 +205,7 @@ const InvoiceStats = ({
         <Box h={7}>
           <Text
             fontWeight="bold"
-            fontSize="clamp(.5rem, 1rem, 1.5rem)"
+            fontSize="14px"
             color="#474849"
           >
             Remaining Balance
@@ -216,7 +219,8 @@ const InvoiceStats = ({
           >
             <Text
               color="#474849"
-              fontSize="clamp(.5rem, 1rem, 1.5rem)"
+              fontSize="14px"
+              fontWeight="500"
             >
               {roomRate !== 0
                 ? `$${Number(remainingBalance).toFixed(2)}`
@@ -246,7 +250,7 @@ const InvoiceStats = ({
         alignItems="center"
       >
         <DollarIcon />
-        <Text>
+        <Text fontSize="16px" fontWeight="400">
           {roomRate ? `${Number(roomRate).toFixed(2)} / hour` : "N/A"}
         </Text>
       </Flex>
@@ -469,30 +473,36 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
         borderRadius={15}
         borderWidth=".07em"
         borderColor="#E2E8F0"
-        p={3}
+        padding="20px"
         mb={3}
       >
         <Table color="#EDF2F7">
           <Tbody
             color="#2D3748"
             width="100%"
+            // padding={20}
           >
             {comments && comments.length > 0 ? (
               [...currentPageComments]
                 .sort((a, b) => a.id - b.id)
                 .map((comment) => (
                   <Tr
-                    position="relative"
-                    justifyContent="space-between"
+                    // position="relative"
+                    // justifyContent="space-between"
+                    alignItems="center"
+                    alignSelf="stretch"
+                    gap="12px"
                     key={comment.id}
                   >
-                    <Td fontSize="14px">
+                    <Td fontSize="14px" paddingInlineStart="8px" paddingInlineEnd="8px">
                       {format(new Date(comment.datetime), "EEE. M/d/yy")}
                     </Td>
                     <Td
                       fontSize="14px"
                       color="#0C824D"
                       fontWeight="700"
+                      paddingInlineStart="8px" 
+                      paddingInlineEnd="8px"
                     >
                       {showEditRow && comment.id === editID ? (
                         <Flex alignItems="center">
@@ -509,6 +519,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                             w="60px"
                             color="#0C824D"
                             fontWeight="700"
+                            fontSize="14px"
                             variant="unstyled"
                             onChange={(e) => setAdjustValue(e.target.value)}
                           />
@@ -520,13 +531,14 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                       )}
                     </Td>
                     <Td
-                      textAlign="right" width="1%"
+                      textAlign="right" width="1%" paddingInlineStart="4px" paddingInlineEnd="4px"
                     >
                       <Menu>
                           <MenuButton
                             as={IconButton}
-                            w={10}
-                            borderRadius={12}
+                            minWidth="24px"
+                            height="24px"
+                            borderRadius={6}
                             backgroundColor="#EDF2F7"
                             icon={<Icon as={sessionsEllipsis} />}
                           />
@@ -554,7 +566,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                               gap="8px"
                             >
                               <Icon as={CancelIcon} />
-                              <Text color="#90080F">Delete</Text>
+                              <Text color="#90080F">Cancel</Text>
                             </Box>
                           </MenuItem>
                         </MenuList>
@@ -616,16 +628,19 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
             )}
             {showInputRow && (
               <Tr
-                position="relative"
-                justifyContent="space-between"
-                tableLayout="fixed"
+                alignItems="center"
+                alignSelf="stretch"
+                gap="12px"
               >
-                <Td fontSize="clamp(.5rem, 1rem, 1.5rem)">
+                <Td fontSize="14px" paddingInlineStart="8px" paddingInlineEnd="8px">
                   {format(new Date(), "EEE. M/d/yy")}
                 </Td>
                 <Td
-                  fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                  fontWeight="bold"
+                      fontSize="14px"
+                      color="#0C824D"
+                      fontWeight="700"
+                      paddingInlineStart="8px" 
+                      paddingInlineEnd="8px"
                 >
                   <Flex alignItems="center">
                     <Text
@@ -639,8 +654,9 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                       placeholder="__.__"
                       value={adjustValue}
                       w="60px"
+                      fontSize="14px"
                       color="#0C824D"
-                      fontWeight="bold"
+                      fontWeight="400"
                       variant="unstyled"
                       onChange={(e) => setAdjustValue(e.target.value)}
                     ></Input>

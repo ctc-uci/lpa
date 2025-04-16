@@ -247,6 +247,8 @@ export const SingleInvoice = () => {
                 textAlign="left"
                 color="#4A5568"
                 pb={4}
+                fontSize="16px"
+                fontWeight="700"
               >
                 Leave without saving changes?
               </ModalHeader>
@@ -264,6 +266,8 @@ export const SingleInvoice = () => {
                   }}
                   backgroundColor="#EDF2F7"
                   color="#2D3748"
+                  fontSize="14px"
+                  fontWeight="500"
                 >
                   Don't Save
                 </Button>
@@ -271,7 +275,8 @@ export const SingleInvoice = () => {
                   onClick={closeModal}
                   backgroundColor="#4441C8"
                   color="#FFFFFF"
-
+                  fontSize="14px"
+                  fontWeight="500"
                 >
                   Save
                 </Button>

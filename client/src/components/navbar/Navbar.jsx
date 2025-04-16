@@ -7,9 +7,9 @@ import { DocumentIcon } from "../../assets/DocumentIcon";
 import NavBarButton from "./NavBarButton";
 import "./Navbar.css";
 import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
-import { useState, useEffect } from "react";
+import { useState, useEffect} from "react";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-
+import { useNavigate } from "react-router-dom";
 
 
 const Navbar = ({ children, onNavbarClick }) => {
@@ -18,6 +18,7 @@ const Navbar = ({ children, onNavbarClick }) => {
   const location = useLocation();
   const currentPath = location.pathname;
   const [count, setCount] = useState()
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCount = async () => {
