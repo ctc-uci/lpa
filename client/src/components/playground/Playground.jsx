@@ -6,7 +6,7 @@ import {
 
 import Navbar from "../navbar/Navbar";
 
-import { SendEmailButton } from "../email/SendEmailButton";
+import { Test } from "../calendar/Test";
 
 
 export const Playground = () => {
@@ -16,7 +16,7 @@ export const Playground = () => {
       spacing={8}
       width={"100%"}
     >
-        <SendEmailButton></SendEmailButton>
+        <Test></Test>
     </VStack>
     </Navbar>
   );
