@@ -13,15 +13,19 @@ const NavBarButton = ({ item, isActive }) => {
     "Notifications": 169,
     "Settings": 115
   };
-  // Get width based on hover state
+  
+  // Get width based on hover or active state
   const getButtonWidth = () => {
-    if (!isHovered && !isActive) {
-      if (item.name === "Notifications") return "60px";
-      return "40px"; // Icon-only width when not hovered/active
+    // Always use the full width when hovered or active to prevent layout shifts
+    if (isHovered || isActive) {
+      return `${widthMap[item.name]}px`;
     }
+    
+    // When not hovered/active, we still use the SAME width but hide the text
+    // This prevents layout shifts when hovering
     return `${widthMap[item.name]}px`;
   };
-
+  
   return (
     <div
       className={`navItem ${isActive ? "active" : ""}`}
@@ -34,8 +38,9 @@ const NavBarButton = ({ item, isActive }) => {
           borderRadius={isActive ? "none" : "6px"}
           className="nav-item-wrapper"
           width={getButtonWidth()}
+          transition="none" // Prevent width transitions
           overflow="hidden"
-          // border="1px"
+          position="relative" // Important for absolute positioning
         >
           <Flex
             alignItems="center"
@@ -62,13 +67,15 @@ const NavBarButton = ({ item, isActive }) => {
                 React.cloneElement(item.icon, { size: "23px" })
               )}
             </Icon>
+            
+            {/* Show the non-hovered count badge only when not hovered/active AND when we have a count */}
             {item.count !== null && item.count !== undefined && !isActive && !isHovered && (
               <Box
                 height="16px"
                 textAlign="center"
                 fontSize="15px"
-                font-family="Inter"
-                font-style="normal"
+                fontFamily="Inter"
+                fontStyle="normal"
                 fontWeight="300"
                 color="#FFF"
                 padding="0px 6px"
@@ -79,10 +86,13 @@ const NavBarButton = ({ item, isActive }) => {
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
+                position="absolute"
+                left="30px" // Position it consistently
               >
                 {item.count}
               </Box>
             )}
+            
             <Text
               opacity={isHovered || isActive ? 1 : 0}
               fontWeight="700"
@@ -91,20 +101,20 @@ const NavBarButton = ({ item, isActive }) => {
               fontSize={"14px"}
               overflow="hidden"
               whiteSpace="nowrap"
-              // textOverflow="ellipsis"
-              // transition="opacity 0.2s ease"
-              // flexGrow={1}
-              // flexShrink={0}
+              transition="opacity 0.2s ease"
+              ml={0} // Keep margin consistent
             >
               {item.name}
             </Text>
-            {item.count !== null && item.count !== undefined && (
+            
+            {/* For hovered/active state with notification count */}
+            {item.count !== null && item.count !== undefined && (isHovered || isActive) && (
               <Box
                 marginLeft="10px"
                 height="16px"
                 textAlign="center"
                 fontSize="15px"
-                font-style="normal"
+                fontStyle="normal"
                 fontWeight="300"
                 color="#FFF"
                 borderRadius="30px"

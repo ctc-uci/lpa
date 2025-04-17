@@ -7,6 +7,10 @@
 
 .navbar-container {
   transition: width 0.3s ease;
+  /* Ensure the navbar has a fixed width and doesn't resize */
+  min-width: 209px;
+  width: 209px !important;
+  flex-shrink: 0;
 }
 
 .navItem {
@@ -14,8 +18,10 @@
   border-left: 3px solid transparent;
   transition: all 0.2s ease;
   position: relative;
+  /* Prevent any layout shifts */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
-
 
 .navLink {
   transition: all 0.2s ease;
@@ -31,9 +37,7 @@
   font-size: 20px;
   color: #767778;
 }
-/* .navItem:hover .navLink, .navItem:hover .navIcon {
-  color: #4E4AE7;
-} */
+
 /* Popup button styles */
 .nav-item-wrapper {
   position: relative;
@@ -42,4 +46,12 @@
 .popup-button {
   white-space: nowrap;
   min-width: 140px;
+}
+
+/* Fix for notification badge position */
+.badge-container {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }

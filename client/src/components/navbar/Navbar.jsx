@@ -1,6 +1,4 @@
-import { Box, Flex, VStack } from "@chakra-ui/react";
-import { createContext } from "react";
-import { IoMdCalendar } from "react-icons/io";
+import { Box, VStack } from "@chakra-ui/react";
 import { MdNotifications, MdSettings } from "react-icons/md";
 import { useLocation } from "react-router-dom";
 import { DocumentIcon } from "../../assets/DocumentIcon";
@@ -10,14 +8,12 @@ import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
 import { useState, useEffect } from "react";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
-
-
 const Navbar = ({ children }) => {
   // Get current location from React Router
   const { backend } = useBackendContext();
   const location = useLocation();
   const currentPath = location.pathname;
-  const [count, setCount] = useState();
+  const [count, setCount] = useState(0); // Initialize with 0 instead of undefined
   const [hoveredItem, setHoveredItem] = useState(null);
 
   useEffect(() => {
@@ -31,7 +27,13 @@ const Navbar = ({ children }) => {
     };
 
     fetchCount();
-  });
+    
+    // Set up a refresh interval (e.g., every 60 seconds)
+    const intervalId = setInterval(fetchCount, 60000);
+    
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array so it only runs on mount
 
   const menuItems = [
     { 
@@ -59,25 +61,25 @@ const Navbar = ({ children }) => {
     },
   ];
 
-
   return (
     <div id="navbarBody">
+      {/* Fixed width container to prevent layout shifts */}
       <Box
         bg="#F0F0FF"
         bgColor="#FFF"
         className="navbar-container"
-        // border="1px"
         paddingTop="26px"
         paddingBottom="26px"
         paddingLeft="26px"
         paddingRight="8px"
-        w="209px"
+        minWidth="209px" // Use minWidth instead of fixed width
+        width="auto" // Allow it to grow if needed
         h="260px"
-        gap="16px"
+        flexShrink={0} // Prevent shrinking
       >
         <VStack
           spacing="0px"
-          margin="0" // Remove any default margins
+          margin="0"
           padding="0"
           align="stretch"
         >
@@ -89,8 +91,6 @@ const Navbar = ({ children }) => {
                 currentPath === item.path ||
                 (currentPath.startsWith(item.path + "/") && item.path !== "/")
               }
-              onMouseEnter={() => setHoveredItem(item.name)}
-              onMouseLeave={() => setHoveredItem(null)}
             />
           ))}
         </VStack>
