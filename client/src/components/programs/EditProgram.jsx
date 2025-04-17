@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import './EditProgram.css';
 
 import {
@@ -57,6 +57,13 @@ export const EditProgram = () => {
     const [bookingIds, setBookingIds] = useState([]);
     const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
     const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
+    const [initialState, setInitialState] = useState(null);
+    const [infoLoaded, setInfoLoaded] = useState({
+      event: false,
+      booking: false,
+      assignments: false,
+      locations: false,
+    });
     const {
         isOpen: isDeleteConfirmationModalOpen,
         onOpen: onDeleteConfirmationModalOpen,
@@ -68,12 +75,47 @@ export const EditProgram = () => {
     const duplicatedProgramName = location.state?.programName || "";
     const duplicationToast = useToast();
 
+    useEffect(() => {
+      if (initialState === null && Object.values(infoLoaded).every(Boolean)) {
+        setInitialState(JSON.stringify({
+          eventName,
+          generalInformation,
+          selectedLocationId,
+          selectedInstructors,
+          selectedPayees,
+          repeatType,
+          repeatInterval,
+          startTime,
+          endTime,
+          startDate,
+          endDate,
+          selectedDays,
+        }));
+      }
+    }, [
+      eventName,
+      generalInformation,
+      selectedLocationId,
+      selectedInstructors,
+      selectedPayees,
+      repeatType,
+      repeatInterval,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      selectedDays,
+    ]);
 
     useEffect(() => {
-        getInitialEventData();
-        getInitialBookingData();
-        getInitialAssignmentsData();
-        getInitialLocations();
+      const loadInitialData = async () => {
+        await getInitialEventData().then(setInfoLoaded((prev) => ({ ...prev, event: true })));
+        await getInitialBookingData().then(setInfoLoaded((prev) => ({ ...prev, booking: true })));
+        await getInitialAssignmentsData().then(setInfoLoaded((prev) => ({ ...prev, assignments: true })));
+        await getInitialLocations().then(setInfoLoaded((prev) => ({ ...prev, locations: true })));
+      };
+
+      loadInitialData();
     }, []);
 
     useEffect(() => {
@@ -93,12 +135,29 @@ export const EditProgram = () => {
     };
 
     const isFormValid = () => {
+      console.log("initialState: ", initialState);
+      const currentState = JSON.stringify({
+          eventName,
+          generalInformation,
+          selectedLocationId,
+          selectedInstructors,
+          selectedPayees,
+          repeatType,
+          repeatInterval,
+          startTime,
+          endTime,
+          startDate,
+          endDate,
+          selectedDays,
+        });
+console.log("currentState: ", currentState);
         return (
             eventName.trim() !== "" &&
             startDate && endDate &&
             selectedLocationId !== "" &&
             selectedInstructors.length > 0 &&
-            selectedPayees.length > 0
+            selectedPayees.length > 0 &&
+            initialState !== currentState
         );
     };
 
@@ -117,6 +176,7 @@ export const EditProgram = () => {
             setSelectedLocationId(bookingResponse.data[0].roomId);
             setRoomDescription(bookingResponse.data[0].description);
             setLocationRate(bookingResponse.data[0].rate);
+            // console.log("start time: " , bookingResponse.data[0].startTime.split(":").slice(0, 2).join(':'));
             setStartTime(bookingResponse.data[0].startTime.split(':').slice(0, 2).join(':'));
             setEndTime(bookingResponse.data[0].endTime.split(':').slice(0, 2).join(':'));
             setStartDate(bookingResponse.data[0].date.split("T")[0]);
@@ -285,7 +345,6 @@ export const EditProgram = () => {
             )
         );
         setSearchedInstructors(filteredInstructors);
-        console.log
     };
 
     const getPayeeResults = async (search) => {
@@ -433,12 +492,9 @@ export const EditProgram = () => {
                 console.log("Saving event with location ID:", selectedLocationId, "for date:", date, "with times:", start, "-", end);
                 await backend.post('/bookings', bookingsData);
             }
-
             console.log("Newly added bookings for dates:", dates);
-
-
-
             console.log("Assigning instructors...");
+
             for (const instructor of selectedInstructors) {
                 console.log("Assigning instructor:", instructor);
                 await backend.post("/assignments", {
@@ -532,6 +588,8 @@ export const EditProgram = () => {
                         onOpen={onDeleteConfirmationModalOpen}
                         onClose={onDeleteConfirmationModalClose}
                         exit={exit}
+                        save={saveEvent}
+                        isFormValid={isFormValid}
                       />
                   </div>
                   <div id="eventInfoBody">

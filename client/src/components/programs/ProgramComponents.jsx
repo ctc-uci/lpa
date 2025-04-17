@@ -727,9 +727,11 @@ export const ProgramSummary = ({
                 >
                   <Icon as={PaintPaletteIcons} />
                   <Text>
-                    {payees?.length > 0
-                      ? payees.map((payee) => payee.clientName).join(", ")
-                      : "No payees"}
+                    {instructors?.length > 0
+                      ? instructors
+                          .map((instructor) => instructor.clientName)
+                          .join(", ")
+                      : "No instructors"}
                   </Text>
                 </Flex>
                 <Flex
@@ -738,11 +740,9 @@ export const ProgramSummary = ({
                 >
                   <Icon as={ProfileIcon} />
                   <Text>
-                    {instructors?.length > 0
-                      ? instructors
-                          .map((instructor) => instructor.clientName)
-                          .join(", ")
-                      : "No instructors"}
+                    {payees?.length > 0
+                      ? payees.map((payee) => payee.clientName).join(", ")
+                      : "No payees"}
                   </Text>
                 </Flex>
 

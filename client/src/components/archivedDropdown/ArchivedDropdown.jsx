@@ -66,8 +66,7 @@ export const ArchivedDropdown = ({
       newEventData.description = `${originalEvent.data[0].description}`;
       newEventData.archived = false; // Ensure the new event is not archived
       const newEvent = await backend.post("/events", newEventData);
-      console.log("New event created:", newEvent.data);
-      console.log(newEventData);
+      console.log("New event created:", newEvent.data.id);
 
       // Create copies of sessions for the new program
       for (const session of originalSessions.data) {
@@ -87,8 +86,8 @@ export const ArchivedDropdown = ({
       // Create copies of assignments for the new program
       for (const assignment of originalAssignments.data) {
         const newAssignmentData = {
-          event_id: newEvent.data.id, // Set the new event ID
-          client_id: assignment.clientId, // Ensure clientId is a number
+          eventId: newEvent.data.id, // Set the new event ID
+          clientId: assignment.clientId, // Ensure clientId is a number
           role: assignment.role,
         };
         console.log(newAssignmentData);
@@ -98,9 +97,9 @@ export const ArchivedDropdown = ({
         );
       }
 
-      console.log("new event data: ", newEvent.data);
+      console.log("new event data (new id): ", newEvent.data.id);
       // Return the new program data
-      return newEvent.data;
+      return newEvent.data.id;
     } catch (error) {
       console.log("Couldn't duplicate event", error);
     }
@@ -108,7 +107,8 @@ export const ArchivedDropdown = ({
 
   const handleDuplicate = async (programId, programName) => {
     try {
-      await duplicateArchivedProgram(programId);
+      const newProgramId = await duplicateArchivedProgram(programId);
+      console.log("newProgramId: ", newProgramId);
       navigate(`/programs/edit/${newProgramId}`, {
         state: { duplicated: true, programName },
       });

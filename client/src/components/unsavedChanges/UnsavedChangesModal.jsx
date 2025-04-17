@@ -12,7 +12,7 @@ import { IoCloseOutline } from "react-icons/io5";
 
 import "./UnsavedChangesModal.css";
 
-export const UnsavedChangesModal = ({ isOpen, onOpen, onClose, exit }) => {
+export const UnsavedChangesModal = ({ isOpen, onOpen, onClose, exit, save, isFormValid = () => true }) => {
   return (
     <Modal
       isOpen={isOpen}
@@ -46,7 +46,7 @@ export const UnsavedChangesModal = ({ isOpen, onOpen, onClose, exit }) => {
           <Button
             variant="ghost"
             id="deactivateCancel"
-            onClick={onClose}
+            onClick={exit}
             fontSize={"14px"}
             padding={"0px 16px"}
             gap={"4px"}
@@ -56,7 +56,8 @@ export const UnsavedChangesModal = ({ isOpen, onOpen, onClose, exit }) => {
           </Button>
           <Button
             id="deactivateConfirm"
-            onClick={exit}
+            onClick={save}
+            isDisabled={!isFormValid()}
             fontSize={"14px"}
             padding={"0px 16px"}
             gap={"4px"}

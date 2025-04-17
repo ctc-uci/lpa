@@ -149,25 +149,24 @@ export const AddProgram = () => {
     console.log("Selected location ID updated:", selectedLocationId);
   }, [selectedLocationId]);
 
-  const exit = (newEventId = "") => {
-    console.log(newEventId);
-
-    if (hasChanges) {
-      onOpen();
-      toast({
-        title: "You have unsaved changes",
-        description: "Please save your changes before leaving.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-    return;
-    }
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/home");
-    }
+  const exit = () => {
+    navigate('/programs');
+    // if (hasChanges) {
+    //   onOpen();
+    //   toast({
+    //     title: "You have unsaved changes",
+    //     description: "Please save your changes before leaving.",
+    //     status: "warning",
+    //     duration: 3000,
+    //     isClosable: true,
+    //   });
+    // return;
+    // }
+    // if (window.history.length > 1) {
+    //   navigate(-1);
+    // } else {
+    //   navigate("/home");
+    // }
   };
 
   const saveAndExit = (newEventId = "") => {
@@ -177,6 +176,8 @@ export const AddProgram = () => {
   const isFormValid = () => {
     return (
       eventName.trim() !== "" &&
+      startTime &&
+      endTime &&
       startDate &&
       endDate &&
       selectedLocationId !== "" &&
@@ -512,6 +513,8 @@ export const AddProgram = () => {
               onOpen={cancelOnOpen}
               onClose={cancelOnClose}
               exit={exit}
+              save={saveEvent}
+              isFormValid={isFormValid}
             />
           </div>
           <div id="eventInfoBody">

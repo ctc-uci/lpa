@@ -18,6 +18,7 @@ const TimeInput = ({ value, onChange }) => (
     borderRadius="4px"
     width="7rem"
     textAlign="center"
+    value={value}
   />
 );
 
