@@ -58,7 +58,7 @@ export const EmailSidebar = ({
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
 
   const btnRef = useRef();
@@ -290,8 +290,6 @@ export const EmailSidebar = ({
 
   
   const makeBlob = async () => {
-
-    
     const invoiceData = await fetchInvoiceData(invoice, backend);
 
     const pdfDocument = (
@@ -308,6 +306,20 @@ export const EmailSidebar = ({
   
 
   const handleButtonClick = async () => {
+    setLoading(true);
+
+    // Force reload of the ui to show button loading
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // try {
+      // Make sure document data is loaded first (if needed)
+      // This could be a separate function that fetches invoice data if it's not already loaded
+
+      // const blob = await generatePDFBlob();
+      // console.log("finished generatePDFBLOB");
+    //   if (blob) {
+    //     console.log("inside if blob");
+    //     setFileBlob(blob);
         const blob = await makeBlob();
         await sendEmail(blob);
         // console.log("after sendEmail");
@@ -334,6 +346,8 @@ export const EmailSidebar = ({
       }
     } catch (error) {
       console.error("Error sending email:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -699,6 +713,7 @@ export const EmailSidebar = ({
                 width={"45px"}
                 height={"30px"}
                 borderRadius={"10px"}
+                isLoading={loading}
               ></IconButton>
             </Flex>
           </DrawerBody>
