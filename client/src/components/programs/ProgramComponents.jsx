@@ -1844,7 +1844,22 @@ export const Sessions = ({
                               onChange={() =>
                                 handleSessionSelection(session.id)
                               }
-                              colorScheme="purple"
+                              sx={{
+                                "& .chakra-checkbox__control[data-checked]": {
+                                  backgroundColor: "#90080F",
+                                  borderColor: "#90080F",
+                                },
+                                "&:hover .chakra-checkbox__control[data-checked]":
+                                  {
+                                    backgroundColor: "#90080F",
+                                    borderColor: "#90080F",
+                                  },
+                                "& .chakra-checkbox__control[data-checked]:hover":
+                                  {
+                                    backgroundColor: "#90080F",
+                                    borderColor: "#90080F",
+                                  },
+                              }}
                             />
                           </Td>
                         )}

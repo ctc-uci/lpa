@@ -1,9 +1,9 @@
 import express, { Router } from "express";
+import multer from "multer";
 
+import { uploadPDF } from "../common/s3";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
-import { uploadPDF } from "../common/s3";
-import multer from 'multer';
 
 const invoicesRouter = Router();
 invoicesRouter.use(express.json());
@@ -38,10 +38,10 @@ invoicesRouter.get("/notificationCount", async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     const params = [];
-    let dateFilter = '';
+    let dateFilter = "";
 
     if (startDate && endDate) {
-      dateFilter = 'AND start_date >= $1 AND end_date <= $2';
+      dateFilter = "AND start_date >= $1 AND end_date <= $2";
       params.push(startDate, endDate);
     }
 
@@ -332,97 +332,7 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-/*invoicesRouter.get("/total/:id", async (req, res) => {
-  try {
-    const { id } = req.params; //invoice id
 
-    const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [
-      id,
-    ]);
-    const invoice = invoiceRes[0];
-
-    // Use the event_id from the invoice record.
-    const eventRes = await db.query("SELECT * FROM events WHERE id = $1", [
-      invoice.event_id,
-    ]);
-    const event = eventRes[0];
-
-    const comments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id IS NULL"
-    );
-
-    const bookings = await db.query(
-      "SELECT * FROM bookings WHERE event_id = $1 AND date BETWEEN $2 AND $3",
-      [event.id, invoice.start_date, invoice.end_date]
-    );
-
-    const bookingCosts = await Promise.all(
-      bookings.map(async (booking) => {
-        const roomRateBooking = await db.query(
-          "SELECT rooms.name, rooms.rate FROM rooms JOIN bookings ON rooms.id = bookings.room_id WHERE bookings.id = $1",
-          [booking.id]
-        );
-
-        if (!roomRateBooking.length) return 0; // if room not found, cost is 0
-
-        let totalRate = Number(roomRateBooking[0].rate);
-
-        comments.forEach((adj) => {
-          if (adj.adjustment_type === "rate_percent") {
-            totalRate *= 1 + Number(adj.adjustment_value) / 100;
-          } else if (adj.adjustment_type === "rate_flat") {
-            totalRate += Number(adj.adjustment_value);
-          }
-        });
-
-        const commentsBooking = await db.query(
-          "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id = $1",
-          [booking.id]
-        );
-
-        commentsBooking.forEach((adj) => {
-          if (adj.adjustment_type === "rate_percent") {
-            totalRate *= 1 + Number(adj.adjustment_value) / 100;
-          } else if (adj.adjustment_type === "rate_flat") {
-            totalRate += Number(adj.adjustment_value);
-          }
-        });
-
-        // Calculate booking duration in hours.
-        const startTime = new Date(
-          `1970-01-01T${booking.start_time.substring(0, booking.start_time.length - 3)}Z`
-        );
-        const endTime = new Date(
-          `1970-01-01T${booking.end_time.substring(0, booking.start_time.length - 3)}Z`
-        );
-        const durationHours = (endTime - startTime) / (1000 * 60 * 60);
-
-        // Calculate booking cost.
-        const bookingCost = totalRate * durationHours;
-
-        return bookingCost;
-      })
-    );
-
-    let totalCost = bookingCosts.reduce((acc, cost) => acc + cost, 0);
-
-    const totalComments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type = 'total'"
-    );
-
-    totalComments.map((comment) => {
-      totalCost += Number(comment.adjustment_value);
-    });
-
-    const result = {
-      total: totalCost,
-    };
-
-    res.status(200).json(keysToCamel(result));
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});*/
 invoicesRouter.get("/total/:id", async (req, res) => {
   try {
     const { id } = req.params; //invoice id
@@ -501,7 +411,7 @@ invoicesRouter.get("/total/:id", async (req, res) => {
             bookingCost += Number(comment.adjustment_value);
           }
         });
-        
+
         return bookingCost;
       })
     );
@@ -613,41 +523,44 @@ invoicesRouter.delete("/:id", async (req, res) => {
   }
 });
 
-invoicesRouter.post("/backupInvoice/:id", upload.single("file"), async (req, res) => {
-  // Backup a invoice PDF to S3 and store the URL in the database
-  // Params:
-  //  id - the invoice id
-  // Body:
-  //  file - the invoice PDF file
-  //  comment - optional comment for the invoice
-  // Returns:
-  //  fileURL - the viewable URL of the uploaded PDF
+invoicesRouter.post(
+  "/backupInvoice/:id",
+  upload.single("file"),
+  async (req, res) => {
+    // Backup a invoice PDF to S3 and store the URL in the database
+    // Params:
+    //  id - the invoice id
+    // Body:
+    //  file - the invoice PDF file
+    //  comment - optional comment for the invoice
+    // Returns:
+    //  fileURL - the viewable URL of the uploaded PDF
 
-  // Upload an invoice PDF to S3, returning the viewable URL
-  try {
-    const file = req.file;
-    const { id } = req.params;
-    const { comment } = req.body;
+    // Upload an invoice PDF to S3, returning the viewable URL
+    try {
+      const file = req.file;
+      const { id } = req.params;
+      const { comment } = req.body;
 
-    if (!file) {
-      return res.status(500).json({ error: "File is required" });
-    }
+      if (!file) {
+        return res.status(500).json({ error: "File is required" });
+      }
 
-    // Upload to S3
-    const fileURL = await uploadPDF(file);
+      // Upload to S3
+      const fileURL = await uploadPDF(file);
 
-    // Store the file URL in the database
-    await db.query(
-      `INSERT INTO historic_invoices (original_invoice, datetime, file_reference, comment)
+      // Store the file URL in the database
+      await db.query(
+        `INSERT INTO historic_invoices (original_invoice, datetime, file_reference, comment)
        VALUES ($1, $2, $3, $4)`,
-      [id, "NOW()", fileURL, comment]
-    );
+        [id, "NOW()", fileURL, comment]
+      );
 
-    
-    res.status(201).json(fileURL);
-  } catch (err) {
-    res.status(500).send(err.message);
+      res.status(201).json(fileURL);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
   }
-});
+);
 
 export { invoicesRouter };
