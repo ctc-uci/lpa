@@ -58,7 +58,7 @@ export const EmailSidebar = ({
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
 
   const btnRef = useRef();
@@ -365,7 +365,7 @@ export const EmailSidebar = ({
 
     // Force reload of the ui to show button loading
     await new Promise(resolve => setTimeout(resolve, 0));
-    
+
     // try {
       // Make sure document data is loaded first (if needed)
       // This could be a separate function that fetches invoice data if it's not already loaded
