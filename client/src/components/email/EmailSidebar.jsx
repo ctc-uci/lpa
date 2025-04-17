@@ -30,7 +30,7 @@ import IoPaperPlane from "../../assets/IoPaperPlane.svg";
 import logo from "../../assets/logo/logo.png";
 import { PlusFilledIcon } from "../../assets/PlusFilledIcon.jsx";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { MyDocument } from "../invoices/PDFButtonInvoice";
+import { InvoicePDFDocument } from "../invoices/InvoicePDFDocument.jsx";
 import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { DiscardEmailModal } from "./DiscardEmailModal";
 
@@ -277,52 +277,17 @@ export const EmailSidebar = ({
     const invoiceData = await fetchInvoiceData(invoice, backend);
 
     const pdfDocument = (
-      <MyDocument
+      <InvoicePDFDocument
         invoice={invoice}
         {...invoiceData}
       />
     );
 
-    // const pdfDocument = (
-    //   <MyDocument
-    //     backend={backend}
-    //     invoice={invoice}
-    //     loading={loading} // Don't pass loading state to avoid circular dependencies
-    //     setLoading={setLoading}
-    //   />
-    // );
-
-    // Now generate the blob
-    // console.log("Document ready, generating PDF blob...");
     const blob = await pdf(pdfDocument).toBlob();
-    // console.log("Blob generated successfully", blob);
     return blob;
   };
 
 
-  // useEffect(() => {
-  //   const makeBlob = async () => {
-  //     const pdfDocument = (
-  //       <MyDocument
-  //       backend={backend}
-  //       invoice={invoice}
-  //       loading={loading} // Don't pass loading state to avoid circular dependencies
-  //       setLoading={setLoading}
-  //       />
-  //     );
-
-  //     await waitForVariable(() => pdfDocument === true);
-  //     console.log(loading)
-      
-  //     // Now generate the blob
-  //   // console.log("Document ready, generating PDF blob...");
-  //   const blob = await pdf(pdfDocument).toBlob();
-  //   console.log("Blob generated successfully", blob);
-  //   setFileBlob(blob);
-  //   }
- 
-  //   makeBlob();
-  // }, [backend, invoice, loading]);
   
   const makeBlob = async () => {
 
@@ -335,84 +300,20 @@ export const EmailSidebar = ({
         {...invoiceData}
       />
     );
-    
-    // await pdf(pdfDocument2).toBlob();
-    // await waitForVariable(() => loading === false); 
-    // await new Promise(resolve => setTimeout(resolve, 30000));
-    
-    
-    // const pdfDocument = (
-      //   <MyDocument
-      //   backend={backend}
-      //   invoice={invoice}
-      //   loading={loading} // Don't pass loading state to avoid circular dependencies
-      //   setLoading={setLoading}
-      //   />
-      // );
-      
-      // Now generate the blob
-      // console.log("Document ready, generating PDF blob...");
+
       const blob = await pdf(pdfDocument).toBlob();
-      // console.log("Blob generated successfully", blob);
-      // setFileBlob(blob);
-      // const url = URL.createObjectURL(blob);
-      // window.open(url); 
       return blob;
     }
 
   
 
   const handleButtonClick = async () => {
-    // try {
-      // Make sure document data is loaded first (if needed)
-      // This could be a separate function that fetches invoice data if it's not already loaded
-
-      // const blob = await generatePDFBlob();
-      // console.log("finished generatePDFBLOB");
-    //   if (blob) {
-    //     console.log("inside if blob");
-    //     setFileBlob(blob);
         const blob = await makeBlob();
         await sendEmail(blob);
         // console.log("after sendEmail");
         await saveEmail(blob);
         setisConfirmModalOpen(true);
-    //   } else {
-    //     console.error("Failed to generate PDF blob");
-    //   }
-    // } catch (error) {
-    //   console.error("Error in PDF generation process:", error);
-    // } finally {
-    //   setLoading(false);
-    // }
   };
-
-  // const generatePDFBlob = async () => {
-  //   // console.log("invoice in generatePDFBlob", invoice.data[0]);
-  //   // const pdfDocument = (
-  //   //   <MyDocument
-  //   //     backend={backend}
-  //   //     invoice={invoice}
-  //   //     loading={loading}
-  //   //     setLoading={setLoading}
-  //   //   />
-  //   // );
-
-  //   const blob = await pdf(pdfDocument).toBlob();
-
-  //   return blob;
-  // };
-
-  // // useEffect(() => {
-  // //   console.log("loading", loading)
-  // // }, [loading]);
-
-  // const generateBlob = async () => {
-
-  //   const blob = await generatePDFBlob();
-  //   setFileBlob(blob);
-  // }
-  // // generateBlob();
 
   const sendEmail = async (blob) => {
     try {
@@ -787,25 +688,7 @@ export const EmailSidebar = ({
                 }
                 bgColor="#4441C8"
                 onClick={
-                  // const waitForDocReady = async () => {
-                  //   return new Promise((resolve) => {
-                  //     const interval = setInterval(() => {
-                  //       if (!loading) {
-                  //         clearInterval(interval);
-                  //         resolve();
-                  //       }
-                  //       console.log("loading", loading)
-                  //     }, 100);
-                  //   });
                   handleButtonClick
-                  // };
-
-                  // await waitForDocReady();
-
-                  // await generateBlob();
-                  // await sendEmail();
-                  // setisConfirmModalOpen(true);
-                  // await saveEmail();
                 }
                 isDisabled={
                   !title ||
@@ -820,7 +703,6 @@ export const EmailSidebar = ({
             </Flex>
           </DrawerBody>
         </DrawerContent>
-        {/* <MyDocument invoice={invoice} backend={backend} loading={loading} setLoading={setLoading}/> */}
       </Drawer>
     </>
   );

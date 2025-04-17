@@ -36,6 +36,7 @@ import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
+import { PDFButtonInvoice, TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
 
 const App = () => {
   return (
@@ -215,6 +216,15 @@ const App = () => {
                     <ProtectedRoute
                       element={<ArchivedPrograms />}
                       allowedRoles={["admin"]}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/pdftest"
+                  element={
+                    <ProtectedRoute
+                      element={<TestPDFViewer />}
                     />
                   }
                 />
