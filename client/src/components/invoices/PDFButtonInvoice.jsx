@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { DownloadIcon } from "@chakra-ui/icons";
-import { Box, Flex, IconButton, Spinner } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner, Button } from "@chakra-ui/react";
 
 import {
   Document,
@@ -15,6 +15,8 @@ import {
 } from "@react-pdf/renderer";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoicePDFDocument } from "./InvoicePDFDocument";
+import { pdf } from "@react-pdf/renderer";
+import { saveAs } from "file-saver";
 
 // TODO FIX ENDPOINTS TO FIX CALCULATIONS
 
@@ -44,7 +46,7 @@ const PDFButtonInvoice = ({ id }) => {
   const { backend } = useBackendContext();
   const [invoice, setInvoice] = useState(null);
   const [invoiceData, setInvoiceData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
@@ -128,52 +130,49 @@ const PDFButtonInvoice = ({ id }) => {
     };
   };
 
-  const fetchData = async () => {
-    try {
-      const response = await backend.get("/invoices/" + id);
-      setInvoice(response.data);
+  // const fetchData = async () => {
+  //   try {
+  //     const response = await backend.get("/invoices/" + id);
+  //     setInvoice(response.data);
 
-      const invoiceDataResponse = await fetchInvoiceData(response, backend, id);
-      setInvoiceData(invoiceDataResponse);
-      setLoading(false);
-      //   // get instructors
-    } catch (err) {
-      console.error("Error fetching invoice data:", err);
-    }
-  };
+  //     const invoiceDataResponse = await fetchInvoiceData(response, backend, id);
+  //     setInvoiceData(invoiceDataResponse);
+  //   } catch (err) {
+  //     console.error("Error fetching invoice data:", err);
+  //   }
+  // };
+
+  const handleDownload = async () => {
+  try {
+    setLoading(true);
+
+    const invoiceResponse = await backend.get(`/invoices/${id}`);
+    const invoice = invoiceResponse.data;
+    const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
+
+    const blob = await pdf(
+      <InvoicePDFDocument invoice={invoice} {...invoiceData} />
+    ).toBlob();
+
+    saveAs(blob, "bookingdata.pdf");
+  } catch (err) {
+    console.error("Error generating PDF:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
   
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   return (
     <Box>
-      {loading ? (
-        <Flex
-          align="center"
-          gap={2}
-        >
-          <Spinner size="sm" />
-          <Text fontSize="sm">Generating PDF...</Text>
-        </Flex>
-      ) : (
-        <PDFDownloadLink
-          document={
-            <InvoicePDFDocument
-              invoice={invoice}
-              {...invoiceData}
-            />
-          }
-          fileName="bookingdata.pdf"
-        >
-          <IconButton
-            icon={<DownloadIcon boxSize="20px" />}
-            backgroundColor="transparent"
-            aria-label="Download PDF"
-          />
-        </PDFDownloadLink>
-      )}
+        <IconButton
+        icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
+        onClick={handleDownload}
+        backgroundColor="transparent"
+        aria-label="Download PDF"
+        isDisabled={loading}
+      />
     </Box>
   );
 };

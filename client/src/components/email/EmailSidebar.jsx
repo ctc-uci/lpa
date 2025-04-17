@@ -308,28 +308,16 @@ export const EmailSidebar = ({
   const handleButtonClick = async () => {
     setLoading(true);
 
-    // Force reload of the ui to show button loading
     await new Promise(resolve => setTimeout(resolve, 0));
-
-    // try {
-      // Make sure document data is loaded first (if needed)
-      // This could be a separate function that fetches invoice data if it's not already loaded
-
-      // const blob = await generatePDFBlob();
-      // console.log("finished generatePDFBLOB");
-    //   if (blob) {
-    //     console.log("inside if blob");
-    //     setFileBlob(blob);
-        const blob = await makeBlob();
-        await sendEmail(blob);
-        // console.log("after sendEmail");
-        await saveEmail(blob);
-        setisConfirmModalOpen(true);
+    const blob = await makeBlob();
+    await sendEmail(blob);
+    // console.log("after sendEmail");
+    await saveEmail(blob);
+    setisConfirmModalOpen(true);
   };
 
   const sendEmail = async (blob) => {
     try {
-      console.log("fileblob in sendEmail", blob);
       if (blob) {
         const formData = new FormData();
         formData.append("pdfFile", blob, `${pdf_title}.pdf`);

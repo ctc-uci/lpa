@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: 600,
     marginBottom: 10,
     color: "#2c3e50",
   },
@@ -123,7 +123,6 @@ const EditInvoiceDetailsPDF = ({
   invoice
 }) => {
 
-  console.log("invoice in editinvociedetals", invoice);
   return (
     <View
       style={{
@@ -138,7 +137,6 @@ const EditInvoiceDetailsPDF = ({
           style={{
             textAlign: "center",
             fontSize: 20,
-            fontWeight: "bold",
             marginBottom: 4,
           }}
         >
@@ -165,7 +163,7 @@ const EditInvoiceDetailsPDF = ({
       >
         {/* Left column */}
         <View style={{ flex: 1 }}>
-          <Text style={{ fontWeight: 700, fontSize: 8, marginBottom: 4 }}>
+          <Text style={{ fontWeight: "bold", fontSize: 8, marginBottom: 4 }}>
             Recurring Program:
           </Text>
           <Text style={{ fontSize: 8, marginBottom: 8 }}>
@@ -219,7 +217,7 @@ const tableStyles = StyleSheet.create({
   },
   heading: {
     marginBottom: 10,
-    fontWeight: "bold",
+    fontWeight: 600,
     borderBottomWidth: 1,
     borderColor: "#000",
   },
@@ -233,7 +231,6 @@ const tableStyles = StyleSheet.create({
     borderBottomWidth: 0,
     border: "1px solid #D2D2D2",
     borderRadius: "18px",
-    // minH="24"
     paddingHorizontal: "12px",
   },
   tableRow: {
@@ -277,7 +274,7 @@ const InvoiceTable = ({ booking, comments, room, invoice }) => {
         {/* Header Row */}
         <View style={{ ...tableStyles.tableRow }}>
           <View style={tableStyles.tableCol}>
-            <Text style={{ fontSize: 8, fontWeight: 700 }}>Date</Text>
+            <Text style={{ fontSize: 8 }}>Date</Text>
           </View>
           <View style={tableStyles.tableCol}>
             <Text style={{ fontSize: 8 }}>Classroom</Text>
@@ -555,7 +552,6 @@ const InvoicePDFDocument = ({
                 <Text
                   style={{
                     color: "#2D3748",
-                    fontWeight: "700",
                     fontSize: "24px",
                   }}
                 >

@@ -40,5 +40,8 @@
   "packageManager": "yarn@1.22.22",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "file-saver": "^2.0.5"
   }
 }
