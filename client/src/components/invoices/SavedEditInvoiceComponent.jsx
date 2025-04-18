@@ -95,77 +95,57 @@ const SavedStatementComments = ({
       fontFamily="Inter"
       color="#2D3748"
     >
-      <Heading fontSize="22px" mb="4">
+      <Heading fontSize="11.7px" mb="2">
         Sessions
       </Heading>
       <Flex
         border="1px solid #D2D2D2"
-        borderRadius="18px"
+        borderRadius="9.57px"
         minH="24"
         px="12px"
+        width="100%"
       >
         <Box
-        maxHeight="50vh"
-        overflowY="auto">
+          overflowY="auto"
+          width="100%">
         <Table
           color="#EDF2F7"
-          style={{ width: "100%" }}
+          width="100%"
           textAlign="center"
+          tableLayout="fixed"
+          size="sm"
         >
           <Thead>
             <Tr color="#4A5568">
-              <Th textTransform="none" fontSize="14px">
-                Date
-              </Th>
-              <Th textTransform="none" fontSize="14px">
-                Classroom
-              </Th>
-              <Th textTransform="none" fontSize="14px">
-                Rental Hours
-              </Th>
-              <Th textTransform="none" fontSize="14px">
-                Room Fee
-              </Th>
-              <Th textTransform="none" fontSize="14px">
-                Adjustment Type(s)
-              </Th>
-              <Th
-                textTransform="none"
-                textAlign="end"
-                pr="40px"
-                fontSize="14px"
-              >
-                Total
-              </Th>
+              <Th textTransform="none" width="80px" fontSize="6.38px">Date</Th>
+              <Th textTransform="none" width="80px" fontSize="6.38px">Classroom</Th>
+              <Th textTransform="none" width="80px" fontSize="6.38px">Rental Hours</Th>
+              <Th textTransform="none" width="80px" fontSize="6.38px">Room Fee</Th>
+              <Th textTransform="none" width="80px" fontSize="6.38px">Adjustment Type(s)</Th>
+              <Th textTransform="none" width="80px" fontSize="6.38px">Total</Th>
             </Tr>
           </Thead>
+
           <Tbody color="#2D3748">
             {comments.length > 0 ? (
               comments.map((comment, index) => [
                 <Tr key={`comment-${comment.id || "unknown"}-${index}`}>
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" borderBottom='none'>
-                    <Text width="100px" fontSize="14px">
-                      {format(new Date(comment.datetime), "M/d/yy")}
-                    </Text>
+                  <Td fontSize="6.38px">
+                    {format(new Date(comment.datetime), "M/d/yy")}
                   </Td>
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" borderBottom='none'>
-                    <Text fontSize="14px">
-                      {room && room.length > 0 ? `${room[0].name}` : "N/A"}
-                    </Text>
+
+                  <Td fontSize="6.38px">
+                    {room && room.length > 0 ? `${room[0].name}` : "N/A"}
                   </Td>
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" borderBottom='none'>
+
+                  <Td fontSize="6.38px">
                     <Flex
                       align="center"
                       justifyContent="space-evenly"
-                      gap="2"
+                      gap={2}
                     >
                       <Text
-                        w="85px"
-                        px="2"
-                        textAlign="center"
-                        fontSize="14px"
-                        borderRadius="md"
-                        p="2"
+                        p={2}
                       >
                         {booking.startTime
                           ? (() => {
@@ -185,14 +165,9 @@ const SavedStatementComments = ({
                             })()
                           : "N/A"}
                       </Text>
-                      <Text fontSize="14px">to</Text>
+                      <Text>to</Text>
                       <Text
-                        w="85px"
-                        px="2"
-                        fontSize="14px"
-                        textAlign="center"
-                        borderRadius="md"
-                        p="2"
+                        p={2}
                       >
                         {booking.startTime
                           ? (() => {
@@ -214,48 +189,41 @@ const SavedStatementComments = ({
                       </Text>
                     </Flex>
                   </Td>
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" borderBottom='none'>
+                  <Td fontSize="6.38px">
                     <Flex align="center" gap="1">
                       <Text
-                        w="95px"
-                        fontSize="14px"
-                        borderRadius="md"
+                        fontSize="6.38px"
                         p="2"
                       >
                         {room && room.length > 0 ? `$${room[0].rate}` : "N/A"}
                       </Text>
-                      <Text fontSize="14px">/hr</Text>
+                      <Text fontSize="6.38px">/hr</Text>
                     </Flex>
                   </Td>
-                  <Td fontSize="clamp(.5rem, 1rem, 1.5rem)" borderBottom='none'>
+                  <Td>
                     <Text
                       h="40px"
-                      borderRadius="md"
                       p="2"
-                      fontSize="14px"
+                      fontSize="6.38px"
                       display="flex"
                       alignItems="center"
                     >
-                      {(commentsState[index] && commentsState[index].adjustmentType) || "Click to Select"}
+                      {(commentsState[index]?.adjustmentType) || "Click to Select"}
                     </Text>
                   </Td>
-                  <Td
-                    fontSize="clamp(.5rem, 1rem, 1.5rem)" borderBottom='none'
-                    textAlign="center"
-                  >
+
+                  <Td>
                     <Flex
                       justifyContent="center"
                       alignItems="center"
-                      gap="2"
+                      gap={2}
+                      fontSize="6.38px"
                     >
-                      <Text fontSize="14px">$</Text>
+                      <Text>$</Text>
                       <Text
-                        w="85px"
                         px="2"
                         textAlign="center"
-                        fontSize="14px"
-                        borderRadius="md"
-                        p="2"
+                        p={2}
                       >
                         {
                           bookingState && room && bookingState.startTime && bookingState.endTime && room[0]?.rate
@@ -267,13 +235,6 @@ const SavedStatementComments = ({
                     </Flex>
                   </Td>
                 </Tr>,
-                <Tr  className="comment-row">
-                  <Td colSpan={6} textAlign="left"  py={2} >
-                    <Text fontSize="14px" fontStyle="italic"  fontWeight="500">
-                      {comment.comment || "No comment available"}
-                    </Text>
-                  </Td>
-                </Tr>
               ]).flat()
             ) : (
               <Tr>
@@ -288,16 +249,17 @@ const SavedStatementComments = ({
                 py="8"
                 textAlign="right"
                 colSpan={5}
-                fontSize="16px"
+                fontSize="6.38px"
+                fontWeight="bold"
               >
-                <Text fontWeight="bold">Subtotal</Text>
+                Subtotal
               </Td>
               <Td
-                fontSize="clamp(.5rem, 1rem, 1.5rem)" borderBottom='none'
+                fontSize="6.38px" borderBottom='none'
                 py="8"
-                textAlign="right"
+                textAlign="center"
               >
-                <Text textAlign="center">{`$ ${subtotalSum.toFixed(2)}`}</Text>
+                {`$ ${subtotalSum.toFixed(2)}`}
               </Td>
             </Tr>
           </Tbody>
@@ -392,7 +354,6 @@ const SavedInvoiceSummary = ({
         </Text>
         <Flex
           border="1px solid #D2D2D2"
-          borderRadius="18px"
           minH="24"
         >
           <Table>
@@ -419,7 +380,6 @@ const SavedInvoiceSummary = ({
                 <Td fontSize="14px" >Past Due Balance</Td>
                 <Td >
                   <Text
-                    borderRadius="md"
                     p="2"
                     fontSize="14px"
                   >
@@ -433,7 +393,6 @@ const SavedInvoiceSummary = ({
                       textAlign="center"
                       p="2"
                       fontSize="14px"
-                      borderRadius="md"
                       width={`${pastDue.toFixed(2).length + 3}ch`}
                     >
                       {pastDue.toFixed(2)}
@@ -452,7 +411,6 @@ const SavedInvoiceSummary = ({
                 <Td fontSize="14px">Current Statement Subtotal</Td>
                 <Td>
                   <Text
-                    borderRadius="md"
                     p="2"
                     fontSize="14px"
                   >
@@ -466,7 +424,6 @@ const SavedInvoiceSummary = ({
                       textAlign="center"
                       p="2"
                       fontSize="14px"
-                      borderRadius="md"
                       width={`${subtotalSum.toFixed(2).length + 3}ch`}
                     >
                       {subtotalSum.toFixed(2)}
@@ -485,7 +442,6 @@ const SavedInvoiceSummary = ({
                       p="2"
                       color="#474849"
                       fontSize="24px"
-                      borderRadius="md"
                       width={`${(subtotal + pastDue).toFixed(2).length + 3}ch`}
                     >
                       {(pastDue + subtotalSum).toFixed(2)}

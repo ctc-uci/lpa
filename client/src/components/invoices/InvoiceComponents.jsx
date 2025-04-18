@@ -45,6 +45,12 @@ import { FaCircle, FaUser } from "react-icons/fa";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { TbCaretUpDown } from "react-icons/tb";
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
 import { useParams } from "react-router";
 
 import { CancelIcon } from "../../assets/CancelIcon";
