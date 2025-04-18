@@ -22,15 +22,14 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import { pdf } from "@react-pdf/renderer";
 import { useParams } from "react-router-dom";
+import { sendSaveEmail } from "./utils.jsx";
 
 import { EnvelopeIcon } from "../../assets/EnvelopeIcon.jsx";
 import IoPaperPlane from "../../assets/IoPaperPlane.svg";
 import logo from "../../assets/logo/logo.png";
 import { PlusFilledIcon } from "../../assets/PlusFilledIcon.jsx";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { InvoicePDFDocument } from "../invoices/InvoicePDFDocument.jsx";
 import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { DiscardEmailModal } from "./DiscardEmailModal";
 
@@ -43,7 +42,6 @@ export const EmailSidebar = ({
 }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
-  const [fileBlob, setFileBlob] = useState();
   const [title, setTitle] = useState(pdf_title);
   const [toInput, setToInput] = useState("");
   const [ccInput, setCcInput] = useState("");
@@ -59,7 +57,6 @@ export const EmailSidebar = ({
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
-
 
   const btnRef = useRef();
 
@@ -180,176 +177,95 @@ export const EmailSidebar = ({
     lapena.org`;
 
 
-    const handleSubtotalSum = (startTime, endTime, rate) => {
-      if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
+  const handleSubtotalSum = (startTime, endTime, rate) => {
+    if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
 
-      const timeToMinutes = (timeStr) => {
-        const [hours, minutes] = timeStr.split(":").map(Number);
-        return hours * 60 + minutes;
-      };
-
-      const startMinutes = timeToMinutes(startTime.substring(0, 5));
-      const endMinutes = timeToMinutes(endTime.substring(0, 5));
-      const diff = endMinutes - startMinutes;
-
-      const totalHours = Math.ceil(diff / 60);
-
-      const total = (totalHours * rate).toFixed(2);
-
-      return total;
+    const timeToMinutes = (timeStr) => {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
     };
 
-    const fetchInvoiceData = async (invoice, backend) => {
-      const eventId = invoice?.data[0]?.eventId;
+    const startMinutes = timeToMinutes(startTime.substring(0, 5));
+    const endMinutes = timeToMinutes(endTime.substring(0, 5));
+    const diff = endMinutes - startMinutes;
 
-      const [
-        instructorResponse,
-        commentsResponse,
-        programNameResponse,
-        payeesResponse,
-        unpaidInvoicesResponse,
-        invoiceTotalResponse
-      ] = await Promise.all([
-        backend.get(`/assignments/instructors/${eventId}`),
-        backend.get(`/comments/invoice/22`),
-        backend.get(`/events/${eventId}`),
-        backend.get(`/invoices/payees/22`),
-        backend.get(`/events/remaining/${eventId}`),
-        backend.get(`/invoices/total/22`)
-      ]);
+    const totalHours = Math.ceil(diff / 60);
 
-      const comments = commentsResponse.data;
-      let booking = {};
-      let room = [];
+    const total = (totalHours * rate).toFixed(2);
 
-      if (comments.length > 0 && comments[0].bookingId) {
-        const bookingResponse = await backend.get(`/bookings/${comments[0].bookingId}`);
-        booking = bookingResponse.data[0];
+    return total;
+  };
 
-        const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
-        room = roomResponse.data;
-      }
+  const fetchInvoiceData = async (invoice) => {
+    const eventId = invoice?.data[0]?.eventId;
 
-      const unpaidTotals = await Promise.all(
-        unpaidInvoicesResponse.data.map(invoice =>
-          backend.get(`/invoices/total/${invoice.id}`)
-        )
-      );
-      const partiallyPaidTotals = await Promise.all(
-        unpaidInvoicesResponse.data.map(invoice =>
-          backend.get(`/invoices/paid/${invoice.id}`)
-        )
-      );
+    const [
+      instructorResponse,
+      commentsResponse,
+      programNameResponse,
+      payeesResponse,
+      unpaidInvoicesResponse,
+      invoiceTotalResponse
+    ] = await Promise.all([
+      backend.get(`/assignments/instructors/${eventId}`),
+      backend.get(`/comments/invoice/22`),
+      backend.get(`/events/${eventId}`),
+      backend.get(`/invoices/payees/22`),
+      backend.get(`/events/remaining/${eventId}`),
+      backend.get(`/invoices/total/22`)
+    ]);
 
-      const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
-      const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
-        return res.data.total ? sum + Number(res.data.total) : sum;
-      }, 0);
+    const comments = commentsResponse.data;
+    let booking = {};
+    let room = [];
 
-      const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+    if (comments.length > 0 && comments[0].bookingId) {
+      const bookingResponse = await backend.get(`/bookings/${comments[0].bookingId}`);
+      booking = bookingResponse.data[0];
 
-      let subtotalSum = 0;
-      if (comments.length && booking.startTime && booking.endTime && room[0]?.rate) {
-        const total = handleSubtotalSum(booking.startTime, booking.endTime, room[0].rate);
-        subtotalSum = parseFloat(total) * comments.length;
-      }
+      const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
+      room = roomResponse.data;
+    }
 
-      return {
-        instructors: instructorResponse.data,
-        programName: programNameResponse.data[0].name,
-        payees: payeesResponse.data,
-        comments,
-        booking,
-        room,
-        remainingBalance,
-        subtotalSum,
-      };
+    const unpaidTotals = await Promise.all(
+      unpaidInvoicesResponse.data.map(invoice =>
+        backend.get(`/invoices/total/${invoice.id}`)
+      )
+    );
+    const partiallyPaidTotals = await Promise.all(
+      unpaidInvoicesResponse.data.map(invoice =>
+        backend.get(`/invoices/paid/${invoice.id}`)
+      )
+    );
+
+    const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
+    const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
+      return res.data.total ? sum + Number(res.data.total) : sum;
+    }, 0);
+
+    const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+
+    let subtotalSum = 0;
+    if (comments.length && booking.startTime && booking.endTime && room[0]?.rate) {
+      const total = handleSubtotalSum(booking.startTime, booking.endTime, room[0].rate);
+      subtotalSum = parseFloat(total) * comments.length;
+    }
+
+    return {
+      instructors: instructorResponse.data,
+      programName: programNameResponse.data[0].name,
+      payees: payeesResponse.data,
+      comments,
+      booking,
+      room,
+      remainingBalance,
+      subtotalSum,
     };
-
-
-  const generatePDFBlob = async () => {
-    const invoiceData = await fetchInvoiceData(invoice, backend);
-
-    const pdfDocument = (
-      <InvoicePDFDocument
-        invoice={invoice}
-        {...invoiceData}
-      />
-    );
-
-    const blob = await pdf(pdfDocument).toBlob();
-    return blob;
   };
 
-
-
-  const makeBlob = async () => {
-    const invoiceData = await fetchInvoiceData(invoice, backend);
-
-    const pdfDocument = (
-      <InvoicePDFDocument
-        invoice={invoice}
-        {...invoiceData}
-      />
-    );
-
-      const blob = await pdf(pdfDocument).toBlob();
-      return blob;
-    }
-
-
-
-  const handleButtonClick = async () => {
-    setLoading(true);
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-    const blob = await makeBlob();
-    console.log("blob");
-    await sendEmail(blob);
-    console.log("formData");
-    await saveEmail(blob);
-    console.log("saved email");
-    setisConfirmModalOpen(true);
-  };
-
-  const sendEmail = async (blob) => {
-    try {
-      if (blob) {
-        const formData = new FormData();
-        formData.append("pdfFile", blob, `${pdf_title}.pdf`);
-        formData.append("to", emails);
-        formData.append("subject", title);
-        formData.append("text", message);
-        formData.append("html", `<p>${message.replace(/\n/g, "<br />")}</p>`);
-        formData.append("cc", ccEmails);
-        formData.append("bcc", bccEmails);
-
-        const response = await backend.post("/email/send", formData);
-
-        console.log("Email sent successfully!", response.data);
-      }
-    } catch (error) {
-      console.error("Error sending email:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveEmail = async (blob) => {
-    try {
-      if (blob) {
-        const formData = new FormData();
-        formData.append("file", blob, `${pdf_title}.pdf`);
-        formData.append("comment", "");
-
-        await backend.post(`invoices/backupInvoice/` + id, formData);
-      }
-      else {
-        console.log("no formData for save email");
-      }
-    } catch (error) {
-      console.error("Error saving email to database:", error);
-    }
+  const handleEmailClick = async () => {
+    const invoiceData = await fetchInvoiceData(invoice);
+    sendSaveEmail(setLoading, setisConfirmModalOpen, invoice, pdf_title, invoiceData, emails, title, message, ccEmails, bccEmails, backend, id);
   };
 
   return (
@@ -685,9 +601,7 @@ export const EmailSidebar = ({
                   />
                 }
                 bgColor="#4441C8"
-                onClick={
-                  handleButtonClick
-                }
+                onClick={handleEmailClick}
                 isDisabled={
                   !title ||
                   (emails.length === 0 &&
