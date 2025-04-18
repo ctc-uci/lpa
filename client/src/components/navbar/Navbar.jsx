@@ -72,10 +72,10 @@ const Navbar = ({ children }) => {
         paddingBottom="26px"
         paddingLeft="26px"
         paddingRight="8px"
-        minWidth="209px" // Use minWidth instead of fixed width
-        width="auto" // Allow it to grow if needed
+        minWidth="209px"
+        width="auto"
         h="260px"
-        flexShrink={0} // Prevent shrinking
+        flexShrink={0}
       >
         <VStack
           spacing="0px"

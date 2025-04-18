@@ -10,7 +10,7 @@ export const InfoTooltip = ({ tooltipInfo }) => {
           <Text
             fontFamily="Inter"
             fontSize="14px"
-            fontStyle="normal"
+            fontStyle="normal"  
             fontWeight="400"
             lineHeight="normal"
             letterSpacing="0.07px"
@@ -20,7 +20,8 @@ export const InfoTooltip = ({ tooltipInfo }) => {
           </Text>
         }
         hasArrow
-        placement={"right-end"}
+
+        placement={"right-start"}
         bg={"#718096"}
         width={"165px"}
         padding={"8px"}

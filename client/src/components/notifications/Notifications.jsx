@@ -41,13 +41,37 @@ export const Notifications = () => {
     }
   };
 
-  const getDescription = (payStatus) => {
+
+  const getDescription = (payStatus, payers) => {
+    console.log("PAYERS", payers);
+    
+    if (!payers || !payers.length) {
+      return getBaseDescription(payStatus, "unknown recipients");
+    }
+    
+    const instructorNames = payers
+      .filter(payer => payer.role === "instructor")
+      .map(payer => payer.clientName)
+      .filter(name => name && name.trim() !== ""); 
+    
+    if (instructorNames.length === 0) {
+      return getBaseDescription(payStatus, "unknown recipients");
+    }
+    
+    const formattedNames = instructorNames.length === 1 
+      ? instructorNames[0]
+      : `${instructorNames.slice(0, -1).join(", ")} and ${instructorNames[instructorNames.length - 1]}`;
+    
+    return getBaseDescription(payStatus, formattedNames);
+  };
+  
+  const getBaseDescription = (payStatus, names) => {
     if (payStatus === "overdue") {
-      return "Payment not recorded 5 days or more since the payment deadline for ";
+      return `Payment not recorded 5 days or more since the payment deadline for`;
     } else if (payStatus === "neardue") {
-      return "Email has not been sent to Tim Adams 1 week prior and payment not received 5 days past the deadline for ";
-    } else {
-      return "Email has not been sent to Tim Adams 1 week before the payment deadline for ";
+      return `Email has not been sent to ${names} 1 week prior and payment not received 5 days past the deadline for `;
+    } else { // highpriority
+      return `Email has not been sent to ${names} 1 week before the payment deadline for `;
     }
   };
 
@@ -56,7 +80,7 @@ export const Notifications = () => {
       try {
         const today = new Date();
         let endpoints = [];
-
+  
         // Only modify the endpoint if we're filtering by type AND it's not "all"
         if (filterType.type === "all") {
           endpoints = [
@@ -67,13 +91,13 @@ export const Notifications = () => {
         } else {
           endpoints = [`/invoices/${filterType.type}`];
         }
-
+  
         const responses = await Promise.all(
           endpoints.map((endpoint) => backend.get(endpoint))
         );
-
+  
         const notifsData = responses.flatMap((res) => res.data);
-
+  
         // Fetch additional data for each invoice (total, paid, event name)
         const enrichedInvoices = await Promise.all(
           notifsData.map(async (invoice) => {
@@ -83,7 +107,11 @@ export const Notifications = () => {
                 backend.get(`/invoices/paid/${invoice.id}`),
                 backend.get(`/events/${invoice.eventId}`),
               ]);
-
+  
+              const eventId = eventRes.data[0]?.id;
+              const payersRes = await backend.get(`/assignments/event/${eventId}`);
+              console.log("HERE", payersRes);
+  
               const endDate = new Date(invoice.endDate);
               const dueTime = getDueTime(endDate);
               let payStatus = "";
@@ -94,14 +122,14 @@ export const Notifications = () => {
               } else {
                 payStatus = "neardue";
               }
-
+  
               return {
                 ...invoice,
                 eventName: eventRes.data[0]?.name || "Unknown Event",
                 total: totalRes.data.total,
                 paid: paidRes.data.paid,
                 payStatus,
-                description: getDescription(payStatus),
+                description: getDescription(payStatus, payersRes.data),
                 dueTime,
               };
             } catch (err) {
@@ -116,11 +144,12 @@ export const Notifications = () => {
                 paid: 0,
                 payStatus: "Unknown",
                 dueTime: "Unknown",
+                payers: [],
               };
             }
           })
         );
-
+  
         setNotifications(enrichedInvoices); // attaches additional info onto invoices
       } catch (err) {
         console.error("Failed to fetch invoices", err);
@@ -128,6 +157,7 @@ export const Notifications = () => {
     };
     fetchNotifs();
   }, [filterType, backend]);
+
 
   return (
     <Navbar currentPage="notifications">

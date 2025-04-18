@@ -30,6 +30,15 @@
   font-weight: var(--font-weight);
   line-height: var(--line-height);
 }
+.icon-filter-style {
+  color: var(--Secondary-8, #2D3748);
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: var(--line-height);
+  letter-spacing: 0.07px;
+}
 
 /* MenuButton arrow icon */
 .menu-button-icon {

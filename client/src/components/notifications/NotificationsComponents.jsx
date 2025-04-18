@@ -18,13 +18,11 @@ import {
   Tr,
 } from "@chakra-ui/react";
 
-
-
 import { archiveCalendar } from "../../assets/icons/ProgramIcons";
-import { InfoTooltip } from "./InfoTooltip";
 import arrowsSvg from "../../assets/icons/right-icon.svg";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
+import { InfoTooltip } from "./InfoTooltip";
 
 const NotificationsComponents = ({ notifications }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,7 +36,8 @@ const NotificationsComponents = ({ notifications }) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalNotifications);
 
-  const currentNotifications = sortedNotifications?.slice(startIndex, endIndex) || [];
+  const currentNotifications =
+    sortedNotifications?.slice(startIndex, endIndex) || [];
 
   useEffect(() => {
     setCurrentPage(1);
@@ -122,44 +121,45 @@ const NotificationsComponents = ({ notifications }) => {
       overdue: {
         label: "Past Due",
         color: "#90080F",
+        fontWeight: "700",
         tooltip: "Payment Overdue (5+ Days)",
       },
       neardue: {
         label: "Email Not Sent",
-        color: "#2D3748",
+        color: "var(--Secondary-8, #2D3748)",
+        fontWeight: "400",
         tooltip: "Email Has Not Been Sent (1+ Weeks)",
       },
       highpriority: {
         label: "Both",
         color: "#90080F",
+        fontWeight: "700",
         tooltip: "Past Due and Email Not Sent",
       },
       default: {
         label: "Other",
-        color: "#2D3748",
+        color: "var(--Secondary-8, #2D3748)",
+        fontWeight: "400",
         tooltip: "Status not categorized",
       },
     };
-
-    const { label, color } = statusMap[payStatus] || statusMap.default;
-    const tooltipInfo = statusMap[payStatus].tooltip;
-
+  
+    const { label, color, fontWeight, tooltip } = statusMap[payStatus] || statusMap.default;
+  
     return (
       <HStack spacing={1}>
         <Text
-          color="var(--destructive, #90080F)"
+          color={color}
           fontFamily="Inter"
           fontSize="14px"
           fontStyle="normal"
-          fontWeight="700"
+          fontWeight={fontWeight}
           lineHeight="normal"
           letterSpacing="0.07px"
         >
           {label}
         </Text>
-        <InfoTooltip
-          tooltipInfo={tooltipInfo}
-        />
+        <InfoTooltip tooltipInfo={tooltip} />
       </HStack>
     );
   };
@@ -172,7 +172,10 @@ const NotificationsComponents = ({ notifications }) => {
       fontStyle: "normal",
       fontWeight: "400",
       lineHeight: "normal",
-      letterSpacing: "0.07px",
+      wordBreak: "break-word",
+      whiteSpace: "normal",
+      overflowWrap: "break-word",
+      width: "100%",
     };
 
     const linkStyles = {
@@ -181,26 +184,14 @@ const NotificationsComponents = ({ notifications }) => {
       cursor: "pointer",
     };
 
-    if (payStatus === "overdue") {
-      return (
-        <Text sx={textStyles}>
-          {description} <span style={linkStyles}>{eventName}</span>.
-          
-        </Text>
-      );
-    } else if (payStatus === "neardue") {
-      return (
-        <Text sx={textStyles}>
-          {description} <span style={linkStyles}>{eventName}</span>.
-        </Text>
-      );
-    } else {
-      return (
-        <Text sx={textStyles}>
-          {description} <span style={linkStyles}>{eventName}</span>.
-        </Text>
-      );
-    }
+    return (
+      <Text
+        sx={textStyles}
+        title={`${description} ${eventName}.`}
+      >
+        {description} <span style={linkStyles}>{eventName}</span>.
+      </Text>
+    );
   };
   const CalendarIcon = () => (
     <svg
@@ -219,8 +210,8 @@ const NotificationsComponents = ({ notifications }) => {
 
   return (
     <>
-      <TableContainer >
-      <Table variant="simple">
+      <TableContainer>
+        <Table variant="simple">
           <Thead>
             <Tr>
               <Th
@@ -312,7 +303,11 @@ const NotificationsComponents = ({ notifications }) => {
                 <Tr key={index}>
                   <Td paddingLeft="0px">{getNotifType(item.payStatus)}</Td>
                   <Td paddingLeft="24px">
-                    {paymentText(item.eventName, item.payStatus, item.description)}
+                    {paymentText(
+                      item.eventName,
+                      item.payStatus,
+                      item.description
+                    )}
                   </Td>
                   <Td>
                     <Text
