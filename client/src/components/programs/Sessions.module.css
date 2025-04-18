@@ -1,0 +1,19 @@
+.sessionSelect {
+    display: flex;
+    height: 40px;
+    padding: 0px 16px;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    flex: 1 0 0;
+    border-radius: 6px;
+    background: var(--Secondary-2-Default, #EDF2F7);
+    color: var(--Secondary-8, #2D3748);
+    /* Titles/Title sm */
+    font-family: Inter;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: 0.07px;
+}
