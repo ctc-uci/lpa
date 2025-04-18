@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from "react";
 
 import { DownloadIcon } from "@chakra-ui/icons";
-import { Box, Flex, IconButton, Spinner, Button } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner } from "@chakra-ui/react";
 
 import {
-  Document,
-  Image,
-  Page,
-  PDFDownloadLink,
   PDFViewer,
-  StyleSheet,
   Text,
-  View,
 } from "@react-pdf/renderer";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoicePDFDocument } from "./InvoicePDFDocument";
@@ -44,8 +38,6 @@ const handleSubtotalSum = (startTime, endTime, rate) => {
 const PDFButtonInvoice = ({ id }) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
-  const [invoice, setInvoice] = useState(null);
-  const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const fetchInvoiceData = async (invoice, backend, id) => {
@@ -57,7 +49,6 @@ const PDFButtonInvoice = ({ id }) => {
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
-      invoiceTotalResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
       backend.get(`/comments/invoice/${id}`),
@@ -180,7 +171,6 @@ const TestPDFViewer = ({ id }) => {
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
-      invoiceTotalResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
       backend.get(`/comments/invoice/${id}`),

@@ -55,7 +55,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 16px;
   font-style: normal;
   font-weight: 500;
-  line-height: 20px; /* 125% */
+  line-height: 20px;
 }
 
 #body {
@@ -104,7 +104,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   flex-direction: row;
   justify-content: space-between;
   width: 90%;
-  /* align-items: center; */
   font-size: 170%;
   margin-bottom: 5%;
 }
@@ -358,7 +357,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 18px;
   font-style: normal;
   font-weight: 400;
-  line-height: 22px; /* 122.222% */;
+  line-height: 22px; 
 }
 
 #deactivateDeadlineText {

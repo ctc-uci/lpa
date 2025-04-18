@@ -13,7 +13,6 @@ import {
   Link,
   Radio,
   RadioGroup,
-  Select,
   SimpleGrid,
   Stack,
   Table,
@@ -175,21 +174,6 @@ const EditInvoiceDetails = ({
             overflowY="auto"
           >
             <Text fontWeight="bold">Lead Artist(s):</Text>
-
-            {/* {instructors && instructors.length > 0 ? (
-              instructors.map((instructor, index) => (
-                <HStack key={index}>
-                  <Text
-                    size="sm"
-                    mr={2}
-                  >
-                    {instructor.name} - {instructor.email}
-                  </Text>
-                </HStack>
-              ))
-            ) : (
-              <Text>No instructors found.</Text>
-            )} */}
                   <Text
                     size="sm"
                     mr={2}

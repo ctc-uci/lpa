@@ -2,8 +2,6 @@ import {
   Document,
   Image,
   Page,
-  PDFDownloadLink,
-  PDFViewer,
   StyleSheet,
   Text,
   View,

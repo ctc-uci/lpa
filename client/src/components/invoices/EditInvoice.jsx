@@ -17,7 +17,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
-import emailIcon from "../../assets/icons/emailIcon.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import {
@@ -25,7 +24,6 @@ import {
   EditInvoiceTitle,
   FooterDescription,
   InvoiceSummary,
-  RadioDropdown,
   StatementComments,
 } from "./EditInvoiceComponents";
 
@@ -245,7 +243,6 @@ export const EditInvoice = () => {
     navigate(`/invoices/${id}`);
   };
 
-  // Function to handle save
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -272,14 +269,14 @@ export const EditInvoice = () => {
 
         try {
           if (comment.id) {
-            // Update existing comment with PUT request
+            // Update existing comment
             const response = await backend.put(
               `/comments/${comment.id}`,
               commentData
             );
             console.log("Updated comment:", response.data);
           } else {
-            // Create new comment with POST request
+            // Create new comment
             const response = await backend.post(`/comments`, commentData);
             console.log("Created new comment:", response.data);
           }
@@ -382,7 +379,6 @@ export const EditInvoice = () => {
               setRoom={setRoom}
             />
             <FooterDescription />
-            {/* <RadioDropdown/> */}
           </Box>
         </VStack>
         <Image

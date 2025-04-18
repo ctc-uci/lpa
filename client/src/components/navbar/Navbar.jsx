@@ -1,6 +1,4 @@
-import { Box, Flex, VStack } from "@chakra-ui/react";
-import { createContext } from "react";
-import { IoMdCalendar } from "react-icons/io";
+import { Box, VStack } from "@chakra-ui/react";
 import { MdNotifications, MdSettings } from "react-icons/md";
 import { useLocation } from "react-router-dom";
 import { DocumentIcon } from "../../assets/DocumentIcon";

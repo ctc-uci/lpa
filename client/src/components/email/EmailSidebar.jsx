@@ -413,7 +413,6 @@ export const EmailSidebar = ({
             mt="5"
             fontSize="md"
           >
-            {/* <Text fontSize={"18px"} color={"black"}>{title}</Text> */}
             <Input
               placeholder="Subject"
               value={title}

@@ -29,7 +29,6 @@ import {
   Flex,
   FormControl,
   Heading,
-  HStack,
   Icon,
   IconButton,
   Input,
@@ -128,7 +127,6 @@ export const ProgramSummary = ({
     setSelectedAction(action);
     setSelectedIcon(iconSrc);
   };
-  //const [loading, setLoading] = useState(false);
 
   const formatTimeString = (timeString) => {
     if (!timeString) return "";
@@ -1457,7 +1455,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         alignItems="center"
                         gap="8px"
                       >
-                        {/* <PersonIcon /> */}
                         <Text
                           textTransform="none"
                           color="#767778"
@@ -1477,7 +1474,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         alignItems="center"
                         gap="8px"
                       >
-                        {/* <PersonIcon /> */}
                         <Text
                           textTransform="none"
                           color="#767778"

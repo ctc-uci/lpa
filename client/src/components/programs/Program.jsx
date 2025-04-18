@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import './Program.css';
-import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
+import { Box, IconButton } from "@chakra-ui/react";
 
 import { useParams } from "react-router";
 

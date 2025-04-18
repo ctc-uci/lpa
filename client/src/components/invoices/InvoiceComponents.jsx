@@ -39,7 +39,7 @@ import filterIcon from "../../assets/filter.svg";
 import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import arrowsSvg from "../../assets/icons/right-icon.svg";
 import personIcon from "../../assets/person.svg";
-import { PDFButtonInvoice, TestPDFViewer } from "./PDFButtonInvoice";
+import { PDFButtonInvoice } from "./PDFButtonInvoice";
 
 const InvoiceTitle = ({ title }) => {
   return (
@@ -598,7 +598,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                           borderRadius="md"
                         />
                       </Td>
-                      
+
                     </Tr>
                 );
               })}

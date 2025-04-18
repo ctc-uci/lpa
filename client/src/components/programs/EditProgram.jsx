@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import './EditProgram.css';
 
 import {
@@ -480,8 +480,6 @@ const payees = eventClientResponse.data
               </div>
             </div>
             <div id="innerBody">
-
-
               <ReoccuranceDropdown
                 setSelectedDays={setSelectedDays}
                 repeatType={repeatType}

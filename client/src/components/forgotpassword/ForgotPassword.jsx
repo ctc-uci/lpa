@@ -3,15 +3,11 @@ import {
   Button,
   Center,
   Link as ChakraLink,
-  Flex,
   FormControl,
   FormErrorMessage,
   Heading,
   Icon,
-  Image,
   Input,
-  InputGroup,
-  InputLeftElement,
   Text,
   useToast,
   VStack,
@@ -21,7 +17,6 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { AiFillMail } from "react-icons/ai";
-import { FaEnvelope } from "react-icons/fa6";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 

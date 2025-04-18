@@ -8,8 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import './EditProgram.css';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { IoCloseOutline } from "react-icons/io5";
-import { CiCircleMore } from "react-icons/ci";
-import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
@@ -48,7 +46,6 @@ export const AddProgram = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedDays, setSelectedDays] = useState([]);
-  const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
@@ -426,7 +423,6 @@ export const AddProgram = () => {
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
           <div id="eventInfoBody">
             <div id="title">
-              {/* <h1><b>{eventName}</b></h1> */}
 
               <TitleInformation
                 eventName={eventName}

@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  DeleteIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -35,8 +33,6 @@ import {
   PopoverContent,
   PopoverTrigger,
   Portal,
-  Spinner,
-  Stack,
   Table,
   TableContainer,
   Tbody,
@@ -463,7 +459,7 @@ export const ArchivedPrograms = () => {
           newAssignmentData
         );
       }
-      
+
       return newEvent.data;
     } catch (error) {
       console.log("Couldn't duplicate event", error);

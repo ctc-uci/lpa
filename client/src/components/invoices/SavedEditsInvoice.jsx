@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import {
   Box,
-  Button,
   Flex,
-  HStack,
   Icon,
   IconButton,
   Image,
