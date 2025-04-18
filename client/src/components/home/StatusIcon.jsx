@@ -29,7 +29,6 @@ const StatusTooltip = () => {
         </Text>
       </PopoverTrigger>
       <PopoverContent
-        // w="120px"
         w="fit-content"
         p={2}
         borderRadius="lg"

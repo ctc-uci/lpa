@@ -64,8 +64,7 @@ export const EventsTable = () => {
     }
 
     useEffect(() => {
-        // call the fetch event here to fetch all events
-        fetchEvents();
+      fetchEvents();
     }, []);
 
     return (

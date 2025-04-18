@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 import {
     Box,
@@ -177,7 +177,6 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
             onCancel();
         } else {
             setRoomName(originalRoomName);
-            // setRoomName(room.name);
             setRoomRate(parseFloat(room.rate).toFixed(2));
             setRoomDescription(room.description);
             setInvalidRoomName(false);
@@ -305,7 +304,6 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
                     isOpen={isCancelModalOpen}
                     onClose={onCancelModalClose}
                     title="Discard changes?"
-                    // body={`Your edits to the ${roomName || "new"} room will not be saved.`}
                     body={`Your edits to the ${room.id ? originalRoomName : roomName || "new"} room will not be saved.`}
                     onConfirm={handleCancel}
                     primaryButtonBackgroundColor="#90080F"

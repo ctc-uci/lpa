@@ -13,7 +13,6 @@ import {
   Link,
   Radio,
   RadioGroup,
-  Select,
   SimpleGrid,
   Stack,
   Table,
@@ -175,21 +174,30 @@ const EditInvoiceDetails = ({
             overflowY="auto"
           >
             <Text fontWeight="bold">Lead Artist(s):</Text>
-
-            {instructors && instructors.length > 0 ? (
-              instructors.map((instructor, index) => (
-                <HStack key={index}>
                   <Text
                     size="sm"
                     mr={2}
                   >
-                    {instructor.name} - {instructor.email}
+                    Jay Sotelo - jaysotelo@gmail.com
                   </Text>
-                </HStack>
-              ))
-            ) : (
-              <Text>No instructors found.</Text>
-            )}
+                  <Text
+                    size="sm"
+                    mr={2}
+                  >
+                    Jessie He - jessiehe@gmail.com
+                  </Text>
+                  <Text
+                    size="sm"
+                    mr={2}
+                  >
+                    Nate Pietrantonio - thenatepie@gmail.com
+                  </Text>
+                  <Text
+                    size="sm"
+                    mr={2}
+                  >
+                    William Garcia - willgarcia@gmail.com
+                  </Text>
           </VStack>
         </HStack>
       </SimpleGrid>
@@ -339,7 +347,6 @@ const StatementComments = ({
         >
           <Table
             color="#EDF2F7"
-            style={{ width: "100%" }}
             textAlign="center"
           >
             <Thead>
@@ -1003,11 +1010,6 @@ const RadioDropdown = ({
     const newComments = [...commentsState];
     newComments[index].adjustmentType = value;
     setComments(newComments);
-
-    // // Notify parent component
-    // if (onCommentsChange) {
-    //   onCommentsChange(newComments);
-    // }
   };
 
   return (

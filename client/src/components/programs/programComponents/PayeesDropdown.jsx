@@ -14,7 +14,7 @@ import personSvg from "../../../assets/person.svg";
 
 export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees, getPayeeResults, setPayeeSearchTerm, setSelectedPayees, setSearchedPayees} ) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
-    
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (!event.target.closest("#payeeContainer")) {
@@ -46,8 +46,8 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                 value={payeeSearchTerm} id="payeeInput"
                                 autocomplete="off"
                                 />
-                            <Box 
-                                as="button" 
+                            <Box
+                                as="button"
                                 onClick={() => {
                                 if (payeeSearchTerm.trim() !== "") {
                                     // Find the instructor from the searched list
@@ -63,13 +63,13 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                     getPayeeResults(")")
                                 }
                                 }}
-                                disabled={ 
-                                payeeSearchTerm.trim() === "" || 
-                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase()) 
+                                disabled={
+                                payeeSearchTerm.trim() === "" ||
+                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
                                 }
                                 cursor={
-                                payeeSearchTerm.trim()==="" || 
-                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase()) 
+                                payeeSearchTerm.trim()==="" ||
+                                !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
                                 ? "not-allowed" : "pointer"
                                 }
                                 _hover={{ color: payeeSearchTerm.trim() !== "" ? "#800080" : "inherit" }}
@@ -90,26 +90,9 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                     <Box
                                         key={payee.id}
                                         onClick={() => {
-                                            setPayeeSearchTerm(payee.name); // Fill input field
-                                            setDropdownVisible(false); // Hide dropdown after selecting
-                                        // const alreadySelected = selectedPayees.find(
-                                        //     (pay) => pay.id.toString() === payee.id
-                                        // );
-
-                                        // if (!alreadySelected) {
-                                        //     setSelectedPayees((prevItems) => [...prevItems, payee]);
-                                        //     setPayeeSearchTerm(""); // Clears input
-                                        //     setSearchedPayees([]); // Closes dropdown
-                                        // }
-
-                                        // if (payee && !alreadySelected) {
-                                        //     setSelectedPayees((prevItems) => [...prevItems, payee]);
-                                        //     const filteredPayees = searchedPayees.filter(
-                                        //     (pay) => payee.id !== pay.id.toString()
-                                        //     );
-                                        //     setSearchedPayees(filteredPayees);
-                                        // }
-                                    }}
+                                            setPayeeSearchTerm(payee.name);
+                                            setDropdownVisible(false);
+                                        }}
                                         style={{
                                             padding: "10px",
                                             fontSize: "16px",

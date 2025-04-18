@@ -11,15 +11,6 @@ const colors = {
 
 const theme = extendTheme({ colors });
 
-// For TSX
-// createRoot(document.getElementById("root")!).render(
-//   <StrictMode>
-//     <ChakraProvider theme={theme}>
-//       <App />
-//     </ChakraProvider>
-//   </StrictMode>
-// );
-
 const root = document.getElementById('root');
 if (root) {
   createRoot(root).render(

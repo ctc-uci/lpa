@@ -36,7 +36,6 @@ export const SingleInvoice = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // get current invoice
                 const currentInvoiceResponse = await backend.get("/invoices/" + id);
 
                 // If no invoice is found, set everything to null
@@ -51,14 +50,11 @@ export const SingleInvoice = () => {
                   return;
               }
 
-                // get invoice total
                 const invoiceTotalResponse = await backend.get("/invoices/total/" + id);
                 setTotal(invoiceTotalResponse.data.total)
 
-                // get the unpaid/remaining invoices
                 const unpaidInvoicesResponse = await backend.get("/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]);
 
-                // calculate sum of unpaid/remaining invoices
                 const unpaidTotals = await Promise.all(
                   unpaidInvoicesResponse.data.map(invoice => backend.get(`/invoices/total/${invoice.id}`))
                 );
@@ -70,7 +66,6 @@ export const SingleInvoice = () => {
                 const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
                 setRemainingBalance(remainingBalance);
 
-                // set billing period
                 setBillingPeriod(
                   {
                     "startDate": currentInvoiceResponse.data[0]["startDate"],
@@ -78,24 +73,19 @@ export const SingleInvoice = () => {
                   }
                 )
 
-                // get comments
                 const commentsResponse = await backend.get('/comments/paidInvoices/' + id);
                 setComments(commentsResponse.data);
 
-                // get emails
                 const emailsResponse = await backend.get('/invoices/historicInvoices/' + id);
                 setEmails(emailsResponse.data);
                 console.log(emailsResponse)
 
-                // get payees
                 const payeesResponse = await backend.get("/invoices/payees/" + id);
                 setPayees(payeesResponse.data)
 
-                // get corresponding event
                 const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
                 setEvent(eventResponse.data)
             } catch (error) {
-              // Invoice/field does not exist
               console.error("Error fetching data:", error);
             }
         };

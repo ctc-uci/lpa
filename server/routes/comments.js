@@ -93,8 +93,6 @@ commentsRouter.put("/:id", async (req, res) => {
       adjustment_value,
     } = req.body;
 
-    // console.log("adjustment type in backend", req.body)
-
     const fields = [];
     if (user_id) fields.push(`user_id = $(user_id)`);
     if (booking_id) fields.push(`booking_id = $(booking_id)`);
@@ -155,7 +153,6 @@ commentsRouter.post("/", async (req, res) => {
       adjustment_value,
     } = req.body;
 
-    // Insertnew
     const inserted_row = await db.query(
       `INSERT INTO comments (user_id, booking_id, invoice_id, datetime, comment, adjustment_type, adjustment_value) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;`,
       [

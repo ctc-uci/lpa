@@ -63,7 +63,7 @@ export const EditBooking = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const { id } = useParams();
-  const [locations, setLocations] = useState({}); // rooms.id rooms.name
+  const [locations, setLocations] = useState({});
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState("");
   const [locationRate, setLocationRate] = useState("--.--");

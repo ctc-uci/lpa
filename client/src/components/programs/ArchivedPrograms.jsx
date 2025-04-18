@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  DeleteIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -35,8 +33,6 @@ import {
   PopoverContent,
   PopoverTrigger,
   Portal,
-  Spinner,
-  Stack,
   Table,
   TableContainer,
   Tbody,
@@ -77,7 +73,6 @@ export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
   const [program, setPrograms] = useState([]);
   const [archived, setArchived] = useState([]);
-  // const [sessions, setSessions] = useState(null);
   const [uniqueRooms, setUniqueRooms] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
   const [archivedSessions, setArchivedProgramSessions] = useState([]);
@@ -170,7 +165,6 @@ export const ArchivedPrograms = () => {
             // get unique roomIds
             sessions.forEach((session) => allRoomIds.add(session.roomId));
 
-            // get most recent session
             mostRecentSession = sessions.reduce((latest, current) => {
               return new Date(current.date) > new Date(latest.date)
                 ? current
@@ -218,7 +212,6 @@ export const ArchivedPrograms = () => {
         info.push(thisSession);
       }
 
-      // Store this data in state
       setArchivedProgramSessions(info);
       setUniqueRooms([...allRoomIds]);
       console.log("here");
@@ -467,7 +460,6 @@ export const ArchivedPrograms = () => {
         );
       }
 
-      // Return the new program data
       return newEvent.data;
     } catch (error) {
       console.log("Couldn't duplicate event", error);

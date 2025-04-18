@@ -4,7 +4,6 @@ import {
   Center,
   Link as ChakraLink,
   Heading,
-  Image,
   Text,
   VStack,
 } from "@chakra-ui/react";

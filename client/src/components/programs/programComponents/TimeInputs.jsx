@@ -50,7 +50,6 @@ export const TimeInputs = ({ selectedDays, setSelectedDays, startTime, endTime, 
             const fullDayName = getFullDayName(day);
             return (
               <Flex key={day} alignItems="center" w="100%">
-                {/* start time */}
                 <TimeInput
                   value={selectedDays[day].start}
                   onChange={(event) =>
@@ -61,7 +60,6 @@ export const TimeInputs = ({ selectedDays, setSelectedDays, startTime, endTime, 
                   }
                 />
                 <Text mx={7} color="#2D3748">to</Text>
-                {/* end time */}
                 <TimeInput
                   value={selectedDays[day].end}
                   onChange={(event) =>

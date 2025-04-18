@@ -134,10 +134,8 @@ bookingsRouter.get("/rooms/event/:id", async (req, res) => {
 
 bookingsRouter.post("/", async (req, res) => {
   try {
-    // Get new booking data
     const { event_id, room_id, start_time, end_time, date, archived } = req.body;
 
-    // Insert new booking into database
     const data = await db.query(
         `INSERT INTO bookings (event_id, room_id, start_time, end_time, date, archived) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
         [ event_id, room_id, start_time, end_time, date, archived ]
@@ -155,7 +153,6 @@ bookingsRouter.put("/:id", async (req, res) => {
 
       const { event_id, room_id, start_time, end_time, date, archived } = req.body;
 
-      // Update booking in database
       const data = await db.query(
         `
         UPDATE bookings
@@ -193,7 +190,6 @@ bookingsRouter.put("/event/:id", async (req, res) => {
         [event_id, description]
     );
 
-      // Update booking in database
       const data = await db.query(
         `
         UPDATE bookings
@@ -220,7 +216,6 @@ bookingsRouter.delete("/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
-      // Delete booking from database
       const data = await db.query("DELETE FROM bookings WHERE id = $1 RETURNING *",
         [ id ]);
 
@@ -234,11 +229,11 @@ bookingsRouter.delete("/:id", async (req, res) => {
     }
   });
 
+// Delete all bookings/sessions from database for a given event
 bookingsRouter.delete("/event/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
-      // Delete all bookings from database for a given event
       const data = await db.query("DELETE FROM bookings WHERE event_id = $1 RETURNING *",
         [ id ]);
 
