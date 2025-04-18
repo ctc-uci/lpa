@@ -144,7 +144,7 @@ export const Program = () => {
   // }
 
   return (
-    <Navbar>
+    <Navbar currentPage="progams">
       <Box style={{width: "100%", padding: "20px 20px 20px 20px"}}>
           <IconButton
             icon={<ChevronLeftIcon />}

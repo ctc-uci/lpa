@@ -38,24 +38,10 @@ const DateSortingModal = ({ onSortChange }) => {
       </MenuButton>
       <MenuList className="date-sorting-popup">
         <MenuItem onClick={() => onSortChange("date", "asc")}>
-          <Flex
-            align="center"
-            gap={2}
-            className="sort-menu-item"
-          >
-            <TriangleUpIcon className="triangle-icon icon-style" />
-            <Box className="icon-style">Soonest - Latest</Box>
-          </Flex>
+          <Box className="icon-style">Soonest - Latest</Box>
         </MenuItem>
         <MenuItem onClick={() => onSortChange("date", "desc")}>
-          <Flex
-            align="center"
-            gap={2}
-            className="sort-menu-item"
-          >
-            <TriangleDownIcon className="triangle-icon icon-style" />
-            <Box className="icon-style">Latest - Soonest</Box>
-          </Flex>
+          <Box className="icon-style">Latest - Soonest</Box>
         </MenuItem>
       </MenuList>
     </Menu>

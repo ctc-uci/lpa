@@ -2,11 +2,13 @@
   --white: #fff;
   --border-color: #d2d2d2;
   --hover-bg: #f0f1f4;
-  --text-color: #767778;
+  --text-color: var(--Secondary-8, #2D3748);
   --font-family: "Inter", sans-serif;
-  --font-size: 16px;
-  --font-weight: 600;
+  --font-size: 14px;
+  --font-weight: 400;
   --line-height: normal;
+  --letter-spacing: 0.07px;
+  --filter-font-size: 14px;
 }
 
 .chakra-menu__menuitem {
@@ -29,6 +31,7 @@
   font-style: normal;
   font-weight: var(--font-weight);
   line-height: var(--line-height);
+  letter-spacing: var(--letter-spacing);
 }
 
 /* MenuButton arrow icon */
@@ -49,26 +52,25 @@
 }
 
 /* Program sorting popup */
+/* Program sorting popup */
 .program-sorting-popup {
-  width: 129px !important;
-  min-width: 129px !important;
-  max-width: 129px !important;
-  height: 129px !important;
-  padding: 8px;
-  box-sizing: border-box;
-  border-radius: 15px;
-  border: 1px solid var(--border-color);
-  background: var(--white);
   display: flex;
+  width: 176px;
+  padding: 4px;
   flex-direction: column;
-  justify-content: space-evenly;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--Secondary-3, #E2E8F0);
+  background: #FFF;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
 }
 
-/* Force inner container to respect width */
+/* Force inner container to respect width - adjust to match outer container better */
 .program-sorting-popup > div {
-  width: 113px !important;
-  min-width: 113px !important;
-  max-width: 113px !important;
+  width: 168px !important; /* Changed from 113px to 168px (176px - 8px for padding) */
+  min-width: 168px !important;
+  max-width: 168px !important;
 }
 
 /* Each menu item inside the program popup */
@@ -86,16 +88,12 @@
 
 /* Date sorting popup */
 .date-sorting-popup {
-  width: 285px !important;
-  height: 129px !important;
-  padding: 8px;
-  box-sizing: border-box;
-  border-radius: 15px;
-  border: 1px solid var(--border-color);
-  background: var(--white);
   display: flex;
+  width: 200px;
+  padding: 4px;
   flex-direction: column;
-  justify-content: space-evenly;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 /* Each menu item inside the date popup */
