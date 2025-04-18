@@ -90,7 +90,11 @@ export const Program = () => {
     try {
       const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
-      setSessions(sessionsData);
+
+      // Only get activeSessions
+      const activeSessions = sessionsData.filter(session => session.archived === false);
+      setSessions(activeSessions);
+      
       // Get set of room ids
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),
@@ -132,19 +136,6 @@ export const Program = () => {
       getNextBookingInfo();
     }
   }, [program, sessions]);
-
-  // if (isArchived){
-  //   return(
-  //     <Navbar>
-  //       <Box style = {{ width : "100%", padding : "20px"}}>
-  //         <Text> Program is archived.</Text>
-  //       <Box>
-  //         <Text fontSize = "lg"> Archived Program Information </Text>
-  //       </Box>
-  //     </Box>
-  //   </Navbar>
-  //   )
-  // }
 
   return (
     <Navbar>

@@ -21,14 +21,19 @@ import {
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { ArchiveIcon } from '../../assets/ArchiveIcon';
 import { DeleteIcon } from '../../assets/DeleteIcon';
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { getCurrentUser } from "../../utils/auth/firebase";
+
 
 export const CancelSessionModal = ({
   isOpen,
   onClose,
   selectedSessions = [],
   onConfirm,
-  eventType = "Session" // Default value
+  eventType = "Session", // Default value
+  refreshSessions
 }) => {
+  const { backend } = useBackendContext();
   const [selectedAction, setSelectedAction] = useState("Archive");
   const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
   const [cancellationReason, setCancellationReason] = useState("");
@@ -46,9 +51,97 @@ export const CancelSessionModal = ({
     });
   };
 
-  const handleConfirmAndClose = () => {
-    onConfirm(selectedAction, cancellationReason, waivedFees);
-    onClose(); // Close the modal after confirming
+
+  const handleConfirmAndClose = async () => {
+    const currentFirebaseUser = await getCurrentUser();
+    const firebaseUid = currentFirebaseUser?.uid;
+
+    if (!firebaseUid) {
+      console.error("No logged in user");
+      return;
+    }
+
+    const userRes = await backend.get(`/users/${firebaseUid}`);
+    const userId = userRes.data[0].id;
+    console.log("HERE IS USER:", userId);
+
+    for (const session of selectedSessions) {
+      const pastDeadline = isPastDeadline(session.date);
+      const waived = waivedFees[session.id];
+
+      if ((!pastDeadline || waived) && selectedAction === "Delete") {
+        // Fee is waived / session is deleted
+        await backend.delete(`/bookings/${session.id}`);
+      } else if ((!pastDeadline || waived) && selectedAction === "Archive") {
+        await backend.patch(`/bookings/archive/${session.id}`);
+      } else {
+        const invoiceData = await backend.get(`/invoices/event/${session.eventId}`);
+        const invoice = invoiceData.data[0];
+        const roomData = await backend.get(`rooms/${session.roomId}`);
+        const room = roomData.data[0];
+        const programAdjustments = await backend.get(`/comments/program-invoice/${session.eventId}/${invoice.id}`);
+        const sessionAdjustments = await backend.get(`/comments/session-invoice/${session.id}/${invoice.id}`);
+
+        let modifiedRate = parseFloat(room.rate);
+
+        // Apply program adjustments
+        if (programAdjustments.data.length !== 0) {
+          for (const adj of programAdjustments.data) {
+            if (adj.adjustmentType === "rate_flat") {
+              modifiedRate += Number(adj.adjustmentValue);
+            } else if (adj.adjustmentType === "rate_percent") {
+              modifiedRate *= 1 + Number(adj.adjustmentValue) / 100;
+            }
+          }
+        }
+
+        // Apply session adjustments
+        if (sessionAdjustments.data.length !== 0) {
+          for (const adj of sessionAdjustments.data) {
+            if (adj.adjustmentType === "rate_flat") {
+              modifiedRate += Number(adj.adjustmentValue);
+            } else if (adj.adjustmentType === "rate_percent") {
+              modifiedRate *= 1 + Number(adj.adjustmentValue) / 100;
+            }
+          }
+        }
+
+        // Calculate by duration
+        const start = new Date(`1970-01-01T${session.startTime}:00`);
+        const end = new Date(`1970-01-01T${session.endTime}:00`);
+        const duration = (end - start) / (1000 * 60 * 60); // in hours
+        const baseCost = modifiedRate * duration;
+
+        const totalAdds = sessionAdjustments.data
+        .filter(adj => adj.adjustment_type === "total")
+        .reduce((acc, curr) => acc + Number(curr.adjustment_value), 0);
+
+        const finalCost = baseCost + totalAdds;
+        console.log("comm", userId);
+        const comment = {
+          user_id: userId,
+          session_id: session.id,
+          invoice_id: invoice.id,
+          datetime: new Date(),
+          comment: `Cancellation adjustment for ${formatDate(session.date)}. ${cancellationReason}`,
+          adjustment_type: "total",
+          adjustment_value: finalCost,
+        };
+
+        await backend.post("/comments", comment);
+
+        // Set based on action
+        if (selectedAction === "Archive") {
+          await backend.patch(`/bookings/archive/${session.id}`)
+        } else if (selectedAction === "Delete") {
+          await backend.delete(`/bookings/${session.id}`);
+        }
+
+      }
+    }
+    // Refresh sessions so the table updates
+    await refreshSessions();
+    onClose();
   };
 
   // Format the date from ISO string
@@ -123,7 +216,6 @@ export const CancelSessionModal = ({
               <Box mt={6}>
                 <Text mb={2} fontWeight="medium">Reason for cancellation:</Text>
                 <Textarea
-                  placeholder="Enter reason for cancellation..."
                   value={cancellationReason}
                   onChange={(e) => setCancellationReason(e.target.value)}
                   size="md"

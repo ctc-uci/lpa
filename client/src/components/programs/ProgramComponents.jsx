@@ -2023,6 +2023,8 @@ export const Sessions = ({
               .filter(Boolean)}
             onConfirm={handleConfirmCancel}
             eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
+            refreshSessions={refreshSessions}
+
           />
         </CardBody>
       </Card>

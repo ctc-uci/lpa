@@ -367,6 +367,42 @@ commentsRouter.delete("/booking/:id", async (req, res) => {
   }
 });
 
+// Get the flat_rate or rate_percent comments for program and
+commentsRouter.get("/program-invoice/:programId/:invoiceId", async(req, res) => {
+  try {
+    const { programId, invoiceId } = req.params;
+    const programAdjustments = await db.query (
+      `SELECT * FROM comments C
+        JOIN invoices I ON I.id = $1
+        WHERE I.event_id = $2
+        AND C.adjustment_type in ('rate_flat', 'rate_percent')
+        AND C.booking_id IS NULL`,
+        [invoiceId, programId]
+    );
+    res.status(200).json(keysToCamel(programAdjustments));
+  } catch (err) {
+    console.error(`Error fetching program adjustments for invoice: ${err.message}`);
+    res.status(500).json({ result: "error", message: err.message });
+  }
+});
+
+commentsRouter.get("/session-invoice/:sessionId/:invoiceId", async(req, res) => {
+  try {
+    const { sessionId, invoiceId } = req.params;
+    const sessionAdjustments = await db.query (
+      `SELECT * FROM comments C
+        JOIN invoices I ON C.booking_id = $1
+        WHERE C.adjustment_type in ('rate_flat', 'rate_percent', 'total')
+        AND I.id = $2`,
+        [sessionId, invoiceId]
+    );
+    res.status(200).json(keysToCamel(sessionAdjustments));
+  } catch (err) {
+    console.error(`Error fetching program adjustments for invoice: ${err.message}`);
+    res.status(500).json({ result: "error", message: err.message });
+  }
+});
+
 // Create a utility function to get the invoice total
 // Utility function to get the invoice total
 async function getInvoiceTotal(invoiceId) {
