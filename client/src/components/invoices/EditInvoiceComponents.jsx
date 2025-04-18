@@ -55,24 +55,24 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
   return (
     <Flex
       justifyContent="space-between"
-      my="8"
-      mx="4"
       fontFamily="Inter"
       color="#2D3748"
+      gap={20}
+      mb={"29.26px"}
     >
       <Stack>
         <Heading
           color="#2D3748"
           fontWeight="600"
-          fontSize="45px"
+          fontSize="23.932px"
         >
           INVOICE
         </Heading>
         <Text
           color="#718096"
-          fontSize="16px"
+          fontSize="8.509px"
         >
-          {getGeneratedDate(comments, invoice, true)}
+          Generated on {getGeneratedDate(comments, invoice, true)}
         </Text>
       </Stack>
       <Flex
@@ -85,14 +85,14 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
           align="flex-end"
           spacing={0}
         >
-          <Text fontSize="16px">La Peña Cultural Center</Text>
-          <Text fontSize="16px">3105 Shattuck Ave., Berkeley, CA 94705</Text>
-          <Text fontSize="16px">lapena.org</Text>
+          <Text fontSize="8.509px">La Peña Cultural Center</Text>
+          <Text fontSize="8.509px">3105 Shattuck Ave., Berkeley, CA 94705</Text>
+          <Text fontSize="8.509px">lapena.org</Text>
         </VStack>
         <Image
           src={logo}
           alt="La Peña Logo"
-          w="125px"
+          w={100}
         />
       </Flex>
     </Flex>
@@ -117,15 +117,17 @@ const EditInvoiceDetails = ({
       <VStack gap="0">
         <Heading
           textAlign="center"
-          size="lg"
+          fontSize="13.827px"
+          fontWeight={"600"}
         >
           Classroom Rental Monthly Statement
         </Heading>
         <Heading
-          size="sm"
+          fontSize={"8.509px"}
           textAlign="center"
           color="#2D3748"
           fontWeight="500"
+          mt={"5.85px"}
         >
           {getGeneratedDate(comments, invoice, false)}
         </Heading>
@@ -140,20 +142,36 @@ const EditInvoiceDetails = ({
           align="stretch"
           flex={1}
         >
-          <Text fontWeight="bold">Recurring Program:</Text>
-          <Text size="sm">{programName || "No program name found"}</Text>
+          <Text
+            fontSize={"8.509px"}
+            fontWeight="500"
+            color={"#718096"}
+            margin={"0 0"}
+            padding={0}
+          >
+            Recurring Program:
+          </Text>
+          <Text fontSize={"8.509px"}>
+            {programName || "No program name found"}
+          </Text>
           <VStack
             align="stretch"
             flex={1}
             maxH="120px"
             overflowY="auto"
           >
-            <Text fontWeight="bold">Designated Payers:</Text>
+            <Text
+              fontSize={"8.509px"}
+              fontWeight="500"
+              color={"#718096"}
+            >
+              Designated Payer(s):
+            </Text>
             {payees && payees.length > 0 ? (
               payees.map((payee, index) => (
                 <Text
                   key={index}
-                  size="md"
+                  fontSize={"8.509px"}
                   mr={2}
                   borderRadius="0"
                 >
@@ -161,7 +179,13 @@ const EditInvoiceDetails = ({
                 </Text>
               ))
             ) : (
-              <Text>No payees found.</Text>
+              <Text
+                fontSize={"8.509px"}
+                mr={2}
+                borderRadius="0"
+              >
+                No payees found.
+              </Text>
             )}
           </VStack>
         </VStack>
@@ -174,13 +198,18 @@ const EditInvoiceDetails = ({
             maxH="195px"
             overflowY="auto"
           >
-            <Text fontWeight="bold">Lead Artist(s):</Text>
-
+            <Text
+              fontSize={"8.509px"}
+              fontWeight="500"
+              color={"#718096"}
+            >
+              Lead Artist(s):
+            </Text>
             {instructors && instructors.length > 0 ? (
               instructors.map((instructor, index) => (
                 <HStack key={index}>
                   <Text
-                    size="sm"
+                    fontSize={"8.509px"}
                     mr={2}
                   >
                     {instructor.name} - {instructor.email}
@@ -188,7 +217,13 @@ const EditInvoiceDetails = ({
                 </HStack>
               ))
             ) : (
-              <Text>No instructors found.</Text>
+              <Text
+                fontSize={"8.509px"}
+                mr={2}
+                borderRadius="0"
+              >
+                No instructors found.
+              </Text>
             )}
           </VStack>
         </HStack>
@@ -320,7 +355,7 @@ const StatementComments = ({
       color="#2D3748"
     >
       <Heading
-        fontSize="22px"
+        fontSize="1.2em"
         mb="4"
       >
         Sessions
@@ -759,134 +794,141 @@ const InvoiceSummary = ({
           borderRadius="18px"
           minH="24"
         >
-          <Table>
-            <Thead color="#4A5568">
-              <Tr>
-                <Th
-                  fontSize="14px"
-                  textTransform="none"
-                >
-                  Description
-                </Th>
-                <Th
-                  fontSize="14px"
-                  textTransform="none"
-                  pl="8"
-                >
-                  Adjustment Type(s)
-                </Th>
-                <Th
-                  fontSize="14px"
-                  textTransform="none"
-                  textAlign="end"
-                  pr="14"
-                >
-                  Total
-                </Th>
-              </Tr>
-            </Thead>
-            <Tbody color="#2D3748">
-              <Tr>
-                <Td
-                  fontSize="14px"
-                  border="none"
-                >
-                  Past Due Balance
-                </Td>
-                <Td border={"none"}></Td>
-                <Td border="none">
-                  <Flex
-                    alignItems="center"
-                    justifyContent="end"
+          <Box
+            position="relative"
+            maxH="400px"
+            overflowY="auto"
+            p="3"
+          >
+            <Table>
+              <Thead color="#4A5568">
+                <Tr>
+                  <Th
+                    fontSize="14px"
+                    textTransform="none"
                   >
-                    <Text
-                      mr={1}
-                      fontSize="14px"
+                    Description
+                  </Th>
+                  <Th
+                    fontSize="14px"
+                    textTransform="none"
+                    pl="8"
+                  >
+                    Adjustment Type(s)
+                  </Th>
+                  <Th
+                    fontSize="14px"
+                    textTransform="none"
+                    textAlign="end"
+                    pr="14"
+                  >
+                    Total
+                  </Th>
+                </Tr>
+              </Thead>
+              <Tbody color="#2D3748">
+                <Tr>
+                  <Td
+                    fontSize="14px"
+                    border="none"
+                  >
+                    Past Due Balance
+                  </Td>
+                  <Td border={"none"}></Td>
+                  <Td border="none">
+                    <Flex
+                      alignItems="center"
+                      justifyContent="end"
                     >
-                      ${pastDueValue.toFixed(2)}
-                    </Text>
-                  </Flex>
-                </Td>
-              </Tr>
-              <Tr
-                borderBottom="1px solid"
-                borderColor="gray.200"
-              >
-                <Td colSpan="1">
-                  <Text
-                    fontWeight="bold"
-                    color="gray.700"
-                  >
-                    Waiting for remaining payments from November and December
-                  </Text>
-                </Td>
-              </Tr>
-              <Tr>
-                <Td fontSize="14px">Current Statement Subtotal</Td>
-                <Td>
-                  <RadioDropdownSummary
-                    adjustmentType={adjustmentType}
-                    setAdjustmentType={setAdjustmentType}
-                  />
-                </Td>
-                <Td>
-                  <Flex
-                    alignItems="center"
-                    justifyContent="end"
-                  >
+                      <Text
+                        mr={1}
+                        fontSize="14px"
+                      >
+                        ${pastDueValue.toFixed(2)}
+                      </Text>
+                    </Flex>
+                  </Td>
+                </Tr>
+                <Tr
+                  borderBottom="1px solid"
+                  borderColor="gray.200"
+                >
+                  <Td colSpan="1">
                     <Text
-                      mr={1}
-                      fontSize="14px"
+                      fontWeight="bold"
+                      color="gray.700"
                     >
-                      $
+                      Waiting for remaining payments from November and December
                     </Text>
-                    <Input
-                      type="number"
-                      textAlign="center"
-                      px="0"
-                      fontSize="14px"
-                      value={pendingSubtotalValue}
-                      width={`${pendingSubtotalValue.length + 1}ch`}
-                      onChange={handleSubtotalChange}
-                      onKeyDown={handleSubtotalSubmit} // Listen for Enter key
+                  </Td>
+                </Tr>
+                <Tr>
+                  <Td fontSize="14px">Current Statement Subtotal</Td>
+                  <Td>
+                    <RadioDropdownSummary
+                      adjustmentType={adjustmentType}
+                      setAdjustmentType={setAdjustmentType}
                     />
-                  </Flex>
-                </Td>
-              </Tr>
-              <Tr>
-                <Td
-                  textAlign="end"
-                  colSpan="2"
-                  fontSize="16px"
-                  fontWeight="700"
-                >
-                  Total Amount Due
-                </Td>
-                <Td>
-                  <Flex
-                    alignItems="center"
-                    justifyContent="end"
+                  </Td>
+                  <Td>
+                    <Flex
+                      alignItems="center"
+                      justifyContent="end"
+                    >
+                      <Text
+                        mr={1}
+                        fontSize="14px"
+                      >
+                        $
+                      </Text>
+                      <Input
+                        type="number"
+                        textAlign="center"
+                        px="0"
+                        fontSize="14px"
+                        value={pendingSubtotalValue}
+                        width={`${pendingSubtotalValue.length + 1}ch`}
+                        onChange={handleSubtotalChange}
+                        onKeyDown={handleSubtotalSubmit} // Listen for Enter key
+                      />
+                    </Flex>
+                  </Td>
+                </Tr>
+                <Tr>
+                  <Td
+                    textAlign="end"
+                    colSpan="2"
+                    fontSize="16px"
+                    fontWeight="700"
                   >
-                    <Text
-                      mr={1}
-                      fontSize="14px"
+                    Total Amount Due
+                  </Td>
+                  <Td>
+                    <Flex
+                      alignItems="center"
+                      justifyContent="end"
                     >
-                      $
-                    </Text>
-                    <Text
-                      textAlign="center"
-                      p="2"
-                      fontSize="14px"
-                      borderRadius="md"
-                      width={`${totalAmountDue.toFixed(2).length + 3}ch`}
-                    >
-                      {totalAmountDue.toFixed(2)}
-                    </Text>
-                  </Flex>
-                </Td>
-              </Tr>
-            </Tbody>
-          </Table>
+                      <Text
+                        mr={1}
+                        fontSize="14px"
+                      >
+                        $
+                      </Text>
+                      <Text
+                        textAlign="center"
+                        p="2"
+                        fontSize="14px"
+                        borderRadius="md"
+                        width={`${totalAmountDue.toFixed(2).length + 3}ch`}
+                      >
+                        {totalAmountDue.toFixed(2)}
+                      </Text>
+                    </Flex>
+                  </Td>
+                </Tr>
+              </Tbody>
+            </Table>
+          </Box>
         </Flex>
       </VStack>
     </Box>
@@ -897,24 +939,27 @@ const FooterDescription = () => {
   return (
     <Flex
       mt="24"
-      justifyContent="space-between"
+      justifyContent="center"
+      gap={10}
       color="black"
     >
+      {/* left text */}
       <VStack
         pt={3}
         pb={2}
         spacing={0}
         align="start"
+        mb={10}
       >
         <Text
           fontWeight="bold"
-          fontSize="16px"
+          fontSize="8.51px"
         >
           Payments are due at the end of each month.
         </Text>
         <Text
           fontWeight="bold"
-          fontSize="16px"
+          fontSize="8.51px"
         >
           You can make your payment at:{" "}
           <Link
@@ -925,18 +970,23 @@ const FooterDescription = () => {
           </Link>
         </Text>
       </VStack>
-      <VStack align="start">
-        <Text
-          fontSize="16px"
-          maxWidth="300px"
+
+      {/* right text */}
+      <VStack pt={3}
+        pb={2}
+        spacing={0}
+        align="start"
+        mb={10}
+      >
+      <Text
           fontWeight="bold"
+          fontSize="8.51px"
         >
           For any questions,
         </Text>
         <Text
-          fontSize="16px"
-          maxWidth="300px"
           fontWeight="bold"
+          fontSize="8.51px"
         >
           please contact:{" "}
           <Link

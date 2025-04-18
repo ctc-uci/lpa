@@ -8,9 +8,15 @@ import { Link as RouterLink } from "react-router-dom";
 import { CalendarSelected } from "../../assets/CalendarSelected";
 import { InvoiceSelected } from "../../assets/InvoiceSelected";
 
-const NavBarButton = ({ item, isActive }) => {
+const NavBarButton = ({ item, isActive, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  const handleClick = (e) => {
+    e.preventDefault(); // Prevent default <a> behavior if using <Link>
+    if (onClick) {
+      onClick(item);
+    }
+  };
 
 
   return (
@@ -18,8 +24,9 @@ const NavBarButton = ({ item, isActive }) => {
       className={`navItem ${isActive ? "active" : ""}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
     >
-      <RouterLink to={item.path}>
+      {/* <RouterLink to={item.path}> */}
         <Box
           position="relative"
           className="nav-item-wrapper"
@@ -125,7 +132,7 @@ const NavBarButton = ({ item, isActive }) => {
             )}
           </Box>
         </Box>
-      </RouterLink>
+      {/* </RouterLink> */}
     </div>
   );
 };
