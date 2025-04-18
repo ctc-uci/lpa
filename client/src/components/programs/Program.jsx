@@ -66,6 +66,7 @@ export const Program = () => {
       );
 
       nextBooking.assignments = assignmentsResponse.data;
+      console.log("nextbooking assignments: ", nextBooking.assignments);
 
       for (const assignment of assignmentsResponse.data) {
         const clientResponse = await backend.get(
@@ -94,6 +95,8 @@ export const Program = () => {
     try {
       const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
+
+      console.log("programData",sessionsData);
       setSessions(sessionsData);
       // Get set of room ids
       const uniqueRoomIds = [

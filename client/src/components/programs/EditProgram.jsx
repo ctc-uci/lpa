@@ -442,7 +442,6 @@ export const EditProgram = () => {
                     const start = selectedDays[dayOfWeek].start
                     const end = selectedDays[dayOfWeek].end
 
-                    // make object
                     const bookingsData = {
                         event_id: id,
                         room_id: selectedLocationId,
