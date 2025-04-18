@@ -287,7 +287,7 @@ export const EmailSidebar = ({
     const invoiceData = await fetchInvoiceData(invoice, backend);
 
     const pdfDocument = (
-      <MyDocument
+      <InvoicePDFDocument
         invoice={invoice}
         {...invoiceData}
       />
@@ -304,8 +304,11 @@ export const EmailSidebar = ({
 
     await new Promise(resolve => setTimeout(resolve, 0));
     const blob = await makeBlob();
+    console.log("blob");
     await sendEmail(blob);
+    console.log("formData");
     await saveEmail(blob);
+    console.log("saved email");
     setisConfirmModalOpen(true);
   };
 
@@ -335,13 +338,14 @@ export const EmailSidebar = ({
   const saveEmail = async (blob) => {
     try {
       if (blob) {
-        await backend.post(`invoices/backupInvoice/` + id, {
-          comment: "",
-          file: blob,
-        });
+        const formData = new FormData();
+        formData.append("file", blob, `${pdf_title}.pdf`);
+        formData.append("comment", "");
+
+        await backend.post(`invoices/backupInvoice/` + id, formData);
       }
       else {
-        console.log("no blob for save email");
+        console.log("no formData for save email");
       }
     } catch (error) {
       console.error("Error saving email to database:", error);

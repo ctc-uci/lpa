@@ -520,14 +520,14 @@ invoicesRouter.post("/backupInvoice/:id", upload.single("file"), async (req, res
   // Upload an invoice PDF to S3, returning the viewable URL
   try {
     const { id } = req.params;
-    const { comment, file } = req.body;
+    const { comment } = req.body;
 
-    if (!file) {
+    if (!req.file) {
       return res.status(500).json({ error: "File is required" });
     }
 
     // Upload to S3
-    const fileURL = await uploadPDF(file);
+    const fileURL = await uploadPDF(req.file);
 
     // Store the file URL in the database
     await db.query(
