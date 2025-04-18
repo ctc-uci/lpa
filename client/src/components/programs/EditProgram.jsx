@@ -92,20 +92,7 @@ export const EditProgram = () => {
           selectedDays,
         }));
       }
-    }, [
-      eventName,
-      generalInformation,
-      selectedLocationId,
-      selectedInstructors,
-      selectedPayees,
-      repeatType,
-      repeatInterval,
-      startTime,
-      endTime,
-      startDate,
-      endDate,
-      selectedDays,
-    ]);
+    }, [infoLoaded]);
 
     useEffect(() => {
       const loadInitialData = async () => {
@@ -135,7 +122,6 @@ export const EditProgram = () => {
     };
 
     const isFormValid = () => {
-      console.log("initialState: ", initialState);
       const currentState = JSON.stringify({
           eventName,
           generalInformation,
@@ -150,9 +136,9 @@ export const EditProgram = () => {
           endDate,
           selectedDays,
         });
-console.log("currentState: ", currentState);
         return (
             eventName.trim() !== "" &&
+            startTime && endTime &&
             startDate && endDate &&
             selectedLocationId !== "" &&
             selectedInstructors.length > 0 &&

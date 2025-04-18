@@ -90,6 +90,11 @@ export const EditBooking = () => {
   const [bookingIds, setBookingIds] = useState([]);
   const [eventId, setEventId] = useState();
   const { isOpen: isOpen, onOpen: onOpen, onClose: onClose } = useDisclosure();
+  const [initialState, setInitialState] = useState(null);
+  const [infoLoaded, setInfoLoaded] = useState({
+    event: false,
+    locations: false,
+  });
 
   const {
     isOpen: cancelIsOpen,
@@ -99,9 +104,26 @@ export const EditBooking = () => {
   const [deactivateOption, setDeactivateOption] = useState("archive");
 
   useEffect(() => {
-    getInitialEventData();
-    getInitialLocations();
+    const loadInitialData = async () => {
+      await getInitialEventData().then(setInfoLoaded((prev) => ({ ...prev, event: true })));
+      await getInitialLocations().then(setInfoLoaded((prev) => ({ ...prev, locations: true })));
+    };
+
+    loadInitialData();
   }, []);
+
+  useEffect(() => {
+    console.log("initialState", initialState)
+    console.log("infoLoaded", infoLoaded);
+    if (initialState === null && Object.values(infoLoaded).every(Boolean)) {
+      setInitialState(JSON.stringify({
+        selectedLocationId,
+        startTime,
+        endTime,
+        startDate,
+      }));
+    }
+  }, [infoLoaded]);
 
   const exit = () => {
     navigate("/programs/" + eventId);
@@ -200,7 +222,7 @@ export const EditBooking = () => {
         description: generalInformation,
       };
 
-      // await backend.put("/bookings/" + id, bookingsData);
+      await backend.put("/bookings/" + id, bookingsData);
       console.log("bookingsData in edit: ", bookingsData);
 
       exit();
@@ -223,6 +245,21 @@ export const EditBooking = () => {
     exit();
   };
 
+  const isFormValid = () => {
+    const currentState = JSON.stringify({
+        selectedLocationId,
+        startTime,
+        endTime,
+        startDate,
+      });
+      return (
+        startTime && endTime &&
+        startDate &&
+        selectedLocationId !== "" &&
+        initialState !== currentState
+      );
+    };
+
   return (
     <Navbar>
       <div id="body">
@@ -240,6 +277,8 @@ export const EditBooking = () => {
               onOpen={cancelOnOpen}
               onClose={cancelOnClose}
               exit={exit}
+              save={saveEvent}
+              isFormValid={isFormValid}
             />
           </div>
           <div id="eventInfoBody">
@@ -339,6 +378,9 @@ export const EditBooking = () => {
             <Button
               id="save"
               onClick={saveEvent}
+              isDisabled={!isFormValid()}
+              backgroundColor={isFormValid() ? "#4441C8.600" : "gray.300"}
+              _hover={{ backgroundColor: isFormValid() ? "#4441C8.700" : "gray.300" }}
             >
               Save
             </Button>
