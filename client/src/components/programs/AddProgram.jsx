@@ -28,7 +28,7 @@ import { TimeInputs } from "./programComponents/TimeInputs";
 export const AddProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
-  const [locations, setLocations] = useState({}); // rooms.id rooms.name
+  const [locations, setLocations] = useState({});
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState("");
   const [locationRate, setLocationRate] = useState("--.--");
@@ -70,7 +70,7 @@ export const AddProgram = () => {
       endDate,
       selectedDays
     });
-  }, []); // Runs only once when component mounts
+  }, []);
 
 
   useEffect(() => {
@@ -171,10 +171,9 @@ export const AddProgram = () => {
     };
     const selectedDayNumbers = Object.keys(selectedDays).map((day) => dayMap[day]);
 
-    const start = new Date(startDate + "T00:00:00"); // Add time to avoid UTC conversion
+    const start = new Date(startDate + "T00:00:00");
     const end = new Date(endDate + "T23:59:59");
     const dates = [];
-
 
     // add x days to a date
     const addDays = (date, days) => {
@@ -344,12 +343,11 @@ export const AddProgram = () => {
         for (const date of dates) {
           console.log(date)
           const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
-          const dayOfWeek = daysMap[(new Date(date.date).getDay())]; // get which day of the week it is during the date
+          const dayOfWeek = daysMap[(new Date(date.date).getDay())];
 
           const start = selectedDays[dayOfWeek].start
           const end = selectedDays[dayOfWeek].end
 
-          // make object
           const bookingsData = {
             event_id: newEventId,
             room_id: selectedLocationId,
@@ -372,7 +370,6 @@ export const AddProgram = () => {
         const start = date.start
         const end = date.end
 
-        // make object
         const bookingsData = {
           event_id: newEventId,
           room_id: selectedLocationId,

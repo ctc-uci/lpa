@@ -29,7 +29,7 @@ export const EditProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const {id} = useParams();
-  const [locations, setLocations] = useState({}); // rooms.id rooms.name
+  const [locations, setLocations] = useState({});
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState("");
   const [locationRate, setLocationRate] = useState("--.--");
@@ -380,12 +380,11 @@ const payees = eventClientResponse.data
         for (const date of dates) {
           console.log(date)
           const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
-          const dayOfWeek = daysMap[(new Date(date.date).getDay())]; // get which day of the week it is during the date
+          const dayOfWeek = daysMap[(new Date(date.date).getDay())];
 
           const start = selectedDays[dayOfWeek].start
           const end = selectedDays[dayOfWeek].end
 
-          // make object
           const bookingsData = {
             event_id: id,
             room_id: selectedLocationId,
@@ -408,7 +407,6 @@ const payees = eventClientResponse.data
         const start = date.start
         const end = date.end
 
-        // make object
         const bookingsData = {
           event_id: id,
           room_id: selectedLocationId,

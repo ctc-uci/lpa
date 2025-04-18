@@ -126,7 +126,6 @@ const EditInvoiceDetailsPDF = ({
   return (
     <View
       style={{
-        // fontFamily: "Inter",
         color: "#2D3748",
         paddingHorizontal: 16,
       }}
@@ -204,7 +203,7 @@ const EditInvoiceDetailsPDF = ({
           ) : (
             <Text style={{ fontSize: 8 }}>No instructors found.</Text>
           )}
-          
+
         </View>
       </View>
     </View>
@@ -411,7 +410,6 @@ const summaryTableStyles = StyleSheet.create({
     borderBottomWidth: 0,
     border: "1px solid #D2D2D2",
     borderRadius: "18px",
-    // minH="24"
     paddingHorizontal: "12px",
   },
   tableRow: {
@@ -582,7 +580,6 @@ const InvoicePDFDocument = ({
             <SummaryTable
               remainingBalance={remainingBalance}
               subtotalSum={subtotalSum}
-              // pastDue={pastDue}
             />
           </View>
         </View>

@@ -959,12 +959,6 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     const currentTime = new Date();
     return currentTime > givenTime;
   };
-
-  // Make sure sessions data is fetched before rendering
-  // if (!sessions || sessions.length === 0) {
-  //   return <div>Loading...</div>; // Possibly change loading indicator
-  // }
-  // Make sure rooms is fetched before rendering
   if (!rooms || rooms.length === 0) {
     return <div>Loading...</div>;
   }

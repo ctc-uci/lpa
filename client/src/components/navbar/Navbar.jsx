@@ -13,7 +13,6 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 
 const Navbar = ({ children }) => {
-  // Get current location from React Router
   const { backend } = useBackendContext();
   const location = useLocation();
   const currentPath = location.pathname;

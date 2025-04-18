@@ -50,7 +50,7 @@ const PDFButtonInvoice = ({ id }) => {
 
   const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
-  
+
     const [
       instructorResponse,
       commentsResponse,
@@ -66,21 +66,21 @@ const PDFButtonInvoice = ({ id }) => {
       backend.get(`/events/remaining/${eventId}`),
       backend.get(`/invoices/total/${id}`),
     ]);
-  
+
     const comments = commentsResponse.data;
     let booking = {};
     let room = [];
-  
+
     if (comments.length > 0 && comments[0].bookingId) {
       const bookingResponse = await backend.get(
         `/bookings/${comments[0].bookingId}`
       );
       booking = bookingResponse.data[0];
-  
+
       const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
       room = roomResponse.data;
     }
-  
+
     const unpaidTotals = await Promise.all(
       unpaidInvoicesResponse.data.map((invoice) =>
         backend.get(`/invoices/total/${invoice.id}`)
@@ -91,7 +91,7 @@ const PDFButtonInvoice = ({ id }) => {
         backend.get(`/invoices/paid/${invoice.id}`)
       )
     );
-  
+
     const unpaidTotal = unpaidTotals.reduce(
       (sum, res) => sum + res.data.total,
       0
@@ -99,9 +99,9 @@ const PDFButtonInvoice = ({ id }) => {
     const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
       return res.data.total ? sum + Number(res.data.total) : sum;
     }, 0);
-  
+
     const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
-  
+
     let subtotalSum = 0;
     if (
       comments.length &&
@@ -116,7 +116,7 @@ const PDFButtonInvoice = ({ id }) => {
       );
       subtotalSum = parseFloat(total) * comments.length;
     }
-  
+
     return {
       instructors: instructorResponse.data,
       programName: programNameResponse.data[0].name,
@@ -129,18 +129,6 @@ const PDFButtonInvoice = ({ id }) => {
       id,
     };
   };
-
-  // const fetchData = async () => {
-  //   try {
-  //     const response = await backend.get("/invoices/" + id);
-  //     setInvoice(response.data);
-
-  //     const invoiceDataResponse = await fetchInvoiceData(response, backend, id);
-  //     setInvoiceData(invoiceDataResponse);
-  //   } catch (err) {
-  //     console.error("Error fetching invoice data:", err);
-  //   }
-  // };
 
   const handleDownload = async () => {
   try {
@@ -162,7 +150,7 @@ const PDFButtonInvoice = ({ id }) => {
   }
 };
 
-  
+
 
   return (
     <Box>
@@ -177,7 +165,6 @@ const PDFButtonInvoice = ({ id }) => {
   );
 };
 
-// const TestPDFViewer = ({ invoice }) => {
 const TestPDFViewer = ({ id }) => {
   const { backend } = useBackendContext();
   const [invoice, setInvoice] = useState(null);
@@ -186,7 +173,7 @@ const TestPDFViewer = ({ id }) => {
 
   const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
-  
+
     const [
       instructorResponse,
       commentsResponse,
@@ -202,21 +189,21 @@ const TestPDFViewer = ({ id }) => {
       backend.get(`/events/remaining/${eventId}`),
       backend.get(`/invoices/total/${id}`),
     ]);
-  
+
     const comments = commentsResponse.data;
     let booking = {};
     let room = [];
-  
+
     if (comments.length > 0 && comments[0].bookingId) {
       const bookingResponse = await backend.get(
         `/bookings/${comments[0].bookingId}`
       );
       booking = bookingResponse.data[0];
-  
+
       const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
       room = roomResponse.data;
     }
-  
+
     const unpaidTotals = await Promise.all(
       unpaidInvoicesResponse.data.map((invoice) =>
         backend.get(`/invoices/total/${invoice.id}`)
@@ -227,7 +214,7 @@ const TestPDFViewer = ({ id }) => {
         backend.get(`/invoices/paid/${invoice.id}`)
       )
     );
-  
+
     const unpaidTotal = unpaidTotals.reduce(
       (sum, res) => sum + res.data.total,
       0
@@ -235,9 +222,9 @@ const TestPDFViewer = ({ id }) => {
     const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
       return res.data.total ? sum + Number(res.data.total) : sum;
     }, 0);
-  
+
     const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
-  
+
     let subtotalSum = 0;
     if (
       comments.length &&
@@ -252,7 +239,7 @@ const TestPDFViewer = ({ id }) => {
       );
       subtotalSum = parseFloat(total) * comments.length;
     }
-  
+
     return {
       instructors: instructorResponse.data,
       programName: programNameResponse.data[0].name,
@@ -275,7 +262,6 @@ const TestPDFViewer = ({ id }) => {
       const invoiceDataResponse = await fetchInvoiceData(response, backend, 22);
       setInvoiceData(invoiceDataResponse);
       setLoading(false);
-      //   // get instructors
     } catch (err) {
       console.error("Error fetching invoice data:", err);
     }

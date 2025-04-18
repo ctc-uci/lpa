@@ -363,7 +363,6 @@ const StatementComments = ({
         >
           <Table
             color="#EDF2F7"
-            // style={{ width: "100%" }}
             textAlign="center"
           >
             <Thead>
@@ -1027,11 +1026,6 @@ const RadioDropdown = ({
     const newComments = [...commentsState];
     newComments[index].adjustmentType = value;
     setComments(newComments);
-
-    // // Notify parent component
-    // if (onCommentsChange) {
-    //   onCommentsChange(newComments);
-    // }
   };
 
   return (

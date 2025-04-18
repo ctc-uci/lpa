@@ -31,34 +31,34 @@ const SavedStatementComments = ({
 
   const handleSubtotalSum = (startTime, endTime, rate) => {
     if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
-    
+
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
       return hours * 60 + minutes;
     };
-  
+
     const startMinutes = timeToMinutes(startTime.substring(0, 5));
     const endMinutes = timeToMinutes(endTime.substring(0, 5));
     const diff = endMinutes - startMinutes;
-  
+
     const totalHours = Math.ceil(diff / 60);
-    
+
     const total = (totalHours * rate).toFixed(2);
-    
-    
+
+
     return total;
   };
- 
+
   useEffect(() => {
     if (comments && comments.length > 0) {
       setComments(comments);
       setBooking(booking);
       setRoom(room);
-      
+
     }
   }, [booking, comments, room]);
 
-  
+
 
     useEffect(() => {
       // Ensure all required values are available and this only runs once
@@ -72,19 +72,19 @@ const SavedStatementComments = ({
       ) {
         console.log("CHECK", bookingState.startTime, bookingState.endTime, room[0]?.rate);
         const total = handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate);
-        
+
         // Add subtotal for each comment (this logic is now inside useEffect)
         if (commentsState && commentsState.length > 0) {
           commentsState.forEach(() => {
             setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
           });
         }
-        
+
         setSubtotal(subtotalSum)
         // Set flag to prevent future reruns of this effect
         setIsDataLoaded(true);
       }
-    }, [bookingState, room, commentsState, isDataLoaded]); 
+    }, [bookingState, room, commentsState, isDataLoaded]);
 
 
   return (
@@ -258,8 +258,8 @@ const SavedStatementComments = ({
                         p="2"
                       >
                         {
-                          bookingState && room && bookingState.startTime && bookingState.endTime && room[0]?.rate 
-                            ? handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate) 
+                          bookingState && room && bookingState.startTime && bookingState.endTime && room[0]?.rate
+                            ? handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate)
                             : "N/A"
                         }
                       </Text>
@@ -327,34 +327,34 @@ const SavedInvoiceSummary = ({
 
   const handleSubtotalSum = (startTime, endTime, rate) => {
     if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
-    
+
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
       return hours * 60 + minutes;
     };
-  
+
     const startMinutes = timeToMinutes(startTime.substring(0, 5));
     const endMinutes = timeToMinutes(endTime.substring(0, 5));
     const diff = endMinutes - startMinutes;
-  
+
     const totalHours = Math.ceil(diff / 60);
-    
+
     const total = (totalHours * rate).toFixed(2);
-    
-    
+
+
     return total;
   };
- 
+
   useEffect(() => {
     if (comments && comments.length > 0) {
       setComments(comments);
       setBooking(booking);
       setRoom(room);
-      
+
     }
   }, [booking, comments, room]);
 
-  
+
 
     useEffect(() => {
       // Ensure all required values are available and this only runs once
@@ -366,21 +366,20 @@ const SavedInvoiceSummary = ({
         room[0]?.rate &&
         !isDataLoaded
       ) {
-        // console.log("CHECK", bookingState.startTime, bookingState.endTime, room[0]?.rate);
         const total = handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate);
-        
+
         // Add subtotal for each comment (this logic is now inside useEffect)
         if (commentsState && commentsState.length > 0) {
           commentsState.forEach(() => {
           setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
           });
         }
-        
+
         setSubtotal(subtotalSum)
         // Set flag to prevent future reruns of this effect
         setIsDataLoaded(true);
       }
-    }, [bookingState, room, commentsState, isDataLoaded]); 
+    }, [bookingState, room, commentsState, isDataLoaded]);
 
 
 

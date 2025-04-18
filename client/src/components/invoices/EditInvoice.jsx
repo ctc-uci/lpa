@@ -151,28 +151,23 @@ export const EditInvoice = () => {
           return;
         }
 
-        // get instructors
         const instructorResponse = await backend.get(
           "/assignments/instructors/" + invoice.data[0].eventId
         );
         setInstructors(instructorResponse.data);
 
-        // get comments
         const commentsResponse = await backend.get("/comments/invoice/" + id);
         setComments(commentsResponse.data);
-        setEditedComments(commentsResponse.data); // Initialize edited comments
+        setEditedComments(commentsResponse.data);
 
-        // get program name
         const programNameResponse = await backend.get(
           "/events/" + invoice.data[0].eventId
         );
         setProgramName(programNameResponse.data[0].name);
 
-        // get payees
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         setPayees(payeesResponse.data);
 
-        // get subtotal
         const subtotalResponse = await backend.get("/invoices/total/" + id);
         setSubtotal(subtotalResponse.data.total);
         setEditedSubtotal(subtotalResponse.data.total);
@@ -254,7 +249,6 @@ export const EditInvoice = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // console.log("editedComments", editedComments)
       const roomData = {
         ...room[0],
         rate: room[0].rate,
@@ -276,8 +270,6 @@ export const EditInvoice = () => {
           user_id: comment.userId,
         };
 
-        console.log("roomData", roomData);
-
         try {
           if (comment.id) {
             // Update existing comment with PUT request
@@ -291,9 +283,6 @@ export const EditInvoice = () => {
             const response = await backend.post(`/comments`, commentData);
             console.log("Created new comment:", response.data);
           }
-
-          // const response = await backend.put(`/comments/${comment.id}`, commentData);
-          // console.log("response.data", response.data)
         } catch (error) {
           console.error(`Error saving comment ${comment.id}:`, error);
 
