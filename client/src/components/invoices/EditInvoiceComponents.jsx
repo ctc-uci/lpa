@@ -939,9 +939,11 @@ const FooterDescription = () => {
   return (
     <Flex
       mt="24"
-      justifyContent="space-between"
+      justifyContent="center"
+      gap={10}
       color="black"
     >
+      {/* left text */}
       <VStack
         pt={3}
         pb={2}
@@ -951,13 +953,13 @@ const FooterDescription = () => {
       >
         <Text
           fontWeight="bold"
-          fontSize="16px"
+          fontSize="8.51px"
         >
           Payments are due at the end of each month.
         </Text>
         <Text
           fontWeight="bold"
-          fontSize="16px"
+          fontSize="8.51px"
         >
           You can make your payment at:{" "}
           <Link
@@ -968,18 +970,23 @@ const FooterDescription = () => {
           </Link>
         </Text>
       </VStack>
-      <VStack align="start">
-        <Text
-          fontSize="16px"
-          maxWidth="300px"
+
+      {/* right text */}
+      <VStack pt={3}
+        pb={2}
+        spacing={0}
+        align="start"
+        mb={10}
+      >
+      <Text
           fontWeight="bold"
+          fontSize="8.51px"
         >
           For any questions,
         </Text>
         <Text
-          fontSize="16px"
-          maxWidth="300px"
           fontWeight="bold"
+          fontSize="8.51px"
         >
           please contact:{" "}
           <Link
