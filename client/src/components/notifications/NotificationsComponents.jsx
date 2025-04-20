@@ -164,7 +164,7 @@ const NotificationsComponents = ({ notifications }) => {
     );
   };
 
-  const paymentText = (eventName, payStatus, description) => {
+  const paymentText = (eventName, description) => {
     const textStyles = {
       color: "var(--Secondary-8, #2D3748)",
       fontFamily: "Inter",
@@ -291,7 +291,6 @@ const NotificationsComponents = ({ notifications }) => {
                   <Td paddingLeft="24px">
                     {paymentText(
                       item.eventName,
-                      item.payStatus,
                       item.description
                     )}
                   </Td>
