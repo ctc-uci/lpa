@@ -71,15 +71,16 @@ const NavBarButton = ({ item, isActive }) => {
             {/* Show the non-hovered count badge only when not hovered/active AND when we have a count */}
             {item.count !== null && item.count !== undefined && !isActive && !isHovered && (
               <Box
-                height="16px"
+                height="17px"
+                width="17px"
                 textAlign="center"
-                fontSize="15px"
+                fontSize="14px"
                 fontFamily="Inter"
                 fontStyle="normal"
                 fontWeight="300"
                 color="#FFF"
-                padding="0px 6px"
-                borderRadius="30px"
+                padding="0px 5px"
+                borderRadius="50%"
                 background="#4441C8"
                 lineHeight="normal"
                 minWidth="16px"
@@ -96,7 +97,7 @@ const NavBarButton = ({ item, isActive }) => {
             <Text
               opacity={isHovered || isActive ? 1 : 0}
               fontWeight="700"
-              color={isActive ? "#4441C8" : "#767778"}
+              color={isActive ? "#4441C8" : "#718096"}
               fontFamily={"Inter, sans-serif"}
               fontSize={"14px"}
               overflow="hidden"
@@ -111,13 +112,15 @@ const NavBarButton = ({ item, isActive }) => {
             {item.count !== null && item.count !== undefined && (isHovered || isActive) && (
               <Box
                 marginLeft="10px"
-                height="16px"
+                height="17px"
+                width="17px"
                 textAlign="center"
                 fontSize="15px"
                 fontStyle="normal"
-                fontWeight="300"
+                fontWeight="350"
                 color="#FFF"
-                borderRadius="30px"
+                padding="0px 5px"
+                borderRadius="50%"
                 background="#4441C8"
                 lineHeight="normal"
                 minWidth="16px"
