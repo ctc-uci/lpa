@@ -67,7 +67,7 @@ export const Notifications = () => {
   
   const getBaseDescription = (payStatus, names) => {
     if (payStatus === "overdue") {
-      return `Payment not recorded 5 days or more since the payment deadline for`;
+      return `Payment not recorded 5 days or more since the payment deadline for `;
     } else if (payStatus === "neardue") {
       return `Email has not been sent to ${names} 1 week prior and payment not received 5 days past the deadline for `;
     } else { // highpriority
