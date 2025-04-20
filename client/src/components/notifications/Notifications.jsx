@@ -33,8 +33,8 @@ export const Notifications = () => {
       return endDate
         .toLocaleDateString("en-US", {
           weekday: "short",
-          month: "2-digit",
-          day: "2-digit",
+          month: "numeric",
+          day: "numeric",
           year: "numeric",
         })
         .replace(/,/g, ".");

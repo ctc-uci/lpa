@@ -22,13 +22,14 @@ export const InfoTooltip = ({ tooltipInfo }) => {
         hasArrow
 
         placement={"right-start"}
-        bg={"#718096"}
+        bg={"#718096"} 
         width={"165px"}
         padding={"8px"}
         display={"flex"}
         borderRadius={"6px"}
         flexDirection={"column"}
         alignItems={"center"}
+        bottom="5px"
     >
       <span>
           <AiOutlineInfoCircle
