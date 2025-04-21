@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
@@ -25,6 +26,8 @@ import ProgramSortingModal from "../filters/ProgramFilter";
 import { InfoTooltip } from "./InfoTooltip";
 
 const NotificationsComponents = ({ notifications }) => {
+  const navigator = useNavigate();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortKey, setSortKey] = useState("date");
@@ -99,7 +102,6 @@ const NotificationsComponents = ({ notifications }) => {
 
       const availableHeight = viewportHeight * 0.5;
 
-      console.log(availableHeight / rowHeight);
       return Math.max(5, Math.floor(availableHeight / rowHeight));
     };
 
@@ -164,7 +166,11 @@ const NotificationsComponents = ({ notifications }) => {
     );
   };
 
-  const paymentText = (eventName, description) => {
+  const paymentText = (eventName, description, eventId) => {
+    const handleClick = () => {
+      navigator(`/programs/${eventId}`);
+    };
+
     const textStyles = {
       color: "var(--Secondary-8, #2D3748)",
       fontFamily: "Inter",
@@ -189,7 +195,7 @@ const NotificationsComponents = ({ notifications }) => {
         sx={textStyles}
         title={`${description} ${eventName}.`}
       >
-        {description} <span style={linkStyles}>{eventName}</span>.
+        {description} <span style={linkStyles} onClick={() => handleClick()}>{eventName}</span>.
       </Text>
     );
   };
@@ -291,7 +297,8 @@ const NotificationsComponents = ({ notifications }) => {
                   <Td paddingLeft="24px">
                     {paymentText(
                       item.eventName,
-                      item.description
+                      item.description,
+                      item.eventId
                     )}
                   </Td>
                   <Td>
