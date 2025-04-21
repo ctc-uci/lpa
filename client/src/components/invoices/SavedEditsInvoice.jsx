@@ -12,13 +12,9 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate, useParams} from "react-router-dom";
 
-import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
-import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import { EditInvoiceTitle, EditInvoiceDetails, FooterDescription } from "./EditInvoiceComponents";
-import { SavedInvoiceSummary, SavedStatementComments } from "./SavedEditInvoiceComponent";
-
+import { InvoiceView } from "./InvoiceView";
 
 const SavedInvoiceNavBar = ({ onBack, id }) => {
     return (
@@ -52,18 +48,18 @@ const SavedInvoiceNavBar = ({ onBack, id }) => {
           fontSize="1.5em"
           aria-label="Go back"
         />
-        
-        <Icon 
+
+        <Icon
           viewBox="0 0 17 16"
           boxSize={5}
           color="#4A5568"
         >
-          <path 
-            d="M8.17904 6.6665C7.4457 6.6665 6.8457 7.2665 6.8457 7.99984C6.8457 8.73317 7.4457 9.33317 8.17904 9.33317C8.91237 9.33317 9.51237 8.73317 9.51237 7.99984C9.51237 7.2665 8.91237 6.6665 8.17904 6.6665ZM12.179 6.6665C11.4457 6.6665 10.8457 7.2665 10.8457 7.99984C10.8457 8.73317 11.4457 9.33317 12.179 9.33317C12.9124 9.33317 13.5124 8.73317 13.5124 7.99984C13.5124 7.2665 12.9124 6.6665 12.179 6.6665ZM4.17904 6.6665C3.4457 6.6665 2.8457 7.2665 2.8457 7.99984C2.8457 8.73317 3.4457 9.33317 4.17904 9.33317C4.91237 9.33317 5.51237 8.73317 5.51237 7.99984C5.51237 7.2665 4.91237 6.6665 4.17904 6.6665Z" 
+          <path
+            d="M8.17904 6.6665C7.4457 6.6665 6.8457 7.2665 6.8457 7.99984C6.8457 8.73317 7.4457 9.33317 8.17904 9.33317C8.91237 9.33317 9.51237 8.73317 9.51237 7.99984C9.51237 7.2665 8.91237 6.6665 8.17904 6.6665ZM12.179 6.6665C11.4457 6.6665 10.8457 7.2665 10.8457 7.99984C10.8457 8.73317 11.4457 9.33317 12.179 9.33317C12.9124 9.33317 13.5124 8.73317 13.5124 7.99984C13.5124 7.2665 12.9124 6.6665 12.179 6.6665ZM4.17904 6.6665C3.4457 6.6665 2.8457 7.2665 2.8457 7.99984C2.8457 8.73317 3.4457 9.33317 4.17904 9.33317C4.91237 9.33317 5.51237 8.73317 5.51237 7.99984C5.51237 7.2665 4.91237 6.6665 4.17904 6.6665Z"
             fill="currentColor"
           />
         </Icon>
-  
+
       </Flex>
     );
   };
@@ -83,7 +79,6 @@ export const SavedEdit = () => {
 
   const [subtotal, setSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
-  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -210,60 +205,24 @@ export const SavedEdit = () => {
 
   return (
     <Navbar>
+
       <VStack>
         <SavedInvoiceNavBar
           onBack={handleBack}
           id={id}
         />
-        <Image
-          w="80%"
-          position="relative"
-          src={InvoiceHeaderBackground}
-          backgroundSize="100%"
-          backgroundRepeat="no-repeat"
-        />
-        <VStack
-          width="80%"
-          spacing={4}
-          px={8}
-          // mt={36}
-        >
-          <Box>
-              <EditInvoiceTitle 
-                  comments={comments}
-                  invoice={invoice?.data}
-                />
-            <EditInvoiceDetails
-                instructors={instructors}
-                programName={programName}
-                payees={payees}
-                comments={comments}
-                invoice={invoice?.data}
-              />
-            <SavedStatementComments
-                comments={comments}
-                booking={booking}
-                room={room}
-                subtotal={subtotal}
-                setSubtotal={setSubtotal} 
-              />
-            <SavedInvoiceSummary
-              comments={comments}
-              booking={booking}
-              room={room}
-              subtotal={subtotal}
-              setSubtotal={setSubtotal} 
-              pastDue={pastDue}
-            />
-            <FooterDescription />
-          </Box>
-        </VStack>
-        <Image
-          w="80%"
-          position="relative"
-          src={InvoiceFooterBackground}
-          backgroundSize="100%"
-          backgroundRepeat="no-repeat"
+
+        <InvoiceView
+          comments={comments}
+          booking={booking}
+          room={room}
+          subtotal={subtotal}
+          setSubtotal={setSubtotal}
+          pastDue={pastDue}
+          payees={payees}
+          programName={programName}
+          instructors={instructors}
+          invoice={invoice?.data}
         />
       </VStack>
     </Navbar>
