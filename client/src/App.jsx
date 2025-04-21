@@ -31,6 +31,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ResetPassword } from "./components/resetpassword/ResetPassword";
 import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
 import { Settings } from "./components/settings/Settings";
+import { MyAccount } from "./components/settings/MyAccount";
 import { Signup } from "./components/signup/Signup";
 import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -187,6 +188,15 @@ const App = () => {
                   element={
                     <ProtectedRoute
                       element={<Settings />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings/myaccount"
+                  element={
+                    <ProtectedRoute
+                      element={<MyAccount />}
                       allowedRoles={["admin"]}
                     />
                   }
