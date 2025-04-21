@@ -118,7 +118,7 @@ const EditInvoiceDetails = ({
           textAlign="center"
           size="lg"
         >
-          Classroom Rental Monthly Statement
+          {`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
         </Heading>
         <Heading
           size="sm"
