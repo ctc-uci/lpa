@@ -1217,7 +1217,7 @@ export const Sessions = ({
               alignItems="center"
             >
               <Box position="relative">
-                <button
+                <Button
                   style={{
                     display: "flex",
                     height: "40px",
@@ -1243,7 +1243,7 @@ export const Sessions = ({
                   data-select-menu="true"
                 >
                   {selectOption}
-                </button>
+                </Button>
                 {selectMenuOpen && (
                   <Box
                     position="absolute"
