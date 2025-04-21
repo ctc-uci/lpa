@@ -166,9 +166,9 @@ const NotificationsComponents = ({ notifications }) => {
     );
   };
 
-  const paymentText = (eventName, description, eventId) => {
+  const paymentText = (eventName, description, invoiceId) => {
     const handleClick = () => {
-      navigator(`/programs/${eventId}`);
+      navigator(`/invoices/edit/${invoiceId}`);
     };
 
     const textStyles = {
@@ -298,7 +298,7 @@ const NotificationsComponents = ({ notifications }) => {
                     {paymentText(
                       item.eventName,
                       item.description,
-                      item.eventId
+                      item.id
                     )}
                   </Td>
                   <Td>
