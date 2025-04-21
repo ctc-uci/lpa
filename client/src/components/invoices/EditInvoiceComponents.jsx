@@ -174,30 +174,17 @@ const EditInvoiceDetails = ({
             overflowY="auto"
           >
             <Text fontWeight="bold">Lead Artist(s):</Text>
-                  <Text
-                    size="sm"
-                    mr={2}
-                  >
-                    Jay Sotelo - jaysotelo@gmail.com
-                  </Text>
-                  <Text
-                    size="sm"
-                    mr={2}
-                  >
-                    Jessie He - jessiehe@gmail.com
-                  </Text>
-                  <Text
-                    size="sm"
-                    mr={2}
-                  >
-                    Nate Pietrantonio - thenatepie@gmail.com
-                  </Text>
-                  <Text
-                    size="sm"
-                    mr={2}
-                  >
-                    William Garcia - willgarcia@gmail.com
-                  </Text>
+              {instructors && instructors.length > 0 ? (
+              instructors.map((instructor, index) => (
+                <Text
+                  key={index}
+                >
+                  {instructor.name} - {instructor.email}
+                </Text>
+              ))
+            ) : (
+              <Text>No instructors found.</Text>
+            )}
           </VStack>
         </HStack>
       </SimpleGrid>
