@@ -80,8 +80,14 @@ export const CancelSessionModal = ({
         const roomData = await backend.get(`rooms/${session.roomId}`);
         const room = roomData.data[0];
         const programAdjustments = await backend.get(`/comments/program-invoice/${session.eventId}/${invoice.id}`);
-        const sessionAdjustments = await backend.get(`/comments/session-invoice/${session.id}/${invoice.id}`);
+        const allInvoiceComments = await backend.get(`/comments/invoice/${invoice.id}`);
+        // Filter allInvoiceComments to get only those matching booking_id
+        let sessionAdjustments = [];
+        if (allInvoiceComments.data.length !== 0) {
+          sessionAdjustments = allInvoiceComments.data.filter(comment => comment.bookingId === session.id);
+        }
 
+        // Variable that will keep track of the final room rate after adjustments are applied
         let modifiedRate = parseFloat(room.rate);
 
         // Apply program adjustments
@@ -96,7 +102,7 @@ export const CancelSessionModal = ({
         }
 
         // Apply session adjustments
-        if (sessionAdjustments.data.length !== 0) {
+        if (sessionAdjustments.length !== 0) {
           for (const adj of sessionAdjustments.data) {
             if (adj.adjustmentType === "rate_flat") {
               modifiedRate += Number(adj.adjustmentValue);
@@ -112,12 +118,11 @@ export const CancelSessionModal = ({
         const duration = (end - start) / (1000 * 60 * 60); // in hours
         const baseCost = modifiedRate * duration;
 
-        const totalAdds = sessionAdjustments.data
-        .filter(adj => adj.adjustment_type === "total")
-        .reduce((acc, curr) => acc + Number(curr.adjustment_value), 0);
+        const totalAdds = sessionAdjustments
+          .filter(adj => adj.adjustment_type === "total")
+          .reduce((acc, curr) => acc + Number(curr.adjustment_value), 0);
 
         const finalCost = baseCost + totalAdds;
-        console.log("comm", userId);
         const comment = {
           user_id: userId,
           session_id: session.id,

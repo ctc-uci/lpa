@@ -386,23 +386,6 @@ commentsRouter.get("/program-invoice/:programId/:invoiceId", async(req, res) => 
   }
 });
 
-commentsRouter.get("/session-invoice/:sessionId/:invoiceId", async(req, res) => {
-  try {
-    const { sessionId, invoiceId } = req.params;
-    const sessionAdjustments = await db.query (
-      `SELECT * FROM comments C
-        JOIN invoices I ON C.booking_id = $1
-        WHERE C.adjustment_type in ('rate_flat', 'rate_percent', 'total')
-        AND I.id = $2`,
-        [sessionId, invoiceId]
-    );
-    res.status(200).json(keysToCamel(sessionAdjustments));
-  } catch (err) {
-    console.error(`Error fetching program adjustments for invoice: ${err.message}`);
-    res.status(500).json({ result: "error", message: err.message });
-  }
-});
-
 // Create a utility function to get the invoice total
 // Utility function to get the invoice total
 async function getInvoiceTotal(invoiceId) {
