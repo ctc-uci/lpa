@@ -1359,7 +1359,9 @@ export const Sessions = ({
                   disabled={selectedSessions.length === 0}
                 >
                   <CancelIcon />{" "}
-                  {selectOption === "Select all" ? "All" : "Cancel"}
+                  {selectOption === "Select all"
+                  ? "All"
+                  : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
                 </button>
               )}
 
