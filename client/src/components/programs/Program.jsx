@@ -96,7 +96,9 @@ export const Program = () => {
       const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
 
-      console.log("programData",sessionsData);
+      sessionsData.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      console.log("programData", sessionsData);
       setSessions(sessionsData);
       // Get set of room ids
       const uniqueRoomIds = [
