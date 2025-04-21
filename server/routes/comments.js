@@ -1,10 +1,23 @@
 import express, { Router } from "express";
 
+
+
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
 
+
 const commentsRouter = Router();
 commentsRouter.use(express.json());
+
+commentsRouter.get("/", async (req, res) => {
+  try {
+    const data = await db.query("SELECT * FROM comments");
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 commentsRouter.get("/:id", async (req, res) => {
   try {
@@ -142,17 +155,6 @@ commentsRouter.put("/:id", async (req, res) => {
   }
 });
 
-//View all comments
-commentsRouter.get("/", async (req, res) => {
-  try {
-    const data = await db.query("SELECT * FROM comments");
-
-    res.status(200).json(keysToCamel(data));
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
 // Create comment
 commentsRouter.post("/", async (req, res) => {
   try {
@@ -185,15 +187,13 @@ commentsRouter.post("/", async (req, res) => {
       ]
     );
 
+    // Updating payment status for invoice
     if (adjustment_type === "paid" && invoice_id) {
       console.log(`Processing payment adjustment for invoice: ${invoice_id}`);
 
-      // Fetch the amounts with debugging
       const paidAmount = await getInvoicePaidAmount(invoice_id);
-      console.log(`Paid amount: ${paidAmount}`);
-
       const totalAmount = await getInvoiceTotal(invoice_id);
-      console.log(`Total amount: ${totalAmount}`);
+      console.log(`Paid amount: ${paidAmount}, Total amount: ${totalAmount}`);
 
       let newStatus = "none";
 
