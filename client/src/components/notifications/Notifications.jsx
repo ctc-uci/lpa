@@ -60,7 +60,7 @@ export const Notifications = () => {
     
     const formattedNames = instructorNames.length === 1 
       ? instructorNames[0]
-      : `${instructorNames.slice(0, -1).join(", ")} and ${instructorNames[instructorNames.length - 1]}`;
+      : `${instructorNames.slice(0, -1).join(", ")}, and ${instructorNames[instructorNames.length - 1]}`;
     
     return getBaseDescription(payStatus, formattedNames);
   };
@@ -69,9 +69,9 @@ export const Notifications = () => {
     if (payStatus === "overdue") {
       return `Payment not recorded 5 days or more since the payment deadline for `;
     } else if (payStatus === "neardue") {
-      return `Email has not been sent to ${names} 1 week prior and payment not received 5 days past the deadline for `;
-    } else { // highpriority
       return `Email has not been sent to ${names} 1 week before the payment deadline for `;
+    } else { // highpriority
+      return `Email has not been sent to ${names} 1 week prior and payment not received 5 days past the deadline for `;
     }
   };
 
