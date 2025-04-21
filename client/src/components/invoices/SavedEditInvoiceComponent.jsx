@@ -242,7 +242,7 @@ const SavedStatementComments = ({
 
             ) : (
               <Tr>
-                <Td colSpan={7} textAlign="center">
+                <Td colSpan={7} textAlign="center" fontSize={"8.509px"}>
                   No comments available.
                 </Td>
               </Tr>

@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 
-import { CalendarIcon, CheckCircleIcon } from "@chakra-ui/icons";
+import {
+  CalendarIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -45,12 +52,6 @@ import { FaCircle, FaUser } from "react-icons/fa";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { TbCaretUpDown } from "react-icons/tb";
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DeleteIcon,
-} from "@chakra-ui/icons";
 import { useParams } from "react-router";
 
 import { CancelIcon } from "../../assets/CancelIcon";
@@ -283,6 +284,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
   const [showEditRow, setShowEditRow] = useState(false);
   const [valueEntered, setValueEntered] = useState(false);
   const { isOpen: isOpen, onOpen: onOpen, onClose: onClose } = useDisclosure();
+  const [selectedComment, setSelectedComment] = useState(null);
   const [editID, setEditID] = useState(null);
   const [deleteID, setDeleteID] = useState(null);
 
@@ -345,9 +347,10 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
     }
   };
 
-  const handleShowDelete = (commentID) => {
+  const handleShowDelete = (comment) => {
     try {
-      setDeleteID(commentID);
+      setSelectedComment(comment);
+      setDeleteID(comment.id);
       onOpen();
     } catch (error) {
       console.error("Error showing modal:", error);
@@ -424,6 +427,50 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
         });
       } else {
         await backend.post("/comments/", commentsData);
+        toast({
+          position: "bottom-right",
+          duration: 3000,
+          status: "success",
+          render: () => (
+            <HStack
+              bg="green.100"
+              p={4}
+              borderRadius="md"
+              boxShadow="md"
+              borderLeft="6px solid"
+              borderColor="green.500"
+              spacing={3}
+              align="center"
+            >
+              <Icon
+                as={CheckCircleIcon}
+                color="green.600"
+                boxSize={5}
+              />
+              <VStack
+                align="left"
+                spacing={0}
+              >
+                <Text
+                  color="#2D3748"
+                  fontFamily="Inter"
+                  fontSize="16px"
+                  fontStyle="normal"
+                  fontWeight={700}
+                  lineHeight="normal"
+                  letterSpacing="0.08px"
+                >
+                  New Payment Added
+                </Text>
+                {invoiceMonth && invoiceYear && (
+                  <Text fontSize="sm">
+                    {programName}_{invoiceMonth} {invoiceYear}
+                  </Text>
+                )}
+              </VStack>
+            </HStack>
+          ),
+        });
       }
       const commentsResponse = await backend.get(
         "/comments/paidInvoices/" + id
@@ -441,6 +488,17 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
   const handleAddComment = async () => {
     setShowInputRow(true);
     setHasUnsavedChanges(true);
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date
+      .toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      })
+      .replace(/,/g, ".");
   };
 
   return (
@@ -495,15 +553,12 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
           <Tbody
             color="#2D3748"
             width="100%"
-            // padding={20}
           >
             {comments && comments.length > 0 ? (
               [...currentPageComments]
                 .sort((a, b) => a.id - b.id)
                 .map((comment) => (
                   <Tr
-                    // position="relative"
-                    // justifyContent="space-between"
                     alignItems="center"
                     alignSelf="stretch"
                     gap="12px"
@@ -578,9 +633,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                               <Text color="#767778">Edit</Text>
                             </Box>
                           </MenuItem>
-                          <MenuItem
-                            onClick={() => handleShowDelete(comment.id)}
-                          >
+                          <MenuItem onClick={() => handleShowDelete(comment)}>
                             <Box
                               display="flex"
                               padding="12px 16px"
@@ -593,53 +646,6 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                           </MenuItem>
                         </MenuList>
                       </Menu>
-                      <Modal
-                        isOpen={isOpen}
-                        onClose={onClose}
-                      >
-                        <ModalOverlay />
-                        <ModalContent>
-                          <ModalHeader>Delete Comment?</ModalHeader>
-                          <ModalCloseButton />
-                          <ModalBody>
-                            <div id="deactivateReason">
-                              Reason for Deletion
-                              <Input placeholder="..." />
-                            </div>
-                            <div
-                              id="archive"
-                              style={{
-                                display: "flex",
-                                justifyContent: "flex-end",
-                              }}
-                            ></div>
-                          </ModalBody>
-
-                          <ModalFooter
-                            style={{
-                              display: "flex",
-                              justifyContent: "flex-end",
-                            }}
-                          >
-                            <Button
-                              variant="ghost"
-                              onClick={onClose}
-                            >
-                              Exit
-                            </Button>
-                            <Button
-                              colorScheme="red"
-                              mr={3}
-                              id="deactivateConfirm"
-                              onClick={() => {
-                                handleDeleteComment();
-                              }}
-                            >
-                              Confirm
-                            </Button>
-                          </ModalFooter>
-                        </ModalContent>
-                      </Modal>
                     </Td>
                   </Tr>
                 ))
@@ -648,6 +654,65 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                 <Td colSpan={3}>No comments available.</Td>
               </Tr>
             )}
+
+            <Modal
+              isOpen={isOpen}
+              onClose={onClose}
+            >
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader
+                  color={"var(--Secondary-7, #4A5568)"}
+                  fontFamily={"Inter"}
+                  fontSize={"16px"}
+                  fontWeight={"700"}
+                  mt={"10px"}
+                >
+                  Delete Payment for{" "}
+                  {selectedComment ? formatDate(selectedComment.datetime) : ""}?
+                </ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <Text fontFamily={"Inter"}>
+                    This payment will be permanently deleted.
+                  </Text>
+                </ModalBody>
+
+                <ModalFooter
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <Button
+                    variant="ghost"
+                    onClick={onClose}
+                    fontFamily={"Inter"}
+                    backgroundColor={"#EDF2F7"}
+                    fontSize={"14px"}
+                    fontWeight={"500"}
+                  >
+                    Exit
+                  </Button>
+                  <Button
+                    mr={3}
+                    ml={"12px"}
+                    _hover={{ backgroundColor: "#90080F", opacity: "80%" }}
+                    backgroundColor={"#90080F"}
+                    fontFamily={"Inter"}
+                    fontSize={"14px"}
+                    fontWeight={"500"}
+                    borderRadius={"6px"}
+                    color={"white"}
+                    onClick={() => {
+                      handleDeleteComment();
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
             {showInputRow && (
               <Tr
                 alignItems="center"

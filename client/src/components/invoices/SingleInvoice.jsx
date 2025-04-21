@@ -290,7 +290,7 @@ export const SingleInvoice = () => {
             {/* back button */}
             <IconButton
               icon={<FaAngleLeft />}
-              onClick={() => handleNavbarClick("/invoices")}
+              onClick={() => handleNavbarClick(`/invoices`)}
               variant="link"
               color="#474849"
               fontSize="1.5em"
