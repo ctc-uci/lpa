@@ -38,8 +38,6 @@ const SavedInvoiceNavBar = ({ onBack, id }) => {
         />
 
         <Icon
-
-        <Icon
           viewBox="0 0 17 16"
           boxSize={5}
           color="#4A5568"

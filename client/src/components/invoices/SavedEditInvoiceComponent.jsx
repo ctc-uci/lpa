@@ -96,8 +96,6 @@ const SavedStatementComments = ({
         setIsDataLoaded(true);
       }
     }, [bookingState, room, commentsState, isDataLoaded]);
-    }, [bookingState, room, commentsState, isDataLoaded]);
-
 
   return (
     <Flex
@@ -241,8 +239,6 @@ const SavedStatementComments = ({
                         textAlign="center"
                       >
                         {
-                          bookingState && room && bookingState.startTime && bookingState.endTime && room[0]?.rate
-                            ? handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate)
                           bookingState && room && bookingState.startTime && bookingState.endTime && room[0]?.rate
                             ? handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate)
                             : "N/A"

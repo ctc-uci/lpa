@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
   DeleteIcon,
 } from "@chakra-ui/icons";
+
 import {
   Box,
   Button,
@@ -49,9 +50,7 @@ import {
 
 import { format } from "date-fns";
 import { FaCircle, FaUser } from "react-icons/fa";
-import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 import { FiMoreHorizontal } from "react-icons/fi";
-import { TbCaretUpDown } from "react-icons/tb";
 import { useParams } from "react-router";
 
 import { CancelIcon } from "../../assets/CancelIcon";
@@ -61,14 +60,13 @@ import { EditIcon } from "../../assets/EditIcon";
 import filterIcon from "../../assets/filter.svg";
 import {
   archiveCalendar,
-  deleteIcon,
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
 import arrowsSvg from "../../assets/icons/right-icon.svg";
 import personIcon from "../../assets/person.svg";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import PDFButtonInvoice from "./PDFButtonInvoice";
+import { PDFButtonInvoice } from "./PDFButtonInvoice";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {

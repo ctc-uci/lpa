@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 
 import { FaAngleLeft } from "react-icons/fa6";
-import { FiEdit, FiExternalLink } from "react-icons/fi";
+import { FiExternalLink } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -25,7 +25,7 @@ import {
   InvoiceTitle,
 } from "./InvoiceComponents";
 import { InvoiceView } from "./InvoiceView";
-import PDFButtonInvoice from "./PDFButtonInvoice";
+import { PDFButtonInvoice } from "./PDFButtonInvoice";
 
 export const SingleInvoice = () => {
   const { id } = useParams();
@@ -54,7 +54,6 @@ export const SingleInvoice = () => {
     onClose: closeModal,
   } = useDisclosure();
   const [intendedPath, setIntendedPath] = useState(null);
-  const [editMode, setEditMode] = useState(false);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
@@ -309,10 +308,7 @@ export const SingleInvoice = () => {
               marginLeft="auto"
               gap={1}
             >
-              <PDFButtonInvoice
-                invoice={id}
-
-              ></PDFButtonInvoice>
+              <PDFButtonInvoice id={id} />
               <Button
                 height={"40px"}
                 backgroundColor="#4441C8"
