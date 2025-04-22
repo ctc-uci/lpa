@@ -199,7 +199,7 @@ export const CancelSessionModal = ({
                 </Text>
               )}
 
-              <Box display="flex" justifyContent="flex-end" alignItems="center" gap="24px" alignSelf="stretch">
+              {/* <Box display="flex" justifyContent="flex-end" alignItems="center" gap="24px" alignSelf="stretch">
                 <Text>Waive Fee</Text>
               </Box>
               {selectedSessions.map(session => (
@@ -216,7 +216,45 @@ export const CancelSessionModal = ({
                     </Checkbox>
                   )}
                 </Flex>
-              ))}
+              ))} */}
+              <Box
+                maxH="90px"
+                overflowY="auto"
+                pr={2}
+                mb={4}
+                border="1px solid #E2E8F0"
+                borderRadius="md"
+              >
+                {selectedSessions
+                  .slice() // Copy to avoid mutating original
+                  .sort((a, b) => {
+                    const aIsPast = isPastDeadline(a.date);
+                    const bIsPast = isPastDeadline(b.date);
+                    return bIsPast - aIsPast; // Show sessions with past deadline first
+                  })
+                  .map((session) => {
+                    const pastDeadline = isPastDeadline(session.date);
+                    return (
+                      <Flex key={session.id} justify="space-between" align="center" mb={2} px={2}>
+                        <Text>
+                          {getDayOfWeek(session.date)} {formatDate(session.date)}
+                        </Text>
+
+                        <Checkbox
+                          isChecked={
+                            pastDeadline
+                              ? waivedFees[session.id] || false
+                              : true
+                          }
+                          onChange={() => pastDeadline && handleWaiveFee(session.id)}
+                          colorScheme="purple"
+                          marginRight="25px"
+                          isDisabled={!pastDeadline}
+                        />
+                      </Flex>
+                    );
+                  })}
+              </Box>
 
               <Box mt={6}>
                 <Text mb={2} fontWeight="medium">Reason for cancellation:</Text>
