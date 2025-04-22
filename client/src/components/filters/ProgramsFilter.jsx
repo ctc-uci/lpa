@@ -55,15 +55,16 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
     });
 
     const updateFilter = (type, value) => {
-      console.log(`Updating filter: ${type} with value:`, value);
       setFilters((prev) => ({ ...prev, [type]: value }));
     };
 
     // Apply the filters to the programs page
     const applyFilters = () => {
-      console.log("Applying filters:", filters);
-      console.log("Original programs:", programs);
       let filtered = programs;
+
+      if (filters.status !== "all") {
+        filtered = filtered.filter(program => program.status.toLowerCase() === filters.status.toLowerCase());
+      }
 
       if (filters.room !== "all"){
         filtered = filtered.filter(program =>
@@ -153,9 +154,9 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         filtered = filtered.filter(program => {
           if (program.upcomingTime !== "N/A") {
             const [start] = program.upcomingTime.split(" - ");
-            console.log("start", start);
-            console.log(filters.startTime);
-            console.log(isTimeBefore(start, filters.startTime));
+            // console.log("start", start);
+            // console.log(filters.startTime);
+            // console.log(isTimeBefore(start, filters.startTime));
             return isTimeBefore(start, filters.startTime) <= 0;
           }
           return false;
@@ -166,9 +167,9 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         filtered = filtered.filter(program => {
           if (program.upcomingTime !== "N/A") {
             const [, end] = program.upcomingTime.split(" - ");
-            console.log("end", end);
-            console.log(filters.endTime);
-            console.log(isTimeBefore(end, filters.endTime));
+            // console.log("end", end);
+            // console.log(filters.endTime);
+            // console.log(isTimeBefore(end, filters.endTime));
             return isTimeBefore(end, filters.endTime) <= 0;
           }
           return false;
@@ -208,7 +209,6 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       }
 
       setFilteredPrograms(filtered);
-      console.log("updated with filters", filtered);
     };
 
     const resetFilter = (type, value) => {

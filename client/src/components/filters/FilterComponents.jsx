@@ -19,6 +19,7 @@ import { CalendarIcon, TimeIcon, SeasonIcon, EmailIcon, RoomIcon, LeadArtistIcon
 import pastSvg from "../../assets/icons/past.svg";
 import activeSvg from "../../assets/icons/active.svg";
 import archivedSvg from "../../assets/icons/archived.svg";
+import noBookingsSvg from "../../assets/icons/none.svg";
 import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
 import { PlusFilledIcon } from '../../assets/PlusFilledIcon';
 import './Filters.css';
@@ -153,6 +154,18 @@ export const ProgramStatusFilter = ({ value, onChange }) => {
               boxSize="20px"
             />
             <Text ml="2">Past</Text>
+          </RoundedButton>
+          <RoundedButton
+            onClick={() => handleStatusChange("no bookings")}
+            isActive={localStatus === "no bookings"}
+          >
+            <Box
+              as="img"
+              src={noBookingsSvg}
+              alt="No Bookings Icon"
+              boxSize="20px"
+            />
+            <Text ml="2">No Bookings</Text>
           </RoundedButton>
         </ButtonGroup>
       </HStack>
