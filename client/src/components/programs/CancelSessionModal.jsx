@@ -217,13 +217,14 @@ export const CancelSessionModal = ({
                   )}
                 </Flex>
               ))} */}
+              <Box display="flex" justifyContent="flex-end" alignItems="center" gap="24px" alignSelf="stretch">
+                <Text>Waive Fee</Text>
+              </Box>
               <Box
                 maxH="90px"
                 overflowY="auto"
                 pr={2}
                 mb={4}
-                border="1px solid #E2E8F0"
-                borderRadius="md"
               >
                 {selectedSessions
                   .slice() // Copy to avoid mutating original
@@ -236,7 +237,7 @@ export const CancelSessionModal = ({
                     const pastDeadline = isPastDeadline(session.date);
                     return (
                       <Flex key={session.id} justify="space-between" align="center" mb={2} px={2}>
-                        <Text>
+                        <Text color={!pastDeadline || waivedFees[session.id] ? "gray.500" : "black"}>
                           {getDayOfWeek(session.date)} {formatDate(session.date)}
                         </Text>
 
@@ -247,9 +248,27 @@ export const CancelSessionModal = ({
                               : true
                           }
                           onChange={() => pastDeadline && handleWaiveFee(session.id)}
-                          colorScheme="purple"
-                          marginRight="25px"
-                          isDisabled={!pastDeadline}
+                          marginRight="13px"
+                          isDisabled={false}
+                          sx={{
+                            ".chakra-checkbox__control": {
+                              borderColor: "#A0AEC0",
+                              backgroundColor: "#FFFFFF",
+                              _checked: {
+                                backgroundColor: "#A0AEC0",
+                                borderColor: "#A0AEC0",
+                              },
+                              _hover: {
+                                backgroundColor: "#A0AEC0",
+                                borderColor: "#A0AEC0",
+                              },
+                            },
+                            ".chakra-checkbox__icon": {
+                              svg: {
+                                fill: "#FFFFFF",
+                              },
+                            },
+                          }}
                         />
                       </Flex>
                     );
