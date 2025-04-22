@@ -209,6 +209,7 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       }
 
       setFilteredPrograms(filtered);
+      console.log("Filtered Programs: ", filtered);
     };
 
     const resetFilter = (type, value) => {

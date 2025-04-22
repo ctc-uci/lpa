@@ -72,8 +72,31 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
       }
 
       if (filters.endDate) {
-        filtered = filtered.filter(session => session.date <= filters.endDate);
+        filtered = filtered.filter(program => {
+          if (!program.date) return false;
+          
+          // Create date objects using year, month, day only to remove time component
+          const programDate = new Date(program.date);
+          const endDate = new Date(filters.endDate);
+          
+          // Set both dates to midnight to compare date only
+          const programDateOnly = new Date(
+            programDate.getFullYear(),
+            programDate.getMonth(),
+            programDate.getDate()
+          );
+          
+          const endDateOnly = new Date(
+            endDate.getFullYear(),
+            endDate.getMonth(),
+            endDate.getDate()+1
+          );
+          
+          // Include programs up to and including the end date
+          return programDateOnly <= endDateOnly;
+        });
       }
+      
       setFilteredSessions(filtered);
     };
 
