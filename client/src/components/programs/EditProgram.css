@@ -82,7 +82,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   flex-direction: row;
   justify-content: space-between;
   width: 90%;
-  /* align-items: center; */
   font-size: 170%;
   margin-bottom: 5%;
 }
@@ -226,7 +225,6 @@ button#save {
 }
 
 #instructorInput, #payeeInput {
-  /* border-radius: 5px 5px 0 0!important; */
   border: none!important;
   overflow: hidden;
 }
@@ -236,7 +234,7 @@ button#save {
   box-shadow: none;
 }
 
-#instructorContainer #instructorDropdown, 
+#instructorContainer #instructorDropdown,
 #payeeContainer #payeeDropdown {
   position: absolute;
   background-color: #D9D9D9!important;

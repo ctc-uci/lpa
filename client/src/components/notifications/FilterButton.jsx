@@ -1,23 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   Button,
-  HStack,
   Popover,
   PopoverBody,
   PopoverCloseButton,
   PopoverContent,
   PopoverTrigger,
   Text,
-  useToast,
 } from "@chakra-ui/react";
 
-import { CalendarIcon } from "./CalendarIcon";
 import styles from "./FilterButton.module.css";
 import { FilterIcon } from "./FilterIcon";
 
 export const FilterButton = ({ setFilterType, currentFilter }) => {
-  const toast = useToast();
   const [type, setType] = useState("all");
 
   const handleFilterSelect = (type) => {

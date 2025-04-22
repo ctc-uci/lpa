@@ -13,7 +13,6 @@ import {
   Link,
   Radio,
   RadioGroup,
-  Select,
   SimpleGrid,
   Stack,
   Table,
@@ -120,7 +119,7 @@ const EditInvoiceDetails = ({
           fontSize="13.827px"
           fontWeight={"600"}
         >
-          Classroom Rental Monthly Statement
+          {`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
         </Heading>
         <Heading
           fontSize={"8.509px"}
@@ -374,7 +373,6 @@ const StatementComments = ({
         >
           <Table
             color="#EDF2F7"
-            style={{ width: "100%" }}
             textAlign="center"
           >
             <Thead>
@@ -1053,11 +1051,6 @@ const RadioDropdown = ({
     const newComments = [...commentsState];
     newComments[index].adjustmentType = value;
     setComments(newComments);
-
-    // // Notify parent component
-    // if (onCommentsChange) {
-    //   onCommentsChange(newComments);
-    // }
   };
 
   return (

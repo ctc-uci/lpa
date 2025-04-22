@@ -45,8 +45,8 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                     value={instructorSearchTerm} id="instructorInput"
                     autocomplete="off"
                     />
-                  <Box 
-                    as="button" 
+                  <Box
+                    as="button"
                     onClick={() => {
                       if (instructorSearchTerm.trim() !== "") {
                         // Find the instructor from the searched list
@@ -62,13 +62,13 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                         getInstructorResults(")")
                       }
                     }}
-                    disabled={ 
-                      instructorSearchTerm.trim() === "" || 
-                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
+                    disabled={
+                      instructorSearchTerm.trim() === "" ||
+                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
                     }
                     cursor={
-                      instructorSearchTerm.trim()==="" || 
-                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()) 
+                      instructorSearchTerm.trim()==="" ||
+                      !searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
                       ? "not-allowed" : "pointer"
                     }
                   >
@@ -88,25 +88,8 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                       <Box
                         key={instructor.id}
                         onClick={() => {
-                          setInstructorSearchTerm(instructor.name); // Populate input field
+                          setInstructorSearchTerm(instructor.name);
                           setDropdownVisible(false);
-                          // const alreadySelected = selectedInstructors.find(
-                          //   (instr) => instr.id.toString() === instructor.id
-                          // );
-                          // console.log("ran");
-                          // if (!alreadySelected) {
-                          //   console.log("ran here");
-                          //   setSelectedInstructors((prevItems) => [...prevItems, instructor]);
-                          //   setInstructorSearchTerm(""); // Clears input
-                          //   setSearchedInstructors([]); // Closes dropdown
-                          // }
-                          // if (instructor && !alreadySelected) {
-                          //   setSelectedInstructors((prevItems) => [...prevItems, instructor]);
-                          //   const filteredInstructors = searchedInstructors.filter(
-                          //     (instr) => instructor.id !== instr.id.toString()
-                          //   );
-                          //   setSearchedInstructors(filteredInstructors);
-                          // }
                         }}
                           style={{
                             padding: "10px",

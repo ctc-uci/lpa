@@ -126,7 +126,6 @@
 
 .programs-table {
   width: 100%;
-  /* margin: 40px auto 0 auto; */
   border: 1px solid var(--medium-light-grey);
   border-radius: 20px;
   padding: 16px;

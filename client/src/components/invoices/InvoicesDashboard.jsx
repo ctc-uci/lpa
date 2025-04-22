@@ -75,7 +75,6 @@ const InvoicesDashboard = () => {
     const fetchInvoicesData = async () => {
       try {
         const invoicesResponse = await backend.get("/invoicesAssignments/");
-        console.log(invoicesResponse);
         const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
           const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
           if (invoice.role === "instructor") return acc;
@@ -173,6 +172,7 @@ const InvoicesDashboard = () => {
           </InputGroup>
         </Flex>
         <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
+        
       </Flex>
     </Navbar>
   );

@@ -53,7 +53,6 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
                   <Box
                     key={location.id}
                     width="100%"
-                    // padding="3px"
                     fontSize="14px"
                     borderRadius="4px"
                     cursor="pointer"

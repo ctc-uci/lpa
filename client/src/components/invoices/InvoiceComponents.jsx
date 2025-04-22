@@ -830,7 +830,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 
       const availableHeight = viewportHeight * 0.5;
 
-      console.log(availableHeight / rowHeight);
       return Math.max(5, Math.floor(availableHeight / rowHeight));
     };
 
@@ -928,70 +927,72 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     )
                   : [];
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
+
                 return (
-                  <Tr key={index}>
-                    <Td
-                      style={{
-                        color: isPaidColor(invoice),
-                        fontWeight:
-                          invoice.isPaid === "Past Due" ? "bold" : "normal",
-                      }}
-                    >
-                      {invoice.isPaid}
-                    </Td>
-                    <Td>
-                      <Flex
-                        justifyContent="center"
-                        align="center"
-                        w="60%"
+                    <Tr key={index}>
+                      <Td
+                        style={{
+                          color: isPaidColor(invoice),
+                          fontWeight:
+                            invoice.isPaid === "Past Due" ? "bold" : "normal",
+                        }}
                       >
-                        {invoice.isSent ? (
-                          <Icon
-                            as={FaCircle}
-                            color="#0C824D"
-                            boxSize={4}
-                          />
-                        ) : (
-                          <Icon
-                            as={FaCircle}
-                            color="#EA4335"
-                            boxSize={4}
-                          />
-                        )}
-                      </Flex>
-                    </Td>
-                    <Td>{invoice.eventName}</Td>
-                    <Td>
-                      {validPayers.length > 1
-                        ? `${validPayers[0].trim()},...`
-                        : validPayers.length === 1
-                          ? validPayers[0].trim()
-                          : "N/A"}
-                    </Td>
-                    <Td>{formatDate(invoice.endDate)}</Td>
-                    <Td>
-                      <Tag
-                        bg={tagBgColor}
-                        color={tagTextColor}
-                      >
-                        {invoice.season}
-                      </Tag>
-                    </Td>
-                    <Td>
-                      <Flex ml="18px">
-                        <PDFButtonInvoice invoice={invoice} />
-                      </Flex>
-                    </Td>
-                    <Td>
-                      <IconButton
-                        icon={<FiMoreHorizontal />}
-                        size="sm"
-                        bg="#EDF2F7"
-                        color="#000000"
-                        borderRadius="md"
-                      />
-                    </Td>
-                  </Tr>
+                        {invoice.isPaid}
+                      </Td>
+                      <Td>
+                        <Flex
+                          justifyContent="center"
+                          align="center"
+                          w="60%"
+                        >
+                          {invoice.isSent ? (
+                            <Icon
+                              as={FaCircle}
+                              color="#0C824D"
+                              boxSize={4}
+                            />
+                          ) : (
+                            <Icon
+                              as={FaCircle}
+                              color="#EA4335"
+                              boxSize={4}
+                            />
+                          )}
+                        </Flex>
+                      </Td>
+                      <Td>{invoice.eventName}</Td>
+                      <Td>
+                        {validPayers.length > 1
+                          ? `${validPayers[0].trim()},...`
+                          : validPayers.length === 1
+                            ? validPayers[0].trim()
+                            : "N/A"}
+                      </Td>
+                      <Td>{formatDate(invoice.endDate)}</Td>
+                      <Td>
+                        <Tag
+                          bg={tagBgColor}
+                          color={tagTextColor}
+                        >
+                          {invoice.season}
+                        </Tag>
+                      </Td>
+                      <Td>
+                        <Flex ml="18px">
+                          <PDFButtonInvoice id={invoice.id} />
+                        </Flex>
+                      </Td>
+                      <Td>
+                        <IconButton
+                          icon={<FiMoreHorizontal />}
+                          size="sm"
+                          bg="#EDF2F7"
+                          color="#000000"
+                          borderRadius="md"
+                        />
+                      </Td>
+
+                    </Tr>
                 );
               })}
               {currentInvoices.length === 0 && (
