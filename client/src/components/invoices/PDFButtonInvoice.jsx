@@ -121,6 +121,24 @@ const PDFButtonInvoice = ({ id }) => {
     };
   };
 
+  const getGeneratedDate = (comments, invoice) => {
+    console.log(invoice);
+    if (comments.length > 0) {
+      const latestComment = comments?.sort(
+        (a, b) => new Date(b.datetime) - new Date(a.datetime)
+      )[0];
+
+      const latestDate = new Date(latestComment.datetime);
+      const month = latestDate.toLocaleString("default", { month: "long" });
+
+      const year = latestDate.getFullYear();
+
+      return `${month}  ${year}`;
+    } else {
+      return "No Date Found";
+    }
+  };
+
   const handleDownload = async () => {
   try {
     setLoading(true);
@@ -133,15 +151,13 @@ const PDFButtonInvoice = ({ id }) => {
       <InvoicePDFDocument invoice={invoice} {...invoiceData} />
     ).toBlob();
 
-    saveAs(blob, "bookingdata.pdf");
+    saveAs(blob, `${invoiceData.programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`);
   } catch (err) {
     console.error("Error generating PDF:", err);
   } finally {
     setLoading(false);
   }
 };
-
-
 
   return (
     <Box>

@@ -30,7 +30,7 @@ import {
 import { EmailSidebar } from "../email/EmailSidebar";
 import { BackArrowIcon } from "../../assets/BackArrowIcon";
 
-const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice }) => {
+const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, programName }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getGeneratedDate = () => {
@@ -69,7 +69,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice }) 
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{`${payees?.map((payee) => payee.name).join("_")}_${getGeneratedDate()}`}</Text>
+        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}</Text>
       </HStack>
       <HStack>
         <Button
@@ -84,7 +84,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice }) 
           Save
         </Button>
         <HStack>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees} pdf_title={`${payees?.map((payee) => payee.name).join("_")}_${getGeneratedDate()}`} invoice={invoice}/>
+          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees} pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`} invoice={invoice}/>
         </HStack>
       </HStack>
     </Flex>
@@ -336,6 +336,7 @@ export const EditInvoice = () => {
           payees={payees}
           comments={comments}
           invoice={invoice}
+          programName={programName}
         />
         <Image
           w="80%"
