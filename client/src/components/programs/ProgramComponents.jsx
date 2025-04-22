@@ -2023,6 +2023,7 @@ export const Sessions = ({
             selectedSessions={selectedSessions
               .map((id) => sessionMap[id])
               .filter(Boolean)}
+            setSelectedSessions={setSelectedSessions}
             onConfirm={handleConfirmCancel}
             eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
             refreshSessions={refreshSessions}

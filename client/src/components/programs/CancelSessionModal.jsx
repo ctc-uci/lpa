@@ -29,6 +29,7 @@ export const CancelSessionModal = ({
   isOpen,
   onClose,
   selectedSessions = [],
+  setSelectedSessions,
   onConfirm,
   eventType = "Session", // Default value
   refreshSessions
@@ -63,7 +64,6 @@ export const CancelSessionModal = ({
 
     const userRes = await backend.get(`/users/${firebaseUid}`);
     const userId = userRes.data[0].id;
-    console.log("HERE IS USER:", userId);
 
     for (const session of selectedSessions) {
       const pastDeadline = isPastDeadline(session.date);
@@ -73,13 +73,23 @@ export const CancelSessionModal = ({
         // Fee is waived / session is deleted
         await backend.delete(`/bookings/${session.id}`);
       } else if ((!pastDeadline || waived) && selectedAction === "Archive") {
-        await backend.patch(`/bookings/archive/${session.id}`);
+        await backend.put(`/bookings/${session.id}`, {
+          archived: true,
+        });
       } else {
         const invoiceData = await backend.get(`/invoices/event/${session.eventId}`);
-        const invoice = invoiceData.data[0];
+        const invoice = invoiceData.data?.[0];
+        if (!invoice) {
+          console.warn("This session cannot be archived/deleted because no invoice exists. The session;s data may have been inputted manually with an invalid eventID.")
+        }
         const roomData = await backend.get(`rooms/${session.roomId}`);
         const room = roomData.data[0];
-        const programAdjustments = await backend.get(`/comments/program-invoice/${session.eventId}/${invoice.id}`);
+        // Check if invoice exists before calling backend for program Adjustments
+        let programAdjustments = { data: [] };
+        if (invoice) {
+          programAdjustments = await backend.get(`/comments/program-invoice/${session.eventId}/${invoice.id}`);
+        }
+
         const allInvoiceComments = await backend.get(`/comments/invoice/${invoice.id}`);
         // Filter allInvoiceComments to get only those matching booking_id
         let sessionAdjustments = [];
@@ -137,7 +147,9 @@ export const CancelSessionModal = ({
 
         // Set based on action
         if (selectedAction === "Archive") {
-          await backend.patch(`/bookings/archive/${session.id}`)
+          await backend.put(`/bookings/${session.id}`, {
+            archived: true,
+          });
         } else if (selectedAction === "Delete") {
           await backend.delete(`/bookings/${session.id}`);
         }
@@ -146,6 +158,8 @@ export const CancelSessionModal = ({
     }
     // Refresh sessions so the table updates
     await refreshSessions();
+    // Set selectedSessions back to 0
+    setSelectedSessions([]);
     onClose();
   };
 
