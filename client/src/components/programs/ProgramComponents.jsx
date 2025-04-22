@@ -2,6 +2,7 @@ import { React, useEffect, useState } from "react";
 
 import { CancelIcon } from "../../assets/CancelIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
+import { SessionFilter } from "../filters/SessionsFilter";
 
 import "./Program.css";
 
@@ -92,6 +93,7 @@ import {
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
+import {ProgramFilter} from "../filters/ProgramsFilter"
 
 export const ProgramSummary = ({
   program,
@@ -835,9 +837,12 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
 
   const [sortKey, setSortKey] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
-    []
-  );
+  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState([]);
+  const [filteredSessions, setFilteredSessions] = useState([]);
+
+  const handleStatusChange = (newStatus) => {
+    setStatus(newStatus);
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -919,6 +924,12 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
     sortKey,
     sortOrder,
   ]);
+
+  useEffect(() => {
+    if (sessions && sessions.length > 0) {
+      setFilteredSessions(sessions);
+    }
+  }, [sessions]);
 
   // Function to update sorting
   const handleSortChange = (key, order) => {
@@ -1032,337 +1043,11 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               >
                 Select
               </Button>
-              <Popover onClose={onClose}>
-                <PopoverTrigger>
-                  <Button
-                    color="#1e293b"
-                    fontWeight="bold"
-                    backgroundColor="#F0F1F4"
-                    variant="outline"
-                    minWidth="auto"
-                    height="45px"
-                    mt="10px"
-                    mb="15px"
-                    onClick={onOpen}
-                    border="none"
-                  >
-                    <Box
-                      display="flex"
-                      flexDirection="row"
-                      alignItems="center"
-                      gap="5px"
-                    >
-                      <Icon as={filterButton} />
-                      <Text
-                        fontSize="sm"
-                        color="#767778"
-                      >
-                        {" "}
-                        Filters{" "}
-                      </Text>
-                    </Box>
-                  </Button>
-                </PopoverTrigger>
-                <Portal>
-                  <PopoverContent>
-                    <Box margin="16px">
-                      <PopoverBody>
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          alignItems="flex-start"
-                          gap="24px"
-                          alignSelf="stretch"
-                        >
-                          <FormControl id="date">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <Icon as={filterDateCalendar} />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  Date
-                                </Text>
-                              </Box>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Input
-                                  size="sm"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="35%"
-                                  height="20%"
-                                  type="date"
-                                  placeholder="MM/DD/YYYY"
-                                  onChange={(e) =>
-                                    handleDateChange("start", e.target.value)
-                                  }
-                                />
-                                <Text> to </Text>
-                                <Input
-                                  size="sm"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="35%"
-                                  height="20%"
-                                  type="date"
-                                  placeholder="MM/DD/YYYY"
-                                  onChange={(e) =>
-                                    handleDateChange("end", e.target.value)
-                                  }
-                                />
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="time">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <Icon as={sessionsFilterClock} />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  Time
-                                </Text>
-                              </Box>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Input
-                                  size="xs"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="30%"
-                                  height="20%"
-                                  type="time"
-                                  placeholder="00:00 am"
-                                  onChange={(e) =>
-                                    handleTimeChange("start", e.target.value)
-                                  }
-                                />
-                                <Text> to </Text>
-                                <Input
-                                  size="xs"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="30%"
-                                  height="20%"
-                                  type="time"
-                                  placeholder="00:00 pm"
-                                  onChange={(e) =>
-                                    handleTimeChange("end", e.target.value)
-                                  }
-                                />
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="status">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Text
-                                fontWeight="bold"
-                                color="#767778"
-                              >
-                                Status
-                              </Text>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("All")}
-                                  backgroundColor={
-                                    status === "All" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "All" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  All
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Active")}
-                                  backgroundColor={
-                                    status === "Active" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Active" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    gap="4px"
-                                  >
-                                    <Box
-                                      width="10px"
-                                      height="10px"
-                                      borderRadius="50%"
-                                      bg="#0C824D"
-                                    />
-                                    Active
-                                  </Box>
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Past")}
-                                  backgroundColor={
-                                    status === "Past" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Past" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    gap="4px"
-                                  >
-                                    <Box
-                                      width="10px"
-                                      height="10px"
-                                      borderRadius="50%"
-                                      bg="#DAB434"
-                                    />
-                                    Past
-                                  </Box>
-                                </Button>
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="room">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <Icon as={sessionsFilterMapPin} />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  Room
-                                </Text>
-                              </Box>
-                              <Wrap spacing={2}>
-                                <WrapItem>
-                                  <Button
-                                    borderRadius="30px"
-                                    borderWidth="1px"
-                                    width="auto"
-                                    height="20px"
-                                    onClick={() => setSelectedRoom("All")}
-                                    backgroundColor={
-                                      selectedRoom === "All"
-                                        ? "#EDEDFD"
-                                        : "#F6F6F6"
-                                    }
-                                    borderColor={
-                                      selectedRoom === "All"
-                                        ? "#4E4AE7"
-                                        : "#767778"
-                                    }
-                                  >
-                                    All
-                                  </Button>
-                                </WrapItem>
-                                {Array.from(rooms.values()).map(
-                                  (room, index) => (
-                                    <WrapItem key={index}>
-                                      <Button
-                                        borderRadius="30px"
-                                        borderWidth="1px"
-                                        minWidth="auto"
-                                        height="20px"
-                                        onClick={() => setSelectedRoom(room)}
-                                        backgroundColor={
-                                          selectedRoom === room
-                                            ? "#EDEDFD"
-                                            : "#F6F6F6"
-                                        }
-                                        borderColor={
-                                          selectedRoom === room
-                                            ? "#4E4AE7"
-                                            : "#767778"
-                                        }
-                                      >
-                                        {room}
-                                      </Button>
-                                    </WrapItem>
-                                  )
-                                )}
-                              </Wrap>
-                            </Box>
-                          </FormControl>
-                        </Box>
-                      </PopoverBody>
-                    </Box>
-                  </PopoverContent>
-                </Portal>
-              </Popover>
+              <SessionFilter
+                sessions={sessions}
+                setFilteredSessions={setFilteredSessions}
+                rooms={rooms}
+              />
             </Flex>
             <TableContainer>
               <Table variant="unstyled">
@@ -1498,8 +1183,8 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {currentPageSessions.length > 0 ? (
-                    currentPageSessions.map((session) => (
+                  {filteredSessions.length > 0 ? (
+                    filteredSessions.map((session) => (
                       <Tr key={session.id}>
                         {!isArchived ? (
                           <Td>
