@@ -1,24 +1,20 @@
-import { Box, Flex, VStack } from "@chakra-ui/react";
-import { createContext } from "react";
-import { IoMdCalendar } from "react-icons/io";
+import { Box, VStack } from "@chakra-ui/react";
 import { MdNotifications, MdSettings } from "react-icons/md";
 import { useLocation } from "react-router-dom";
 import { DocumentIcon } from "../../assets/DocumentIcon";
 import NavBarButton from "./NavBarButton";
 import "./Navbar.css";
 import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { useNavigate } from "react-router-dom";
 
-
-const Navbar = ({ children, onNavbarClick }) => {
+const Navbar = ({ children }) => {
   // Get current location from React Router
   const { backend } = useBackendContext();
   const location = useLocation();
   const currentPath = location.pathname;
-  const [count, setCount] = useState()
-  const navigate = useNavigate();
+  const [count, setCount] = useState(0); // Initialize with 0 instead of undefined
+  const [hoveredItem, setHoveredItem] = useState(null);
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -31,24 +27,25 @@ const Navbar = ({ children, onNavbarClick }) => {
     };
 
     fetchCount();
-  });
-
-  const handleNavClick = (item) => {
-    const isSingleInvoicePage = /^\/invoices\/[^/]+$/.test(currentPath); // e.g. /invoices/123
-    if (
-      typeof onNavbarClick === "function" &&
-      isSingleInvoicePage
-    ) {
-      onNavbarClick(item.path);
-    } else {
-      navigate(item.path);
-    }
-  };
-
+    
+    // Set up a refresh interval (e.g., every 60 seconds)
+    const intervalId = setInterval(fetchCount, 60000);
+    
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array so it only runs on mount
 
   const menuItems = [
-    { name: "Programs", path: "/programs", icon: <NavCalendarIcon /> },
-    { name: "Invoices", path: "/invoices", icon: <DocumentIcon /> },
+    { 
+      name: "Programs", 
+      path: "/programs", 
+      icon: <NavCalendarIcon />,
+    },
+    { 
+      name: "Invoices", 
+      path: "/invoices", 
+      icon: <DocumentIcon />,
+    },
     {
       name: "Notifications",
       path: "/notifications",
@@ -59,28 +56,32 @@ const Navbar = ({ children, onNavbarClick }) => {
     {
       name: "Settings",
       path: "/settings",
-      icon: <MdSettings size="23px" />,
+      icon: <MdSettings />,
       fontSize: "xl",
     },
   ];
 
   return (
     <div id="navbarBody">
+      {/* Fixed width container to prevent layout shifts */}
       <Box
-        w="112px"
-        bg="white"
-        boxShadow="lg"
+        bg="#F0F0FF"
         bgColor="#FFF"
-        height="100vh"
-        position="fixed"
-        zIndex={10}
         className="navbar-container"
-        marginTop="32px"
+        paddingTop="26px"
+        paddingBottom="26px"
+        paddingLeft="26px"
+        paddingRight="8px"
+        minWidth="209px"
+        width="auto"
+        h="260px"
+        flexShrink={0}
       >
         <VStack
-          spacing={4}
+          spacing="0px"
+          margin="0"
+          padding="0"
           align="stretch"
-          px={2}
         >
           {menuItems.map((item) => (
             <NavBarButton
@@ -90,12 +91,11 @@ const Navbar = ({ children, onNavbarClick }) => {
                 currentPath === item.path ||
                 (currentPath.startsWith(item.path + "/") && item.path !== "/")
               }
-              onClick={handleNavClick}
             />
           ))}
         </VStack>
       </Box>
-      <div style={{ width: "100%", paddingLeft: "112px" }}>{children}</div>
+      <div style={{ width: "100%" }}>{children}</div>
     </div>
   );
 };
