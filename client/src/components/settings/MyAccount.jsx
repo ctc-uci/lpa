@@ -1,3 +1,9 @@
+import {
+    getAuth,
+    updateEmail,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+} from "firebase/auth";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -106,14 +112,50 @@ export const MyAccount = () => {
     }
 
     const handleSave = async () => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
         const updatedUser = {
             email: temporaryEmail,
             firstName: temporaryFirstName,
             lastName: temporaryLastName,
             editPerms: editPerms
         }
-        try
-        {
+        try {
+            if (user && user.email !== temporaryEmail) {
+                if (!user.emailVerified) {
+                    alert("Please verify your email before trying to change it.");
+                    return;
+                }
+                try {
+                    await updateEmail(user, temporaryEmail);
+                }
+                catch (error) {
+                    if (error.code === "auth/requires-recent-login") {
+                        const password = prompt(
+                            "Please re-enter your password to update your email:"
+                        );
+
+                        if (!password) {
+                            alert("Email update cancelled.");
+                            return;
+                        }
+
+                        if (!user.email) {
+                            alert("Cannot reauthenticate — no email on user.");
+                            return;
+                        }
+
+                        const credential = EmailAuthProvider.credential(user.email, password);
+                        await reauthenticateWithCredential(user, credential);
+
+                        await updateEmail(user, temporaryEmail);
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+
             await backend.put("/users/" + id, updatedUser);
             setFirstName(temporaryFirstName);
             setLastName(temporaryLastName);
@@ -121,8 +163,7 @@ export const MyAccount = () => {
             setIsEditing(false);
             onSaveModalClose();
         }
-        catch (error)
-        {
+        catch (error) {
             console.log(error);
         }
     }
