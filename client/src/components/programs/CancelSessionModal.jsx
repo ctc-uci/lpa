@@ -213,24 +213,6 @@ export const CancelSessionModal = ({
                 </Text>
               )}
 
-              {/* <Box display="flex" justifyContent="flex-end" alignItems="center" gap="24px" alignSelf="stretch">
-                <Text>Waive Fee</Text>
-              </Box>
-              {selectedSessions.map(session => (
-                <Flex key={session.id} justify="space-between" align="center" mb={2}>
-                  <Text>{getDayOfWeek(session.date)} {formatDate(session.date)}</Text>
-
-                  {isPastDeadline(session.date) && (
-                    <Checkbox
-                      isChecked={waivedFees[session.id] || false}
-                      onChange={() => handleWaiveFee(session.id)}
-                      colorScheme="purple"
-                      marginRight="25px"
-                    >
-                    </Checkbox>
-                  )}
-                </Flex>
-              ))} */}
               <Box display="flex" justifyContent="flex-end" alignItems="center" gap="24px" alignSelf="stretch">
                 <Text>Waive Fee</Text>
               </Box>
