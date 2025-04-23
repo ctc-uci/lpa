@@ -7,6 +7,8 @@ import {
     Flex,
     Grid,
     Input,
+    InputGroup,
+    InputRightElement,
     Modal,
     ModalOverlay,
     ModalContent,
@@ -29,35 +31,60 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 
 export const MyAccount = () => {
-    const { currentUser, logout } = useAuthContext();
+    const { currentUser, logout, resetPassword } = useAuthContext();
     const { backend } = useBackendContext();
     const navigate = useNavigate();
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState(currentUser.email);
+    const [id, setID] = useState();
+    const [editPerms, setEditPerms] = useState();
 
     const [isEditing, setIsEditing] = useState(false);
-    const [temporaryFirstName, setTemporaryFirstName] = useState(firstName);
-    const [temporaryLastName, setTemporaryLastName] = useState(lastName);
+    const [temporaryFirstName, setTemporaryFirstName] = useState("");
+    const [temporaryLastName, setTemporaryLastName] = useState("");
     const [temporaryEmail, setTemporaryEmail] = useState(email);
     const [isInvalidTemporaryFirstName, setIsInvalidTemporaryFirstName] = useState(false);
     const [isInvalidTemporaryLastName, setIsInvalidTemporaryLastName] = useState(false);
     const [isInvalidTemporaryEmail, setIsInvalidTemporaryEmail] = useState(false);
 
     const {
-        isOpen: isCancelModalOpen,
-        onOpen: onCancelModalOpen,
-        onClose: onCancelModalClose
+        isOpen: isLogOutModalOpen,
+        onOpen: onLogOutModalOpen,
+        onClose: onLogOutModalClose
+    } = useDisclosure()
+
+    const {
+        isOpen: isDiscardModalOpen,
+        onOpen: onDiscardModalOpen,
+        onClose: onDiscardModalClose
+    } = useDisclosure()
+
+    const {
+        isOpen: isSaveModalOpen,
+        onOpen: onSaveModalOpen,
+        onClose: onSaveModalClose
+    } = useDisclosure()
+
+    const {
+        isOpen: isChangePasswordModalOpen,
+        onOpen: onChangePasswordModalOpen,
+        onClose: onChangePasswordModalClose
     } = useDisclosure()
 
     useEffect(() => {
         const getUser = async () => {
             try {
                 const userResponse = await backend.get("/users/" + currentUser.uid);
-                setFirstName(userResponse.data[0].firstName);
+
+                const { id, editPerms, firstName, lastName } = userResponse.data[0]
+
+                setID(id);
+                setEditPerms(editPerms);
+                setFirstName(firstName);
                 setTemporaryFirstName(firstName);
-                setLastName(userResponse.data[0].lastName);
+                setLastName(lastName);
                 setTemporaryLastName(lastName);
             }
             catch (err) {
@@ -76,6 +103,33 @@ export const MyAccount = () => {
         catch (err) {
             console.log(err);
         }
+    }
+
+    const handleSave = async () => {
+        const updatedUser = {
+            email: temporaryEmail,
+            firstName: temporaryFirstName,
+            lastName: temporaryLastName,
+            editPerms: editPerms
+        }
+        try
+        {
+            await backend.put("/users/" + id, updatedUser);
+            setFirstName(temporaryFirstName);
+            setLastName(temporaryLastName);
+            setEmail(temporaryEmail);
+            setIsEditing(false);
+            onSaveModalClose();
+        }
+        catch (error)
+        {
+            console.log(error);
+        }
+    }
+
+    const handleChangePassword = async () => {
+        await resetPassword({ email });
+        onChangePasswordModalOpen();
     }
 
     const getInitials = (firstName, lastName) => {
@@ -123,14 +177,15 @@ export const MyAccount = () => {
         setTemporaryEmail(e.target.value);
     }
 
-    const handleCancel = () => {
+    const handleDiscard = () => {
         setTemporaryFirstName(firstName);
         setTemporaryLastName(lastName);
         setTemporaryEmail(email);
         setIsInvalidTemporaryFirstName(false);
         setIsInvalidTemporaryLastName(false);
         setIsInvalidTemporaryEmail(false);
-        onCancelModalClose();
+        setIsEditing(false);
+        onDiscardModalClose();
     }
 
     return (
@@ -148,10 +203,22 @@ export const MyAccount = () => {
                         height="2.5rem"
                         padding="0rem 1rem"
                         marginLeft="auto"
-                        onClick={handleLogout}
+                        onClick={() => {
+                            onLogOutModalOpen()
+                        }}
                     >
                         Log Out
                     </Button>
+                    <ActionModal
+                        isOpen={isLogOutModalOpen}
+                        onClose={onLogOutModalClose}
+                        onAction={handleLogout}
+                        title="Log out of administrative portal?"
+                        body="You can log back in at any time."
+                        action="Log Out"
+                        actionButtonBackgroundColor="#90080F"
+                    >
+                    </ActionModal>
                 </Flex>
                 <Flex
                     gap="26px"
@@ -237,27 +304,29 @@ export const MyAccount = () => {
                                             marginLeft="auto"
                                             borderRadius="6px"
                                             backgroundColor="#EDF2F7"
+                                            onClick={() => {
+                                                onDiscardModalOpen()
+                                            }}
                                         >
                                             <Text
                                                 fontFamily="Inter"
                                                 fontSize="14px"
                                                 fontWeight="500"
                                                 color="#2D3748"
-                                                onClick={() => {onCancelModalOpen()}}
                                             >
                                                 Cancel
                                             </Text>
-                                            <ConfirmationModal
-                                                isOpen={isCancelModalOpen}
-                                                onClose={onCancelModalClose}
-                                                title="Discard Changes?"
-                                                body="Your edits to account information will not be saved."
-                                                onConfirm={handleCancel}
-                                                primaryButtonBackgroundColor="#90080F"
-                                            >
-
-                                            </ConfirmationModal>
                                         </Button>
+                                        <ActionModal
+                                            isOpen={isDiscardModalOpen}
+                                            onClose={onDiscardModalClose}
+                                            onAction={handleDiscard}
+                                            title="Discard Changes?"
+                                            body="Your edits to account information will not be saved."
+                                            action="Discard"
+                                            actionButtonBackgroundColor="#90080F"
+                                        >
+                                        </ActionModal>
                                         <Button
                                             display="flex"
                                             padding="0px 16px"
@@ -266,6 +335,9 @@ export const MyAccount = () => {
                                             gap="4px"
                                             borderRadius="6px"
                                             backgroundColor="#4441C8"
+                                            onClick={() => {
+                                                onSaveModalOpen()
+                                            }}
                                         >
                                             <Text
                                                 color="#FFF"
@@ -276,6 +348,16 @@ export const MyAccount = () => {
                                                 Save
                                             </Text>
                                         </Button>
+                                        <ActionModal
+                                            isOpen={isSaveModalOpen}
+                                            onClose={onSaveModalClose}
+                                            onAction={handleSave}
+                                            title="Save changes to my account?"
+                                            body="Your new email will be required the next time you log in."
+                                            action="Save"
+                                            actionButtonBackgroundColor="#4441C8"
+                                        >
+                                        </ActionModal>
                                     </>
                                 ) : (
                                     <Button
@@ -429,10 +511,13 @@ export const MyAccount = () => {
                                     )
                                 }
                             </Flex>
-                            <Flex>
+                            <Flex
+                                width="100%"
+                            >
                                 <Flex
                                     alignItems="center"
                                     width="10rem"
+                                    flexShrink="0"
                                 >
                                     <AiFillLockIcon></AiFillLockIcon>
                                     <Text
@@ -445,46 +530,107 @@ export const MyAccount = () => {
                                         Password
                                     </Text>
                                 </Flex>
-                                <Text>
-                                    ••••••••••••
-                                </Text>
+                                {
+                                    isEditing ? (
+                                        <InputGroup
+                                            flex={1}
+                                        >
+                                            <Input
+                                                defaultValue={"••••••••••••"}
+                                                pr="10rem"
+                                            >
+                                            </Input>
+                                            <InputRightElement
+                                                width="10rem"
+                                            >
+                                                <Button
+                                                    variant="link"
+                                                    width="100%"
+                                                    color="#29267D"
+                                                    fontFamily="Inter"
+                                                    fontWeight="500"
+                                                    onClick={handleChangePassword}
+                                                >
+                                                    Change Password
+                                                </Button>
+                                            </InputRightElement>
+                                            <Modal
+                                                isOpen={isChangePasswordModalOpen}
+                                                onClose={onChangePasswordModalClose}
+                                            >
+                                                <ModalOverlay></ModalOverlay>
+                                                <ModalContent>
+                                                    <ModalHeader>
+                                                        Email Sent
+                                                    </ModalHeader>
+                                                    <ModalBody>
+                                                        <Text>
+                                                            Please open your inbox for an email from La Peña Cultural Center. Click on the link there to reset password.
+                                                        </Text>
+                                                    </ModalBody>
+                                                    <ModalFooter>
+                                                        <Button
+                                                            backgroundColor="#4441C8"
+                                                            onClick={onChangePasswordModalClose}
+                                                        >
+                                                            <Text
+                                                                color="#FFF"
+                                                                fontFamily="Inter"
+                                                                fontWeight="500"
+                                                            >
+                                                                Got It
+                                                            </Text>
+                                                        </Button>
+                                                    </ModalFooter>
+                                                </ModalContent>
+
+                                            </Modal>
+                                        </InputGroup>
+                                    ) : (
+                                        <Text>
+                                            ••••••••••••
+                                        </Text>
+                                    )
+                                }
                             </Flex>
                         </Flex>
                     </Flex>
                 </Flex>
             </Flex>
-        </Navbar>
+        </Navbar >
     )
 }
 
-const ConfirmationModal = (
-    { isOpen, onClose, title, body, primaryButtonBackgroundColor, onConfirm}
+const ActionModal = (
+    { isOpen, onClose, onAction, title, body, action, actionButtonBackgroundColor }
 ) => {
-    <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay></ModalOverlay>
-        <ModalContent>
-            <ModalHeader>
-                {title}
-            </ModalHeader>
-            <ModalBody>
-                <Text>
-                    {body}
-                </Text>
-            </ModalBody>
-            <ModalFooter>
-                <Button onClick={onClose}>
-                    Cancel
-                </Button>
-                <Button
-                    marginLeft="0.5rem"
-                    backgroundColor={primaryButtonBackgroundColor}
-                    onClick={onConfirm}
-                >
-                    <Text color="white">
-                        Confirm
+    return (
+        <Modal isOpen={isOpen} onClose={onClose}>
+            <ModalOverlay></ModalOverlay>
+            <ModalContent>
+                <ModalHeader>
+                    {title}
+                </ModalHeader>
+                <ModalBody>
+                    <Text>
+                        {body}
                     </Text>
-                </Button>
-            </ModalFooter>
-        </ModalContent>
-    </Modal>
+                </ModalBody>
+                <ModalFooter>
+                    <Button onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        marginLeft="0.5rem"
+                        backgroundColor={actionButtonBackgroundColor}
+                        onClick={onAction}
+                    >
+                        <Text color="white">
+                            {action}
+                        </Text>
+                    </Button>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
+    )
 }
