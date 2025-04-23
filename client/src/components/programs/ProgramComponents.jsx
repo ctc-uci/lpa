@@ -1,8 +1,10 @@
 import { React, useEffect, useState } from "react";
-
 import { CancelIcon } from "../../assets/CancelIcon";
+import { ClockFilled } from "../../assets/ClockFilled";
+import { CustomOption } from "../../assets/CustomOption";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { SessionFilter } from "../filters/SessionsFilter";
+import { CancelSessionModal } from "./CancelSessionModal";
 
 import "./Program.css";
 
@@ -13,9 +15,6 @@ import {
   ChevronRightIcon,
   DeleteIcon,
   DownloadIcon,
-  EmailIcon,
-  InfoIcon,
-  TimeIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -72,13 +71,19 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import { EllipsisIcon, FileTextIcon, Info, UserIcon } from "lucide-react";
+import {
+  EllipsisIcon,
+  Info,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
+import { ArtistIcon } from "../../assets/ArtistsIcon";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
+import { DollarBill } from "../../assets/DollarBill";
 import { DuplicateIcon } from "../../assets/DuplicateIcon";
 import { EditIcon } from "../../assets/EditIcon";
+import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
 import {
   filterButton,
   filterDateCalendar,
@@ -89,10 +94,17 @@ import {
   sessionsFilterMapPin,
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
+import { LocationPin } from "../../assets/LocationPin";
+import { PersonIcon } from "../../assets/PersonIcon";
+import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
+import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
+import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
-import {ProgramFilter} from "../filters/ProgramsFilter"
+import { ProgramFilter } from "../filters/ProgramsFilter";
+import { DateRange } from "./DateRange";
+import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
 export const ProgramSummary = ({
   program,
@@ -100,6 +112,7 @@ export const ProgramSummary = ({
   isArchived,
   setIsArchived,
   eventId,
+  sessions,
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -109,6 +122,21 @@ export const ProgramSummary = ({
     onClose: modalOnClose,
   } = useDisclosure();
 
+  const getFilteredAndSortedSessions = () => {
+    if (!sessions || sessions.length === 0) return [];
+
+    const filteredSessions = sessions.filter((session) => !session.archived);
+
+    const sortedSessions = [...filteredSessions].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateA - dateB;
+    });
+
+    return sortedSessions;
+  };
+
+  const filteredAndSortedSessions = getFilteredAndSortedSessions();
   const {
     isOpen: popoverIsOpen,
     onOpen: popoverOnOpen,
@@ -155,7 +183,6 @@ export const ProgramSummary = ({
 
   const duplicateProgram = async () => {
     const eventResponse = await backend.get("/events/allInfo/" + eventId);
-    console.log(eventResponse);
     const eventName = eventResponse.data[0].eventname;
     const generalInformation = eventResponse.data[0].eventdescription;
 
@@ -377,29 +404,33 @@ export const ProgramSummary = ({
                   align="center"
                   gap={2}
                 >
-                  <Flex
-                    align="center"
-                    gap={2}
+                  <Button
+                    display="flex"
+                    height="40px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    fontSize="14px"
+                    fontWeight="600"
+                    borderRadius="6px"
+                    onClick={exit}
                   >
                     <Icon
-                      as={FileTextIcon}
-                      boxSize={6}
-                      color="gray.600"
-                    />
-                    <Text
-                      fontSize="xl"
-                      fontWeight="semibold"
-                      color="gray.600"
-                    >
-                      Summary
-                    </Text>
-                  </Flex>
+                      as={ChevronLeftIcon}
+                      boxSize={5}
+                    />{" "}
+                    Programs
+                  </Button>
                 </Flex>
 
                 <Flex
                   align="center"
                   gap={2}
                 >
+                  <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
+                    Invoice
+                  </PDFButton>
                   <Popover
                     id="popTrigger"
                     placement="bottom-start"
@@ -410,7 +441,12 @@ export const ProgramSummary = ({
                     {({ isOpen, onClose }) => (
                       <>
                         <PopoverTrigger asChild>
-                          <Icon boxSize="5">
+                          <Icon
+                            boxSize="7"
+                            padding="5px"
+                            borderRadius="6px"
+                            backgroundColor="#EDF2F7"
+                          >
                             <EllipsisIcon />
                           </Icon>
                         </PopoverTrigger>
@@ -473,9 +509,6 @@ export const ProgramSummary = ({
                       </>
                     )}
                   </Popover>
-                  <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
-                    Invoice
-                  </PDFButton>
                   <Modal
                     isOpen={modalIsOpen}
                     onClose={modalOnClose}
@@ -533,61 +566,60 @@ export const ProgramSummary = ({
                   as="h2"
                   size="md"
                   textColor="gray.600"
+                  fontFamily="Inter"
+                  fontSize="24px"
+                  fontStyle="normal"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  coilor="#2D3748"
                 >
                   {program[0]?.name || "Untitled Program"}
                 </Heading>
 
                 <Flex
-                  align="center"
-                  gap={2}
+                  align="flex-start"
+                  gap={4}
                   color="gray.700"
-                >
-                  <Icon as={TimeIcon} />
-                  <Text>
-                    {nextSession
-                      ? `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
-                      : "No session scheduled"}
-                  </Text>
-                  <Text color="gray.600">next up on</Text>
-                  <Icon as={CalendarIcon} />
-                  <Text>
-                    {nextSession?.date
-                      ? new Date(nextSession.date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                        })
-                      : "No date available"}
-                  </Text>
-                </Flex>
-
-                <Flex
-                  spacing={2}
-                  gap={6}
+                  direction="column"
+                  alignSelf="stretch"
                 >
                   <Flex
-                    align="center"
                     gap={2}
+                    textAlign={"center"}
+                    alignContent={"center"}
+                    direction={"row"}
                   >
-                    <Icon
-                      as={UserIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">
-                      {payees?.length > 0
-                        ? payees.map((payee) => payee.clientName).join(", ")
-                        : "No payees"}
-                    </Text>
+                    <CustomOption />
+                    <Text>Custom</Text>
+                  </Flex>
+                  <Flex
+                    alignItems="center"
+                    gap="2"
+                  >
+                    <ClockFilled />
+                    <Flex direction="column">
+                      <WeeklyRepeatingSchedule
+                        sessions={filteredAndSortedSessions}
+                      />
+                    </Flex>
+                  </Flex>
+                  <Flex
+                    direction="row"
+                    alignItems="center"
+                    gap="2"
+                  >
+                    <ProgramsCalendarIcon />
+                    <DateRange sessions={filteredAndSortedSessions} />
                   </Flex>
                   <Flex
                     align="center"
                     gap={2}
                   >
-                    <Icon
-                      as={UserIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">
+                    <ArtistIcon />
+                    <Text
+                      color="#2D3748"
+                      fontWeight="500"
+                    >
                       {instructors?.length > 0
                         ? instructors
                             .map((instructor) => instructor.clientName)
@@ -595,88 +627,124 @@ export const ProgramSummary = ({
                         : "No instructors"}
                     </Text>
                   </Flex>
-                </Flex>
 
-                <Flex
-                  spacing={2}
-                  gap={6}
-                >
+                  <Flex
+                    spacing={2}
+                    gap={6}
+                  >
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <PersonIcon />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {payees?.length > 0
+                          ? payees.map((payee) => payee.clientName).join(", ")
+                          : "No payees"}
+                      </Text>
+                    </Flex>
+                  </Flex>
+
+                  <Flex
+                    spacing={2}
+                    gap={6}
+                  >
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <ProgramEmailIcon />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {payees?.length > 0
+                          ? [...(payees || [])]
+                              .map((person) => person?.clientEmail)
+                              .filter(Boolean)
+                              .join(", ")
+                          : "No emails available"}
+                      </Text>
+                    </Flex>
+                  </Flex>
+
                   <Flex
                     align="center"
-                    gap={2}
+                    gap={12}
                   >
-                    <Icon
-                      as={EmailIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">
-                      {payees?.length > 0
-                        ? [...(payees || [])]
-                            .map((person) => person?.clientEmail)
-                            .filter(Boolean)
-                            .join(", ")
-                        : "No emails available"}
-                    </Text>
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <LocationPin />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {nextRoom?.name || "-"}
+                      </Text>
+                    </Flex>
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <DollarBill />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {nextRoom?.rate || "-.--"}
+                      </Text>
+                      <Text color="gray.600">/ hour</Text>
+                    </Flex>
                   </Flex>
+
+                  <Stack spacing={6}>
+                    <Box spacing={2}>
+                      <Heading
+                        size="md"
+                        textColor="gray.600"
+                        fontFamily="Inter"
+                        fontSize="16px"
+                        fontWeight="700"
+                        lineHeight="normal"
+                      >
+                        Room Description
+                      </Heading>
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                        mt={4}
+                        fontSize={14}
+                      >
+                        {nextRoom?.description || "No description available"}
+                      </Text>
+                    </Box>
+
+                    <Box>
+                      <Heading
+                        size="md"
+                        textColor="gray.600"
+                        fontSize="16px"
+                        fontStyle="normal"
+                        fontWeight="700"
+                      >
+                        Program Description
+                      </Heading>
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                        mt={4}
+                        fontSize={14}
+                      >
+                        {program[0]?.description || "No description available"}
+                      </Text>
+                    </Box>
+                  </Stack>
                 </Flex>
-
-                <Flex
-                  align="center"
-                  gap={8}
-                >
-                  <Flex
-                    align="center"
-                    gap={2}
-                  >
-                    <Icon
-                      as={InfoIcon}
-                      color="gray.600"
-                    />
-                    <Text color="gray.600">{nextRoom?.name || "-"}</Text>
-                  </Flex>
-                  <Flex
-                    align="center"
-                    gap={2}
-                  >
-                    <Text color="gray.600">$</Text>
-                    <Text color="gray.600">{nextRoom?.rate || "-.--"}</Text>
-                    <Text color="gray.600">/ hour</Text>
-                  </Flex>
-                </Flex>
-
-                <Stack spacing={6}>
-                  <Box spacing={2}>
-                    <Heading
-                      size="md"
-                      textColor="gray.600"
-                    >
-                      Room Description
-                    </Heading>
-                    <Text
-                      color="gray.600"
-                      text="xs"
-                      mt={4}
-                    >
-                      {nextRoom?.description || "No description available"}
-                    </Text>
-                  </Box>
-
-                  <Box>
-                    <Heading
-                      size="md"
-                      textColor="gray.600"
-                    >
-                      Class Description
-                    </Heading>
-                    <Text
-                      color="gray.600"
-                      text="xs"
-                      mt={4}
-                    >
-                      {program[0]?.description || "No description available"}
-                    </Text>
-                  </Box>
-                </Stack>
               </Stack>
             </CardBody>
           </Card>
@@ -825,9 +893,85 @@ export const ProgramSummary = ({
   );
 };
 
-export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+export const Sessions = ({
+  sessions,
+  rooms,
+  isArchived,
+  setIsArchived,
+  refreshSessions,
+}) => {
+  const { backend } = useBackendContext();
+  const {
+    isOpen: cancelModalIsOpen,
+    onOpen: openCancelModal,
+    onClose: closeCancelModal,
+  } = useDisclosure();
 
+  const handleConfirmCancel = async (action, reason, waivedFees) => {
+    // Create an array of session IDs
+    const sessionIds = selectedSessions;
+
+    // Close the modal first to improve perceived performance
+    closeCancelModal();
+
+    try {
+      if (action === "Archive") {
+        // Call the batch archive endpoint
+        await batchArchiveSessions(sessionIds, reason, waivedFees);
+      } else if (action === "Delete") {
+        // Call the batch delete endpoint
+        await batchDeleteSessions(sessionIds, reason);
+      }
+
+      // Reset selected sessions
+      setSelectedSessions([]);
+      setIsSelected(false);
+
+      // Refresh the sessions data
+      refreshSessions();
+    } catch (error) {
+      console.error("Error handling session action:", error);
+    }
+  };
+  const batchArchiveSessions = async (sessionIds, reason, waivedFees) => {
+    try {
+      const response = await backend.post("/bookings/batch/archive", {
+        sessionIds,
+        reason,
+        waivedFees,
+      });
+
+      if (response.data.result === "success") {
+        console.log(`Successfully archived ${sessionIds.length} sessions`);
+        setSelectedSessions([]);
+        setIsSelected(false);
+      } else {
+        console.error("Error archiving sessions:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Failed to archive sessions:", error);
+    }
+  };
+
+  const batchDeleteSessions = async (sessionIds, reason) => {
+    try {
+      const response = await backend.delete("/bookings/batch/delete", {
+        data: { sessionIds, reason }, // For DELETE requests, axios requires data in a 'data' property
+      });
+
+      if (response.data.result === "success") {
+        console.log(`Successfully deleted ${sessionIds.length} sessions`);
+        setSelectedSessions([]);
+        setIsSelected(false);
+      } else {
+        console.error("Error deleting sessions:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Failed to delete sessions:", error);
+    }
+  };
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isSelected, setIsSelected] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [status, setStatus] = useState("All");
@@ -835,12 +979,17 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
 
   const [sortKey, setSortKey] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState([]);
+  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
+    []
+  );
   const [filteredSessions, setFilteredSessions] = useState([]);
 
   const handleStatusChange = (newStatus) => {
     setStatus(newStatus);
   };
+
+  console.log(filteredAndSortedSessions);
+  const [sessionMap, setSessionMap] = useState({});
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -852,6 +1001,44 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
 
   const currentPageSessions =
     filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
+
+  const [selectMenuOpen, setSelectMenuOpen] = useState(false);
+  const [selectOption, setSelectOption] = useState("Select");
+  const [selectedSessions, setSelectedSessions] = useState([]);
+
+  console.log("Selected Sessions:", selectedSessions);
+
+  const handleSessionSelection = (sessionId) => {
+    setSelectedSessions((prev) => {
+      if (prev.includes(sessionId)) {
+        return prev.filter((id) => id !== sessionId);
+      } else {
+        return [...prev, sessionId];
+      }
+    });
+  };
+
+  const handleSelectOption = (option) => {
+    const originalOption = option;
+    setSelectOption(option);
+    setSelectMenuOpen(false);
+
+    if (option === "Select all") {
+      setSelectedSessions(currentPageSessions.map((session) => session.id));
+    } else if (originalOption === "Deselect") {
+      // Deselect all sessions
+      setSelectedSessions([]);
+      setSelectOption("Select");
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSessions.length === currentPageSessions.length) {
+      setSelectedSessions([]);
+    } else {
+      setSelectedSessions(currentPageSessions.map((session) => session.id));
+    }
+  };
 
   const goToNextPage = () => {
     if (currentPage < totalPages) {
@@ -872,10 +1059,13 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
   useEffect(() => {
     if (!sessions || !rooms) return;
 
+    const newSessionMap = {};
+
     const filtered = sessions.filter((session) => {
       const sessionDate = new Date(session.date);
       const sessionStartTime = session.startTime;
       const sessionEndTime = session.endTime;
+      newSessionMap[session.id] = session;
 
       const isDateInRange =
         (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
@@ -892,8 +1082,11 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
 
       return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
     });
+    setSessionMap(newSessionMap); // set sessionMap
 
+    console.log(newSessionMap);
     const sorted = [...filtered];
+
     if (sortKey === "date") {
       sorted.sort((a, b) => {
         const aInvalid = !a.date || a.date === "N/A";
@@ -985,6 +1178,21 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
       marginBottom="50px"
       width="100%"
     >
+      <Flex
+        align="center"
+        mb="15px"
+        gap="2px"
+      >
+        <SessionsBookmark />
+        <Text
+          fontSize="24px"
+          fontWeight="700"
+          color="#2D3748"
+        >
+          {" "}
+          Sessions{" "}
+        </Text>
+      </Flex>
       <Card
         shadow="md"
         border="1px"
@@ -1002,44 +1210,490 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
             justify="space-between"
           >
             <Flex
-              align="center"
-              mb="15px"
-            >
-              <Icon as={sessionsCalendar} />
-              <Text
-                fontSize="25px"
-                fontWeight="semibold"
-                color="#474849"
-                ml="8px"
-              >
-                {" "}
-                Sessions{" "}
-              </Text>
-            </Flex>
-            <Flex
               gap="12px"
               alignItems="center"
             >
-              <Button
-                bg="#f2f6fb"
-                color="#1e293b"
-                fontWeight="bold"
-                fontSize="16px"
-                borderRadius="8px"
-                backgroundColor="#F0F1F4"
-                height="45px"
-                mt="10px"
-                mb="15px"
-                px="20px"
-                _hover={{ bg: "#e0e6ed" }}
-              >
-                Select
-              </Button>
-              <SessionFilter
-                sessions={sessions}
-                setFilteredSessions={setFilteredSessions}
-                rooms={rooms}
-              />
+              <Box position="relative">
+                <Button
+                  style={{
+                    display: "flex",
+                    height: "40px",
+                    padding: "0px 16px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "4px",
+                    flex: "1 0 0",
+                    borderRadius: "6px",
+                    backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
+                    color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    fontStyle: "normal",
+                    fontWeight: "700",
+                    lineHeight: "normal",
+                    letterSpacing: "0.07px",
+                  }}
+                  onClick={() => {
+                    setSelectMenuOpen(!selectMenuOpen);
+                    setIsSelected(true);
+                  }}
+                  data-select-menu="true"
+                >
+                  {selectOption}
+                </Button>
+                {selectMenuOpen && (
+                  <Box
+                    position="absolute"
+                    top="45px"
+                    left="0"
+                    display="flex"
+                    width="85px"
+                    padding="4px"
+                    flexDirection="column"
+                    alignItems="flex-start"
+                    gap="10px"
+                    borderRadius="4px"
+                    border="1px solid var(--Secondary-3, #E2E8F0)"
+                    background="#FFF"
+                    boxShadow="0px 1px 2px 0px rgba(0, 0, 0, 0.05)"
+                    zIndex="10"
+                  >
+                    <Stack
+                      spacing="0"
+                      width="100%"
+                    >
+                      <Button
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => handleSelectOption("Select")}
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
+                      >
+                        Select
+                      </Button>
+                      <Button
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => handleSelectOption("Select all")}
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
+                        letterSpacing={
+                          selectOption === "Select all" ? "0.07px" : "normal"
+                        }
+                      >
+                        Select all
+                      </Button>
+                      <Button
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => {
+                          setSelectOption(false);
+                          handleSelectOption("Deselect");
+                          setIsSelected(false);
+                        }}
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
+                        color={
+                          selectOption === "Deselect"
+                            ? "var(--Primary-5-Default, #4441C8)"
+                            : "inherit"
+                        }
+                        letterSpacing={
+                          selectOption === "Deselect" ? "0.07px" : "normal"
+                        }
+                      >
+                        Deselect
+                      </Button>
+                    </Stack>
+                  </Box>
+                )}
+              </Box>
+
+              {/* Cancel button - only shows when isSelected is true */}
+              {isSelected && (
+                <button
+                  style={{
+                    display: "flex",
+                    height: "40px",
+                    padding: "0px 16px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "4px",
+                    borderRadius: "6px",
+                    background: "var(--destructive, #90080F)",
+                    color: "white",
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    fontStyle: "normal",
+                    fontWeight: "700",
+                    lineHeight: "normal",
+                    letterSpacing: "0.07px",
+                    border: "none",
+                    cursor:
+                      selectedSessions.length > 0 ? "pointer" : "not-allowed",
+                    opacity: selectedSessions.length > 0 ? 1 : 0.6,
+                  }}
+                  onClick={() => {
+                    if (selectedSessions.length > 0) {
+                      openCancelModal();
+                    }
+                  }}
+                  disabled={selectedSessions.length === 0}
+                >
+                  <CancelIcon />{" "}
+                  {selectOption === "Select all"
+                    ? "All"
+                    : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
+                </button>
+              )}
+
+              <Popover onClose={onClose}>
+                <PopoverTrigger>
+                  <Button
+                    display="flex"
+                    height="40px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    borderRadius="6px"
+                    bg="var(--Secondary-2-Default, #EDF2F7)"
+                    color="#2D3748"
+                    fontFamily="Inter"
+                    fontSize="14px"
+                    onClick={onOpen}
+                    border="none"
+                  >
+                    <Box
+                      display="flex"
+                      flexDirection="row"
+                      alignItems="center"
+                      gap="5px"
+                    >
+                      <SessionFilter
+                        sessions={sessions}
+                        setFilteredSessions={setFilteredSessions}
+                        rooms={rooms}
+                      />
+                    </Box>
+                  </Button>
+                </PopoverTrigger>
+                <Portal>
+                  <PopoverContent>
+                    <Box margin="16px">
+                      <PopoverBody>
+                        <Box
+                          display="flex"
+                          flexDirection="column"
+                          alignItems="flex-start"
+                          gap="24px"
+                          alignSelf="stretch"
+                        >
+                          <FormControl id="date">
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              justifyContent="center"
+                              alignItems="flex-start"
+                              gap="16px"
+                              alignSelf="stretch"
+                            >
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="5px"
+                                alignSelf="stretch"
+                              >
+                                <CalendarIcon />
+                                <Text
+                                  fontWeight="bold"
+                                  color="#767778"
+                                >
+                                  DATE
+                                </Text>
+                              </Box>
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="8px"
+                              >
+                                <Input
+                                  size="sm"
+                                  borderRadius="5px"
+                                  borderColor="#D2D2D2"
+                                  backgroundColor="#F6F6F6"
+                                  width="35%"
+                                  height="20%"
+                                  type="date"
+                                  placeholder="MM/DD/YYYY"
+                                  onChange={(e) =>
+                                    handleDateChange("start", e.target.value)
+                                  }
+                                />
+                                <Text> to </Text>
+                                <Input
+                                  size="sm"
+                                  borderRadius="5px"
+                                  borderColor="#D2D2D2"
+                                  backgroundColor="#F6F6F6"
+                                  width="35%"
+                                  height="20%"
+                                  type="date"
+                                  placeholder="MM/DD/YYYY"
+                                  onChange={(e) =>
+                                    handleDateChange("end", e.target.value)
+                                  }
+                                />
+                              </Box>
+                            </Box>
+                          </FormControl>
+                          <FormControl id="time">
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              justifyContent="center"
+                              alignItems="flex-start"
+                              gap="16px"
+                              alignSelf="stretch"
+                            >
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="5px"
+                                alignSelf="stretch"
+                              >
+                                <Icon as={sessionsFilterClock} />
+                                <Text
+                                  fontWeight="bold"
+                                  color="#767778"
+                                >
+                                  Time
+                                </Text>
+                              </Box>
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="8px"
+                              >
+                                <Input
+                                  size="xs"
+                                  borderRadius="5px"
+                                  borderColor="#D2D2D2"
+                                  backgroundColor="#F6F6F6"
+                                  width="30%"
+                                  height="20%"
+                                  type="time"
+                                  placeholder="00:00 am"
+                                  onChange={(e) =>
+                                    handleTimeChange("start", e.target.value)
+                                  }
+                                />
+                                <Text> to </Text>
+                                <Input
+                                  size="xs"
+                                  borderRadius="5px"
+                                  borderColor="#D2D2D2"
+                                  backgroundColor="#F6F6F6"
+                                  width="30%"
+                                  height="20%"
+                                  type="time"
+                                  placeholder="00:00 pm"
+                                  onChange={(e) =>
+                                    handleTimeChange("end", e.target.value)
+                                  }
+                                />
+                              </Box>
+                            </Box>
+                          </FormControl>
+                          <FormControl id="status">
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              justifyContent="center"
+                              alignItems="flex-start"
+                              gap="16px"
+                              alignSelf="stretch"
+                            >
+                              <Text
+                                fontWeight="bold"
+                                color="#767778"
+                                visibility={isSelected ? "visible" : "hidden"}
+                              >
+                                Status
+                              </Text>
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="8px"
+                              >
+                                <Button
+                                  borderRadius="30px"
+                                  borderWidth="1px"
+                                  minWidth="auto"
+                                  height="20%"
+                                  onClick={() => setStatus("All")}
+                                  backgroundColor={
+                                    status === "All" ? "#EDEDFD" : "#F6F6F6"
+                                  }
+                                  borderColor={
+                                    status === "All" ? "#4E4AE7" : "#767778"
+                                  }
+                                >
+                                  All
+                                </Button>
+                                <Button
+                                  borderRadius="30px"
+                                  borderWidth="1px"
+                                  minWidth="auto"
+                                  height="20%"
+                                  onClick={() => setStatus("Active")}
+                                  backgroundColor={
+                                    status === "Active" ? "#EDEDFD" : "#F6F6F6"
+                                  }
+                                  borderColor={
+                                    status === "Active" ? "#4E4AE7" : "#767778"
+                                  }
+                                >
+                                  <Box
+                                    display="flex"
+                                    justifyContent="center"
+                                    alignItems="center"
+                                    gap="4px"
+                                  >
+                                    <Box
+                                      width="10px"
+                                      height="10px"
+                                      borderRadius="50%"
+                                      bg="#0C824D"
+                                    />
+                                    Active
+                                  </Box>
+                                </Button>
+                                <Button
+                                  borderRadius="30px"
+                                  borderWidth="1px"
+                                  minWidth="auto"
+                                  height="20%"
+                                  onClick={() => setStatus("Past")}
+                                  backgroundColor={
+                                    status === "Past" ? "#EDEDFD" : "#F6F6F6"
+                                  }
+                                  borderColor={
+                                    status === "Past" ? "#4E4AE7" : "#767778"
+                                  }
+                                >
+                                  <Box
+                                    display="flex"
+                                    justifyContent="center"
+                                    alignItems="center"
+                                    gap="4px"
+                                  >
+                                    <Box
+                                      width="10px"
+                                      height="10px"
+                                      borderRadius="50%"
+                                      bg="#DAB434"
+                                    />
+                                    Past
+                                  </Box>
+                                </Button>
+                              </Box>
+                            </Box>
+                          </FormControl>
+                          <FormControl id="room">
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              justifyContent="center"
+                              alignItems="flex-start"
+                              gap="16px"
+                              alignSelf="stretch"
+                            >
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="5px"
+                                alignSelf="stretch"
+                              >
+                                <Icon as={sessionsFilterMapPin} />
+                                <Text
+                                  fontWeight="bold"
+                                  color="#767778"
+                                >
+                                  Room
+                                </Text>
+                              </Box>
+                              <Wrap spacing={2}>
+                                <WrapItem>
+                                  <Button
+                                    borderRadius="30px"
+                                    borderWidth="1px"
+                                    width="auto"
+                                    height="20px"
+                                    onClick={() => setSelectedRoom("All")}
+                                    backgroundColor={
+                                      selectedRoom === "All"
+                                        ? "#EDEDFD"
+                                        : "#F6F6F6"
+                                    }
+                                    borderColor={
+                                      selectedRoom === "All"
+                                        ? "#4E4AE7"
+                                        : "#767778"
+                                    }
+                                  >
+                                    All
+                                  </Button>
+                                </WrapItem>
+                                {Array.from(rooms.values()).map(
+                                  (room, index) => (
+                                    <WrapItem key={index}>
+                                      <Button
+                                        borderRadius="30px"
+                                        borderWidth="1px"
+                                        minWidth="auto"
+                                        height="20px"
+                                        onClick={() => setSelectedRoom(room)}
+                                        backgroundColor={
+                                          selectedRoom === room
+                                            ? "#EDEDFD"
+                                            : "#F6F6F6"
+                                        }
+                                        borderColor={
+                                          selectedRoom === room
+                                            ? "#4E4AE7"
+                                            : "#767778"
+                                        }
+                                      >
+                                        {room}
+                                      </Button>
+                                    </WrapItem>
+                                  )
+                                )}
+                              </Wrap>
+                            </Box>
+                          </FormControl>
+                        </Box>
+                      </PopoverBody>
+                    </Box>
+                  </PopoverContent>
+                </Portal>
+              </Popover>
             </Flex>
             <TableContainer>
               <Table variant="unstyled">
@@ -1048,6 +1702,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   color="#D2D2D2"
                 >
                   <Tr>
+                    {isSelected && <Th />}
                     {!isArchived ? (
                       <Th>
                         <Text
@@ -1070,14 +1725,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         alignItems="center"
                         gap="8px"
                       >
-                        <Icon as={filterDateCalendar} />
+                        <FilledOutCalendar />
                         <Text
                           textTransform="none"
                           color="#767778"
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Date
+                          DATE
                         </Text>
                         <Box
                           display="flex"
@@ -1104,7 +1759,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Time
+                          TIME
                         </Text>
                       </Box>
                     </Th>
@@ -1127,7 +1782,7 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Room
+                          ROOM
                         </Text>
                       </Box>
                     </Th>
@@ -1140,13 +1795,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         alignItems="center"
                         gap="8px"
                       >
+                        <ArtistIcon />
                         <Text
                           textTransform="none"
                           color="#767778"
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Lead Artist(s)
+                          LEAD ARTIST(S)
                         </Text>
                       </Box>
                     </Th>
@@ -1159,13 +1815,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                         alignItems="center"
                         gap="8px"
                       >
+                        <PersonIcon />
                         <Text
                           textTransform="none"
                           color="#767778"
                           fontSize="16px"
                           fontStyle="normal"
                         >
-                          Payee(s)
+                          PAYEE(S)
                         </Text>
                       </Box>
                     </Th>
@@ -1176,6 +1833,33 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                   {filteredSessions.length > 0 ? (
                     filteredSessions.map((session) => (
                       <Tr key={session.id}>
+                        {isSelected && (
+                          <Td width="50px">
+                            <Checkbox
+                              isChecked={selectedSessions.includes(session.id)}
+                              onChange={() =>
+                                handleSessionSelection(session.id)
+                              }
+                              sx={{
+                                "& .chakra-checkbox__control[data-checked]": {
+                                  backgroundColor: "#90080F",
+                                  borderColor: "#90080F",
+                                },
+                                "&:hover .chakra-checkbox__control[data-checked]":
+                                  {
+                                    backgroundColor: "#90080F",
+                                    borderColor: "#90080F",
+                                  },
+                                "& .chakra-checkbox__control[data-checked]:hover":
+                                  {
+                                    backgroundColor: "#90080F",
+                                    borderColor: "#90080F",
+                                  },
+                              }}
+                            />
+                          </Td>
+                        )}
+
                         {!isArchived ? (
                           <Td>
                             <Box
@@ -1250,13 +1934,14 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
                           </Box>
                         </Td>
                         <Td>
-                          <IconButton
-                            height="30px"
-                            width="30px"
-                            rounded="full"
-                            variant="ghost"
-                            icon={<Icon as={sessionsEllipsis} />}
-                          />
+                          <Icon
+                            boxSize="7"
+                            padding="5px"
+                            borderRadius="6px"
+                            backgroundColor="#EDF2F7"
+                          >
+                            <EllipsisIcon />
+                          </Icon>
                         </Td>
                       </Tr>
                     ))
@@ -1326,6 +2011,17 @@ export const Sessions = ({ sessions, rooms, isArchived, setIsArchived }) => {
               </Flex>
             )}
           </Box>
+          <CancelSessionModal
+            isOpen={cancelModalIsOpen}
+            onClose={closeCancelModal}
+            selectedSessions={selectedSessions
+              .map((id) => sessionMap[id])
+              .filter(Boolean)}
+            setSelectedSessions={setSelectedSessions}
+            onConfirm={handleConfirmCancel}
+            eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
+            refreshSessions={refreshSessions}
+          />
         </CardBody>
       </Card>
     </Box>
@@ -1403,6 +2099,8 @@ const MyDocument = ({ bookingData }) => {
   );
 };
 
+console.log();
+
 const PDFButton = () => {
   const { backend } = useBackendContext();
   const [bookingData, setBookingData] = useState(null);
@@ -1434,7 +2132,11 @@ const PDFButton = () => {
           leftIcon={<Icon as={DownloadIcon} />}
           colorScheme="purple"
           size="sm"
-          borderRadius="20px"
+          display="flex"
+          height="40px"
+          padding="0px 16px"
+          borderRadius="6px"
+          background={"var(--Primary-5-Default, #4441C8)"}
         >
           Invoice
         </Button>

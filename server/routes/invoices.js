@@ -1,9 +1,9 @@
 import express, { Router } from "express";
+import multer from "multer";
 
+import { uploadPDF } from "../common/s3";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
-import { uploadPDF } from "../common/s3";
-import multer from 'multer';
 
 const invoicesRouter = Router();
 invoicesRouter.use(express.json());
@@ -38,10 +38,10 @@ invoicesRouter.get("/notificationCount", async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     const params = [];
-    let dateFilter = '';
+    let dateFilter = "";
 
     if (startDate && endDate) {
-      dateFilter = 'AND start_date >= $1 AND end_date <= $2';
+      dateFilter = "AND start_date >= $1 AND end_date <= $2";
       params.push(startDate, endDate);
     }
 
@@ -73,7 +73,6 @@ invoicesRouter.get("/notificationCount", async (req, res) => {
 // Get all overdue invoices with optional date range filtering
 invoicesRouter.get("/overdue", async (req, res) => {
   try {
-
     // Base query for overdue invoices
     const query = `
       SELECT * FROM invoices
@@ -507,40 +506,44 @@ invoicesRouter.delete("/:id", async (req, res) => {
   }
 });
 
-invoicesRouter.post("/backupInvoice/:id", upload.single("file"), async (req, res) => {
-  // Backup a invoice PDF to S3 and store the URL in the database
-  // Params:
-  //  id - the invoice id
-  // Body:
-  //  file - the invoice PDF file
-  //  comment - optional comment for the invoice
-  // Returns:
-  //  fileURL - the viewable URL of the uploaded PDF
+invoicesRouter.post(
+  "/backupInvoice/:id",
+  upload.single("file"),
+  async (req, res) => {
+    // Backup a invoice PDF to S3 and store the URL in the database
+    // Params:
+    //  id - the invoice id
+    // Body:
+    //  file - the invoice PDF file
+    //  comment - optional comment for the invoice
+    // Returns:
+    //  fileURL - the viewable URL of the uploaded PDF
 
-  // Upload an invoice PDF to S3, returning the viewable URL
-  try {
-    const { id } = req.params;
-    const { comment } = req.body;
+    // Upload an invoice PDF to S3, returning the viewable URL
+    try {
+      const file = req.file;
+      const { id } = req.params;
+      const { comment } = req.body;
 
-    if (!req.file) {
-      return res.status(500).json({ error: "File is required" });
-    }
+      if (!file) {
+        return res.status(500).json({ error: "File is required" });
+      }
 
-    // Upload to S3
-    const fileURL = await uploadPDF(req.file);
+      // Upload to S3
+      const fileURL = await uploadPDF(file);
 
-    // Store the file URL in the database
-    await db.query(
-      `INSERT INTO historic_invoices (original_invoice, datetime, file_reference, comment)
+      // Store the file URL in the database
+      await db.query(
+        `INSERT INTO historic_invoices (original_invoice, datetime, file_reference, comment)
        VALUES ($1, $2, $3, $4)`,
-      [id, "NOW()", fileURL, comment]
-    );
+        [id, "NOW()", fileURL, comment]
+      );
 
-
-    res.status(201).json(fileURL);
-  } catch (err) {
-    res.status(500).send(err.message);
+      res.status(201).json(fileURL);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
   }
-});
+);
 
 export { invoicesRouter };
