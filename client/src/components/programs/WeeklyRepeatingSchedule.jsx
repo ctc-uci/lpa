@@ -1,5 +1,6 @@
 import { React } from "react";
-import { Box, Text, Flex } from "@chakra-ui/react";
+
+import { Box, Flex, Text } from "@chakra-ui/react";
 
 export const WeeklyRepeatingSchedule = ({ sessions }) => {
   if (!sessions || sessions.length === 0) {
@@ -20,8 +21,8 @@ export const WeeklyRepeatingSchedule = ({ sessions }) => {
   };
 
   // Filter out sessions without dates
-  const validSessions = sessions.filter(session => session.date);
-  
+  const validSessions = sessions.filter((session) => session.date);
+
   if (validSessions.length === 0) {
     return <Text>No sessions with valid dates</Text>;
   }
@@ -65,11 +66,18 @@ export const WeeklyRepeatingSchedule = ({ sessions }) => {
 
   // Create components for each day/time combination
   return (
-    <Flex direction="column" gap={1}>
-      {orderedDays.map((day, dayIndex) => 
+    <Flex
+      direction="column"
+      gap={1}
+    >
+      {orderedDays.map((day, dayIndex) =>
         sessionsByDay[day].map((timeSlot, timeIndex) => (
-          <Text key={`${day}-${timeIndex}`} fontWeight="500">
-            {formatTimeString(timeSlot.startTime)} - {formatTimeString(timeSlot.endTime)} on {day}.
+          <Text
+            key={`${day}-${timeIndex}`}
+            fontWeight="500"
+          >
+            {formatTimeString(timeSlot.startTime)} -{" "}
+            {formatTimeString(timeSlot.endTime)} on {day}.
           </Text>
         ))
       )}

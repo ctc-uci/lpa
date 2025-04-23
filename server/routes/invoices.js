@@ -73,7 +73,6 @@ invoicesRouter.get("/notificationCount", async (req, res) => {
 // Get all overdue invoices with optional date range filtering
 invoicesRouter.get("/overdue", async (req, res) => {
   try {
-
     // Base query for overdue invoices
     const query = `
       SELECT * FROM invoices
@@ -540,9 +539,10 @@ invoicesRouter.post(
         [id, "NOW()", fileURL, comment]
       );
 
-    res.status(201).json(fileURL);
-  } catch (err) {
-    res.status(500).send(err.message);
+      res.status(201).json(fileURL);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
   }
 );
 

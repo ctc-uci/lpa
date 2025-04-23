@@ -1,11 +1,10 @@
 import { React, useEffect, useState } from "react";
-
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
 import { InfoIconRed } from "../../assets/InfoIconRed";
-import { CancelSessionModal } from "./CancelSessionModal";
 import { SessionFilter } from "../filters/SessionsFilter";
+import { CancelSessionModal } from "./CancelSessionModal";
 
 import "./Program.css";
 
@@ -16,9 +15,6 @@ import {
   ChevronRightIcon,
   DeleteIcon,
   DownloadIcon,
-  EmailIcon,
-  InfoIcon,
-  TimeIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -76,11 +72,8 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import {
-  Calendar,
   EllipsisIcon,
-  FileTextIcon,
   Info,
-  UserIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -91,7 +84,6 @@ import { DollarBill } from "../../assets/DollarBill";
 import { DuplicateIcon } from "../../assets/DuplicateIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
-import { FilterIcon } from "../../assets/FilterIcon";
 import {
   filterButton,
   filterDateCalendar,
@@ -110,10 +102,9 @@ import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
+import { ProgramFilter } from "../filters/ProgramsFilter";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
-import {ProgramFilter} from "../filters/ProgramsFilter"
-
 
 export const ProgramSummary = ({
   program,
@@ -988,7 +979,9 @@ export const Sessions = ({
 
   const [sortKey, setSortKey] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState([]);
+  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
+    []
+  );
   const [filteredSessions, setFilteredSessions] = useState([]);
 
   const handleStatusChange = (newStatus) => {
@@ -1364,8 +1357,8 @@ export const Sessions = ({
                 >
                   <CancelIcon />{" "}
                   {selectOption === "Select all"
-                  ? "All"
-                  : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
+                    ? "All"
+                    : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
                 </button>
               )}
 
@@ -1392,13 +1385,11 @@ export const Sessions = ({
                       alignItems="center"
                       gap="5px"
                     >
-                      <FilterIcon />
                       <SessionFilter
-                sessions={sessions}
-                setFilteredSessions={setFilteredSessions}
-                rooms={rooms}
-              />
-                      </Text>
+                        sessions={sessions}
+                        setFilteredSessions={setFilteredSessions}
+                        rooms={rooms}
+                      />
                     </Box>
                   </Button>
                 </PopoverTrigger>
@@ -2030,7 +2021,6 @@ export const Sessions = ({
             onConfirm={handleConfirmCancel}
             eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
             refreshSessions={refreshSessions}
-
           />
         </CardBody>
       </Card>
