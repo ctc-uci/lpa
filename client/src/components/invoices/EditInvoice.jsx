@@ -17,7 +17,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
-import emailIcon from "../../assets/icons/emailIcon.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import {
@@ -25,14 +24,13 @@ import {
   EditInvoiceTitle,
   FooterDescription,
   InvoiceSummary,
-  RadioDropdown,
   StatementComments,
 } from "./EditInvoiceComponents";
 
 import { EmailSidebar } from "../email/EmailSidebar";
 import { BackArrowIcon } from "../../assets/BackArrowIcon";
 
-const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
+const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, programName }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getGeneratedDate = () => {
@@ -71,7 +69,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{title}</Text>
+        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}</Text>
       </HStack>
       <HStack>
         <Button
@@ -86,7 +84,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, comments, title }) => {
           Save
         </Button>
         <HStack>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} pdf_title={title}/>
+          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees} pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`} invoice={invoice}/>
         </HStack>
       </HStack>
     </Flex>
@@ -107,7 +105,6 @@ export const EditInvoice = () => {
   const [payees, setPayees] = useState([]);
   const [booking, setBookingDetails] = useState([]);
   const [room, setRoom] = useState([]);
-  const [pdfTitle, setPdfTitle] = useState("Loading...");
 
   const [subtotal, setSubtotal] = useState(0);
   const [editedSubtotal, setEditedSubtotal] = useState(0);
@@ -152,28 +149,23 @@ export const EditInvoice = () => {
           return;
         }
 
-        // get instructors
         const instructorResponse = await backend.get(
           "/assignments/instructors/" + invoice.data[0].eventId
         );
         setInstructors(instructorResponse.data);
 
-        // get comments
         const commentsResponse = await backend.get("/comments/invoice/" + id);
         setComments(commentsResponse.data);
-        setEditedComments(commentsResponse.data); // Initialize edited comments
+        setEditedComments(commentsResponse.data);
 
-        // get program name
         const programNameResponse = await backend.get(
           "/events/" + invoice.data[0].eventId
         );
         setProgramName(programNameResponse.data[0].name);
 
-        // get payees
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         setPayees(payeesResponse.data);
 
-        // get subtotal
         const subtotalResponse = await backend.get("/invoices/total/" + id);
         setSubtotal(subtotalResponse.data.total);
         setEditedSubtotal(subtotalResponse.data.total);
@@ -214,16 +206,6 @@ export const EditInvoice = () => {
           subtotal: subtotalResponse.data.total,
           pastDue: remainingBalance,
         });
-
-        const month = new Date(invoice.data[0].endDate).toLocaleString(
-          "default",
-          { month: "long" }
-        );
-        const year = new Date(invoice.data[0].endDate).getFullYear();
-        // first 3 words of the program name
-        const programName = programNameResponse.data[0].name.split(" ").slice(0, 3).join(" ");
-        const title = `${programName}, ${month} ${year} Invoice`;
-        setPdfTitle(title);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -261,11 +243,9 @@ export const EditInvoice = () => {
     navigate(`/invoices/${id}`);
   };
 
-  // Function to handle save
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // console.log("editedComments", editedComments)
       const roomData = {
         ...room[0],
         rate: room[0].rate,
@@ -287,24 +267,19 @@ export const EditInvoice = () => {
           user_id: comment.userId,
         };
 
-        console.log("roomData", roomData);
-
         try {
           if (comment.id) {
-            // Update existing comment with PUT request
+            // Update existing comment
             const response = await backend.put(
               `/comments/${comment.id}`,
               commentData
             );
             console.log("Updated comment:", response.data);
           } else {
-            // Create new comment with POST request
+            // Create new comment
             const response = await backend.post(`/comments`, commentData);
             console.log("Created new comment:", response.data);
           }
-
-          // const response = await backend.put(`/comments/${comment.id}`, commentData);
-          // console.log("response.data", response.data)
         } catch (error) {
           console.error(`Error saving comment ${comment.id}:`, error);
 
@@ -358,8 +333,10 @@ export const EditInvoice = () => {
           onBack={handleBack}
           onSave={handleSave}
           isSaving={isSaving}
+          payees={payees}
           comments={comments}
-          title={pdfTitle}
+          invoice={invoice}
+          programName={programName}
         />
         <Image
           w="80%"
@@ -373,7 +350,7 @@ export const EditInvoice = () => {
           spacing={4}
           px={8}
         >
-          <Box>
+          <Box width="100%">
             <EditInvoiceTitle
               comments={editedComments}
               invoice={invoice?.data}
@@ -403,7 +380,6 @@ export const EditInvoice = () => {
               setRoom={setRoom}
             />
             <FooterDescription />
-            {/* <RadioDropdown/> */}
           </Box>
         </VStack>
         <Image

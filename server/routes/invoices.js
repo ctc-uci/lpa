@@ -73,7 +73,6 @@ invoicesRouter.get("/notificationCount", async (req, res) => {
 // Get all overdue invoices with optional date range filtering
 invoicesRouter.get("/overdue", async (req, res) => {
   try {
-    // const { startDate, endDate } = req.query;
 
     // Base query for overdue invoices
     const query = `
@@ -84,18 +83,6 @@ invoicesRouter.get("/overdue", async (req, res) => {
 
     const params = [];
 
-    // // Add date range filtering if both dates are provided
-    // if (startDate && endDate) {
-    //   query = `
-    //     SELECT * FROM invoices
-    //     WHERE is_sent = false
-    //     AND payment_status IN ('partial', 'none')
-    //     AND end_date < CURRENT_DATE
-    //     AND start_date >= $1
-    //     AND end_date <= $2`;
-    //   params.push(startDate, endDate);
-    // }
-
     const overdueInvoices = await db.query(query, params);
     res.status(200).json(keysToCamel(overdueInvoices));
   } catch (err) {
@@ -105,8 +92,6 @@ invoicesRouter.get("/overdue", async (req, res) => {
 
 invoicesRouter.get("/highpriority", async (req, res) => {
   try {
-    // const { startDate, endDate } = req.query;
-
     // Base query for overdue invoices
     const query = `
       SELECT * FROM invoices
@@ -185,7 +170,6 @@ invoicesRouter.get("/historicInvoices/:id", async (req, res) => {
   }
 });
 
-// GET /invoices/event/:event_id?date=[val]
 invoicesRouter.get("/event/:event_id", async (req, res) => {
   try {
     const { event_id } = req.params;
@@ -313,9 +297,11 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
     const { id } = req.params;
 
     let result = await db.oneOrNone(
-      `SELECT SUM(c.adjustment_value) FROM
-      invoices as i, comments as c
-      WHERE i.id = $1 AND c.adjustment_type = 'paid';`,
+      `SELECT SUM(c.adjustment_value)
+      FROM invoices i
+      JOIN comments c ON c.invoice_id = i.id
+      WHERE i.id = $1 AND c.adjustment_type = 'paid';
+      `,
       [id]
     );
 
@@ -435,7 +421,6 @@ invoicesRouter.get("/total/:id", async (req, res) => {
   }
 });
 
-// POST /invoices
 invoicesRouter.post("/", async (req, res) => {
   try {
     const invoiceData = req.body;
@@ -464,7 +449,6 @@ invoicesRouter.post("/", async (req, res) => {
   }
 });
 
-// PUT /invoices/:id
 invoicesRouter.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -556,10 +540,9 @@ invoicesRouter.post(
         [id, "NOW()", fileURL, comment]
       );
 
-      res.status(201).json(fileURL);
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
+    res.status(201).json(fileURL);
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 );
 

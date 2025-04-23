@@ -5,18 +5,12 @@ import {
   Button,
   Center,
   Link as ChakraLink,
-  Checkbox,
-  Flex,
   FormControl,
   FormErrorMessage,
   Heading,
   HStack,
   Icon,
-  Image,
   Input,
-  InputGroup,
-  InputLeftElement,
-  InputRightElement,
   Text,
   useToast,
   VStack,
@@ -29,8 +23,6 @@ import {
   AiFillLock,
   AiFillMail,
 } from "react-icons/ai";
-import { FaEnvelope } from "react-icons/fa6";
-import { RiLockPasswordFill } from "react-icons/ri";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 

@@ -1,4 +1,4 @@
-import React from "react";
+import { React } from "react";
 
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import {
@@ -41,29 +41,13 @@ const ProgramSortingModal = ({ onSortChange }) => {
           onClick={() => onSortChange("title", "asc")}
           width="100%"
         >
-          <Flex
-            align="center"
-            gap={2}
-            className="sort-menu-item"
-            width="100%"
-          >
-            <TriangleUpIcon className="triangle-icon icon-style" />
-            <Box className="icon-style">A‑Z</Box>
-          </Flex>
+          <Box className="icon-style">A ‑ Z</Box>
         </MenuItem>
         <MenuItem
           onClick={() => onSortChange("title", "desc")}
           width="100%"
         >
-          <Flex
-            align="center"
-            gap={2}
-            className="sort-menu-item"
-            width="100%"
-          >
-            <TriangleDownIcon className="triangle-icon icon-style" />
-            <Box className="icon-style">Z‑A</Box>
-          </Flex>
+          <Box className="icon-style">Z ‑ A</Box>
         </MenuItem>
       </MenuList>
     </Menu>

@@ -1,11 +1,10 @@
 .title {
-    color: #2D3748;
-    font-family: "Inter", sans-serif;
-    font-size: 30px;
+    color: "var(--Secondary-8, #2D3748)";
+    font-family: "Inter";
+    font-size: 24px;
     font-style: normal;
     font-weight: 600;
     line-height: normal;
-    margin-right: 15px; /** a bit arbitrary */
 }
 
 .titleContainer {

@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  DeleteIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -35,8 +33,6 @@ import {
   PopoverContent,
   PopoverTrigger,
   Portal,
-  Spinner,
-  Stack,
   Table,
   TableContainer,
   Tbody,
@@ -72,12 +68,12 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import Navbar from "../navbar/Navbar";
+import { ArchivedFilter } from "../filters/ArchivedFilter";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
   const [program, setPrograms] = useState([]);
   const [archived, setArchived] = useState([]);
-  // const [sessions, setSessions] = useState(null);
   const [uniqueRooms, setUniqueRooms] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
   const [archivedSessions, setArchivedProgramSessions] = useState([]);
@@ -116,6 +112,7 @@ export const ArchivedPrograms = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+  const [filteredArchived, setFilteredArchived] = useState([]);
 
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -170,7 +167,6 @@ export const ArchivedPrograms = () => {
             // get unique roomIds
             sessions.forEach((session) => allRoomIds.add(session.roomId));
 
-            // get most recent session
             mostRecentSession = sessions.reduce((latest, current) => {
               return new Date(current.date) > new Date(latest.date)
                 ? current
@@ -214,15 +210,15 @@ export const ArchivedPrograms = () => {
           instructors: thisAssignments.instructors,
           payees: thisAssignments.payees,
         };
-        console.log("THIS SESSION", thisSession);
+        // console.log("THIS SESSION", thisSession);
         info.push(thisSession);
       }
 
-      // Store this data in state
       setArchivedProgramSessions(info);
+      setFilteredArchived(info);
       setUniqueRooms([...allRoomIds]);
-      console.log("here");
-      console.log(archivedSessions);
+      // console.log("here");
+      // console.log(archivedSessions);
     } catch (error) {
       console.log("From getArchivedProgramSessions: ", error);
     }
@@ -331,7 +327,9 @@ export const ArchivedPrograms = () => {
   };
 
   const sortedArchivedSessions = useMemo(() => {
-    const filtered = filterSessions();
+    // Filtered should be the results of the archivedfilter update
+    // const filtered = filterSessions();
+    const filtered = filteredArchived;
     console.log(
       "Filtered session dates:",
       filtered.map((s) => s.sessionDate)
@@ -371,7 +369,7 @@ export const ArchivedPrograms = () => {
       sorted.map((s) => s.sessionDate)
     );
     return sorted;
-  }, [filterSessions(), sortKey, sortOrder]);
+  }, [filteredArchived, sortKey, sortOrder]);
 
   const totalPrograms = sortedArchivedSessions?.length || 0;
   const totalPages = Math.ceil(totalPrograms / itemsPerPage);
@@ -467,7 +465,6 @@ export const ArchivedPrograms = () => {
         );
       }
 
-      // Return the new program data
       return newEvent.data;
     } catch (error) {
       console.log("Couldn't duplicate event", error);
@@ -550,247 +547,10 @@ export const ArchivedPrograms = () => {
                 marginBottom="15px"
               >
                 <Flex marginRight="auto">
-                  <Popover>
-                    <PopoverTrigger>
-                      <Button
-                        backgroundColor="#F0F1F4"
-                        variant="subtle"
-                        minWidth="auto"
-                        height="40px"
-                        borderRadius="30px"
-                      >
-                        <Box
-                          display="flex"
-                          flexDirection="row"
-                          alignItems="center"
-                          gap="5px"
-                        >
-                          <Icon as={filterButton} />
-                          <Text
-                            fontSize="sm"
-                            color="#767778"
-                          >
-                            Filters
-                          </Text>
-                        </Box>
-                      </Button>
-                    </PopoverTrigger>
-                    <Portal>
-                      <PopoverContent>
-                        <Box margin="16px">
-                          <PopoverBody>
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              alignItems="flex-start"
-                              gap="24px"
-                              alignSelf="stretch"
-                            >
-                              <FormControl id="date">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={filterDateCalendar} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Date
-                                    </Text>
-                                  </Box>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Input
-                                      size="sm"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="35%"
-                                      height="20%"
-                                      type="date"
-                                      placeholder="MM/DD/YYYY"
-                                      onChange={(e) =>
-                                        handleDateChange(
-                                          "start",
-                                          e.target.value
-                                        )
-                                      }
-                                    />
-                                    <Text> to </Text>
-                                    <Input
-                                      size="sm"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="35%"
-                                      height="20%"
-                                      type="date"
-                                      placeholder="MM/DD/YYYY"
-                                      onChange={(e) =>
-                                        handleDateChange("end", e.target.value)
-                                      }
-                                    />
-                                  </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="time">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={sessionsFilterClock} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Time
-                                    </Text>
-                                  </Box>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Input
-                                      size="xs"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="30%"
-                                      height="20%"
-                                      type="time"
-                                      placeholder="00:00 am"
-                                      onChange={(e) =>
-                                        handleTimeChange(
-                                          "start",
-                                          e.target.value
-                                        )
-                                      }
-                                    />
-                                    <Text> to </Text>
-                                    <Input
-                                      size="xs"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="30%"
-                                      height="20%"
-                                      type="time"
-                                      placeholder="00:00 pm"
-                                      onChange={(e) =>
-                                        handleTimeChange("end", e.target.value)
-                                      }
-                                    />
-                                  </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="room">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={sessionsFilterMapPin} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Room
-                                    </Text>
-                                  </Box>
-                                  <Wrap spacing={2}>
-                                    <WrapItem>
-                                      <Button
-                                        borderRadius="30px"
-                                        borderWidth="1px"
-                                        width="auto"
-                                        height="20px"
-                                        onClick={() => setSelectedRoom("All")}
-                                        backgroundColor={
-                                          selectedRoom === "All"
-                                            ? "#EDEDFD"
-                                            : "#F6F6F6"
-                                        }
-                                        borderColor={
-                                          selectedRoom === "All"
-                                            ? "#4E4AE7"
-                                            : "#767778"
-                                        }
-                                      >
-                                        All
-                                      </Button>
-                                    </WrapItem>
-                                    {roomNames &&
-                                      Array.from(roomNames.values()).map(
-                                        (room, index) => (
-                                          <WrapItem>
-                                            <Button
-                                              key={index}
-                                              borderRadius="30px"
-                                              borderWidth="1px"
-                                              minWidth="auto"
-                                              height="20px"
-                                              onClick={() =>
-                                                setSelectedRoom(room)
-                                              }
-                                              backgroundColor={
-                                                selectedRoom === room
-                                                  ? "#EDEDFD"
-                                                  : "#F6F6F6"
-                                              }
-                                              borderColor={
-                                                selectedRoom === room
-                                                  ? "#4E4AE7"
-                                                  : "#767778"
-                                              }
-                                            >
-                                              {room}
-                                            </Button>
-                                          </WrapItem>
-                                        )
-                                      )}
-                                  </Wrap>
-                                </Box>
-                              </FormControl>
-                            </Box>
-                          </PopoverBody>
-                        </Box>
-                      </PopoverContent>
-                    </Portal>
-                  </Popover>
+                  <ArchivedFilter
+                    archived={archivedSessions}
+                    setArchivedPrograms={setFilteredArchived}
+                    roomMap={roomNames}/>
                 </Flex>
                 <Flex>
                   <InputGroup

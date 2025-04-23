@@ -6,6 +6,7 @@ import { ChevronLeftIcon} from "@chakra-ui/icons";
 import { FileTextIcon } from "lucide-react";
 import { Box, Flex, IconButton, Text, Icon } from "@chakra-ui/react";
 
+
 import { useParams } from "react-router";
 
 import { InfoIconRed } from "../../assets/InfoIconRed";
@@ -95,7 +96,6 @@ export const Program = () => {
       const activeSessions = sessionsData.filter(session => session.archived === false);
       setSessions(activeSessions);
       
-      // Get set of room ids
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),
       ];

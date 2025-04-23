@@ -1,0 +1,18 @@
+.filter-button, .filter-button-active {
+    border-radius: 30px;
+    border-width: 2px;
+    color: #2D3748;
+    font-weight: 500;
+    border-color: transparent;
+    background-color: #EDF2F7;
+}
+
+.filter-button:hover, .filter-button-active:hover {
+    background-color: #E2E8F0;
+}
+
+.filter-button-active {
+    border-color: #4441C8;
+    background-color: #EDF2F7;
+    color: #4441C8;
+}

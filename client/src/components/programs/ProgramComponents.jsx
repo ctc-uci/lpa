@@ -5,6 +5,7 @@ import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { CancelSessionModal } from "./CancelSessionModal";
+import { SessionFilter } from "../filters/SessionsFilter";
 
 import "./Program.css";
 
@@ -32,7 +33,6 @@ import {
   Flex,
   FormControl,
   Heading,
-  HStack,
   Icon,
   IconButton,
   Input,
@@ -112,6 +112,8 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
+import {ProgramFilter} from "../filters/ProgramsFilter"
+
 
 export const ProgramSummary = ({
   program,
@@ -164,7 +166,6 @@ export const ProgramSummary = ({
     setSelectedAction(action);
     setSelectedIcon(iconSrc);
   };
-  //const [loading, setLoading] = useState(false);
 
   const formatTimeString = (timeString) => {
     if (!timeString) return "";
@@ -987,9 +988,12 @@ export const Sessions = ({
 
   const [sortKey, setSortKey] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
-    []
-  );
+  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState([]);
+  const [filteredSessions, setFilteredSessions] = useState([]);
+
+  const handleStatusChange = (newStatus) => {
+    setStatus(newStatus);
+  };
 
   console.log(filteredAndSortedSessions);
   const [sessionMap, setSessionMap] = useState({});
@@ -1119,6 +1123,12 @@ export const Sessions = ({
     sortOrder,
   ]);
 
+  useEffect(() => {
+    if (sessions && sessions.length > 0) {
+      setFilteredSessions(sessions);
+    }
+  }, [sessions]);
+
   // Function to update sorting
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -1158,12 +1168,6 @@ export const Sessions = ({
     const currentTime = new Date();
     return currentTime > givenTime;
   };
-
-  // Make sure sessions data is fetched before rendering
-  // if (!sessions || sessions.length === 0) {
-  //   return <div>Loading...</div>; // Possibly change loading indicator
-  // }
-  // Make sure rooms is fetched before rendering
   if (!rooms || rooms.length === 0) {
     return <div>Loading...</div>;
   }
@@ -1389,12 +1393,11 @@ export const Sessions = ({
                       gap="5px"
                     >
                       <FilterIcon />
-                      <Text
-                        fontSize="sm"
-                        color="#2D3748"
-                      >
-                        {" "}
-                        Filters{" "}
+                      <SessionFilter
+                sessions={sessions}
+                setFilteredSessions={setFilteredSessions}
+                rooms={rooms}
+              />
                       </Text>
                     </Box>
                   </Button>
@@ -1836,8 +1839,8 @@ export const Sessions = ({
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {currentPageSessions.length > 0 ? (
-                    currentPageSessions.map((session) => (
+                  {filteredSessions.length > 0 ? (
+                    filteredSessions.map((session) => (
                       <Tr key={session.id}>
                         {isSelected && (
                           <Td width="50px">

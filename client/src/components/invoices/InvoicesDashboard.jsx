@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom'
 import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
 import AlertIcon from "../../assets/alertIcon.svg"
+import { InvoiceFilter } from "../filters/InvoicesFilter";
 
 
 const InvoicesDashboard = () => {
@@ -15,6 +16,7 @@ const InvoicesDashboard = () => {
   const [invoices, setInvoices] = useState([]);
   const [query, setQuery] = useState('');
   const hasShownToast = useRef(false);
+  const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [filter, setFilter] = useState({
     startDate : "",
     endDate : "",
@@ -73,7 +75,6 @@ const InvoicesDashboard = () => {
     const fetchInvoicesData = async () => {
       try {
         const invoicesResponse = await backend.get("/invoicesAssignments/");
-        console.log(invoicesResponse);
         const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
           const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
           if (invoice.role === "instructor") return acc;
@@ -148,36 +149,12 @@ const InvoicesDashboard = () => {
     getUnpaidInvoices();
   }, [invoices]);
 
-  const filteredInvoices = invoices
-    .filter(invoice => invoice.eventName.toLowerCase().includes(query.toLowerCase()))
-    .filter(invoice => {
-
-      // Exclude invoices where the role is "instructor"
-      if (invoice.role === "instructor") return false;
-
-      // Status filter
-      if (filter.status !== 'all' && isPaid(invoice).toLowerCase() !== filter.status.toLowerCase()) return false;
-
-      // Instructor filter
-      // Filters for events that have an instructor, and gets the event while ensuring only showing a single events even if they have both instructor and payee
-      if (filter.instructor.toLowerCase() !== 'all' && invoice.role !== "instructor" && !invoices.some(inv => inv.eventName === invoice.eventName && inv.role === "instructor" && inv.name.toLowerCase() === filter.instructor.toLowerCase()))
-        return false;
-
-      //Payee filter
-      if (filter.payee.toLowerCase() !== 'all' && invoice.role === "payee" && invoice.name.toLowerCase() !== filter.payee.toLowerCase()) return false;
-
-      // Date range filters
-      if (filter.startDate && new Date(invoice.endDate) < new Date(filter.startDate)) return false;
-      if (filter.endDate && new Date(invoice.endDate) > new Date(new Date(filter.endDate).setDate(new Date(filter.endDate).getDate() + 1))) return false; //to make date range inclusive
-
-      return true;
-  });
-
   return(
     <Navbar>
       <Flex w='95%' m='50px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px"> 
         <Flex justifyContent='space-between' mb='40px'>
-          <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} />
+          {/* <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} /> */}
+          <InvoiceFilter invoices={invoices} setFilteredInvoices={setFilteredInvoices}/>
 
           <InputGroup w='400px' borderColor='transparent' >
             <InputRightElement pointerEvents='none' bgColor="#EDF2F7" borderRadius='0px 6px 6px 0px'>
@@ -195,6 +172,7 @@ const InvoicesDashboard = () => {
           </InputGroup>
         </Flex>
         <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
+        
       </Flex>
     </Navbar>
   );
