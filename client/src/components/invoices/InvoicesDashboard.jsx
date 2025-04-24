@@ -54,7 +54,7 @@ const InvoicesDashboard = () => {
     } else if (month >= 9 && month <= 12) {
       return "Fall";
     } else {
-      return "Spring";
+      return "N/A";
     }
   }
 
