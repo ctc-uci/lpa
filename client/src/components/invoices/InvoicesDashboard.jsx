@@ -43,7 +43,7 @@ const InvoicesDashboard = () => {
     } else if (invoice.season === "Fall") {
       return ["#FFFAF0", "#DD6B20"];
     } else {
-      return ["#008000", "#22C55E"];
+      return ["#e6f7ec", "#008000"];
     }
   }
 

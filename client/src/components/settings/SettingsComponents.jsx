@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 import {
     Box,
     Button,
@@ -42,7 +44,6 @@ import { UpDownArrowIcon, PersonIcon, EmailIcon } from "../../assets/AdminSettin
 const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
     const componentMap = {
         "general": <GeneralSettingsMenu setSelectedComponent={setSelectedComponent}></GeneralSettingsMenu>,
-        "account": <h1> Account </h1>,
         "rooms": <RoomsSettings></RoomsSettings>,
         "calendar": <h1> Calendar </h1>
     }
@@ -56,6 +57,7 @@ const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
 
 
 const GeneralSettingsMenu = ({ setSelectedComponent }) => {
+    const navigate = useNavigate();
     return (
         <VStack
             divider={<StackDivider style={{ margin: "0px" }} />}
@@ -68,7 +70,7 @@ const GeneralSettingsMenu = ({ setSelectedComponent }) => {
                 backgroundColor="transparent"
                 justifyContent="start"
                 gap="0.75rem"
-                onClick={() => setSelectedComponent("account")}
+                onClick={() => navigate("/settings/myaccount")}
             >
                 <UserIcon></UserIcon>
                 <Text>

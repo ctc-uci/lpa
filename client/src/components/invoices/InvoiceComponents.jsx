@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   CalendarIcon,
@@ -34,6 +35,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Select,
+  Spacer,
   Table,
   TableContainer,
   Tag,
@@ -62,8 +64,10 @@ import {
   archiveCalendar,
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
-import arrowsSvg from "../../assets/icons/right-icon.svg";
 import personIcon from "../../assets/person.svg";
+import DateSortingModal from "../filters/DateFilter";
+import ProgramSortingModal from "../filters/ProgramFilter";
+import StatusSortingModal from "../filters/StatusFilter";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
@@ -780,8 +784,83 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
 function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortKey, setSortKey] = useState("title");
+  const [sortOrder, setSortOrder] = useState("asc");
 
-  const totalInvoices = filteredInvoices?.length || 0;
+  const navigate = useNavigate();
+  const toast = useToast();
+
+  const handleRowClick = useCallback(
+    (id) => {
+      navigate(`/invoices/${id}`);
+    },
+    [navigate]
+  );
+
+  useEffect(() => {
+    filteredInvoices.forEach((invoice, index) => {
+      if (invoice.isPaid === "Past Due") {
+        const programTitle = invoice.eventName.split(" ").slice(0, 3).join(" ");
+        const date = new Date(invoice.endDate);
+        const month = date.toLocaleString("default", { month: "long" });
+        const year = date.getFullYear();
+        const description = `${programTitle}, ${month} ${year} Invoice`;
+  
+        setTimeout(() => {
+          toast({
+            title: "Invoice Past Due",
+            description: description,
+            status: "error",
+            duration: 1000,
+            isClosable: true,
+            position: "bottom-right",
+          });
+        }, index * 500);
+      }
+    });
+  }, [filteredInvoices, toast]);
+  
+
+  const handleSortChange = useCallback((key, order) => {
+    setSortKey(key);
+    setSortOrder(order);
+  }, []);
+
+  const sortedPrograms = useMemo(() => {
+    if (!filteredInvoices.length) return [];
+
+    const sorted = [...filteredInvoices];
+      if (sortKey === "title") {
+        sorted.sort((a, b) =>
+          sortOrder === "asc"
+            ? a.eventName.localeCompare(b.eventName)
+            : b.eventName.localeCompare(a.eventName)
+        );
+      } else if (sortKey === "date") {
+        sorted.sort((a, b) => {
+          const aInvalid = !a.endDate || a.endDate === "N/A";
+          const bInvalid = !b.endDate || b.endDate === "N/A";
+          if (aInvalid && bInvalid) return 0;
+          if (aInvalid) return 1;
+          if (bInvalid) return -1;
+          const dateA = new Date(a.endDate);
+          const dateB = new Date(b.endDate);
+          return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+        });
+      } else if (sortKey === "status") {
+        sorted.sort((a, b) => {
+          const priority = {
+            "Past Due": 0,
+            "Not Paid": 1,
+            "Paid": 2,
+          };
+          return sortOrder === "asc" ? priority[b.isPaid] - priority[a.isPaid] : priority[a.isPaid] - priority[b.isPaid];
+        });
+      }
+      return sorted;
+  }, [filteredInvoices, sortKey, sortOrder]);
+
+  const totalInvoices = sortedPrograms?.length || 0;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
@@ -799,7 +878,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   };
 
   // Get current page data
-  const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
+  const currentInvoices = sortedPrograms.slice(startIndex, endIndex);
 
   const goToNextPage = () => {
     if (currentPage < totalPages) {
@@ -860,7 +939,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     alignItems="center"
                   >
                     <Text>STATUS</Text>
-                    <Image src={arrowsSvg} />
+                    <StatusSortingModal onSortChange={handleSortChange} />
                   </HStack>
                 </Th>
                 <Th
@@ -878,7 +957,8 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     alignItems="center"
                   >
                     <Text>PROGRAM</Text>
-                    <Image src={arrowsSvg} />
+                    <Spacer />
+                    <ProgramSortingModal onSortChange={handleSortChange} />
                   </HStack>
                 </Th>
                 <Th
@@ -896,11 +976,12 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 >
                   <HStack
                     spacing={2}
-                    alignItems="flex-end"
+                    alignItems="center"
                   >
                     <Icon as={archiveCalendar} />
                     <Text>DEADLINE</Text>
-                    <Image src={arrowsSvg} />
+                    <Spacer />
+                    <DateSortingModal onSortChange={handleSortChange} />
                   </HStack>
                 </Th>
                 <Th
