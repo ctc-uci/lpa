@@ -6,30 +6,75 @@ import {
     Icon,
     Input,
     Tag,
-} from '@chakra-ui/react'
+} from '@chakra-ui/react';
+import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 
 import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
 import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import {EmailIcon} from '../../../assets/EmailIcon';
 
-export const EmailDropdown = ({emailSearchTerm, searchedEmails, selectedEmails, getEmailResults, setEmailSearchTerm, setSelectedEmails, setSearchedEmails, setSelectedPayees}) => {
+export const EmailDropdown = ({emailSearchTerm, searchedEmails, selectedEmails, setEmailSearchTerm, setSelectedEmails, setSearchedEmails, setSelectedPayees}) => {
+  const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (!event.target.closest("#emailContainer")) {
-                setDropdownVisible(false);
-            }
+  useEffect(() => {
+      getEmailResults(emailSearchTerm);
+    }, [selectedEmails, emailSearchTerm]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const container = document.getElementById("emailBody");
+      const path = event.composedPath && event.composedPath();
+
+      if (container && path && !path.includes(container)) {
+        setDropdownVisible(false);
+      }
         }
 
-        document.addEventListener("click", handleClickOutside);
-        return () => {
-            document.removeEventListener("click", handleClickOutside);
+      document.addEventListener("click", handleClickOutside);
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
+    }
+  }, []);
+
+  const addTag = (email) => {
+    setSelectedEmails((prevItems) => [...prevItems, email]);
+    setSelectedPayees((prevPayees) => [...prevPayees, email]);
+  }
+
+  const searchEmails = (query) => {
+    getEmailResults(query);
+    setEmailSearchTerm(query);
+    setDropdownVisible(true);
+  };
+
+  const getEmailResults = async (search) => {
+    try {
+      const emailResponse = await backend.get("/clients/search", {
+        params: {
+          searchTerm: search,
+          columns: ["email"]
         }
-    }, []);
+      });
+
+      filterSelectedEmailsFromSearch(emailResponse.data);
+    } catch (error) {
+        console.error("Error getting emails:", error);
+    }
+  };
+
+  const filterSelectedEmailsFromSearch = (emailsData) => {
+    const filteredEmails = emailsData.filter(
+      (email) => !selectedEmails.some(
+        (selectedEmail) => selectedEmail.id === email.id
+      )
+    );
+
+    setSearchedEmails(filteredEmails);
+  };
 
   return (
-    <HStack gap="12px">
+    <HStack gap="12px" id="emailBody">
         <EmailIcon />
         <div id="emailContainer">
             <div id="emails">
@@ -38,11 +83,8 @@ export const EmailDropdown = ({emailSearchTerm, searchedEmails, selectedEmails, 
                         <div id="emailInputContainer">
                             <Input
                                 placeholder="Email address"
-                                onChange={(e) => {
-                                getEmailResults(e.target.value);
-                                setEmailSearchTerm(e.target.value);
-                                setDropdownVisible(true);
-                                }}
+                                onChange={(e) => {searchEmails(e.target.value)}}
+                                onClick={() => {searchEmails(emailSearchTerm)}}
                                 value={emailSearchTerm}
                                 id="emailInput"
                                 autoComplete="off"
@@ -57,8 +99,7 @@ export const EmailDropdown = ({emailSearchTerm, searchedEmails, selectedEmails, 
                                     );
                                     // If instructor exists and is not already selected, add it as a tag
                                     if (email && !selectedEmails.some(p => p.id === email.id)) {
-                                    setSelectedEmails((prevItems) => [...prevItems, email]);
-                                    setSelectedPayees((prevPayees) => [...prevPayees, email]);
+                                      addTag(email)
                                     }
                                     setEmailSearchTerm("");
                                     setSearchedEmails([]);
@@ -86,14 +127,13 @@ export const EmailDropdown = ({emailSearchTerm, searchedEmails, selectedEmails, 
                             </Box>
                         </div>
 
-                        {dropdownVisible && searchedEmails.length > 0 && emailSearchTerm.length > 0 && (
+                        {dropdownVisible && searchedEmails.length > 0 && (
                             <Box id="emailDropdown" w="100%" maxW="195px">
                                 {searchedEmails.map((email) => (
                                     <Box
                                         key={email.id}
                                         onClick={() => {
-                                            setEmailSearchTerm(email.email);
-                                            setDropdownVisible(false);
+                                            addTag(email);
                                         }}
                                         style={{
                                             padding: "10px",

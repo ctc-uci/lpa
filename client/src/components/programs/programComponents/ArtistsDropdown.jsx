@@ -5,30 +5,68 @@ import {
   Icon,
   Input,
   Tag,
-} from "@chakra-ui/react"
+} from "@chakra-ui/react";
+import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 
 import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
 import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import BsPaletteFill from "../../../assets/icons/BsPaletteFill.svg";
 
-export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, getInstructorResults, setInstructorSearchTerm} ) => {
+export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, setInstructorSearchTerm} ) => {
+  const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest("#instructorContainer")) {
-          setDropdownVisible(false);
-      }
-    }
+    getInstructorResults(instructorSearchTerm);
+  }, [selectedInstructors, instructorSearchTerm]);
 
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const container = document.getElementById("instructorBody");
+      const path = event.composedPath && event.composedPath();
+
+      if (container && path && !path.includes(container)) {
+        setDropdownVisible(false);
+      }
+        }
+
+      document.addEventListener("click", handleClickOutside);
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
     }
   }, []);
 
+  const searchInstructors = (query) => {
+    getInstructorResults(query);
+    setInstructorSearchTerm(query);
+    setDropdownVisible(true);
+  };
+
+  const getInstructorResults = async (search) => {
+    try {
+      const instructorResponse = await backend.get("/clients/search", {
+        params: {
+          searchTerm: search,
+          columns: ["name"]
+        }
+      });
+      filterSelectedInstructorsFromSearch(instructorResponse.data);
+    } catch (error) {
+      console.error("Error getting instructors:", error);
+    }
+  };
+
+  const filterSelectedInstructorsFromSearch = (instructorData) => {
+    const filteredInstructors =  instructorData.filter(
+      instructor => !selectedInstructors.some(
+        selected => selected.id === instructor.id
+      )
+    );
+    setSearchedInstructors(filteredInstructors);
+  };
+
   return (
-    <HStack gap="12px">
+    <HStack gap="12px" id="instructorBody">
       <Box as="img" src={BsPaletteFill} boxSize="20px" />
       <div id="instructorContainer">
         <div id="instructors">
@@ -37,11 +75,8 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
               <div id="instructorInputContainer">
                 <Input
                     placeholder="Lead Artist(s)"
-                    onChange={(e) => {
-                      getInstructorResults(e.target.value);
-                      setInstructorSearchTerm(e.target.value);
-                      setDropdownVisible(true);
-                    }}
+                    onChange={(e) => {searchInstructors(e.target.value)}}
+                    onClick={() => {searchInstructors(instructorSearchTerm)}}
                     value={instructorSearchTerm}
                     id="instructorInput"
                     autoComplete="off"
@@ -83,14 +118,13 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                   </Box>
                 </div>
 
-                {dropdownVisible && searchedInstructors.length > 0 && instructorSearchTerm.length > 0 && (
+                {dropdownVisible && searchedInstructors.length > 0 && (
                   <Box id="instructorDropdown" w="100%" maxW="195px">
                     {searchedInstructors.map((instructor) => (
                       <Box
                         key={instructor.id}
                         onClick={() => {
-                          setInstructorSearchTerm(instructor.name);
-                          setDropdownVisible(false);
+                          setSelectedInstructors((prevItems) => [...prevItems, instructor]);
                         }}
                           style={{
                             padding: "10px",

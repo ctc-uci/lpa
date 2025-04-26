@@ -66,18 +66,6 @@ export const NewProgram = () => {
     selectedEmails,
   ]);
 
-  useEffect(() => {
-    getInstructorResults(instructorSearchTerm);
-  }, [selectedInstructors, instructorSearchTerm]);
-
-  useEffect(() => {
-    getPayeeResults(payeeSearchTerm);
-  }, [selectedPayees, payeeSearchTerm]);
-
-  useEffect(() => {
-    getEmailResults(emailSearchTerm);
-  }, [selectedEmails, emailSearchTerm]);
-
   const exit = (newEventId = "") => {
     console.log(newEventId);
     if (hasChanges) {
@@ -102,93 +90,6 @@ export const NewProgram = () => {
       selectedPayees.length > 0
     );
   };
-
-  const getInstructorResults = async (search) => {
-    try {
-      if (search !== "") {
-        const instructorResponse = await backend.get("/clients/search", {
-          params: {
-            searchTerm: search,
-            columns: ["name"]
-          }
-        });
-        filterSelectedInstructorsFromSearch(instructorResponse.data);
-      }
-      else {
-        setSearchedInstructors([]);
-      }
-    } catch (error) {
-      console.error("Error getting instructors:", error);
-    }
-  };
-
-  const filterSelectedInstructorsFromSearch = (instructorData) => {
-    const filteredInstructors =  instructorData.filter(
-      instructor => !selectedInstructors.some(
-        selected => selected.id === instructor.id
-      )
-    );
-    setSearchedInstructors(filteredInstructors);
-  };
-
-  const getPayeeResults = async (search) => {
-    try {
-      if (search !== "") {
-        const payeeResponse = await backend.get("/clients/search", {
-          params: {
-            searchTerm: search,
-            columns: ["name"]
-          }
-        });
-        filterSelectedPayeesFromSearch(payeeResponse.data);
-      }
-      else {
-        setSearchedPayees([]);
-      }
-    } catch (error) {
-        console.error("Error getting instructors:", error);
-    }
-  };
-
-  const filterSelectedPayeesFromSearch = (payeesData) => {
-    const filteredPayees = payeesData.filter(
-      (payee) => !selectedPayees.some(
-        (selectedPayee) => selectedPayee.id === payee.id
-      )
-    );
-
-    setSearchedPayees(filteredPayees);
-  };
-
-  const getEmailResults = async (search) => {
-    try {
-      if (search !== "") {
-        const emailResponse = await backend.get("/clients/search", {
-          params: {
-            searchTerm: search,
-            columns: ["email"]
-          }
-        });
-        filterSelectedEmailsFromSearch(emailResponse.data);
-      }
-      else {
-        setSearchedEmails([]);
-      }
-    } catch (error) {
-        console.error("Error getting emails:", error);
-    }
-  };
-
-  const filterSelectedEmailsFromSearch = (emailsData) => {
-    const filteredEmails = emailsData.filter(
-      (email) => !selectedEmails.some(
-        (selectedEmail) => selectedEmail.id === email.id
-      )
-    );
-
-    setSearchedEmails(filteredEmails);
-  };
-
 
   const saveEvent = async () => {
     try {
@@ -270,7 +171,6 @@ export const NewProgram = () => {
                 selectedInstructors={selectedInstructors}
                 setSelectedInstructors={setSelectedInstructors}
                 setSearchedInstructors={setSearchedInstructors}
-                getInstructorResults={getInstructorResults}
                 setInstructorSearchTerm={setInstructorSearchTerm}
               />
 
@@ -278,7 +178,6 @@ export const NewProgram = () => {
                 payeeSearchTerm={payeeSearchTerm}
                 searchedPayees={searchedPayees}
                 selectedPayees={selectedPayees}
-                getPayeeResults={getPayeeResults}
                 setPayeeSearchTerm={setPayeeSearchTerm}
                 setSelectedPayees={setSelectedPayees}
                 setSearchedPayees={setSearchedPayees}
@@ -289,7 +188,6 @@ export const NewProgram = () => {
                 emailSearchTerm={emailSearchTerm}
                 searchedEmails={searchedEmails}
                 selectedEmails={selectedEmails}
-                getEmailResults={getEmailResults}
                 setEmailSearchTerm={setEmailSearchTerm}
                 setSelectedEmails={setSelectedEmails}
                 setSearchedEmails={setSearchedEmails}
