@@ -12,7 +12,7 @@ import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
 import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import personSvg from "../../../assets/person.svg";
 
-export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees, getPayeeResults, setPayeeSearchTerm, setSelectedPayees, setSearchedPayees} ) => {
+export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees, getPayeeResults, setPayeeSearchTerm, setSelectedPayees, setSearchedPayees, setSelectedEmails} ) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
 
     useEffect(() => {
@@ -44,7 +44,7 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                 setDropdownVisible(true);
                                 }}
                                 value={payeeSearchTerm} id="payeeInput"
-                                autocomplete="off"
+                                autoComplete="off"
                                 />
                             <Box
                                 as="button"
@@ -57,6 +57,7 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                     // If instructor exists and is not already selected, add it as a tag
                                     if (payee && !selectedPayees.some(p => p.id === payee.id)) {
                                     setSelectedPayees((prevItems) => [...prevItems, payee]);
+                                    setSelectedEmails((prevItems) => [...prevItems, payee]);
                                     }
                                     setPayeeSearchTerm("");
                                     setSearchedPayees([]);
@@ -125,6 +126,8 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                 cursor="pointer"
                                 onClick={() => {
                                     setSelectedPayees(prevItems =>
+                                    prevItems.filter(item => item.id !== payee.id));
+                                    setSelectedEmails(prevItems =>
                                     prevItems.filter(item => item.id !== payee.id));
                                 }}
                             >

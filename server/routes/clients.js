@@ -17,8 +17,8 @@ clientsRouter.get("/", async (req, res) => {
   }
 });
 
-const generateWhereClause = (search) => {
-  const columns = ["name"]; // You want to search the client name
+const generateWhereClause = (search, columns) => {
+  // const columns = ["name"]; // You want to search the client name
   let searchWhereClause = "";
 
   if (search.length > 0) {
@@ -36,10 +36,10 @@ const generateWhereClause = (search) => {
 // Get client that matches a search parameter
 clientsRouter.get("/search", async (req, res) => {
   try {
-    const { searchTerm } = req.query;
+    const { searchTerm, columns } = req.query;
     console.log("searchTerm", searchTerm);
     const search = searchTerm.split("+").join(" ");
-    const { searchWhereClause } = generateWhereClause(search);
+    const { searchWhereClause } = generateWhereClause(search, columns);
 
     const query = `
       SELECT DISTINCT *
