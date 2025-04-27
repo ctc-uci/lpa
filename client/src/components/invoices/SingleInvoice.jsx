@@ -57,6 +57,8 @@ export const SingleInvoice = () => {
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [summary, setSummary] = useState([]);
+  const [sessions, setSessions] = useState([])
 
 
   useEffect(() => {
@@ -161,6 +163,12 @@ export const SingleInvoice = () => {
         // get corresponding event
         const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
         setEvent(eventResponse.data);
+
+        const sessionResponse = await backend.get(`comments/invoice/sessions/${id}`)
+        setSessions(sessionResponse.data)
+
+        const summaryResponse = await backend.get(`comments/invoice/sessions/${id}?includeNoBooking=true`)
+        setSummary(summaryResponse.data);
       } catch (error) {
         // Invoice/field does not exist
         console.error("Error fetching data:", error);
@@ -190,7 +198,8 @@ export const SingleInvoice = () => {
           `/rooms/${bookingResponse.data[0].roomId}`
         );
         setRoom(roomResponse.data);
-        setRoomRate(room[0].rate);
+        setRoomRate(room[0]?.rate);
+
       } catch (error) {
         console.error("Error fetching booking details:", error);
       }
@@ -379,8 +388,10 @@ export const SingleInvoice = () => {
                   programName={programName}
                   instructors={instructors}
                   invoice={invoice?.data}
+                  compactView={true}
+                  sessions={sessions}
+                  summary={summary}
                 />
-                {/* </Box> */}
               </Flex>
             </Flex>
           </Flex>

@@ -50,7 +50,7 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   }
 };
 
-const EditInvoiceTitle = ({ comments, invoice }) => {
+const EditInvoiceTitle = ({ comments, invoice, compactView }) => {
   return (
     <Flex
       justifyContent="space-between"
@@ -63,12 +63,14 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
         <Heading
           color="#2D3748"
           fontWeight="600"
-          fontSize="5xl"
+          fontSize={compactView ? "20.932px" : "5xl"}
         >
           INVOICE
         </Heading>
         <Text
           color="#718096"
+          fontSize={compactView && "6.509px"}
+          whiteSpace="nowrap"
         >
           Generated on {getGeneratedDate(comments, invoice, true)}
         </Text>
@@ -83,9 +85,16 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
           align="flex-end"
           spacing={0}
         >
-          <Text fontSize="sm">La Peña Cultural Center</Text>
-          <Text fontSize="sm">3105 Shattuck Ave., Berkeley, CA 94705</Text>
-          <Text fontSize="sm">lapena.org</Text>
+          <Text fontSize={compactView ? "7.509px" : "sm"}>
+            La Peña Cultural Center
+          </Text>
+          <Text
+            fontSize={compactView ? "7.509px" : "sm"}
+            whiteSpace="nowrap"
+          >
+            3105 Shattuck Ave., Berkeley, CA 94705
+          </Text>
+          <Text fontSize={compactView ? "7.509px" : "sm"}>lapena.org</Text>
         </VStack>
         <Image
           src={logo}
@@ -103,6 +112,7 @@ const EditInvoiceDetails = ({
   payees,
   comments,
   invoice,
+  compactView = false,
 }) => {
   return (
     <VStack
@@ -115,13 +125,13 @@ const EditInvoiceDetails = ({
       <VStack gap="0">
         <Heading
           textAlign="center"
-          fontSize="2xl"
           fontWeight={"600"}
+          fontSize={compactView ? "13.827px" : "2xl"}
         >
           {`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
         </Heading>
         <Heading
-          fontSize="sm"
+          fontSize={compactView ? "8.509px" : "sm"}
           textAlign="center"
           color="#2D3748"
           fontWeight="500"
@@ -145,10 +155,11 @@ const EditInvoiceDetails = ({
             color={"#718096"}
             margin={"0 0"}
             padding={0}
+            fontSize={compactView && "8.509px"}
           >
             Recurring Program:
           </Text>
-          <Text>
+          <Text fontSize={compactView && "8.509px"}>
             {programName || "No program name found"}
           </Text>
           <VStack
@@ -159,6 +170,7 @@ const EditInvoiceDetails = ({
             <Text
               fontWeight="500"
               color={"#718096"}
+              fontSize={compactView && "8.509px"}
             >
               Designated Payer(s):
             </Text>
@@ -168,6 +180,7 @@ const EditInvoiceDetails = ({
                   key={index}
                   mr={2}
                   borderRadius="0"
+                  fontSize={compactView && "8.509px"}
                 >
                   {payee.name} - {payee.email}
                 </Text>
@@ -176,6 +189,7 @@ const EditInvoiceDetails = ({
               <Text
                 mr={2}
                 borderRadius="0"
+                fontSize={compactView && "8.509px"}
               >
                 No payees found.
               </Text>
@@ -194,6 +208,7 @@ const EditInvoiceDetails = ({
             <Text
               fontWeight="500"
               color={"#718096"}
+              fontSize={compactView && "8.509px"}
             >
               Lead Artist(s):
             </Text>
@@ -202,6 +217,7 @@ const EditInvoiceDetails = ({
                 <HStack key={index}>
                   <Text
                     mr={2}
+                    fontSize={compactView && "8.509px"}
                   >
                     {instructor.name} - {instructor.email}
                   </Text>
@@ -211,6 +227,7 @@ const EditInvoiceDetails = ({
               <Text
                 mr={2}
                 borderRadius="0"
+                fontSize={compactView && "8.509px"}
               >
                 No instructors found.
               </Text>
@@ -229,6 +246,7 @@ const StatementComments = ({
   subtotal = 0.0,
   onCommentsChange,
   onSubtotalChange,
+  compactView = false,
 }) => {
   const [commentsState, setComments] = useState(comments);
   const [bookingState, setBooking] = useState(booking);
@@ -346,6 +364,7 @@ const StatementComments = ({
     >
       <Heading
         mb="4"
+        fontSize="1.2em"
       >
         Sessions
       </Heading>
@@ -923,13 +942,14 @@ const InvoiceSummary = ({
   );
 };
 
-const FooterDescription = () => {
+const FooterDescription = ({compactView = false}) => {
   return (
     <Flex
-      mt="24"
-      justifyContent="center"
+      mt={compactView ? "4" : "24"}
+      justifyContent="space-between"
       gap={10}
       color="black"
+      mx={compactView ? "2" : "24"}
     >
       {/* left text */}
       <VStack
@@ -941,13 +961,13 @@ const FooterDescription = () => {
       >
         <Text
           fontWeight="bold"
-          fontSize="8.51px"
+          fontSize={compactView ? "6.51px" : "md"}
         >
           Payments are due at the end of each month.
         </Text>
         <Text
           fontWeight="bold"
-          fontSize="8.51px"
+          fontSize={compactView ? "6.51px" : "md"}
         >
           You can make your payment at:{" "}
           <Link
@@ -960,27 +980,29 @@ const FooterDescription = () => {
       </VStack>
 
       {/* right text */}
-      <VStack pt={3}
+      <VStack
+        pt={3}
         pb={2}
         spacing={0}
         align="start"
         mb={10}
       >
-      <Text
+        <Text
           fontWeight="bold"
-          fontSize="8.51px"
+          fontSize={compactView ? "6.51px" : "md"}
         >
           For any questions,
         </Text>
         <Text
           fontWeight="bold"
-          fontSize="8.51px"
+          fontSize={compactView ? "6.51px" : "md"}
         >
           please contact:{" "}
           <Link
             href="mailto:classes@lapena.org"
             style={{ textDecoration: "underline" }}
             color="blue.500"
+            fontSize={compactView ? "6.51px" : "md"}
           >
             classes@lapena.org
           </Link>

@@ -26,6 +26,7 @@ const SavedStatementComments = ({
   setSubtotal,
   sessions = [],
   summary = [],
+  compactView = false,
 }) => {
   // const [commentsState, setComments] = useState(comments);
   // const [bookingState, setBooking] = useState(booking);
@@ -107,7 +108,7 @@ const SavedStatementComments = ({
       color="#2D3748"
     >
       <Heading
-        size="md"
+        size={compactView ? "11.7px" : "md"}
         mb="2"
       >
         Sessions
@@ -119,50 +120,58 @@ const SavedStatementComments = ({
         px="12px"
         width="100%"
       >
-        <Box width="100%">
+        <Box
+          width="100%"
+          overflowX="auto"
+        >
           <Table
             color="#EDF2F7"
             width="100%"
             textAlign="center"
-            tableLayout="fixed"
             size="sm"
           >
             {/* header row */}
             <Thead>
-              <Tr color="#4A5568">
+              <Tr color="#4A5568" maxW="50%">
                 <Th
                   textTransform="none"
-                  py="4"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6px"}
                 >
                   DATE
                 </Th>
                 <Th
                   textTransform="none"
-                  py="4"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6"}
                 >
                   CLASSROOM
                 </Th>
                 <Th
                   textTransform="none"
-                  py="4"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6px"}
                 >
                   RENTAL HOURS
                 </Th>
                 <Th
                   textTransform="none"
-                  py="4"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6px"}
                 >
                   ROOM FEE ADJUSTMENT
                 </Th>
                 <Th
                   textTransform="none"
-                  py="4"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6px"}
                 >
                   ROOM FEE
                 </Th>
                 <Th
                   textTransform="none"
-                  py="4"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6px"}
                 >
                   TOTAL
                 </Th>
@@ -175,19 +184,28 @@ const SavedStatementComments = ({
                   .map((sessions, index) => [
                     <Tr key={`comment-${sessions.id || "unknown"}-${index}`}>
                       {/* date */}
-                      <Td py="4">
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView && "6.38px"}
+                      >
                         {/* Doing Tue. instead of Tues. because its built in and format doesn't allow that kind of customization */}
                         {format(new Date(sessions.datetime), "EEE. M/d/yy")}
                       </Td>
 
                       {/* classroom */}
-                      <Td py="4">
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView && "6.38px"}
+                      >
                         {room && room.length > 0 ? `${room[0].name}` : "N/A"}
                       </Td>
 
                       {/* rental hours */}
-                      <Td py="4">
-                        <Flex align="center">
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView && "6.38px"}
+                      >
+                        <Flex align="center" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
                           <Text>{formatTimeString(booking.startTime)}</Text>
                           <Text>-</Text>
                           <Text>{formatTimeString(booking.endTime)}</Text>
@@ -195,34 +213,42 @@ const SavedStatementComments = ({
                       </Td>
 
                       {/* room fee */}
-                      <Td borderBottom="none">
-                          {sessions.adjustmentValues.length === 0 ? (
-                            "None"
-                          ) : (
-                            <Box display="inline-block"> {/* Wrap Text in a Box */}
-                              <Tooltip
-                                label={sessions.adjustmentValues.join(", ")}
-                                placement="top"
-                                bg="gray"
-                                w="auto"
+                      <Td
+                        fontSize={compactView && "6.38px"}
+                        py={compactView ? 0 : 4}
+                      >
+                        {sessions.adjustmentValues.length === 0 ? (
+                          "None"
+                        ) : (
+                          <Box display="inline-block">
+                            {" "}
+                            {/* Wrap Text in a Box */}
+                            <Tooltip
+                              label={sessions.adjustmentValues.join(", ")}
+                              placement="top"
+                              bg="gray"
+                              w="auto"
+                            >
+                              <Text
+                                textOverflow="ellipsis"
+                                whiteSpace="nowrap"
+                                overflow="hidden"
                               >
-                                <Text
-                                  textOverflow="ellipsis"
-                                  whiteSpace="nowrap"
-                                  overflow="hidden"
-                                >
-                                  {sessions.adjustmentValues.join(", ")}
-                                </Text>
-                              </Tooltip>
-                            </Box>
-                          )}
-                        </Td>
+                                {sessions.adjustmentValues.join(", ")}
+                              </Text>
+                            </Tooltip>
+                          </Box>
+                        )}
+                      </Td>
 
                       {/* adjustment type */}
-                      <Td py="4">
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView && "6.38px"}
+                      >
                         <Text
                           h="40px"
-                          p="2"
+                          p={compactView ? "0" : "2"}
                           display="flex"
                           alignItems="center"
                         >
@@ -233,7 +259,10 @@ const SavedStatementComments = ({
                       </Td>
 
                       {/* total */}
-                      <Td py="4">
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView && "6.38px"}
+                      >
                         <Flex
                           justifyContent="center"
                           alignItems="center"
@@ -263,24 +292,29 @@ const SavedStatementComments = ({
                   <Td
                     colSpan={7}
                     textAlign="center"
+                    fontSize={compactView && "8.509px"}
                   >
                     No comments available.
                   </Td>
                 </Tr>
               )}
 
-              <Tr py="4">
+              <Tr 
+              py={compactView ? 0 : 4}
+              >
                 <Td
                   textAlign="right"
                   colSpan={5}
                   fontWeight="bold"
+                  fontSize={compactView && "6.38px"}
                 >
                   Subtotal
                 </Td>
                 <Td
                   borderBottom="none"
-                  py="8"
+                  py={compactView ? "0" : "8"}
                   textAlign="center"
+                  fontSize={compactView && "6.38px"}
                 >
                   {`$ ${subtotalSum.toFixed(2)}`}
                 </Td>
@@ -301,6 +335,7 @@ const SavedInvoiceSummary = ({
   setSubtotal,
   pastDue,
   summary = [],
+  compactView = false,
 }) => {
   //! THIS RECALCULATES EVERYTHING BUT PASSING IT BETWEEN COMPONENTS WASNT WORKING
 
@@ -366,8 +401,6 @@ const SavedInvoiceSummary = ({
     }
   }, [bookingState, room, commentsState, isDataLoaded]);
 
-  console.log("summary in summary", summary);
-
   return (
     <Flex
       direction="column"
@@ -379,7 +412,7 @@ const SavedInvoiceSummary = ({
     >
       <Heading
         mb="2"
-        size="md"
+        size={compactView ? "11.7px" : "md"}
       >
         Summary
       </Heading>
@@ -390,7 +423,7 @@ const SavedInvoiceSummary = ({
         px="12px"
         width="100%"
       >
-        <Box width="100%">
+        <Box width="100%" overflowX="auto">
           <Table
             color="#EDF2F7"
             width="100%"
@@ -405,12 +438,14 @@ const SavedInvoiceSummary = ({
                   colSpan={4}
                   textTransform="none"
                   borderBottom="none"
+                  fontSize={compactView && "6px"}
                 >
                   Description
                 </Th>
                 <Th
                   textTransform="none"
                   borderBottom="none"
+                  fontSize={compactView && "6px"}
                 >
                   Adjustment Type(s)
                 </Th>
@@ -418,7 +453,8 @@ const SavedInvoiceSummary = ({
                   textTransform="none"
                   borderBottom="none"
                   textAlign="end"
-                  pr={14}
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6px"}
                 >
                   Total
                 </Th>
@@ -431,6 +467,7 @@ const SavedInvoiceSummary = ({
                 <Td
                   borderBottom="none"
                   colSpan={4}
+                  fontSize={compactView && "6.38px"}
                 >
                   Room Fee
                 </Td>
@@ -438,44 +475,50 @@ const SavedInvoiceSummary = ({
               {/* Room Fee Body Row */}
 
               {summary.map((row) => (
-                <Tr>
+                <Tr >
                   <Td
                     borderBottom="none"
                     colSpan={4}
                     pl="16"
+                    fontSize={compactView && "6.38px"}
+                    py={compactView ? 0 : 4}
                   >
-                    {room[0].name}
+                    {room[0]?.name}
                   </Td>
-                  <Td borderBottom="none">
-                          {row.adjustmentValues.length === 0 ? (
-                            "None"
-                          ) : (
-                            <Box display="inline-block"> {/* Wrap Text in a Box */}
-                              <Tooltip
-                                label={row.adjustmentValues.join(", ")}
-                                placement="top"
-                                bg="gray"
-                                w="auto"
-                              >
-                                <Text
-                                  textOverflow="ellipsis"
-                                  whiteSpace="nowrap"
-                                  overflow="hidden"
-                                >
-                                  {row.adjustmentValues.join(", ")}
-                                </Text>
-                              </Tooltip>
-                            </Box>
-                          )}
-                        </Td>
+                  <Td borderBottom="none"
+                        fontSize={compactView && "6.38px"}
+                        py={compactView ? 0 : 4}
+                        >
+                    {row.adjustmentValues.length === 0 ? (
+                      "None"
+                    ) : (
+                      <Box display="inline-block">
+                        {" "}
+                        {/* Wrap Text in a Box */}
+                        <Tooltip
+                          label={row.adjustmentValues.join(", ")}
+                          placement="top"
+                          bg="gray"
+                          w="auto"
+                        >
+                          <Text
+                            textOverflow="ellipsis"
+                            whiteSpace="nowrap"
+                            overflow="hidden"
+                          >
+                            {row.adjustmentValues.join(", ")}
+                          </Text>
+                        </Tooltip>
+                      </Box>
+                    )}
+                  </Td>
                   <Td
                     borderBottom="none"
                     textAlign="end"
-                    pr={14}
+                    py={compactView ? 0 : 4}
+                  fontSize={compactView && "6.38px"}
                   >
-                    {room && room.length > 0
-                            ? `$${room[0].rate}/hr`
-                            : "N/A"}
+                    {room && room.length > 0 ? `$${room[0].rate}/hr` : "N/A"}
                   </Td>
                 </Tr>
               ))}
@@ -484,6 +527,7 @@ const SavedInvoiceSummary = ({
                 <Td
                   borderBottom="none"
                   colSpan={4}
+                  fontSize={compactView && "6.38px"}
                 >
                   Past Due Balance
                 </Td>
@@ -491,7 +535,8 @@ const SavedInvoiceSummary = ({
                 <Td
                   borderBottom="none"
                   textAlign="end"
-                  pr={14}
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6.38px"}
                 >
                   $ {pastDue.toFixed(2)}
                 </Td>
@@ -499,11 +544,16 @@ const SavedInvoiceSummary = ({
 
               {/* current statement balance row */}
               <Tr>
-                <Td colSpan={4}>Current Statement Subtotal</Td>
-                <Td>None</Td>
+                <Td colSpan={4}
+                py={compactView ? 0 : 4}
+                  fontSize={compactView && "6.38px"}>Current Statement Subtotal</Td>
+                <Td
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6.38px"}>None</Td>
                 <Td
                   textAlign="end"
-                  pr={14}
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6.38px"}
                 >
                   $ {subtotalSum.toFixed(2)}
                 </Td>
@@ -515,14 +565,16 @@ const SavedInvoiceSummary = ({
                   textAlign="right"
                   colSpan={5}
                   fontWeight="700"
+                  fontSize={compactView && "6.38px"}
                 >
                   Total Amount Due
                 </Td>
                 <Td
                   fontWeight="700"
                   borderBottom="none"
-                  py="8"
-                  textAlign="center"
+                  textAlign="end"
+                  fontSize={compactView && "6.38px"}
+                  py={compactView ? 0 : 8}
                 >
                   {`$ ${(pastDue + subtotalSum).toFixed(2)}`}
                 </Td>

@@ -26,10 +26,11 @@ const InvoiceView = ({
   programName,
   sessions = [],
   summary = [],
+  compactView = false,
 }) => {
 
   return (
-      <Flex direction="column" alignItems="center" w="80%">
+      <Flex direction="column" alignItems="center">
         <Image
           position="relative"
           src={InvoiceHeaderBackground}
@@ -45,6 +46,7 @@ const InvoiceView = ({
             <EditInvoiceTitle
                 comments={comments}
                 invoice={invoice?.data}
+                compactView={compactView}
               />
             <EditInvoiceDetails
                 instructors={instructors}
@@ -52,6 +54,7 @@ const InvoiceView = ({
                 payees={payees}
                 comments={comments}
                 invoice={invoice?.data}
+                compactView={compactView}
               />
             <SavedStatementComments
                 comments={comments}
@@ -60,6 +63,9 @@ const InvoiceView = ({
                 room={room}
                 subtotal={subtotal}
                 setSubtotal={setSubtotal}
+                session={sessions}
+                summary={summary}
+                compactView={compactView}
               />
             <SavedInvoiceSummary
               comments={comments}
@@ -69,8 +75,9 @@ const InvoiceView = ({
               setSubtotal={setSubtotal}
               pastDue={pastDue}
               summary={summary}
+              compactView={compactView}
             />
-            <FooterDescription />
+            <FooterDescription compactView={compactView}/>
           </Box>
         </VStack>
         <Image
