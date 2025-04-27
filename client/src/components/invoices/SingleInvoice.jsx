@@ -4,11 +4,6 @@ import {
   Button,
   Flex,
   IconButton,
-  Modal,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   useDisclosure,
 } from "@chakra-ui/react";
 
@@ -19,6 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { EmailHistory } from "./EmailHistory";
+import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 import {
   InvoicePayments,
   InvoiceStats,
@@ -236,52 +232,12 @@ export const SingleInvoice = () => {
           padding="2.5vw"
           gap="1.25vw"
         >
-          <Modal
+          <UnsavedChangesModal
             isOpen={isModalOpen}
             onClose={closeModal}
-          >
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader
-                textAlign="left"
-                color="#4A5568"
-                pb={4}
-                fontSize="16px"
-                fontWeight="700"
-              >
-                Leave without saving changes?
-              </ModalHeader>
-              <ModalFooter
-                style={{ display: "flex", justifyContent: "flex-end" }}
-                gap={3}
-              >
-                <Button
-                  onClick={() => {
-                    closeModal();
-                    if (pendingNavigation) {
-                      pendingNavigation();
-                      setHasUnsavedChanges(false);
-                    }
-                  }}
-                  backgroundColor="#EDF2F7"
-                  color="#2D3748"
-                  fontSize="14px"
-                  fontWeight="500"
-                >
-                  Don't Save
-                </Button>
-                <Button
-                  onClick={closeModal}
-                  backgroundColor="#4441C8"
-                  color="#FFFFFF"
-                  fontSize="14px"
-                  fontWeight="500"
-                >
-                  Save
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
+            pendingNavigation={pendingNavigation}
+            setHasUnsavedChanges={setHasUnsavedChanges}
+          />
           <Flex
             direction="row"
             width="100%"
@@ -380,7 +336,6 @@ export const SingleInvoice = () => {
                   instructors={instructors}
                   invoice={invoice?.data}
                 />
-                {/* </Box> */}
               </Flex>
             </Flex>
           </Flex>
