@@ -30,6 +30,12 @@ commentsRouter.get("/:id", async (req, res) => {
   }
 });
 
+const formatAdjustmentFee = (adjustmentType, val) => {
+  if (adjustmentType === "rate_percent") return `$${val}%`;
+  if (adjustmentType === "rate_flat") return val > 0 ? `+$${val}` : `-$${val}`;
+  return null;
+};
+
 commentsRouter.get("/invoice/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -38,12 +44,34 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
       [id]
     );
 
-    res.status(200).json(keysToCamel(data));
+    const comments = keysToCamel(data);
+    const groupedComments = {};
+
+    comments.forEach((comment) => {
+      const bookingId = comment.bookingId;
+      const formattedValue = formatAdjustmentFee(comment.adjustmentType, comment.adjustmentValue);
+
+      if (formattedValue !== null) {
+        if (groupedComments[bookingId]) {
+          groupedComments[bookingId].adjustmentValues.push(formattedValue);
+        } else {
+          groupedComments[bookingId] = { ...comment, adjustmentValues: [formattedValue] };
+          delete groupedComments[bookingId].adjustmentValue;
+        }
+      } else {
+        if (!groupedComments[bookingId]) {
+            groupedComments[bookingId] = { ...comment, adjustmentValues: [] };
+            delete groupedComments[bookingId].adjustmentValue;
+        }
+      }
+    });
+
+    console.log(Object.values(groupedComments));
+    res.status(200).json(Object.values(groupedComments));
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
-
 commentsRouter.get("/paidInvoices/:id", async (req, res) => {
   try {
     const { id } = req.params;

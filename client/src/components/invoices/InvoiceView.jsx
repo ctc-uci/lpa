@@ -27,16 +27,15 @@ const InvoiceView = ({
 }) => {
 
   return (
-      <Flex direction="column" alignItems="center" width={"571px"}>
+      <Flex direction="column" alignItems="center" w="80%">
         <Image
-          w="100%"
           position="relative"
           src={InvoiceHeaderBackground}
           backgroundSize="100%"
           backgroundRepeat="no-repeat"
         />
         <VStack
-          width="95%"
+          width="100%"
           spacing={4}
           px={8}
         >

@@ -101,8 +101,8 @@ export const SavedEdit = () => {
         );
         setInstructors(instructorResponse.data);
 
-        const commentsResponse = await backend.get("/comments/invoice/" + id);
-        console.log(commentsResponse)
+        const commentsResponse = await backend.get("/comments/invoice/" + id); 
+        console.log("commentsResponse", commentsResponse)
         setComments(commentsResponse.data);
 
         const programNameResponse = await backend.get(

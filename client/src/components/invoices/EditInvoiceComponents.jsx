@@ -63,13 +63,12 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
         <Heading
           color="#2D3748"
           fontWeight="600"
-          fontSize="23.932px"
+          fontSize="5xl"
         >
           INVOICE
         </Heading>
         <Text
           color="#718096"
-          fontSize="8.509px"
         >
           Generated on {getGeneratedDate(comments, invoice, true)}
         </Text>
@@ -84,9 +83,9 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
           align="flex-end"
           spacing={0}
         >
-          <Text fontSize="8.509px">La Peña Cultural Center</Text>
-          <Text fontSize="8.509px">3105 Shattuck Ave., Berkeley, CA 94705</Text>
-          <Text fontSize="8.509px">lapena.org</Text>
+          <Text fontSize="sm">La Peña Cultural Center</Text>
+          <Text fontSize="sm">3105 Shattuck Ave., Berkeley, CA 94705</Text>
+          <Text fontSize="sm">lapena.org</Text>
         </VStack>
         <Image
           src={logo}
@@ -116,13 +115,13 @@ const EditInvoiceDetails = ({
       <VStack gap="0">
         <Heading
           textAlign="center"
-          fontSize="13.827px"
+          fontSize="2xl"
           fontWeight={"600"}
         >
           {`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
         </Heading>
         <Heading
-          fontSize={"8.509px"}
+          fontSize="sm"
           textAlign="center"
           color="#2D3748"
           fontWeight="500"
@@ -142,7 +141,6 @@ const EditInvoiceDetails = ({
           flex={1}
         >
           <Text
-            fontSize={"8.509px"}
             fontWeight="500"
             color={"#718096"}
             margin={"0 0"}
@@ -150,17 +148,15 @@ const EditInvoiceDetails = ({
           >
             Recurring Program:
           </Text>
-          <Text fontSize={"8.509px"}>
+          <Text>
             {programName || "No program name found"}
           </Text>
           <VStack
             align="stretch"
             flex={1}
             maxH="120px"
-            overflowY="auto"
           >
             <Text
-              fontSize={"8.509px"}
               fontWeight="500"
               color={"#718096"}
             >
@@ -170,7 +166,6 @@ const EditInvoiceDetails = ({
               payees.map((payee, index) => (
                 <Text
                   key={index}
-                  fontSize={"8.509px"}
                   mr={2}
                   borderRadius="0"
                 >
@@ -179,7 +174,6 @@ const EditInvoiceDetails = ({
               ))
             ) : (
               <Text
-                fontSize={"8.509px"}
                 mr={2}
                 borderRadius="0"
               >
@@ -198,7 +192,6 @@ const EditInvoiceDetails = ({
             overflowY="auto"
           >
             <Text
-              fontSize={"8.509px"}
               fontWeight="500"
               color={"#718096"}
             >
@@ -208,7 +201,6 @@ const EditInvoiceDetails = ({
               instructors.map((instructor, index) => (
                 <HStack key={index}>
                   <Text
-                    fontSize={"8.509px"}
                     mr={2}
                   >
                     {instructor.name} - {instructor.email}
@@ -217,7 +209,6 @@ const EditInvoiceDetails = ({
               ))
             ) : (
               <Text
-                fontSize={"8.509px"}
                 mr={2}
                 borderRadius="0"
               >
@@ -354,7 +345,6 @@ const StatementComments = ({
       color="#2D3748"
     >
       <Heading
-        fontSize="1.2em"
         mb="4"
       >
         Sessions
