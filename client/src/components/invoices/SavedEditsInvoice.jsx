@@ -71,6 +71,9 @@ export const SavedEdit = () => {
   const [subtotal, setSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
 
+  const [sessions, setSessions] = useState([]);
+  const [summary, setSummary] = useState([]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -144,6 +147,13 @@ export const SavedEdit = () => {
         );
         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
         setPastDue(remainingBalance);
+
+        const sessionResponse = await backend.get(`comments/invoice/sessions/${id}`)
+        setSessions(sessionResponse.data)
+
+        const summaryResponse = await backend.get(`comments/invoice/sessions/${id}?includeNoBooking=true`)
+        setSummary(summaryResponse.data);
+
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -181,10 +191,6 @@ export const SavedEdit = () => {
     navigate(`/invoices/${id}`);
   };
 
-  useEffect(() => {
-    console.log("comments in saved", comments, invoice);
-  }, [comments, invoice])
-
   return (
     <Navbar>
 
@@ -196,6 +202,8 @@ export const SavedEdit = () => {
 
         <InvoiceView
           comments={comments}
+          sessions={sessions}
+          summary={summary}
           booking={booking}
           room={room}
           subtotal={subtotal}

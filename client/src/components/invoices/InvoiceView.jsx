@@ -23,7 +23,9 @@ const InvoiceView = ({
   pastDue,
   instructors = [],
   invoice,
-  programName
+  programName,
+  sessions = [],
+  summary = [],
 }) => {
 
   return (
@@ -53,6 +55,7 @@ const InvoiceView = ({
               />
             <SavedStatementComments
                 comments={comments}
+                sessions={sessions}
                 booking={booking}
                 room={room}
                 subtotal={subtotal}
@@ -65,6 +68,7 @@ const InvoiceView = ({
               subtotal={subtotal}
               setSubtotal={setSubtotal}
               pastDue={pastDue}
+              summary={summary}
             />
             <FooterDescription />
           </Box>

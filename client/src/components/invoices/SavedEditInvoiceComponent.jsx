@@ -11,9 +11,9 @@ import {
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
   VStack,
-  Tooltip
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
@@ -24,13 +24,13 @@ const SavedStatementComments = ({
   room = [],
   subtotal = 0.0,
   setSubtotal,
+  sessions = [],
+  summary = [],
 }) => {
   // const [commentsState, setComments] = useState(comments);
   // const [bookingState, setBooking] = useState(booking);
   // const [roomState, setRoom] = useState(room);
   // const commentsWithBooking = comments.filter((comment) => comment.bookingId !== null)
-
-  console.log("comments", comments);
 
   const [subtotalSum, setSubtotalSum] = useState(subtotal);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
@@ -86,8 +86,8 @@ const SavedStatementComments = ({
       );
 
       // Add subtotal for each comment (this logic is now inside useEffect)
-      if (comments && comments.length > 0) {
-        comments.forEach(() => {
+      if (sessions && sessions.length > 0) {
+        sessions.forEach(() => {
           setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
         });
       }
@@ -96,7 +96,7 @@ const SavedStatementComments = ({
       // Set flag to prevent future reruns of this effect
       setIsDataLoaded(true);
     }
-  }, [booking, room, comments, isDataLoaded]);
+  }, [booking, room, sessions, isDataLoaded]);
 
   return (
     <Flex
@@ -170,14 +170,14 @@ const SavedStatementComments = ({
             </Thead>
 
             <Tbody color="#2D3748">
-              {comments.length > 0 ? (
-                comments
-                  .map((comment, index) => [
-                    <Tr key={`comment-${comment.id || "unknown"}-${index}`}>
+              {sessions.length > 0 ? (
+                sessions
+                  .map((sessions, index) => [
+                    <Tr key={`comment-${sessions.id || "unknown"}-${index}`}>
                       {/* date */}
                       <Td py="4">
                         {/* Doing Tue. instead of Tues. because its built in and format doesn't allow that kind of customization */}
-                        {format(new Date(comment.datetime), "EEE. M/d/yy")}
+                        {format(new Date(sessions.datetime), "EEE. M/d/yy")}
                       </Td>
 
                       {/* classroom */}
@@ -195,16 +195,28 @@ const SavedStatementComments = ({
                       </Td>
 
                       {/* room fee */}
-                      <Td
-                        py="4"
-                      >
-                        <Tooltip label={comment.adjustmentValues.join(", ")} placement="top" bg="gray">
-                          <Text textOverflow="ellipsis" maxWidth="150px" whiteSpace="nowrap" overflow="hidden">
-
-                            {comment.adjustmentValues.join(", ")}
-                            </Text>
-                            </Tooltip>
-                      </Td>
+                      <Td borderBottom="none">
+                          {sessions.adjustmentValues.length === 0 ? (
+                            "None"
+                          ) : (
+                            <Box display="inline-block"> {/* Wrap Text in a Box */}
+                              <Tooltip
+                                label={sessions.adjustmentValues.join(", ")}
+                                placement="top"
+                                bg="gray"
+                                w="auto"
+                              >
+                                <Text
+                                  textOverflow="ellipsis"
+                                  whiteSpace="nowrap"
+                                  overflow="hidden"
+                                >
+                                  {sessions.adjustmentValues.join(", ")}
+                                </Text>
+                              </Tooltip>
+                            </Box>
+                          )}
+                        </Td>
 
                       {/* adjustment type */}
                       <Td py="4">
@@ -288,6 +300,7 @@ const SavedInvoiceSummary = ({
   subtotal = 0.0,
   setSubtotal,
   pastDue,
+  summary = [],
 }) => {
   //! THIS RECALCULATES EVERYTHING BUT PASSING IT BETWEEN COMPONENTS WASNT WORKING
 
@@ -353,6 +366,8 @@ const SavedInvoiceSummary = ({
     }
   }, [bookingState, room, commentsState, isDataLoaded]);
 
+  console.log("summary in summary", summary);
+
   return (
     <Flex
       direction="column"
@@ -410,8 +425,61 @@ const SavedInvoiceSummary = ({
               </Tr>
             </Thead>
 
-            {/* past due balance row */}
             <Tbody color="#2D3748">
+              {/* Room Fee Header Row */}
+              <Tr p="40">
+                <Td
+                  borderBottom="none"
+                  colSpan={4}
+                >
+                  Room Fee
+                </Td>
+              </Tr>
+              {/* Room Fee Body Row */}
+
+              {summary.map((row) => (
+                <Tr>
+                  <Td
+                    borderBottom="none"
+                    colSpan={4}
+                    pl="16"
+                  >
+                    {room[0].name}
+                  </Td>
+                  <Td borderBottom="none">
+                          {row.adjustmentValues.length === 0 ? (
+                            "None"
+                          ) : (
+                            <Box display="inline-block"> {/* Wrap Text in a Box */}
+                              <Tooltip
+                                label={row.adjustmentValues.join(", ")}
+                                placement="top"
+                                bg="gray"
+                                w="auto"
+                              >
+                                <Text
+                                  textOverflow="ellipsis"
+                                  whiteSpace="nowrap"
+                                  overflow="hidden"
+                                >
+                                  {row.adjustmentValues.join(", ")}
+                                </Text>
+                              </Tooltip>
+                            </Box>
+                          )}
+                        </Td>
+                  <Td
+                    borderBottom="none"
+                    textAlign="end"
+                    pr={14}
+                  >
+                    {room && room.length > 0
+                            ? `$${room[0].rate}/hr`
+                            : "N/A"}
+                  </Td>
+                </Tr>
+              ))}
+              {/* past due balance row */}
               <Tr>
                 <Td
                   borderBottom="none"
@@ -422,17 +490,10 @@ const SavedInvoiceSummary = ({
                 <Td borderBottom="none"></Td>
                 <Td
                   borderBottom="none"
-                  textAlign="center"
-                  pl={7}
+                  textAlign="end"
+                  pr={14}
                 >
-                  <Flex
-                    justifyContent="center"
-                    alignItems="center"
-                    gap={2}
-                  >
-                    <Text>$</Text>
-                    <Text textAlign="center">{pastDue.toFixed(2)}</Text>
-                  </Flex>
+                  $ {pastDue.toFixed(2)}
                 </Td>
               </Tr>
 
@@ -440,15 +501,11 @@ const SavedInvoiceSummary = ({
               <Tr>
                 <Td colSpan={4}>Current Statement Subtotal</Td>
                 <Td>None</Td>
-                <Td textAlign="center">
-                  <Flex
-                    justifyContent="center"
-                    alignItems="center"
-                    gap={2}
-                  >
-                    <Text>$</Text>
-                    <Text textAlign="center">{subtotalSum.toFixed(2)}</Text>
-                  </Flex>
+                <Td
+                  textAlign="end"
+                  pr={14}
+                >
+                  $ {subtotalSum.toFixed(2)}
                 </Td>
               </Tr>
 

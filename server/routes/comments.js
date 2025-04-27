@@ -30,12 +30,6 @@ commentsRouter.get("/:id", async (req, res) => {
   }
 });
 
-const formatAdjustmentFee = (adjustmentType, val) => {
-  if (adjustmentType === "rate_percent") return `$${val}%`;
-  if (adjustmentType === "rate_flat") return val > 0 ? `+$${val}` : `-$${val}`;
-  return null;
-};
-
 commentsRouter.get("/invoice/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -44,6 +38,32 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
       [id]
     );
 
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+const formatAdjustmentFee = (adjustmentType, val) => {
+  if (adjustmentType === "rate_percent") return `$${val}%`;
+  if (adjustmentType === "rate_flat") return val > 0 ? `+$${val}` : `-$${val}`;
+  return null;
+};
+
+commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { includeNoBooking } = req.query;
+
+    let query = "SELECT * FROM comments WHERE invoice_id = $1";
+    const queryParams = [id];
+
+    if (includeNoBooking !== 'true')
+      query += " AND booking_id IS NOT NULL";
+    else 
+      query += " AND booking_id IS NULL";
+
+    const data = await db.query(query, queryParams);
     const comments = keysToCamel(data);
     const groupedComments = {};
 
@@ -60,18 +80,18 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
         }
       } else {
         if (!groupedComments[bookingId]) {
-            groupedComments[bookingId] = { ...comment, adjustmentValues: [] };
-            delete groupedComments[bookingId].adjustmentValue;
+          groupedComments[bookingId] = { ...comment, adjustmentValues: [] };
+          delete groupedComments[bookingId].adjustmentValue;
         }
       }
     });
 
-    console.log(Object.values(groupedComments));
     res.status(200).json(Object.values(groupedComments));
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
+
 commentsRouter.get("/paidInvoices/:id", async (req, res) => {
   try {
     const { id } = req.params;
