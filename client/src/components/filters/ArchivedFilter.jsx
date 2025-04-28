@@ -90,32 +90,61 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
       }
 
 
-      function timeToMinutes(timeStr) {
-        const [time, offset] = timeStr.split('+');
-        [hours, minutes, seconds] = time.split(':').map(Number);
-
-        // If there's no offset, we assume it's in the same timezone as the other time
-        if (offset) {
-          // Adjust for timezone if needed
-          const offsetHours = Number(offset.slice(0, 2));
-          const offsetMinutes = Number(offset.slice(2));
-          hours -= offsetHours; // Subtract because +00 means ahead of UTC
-          minutes -= offsetMinutes;
-        }
-
-        // Ensure hours are within 0-23 range
-        hours = (hours + 24) % 24;
-
-        return hours * 60 + minutes;
-      }
-
-
+      const compareTimeStrings = (time1, time2) => {
+        // Helper to convert time string to minutes since midnight
+        const timeToMinutes = (timeStr) => {
+          let hours, minutes;
+          
+          // Check if timeStr is in 24-hour format (e.g., "21:00")
+          if (timeStr.includes(":") && !timeStr.includes(" ")) {
+            const [h, m] = timeStr.split(":");
+            hours = parseInt(h);
+            minutes = parseInt(m);
+          }
+          // Otherwise, handle the 12-hour time format (e.g., "12:00 am", "03:00 pm")
+          else {
+            const timeParts = timeStr.split(" ");
+            const modifier = timeParts[1] ? timeParts[1].toLowerCase() : null;
+            const [h, m] = timeParts[0].split(":");
+            
+            hours = parseInt(h);
+            minutes = parseInt(m);
+            
+            if (hours === 12) {
+              hours = modifier === "am" ? 0 : 12; // 12 AM = 0 hours, 12 PM = 12 hours
+            } else if (modifier === "pm") {
+              hours = hours + 12; // Convert PM to 24-hour format
+            }
+          }
+          
+          return hours * 60 + minutes;
+        };
+        
+        const minutes1 = timeToMinutes(time1);
+        const minutes2 = timeToMinutes(time2);
+        
+        if (minutes1 < minutes2) return -1; // time1 is earlier
+        if (minutes1 > minutes2) return 1;  // time1 is later
+        return 0;  // times are equal
+      };
+      
+      // Time filter for sessions
       if (filters.startTime) {
-        filtered = filtered.filter(program => timeToMinutes(program.sessionStart) >= timeToMinutes(filters.startTime));
+        filtered = filtered.filter(session => {
+          // Convert both times to comparable format and then compare
+          const sessionStartTime = session.startTime; // Assuming this is a string
+          console.log("Comparing session start:", sessionStartTime, "with filter:", filters.startTime);
+          return compareTimeStrings(sessionStartTime, filters.startTime) >= 0;
+        });
       }
-
+      
       if (filters.endTime) {
-        filtered = filtered.filter(program => timeToMinutes(program.sessionEnd) <= timeToMinutes(filters.endTime));
+        filtered = filtered.filter(session => {
+          // Convert both times to comparable format and then compare
+          const sessionEndTime = session.endTime; // Assuming this is a string
+          console.log("Comparing session end:", sessionEndTime, "with filter:", filters.endTime);
+          return compareTimeStrings(sessionEndTime, filters.endTime) <= 0;
+        });
       }
 
       // Filter for instructor

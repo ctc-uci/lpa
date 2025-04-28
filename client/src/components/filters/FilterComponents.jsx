@@ -401,7 +401,6 @@ export const DateFilter = ({startDate, endDate, onChange}) => {
 };
 
 export const TimeFilter = ({startTime, endTime, onChange}) => {
-
   return (
     <FormControl id="time">
       <Box
@@ -780,13 +779,13 @@ export const EmailFilter = ({ value, onChange}) => {
           colorScheme="purple"
         >
           <Button
-            className={`filter-button${localSeason === "all" ? "-active" : ""}`}
+            className={`filter-button${localEmail === "all" ? "-active" : ""}`}
             onClick={() => handleEmailChange("all")}
           >
             <Text mb="0">All</Text>
           </Button>
           <Button
-            className={`filter-button${localSeason === "true" ? "-active" : ""}`}
+            className={`filter-button${localEmail === "true" ? "-active" : ""}`}
             onClick={() => handleEmailChange("true")}
           >
             <Text>
@@ -794,7 +793,7 @@ export const EmailFilter = ({ value, onChange}) => {
             </Text>
           </Button>
           <Button
-            className={`filter-button${localSeason === "" ? "-active" : ""}`}
+            className={`filter-button${localEmail === "" ? "-active" : ""}`}
             onClick={() => handleEmailChange("")}
           >
             <Text>Not Sent</Text>

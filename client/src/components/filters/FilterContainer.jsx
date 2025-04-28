@@ -45,7 +45,7 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
         leftIcon={<Icon as={FilterIcon}/>}
         width="100px"
       >
-        Filters
+        Filtersdfasd
       </Button>
       <Drawer
         isOpen={isOpen}
