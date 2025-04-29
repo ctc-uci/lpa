@@ -176,7 +176,7 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/addprogram"
+                  path="/programs/newprogram"
                   element={
                     <ProtectedRoute
                       element={<ModifyProgram load={false} />}

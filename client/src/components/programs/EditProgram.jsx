@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import './EditProgram.css';
 
 import {
   Button,
   Icon,
+  useDisclosure,
 } from "@chakra-ui/react";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -18,7 +19,7 @@ import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { PayeesDropdown } from "./programComponents/PayeesDropdown";
 import { ProgramInformation } from "./programComponents/ProgramInformation";
 import { EmailDropdown } from "./programComponents/EmailDropdown";
-
+import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();
@@ -36,22 +37,73 @@ export const EditProgram = () => {
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
-
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialState, setInitialState] = useState(null);
+  const [infoLoaded, setInfoLoaded] = useState({
+      event: false,
+      assignments: false,
+    });
+  const {
+    isOpen: isUnsavedModalOpen,
+    onOpen: onUnsavedModalOpen,
+    onClose: onUnsavedModalClose,
+  } = useDisclosure();
 
   useEffect(() => {
-    getInitialEventData();
-    getInitialAssignmentsData();
+    const loadInitialData = async () => {
+      await getInitialEventData().then(() => {
+        setInfoLoaded((prev) => ({ ...prev, event: true }));
+      });
+      await getInitialAssignmentsData().then(() => {
+        setInfoLoaded((prev) => ({ ...prev, assignments: true }));
+      });
+          };
+
+    loadInitialData();
   }, []);
 
+  useEffect(() => {
+    if (initialState === null && Object.values(infoLoaded).every(Boolean)) {
+      setInitialState(JSON.stringify({
+        eventName,
+        generalInformation,
+        selectedInstructors,
+        selectedPayees,
+        selectedEmails,
+      }));
+    }
+  }, [infoLoaded]);
+
   const exit = () => {
-    navigate('/programs/' + id);
+    const currentState = JSON.stringify({
+      eventName,
+      generalInformation,
+      selectedInstructors,
+      selectedPayees,
+      selectedEmails,
+    });
+    if (initialState !== currentState) {
+      onUnsavedModalOpen();
+      return;
+    }
+    else {
+      navigate('/programs/' + id);
+    }
   };
 
   const isFormValid = () => {
+    const currentState = JSON.stringify({
+      eventName,
+      generalInformation,
+      selectedInstructors,
+      selectedPayees,
+      selectedEmails,
+    });
     return (
       eventName.trim() !== "" &&
       selectedInstructors.length > 0 &&
-      selectedPayees.length > 0
+      selectedPayees.length > 0 &&
+      initialState !== currentState
     );
   };
 
@@ -135,7 +187,7 @@ const payees = eventClientResponse.data
         });
       }
       console.log("Save complete, navigating away...");
-      exit();
+      navigate('/programs/' + id);
 
     } catch (error) {
         console.error("Error updating sessions", error);
@@ -144,8 +196,8 @@ const payees = eventClientResponse.data
 
 
   return (
-
     <Navbar>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} programId={id} save={saveEvent} isFormValid={isFormValid}/>
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>

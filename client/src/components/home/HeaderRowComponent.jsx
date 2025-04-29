@@ -40,7 +40,7 @@ export const HeaderRowComponent = () => {
 
         <div
           className="new-program"
-          onClick={() => navigate("/addprogram")}
+          onClick={() => navigate("/programs/newprogram")}
         >
           <img
             src={plusSvg}

@@ -6,8 +6,12 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react";
+import { useNavigate } from 'react-router-dom';
 
-export const UnsavedChangesModal = ({isOpen, onClose, pendingNavigation, setHasUnsavedChanges}) => {
+
+export const UnsavedChangesModal = ({isOpen, onClose, pendingNavigation, setHasUnsavedChanges, programId, save, isFormValid = () => true}) => {
+  const navigate = useNavigate();
+
   return (
     <Modal
       isOpen={isOpen}
@@ -39,13 +43,7 @@ export const UnsavedChangesModal = ({isOpen, onClose, pendingNavigation, setHasU
           p="0"
         >
           <Button
-            onClick={() => {
-              onClose();
-              if (pendingNavigation) {
-                pendingNavigation();
-                setHasUnsavedChanges(false);
-              }
-            }}
+            onClick={() => {navigate('/programs/' + programId);}}
             backgroundColor="#EDF2F7"
             color="#2D3748"
             fontSize="14px"
@@ -57,7 +55,8 @@ export const UnsavedChangesModal = ({isOpen, onClose, pendingNavigation, setHasU
             Don't Save
           </Button>
           <Button
-            onClick={onClose}
+            onClick={save}
+            isDisabled={!isFormValid()}
             backgroundColor="#4441C8"
             color="#FFFFFF"
             fontSize="14px"

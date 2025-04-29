@@ -1,6 +1,7 @@
 import {
   Button,
   Icon,
+  useDisclosure,
 } from "@chakra-ui/react";
 
 import { useEffect, useState, useRef } from "react";
@@ -16,7 +17,7 @@ import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { PayeesDropdown } from "./programComponents/PayeesDropdown"
 import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
-import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
+import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 
 export const NewProgram = () => {
   const { backend } = useBackendContext();
@@ -35,7 +36,11 @@ export const NewProgram = () => {
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
   const initialState = useRef(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const {
+    isOpen: isUnsavedModalOpen,
+    onOpen: onUnsavedModalOpen,
+    onClose: onUnsavedModalClose,
+  } = useDisclosure();
 
   useEffect(() => {
     initialState.current = JSON.stringify({
@@ -69,7 +74,7 @@ export const NewProgram = () => {
   const exit = (newEventId = "") => {
     console.log(newEventId);
     if (hasChanges) {
-      setIsConfirmModalOpen(true);
+      onUnsavedModalOpen(true);
       return;
     }
     if (window.history.length > 1) {
@@ -136,10 +141,7 @@ export const NewProgram = () => {
 
   return (
     <Navbar>
-      <DeleteConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-      />
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose}/>
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
