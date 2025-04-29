@@ -41,7 +41,7 @@ export const NewProgram = () => {
   } = useDisclosure();
 
   const exit = (newEventId = "") => {
-    if (isFormValid()) {
+    if (isUnsavedValid()) {
       onUnsavedModalOpen(true);
       return;
     }
@@ -58,6 +58,14 @@ export const NewProgram = () => {
 
   const noSave = () => {
     navigate('/programs');
+  }
+
+  const isUnsavedValid = () => {
+    return (
+      eventName.trim() !== "" ||
+      selectedInstructors.length > 0 ||
+      selectedPayees.length > 0
+    );
   }
 
   const isFormValid = () => {
@@ -111,7 +119,7 @@ export const NewProgram = () => {
 
   return (
     <Navbar>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isFormValid={isFormValid}/>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isUnsavedValid={isUnsavedValid}/>
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>

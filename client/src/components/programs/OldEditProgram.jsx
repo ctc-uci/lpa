@@ -351,8 +351,6 @@ const payees = eventClientResponse.data
   };
 
   const saveEvent = async () => {
-
-
     try {
       console.log("Newly added event name:", eventName);
       console.log("Newly added Description:", generalInformation);

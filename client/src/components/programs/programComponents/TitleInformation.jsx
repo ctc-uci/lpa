@@ -6,7 +6,7 @@ import {
 export const TitleInformation = ( {eventName, setEventName} ) => {
   return (
         <Input
-            defaultValue={eventName}
+            value={eventName}
             onChange={(e) => setEventName(e.target.value)}
             width="800px"
             height="50px"

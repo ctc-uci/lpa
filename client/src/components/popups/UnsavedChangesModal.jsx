@@ -10,8 +10,6 @@ import { useNavigate } from 'react-router-dom';
 
 
 export const UnsavedChangesModal = ({isOpen, onClose, pendingNavigation, setHasUnsavedChanges, noSave, save, isFormValid = () => true}) => {
-  const navigate = useNavigate();
-
   return (
     <Modal
       isOpen={isOpen}

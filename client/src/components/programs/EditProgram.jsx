@@ -20,6 +20,7 @@ import { PayeesDropdown } from "./programComponents/PayeesDropdown";
 import { ProgramInformation } from "./programComponents/ProgramInformation";
 import { EmailDropdown } from "./programComponents/EmailDropdown";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
+import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown";
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();
@@ -38,6 +39,7 @@ export const EditProgram = () => {
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
   const [initialState, setInitialState] = useState(null);
+  const [repeatType, setRepeatType] = useState(); // DELETE DELETE DELETE
   const [infoLoaded, setInfoLoaded] = useState({
       event: false,
       assignments: false,
@@ -93,6 +95,22 @@ export const EditProgram = () => {
   const noSave = () => {
     navigate('/programs/' + id);
   }
+
+  const isUnsavedValid = () => {
+    const currentState = JSON.stringify({
+      eventName,
+      generalInformation,
+      selectedInstructors,
+      selectedPayees,
+      selectedEmails,
+    });
+    return (
+      (( eventName.trim() !== "" ||
+      selectedInstructors.length > 0 ||
+      selectedPayees.length > 0 )) &&
+      initialState !== currentState
+    );
+  };
 
   const isFormValid = () => {
     const currentState = JSON.stringify({
@@ -172,7 +190,6 @@ const payees = eventClientResponse.data
 
       console.log("Assigning instructors...");
       for (const instructor of selectedInstructors) {
-        console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
             eventId: id,
             clientId: instructor.id,
@@ -200,7 +217,9 @@ const payees = eventClientResponse.data
 
   return (
     <Navbar>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isFormValid={isFormValid}/>
+      <ReoccuranceDropdown repeatType={repeatType}
+                setRepeatType={setRepeatType}/>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isUnsavedValid={isUnsavedValid}/>
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
