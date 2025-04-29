@@ -9,7 +9,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 
-export const UnsavedChangesModal = ({isOpen, onClose, pendingNavigation, setHasUnsavedChanges, programId, save, isFormValid = () => true}) => {
+export const UnsavedChangesModal = ({isOpen, onClose, pendingNavigation, setHasUnsavedChanges, noSave, save, isFormValid = () => true}) => {
   const navigate = useNavigate();
 
   return (
@@ -43,7 +43,7 @@ export const UnsavedChangesModal = ({isOpen, onClose, pendingNavigation, setHasU
           p="0"
         >
           <Button
-            onClick={() => {navigate('/programs/' + programId);}}
+            onClick={() => {noSave()}}
             backgroundColor="#EDF2F7"
             color="#2D3748"
             fontSize="14px"

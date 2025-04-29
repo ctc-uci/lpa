@@ -37,7 +37,6 @@ export const EditProgram = () => {
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
-  const [hasChanges, setHasChanges] = useState(false);
   const [initialState, setInitialState] = useState(null);
   const [infoLoaded, setInfoLoaded] = useState({
       event: false,
@@ -90,6 +89,10 @@ export const EditProgram = () => {
       navigate('/programs/' + id);
     }
   };
+
+  const noSave = () => {
+    navigate('/programs/' + id);
+  }
 
   const isFormValid = () => {
     const currentState = JSON.stringify({
@@ -197,7 +200,7 @@ const payees = eventClientResponse.data
 
   return (
     <Navbar>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} programId={id} save={saveEvent} isFormValid={isFormValid}/>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isFormValid={isFormValid}/>
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>

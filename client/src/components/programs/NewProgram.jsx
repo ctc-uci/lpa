@@ -34,46 +34,14 @@ export const NewProgram = () => {
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
-  const [hasChanges, setHasChanges] = useState(false);
-  const initialState = useRef(null);
   const {
     isOpen: isUnsavedModalOpen,
     onOpen: onUnsavedModalOpen,
     onClose: onUnsavedModalClose,
   } = useDisclosure();
 
-  useEffect(() => {
-    initialState.current = JSON.stringify({
-      eventName,
-      generalInformation,
-      selectedInstructors,
-      selectedPayees,
-      selectedEmails
-    });
-  }, []);
-
-
-  useEffect(() => {
-    const currentState = JSON.stringify({
-      eventName,
-      generalInformation,
-      selectedInstructors,
-      selectedPayees,
-      selectedEmails
-    });
-
-    setHasChanges(currentState !== initialState.current);
-  }, [
-    eventName,
-    generalInformation,
-    selectedInstructors,
-    selectedPayees,
-    selectedEmails,
-  ]);
-
   const exit = (newEventId = "") => {
-    console.log(newEventId);
-    if (hasChanges) {
+    if (isFormValid()) {
       onUnsavedModalOpen(true);
       return;
     }
@@ -87,6 +55,10 @@ export const NewProgram = () => {
   const saveAndExit = (newEventId = "") => {
     navigate('/programs/' + newEventId);
   };
+
+  const noSave = () => {
+    navigate('/programs');
+  }
 
   const isFormValid = () => {
     return (
@@ -122,9 +94,7 @@ export const NewProgram = () => {
         });
       }
 
-      console.log("payee object:", selectedPayees);
       for (const payee of selectedPayees) {
-        console.log("Assigning payee:", payee);
         await backend.post("/assignments", {
             eventId: newEventId,
             clientId: payee.id,
@@ -141,7 +111,7 @@ export const NewProgram = () => {
 
   return (
     <Navbar>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose}/>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isFormValid={isFormValid}/>
       <div id="body">
         <div id="programsBody">
           <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
