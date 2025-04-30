@@ -276,7 +276,7 @@ const InvoiceStats = ({
   );
 };
 
-const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
+const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, handleNavBarClick }) => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
@@ -492,6 +492,11 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
     setHasUnsavedChanges(true);
   };
 
+  const handleButtonWhileUnsaved = async () => {
+    if (hasUnsavedChanges){
+      handleNavBarClick()
+    }
+  }
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date

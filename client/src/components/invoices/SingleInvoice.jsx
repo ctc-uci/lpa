@@ -222,6 +222,11 @@ export const SingleInvoice = () => {
     }
   };
 
+  const handleOtherButtonClick = () => {
+    openModal();
+    
+  }
+
   return (
     <Navbar onNavbarClick={handleNavbarClick}>
       <Flex
@@ -354,6 +359,7 @@ export const SingleInvoice = () => {
                   comments={comments}
                   setComments={setComments}
                   setHasUnsavedChanges={setHasUnsavedChanges}
+                  handleNavbarClick={handleNavbarClick}
                 ></InvoicePayments>
                 <EmailHistory emails={emails}></EmailHistory>
               </Flex>
