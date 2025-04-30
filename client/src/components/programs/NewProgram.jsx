@@ -4,7 +4,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 
-import { useEffect, useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import './EditProgram.css';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -12,6 +12,7 @@ import { IoCloseOutline } from "react-icons/io5";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
+import { SessionsRightIcon } from "../../assets/SessionsRightIcon";
 import { TitleInformation } from "./programComponents/TitleInformation";
 import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { PayeesDropdown } from "./programComponents/PayeesDropdown"
@@ -122,26 +123,20 @@ export const NewProgram = () => {
       <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isUnsavedValid={isUnsavedValid}/>
       <div id="body">
         <div id="programsBody">
-          <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
+          <div style={{width: "48px",
+            height: "40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon>
+          </div>
           <div id="eventInfoBody">
             <div id="title">
-
               <TitleInformation
                 eventName={eventName}
                 setEventName={setEventName}
               />
-
-              <div id = "saveCancel">
-                <Button
-                  id="save"
-                  onClick={saveEvent}
-                  isDisabled={!isFormValid()}
-                  backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
-                  _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
-                >
-                  Sessions
-                </Button>
-              </div>
             </div>
             <div id="innerBody">
 
@@ -179,6 +174,18 @@ export const NewProgram = () => {
                 setGeneralInformation={setGeneralInformation}
               />
             </div>
+          </div>
+          <div id = "saveCancel">
+            <Button
+              id="save"
+              onClick={saveEvent}
+              isDisabled={!isFormValid()}
+              backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
+              _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
+              rightIcon={<SessionsRightIcon/>}
+            >
+              Sessions
+            </Button>
           </div>
         </div>
       </div>

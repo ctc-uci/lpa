@@ -14,13 +14,13 @@ import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
+import { SessionsRightIcon } from "../../assets/SessionsRightIcon";
 import { TitleInformation } from "./programComponents/TitleInformation";
 import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { PayeesDropdown } from "./programComponents/PayeesDropdown";
 import { ProgramInformation } from "./programComponents/ProgramInformation";
 import { EmailDropdown } from "./programComponents/EmailDropdown";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
-import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown";
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();
@@ -39,7 +39,6 @@ export const EditProgram = () => {
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
   const [initialState, setInitialState] = useState(null);
-  const [repeatType, setRepeatType] = useState(); // DELETE DELETE DELETE
   const [infoLoaded, setInfoLoaded] = useState({
       event: false,
       assignments: false,
@@ -140,20 +139,20 @@ export const EditProgram = () => {
     const eventClientResponse = await backend.get('/assignments/event/' + id);
 
     const instructors = eventClientResponse.data
-  .filter(client => client.role === "instructor")
-  .map(client => ({
-    id: client.clientId,
-    name: client.clientName,
-    email: client.clientEmail
-  }));
+    .filter(client => client.role === "instructor")
+    .map(client => ({
+      id: client.clientId,
+      name: client.clientName,
+      email: client.clientEmail
+    }));
 
-const payees = eventClientResponse.data
-  .filter(client => client.role === "payee")
-  .map(client => ({
-    id: client.clientId,
-    name: client.clientName,
-    email: client.clientEmail
-  }));
+  const payees = eventClientResponse.data
+    .filter(client => client.role === "payee")
+    .map(client => ({
+      id: client.clientId,
+      name: client.clientName,
+      email: client.clientEmail
+    }));
     setSelectedInstructors(instructors);
     setSelectedPayees(payees);
     setSelectedEmails(payees);
@@ -197,7 +196,6 @@ const payees = eventClientResponse.data
         });
       }
 
-
       for (const payee of selectedPayees) {
         console.log("Assigning payee:", payee);
         await backend.post("/assignments", {
@@ -207,41 +205,42 @@ const payees = eventClientResponse.data
         });
       }
       console.log("Save complete, navigating away...");
-      navigate('/programs/' + id);
 
     } catch (error) {
         console.error("Error updating sessions", error);
     }
   };
 
+  const saveEventUnsaved = async () => {
+    saveEvent();
+    navigate('/programs/' + id);
+  };
+
+  const saveEventToSessions = async () => {
+    saveEvent();
+    navigate('/programs/edit/sessions/' + id);
+  };
+
 
   return (
     <Navbar>
-      <ReoccuranceDropdown repeatType={repeatType}
-                setRepeatType={setRepeatType}/>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isUnsavedValid={isUnsavedValid}/>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEventUnsaved} isUnsavedValid={isUnsavedValid}/>
       <div id="body">
         <div id="programsBody">
-          <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
+          <div style={{width: "48px",
+            height: "40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon>
+          </div>
           <div id="eventInfoBody">
             <div id="title">
-
               <TitleInformation
                 eventName={eventName}
                 setEventName={setEventName}
               />
-
-              <div id = "saveCancel">
-                <Button
-                  id="save"
-                  onClick={saveEvent}
-                  isDisabled={!isFormValid()}
-                  backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
-                  _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
-                >
-                  Sessions
-                </Button>
-              </div>
             </div>
             <div id="innerBody">
               <ArtistsDropdown
@@ -278,6 +277,18 @@ const payees = eventClientResponse.data
                 setGeneralInformation={setGeneralInformation}
               />
             </div>
+          </div>
+          <div id="saveCancel">
+            <Button
+              id="save"
+              onClick={saveEvent}
+              isDisabled={!isFormValid()}
+              backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
+              _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
+              rightIcon={<SessionsRightIcon/>}
+            >
+              Sessions
+            </Button>
           </div>
         </div>
       </div>

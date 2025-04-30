@@ -58,10 +58,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 2.5rem;
 }
 
-#leftCancel {
-  margin-top: 1%;
-}
-
 #programsBody {
   width: 90%;
   margin: 5% 2.5%;
@@ -72,8 +68,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 #eventInfoBody {
   flex-direction: column;
   flex: 1;
-  margin-left: 2.5%;
-  margin-right: 2.5%;
+  margin-left: 16px;
+  margin-right: 26px;
 }
 
 
@@ -81,9 +77,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  width: 90%;
+  width: 100%;
   font-size: 170%;
   margin-bottom: 5%;
+  height: 42px;
 }
 
 
@@ -94,8 +91,10 @@ button#save {
   justify-content: center;
   align-items: center;
   border-radius: 6px;
+  width: 115px;
+  height: 40px;
+  font-size: 14px;
 }
-
 
 #select {
   display: none;
@@ -163,10 +162,14 @@ button#save {
   position: absolute;
   left: 0;
   top: 0;
-  margin: 0 0 3% 27%;
+  margin: 0 0 3% 216px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+}
+
+#emailTags {
+  margin: 0 0 3% 238px;
 }
 
 .instructorTag, .payeeTag, .emailTag {
@@ -200,8 +203,12 @@ button#save {
   flex-direction: row;
   border: 1px #E2E8F0 solid;
   border-radius: 5px;
-  width: 25%;
+  width: 200px;
   background: #F6F6F6;
+}
+
+#emails {
+  width: 222px;
 }
 
 #instructorSelection, #payeeSelection, #emailSelection {
