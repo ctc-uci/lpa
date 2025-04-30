@@ -286,15 +286,9 @@ export const Login = () => {
                   htmlFor="keep-signed-in"
                   className="keep-signed-in-label"
                 >
-                  Keep me signed in
+                  Remember me for 30 days
                 </label>
               </div>
-              <ChakraLink
-                as={Link}
-                to="/forgotpassword"
-              >
-                Forgot password?
-              </ChakraLink>
             </HStack>
 
             {/* Button Group */}
@@ -318,6 +312,15 @@ export const Login = () => {
                 Let's Go
               </Button>
             </HStack>
+            <div className="forgot-password">
+              <ChakraLink
+                as={Link}
+                to="/forgotpassword"
+              >
+                Forgot password?
+              </ChakraLink>
+            </div>
+            
           </VStack>
         </form>
       </VStack>

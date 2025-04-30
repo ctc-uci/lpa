@@ -22,6 +22,7 @@ import { z } from "zod";
 
 import logo from "../../assets/logo/logo.png";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -30,11 +31,13 @@ const forgotPasswordSchema = z.object({
 export const ForgotPassword = () => {
   const navigate = useNavigate();
   const { resetPassword } = useAuthContext();
+  const { backend } = useBackendContext();
   const toast = useToast();
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
@@ -42,17 +45,20 @@ export const ForgotPassword = () => {
   });
 
   const handleResetEmail = async (data) => {
+    const email = data.email;
+
     try {
-      const email = data.email;
+      await backend.get(`/users/email/${email}`);
       await resetPassword({ email });
       navigate("/forgotpassword/sent");
-    } catch (error) {
-      toast({
-        title: "An error occurred while sending reset email",
-        description: error.message,
-        status: "error",
-        variant: "subtle",
+      return;
+
+    } catch (err) {
+      setError("email", {
+        type: "manual",
+        message: "Email not found. Please enter a valid email address.",
       });
+      return;
     }
   };
 

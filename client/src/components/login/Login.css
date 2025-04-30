@@ -25,6 +25,15 @@
   --font-primary: "Inter", sans-serif;
 }
 
+/* FORGOT PASSWORD */
+.forgot-password {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--Primary-8, #29267D);
+}
+
 /* GENERAL CONTAINER */
 .signup-container {
   width: 550px;
