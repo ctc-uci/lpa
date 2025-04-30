@@ -120,7 +120,7 @@ export const NewProgram = () => {
 
   return (
     <Navbar>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isUnsavedValid={isUnsavedValid}/>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isFormValid={isUnsavedValid}/>
       <div id="body">
         <div id="programsBody">
           <div style={{width: "48px",

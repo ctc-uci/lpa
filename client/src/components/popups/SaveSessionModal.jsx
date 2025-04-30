@@ -6,10 +6,9 @@ import {
   ModalBody,
   ModalHeader,
   ModalOverlay,
-  Text,
 } from "@chakra-ui/react";
 
-export const SaveSessionModal = ({isOpen, onClose, pendingNavigation, setHasUnsavedChanges, programName}) => {
+export const SaveSessionModal = ({isOpen, onClose, noSave, programName, save, isFormValid = () => true}) => {
   return (
     <Modal
       isOpen={isOpen}
@@ -45,13 +44,7 @@ export const SaveSessionModal = ({isOpen, onClose, pendingNavigation, setHasUnsa
         >
 
           <Button
-            onClick={() => {
-              onClose();
-              if (pendingNavigation) {
-                pendingNavigation();
-                setHasUnsavedChanges(false);
-              }
-            }}
+            onClick={() => {noSave()}}
             backgroundColor="#EDF2F7"
             color="#2D3748"
             fontSize="14px"
@@ -63,7 +56,8 @@ export const SaveSessionModal = ({isOpen, onClose, pendingNavigation, setHasUnsa
             Cancel
           </Button>
           <Button
-            onClick={onClose}
+            onClick={save}
+            isDisabled={!isFormValid()}
             backgroundColor="#4441C8"
             color="#FFFFFF"
             fontSize="14px"

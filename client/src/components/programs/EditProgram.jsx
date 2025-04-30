@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import './EditProgram.css';
 
 import {
@@ -186,7 +186,8 @@ export const EditProgram = () => {
       });
 
       deleteAllAssignments();
-
+      console.log("Selected instructors: ", selectedInstructors)
+      console.log("Selected payees: ", selectedPayees)
       console.log("Assigning instructors...");
       for (const instructor of selectedInstructors) {
         await backend.post("/assignments", {
@@ -224,7 +225,7 @@ export const EditProgram = () => {
 
   return (
     <Navbar>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEventUnsaved} isUnsavedValid={isUnsavedValid}/>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEventUnsaved} isFormValid={isUnsavedValid}/>
       <div id="body">
         <div id="programsBody">
           <div style={{width: "48px",
@@ -281,7 +282,7 @@ export const EditProgram = () => {
           <div id="saveCancel">
             <Button
               id="save"
-              onClick={saveEvent}
+              onClick={saveEventToSessions}
               isDisabled={!isFormValid()}
               backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
               _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
