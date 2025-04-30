@@ -170,9 +170,9 @@ export const ProgramSummary = ({
     onClose: popoverOnClose,
   } = useDisclosure();
 
-  const exit = () => {
-    navigate("/programs");
-  };
+  // const exit = () => {
+  //   navigate("/programs");
+  // };
 
   const toEditProgram = () => {
     navigate("/programs/edit/" + eventId);
@@ -561,8 +561,16 @@ export const ProgramSummary = ({
                 justify="space-between"
                 align="center"
               >
-                <Flex
-                  id="backProgramButton"
+                <Button
+                  display="flex"
+                  height="40px"
+                  padding="0px 16px"
+                  justifyContent="center"
+                  alignItems="center"
+                  gap="4px"
+                  fontSize="14px"
+                  fontWeight="700"
+                  borderRadius="6px"
                   onClick={() => {
                     {
                       isArchived
@@ -571,26 +579,12 @@ export const ProgramSummary = ({
                     }
                   }}
                 >
-                  <Button
-                    display="flex"
-                    height="40px"
-                    padding="0px 16px"
-                    justifyContent="center"
-                    alignItems="center"
-                    gap="4px"
-                    fontSize="14px"
-                    fontWeight="700"
-                    borderRadius="6px"
-                    onClick={exit}
-                  >
-                    <Icon
-                      as={ChevronLeftIcon}
-                      boxSize={5}
-                    />{" "}
-                    {isArchived ? "Archives" : "Programs"}
-                  </Button>
-                </Flex>
-
+                  <Icon
+                    as={ChevronLeftIcon}
+                    boxSize={5}
+                  />{" "}
+                  {isArchived ? "Archives" : "Programs"}
+                </Button>
                 <Flex
                   align="center"
                   gap={2}
@@ -978,6 +972,14 @@ export const Sessions = ({
     [navigate]
   );
 
+  const handleDeactivate = useCallback(
+    (id) => {
+      setProgramToDelete(id);
+      onOpen();
+    },
+    [onOpen]
+  );
+
   const [filteredSessions, setFilteredSessions] = useState([]);
 
   const handleStatusChange = (newStatus) => {
@@ -1202,6 +1204,14 @@ export const Sessions = ({
 
   return (
     <>
+      <CancelProgram
+        id={programToDelete}
+        setPrograms={setPrograms}
+        onOpen={onOpen}
+        isOpen={isOpen}
+        onClose={onClose}
+        type={"Booking"}
+      />
       <Box className="componentContainer">
         <Flex
           align="center"
@@ -1420,7 +1430,7 @@ export const Sessions = ({
                           </Text>
                         </Th>
                       ) : (
-                        <div></div>
+                        null
                       )}
                       <Th>
                         <Box
@@ -1439,12 +1449,6 @@ export const Sessions = ({
                           >
                             DATE
                           </Text>
-                          <Box
-                            className="sessionsColumnContainer"
-                            justifyContent="left"
-                          >
-                            <Text className="sessionsColumnTitle">STATUS</Text>
-                          </Box>
                         </Box>
                       </Th>
                       <Th>
@@ -1584,7 +1588,7 @@ export const Sessions = ({
                               </Box>
                             </Td>
                           ) : (
-                            <div></div>
+                            null
                           )}
                           <Td>
                             <Box
@@ -1638,7 +1642,7 @@ export const Sessions = ({
                                 : "N/A"}
                             </Box>
                           </Td>
-                          <Td>
+                          {/* <Td>
                             <Icon
                               boxSize="7"
                               padding="5px"
@@ -1646,15 +1650,14 @@ export const Sessions = ({
                               backgroundColor="#EDF2F7"
                             >
                               <EllipsisIcon />
-                              {/* <CancelProgram
-                                  id={programToDelete}
-                                  setPrograms={setPrograms}
-                                  onOpen={onOpen}
-                                  isOpen={isOpen}
-                                  onClose={onClose}
-                                  type={"Booking"}
-                                /> */}
                             </Icon>
+                          </Td> */}
+                          <Td>
+                            <EditCancelPopup
+                              handleEdit={handleEdit}
+                              handleDeactivate={handleDeactivate}
+                              id={session.id}
+                            />
                           </Td>
                         </Tr>
                       ))
@@ -1740,14 +1743,6 @@ export const Sessions = ({
           </CardBody>
         </Card>
       </Box>
-      {/* <CancelProgram
-        id={programToDelete}
-        setPrograms={setPrograms}
-        onOpen={onOpen}
-        isOpen={isOpen}
-        onClose={onClose}
-        type={"Booking"}
-      /> */}
     </>
   );
 };

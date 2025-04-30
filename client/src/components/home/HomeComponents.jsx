@@ -599,7 +599,7 @@ export const ProgramsTable = () => {
       />
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">
-        {/* <ProgramFilter programs={programs} setFilteredPrograms={setFilteredPrograms}/> */}
+
           <div className="archive">
             <Icon
               as={ProgramArchiveIcon}
@@ -615,7 +615,8 @@ export const ProgramsTable = () => {
               Archives
             </span>
           </div>
-          <ProgramFiltersModal onApplyFilters={handleApplyFilters} />
+          <ProgramFilter programs={programs} setFilteredPrograms={setFilteredPrograms}/>
+          {/* <ProgramFiltersModal onApplyFilters={handleApplyFilters} /> */}
           <Box flex="1" />
           <SearchBar
             handleSearch={handleSearchChange}

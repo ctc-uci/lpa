@@ -11,7 +11,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import { CancelIcon } from "../../assets/CancelIcon";
+import CancelIconRed from "../../assets/CancelIconRed";
 import { EditIcon } from "../../assets/EditIcon";
 import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
 
@@ -24,7 +24,7 @@ const ActionsIcon = React.memo(() => (
 
 const CancelXIcon = React.memo(() => (
   <Icon
-    as={CancelIcon}
+    as={CancelIconRed}
     alt="Cancel"
   />
 ));
@@ -64,7 +64,12 @@ export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
           color="#90080F!important"
         >
           <CancelXIcon style={{ marginRight: "6px" }} />
-          <Text fontWeight={"400"} color={"#90080F"}>Cancel</Text>
+          <Text
+            fontWeight={"400"}
+            color={"#90080F"}
+          >
+            Cancel
+          </Text>
         </MenuItem>
       </MenuList>
     </Menu>
