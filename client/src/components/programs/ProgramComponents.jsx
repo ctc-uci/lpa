@@ -1,52 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { CancelIcon } from "../../assets/CancelIcon";
-import { EmailIcon } from "../../assets/EmailIcon";
-import { EyeIcon } from "../../assets/EyeIcon";
-import { InfoIconRed } from "../../assets/InfoIconRed";
-import { LocationIcon } from "../../assets/LocationIcon";
-import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
-import { ProfileIcon } from "../../assets/ProfileIcon";
-import { RepeatIcon } from "../../assets/RepeatIcon";
-import { ArchiveIcon } from "../../assets/ArchiveIcon";
-import { CalendarIcon } from "../../assets/CalendarIcon";
-import { EditIcon } from "../../assets/EditIcon";
-import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
-import { ArtistIcon } from "../../assets/ArtistsIcon";
-import { DeleteIconRed } from "../../assets/DeleteIconRed";
-import { DollarBill } from "../../assets/DollarBill";
-import { DuplicateIcon } from "../../assets/DuplicateIcon";
-import clockSvg from "../../assets/icons/clock.svg";
-import personSvg from "../../assets/icons/person.svg";
-import { CustomOption } from "../../assets/CustomOption";
 import {
-  archiveCalendar,
-  archiveClock,
-  archiveMapPin,
-  DollarIcon,
-  DownloadIcon,
-  filterButton,
-  filterDateCalendar,
-  sessionsCalendar,
-  sessionsEllipsis,
-  sessionsFilterClock,
-  sessionsFilterMapPin,
-  summaryIcon,
-} from "../../assets/icons/ProgramIcons";
-import { LocationPin } from "../../assets/LocationPin";
-import { PersonIcon } from "../../assets/PersonIcon";
-import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
-import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
-import { ReactivateIcon } from "../../assets/ReactivateIcon";
-import { SessionsBookmark } from "../../assets/SessionsBookmark";
-
-import {
-  ChevronLeftIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   DeleteIcon,
 } from "@chakra-ui/icons";
-
 import {
   Alert,
   AlertDescription,
@@ -95,10 +54,50 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 
+import { ArchiveIcon } from "../../assets/ArchiveIcon";
+import { ArtistIcon } from "../../assets/ArtistsIcon";
+import { CalendarIcon } from "../../assets/CalendarIcon";
+import { CancelIcon } from "../../assets/CancelIcon";
+import { ClockFilled } from "../../assets/ClockFilled";
+import { CustomOption } from "../../assets/CustomOption";
+import { DeleteIconRed } from "../../assets/DeleteIconRed";
+import { DollarBill } from "../../assets/DollarBill";
+import { DuplicateIcon } from "../../assets/DuplicateIcon";
+import { EditIcon } from "../../assets/EditIcon";
+import { EmailIcon } from "../../assets/EmailIcon";
+import { EyeIcon } from "../../assets/EyeIcon";
+import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
+import clockSvg from "../../assets/icons/clock.svg";
+import {
+  archiveCalendar,
+  archiveClock,
+  archiveMapPin,
+  DollarIcon,
+  DownloadIcon,
+  filterButton,
+  filterDateCalendar,
+  sessionsCalendar,
+  sessionsClock,
+  sessionsEllipsis,
+  sessionsFilterClock,
+  sessionsFilterMapPin,
+  sessionsMapPin,
+  summaryIcon,
+} from "../../assets/icons/ProgramIcons";
+import { InfoIconRed } from "../../assets/InfoIconRed";
+import { LocationIcon } from "../../assets/LocationIcon";
+import { LocationPin } from "../../assets/LocationPin";
+import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
+import { PersonIcon } from "../../assets/PersonIcon";
+import { ProfileIcon } from "../../assets/ProfileIcon";
+import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
+import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
+import { ReactivateIcon } from "../../assets/ReactivateIcon";
+import { RepeatIcon } from "../../assets/RepeatIcon";
+import { SessionsBookmark } from "../../assets/SessionsBookmark";
 
 import "./Program.css";
-import { SessionFilter } from "../filters/SessionsFilter";
-// import { CancelSessionModal } from "./CancelSessionModal";
+
 import {
   Document,
   Page,
@@ -109,27 +108,23 @@ import {
 } from "@react-pdf/renderer";
 import { EllipsisIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import DateSortingModal from "../filters/DateFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
+import { SessionFilter } from "../filters/SessionsFilter";
+import { SearchBar } from "../searchBar/SearchBar";
+import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
-import { SearchBar } from "../searchBar/SearchBar";
 
 const ClockIcon = React.memo(() => (
   <img
     src={clockSvg}
     alt="Clock"
-  />
-));
-
-const PersonIcon = React.memo(() => (
-  <img
-    src={personSvg}
-    alt="Person"
   />
 ));
 
@@ -140,7 +135,6 @@ export const ProgramSummary = ({
   isArchived,
   setIsArchived,
   eventId,
-  sessions,
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -884,7 +878,6 @@ export const Sessions = ({
   setIsArchived,
   refreshSessions,
 }) => {
-
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const [programToDelete, setProgramToDelete] = useState(null);
@@ -958,6 +951,7 @@ export const Sessions = ({
     }
   };
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [isSelected, setIsSelected] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
@@ -968,8 +962,9 @@ export const Sessions = ({
   const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
   const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
   // At the top of your Sessions component where other state variables are defined
-   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
-    []);
+  const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
+    []
+  );
 
   const roomsMap = useMemo(() => {
     return rooms ?? new Map();
@@ -981,6 +976,7 @@ export const Sessions = ({
       navigate(`/bookings/edit/${id}`);
     },
     [navigate]
+  );
 
   const [filteredSessions, setFilteredSessions] = useState([]);
 
@@ -1189,7 +1185,6 @@ export const Sessions = ({
   };
   if (!rooms || rooms.length === 0) {
     return <div>Loading...</div>;
-
   }
 
   const handleDateChange = (field, value) => {
@@ -1207,21 +1202,13 @@ export const Sessions = ({
 
   return (
     <>
-      <CancelProgram
-        id={programToDelete}
-        setPrograms={setPrograms}
-        onOpen={onOpen}
-        isOpen={isOpen}
-        onClose={onClose}
-        type={"Booking"}
-      />
       <Box className="componentContainer">
         <Flex
           align="center"
           gap={2}
           mb={4}
         >
-           <SessionsBookmark />
+          <SessionsBookmark />
           <Text className="componentTitleText">Sessions</Text>
         </Flex>
         <Card
@@ -1234,14 +1221,14 @@ export const Sessions = ({
             m={6}
             display="flex"
             flexDirection="column"
-            justifyContent="space-between"
+            // justifyContent="start"
           >
-            <Flex direction="column" justify="space-between">
-              <Flex
-                gap="12px"
-                alignItems="center"
-              >
-                <Box position="relative">
+            <Flex
+              direction="row"
+              justify="start"
+              gap={"12px"}
+            >
+              <Box position="relative">
                 <Button
                   style={{
                     display: "flex",
@@ -1392,846 +1379,376 @@ export const Sessions = ({
 
               <Popover onClose={onClose}>
                 <PopoverTrigger>
-                  <Button
+                  <Box
                     display="flex"
-                    height="40px"
-                    padding="0px 16px"
-                    justifyContent="center"
+                    flexDirection="row"
                     alignItems="center"
-                    gap="4px"
-                    borderRadius="6px"
-                    bg="var(--Secondary-2-Default, #EDF2F7)"
-                    color="#2D3748"
-                    fontFamily="Inter"
-                    fontSize="14px"
-                    onClick={onOpen}
-                    border="none"
+                    gap="5px"
                   >
-                    <Box
-                      display="flex"
-                      flexDirection="row"
-                      alignItems="center"
-                      gap="5px"
-                    >
-                      <SessionFilter
-                        sessions={sessions}
-                        setFilteredSessions={setFilteredSessions}
-                        rooms={rooms}
-                      />
-                    </Box>
-                  </Button>
-                          <FormControl id="date">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <CalendarIcon />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  DATE
-                                </Text>
-                              </Box>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Input
-                                  size="sm"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="35%"
-                                  height="20%"
-                                  type="date"
-                                  placeholder="MM/DD/YYYY"
-                                  onChange={(e) =>
-                                    handleDateChange("start", e.target.value)
-                                  }
-                                />
-                                <Text> to </Text>
-                                <Input
-                                  size="sm"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="35%"
-                                  height="20%"
-                                  type="date"
-                                  placeholder="MM/DD/YYYY"
-                                  onChange={(e) =>
-                                    handleDateChange("end", e.target.value)
-                                  }
-                                />
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="time">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <Icon as={sessionsFilterClock} />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  Time
-                                </Text>
-                              </Box>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Input
-                                  size="xs"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="30%"
-                                  height="20%"
-                                  type="time"
-                                  placeholder="00:00 am"
-                                  onChange={(e) =>
-                                    handleTimeChange("start", e.target.value)
-                                  }
-                                />
-                                <Text> to </Text>
-                                <Input
-                                  size="xs"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="30%"
-                                  height="20%"
-                                  type="time"
-                                  placeholder="00:00 pm"
-                                  onChange={(e) =>
-                                    handleTimeChange("end", e.target.value)
-                                  }
-                                />
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="status">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              alignItems="flex-start"
-                              gap="24px"
-                              alignSelf="stretch"
-                            >
-                              <Text
-                                fontWeight="bold"
-                                color="#767778"
-                                visibility={isSelected ? "visible" : "hidden"}
-                              >
-                                Status
-                              </Text>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("All")}
-                                  backgroundColor={
-                                    status === "All" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "All" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  All
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Active")}
-                                  backgroundColor={
-                                    status === "Active" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Active" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={filterDateCalendar} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Date
-                                    </Text>
-                                  </Box>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Input
-                                      size="sm"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="35%"
-                                      height="20%"
-                                      type="date"
-                                      placeholder="MM/DD/YYYY"
-                                      onChange={(e) =>
-                                        handleDateChange(
-                                          "start",
-                                          e.target.value
-                                        )
-                                      }
-                                    />
-                                    <Text> to </Text>
-                                    <Input
-                                      size="sm"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="35%"
-                                      height="20%"
-                                      type="date"
-                                      placeholder="MM/DD/YYYY"
-                                      onChange={(e) =>
-                                        handleDateChange("end", e.target.value)
-                                      }
-                                    />
-                                  </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="time">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={sessionsFilterClock} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Time
-                                    </Text>
-                                  </Box>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Input
-                                      size="xs"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="30%"
-                                      height="20%"
-                                      type="time"
-                                      placeholder="00:00 am"
-                                      onChange={(e) =>
-                                        handleTimeChange(
-                                          "start",
-                                          e.target.value
-                                        )
-                                      }
-                                    />
-                                    <Text> to </Text>
-                                    <Input
-                                      size="xs"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="30%"
-                                      height="20%"
-                                      type="time"
-                                      placeholder="00:00 pm"
-                                      onChange={(e) =>
-                                        handleTimeChange("end", e.target.value)
-                                      }
-                                    />
-                                  </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="status">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Text
-                                    fontWeight="bold"
-                                    color="#767778"
-                                  >
-                                    Status
-                                  </Text>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Button
-                                      borderRadius="30px"
-                                      borderWidth="1px"
-                                      minWidth="auto"
-                                      height="20%"
-                                      onClick={() => setStatus("All")}
-                                      backgroundColor={
-                                        status === "All" ? "#EDEDFD" : "#F6F6F6"
-                                      }
-                                      borderColor={
-                                        status === "All" ? "#4E4AE7" : "#767778"
-                                      }
-                                    >
-                                      All
-                                    </Button>
-                                    <Button
-                                      borderRadius="30px"
-                                      borderWidth="1px"
-                                      minWidth="auto"
-                                      height="20%"
-                                      onClick={() => setStatus("Active")}
-                                      backgroundColor={
-                                        status === "Active"
-                                          ? "#EDEDFD"
-                                          : "#F6F6F6"
-                                      }
-                                      borderColor={
-                                        status === "Active"
-                                          ? "#4E4AE7"
-                                          : "#767778"
-                                      }
-                                    >
-                                      <Box
-                                        display="flex"
-                                        justifyContent="center"
-                                        alignItems="center"
-                                        gap="4px"
-                                      >
-                                        <Box
-                                          width="10px"
-                                          height="10px"
-                                          borderRadius="50%"
-                                          bg="#0C824D"
-                                        />
-                                        Active
-                                      </Box>
-                                    </Button>
-                                    <Button
-                                      borderRadius="30px"
-                                      borderWidth="1px"
-                                      minWidth="auto"
-                                      height="20%"
-                                      onClick={() => setStatus("Past")}
-                                      backgroundColor={
-                                        status === "Past"
-                                          ? "#EDEDFD"
-                                          : "#F6F6F6"
-                                      }
-                                      borderColor={
-                                        status === "Past"
-                                          ? "#4E4AE7"
-                                          : "#767778"
-                                      }
-                                    >
-                                      <Box
-                                        display="flex"
-                                        justifyContent="center"
-                                        alignItems="center"
-                                        gap="4px"
-                                      >
-                                        <Box
-                                          width="10px"
-                                          height="10px"
-                                          borderRadius="50%"
-                                          bg="#DAB434"
-                                        />
-                                        Past
-                                      </Box>
-                                    </Button>
-                                  </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="room">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    All
-                                  </Button>
-                                </WrapItem>
-                                {Array.from(rooms.values()).map(
-                                  (room, index) => (
-                                    <WrapItem key={index}>
-                                      <Button
-                                        borderRadius="30px"
-                                        borderWidth="1px"
-                                        width="auto"
-                                        height="20px"
-                                        onClick={() => setSelectedRoom("All")}
-                                        backgroundColor={
-                                          selectedRoom === "All"
-                                            ? "#EDEDFD"
-                                            : "#F6F6F6"
-                                        }
-                                        borderColor={
-                                          selectedRoom === "All"
-                                            ? "#4E4AE7"
-                                            : "#767778"
-                                        }
-                                      >
-                                        All
-                                      </Button>
-                                    </WrapItem>
-                                    {Array.from(roomsMap.values()).map(
-                                      (room, index) => (
-                                        <WrapItem key={index}>
-                                          <Button
-                                            key={index}
-                                            borderRadius="30px"
-                                            borderWidth="1px"
-                                            minWidth="auto"
-                                            height="20px"
-                                            onClick={() =>
-                                              setSelectedRoom(room)
-                                            }
-                                            backgroundColor={
-                                              selectedRoom === room
-                                                ? "#EDEDFD"
-                                                : "#F6F6F6"
-                                            }
-                                            borderColor={
-                                              selectedRoom === room
-                                                ? "#4E4AE7"
-                                                : "#767778"
-                                            }
-                                          >
-                                            {room}
-                                          </Button>
-                                        </WrapItem>
-                                      )
-                                    )}
-                                  </Wrap>
-                                </Box>
-                              </FormControl>
-                            </Box>
-                          </PopoverBody>
-                        </Box>
-                      </PopoverBody>
-                    </Box>
-                  </PopoverContent>
-                </Portal>
+                    <SessionFilter
+                      sessions={sessions}
+                      setFilteredSessions={setFilteredSessions}
+                      rooms={rooms}
+                    />
+                  </Box>
+                </PopoverTrigger>
               </Popover>
             </Flex>
-            <TableContainer>
-              <Table variant="unstyled">
-                <Thead
-                  borderBottom="1px"
-                  color="#D2D2D2"
-                >
-                  <Tr>
-                    {isSelected && <Th />}
-                    {!isArchived ? (
-                      <Th>
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
-                        >
-                          Status
-                        </Text>
-                      </Th>
-                    ) : (
-                      <div></div>
-                    )}
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <FilledOutCalendar />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
-                        >
-                          DATE
-                        </Text>
-                        <Box
-                          className="sessionsColumnContainer"
-                          justifyContent="left"
-                        >
-                          <Text className="sessionsColumnTitle">STATUS</Text>
-                        </Box>
-                      </Box>
-                    </Th>
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <Icon as={sessionsClock} />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
-                        >
-                          TIME
-                        </Text>
-                      </Box>
-                    </Th>
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <Icon
-                          as={sessionsMapPin}
-                          boxSize={4}
-                          mr={1}
-                        />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
-                        >
-                          ROOM
-                        </Text>
-                      </Box>
-                    </Th>
-                    {/* Add Lead Artist column */}
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <ArtistIcon />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
-                        >
-                          LEAD ARTIST(S)
-                        </Text>
-                      </Box>
-                    </Th>
-                    {/* Add Payees column */}
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <PersonIcon />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
-                        >
-                          PAYEE(S)
-                        </Text>
-                      </Box>
-                    </Th>
-                    <Th></Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {filteredSessions.length > 0 ? (
-                    filteredSessions.map((session) => (
-                      <Tr key={session.id}>
-                        {isSelected && (
-                          <Td width="50px">
-                            <Checkbox
-                              isChecked={selectedSessions.includes(session.id)}
-                              onChange={() =>
-                                handleSessionSelection(session.id)
-                              }
-                              sx={{
-                                "& .chakra-checkbox__control[data-checked]": {
-                                  backgroundColor: "#90080F",
-                                  borderColor: "#90080F",
-                                },
-                                "&:hover .chakra-checkbox__control[data-checked]":
-                                  {
-                                    backgroundColor: "#90080F",
-                                    borderColor: "#90080F",
-                                  },
-                                "& .chakra-checkbox__control[data-checked]:hover":
-                                  {
-                                    backgroundColor: "#90080F",
-                                    borderColor: "#90080F",
-                                  },
-                              }}
-                            />
-                          </Td>
-                        )}
 
-                        {!isArchived ? (
+            <Flex
+              gap="12px"
+              alignItems="center"
+            >
+              {/* HERE */}
+              <TableContainer>
+                <Table variant="unstyled">
+                  <Thead
+                    borderBottom="1px"
+                    color="#D2D2D2"
+                  >
+                    <Tr>
+                      {isSelected && <Th />}
+                      {!isArchived ? (
+                        <Th>
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            Status
+                          </Text>
+                        </Th>
+                      ) : (
+                        <div></div>
+                      )}
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
+                          <FilledOutCalendar />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            DATE
+                          </Text>
+                          <Box
+                            className="sessionsColumnContainer"
+                            justifyContent="left"
+                          >
+                            <Text className="sessionsColumnTitle">STATUS</Text>
+                          </Box>
+                        </Box>
+                      </Th>
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
+                          <Icon as={sessionsClock} />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            TIME
+                          </Text>
+                        </Box>
+                      </Th>
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
+                          <Icon
+                            as={sessionsMapPin}
+                            boxSize={4}
+                            mr={1}
+                          />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            ROOM
+                          </Text>
+                        </Box>
+                      </Th>
+                      {/* Add Lead Artist column */}
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
+                          <ArtistIcon />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            LEAD ARTIST(S)
+                          </Text>
+                        </Box>
+                      </Th>
+                      {/* Add Payees column */}
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
+                        >
+                          <PersonIcon />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            PAYEE(S)
+                          </Text>
+                        </Box>
+                      </Th>
+                      <Th></Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {filteredSessions.length > 0 ? (
+                      filteredSessions.map((session) => (
+                        <Tr key={session.id}>
+                          {isSelected && (
+                            <Td width="50px">
+                              <Checkbox
+                                isChecked={selectedSessions.includes(
+                                  session.id
+                                )}
+                                onChange={() =>
+                                  handleSessionSelection(session.id)
+                                }
+                                sx={{
+                                  "& .chakra-checkbox__control[data-checked]": {
+                                    backgroundColor: "#90080F",
+                                    borderColor: "#90080F",
+                                  },
+                                  "&:hover .chakra-checkbox__control[data-checked]":
+                                    {
+                                      backgroundColor: "#90080F",
+                                      borderColor: "#90080F",
+                                    },
+                                  "& .chakra-checkbox__control[data-checked]:hover":
+                                    {
+                                      backgroundColor: "#90080F",
+                                      borderColor: "#90080F",
+                                    },
+                                }}
+                              />
+                            </Td>
+                          )}
+
+                          {!isArchived ? (
+                            <Td>
+                              <Box
+                                display="flex"
+                                justifyContent="center"
+                              >
+                                <Box
+                                  height="14px"
+                                  width="14px"
+                                  borderRadius="50%"
+                                  bg={
+                                    hasTimePassed(session.date)
+                                      ? "#DAB434"
+                                      : "#0C824D"
+                                  }
+                                ></Box>
+                              </Box>
+                            </Td>
+                          ) : (
+                            <div></div>
+                          )}
                           <Td>
                             <Box
                               display="flex"
-                              justifyContent="left"
-                              ml="1.5rem"
+                              justifyContent="center"
+                              alignItems="center"
                             >
-                              <Box
-                                height="14px"
-                                width="14px"
-                                borderRadius="50%"
-                                bg={
-                                  hasTimePassed(session.date)
-                                    ? "#DAB434"
-                                    : "#0C824D"
-                                }
-                              ></Box>
-                            </Box>
-                          </Td>
-                          <Td>
-                            <Box className="sessionData">
                               {formatDate(session.date)}
                             </Box>
                           </Td>
                           <Td>
-                            <Box className="sessionData">
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
                               {formatTime(session.startTime)} -{" "}
                               {formatTime(session.endTime)}
                             </Box>
                           </Td>
                           <Td>
-                            <Box className="sessionData">
-                              {roomsMap.get(session.roomId)}
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {rooms.get(session.roomId)}
+                            </Box>
+                          </Td>
+                          {/* Add Lead Artist data */}
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {session.instructor
+                                ? truncateNames(session.instructor)
+                                : "N/A"}
+                            </Box>
+                          </Td>
+                          {/* Add Payees data */}
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {session.payee
+                                ? truncateNames(session.payee)
+                                : "N/A"}
                             </Box>
                           </Td>
                           <Td>
-                            <Box className="sessionData ellipsis-box">
-                              {instructors?.length > 0
-                                ? instructors
-                                    .map((i) => i.clientName)
-                                    .join(", ")
-                                : "No instructors"}
-                            </Box>
-                          </Td>
-                          <Td>
-                            <Box className="sessionData ellipsis-box">
-                              {payees?.length > 0
-                                ? payees.map((p) => p.clientName).join(", ")
-                                : "No payees"}
-                            </Box>
-                          </Td>
-                          <Td>
-                            <EditCancelPopup
-                              handleEdit={handleEdit}
-                              handleDeactivate={handleDeactivate}
-                              id={session.id}
-                            />
+                            <Icon
+                              boxSize="7"
+                              padding="5px"
+                              borderRadius="6px"
+                              backgroundColor="#EDF2F7"
+                            >
+                              <EllipsisIcon />
+                              {/* <CancelProgram
+                                  id={programToDelete}
+                                  setPrograms={setPrograms}
+                                  onOpen={onOpen}
+                                  isOpen={isOpen}
+                                  onClose={onClose}
+                                  type={"Booking"}
+                                /> */}
+                            </Icon>
                           </Td>
                         </Tr>
                       ))
                     ) : (
                       <Tr>
-                        <Td>
+                        <Td colSpan={isArchived ? 6 : 7}>
                           <Box
                             textAlign="center"
                             py={6}
                             color="gray.500"
                             fontSize="md"
-                            width={"300px"}
                           >
                             No sessions available
                           </Box>
                         </Td>
-                        {/* Add Lead Artist data */}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {session.instructor
-                              ? truncateNames(session.instructor)
-                              : "N/A"}
-                          </Box>
-                        </Td>
-                        {/* Add Payees data */}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {session.payee
-                              ? truncateNames(session.payee)
-                              : "N/A"}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <Icon
-                            boxSize="7"
-                            padding="5px"
-                            borderRadius="6px"
-                            backgroundColor="#EDF2F7"
-                          >
-                            <EllipsisIcon />
-                          </Icon>
-                        </Td>
                       </Tr>
-                    ))
-                  ) : (
-                    <Tr>
-                      <Td colSpan={isArchived ? 6 : 7}>
-                        <Box
-                          textAlign="center"
-                          py={6}
-                          color="gray.500"
-                          fontSize="md"
-                        >
-                          No sessions available
-                        </Box>
-                      </Td>
-                    </Tr>
-                  )}
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </Flex>
+                    )}
+                  </Tbody>
+                </Table>
+              </TableContainer>
+            </Flex>
 
-          {/* Pagination Controls - moved to bottom right */}
-          <Box
-            width="100%"
-            display="flex"
-            justifyContent="flex-end"
-            mt="auto"
-            pt={4}
-          >
-            {totalPages > 1 && (
-              <Flex
-                alignItems="center"
-                justifyContent="center"
-                mb={2}
-              >
-                <Text
-                  mr={2}
-                  fontSize="sm"
-                  color="#474849"
-                  fontFamily="Inter, sans-serif"
+            {/* Pagination Controls - moved to bottom right */}
+            <Box
+              width="100%"
+              display="flex"
+              justifyContent="flex-end"
+              mt="auto"
+              pt={4}
+            >
+              {totalPages > 1 && (
+                <Flex
+                  alignItems="center"
+                  justifyContent="center"
+                  mb={2}
                 >
-                  {currentPage} of {totalPages}
-                </Text>
-                <Button
-                  onClick={goToPreviousPage}
-                  isDisabled={currentPage === 1}
-                  size="sm"
-                  variant="ghost"
-                  padding={0}
-                  minWidth="auto"
-                  color="gray.500"
-                >
-                  <ChevronLeftIcon />
-                </Button>
-                <Button
-                  onClick={goToNextPage}
-                  isDisabled={currentPage === totalPages}
-                  size="sm"
-                  variant="ghost"
-                  padding={0}
-                  minWidth="auto"
-                  color="gray.500"
-                >
-                  <ChevronRightIcon />
-                </Button>
-              </Flex>
-            )}
-          </Box>
-          <CancelSessionModal
-            isOpen={cancelModalIsOpen}
-            onClose={closeCancelModal}
-            selectedSessions={selectedSessions
-              .map((id) => sessionMap[id])
-              .filter(Boolean)}
-            setSelectedSessions={setSelectedSessions}
-            onConfirm={handleConfirmCancel}
-            eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
-            refreshSessions={refreshSessions}
-          />
-        </CardBody>
-      </Card>
-    </Box>
+                  <Text
+                    mr={2}
+                    fontSize="sm"
+                    color="#474849"
+                    fontFamily="Inter, sans-serif"
+                  >
+                    {currentPage} of {totalPages}
+                  </Text>
+                  <Button
+                    onClick={goToPreviousPage}
+                    isDisabled={currentPage === 1}
+                    size="sm"
+                    variant="ghost"
+                    padding={0}
+                    minWidth="auto"
+                    color="gray.500"
+                  >
+                    <ChevronLeftIcon />
+                  </Button>
+                  <Button
+                    onClick={goToNextPage}
+                    isDisabled={currentPage === totalPages}
+                    size="sm"
+                    variant="ghost"
+                    padding={0}
+                    minWidth="auto"
+                    color="gray.500"
+                  >
+                    <ChevronRightIcon />
+                  </Button>
+                </Flex>
+              )}
+            </Box>
+            <CancelSessionModal
+              isOpen={cancelModalIsOpen}
+              onClose={closeCancelModal}
+              selectedSessions={selectedSessions
+                .map((id) => sessionMap[id])
+                .filter(Boolean)}
+              setSelectedSessions={setSelectedSessions}
+              onConfirm={handleConfirmCancel}
+              eventType={
+                selectedSessions.length === 1 ? "Workshops" : "Sessions"
+              }
+              refreshSessions={refreshSessions}
+            />
+          </CardBody>
+        </Card>
+      </Box>
+      {/* <CancelProgram
+        id={programToDelete}
+        setPrograms={setPrograms}
+        onOpen={onOpen}
+        isOpen={isOpen}
+        onClose={onClose}
+        type={"Booking"}
+      /> */}
+    </>
   );
 };
 

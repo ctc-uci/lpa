@@ -65,10 +65,10 @@ import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
+import { ProgramFilter } from "../filters/ProgramsFilter";
 import { SearchBar } from "../searchBar/SearchBar";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
-import { ProgramFilter } from "../filters/ProgramsFilter";
 
 import "./Home.css";
 
@@ -568,21 +568,21 @@ export const ProgramsTable = () => {
     const calculateRowsPerPage = () => {
       const viewportHeight = window.innerHeight;
       const rowHeight = 56;
-      
+
       const availableHeight = viewportHeight * 0.4;
-      
-      console.log(availableHeight / rowHeight)
+
+      console.log(availableHeight / rowHeight);
       return Math.max(5, Math.floor(availableHeight / rowHeight));
     };
-  
+
     setItemsPerPage(calculateRowsPerPage());
-  
+
     const handleResize = () => {
       setItemsPerPage(calculateRowsPerPage());
     };
-  
+
     window.addEventListener("resize", handleResize);
-  
+
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -599,6 +599,7 @@ export const ProgramsTable = () => {
       />
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">
+        {/* <ProgramFilter programs={programs} setFilteredPrograms={setFilteredPrograms}/> */}
           <div className="archive">
             <Icon
               as={ProgramArchiveIcon}
@@ -621,8 +622,14 @@ export const ProgramsTable = () => {
             searchQuery={searchTerm}
           />
         </Flex>
-          <TableContainer
-            className="programs-table__container"
+        <TableContainer
+          className="programs-table__container"
+          width="100%"
+        >
+          <Table
+            variant="simple"
+            size="sm"
+            className="programs-table__table"
             width="100%"
           >
             <TableHeaders

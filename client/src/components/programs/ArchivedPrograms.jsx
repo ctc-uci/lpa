@@ -4,10 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import "./ArchivedPrograms.css";
 
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@chakra-ui/icons";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertTitle,
@@ -76,13 +73,11 @@ import {
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { ArchivedFilter } from "../filters/ArchivedFilter";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import Navbar from "../navbar/Navbar";
 import { SearchBar } from "../searchBar/SearchBar";
-
-import { ArchivedFilter } from "../filters/ArchivedFilter";
-
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -496,7 +491,7 @@ export const ArchivedPrograms = () => {
                     </Text>
                   </Button>
                   <Popover>
-                    <PopoverTrigger>
+                    {/* <PopoverTrigger>
                       <Button
                         backgroundColor="#EDF2F7"
                         midWidth="auto"
@@ -517,7 +512,7 @@ export const ArchivedPrograms = () => {
                           </Text>
                         </Box>
                       </Button>
-                    </PopoverTrigger>
+                    </PopoverTrigger> */}
                     <Portal>
                       <PopoverContent>
                         <Box margin="16px">
@@ -734,16 +729,18 @@ export const ArchivedPrograms = () => {
                       </PopoverContent>
                     </Portal>
                   </Popover>
-                <Flex marginRight="auto">
-                  <ArchivedFilter
-                    archived={archivedSessions}
-                    setArchivedPrograms={setFilteredArchived}
-                    roomMap={roomNames}/>
+                  <Flex marginRight="auto">
+                    <ArchivedFilter
+                      archived={archivedSessions}
+                      setArchivedPrograms={setFilteredArchived}
+                      roomMap={roomNames}
+                    />
+                  </Flex>
+                  <SearchBar
+                    handleSearch={handleSearch}
+                    searchQuery={searchQuery}
+                  />
                 </Flex>
-                <SearchBar
-                  handleSearch={handleSearch}
-                  searchQuery={searchQuery}
-                />
               </Box>
               <TableContainer>
                 <Table variant="unstyled">
@@ -950,7 +947,7 @@ export const ArchivedPrograms = () => {
           isOpen={isOpen}
           onClose={onClose}
           type="Program"
-        />
+        />*/}
 
         <Box
           width="100%"
@@ -999,8 +996,6 @@ export const ArchivedPrograms = () => {
             </Flex>
           )}
         </Box>
-
-
       </Box>
     </Navbar>
   );

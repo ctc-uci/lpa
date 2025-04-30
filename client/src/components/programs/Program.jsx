@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 import "./Program.css";
 
-import { ChevronLeftIcon} from "@chakra-ui/icons";
 import { FileTextIcon } from "lucide-react";
 import { Box, Flex, IconButton, Text, Icon } from "@chakra-ui/react";
 
@@ -105,7 +104,7 @@ export const Program = () => {
       sessionsData.sort((a, b) => new Date(a.date) - new Date(b.date));
       console.log("programData", sessionsData);
       setSessions(sessionsData);
-      
+
       // Get set of room ids
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),
