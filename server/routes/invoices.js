@@ -420,6 +420,197 @@ invoicesRouter.get("/total/:id", async (req, res) => {
   }
 });
 
+/**
+ * GET /invoices/:id/balance
+ * This endpoint returns the total, paid, remaining, and past due amounts for a specific invoice.
+ * It combines the logic from the /total/:id, /paid/:id endpoints - oh and events/remaining/:id.
+ * Additionally, it calculates the past due amount based on unpaid invoices for the event.
+ * @param {string} id - The ID of the invoice.
+ * @returns {object} - An object containing the total, paid, remaining, and past due amounts.
+ */
+invoicesRouter.get("/:id/balance", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // First, check if the invoice exists
+    const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [id]);
+    
+    if (invoiceRes.length === 0) {
+      return res.status(404).json({ error: "Invoice not found" });
+    }
+    
+    const invoice = invoiceRes[0];
+
+    // 1. Use the exact logic from the /total/:id endpoint
+    const invoiceTotal = await getInvoiceTotal(id, db);
+    const totalAmount = invoiceTotal;
+
+    // 2. Use the exact logic from the /paid/:id endpoint
+    const paidResult = await db.oneOrNone(
+      `SELECT SUM(c.adjustment_value) as paid
+      FROM invoices i
+      JOIN comments c ON c.invoice_id = i.id
+      WHERE i.id = $1 AND c.adjustment_type = 'paid'`,
+      [id]
+    );
+    
+    const paidAmount = paidResult?.paid ? Number(paidResult.paid) : 0;
+    
+    // 3. Calculate remaining balance for this specific invoice
+    const remainingAmount = totalAmount - paidAmount;
+
+    // 4. Get all unpaid invoices for the event (using the exact events/remaining/:id logic)
+    const currentMonth = new Date().toISOString().split("T")[0] + "T00:00:00Z";
+    const unpaidInvoicesResponse = await db.query(
+      `SELECT * FROM invoices
+      WHERE invoices.event_id = $1 AND payment_status <> 'full' AND end_date < $2`,
+      [invoice.event_id, currentMonth]
+    );
+
+    // 5. Calculate the past due amount
+    // For each unpaid invoice, get its total
+    const unpaidTotals = await Promise.all(
+      unpaidInvoicesResponse.map(async (unpaidInv) => {
+        const invTotal = await getInvoiceTotal(unpaidInv.id, db);
+        return { data: { total: invTotal } };
+      })
+    );
+    
+    // For each unpaid invoice, get how much has been paid
+    const partiallyPaidTotals = await Promise.all(
+      unpaidInvoicesResponse.map(async (unpaidInv) => {
+        const paidResp = await db.oneOrNone(
+          `SELECT SUM(c.adjustment_value) as paid
+          FROM invoices i
+          JOIN comments c ON c.invoice_id = i.id
+          WHERE i.id = $1 AND c.adjustment_type = 'paid'`,
+          [unpaidInv.id]
+        );
+        
+        return { data: { paid: paidResp?.paid ? Number(paidResp.paid) : 0 } };
+      })
+    );
+    
+    // Calculate the totals
+    const unpaidTotal = unpaidTotals.reduce(
+      (sum, res) => sum + (res.data?.total || 0), 0
+    );
+    
+    const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+      (sum, res) => sum + (res.data?.paid || 0), 0
+    );
+    
+    const pastDueAmount = unpaidTotal - unpaidPartiallyPaidTotal;
+
+    // Return all values in a single response
+    const result = {
+      total: totalAmount,
+      paid: paidAmount,
+      remaining: remainingAmount,
+      pastDue: pastDueAmount
+    };
+
+    res.status(200).json(keysToCamel(result));
+  } catch (err) {
+    console.error("Error in invoice balance endpoint:", err);
+    res.status(500).send(err.message);
+  }
+});
+
+// Helper function to get invoice total using the EXACT same logic as the /total/:id endpoint
+async function getInvoiceTotal(invoiceId, db) {
+  try {
+    const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [invoiceId]);
+    const invoice = invoiceRes[0];
+
+    // Use the event_id from the invoice record.
+    const eventRes = await db.query("SELECT * FROM events WHERE id = $1", [invoice.event_id]);
+    const event = eventRes[0];
+
+    const comments = await db.query(
+      "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id IS NULL"
+    );
+
+    const bookings = await db.query(
+      "SELECT * FROM bookings WHERE event_id = $1 AND date BETWEEN $2 AND $3",
+      [event.id, invoice.start_date, invoice.end_date]
+    );
+
+    const totalAdjustments = await db.query(
+      "SELECT * FROM comments WHERE adjustment_type = 'total'"
+    );
+
+    const bookingCosts = await Promise.all(
+      bookings.map(async (booking) => {
+        const roomRateBooking = await db.query(
+          "SELECT rooms.name, rooms.rate FROM rooms JOIN bookings ON rooms.id = bookings.room_id WHERE bookings.id = $1",
+          [booking.id]
+        );
+
+        if (!roomRateBooking.length) return 0; // if room not found, cost is 0
+
+        let totalRate = Number(roomRateBooking[0].rate);
+
+        comments.forEach((adj) => {
+          if (adj.adjustment_type === "rate_percent") {
+            totalRate *= 1 + Number(adj.adjustment_value) / 100;
+          } else if (adj.adjustment_type === "rate_flat") {
+            totalRate += Number(adj.adjustment_value);
+          }
+        });
+
+        const commentsBooking = await db.query(
+          "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id = $1",
+          [booking.id]
+        );
+
+        commentsBooking.forEach((adj) => {
+          if (adj.adjustment_type === "rate_percent") {
+            totalRate *= 1 + Number(adj.adjustment_value) / 100;
+          } else if (adj.adjustment_type === "rate_flat") {
+            totalRate += Number(adj.adjustment_value);
+          }
+        });
+
+        // Calculate booking duration in hours.
+        const startTime = new Date(
+          `1970-01-01T${booking.start_time.substring(0, booking.start_time.length - 3)}Z`
+        );
+        const endTime = new Date(
+          `1970-01-01T${booking.end_time.substring(0, booking.start_time.length - 3)}Z`
+        );
+        const durationHours = (endTime - startTime) / (1000 * 60 * 60);
+
+        // Calculate booking cost.
+        let bookingCost = totalRate * durationHours;
+
+        // Apply 'total' adjustments specific to this booking
+        totalAdjustments.forEach((comment) => {
+          if (comment.booking_id === booking.id) {
+            bookingCost += Number(comment.adjustment_value);
+          }
+        });
+
+        return bookingCost;
+      })
+    );
+
+    let totalCost = bookingCosts.reduce((acc, cost) => acc + cost, 0);
+
+    // Apply 'total' adjustments that do not have a booking_id (global adjustments)
+    totalAdjustments.forEach((comment) => {
+      if (!comment.booking_id) {
+        totalCost += Number(comment.adjustment_value);
+      }
+    });
+
+    return totalCost;
+  } catch (error) {
+    console.error("Error calculating invoice total:", error);
+    return 0;
+  }
+}
+
 invoicesRouter.post("/", async (req, res) => {
   try {
     const invoiceData = req.body;

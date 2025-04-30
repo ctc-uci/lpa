@@ -87,42 +87,14 @@ export const SingleInvoice = () => {
 
         const currentInvoice = currentInvoiceResponse.data[0];
 
-        // get invoice total
-        const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
-        const total = invoiceTotalResponse.data.total;
+        // Get invoice balance information (total, paid, remaining, pastDue)
+        const balanceResponse = await backend.get(`/invoices/${id}/balance`);
+        const { total, remaining, pastDue } = balanceResponse.data;
+        
         setTotal(total);
         setSubtotal(total);
-
-        // calculate sum of unpaid/remaining invoices
-        const unpaidInvoicesResponse = await backend.get(
-          "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
-        );
-        const unpaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/total/${invoice.id}`)
-          )
-        );
-        const partiallyPaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/paid/${invoice.id}`)
-          )
-        );
-        const unpaidTotal = unpaidTotals.reduce(
-          (sum, res) => sum + res.data.total,
-          0
-        );
-        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-          (sum, res) => {
-            const paidAmount = res.data.paid || 0;
-            return sum + paidAmount;
-          },
-          0
-        );
-
-        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
-
-        setRemainingBalance(remainingBalance);
-        setPastDue(remainingBalance);
+        setRemainingBalance(remaining);
+        setPastDue(pastDue);
 
         // get program name
         const programNameResponse = await backend.get(
