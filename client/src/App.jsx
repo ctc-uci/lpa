@@ -13,6 +13,8 @@ import { Admin } from "./components/admin/Admin";
 import { EditBooking } from "./components/bookings/EditBooking";
 import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
+import { EditSingleSession } from "./components/programs/EditSingleSession";
+import { EditRecurringSessions } from "./components/programs/EditRecurringSessions";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
 import { Home } from "./components/home/Home";
@@ -105,12 +107,13 @@ const App = () => {
                 {/* ADMIN ONLY oh my goodness! */}
                 <Route
                   path="/programs"
-                  element={
-                    <ProtectedRoute
-                      element={<Home />}
-                      allowedRoles={["admin"]}
-                    />
-                  }
+                  // element={
+                  //   <ProtectedRoute
+                  //     element={<Home />}
+                  //     allowedRoles={["admin"]}
+                  //   />
+                  // }
+                  element={<Home />}
                 />
                 <Route
                   path="/notifications"
@@ -159,12 +162,13 @@ const App = () => {
                 />
                 <Route
                   path="/programs/:id"
-                  element={
-                    <ProtectedRoute
-                      element={<Program />}
-                      allowedRoles={["admin"]}
-                    />
-                  }
+                  // element={
+                  //   <ProtectedRoute
+                  //     element={<Program />}
+                  //     allowedRoles={["admin"]}
+                  //   />
+                  // }
+                  element={<Program />}
                 />
                 <Route
                   path="/programs/edit/:id"
@@ -183,6 +187,25 @@ const App = () => {
                       allowedRoles={["admin"]}
                     />
                   }
+                />
+                <Route
+                  path="/programs/edit/sessions/:id"
+                  element={
+                    <ProtectedRoute
+                      element={<EditRecurringSessions />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/programs/edit/session/:id"
+                  // element={
+                  //   <ProtectedRoute
+                  //     element={<EditSingleSession />}
+                  //     allowedRoles={["admin"]}
+                  //   />
+                  // }
+                  element={<EditSingleSession />}
                 />
                 <Route
                   path="/settings"
