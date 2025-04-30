@@ -532,7 +532,11 @@ export const ProgramSummary = ({
                 <Flex
                   id="backProgramButton"
                   onClick={() => {
-                    navigate("/programs");
+                    {
+                      isArchived
+                        ? navigate("/programs/archived")
+                        : navigate("/programs");
+                    }
                   }}
                 >
                   <Flex align="center">
@@ -544,7 +548,7 @@ export const ProgramSummary = ({
                       fontSize="14px"
                       fontWeight="700"
                     >
-                      Programs
+                      {isArchived ? "Archives" : "Programs"}
                     </Text>
                   </Flex>
                 </Flex>
@@ -1565,7 +1569,9 @@ export const Sessions = ({
                           </Td>
                           <Td>
                             <Box className="sessionData ellipsis-box">
-                              {payees?.length > 0 ? payees.map((p) => p.clientName).join(", "): "No payees"}
+                              {payees?.length > 0
+                                ? payees.map((p) => p.clientName).join(", ")
+                                : "No payees"}
                             </Box>
                           </Td>
                           <Td>

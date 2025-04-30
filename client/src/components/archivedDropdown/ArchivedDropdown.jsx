@@ -219,6 +219,7 @@ export const ArchivedDropdown = ({
               </div>
               <Tooltip
                 label="For applying changes to program/session"
+                textAlign={"center"}
                 maxWidth={"136px"}
                 bgColor={"#718096"}
                 borderRadius={"4px"}
@@ -237,6 +238,7 @@ export const ArchivedDropdown = ({
                 <Text className="dropdownText">Reactivate</Text>
               </div>
               <Tooltip
+                textAlign={"center"}
                 label="No changes will be applied to program/session"
                 maxWidth={"136px"}
                 bgColor={"#718096"}

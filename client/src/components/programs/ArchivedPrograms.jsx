@@ -835,7 +835,10 @@ export const ArchivedPrograms = () => {
                                   .join(", ")
                               : "N/A"}
                           </Td>
-                          <Td className="td">
+                          <Td
+                            className="td"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <ArchivedDropdown
                               programId={programSession.programId}
                               programName={programSession.programName}
@@ -876,14 +879,14 @@ export const ArchivedPrograms = () => {
             </Flex>
           </CardBody>
         </Card>
-        <CancelProgram
+        {/* <CancelProgram
           id={programToDelete}
           setPrograms={setPrograms}
           onOpen={onOpen}
           isOpen={isOpen}
           onClose={onClose}
           type="Program"
-        />
+        /> */}
       </Box>
     </Navbar>
   );

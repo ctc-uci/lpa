@@ -64,7 +64,7 @@ export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
           color="#90080F!important"
         >
           <CancelXIcon style={{ marginRight: "6px" }} />
-          <Text fontWeight={"400"}>Cancel</Text>
+          <Text fontWeight={"400"} color={"#90080F"}>Cancel</Text>
         </MenuItem>
       </MenuList>
     </Menu>
