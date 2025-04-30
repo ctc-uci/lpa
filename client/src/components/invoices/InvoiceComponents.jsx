@@ -65,9 +65,9 @@ import {
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
 import personIcon from "../../assets/person.svg";
-import DateSortingModal from "../filters/DateFilter";
-import ProgramSortingModal from "../filters/ProgramFilter";
-import StatusSortingModal from "../filters/StatusFilter";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
+import StatusSortingModal from "../sorting/StatusFilter";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";

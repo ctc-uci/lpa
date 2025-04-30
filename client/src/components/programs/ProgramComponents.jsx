@@ -101,7 +101,7 @@ import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import DateSortingModal from "../filters/DateFilter";
+import DateSortingModal from "../sorting/DateFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
