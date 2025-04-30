@@ -1,58 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DeleteIcon,
-} from "@chakra-ui/icons";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Box,
-  Button,
-  Card,
-  CardBody,
-  Checkbox,
-  Container,
-  Flex,
-  FormControl,
-  Heading,
-  HStack,
-  Icon,
-  IconButton,
-  Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Popover,
-  PopoverBody,
-  PopoverContent,
-  PopoverTrigger,
-  Portal,
-  Stack,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Textarea,
-  Th,
-  Thead,
-  Tr,
-  useDisclosure,
-  Wrap,
-  WrapItem,
-} from "@chakra-ui/react";
+
+
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, DeleteIcon } from "@chakra-ui/icons";
+import { Alert, AlertDescription, AlertTitle, Box, Button, Card, CardBody, Checkbox, Container, Flex, FormControl, Heading, HStack, Icon, IconButton, Input, Menu, MenuButton, MenuItem, MenuList, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Portal, Stack, Table, TableContainer, Tbody, Td, Text, Textarea, Th, Thead, Tr, useDisclosure, Wrap, WrapItem } from "@chakra-ui/react";
+
+
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
@@ -68,22 +21,7 @@ import { EmailIcon } from "../../assets/EmailIcon";
 import { EyeIcon } from "../../assets/EyeIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
 import clockSvg from "../../assets/icons/clock.svg";
-import {
-  archiveCalendar,
-  archiveClock,
-  archiveMapPin,
-  DollarIcon,
-  DownloadIcon,
-  filterButton,
-  filterDateCalendar,
-  sessionsCalendar,
-  sessionsClock,
-  sessionsEllipsis,
-  sessionsFilterClock,
-  sessionsFilterMapPin,
-  sessionsMapPin,
-  summaryIcon,
-} from "../../assets/icons/ProgramIcons";
+import { archiveCalendar, archiveClock, archiveMapPin, DollarIcon, DownloadIcon, filterButton, filterDateCalendar, sessionsCalendar, sessionsClock, sessionsEllipsis, sessionsFilterClock, sessionsFilterMapPin, sessionsMapPin, summaryIcon } from "../../assets/icons/ProgramIcons";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { LocationIcon } from "../../assets/LocationIcon";
 import { LocationPin } from "../../assets/LocationPin";
@@ -96,18 +34,17 @@ import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { RepeatIcon } from "../../assets/RepeatIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 
+
+
 import "./Program.css";
 
-import {
-  Document,
-  Page,
-  PDFDownloadLink,
-  Text as PDFText,
-  View as PDFView,
-  StyleSheet,
-} from "@react-pdf/renderer";
+
+
+import { Document, Page, PDFDownloadLink, Text as PDFText, View as PDFView, StyleSheet } from "@react-pdf/renderer";
 import { EllipsisIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
@@ -120,6 +57,7 @@ import { SearchBar } from "../searchBar/SearchBar";
 import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
+
 
 const ClockIcon = React.memo(() => (
   <img
@@ -170,9 +108,12 @@ export const ProgramSummary = ({
     onClose: popoverOnClose,
   } = useDisclosure();
 
-  // const exit = () => {
-  //   navigate("/programs");
-  // };
+  const exit = () => {
+    if (isArchived) {
+      navigate("/programs/archived");
+    }
+    navigate("/programs");
+  };
 
   const toEditProgram = () => {
     navigate("/programs/edit/" + eventId);
@@ -571,11 +512,7 @@ export const ProgramSummary = ({
                   fontSize="14px"
                   fontWeight="700"
                   borderRadius="6px"
-                  onClick={() => {
-                    isArchived
-                      ? navigate("/programs/archived")
-                      : navigate("/programs");
-                  }}
+                  onClick={exit}
                 >
                   <Icon
                     as={ChevronLeftIcon}
