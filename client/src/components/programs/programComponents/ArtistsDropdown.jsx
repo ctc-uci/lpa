@@ -16,8 +16,9 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest("#instructorContainer")) {
-          setDropdownVisible(false);
+      if (!event.target.closest("#instructorContainer") && !event.target.closest(".instructorTag")) {
+        console.log("classlist: ", event.target.classList);
+        setDropdownVisible(false);
       }
     }
 
@@ -27,20 +28,33 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
     }
   }, []);
 
+  const search = (searchTerm) => {
+    setInstructorSearchTerm(searchTerm);
+    getInstructorResults(searchTerm);
+    setDropdownVisible(true);
+  };
+
+  useEffect(() => {
+    search(instructorSearchTerm);
+  }, [selectedInstructors, instructorSearchTerm]);
+
   return (
     <HStack gap="12px">
       <Box as="img" src={BsPaletteFill} boxSize="20px" />
-      <div id="instructorContainer">
-        <div id="instructors">
+      <div id="instructorContainer" >
+        <div id="instructors" className="inputElement">
           <div id="instructorSelection">
             <Box>
               <div id="instructorInputContainer">
                 <Input
+                  autoComplete="off"
                     placeholder="Lead Artist(s)"
+                    _placeholder={{ color: '#CBD5E0' }}
                     onChange={(e) => {
-                      getInstructorResults(e.target.value);
-                      setInstructorSearchTerm(e.target.value);
-                      setDropdownVisible(true);
+                      search(e.target.value);
+                    }}
+                    onClick={(e) => {
+                      search(e.target.value);
                     }}
                     value={instructorSearchTerm} id="instructorInput"
                     autocomplete="off"
@@ -57,9 +71,6 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                         if (instructor && !selectedInstructors.some(instr => instr.id === instructor.id)) {
                           setSelectedInstructors((prevItems) => [...prevItems, instructor]);
                         }
-                        setInstructorSearchTerm("");
-                        setSearchedInstructors([]);
-                        getInstructorResults(")")
                       }
                     }}
                     disabled={
@@ -88,8 +99,16 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                       <Box
                         key={instructor.id}
                         onClick={() => {
-                          setInstructorSearchTerm(instructor.name);
-                          setDropdownVisible(false);
+                          const alreadySelected = selectedInstructors.find(
+                            (instr) => instr.id.toString() === instructor.id
+                          );
+                          if (instructor && !alreadySelected) {
+                            setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                            const filteredInstructors = searchedInstructors.filter(
+                              (instr) => instructor.id !== instr.id.toString()
+                            );
+                            setSearchedInstructors(filteredInstructors);
+                          }
                         }}
                           style={{
                             padding: "10px",
@@ -122,8 +141,8 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                         _hover={{ color: "#4441C8" }}
                         cursor="pointer"
                         onClick={() => {
-                            setSelectedInstructors(prevItems =>
-                            prevItems.filter(item => item.id !== instructor.id));
+                          setSelectedInstructors(prevItems =>
+                          prevItems.filter(item => item.id !== instructor.id));
                         }}
                     >
                         <CloseFilledIcon color="currentColor"/>

@@ -1,118 +1,78 @@
-import { React, useEffect, useState } from "react";
-import { CancelIcon } from "../../assets/CancelIcon";
-import { ClockFilled } from "../../assets/ClockFilled";
-import { CustomOption } from "../../assets/CustomOption";
-import { InfoIconRed } from "../../assets/InfoIconRed";
-import { SessionFilter } from "../filters/SessionsFilter";
-import { CancelSessionModal } from "./CancelSessionModal";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import "./Program.css";
 
-import {
-  CalendarIcon,
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DeleteIcon,
-  DownloadIcon,
-} from "@chakra-ui/icons";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Box,
-  Button,
-  Card,
-  CardBody,
-  Checkbox,
-  Container,
-  Flex,
-  FormControl,
-  Heading,
-  Icon,
-  IconButton,
-  Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Popover,
-  PopoverBody,
-  PopoverContent,
-  PopoverTrigger,
-  Portal,
-  Stack,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Textarea,
-  Th,
-  Thead,
-  Tr,
-  useDisclosure,
-  Wrap,
-  WrapItem,
-} from "@chakra-ui/react";
 
-import {
-  Document,
-  Page,
-  PDFDownloadLink,
-  Text as PDFText,
-  View as PDFView,
-  StyleSheet,
-} from "@react-pdf/renderer";
-import {
-  EllipsisIcon,
-  Info,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, DeleteIcon } from "@chakra-ui/icons";
+import { Alert, AlertDescription, AlertTitle, Box, Button, Card, CardBody, Checkbox, Container, Flex, FormControl, Heading, HStack, Icon, IconButton, Input, Menu, MenuButton, MenuItem, MenuList, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Portal, Stack, Table, TableContainer, Tbody, Td, Text, Textarea, Th, Thead, Tr, useDisclosure, Wrap, WrapItem } from "@chakra-ui/react";
+
+
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
+import { CalendarIcon } from "../../assets/CalendarIcon";
+import { CancelIcon } from "../../assets/CancelIcon";
+import { ClockFilled } from "../../assets/ClockFilled";
+import { CustomOption } from "../../assets/CustomOption";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
 import { DollarBill } from "../../assets/DollarBill";
 import { DuplicateIcon } from "../../assets/DuplicateIcon";
 import { EditIcon } from "../../assets/EditIcon";
+import { EmailIcon } from "../../assets/EmailIcon";
+import { EyeIcon } from "../../assets/EyeIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
-import {
-  filterButton,
-  filterDateCalendar,
-  sessionsCalendar,
-  sessionsClock,
-  sessionsEllipsis,
-  sessionsFilterClock,
-  sessionsFilterMapPin,
-  sessionsMapPin,
-} from "../../assets/icons/ProgramIcons";
+import clockSvg from "../../assets/icons/clock.svg";
+import { archiveCalendar, archiveClock, archiveMapPin, DollarIcon, DownloadIcon, filterButton, filterDateCalendar, sessionsCalendar, sessionsClock, sessionsEllipsis, sessionsFilterClock, sessionsFilterMapPin, sessionsMapPin, summaryIcon } from "../../assets/icons/ProgramIcons";
+import { InfoIconRed } from "../../assets/InfoIconRed";
+import { LocationIcon } from "../../assets/LocationIcon";
 import { LocationPin } from "../../assets/LocationPin";
+import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
 import { PersonIcon } from "../../assets/PersonIcon";
+import { ProfileIcon } from "../../assets/ProfileIcon";
 import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
 import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
+import { RepeatIcon } from "../../assets/RepeatIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
+
+
+
+import "./Program.css";
+
+
+
+import { Document, Page, PDFDownloadLink, Text as PDFText, View as PDFView, StyleSheet } from "@react-pdf/renderer";
+import { EllipsisIcon, Info, UserIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import DateSortingModal from "../filters/DateFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
+import { SessionFilter } from "../filters/SessionsFilter";
+import { SearchBar } from "../searchBar/SearchBar";
+import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
+
+const ClockIcon = React.memo(() => (
+  <img
+    src={clockSvg}
+    alt="Clock"
+  />
+));
+
 export const ProgramSummary = ({
   program,
+  sessions,
   bookingInfo,
   isArchived,
   setIsArchived,
   eventId,
-  sessions,
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -121,6 +81,11 @@ export const ProgramSummary = ({
     onOpen: modalOnOpen,
     onClose: modalOnClose,
   } = useDisclosure();
+  const [repeatChoice, setRepeatChoice] = useState();
+  const [lastBooking, setLastBooking] = useState();
+  const [startDay, setStartDay] = useState();
+  const [lastDay, setLastDay] = useState();
+  const [dayTimePattern, setDayTimePattern] = useState();
 
   const getFilteredAndSortedSessions = () => {
     if (!sessions || sessions.length === 0) return [];
@@ -144,6 +109,9 @@ export const ProgramSummary = ({
   } = useDisclosure();
 
   const exit = () => {
+    if (isArchived) {
+      navigate("/programs/archived");
+    }
     navigate("/programs");
   };
 
@@ -245,6 +213,11 @@ export const ProgramSummary = ({
       };
       await backend.post("/bookings", bookingInfo);
     }
+    console.log("bookingInfo ", bookingInfo.date);
+    if (bookingInfo) {
+      setLastBooking(bookingInfo);
+    }
+
     console.log("event response ", response.data.id);
     const duplicateId = response.data.id;
 
@@ -269,12 +242,119 @@ export const ProgramSummary = ({
     navigate("/programs/" + duplicateId);
   };
 
+  function findDateTimePattern(bookings) {
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    const pattern = {};
+    let lastDate = null;
+
+    bookings.forEach((booking) => {
+      const dateObj = new Date(booking.date);
+      const day = dayNames[dateObj.getUTCDay()];
+      const formattedStartTime = formatTime(booking.startTime);
+      const formattedEndTime = formatTime(booking.endTime);
+
+      // Initialize array if not exists
+      if (!pattern[day]) {
+        pattern[day] = new Set();
+      }
+
+      // Record time slot
+      pattern[day].add(`${formattedStartTime} - ${formattedEndTime}`);
+
+      // Update last date
+      if (!lastDate || dateObj > new Date(lastDate)) {
+        lastDate = booking.date;
+      }
+    });
+
+    // Convert Sets to Arrays for readability
+    const readablePattern = {};
+    for (const [day, times] of Object.entries(pattern)) {
+      readablePattern[day] = Array.from(times);
+    }
+
+    return {
+      pattern: readablePattern,
+      lastDate: lastDate
+        ? new Date(lastDate).toISOString().split("T")[0]
+        : null,
+    };
+  }
+
+  function getDayOfWeek(date) {
+    const daysMap = ["Sun.", "Mon.", "Tues.", "Wed.", "Thurs.", "Fri.", "Sat."];
+    return daysMap[new Date(date).getDay()];
+  }
+
+  function shortenDayOfWeek(day) {
+    const daysMap = {
+      Sunday: "Sun.",
+      Monday: "Mon.",
+      Tuesday: "Tues.",
+      Wednesday: "Wed.",
+      Thursday: "Thurs.",
+      Friday: "Fri.",
+      Saturday: "Sat.",
+    };
+    return daysMap[day];
+  }
+
+  useEffect(() => {
+    console.log("sessions: ", sessions);
+    if (sessions) {
+      const result = findDateTimePattern(sessions);
+      setLastBooking(result.lastDate);
+      setLastDay(getDayOfWeek(result.lastDate));
+
+      setDayTimePattern(Object.entries(result.pattern));
+      setDayTimePattern(Object.entries(result.pattern));
+      if (!sessions || sessions.length < 2) setRepeatChoice("Does not repeat");
+
+      const dates = sessions
+        .map((session) => new Date(session.date))
+        .sort((a, b) => a - b);
+
+      // Calculate gaps in days
+      const gaps = dates.slice(1).map((date, i) => {
+        const prevDate = dates[i];
+        return Math.round((date - prevDate) / (1000 * 60 * 60 * 24)); // in days
+      });
+
+      const allSameGap = gaps.every((gap) => gap === gaps[0]);
+
+      if (allSameGap) {
+        const gap = gaps[0];
+        if (gap === 7) setRepeatChoice("Every week");
+        if (gap >= 28 && gap <= 31) setRepeatChoice("Every month");
+        if (gap >= 364 && gap <= 366) setRepeatChoice("Every year");
+      }
+
+      setRepeatChoice("Custom");
+    } else {
+      console.log("no sessions");
+    }
+  }, [sessions]);
+
+  // Helper function to format time like "00:00:00+00" -> "00:00"
+  function formatTime(timeString) {
+    // Extract HH:MM from "HH:MM:SS+00"
+    return timeString.split(":").slice(0, 2).join(":");
+  }
+
   const handleDeactivate = () => {
-    onOpen();
+    modalOnOpen();
   };
 
   const handleArchive = async () => {
-    console.log(program[0].id);
     try {
       await backend.put(`/events/${program[0].id}`, {
         archived: true,
@@ -333,6 +413,12 @@ export const ProgramSummary = ({
     ...(bookingInfo || {}),
   };
 
+  const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
+
+  useEffect(() => {
+    setStartDay(getDayOfWeek(nextSession.date));
+  }, [nextSession]);
+
   // Make sure program data is fetched before rendering
   if (!program || program.length === 0) {
     return (
@@ -346,7 +432,7 @@ export const ProgramSummary = ({
           p={0}
         >
           <Card
-            shadow="md"
+            shadow="none"
             border="1px"
             borderColor="gray.300"
             borderRadius="15px"
@@ -372,27 +458,43 @@ export const ProgramSummary = ({
     );
   }
 
-  const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
-
   return (
-    <Box
-      minH="10vh"
-      width="100%"
-      minW="100%"
-      py={8}
-      paddingTop="1rem"
-    >
+    <Box className="componentContainer">
+      <Flex
+        align="center"
+        gap={2}
+        id="titleContainer"
+      >
+        <Flex
+          align="center"
+          gap={2}
+          width="20%"
+        >
+          <Icon as={summaryIcon} />
+          <Text className="componentTitleText">Summary</Text>
+        </Flex>
+        {isArchived ? (
+          <div id="archivedBlurb">
+            <EyeIcon id="infoIcon" />
+            <p>Viewing Archived Program</p>
+          </div>
+        ) : (
+          <div></div>
+        )}
+        <Flex width="20%"></Flex>
+      </Flex>
       <Container
         minW="100%"
         p={0}
       >
         <Flex>
           <Card
-            shadow="md"
+            shadow="none"
             border="1px"
             borderColor="gray.300"
             borderRadius="15px"
             minW="100%"
+            padding={"10px"}
           >
             <CardBody>
               <Flex
@@ -400,30 +502,24 @@ export const ProgramSummary = ({
                 justify="space-between"
                 align="center"
               >
-                <Flex
-                  align="center"
-                  gap={2}
+                <Button
+                  display="flex"
+                  height="40px"
+                  padding="0px 16px"
+                  justifyContent="center"
+                  alignItems="center"
+                  gap="4px"
+                  fontSize="14px"
+                  fontWeight="700"
+                  borderRadius="6px"
+                  onClick={exit}
                 >
-                  <Button
-                    display="flex"
-                    height="40px"
-                    padding="0px 16px"
-                    justifyContent="center"
-                    alignItems="center"
-                    gap="4px"
-                    fontSize="14px"
-                    fontWeight="600"
-                    borderRadius="6px"
-                    onClick={exit}
-                  >
-                    <Icon
-                      as={ChevronLeftIcon}
-                      boxSize={5}
-                    />{" "}
-                    Programs
-                  </Button>
-                </Flex>
-
+                  <Icon
+                    as={ChevronLeftIcon}
+                    boxSize={5}
+                  />{" "}
+                  {isArchived ? "Archives" : "Programs"}
+                </Button>
                 <Flex
                   align="center"
                   gap={2}
@@ -431,84 +527,20 @@ export const ProgramSummary = ({
                   <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
                     Invoice
                   </PDFButton>
-                  <Popover
-                    id="popTrigger"
-                    placement="bottom-start"
-                    isOpen={popoverIsOpen}
-                    onOpen={popoverOnOpen}
-                    onClose={popoverOnClose}
-                  >
-                    {({ isOpen, onClose }) => (
-                      <>
-                        <PopoverTrigger asChild>
-                          <Icon
-                            boxSize="7"
-                            padding="5px"
-                            borderRadius="6px"
-                            backgroundColor="#EDF2F7"
-                          >
-                            <EllipsisIcon />
-                          </Icon>
-                        </PopoverTrigger>
-                        <PopoverContent style={{ width: "100%" }}>
-                          <PopoverBody>
-                            {!isArchived ? (
-                              <div>
-                                <div
-                                  id="popoverChoice"
-                                  color="#767778"
-                                >
-                                  <EditIcon />
-                                  <p onClick={toEditProgram}>Edit</p>
-                                </div>
-                                <div
-                                  id="cancelBody"
-                                  onClick={() => {
-                                    onClose();
-                                    setIsArchived(true);
-                                    setArchived(true);
-                                  }}
-                                >
-                                  <Icon fontSize="1xl">
-                                    <CancelIcon id="cancelIcon" />
-                                  </Icon>
-                                  <p>Deactivate</p>
-                                </div>
-                              </div>
-                            ) : (
-                              <div>
-                                <Button
-                                  id="popoverChoice"
-                                  onClick={duplicateProgram}
-                                >
-                                  <DuplicateIcon />
-                                  <p>Duplicate</p>
-                                </Button>
-                                <Button
-                                  id="popoverChoice"
-                                  onClick={() => {
-                                    onClose();
-                                    setIsArchived(false);
-                                    setArchived(false);
-                                  }}
-                                >
-                                  <ReactivateIcon />
-                                  <p>Reactivate</p>
-                                </Button>
-                                <Button
-                                  id="deleteBody"
-                                  onClick={modalOnOpen}
-                                >
-                                  <DeleteIconRed />
-                                  <p>Delete</p>
-                                </Button>
-                              </div>
-                            )}
-                          </PopoverBody>
-                        </PopoverContent>
-                      </>
-                    )}
-                  </Popover>
+                  {!isArchived ? (
+                    <EditCancelPopup
+                      handleEdit={handleEdit}
+                      handleDeactivate={handleDeactivate}
+                      id={program[0].id}
+                    />
+                  ) : (
+                    <ArchivedDropdown
+                      programId={program[0].id}
+                      programName={program[0].name}
+                      onOpen={modalOnOpen}
+                      setIsArchived={setIsArchived}
+                    />
+                  )}
                   <Modal
                     isOpen={modalIsOpen}
                     onClose={modalOnClose}
@@ -575,6 +607,16 @@ export const ProgramSummary = ({
                 >
                   {program[0]?.name || "Untitled Program"}
                 </Heading>
+                <Flex
+                  align="center"
+                  gap={2}
+                >
+                  <Icon
+                    as={RepeatIcon}
+                    size="md"
+                  />
+                  {repeatChoice}
+                </Flex>
 
                 <Flex
                   align="flex-start"
@@ -627,25 +669,19 @@ export const ProgramSummary = ({
                         : "No instructors"}
                     </Text>
                   </Flex>
-
                   <Flex
                     spacing={2}
                     gap={6}
                   >
-                    <Flex
-                      align="center"
-                      gap={2}
-                    >
-                      <PersonIcon />
-                      <Text
-                        color="#2D3748"
-                        fontWeight="500"
-                      >
-                        {payees?.length > 0
-                          ? payees.map((payee) => payee.clientName).join(", ")
-                          : "No payees"}
-                      </Text>
-                    </Flex>
+                    <Icon as={EmailIcon} />
+                    <Text>
+                      {payees?.length > 0
+                        ? [...(payees || [])]
+                            .map((person) => person?.clientEmail)
+                            .filter(Boolean)
+                            .join(", ")
+                        : "No emails available"}
+                    </Text>
                   </Flex>
 
                   <Flex
@@ -701,7 +737,6 @@ export const ProgramSummary = ({
                       <Text color="gray.600">/ hour</Text>
                     </Flex>
                   </Flex>
-
                   <Stack spacing={6}>
                     <Box spacing={2}>
                       <Heading
@@ -750,157 +785,31 @@ export const ProgramSummary = ({
           </Card>
         </Flex>
       </Container>
-      <Modal
+      <CancelProgram
+        id={program[0].id}
+        setPrograms={null}
+        onOpen={modalOnOpen}
         isOpen={modalIsOpen}
         onClose={modalOnClose}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Deactivate Program?</ModalHeader>
-          <ModalBody>
-            <Alert
-              status="error"
-              borderRadius="md"
-              p={4}
-              display="flex"
-              flexDirection="column"
-            >
-              <Box color="#90080F">
-                <Flex alignitems="center">
-                  <Box
-                    color="#90080F0"
-                    mr={2}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    <Info />
-                  </Box>
-                  <AlertTitle
-                    color="#90080F"
-                    fontSize="md"
-                    fontWeight="500"
-                  >
-                    The deactivation fee deadline for this program is{" "}
-                    <AlertDescription
-                      fontSize="md"
-                      fontWeight="bold"
-                    >
-                      Thu. 1/2/2025.
-                    </AlertDescription>
-                  </AlertTitle>
-                </Flex>
-                <Flex
-                  mt={4}
-                  align="center"
-                  justify="center"
-                  width="100%"
-                >
-                  <Checkbox
-                    fontWeight="500"
-                    sx={{
-                      ".chakra-checkbox__control": {
-                        bg: "white",
-                        border: "#D2D2D2",
-                      },
-                    }}
-                  >
-                    Waive fee
-                  </Checkbox>
-                </Flex>
-              </Box>
-            </Alert>
-            <Box mt={4}>
-              <Text
-                fontWeight="medium"
-                mb={2}
-              >
-                Reason for Deactivation:
-              </Text>
-              <Textarea
-                bg="#F0F1F4"
-                placeholder="..."
-                size="md"
-                borderRadius="md"
-              />
-            </Box>
-            <Box
-              mt={4}
-              display="flex"
-              justifyContent="right"
-            >
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  rightIcon={<ChevronDownIcon />}
-                  bg="#F0F1F4"
-                  variant="outline"
-                  width="50%"
-                  justify="right"
-                >
-                  {selectedIcon} {selectedAction}
-                </MenuButton>
-                <MenuList>
-                  <MenuItem
-                    icon={
-                      <Box
-                        display="inline-flex"
-                        alignItems="center"
-                      >
-                        <Icon
-                          as={ArchiveIcon}
-                          boxSize={4}
-                        />
-                      </Box>
-                    }
-                    onClick={() => handleSelect("Archive", ArchiveIcon)}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    Archive
-                  </MenuItem>
-                  <MenuItem
-                    icon={<DeleteIcon />}
-                    onClick={() => handleSelect("Delete", <DeleteIcon />)}
-                  >
-                    Delete
-                  </MenuItem>
-                </MenuList>
-              </Menu>
-            </Box>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              bg="transparent"
-              onClick={modalOnClose}
-              color="#767778"
-              borderRadius="30px"
-              mr={3}
-            >
-              Exit
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              style={{ backgroundColor: "#90080F" }}
-              colorScheme="white"
-              borderRadius="30px"
-            >
-              Confirm
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+        type={"Program"}
+      />
     </Box>
   );
 };
 
 export const Sessions = ({
+  programName,
   sessions,
   rooms,
+  instructors,
+  payees,
   isArchived,
   setIsArchived,
   refreshSessions,
 }) => {
   const { backend } = useBackendContext();
+  const navigate = useNavigate();
+  const [programToDelete, setProgramToDelete] = useState(null);
   const {
     isOpen: cancelModalIsOpen,
     onOpen: openCancelModal,
@@ -970,18 +879,42 @@ export const Sessions = ({
       console.error("Failed to delete sessions:", error);
     }
   };
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isSelected, setIsSelected] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [status, setStatus] = useState("All");
   const [selectedRoom, setSelectedRoom] = useState("All");
-
-  const [sortKey, setSortKey] = useState("date");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [programs, setPrograms] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
+  const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
+  // At the top of your Sessions component where other state variables are defined
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
     []
   );
+
+  const roomsMap = useMemo(() => {
+    return rooms ?? new Map();
+  }, [rooms]);
+
+  const handleEdit = useCallback(
+    (id, e) => {
+      e.stopPropagation();
+      navigate(`/bookings/edit/${id}`);
+    },
+    [navigate]
+  );
+
+  const handleDeactivate = useCallback(
+    (id) => {
+      setProgramToDelete(id);
+      onOpen();
+    },
+    [onOpen]
+  );
+
   const [filteredSessions, setFilteredSessions] = useState([]);
 
   const handleStatusChange = (newStatus) => {
@@ -1078,9 +1011,32 @@ export const Sessions = ({
         (status === "Active" && !hasTimePassed(session.date)) ||
         (status === "Past" && hasTimePassed(session.date));
       const isRoomMatch =
-        selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
+        selectedRoom === "All" || roomsMap.get(session.roomId) === selectedRoom;
 
-      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        programName.toLowerCase().includes(searchLower) ||
+        roomsMap.get(session.roomId).toLowerCase().includes(searchLower) ||
+        (instructors &&
+          instructors.some((instructor) =>
+            instructor.clientName.toLowerCase().includes(searchLower)
+          )) ||
+        (payees &&
+          payees.some((payee) =>
+            payee.clientName.toLowerCase().includes(searchLower)
+          )) ||
+        session.date.includes(searchQuery) ||
+        formatDate(session.date).includes(searchQuery) ||
+        formatTime(sessionStartTime).includes(searchQuery) ||
+        sessionStartTime.includes(searchQuery) ||
+        sessionEndTime.includes(searchQuery);
+      return (
+        isDateInRange &&
+        isTimeInRange &&
+        isStatusMatch &&
+        isRoomMatch &&
+        matchesSearch
+      );
     });
     setSessionMap(newSessionMap); // set sessionMap
 
@@ -1111,9 +1067,12 @@ export const Sessions = ({
     status,
     selectedRoom,
     sessions,
+    instructors,
+    payees,
     rooms,
     sortKey,
     sortOrder,
+    searchQuery,
   ]);
 
   useEffect(() => {
@@ -1173,45 +1132,46 @@ export const Sessions = ({
     setTimeRange((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleSearch = (query) => {
+    // Sets query for filterSessions
+    setSearchQuery(query);
+  };
+
   return (
-    <Box
-      marginBottom="50px"
-      width="100%"
-    >
-      <Flex
-        align="center"
-        mb="15px"
-        gap="2px"
-      >
-        <SessionsBookmark />
-        <Text
-          fontSize="24px"
-          fontWeight="700"
-          color="#2D3748"
+    <>
+      <CancelProgram
+        id={programToDelete}
+        setPrograms={setPrograms}
+        onOpen={onOpen}
+        isOpen={isOpen}
+        onClose={onClose}
+        type={"Booking"}
+      />
+      <Box className="componentContainer">
+        <Flex
+          align="center"
+          gap={2}
+          mb={4}
         >
-          {" "}
-          Sessions{" "}
-        </Text>
-      </Flex>
-      <Card
-        shadow="md"
-        border="1px"
-        borderColor="gray.300"
-        borderRadius="15px"
-      >
-        <CardBody
-          m={6}
-          display="flex"
-          flexDirection="column"
-          justifyContent="space-between"
+          <SessionsBookmark />
+          <Text className="componentTitleText">Sessions</Text>
+        </Flex>
+        <Card
+          shadow="none"
+          border="1px"
+          borderColor="gray.300"
+          borderRadius="15px"
         >
-          <Flex
-            direction="column"
-            justify="space-between"
+          <CardBody
+            m={6}
+            display="flex"
+            flexDirection="column"
+            // justifyContent="start"
           >
             <Flex
-              gap="12px"
-              alignItems="center"
+              direction="row"
+              justify="start"
+              gap={"12px"}
             >
               <Box position="relative">
                 <Button
@@ -1364,667 +1324,357 @@ export const Sessions = ({
 
               <Popover onClose={onClose}>
                 <PopoverTrigger>
-                  <Button
+                  <Box
                     display="flex"
-                    height="40px"
-                    padding="0px 16px"
-                    justifyContent="center"
+                    flexDirection="row"
                     alignItems="center"
-                    gap="4px"
-                    borderRadius="6px"
-                    bg="var(--Secondary-2-Default, #EDF2F7)"
-                    color="#2D3748"
-                    fontFamily="Inter"
-                    fontSize="14px"
-                    onClick={onOpen}
-                    border="none"
+                    gap="5px"
                   >
-                    <Box
-                      display="flex"
-                      flexDirection="row"
-                      alignItems="center"
-                      gap="5px"
-                    >
-                      <SessionFilter
-                        sessions={sessions}
-                        setFilteredSessions={setFilteredSessions}
-                        rooms={rooms}
-                      />
-                    </Box>
-                  </Button>
+                    <SessionFilter
+                      sessions={sessions}
+                      setFilteredSessions={setFilteredSessions}
+                      rooms={rooms}
+                    />
+                  </Box>
                 </PopoverTrigger>
-                <Portal>
-                  <PopoverContent>
-                    <Box margin="16px">
-                      <PopoverBody>
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          alignItems="flex-start"
-                          gap="24px"
-                          alignSelf="stretch"
-                        >
-                          <FormControl id="date">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <CalendarIcon />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  DATE
-                                </Text>
-                              </Box>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Input
-                                  size="sm"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="35%"
-                                  height="20%"
-                                  type="date"
-                                  placeholder="MM/DD/YYYY"
-                                  onChange={(e) =>
-                                    handleDateChange("start", e.target.value)
-                                  }
-                                />
-                                <Text> to </Text>
-                                <Input
-                                  size="sm"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="35%"
-                                  height="20%"
-                                  type="date"
-                                  placeholder="MM/DD/YYYY"
-                                  onChange={(e) =>
-                                    handleDateChange("end", e.target.value)
-                                  }
-                                />
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="time">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <Icon as={sessionsFilterClock} />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  Time
-                                </Text>
-                              </Box>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Input
-                                  size="xs"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="30%"
-                                  height="20%"
-                                  type="time"
-                                  placeholder="00:00 am"
-                                  onChange={(e) =>
-                                    handleTimeChange("start", e.target.value)
-                                  }
-                                />
-                                <Text> to </Text>
-                                <Input
-                                  size="xs"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="30%"
-                                  height="20%"
-                                  type="time"
-                                  placeholder="00:00 pm"
-                                  onChange={(e) =>
-                                    handleTimeChange("end", e.target.value)
-                                  }
-                                />
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="status">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Text
-                                fontWeight="bold"
-                                color="#767778"
-                                visibility={isSelected ? "visible" : "hidden"}
-                              >
-                                Status
-                              </Text>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("All")}
-                                  backgroundColor={
-                                    status === "All" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "All" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  All
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Active")}
-                                  backgroundColor={
-                                    status === "Active" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Active" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    gap="4px"
-                                  >
-                                    <Box
-                                      width="10px"
-                                      height="10px"
-                                      borderRadius="50%"
-                                      bg="#0C824D"
-                                    />
-                                    Active
-                                  </Box>
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Past")}
-                                  backgroundColor={
-                                    status === "Past" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Past" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    gap="4px"
-                                  >
-                                    <Box
-                                      width="10px"
-                                      height="10px"
-                                      borderRadius="50%"
-                                      bg="#DAB434"
-                                    />
-                                    Past
-                                  </Box>
-                                </Button>
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="room">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <Icon as={sessionsFilterMapPin} />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  Room
-                                </Text>
-                              </Box>
-                              <Wrap spacing={2}>
-                                <WrapItem>
-                                  <Button
-                                    borderRadius="30px"
-                                    borderWidth="1px"
-                                    width="auto"
-                                    height="20px"
-                                    onClick={() => setSelectedRoom("All")}
-                                    backgroundColor={
-                                      selectedRoom === "All"
-                                        ? "#EDEDFD"
-                                        : "#F6F6F6"
-                                    }
-                                    borderColor={
-                                      selectedRoom === "All"
-                                        ? "#4E4AE7"
-                                        : "#767778"
-                                    }
-                                  >
-                                    All
-                                  </Button>
-                                </WrapItem>
-                                {Array.from(rooms.values()).map(
-                                  (room, index) => (
-                                    <WrapItem key={index}>
-                                      <Button
-                                        borderRadius="30px"
-                                        borderWidth="1px"
-                                        minWidth="auto"
-                                        height="20px"
-                                        onClick={() => setSelectedRoom(room)}
-                                        backgroundColor={
-                                          selectedRoom === room
-                                            ? "#EDEDFD"
-                                            : "#F6F6F6"
-                                        }
-                                        borderColor={
-                                          selectedRoom === room
-                                            ? "#4E4AE7"
-                                            : "#767778"
-                                        }
-                                      >
-                                        {room}
-                                      </Button>
-                                    </WrapItem>
-                                  )
-                                )}
-                              </Wrap>
-                            </Box>
-                          </FormControl>
-                        </Box>
-                      </PopoverBody>
-                    </Box>
-                  </PopoverContent>
-                </Portal>
               </Popover>
             </Flex>
-            <TableContainer>
-              <Table variant="unstyled">
-                <Thead
-                  borderBottom="1px"
-                  color="#D2D2D2"
-                >
-                  <Tr>
-                    {isSelected && <Th />}
-                    {!isArchived ? (
+
+            <Flex
+              gap="12px"
+              alignItems="center"
+            >
+              {/* HERE */}
+              <TableContainer>
+                <Table variant="unstyled">
+                  <Thead
+                    borderBottom="1px"
+                    color="#D2D2D2"
+                  >
+                    <Tr>
+                      {isSelected && <Th />}
+                      {!isArchived ? (
+                        <Th>
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            Status
+                          </Text>
+                        </Th>
+                      ) : null}
                       <Th>
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
-                        >
-                          Status
-                        </Text>
-                      </Th>
-                    ) : (
-                      <div></div>
-                    )}
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <FilledOutCalendar />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
-                        >
-                          DATE
-                        </Text>
                         <Box
                           display="flex"
-                          flexDirection="column"
-                          alignItems="flex-start"
-                          gap="2px"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
                         >
-                          <DateSortingModal onSortChange={handleSortChange} />
+                          <FilledOutCalendar />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            DATE
+                          </Text>
                         </Box>
-                      </Box>
-                    </Th>
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <Icon as={sessionsClock} />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
+                      </Th>
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
                         >
-                          TIME
-                        </Text>
-                      </Box>
-                    </Th>
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <Icon
-                          as={sessionsMapPin}
-                          boxSize={4}
-                          mr={1}
-                        />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
+                          <Icon as={sessionsClock} />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            TIME
+                          </Text>
+                        </Box>
+                      </Th>
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
                         >
-                          ROOM
-                        </Text>
-                      </Box>
-                    </Th>
-                    {/* Add Lead Artist column */}
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <ArtistIcon />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
+                          <Icon
+                            as={sessionsMapPin}
+                            boxSize={4}
+                            mr={1}
+                          />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            ROOM
+                          </Text>
+                        </Box>
+                      </Th>
+                      {/* Add Lead Artist column */}
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
                         >
-                          LEAD ARTIST(S)
-                        </Text>
-                      </Box>
-                    </Th>
-                    {/* Add Payees column */}
-                    <Th>
-                      <Box
-                        display="flex"
-                        padding="8px"
-                        justifyContent="center"
-                        alignItems="center"
-                        gap="8px"
-                      >
-                        <PersonIcon />
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="16px"
-                          fontStyle="normal"
+                          <ArtistIcon />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            LEAD ARTIST(S)
+                          </Text>
+                        </Box>
+                      </Th>
+                      {/* Add Payees column */}
+                      <Th>
+                        <Box
+                          display="flex"
+                          padding="8px"
+                          justifyContent="center"
+                          alignItems="center"
+                          gap="8px"
                         >
-                          PAYEE(S)
-                        </Text>
-                      </Box>
-                    </Th>
-                    <Th></Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {filteredSessions.length > 0 ? (
-                    filteredSessions.map((session) => (
-                      <Tr key={session.id}>
-                        {isSelected && (
-                          <Td width="50px">
-                            <Checkbox
-                              isChecked={selectedSessions.includes(session.id)}
-                              onChange={() =>
-                                handleSessionSelection(session.id)
-                              }
-                              sx={{
-                                "& .chakra-checkbox__control[data-checked]": {
-                                  backgroundColor: "#90080F",
-                                  borderColor: "#90080F",
-                                },
-                                "&:hover .chakra-checkbox__control[data-checked]":
-                                  {
+                          <PersonIcon />
+                          <Text
+                            textTransform="none"
+                            color="#767778"
+                            fontSize="16px"
+                            fontStyle="normal"
+                          >
+                            PAYEE(S)
+                          </Text>
+                        </Box>
+                      </Th>
+                      <Th></Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {filteredSessions.length > 0 ? (
+                      filteredSessions.map((session) => (
+                        <Tr key={session.id}>
+                          {isSelected && (
+                            <Td width="50px">
+                              <Checkbox
+                                isChecked={selectedSessions.includes(
+                                  session.id
+                                )}
+                                onChange={() =>
+                                  handleSessionSelection(session.id)
+                                }
+                                sx={{
+                                  "& .chakra-checkbox__control[data-checked]": {
                                     backgroundColor: "#90080F",
                                     borderColor: "#90080F",
                                   },
-                                "& .chakra-checkbox__control[data-checked]:hover":
-                                  {
-                                    backgroundColor: "#90080F",
-                                    borderColor: "#90080F",
-                                  },
-                              }}
-                            />
-                          </Td>
-                        )}
+                                  "&:hover .chakra-checkbox__control[data-checked]":
+                                    {
+                                      backgroundColor: "#90080F",
+                                      borderColor: "#90080F",
+                                    },
+                                  "& .chakra-checkbox__control[data-checked]:hover":
+                                    {
+                                      backgroundColor: "#90080F",
+                                      borderColor: "#90080F",
+                                    },
+                                }}
+                              />
+                            </Td>
+                          )}
 
-                        {!isArchived ? (
+                          {!isArchived ? (
+                            <Td>
+                              <Box
+                                display="flex"
+                                justifyContent="center"
+                              >
+                                <Box
+                                  height="14px"
+                                  width="14px"
+                                  borderRadius="50%"
+                                  bg={
+                                    hasTimePassed(session.date)
+                                      ? "#DAB434"
+                                      : "#0C824D"
+                                  }
+                                ></Box>
+                              </Box>
+                            </Td>
+                          ) : null}
                           <Td>
                             <Box
                               display="flex"
                               justifyContent="center"
+                              alignItems="center"
                             >
-                              <Box
-                                height="14px"
-                                width="14px"
-                                borderRadius="50%"
-                                bg={
-                                  hasTimePassed(session.date)
-                                    ? "#DAB434"
-                                    : "#0C824D"
-                                }
-                              ></Box>
+                              {formatDate(session.date)}
                             </Box>
                           </Td>
-                        ) : (
-                          <div></div>
-                        )}
-                        <Td>
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {formatTime(session.startTime)} -{" "}
+                              {formatTime(session.endTime)}
+                            </Box>
+                          </Td>
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {rooms.get(session.roomId)}
+                            </Box>
+                          </Td>
+                          {/* Add Lead Artist data */}
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {session.instructor
+                                ? truncateNames(session.instructor)
+                                : "N/A"}
+                            </Box>
+                          </Td>
+                          {/* Add Payees data */}
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {session.payee
+                                ? truncateNames(session.payee)
+                                : "N/A"}
+                            </Box>
+                          </Td>
+                          {/* <Td>
+                            <Icon
+                              boxSize="7"
+                              padding="5px"
+                              borderRadius="6px"
+                              backgroundColor="#EDF2F7"
+                            >
+                              <EllipsisIcon />
+                            </Icon>
+                          </Td> */}
+                          <Td>
+                            <EditCancelPopup
+                              handleEdit={handleEdit}
+                              handleDeactivate={handleDeactivate}
+                              id={session.id}
+                            />
+                          </Td>
+                        </Tr>
+                      ))
+                    ) : (
+                      <Tr>
+                        <Td colSpan={isArchived ? 6 : 7}>
                           <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
+                            textAlign="center"
+                            py={6}
+                            color="gray.500"
+                            fontSize="md"
                           >
-                            {formatDate(session.date)}
+                            No sessions available
                           </Box>
-                        </Td>
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {formatTime(session.startTime)} -{" "}
-                            {formatTime(session.endTime)}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {rooms.get(session.roomId)}
-                          </Box>
-                        </Td>
-                        {/* Add Lead Artist data */}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {session.instructor
-                              ? truncateNames(session.instructor)
-                              : "N/A"}
-                          </Box>
-                        </Td>
-                        {/* Add Payees data */}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {session.payee
-                              ? truncateNames(session.payee)
-                              : "N/A"}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <Icon
-                            boxSize="7"
-                            padding="5px"
-                            borderRadius="6px"
-                            backgroundColor="#EDF2F7"
-                          >
-                            <EllipsisIcon />
-                          </Icon>
                         </Td>
                       </Tr>
-                    ))
-                  ) : (
-                    <Tr>
-                      <Td colSpan={isArchived ? 6 : 7}>
-                        <Box
-                          textAlign="center"
-                          py={6}
-                          color="gray.500"
-                          fontSize="md"
-                        >
-                          No sessions available
-                        </Box>
-                      </Td>
-                    </Tr>
-                  )}
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </Flex>
+                    )}
+                  </Tbody>
+                </Table>
+              </TableContainer>
+            </Flex>
 
-          {/* Pagination Controls - moved to bottom right */}
-          <Box
-            width="100%"
-            display="flex"
-            justifyContent="flex-end"
-            mt="auto"
-            pt={4}
-          >
-            {totalPages > 1 && (
-              <Flex
-                alignItems="center"
-                justifyContent="center"
-                mb={2}
-              >
-                <Text
-                  mr={2}
-                  fontSize="sm"
-                  color="#474849"
-                  fontFamily="Inter, sans-serif"
+            {/* Pagination Controls - moved to bottom right */}
+            <Box
+              width="100%"
+              display="flex"
+              justifyContent="flex-end"
+              mt="auto"
+              pt={4}
+            >
+              {totalPages > 1 && (
+                <Flex
+                  alignItems="center"
+                  justifyContent="center"
+                  mb={2}
                 >
-                  {currentPage} of {totalPages}
-                </Text>
-                <Button
-                  onClick={goToPreviousPage}
-                  isDisabled={currentPage === 1}
-                  size="sm"
-                  variant="ghost"
-                  padding={0}
-                  minWidth="auto"
-                  color="gray.500"
-                >
-                  <ChevronLeftIcon />
-                </Button>
-                <Button
-                  onClick={goToNextPage}
-                  isDisabled={currentPage === totalPages}
-                  size="sm"
-                  variant="ghost"
-                  padding={0}
-                  minWidth="auto"
-                  color="gray.500"
-                >
-                  <ChevronRightIcon />
-                </Button>
-              </Flex>
-            )}
-          </Box>
-          <CancelSessionModal
-            isOpen={cancelModalIsOpen}
-            onClose={closeCancelModal}
-            selectedSessions={selectedSessions
-              .map((id) => sessionMap[id])
-              .filter(Boolean)}
-            setSelectedSessions={setSelectedSessions}
-            onConfirm={handleConfirmCancel}
-            eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
-            refreshSessions={refreshSessions}
-          />
-        </CardBody>
-      </Card>
-    </Box>
+                  <Text
+                    mr={2}
+                    fontSize="sm"
+                    color="#474849"
+                    fontFamily="Inter, sans-serif"
+                  >
+                    {currentPage} of {totalPages}
+                  </Text>
+                  <Button
+                    onClick={goToPreviousPage}
+                    isDisabled={currentPage === 1}
+                    size="sm"
+                    variant="ghost"
+                    padding={0}
+                    minWidth="auto"
+                    color="gray.500"
+                  >
+                    <ChevronLeftIcon />
+                  </Button>
+                  <Button
+                    onClick={goToNextPage}
+                    isDisabled={currentPage === totalPages}
+                    size="sm"
+                    variant="ghost"
+                    padding={0}
+                    minWidth="auto"
+                    color="gray.500"
+                  >
+                    <ChevronRightIcon />
+                  </Button>
+                </Flex>
+              )}
+            </Box>
+            <CancelSessionModal
+              isOpen={cancelModalIsOpen}
+              onClose={closeCancelModal}
+              selectedSessions={selectedSessions
+                .map((id) => sessionMap[id])
+                .filter(Boolean)}
+              setSelectedSessions={setSelectedSessions}
+              onConfirm={handleConfirmCancel}
+              eventType={
+                selectedSessions.length === 1 ? "Workshops" : "Sessions"
+              }
+              refreshSessions={refreshSessions}
+            />
+          </CardBody>
+        </Card>
+      </Box>
+    </>
   );
 };
 
@@ -2123,24 +1773,13 @@ const PDFButton = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div>
-      <PDFDownloadLink
-        document={<MyDocument bookingData={bookingData} />}
-        fileName="bookingdata.pdf"
-      >
-        <Button
-          leftIcon={<Icon as={DownloadIcon} />}
-          colorScheme="purple"
-          size="sm"
-          display="flex"
-          height="40px"
-          padding="0px 16px"
-          borderRadius="6px"
-          background={"var(--Primary-5-Default, #4441C8)"}
-        >
-          Invoice
-        </Button>
-      </PDFDownloadLink>
-    </div>
+    <PDFDownloadLink
+      className="invoiceButton"
+      document={<MyDocument bookingData={bookingData} />}
+      fileName="bookingdata.pdf"
+    >
+      <DownloadIcon />
+      Invoice
+    </PDFDownloadLink>
   );
 };
