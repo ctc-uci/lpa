@@ -1,18 +1,31 @@
 import React, { useState } from "react";
-
-
 import { Box, Flex, Icon, Text } from "@chakra-ui/react";
-
 import { Link as RouterLink } from "react-router-dom";
-
 import { CalendarSelected } from "../../assets/CalendarSelected";
 import { InvoiceSelected } from "../../assets/InvoiceSelected";
 
 const NavBarButton = ({ item, isActive }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-
-
+  const widthMap = {
+    "Programs": 123,
+    "Invoices": 114, 
+    "Notifications": 169,
+    "Settings": 115
+  };
+  
+  // Get width based on hover or active state
+  const getButtonWidth = () => {
+    // Always use the full width when hovered or active to prevent layout shifts
+    if (isHovered || isActive) {
+      return `${widthMap[item.name]}px`;
+    }
+    
+    // When not hovered/active, we still use the SAME width but hide the text
+    // This prevents layout shifts when hovering
+    return `${widthMap[item.name]}px`;
+  };
+  
   return (
     <div
       className={`navItem ${isActive ? "active" : ""}`}
@@ -21,101 +34,96 @@ const NavBarButton = ({ item, isActive }) => {
     >
       <RouterLink to={item.path}>
         <Box
-          position="relative"
+          bg={isHovered && !isActive ? "#EDF2F7" : "none"}
+          borderRadius={isActive ? "none" : "6px"}
           className="nav-item-wrapper"
+          width={getButtonWidth()}
+          transition="none" // Prevent width transitions
+          overflow="hidden"
+          position="relative" // Important for absolute positioning
         >
-          {/* Icon Container - Always in DOM but hidden with opacity when hovered */}
           <Flex
             alignItems="center"
-            justifyContent="center"
-            width="70%"
-            marginLeft="15%"
-            py={3}
+            justifyContent="flex-start"
+            width="100%"
             rounded="lg"
             className="navLink icon-container"
-            opacity={isHovered ? 0 : 1}
-            visibility={isHovered ? "hidden" : "visible"}
-            background={isActive ? "#EDF2F7" : "transparent"}
-            padding="20px 0px"
-          >
-            {React.cloneElement(item.icon, {
-              color: isActive ? "#4441C8" : "#767778",
-              className: "navIcon",
-              fontSize: "xl",
-            })}
-            {item.count !== null && item.count !== undefined && (
-              <Box
-                position="absolute"
-                top="32px"
-                right="19px"
-                height="24px"
-                minWidth="24px"
-                textAlign="center"
-                fontSize="14px"
-                fontWeight="medium"
-                color="#FFF"
-                padding="2px 5px"
-                borderRadius="30px"
-                background="#4E4AE7"
-              >
-                {item.count}
-              </Box>
-            )}
-          </Flex>
-
-          {/* Popup Button - Always in DOM but controlled with opacity */}
-          <Box
-            className="popup-button"
-            bg="#EDF2F7"
-            boxShadow="md"
-            borderRadius="md"
-            position="absolute"
-            top="0"
-            left="5"
-            zIndex={isHovered ? 20 : -1}
-            px={4}
-            py={3}
-            display="flex"
-            alignItems="center"
-            width="auto"
-            opacity={isHovered ? 1 : 0}
-            pointerEvents={isHovered ? "auto" : "none"}
+            height="40px"
+            ml={2}
           >
             <Icon
               className="navIcon"
               fontSize="xl"
               mr={2}
-              color={isActive ? "#4441C8" : "#767778"}
-              fill={isActive ? "#4441C8" : "#767778"}
+              color={isActive ? "#4441C8" : "#718096"}
+              fill={isActive ? "#4441C8" : "#718096"}
+              flexShrink={0}
             >
               {item.name === "Programs" ? (
-                <CalendarSelected />
+                <CalendarSelected fill={isActive ? "#4441C8" : "#718096"}/>
               ) : item.name === "Invoices" ? (
-                <InvoiceSelected />
+                <InvoiceSelected fill={isActive ? "#4441C8" : "#718096"}/>
               ) : (
                 React.cloneElement(item.icon, { size: "23px" })
               )}
             </Icon>
+            
+            {/* Show the non-hovered count badge only when not hovered/active AND when we have a count */}
+            {item.count !== null && item.count !== undefined && !isActive && !isHovered && (
+              <Box
+                height="17px"
+                width="17px"
+                textAlign="center"
+                fontSize="14px"
+                fontFamily="Inter"
+                fontStyle="normal"
+                fontWeight="300"
+                color="#FFF"
+                padding="0px 5px"
+                borderRadius="50%"
+                background="#4441C8"
+                lineHeight="normal"
+                minWidth="16px"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                position="absolute"
+                left="30px" // Position it consistently
+              >
+                {item.count}
+              </Box>
+            )}
+            
             <Text
+              opacity={isHovered || isActive ? 1 : 0}
               fontWeight="700"
-              color="#4441C8"
+              color={isActive ? "#4441C8" : "#718096"}
               fontFamily={"Inter, sans-serif"}
-              fontSize={"17px"}
+              fontSize={"14px"}
+              overflow="hidden"
+              whiteSpace="nowrap"
+              transition="opacity 0.2s ease"
+              ml={0} // Keep margin consistent
             >
               {item.name}
             </Text>
-            {item.count !== null && item.count !== undefined && (
+            
+            {/* For hovered/active state with notification count */}
+            {item.count !== null && item.count !== undefined && (isHovered || isActive) && (
               <Box
                 marginLeft="10px"
-                height="20px"
+                height="17px"
+                width="17px"
                 textAlign="center"
-                fontSize="12px"
-                fontWeight="medium"
+                fontSize="15px"
+                fontStyle="normal"
+                fontWeight="350"
                 color="#FFF"
-                padding="0px 6px"
-                borderRadius="30px"
-                background="#4E4AE7"
-                minWidth="20px"
+                padding="0px 5px"
+                borderRadius="50%"
+                background="#4441C8"
+                lineHeight="normal"
+                minWidth="16px"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
@@ -123,7 +131,7 @@ const NavBarButton = ({ item, isActive }) => {
                 {item.count}
               </Box>
             )}
-          </Box>
+          </Flex>
         </Box>
       </RouterLink>
     </div>

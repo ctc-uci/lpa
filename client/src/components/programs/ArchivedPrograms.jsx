@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 import "./ArchivedPrograms.css";
 
 import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@chakra-ui/icons";
+import {
   Alert,
   AlertTitle,
   Box,
@@ -77,6 +81,9 @@ import ProgramSortingModal from "../filters/ProgramFilter";
 import Navbar from "../navbar/Navbar";
 import { SearchBar } from "../searchBar/SearchBar";
 
+import { ArchivedFilter } from "../filters/ArchivedFilter";
+
+
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
   const [program, setPrograms] = useState([]);
@@ -93,6 +100,34 @@ export const ArchivedPrograms = () => {
   const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
   const navigate = useNavigate();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    const calculateRowsPerPage = () => {
+      const viewportHeight = window.innerHeight;
+      const rowHeight = 56;
+
+      const availableHeight = viewportHeight * 0.48;
+
+      console.log(availableHeight / rowHeight);
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
+    };
+
+    setItemsPerPage(calculateRowsPerPage());
+
+    const handleResize = () => {
+      setItemsPerPage(calculateRowsPerPage());
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+  const [filteredArchived, setFilteredArchived] = useState([]);
 
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -147,7 +182,6 @@ export const ArchivedPrograms = () => {
             // get unique roomIds
             sessions.forEach((session) => allRoomIds.add(session.roomId));
 
-            // get most recent session
             mostRecentSession = sessions.reduce((latest, current) => {
               return new Date(current.date) > new Date(latest.date)
                 ? current
@@ -191,15 +225,15 @@ export const ArchivedPrograms = () => {
           instructors: thisAssignments.instructors,
           payees: thisAssignments.payees,
         };
-        console.log("THIS SESSION", thisSession);
+        // console.log("THIS SESSION", thisSession);
         info.push(thisSession);
       }
 
-      // Store this data in state
       setArchivedProgramSessions(info);
+      setFilteredArchived(info);
       setUniqueRooms([...allRoomIds]);
-      console.log("here");
-      console.log(archivedSessions);
+      // console.log("here");
+      // console.log(archivedSessions);
     } catch (error) {
       console.log("From getArchivedProgramSessions: ", error);
     }
@@ -315,7 +349,9 @@ export const ArchivedPrograms = () => {
   };
 
   const sortedArchivedSessions = useMemo(() => {
-    const filtered = filterSessions();
+    // Filtered should be the results of the archivedfilter update
+    // const filtered = filterSessions();
+    const filtered = filteredArchived;
     console.log(
       "Filtered session dates:",
       filtered.map((s) => s.sessionDate)
@@ -355,7 +391,30 @@ export const ArchivedPrograms = () => {
       sorted.map((s) => s.sessionDate)
     );
     return sorted;
-  }, [filterSessions(), sortKey, sortOrder]);
+  }, [filteredArchived, sortKey, sortOrder]);
+
+  const totalPrograms = sortedArchivedSessions?.length || 0;
+  const totalPages = Math.ceil(totalPrograms / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalPrograms);
+
+  // Get current page data
+  const currentPagePrograms = sortedArchivedSessions.slice(
+    startIndex,
+    endIndex
+  );
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   const deleteArchivedProgram = async (programId) => {
     try {
@@ -675,6 +734,11 @@ export const ArchivedPrograms = () => {
                       </PopoverContent>
                     </Portal>
                   </Popover>
+                <Flex marginRight="auto">
+                  <ArchivedFilter
+                    archived={archivedSessions}
+                    setArchivedPrograms={setFilteredArchived}
+                    roomMap={roomNames}/>
                 </Flex>
                 <SearchBar
                   handleSearch={handleSearch}
@@ -884,6 +948,56 @@ export const ArchivedPrograms = () => {
           onClose={onClose}
           type="Program"
         />
+
+        <Box
+          width="100%"
+          display="flex"
+          justifyContent="flex-end"
+          mt="auto"
+          pt={4}
+        >
+          {totalPages > 1 && (
+            <Flex
+              alignItems="center"
+              justifyContent="center"
+              mb={2}
+            >
+              <Text
+                mr={2}
+                fontSize="sm"
+                color="#474849"
+                fontFamily="Inter, sans-serif"
+              >
+                {currentPage} of {totalPages}
+              </Text>
+              <Button
+                onClick={goToPreviousPage}
+                isDisabled={currentPage === 1}
+                size="sm"
+                variant="ghost"
+                padding={0}
+                minWidth="auto"
+                color="gray.500"
+                mr="16px"
+              >
+                <ChevronLeftIcon />
+              </Button>
+              <Button
+                onClick={goToNextPage}
+                isDisabled={currentPage === totalPages}
+                size="sm"
+                variant="ghost"
+                padding={0}
+                minWidth="auto"
+                color="gray.500"
+              >
+                <ChevronRightIcon />
+              </Button>
+            </Flex>
+          )}
+        </Box>
+  
+          
       </Box>
     </Navbar>
   );

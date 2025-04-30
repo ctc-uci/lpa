@@ -21,7 +21,6 @@ export const HeaderRowComponent = () => {
         />
         <span className="google-calendar-text">Google Calendar</span>
       </div>
-
       <div
         className="new-program"
         onClick={() => navigate("/addprogram")}

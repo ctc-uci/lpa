@@ -156,10 +156,8 @@ bookingsRouter.get("/rooms/event/:id", async (req, res) => {
 
 bookingsRouter.post("/", async (req, res) => {
   try {
-    // Get new booking data
     const { event_id, room_id, start_time, end_time, date, archived } = req.body;
 
-    // Insert new booking into database
     const data = await db.query(
         `INSERT INTO bookings (event_id, room_id, start_time, end_time, date, archived) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
         [ event_id, room_id, start_time, end_time, date, archived ]
@@ -177,7 +175,6 @@ bookingsRouter.put("/:id", async (req, res) => {
 
       const { event_id, room_id, start_time, end_time, date, archived } = req.body;
 
-      // Update booking in database
       const data = await db.query(
         `
         UPDATE bookings
@@ -215,7 +212,6 @@ bookingsRouter.put("/event/:id", async (req, res) => {
         [event_id, description]
     );
 
-      // Update booking in database
       const data = await db.query(
         `
         UPDATE bookings
@@ -242,7 +238,6 @@ bookingsRouter.delete("/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
-      // Delete booking from database
       const data = await db.query("DELETE FROM bookings WHERE id = $1 RETURNING *",
         [ id ]);
 
@@ -256,11 +251,11 @@ bookingsRouter.delete("/:id", async (req, res) => {
     }
   });
 
+// Delete all bookings/sessions from database for a given event
 bookingsRouter.delete("/event/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
-      // Delete all bookings from database for a given event
       const data = await db.query("DELETE FROM bookings WHERE event_id = $1 RETURNING *",
         [ id ]);
 
@@ -273,5 +268,96 @@ bookingsRouter.delete("/event/:id", async (req, res) => {
       res.status(500).send(err.message);
     }
   });
+
+// Batch archive endpoint
+bookingsRouter.post("/batch/archive", async (req, res) => {
+  try {
+    const { sessionIds } = req.body;
+
+    if (!sessionIds || !Array.isArray(sessionIds) || sessionIds.length === 0) {
+      return res.status(400).json({
+        result: 'error',
+        message: 'Invalid or empty sessionIds array'
+      });
+    }
+
+    // Create a parameterized query with multiple placeholders
+    const placeholders = sessionIds.map((_, index) => `$${index + 1}`).join(',');
+
+    // Update all specified bookings in a single query
+    const query = `UPDATE bookings SET archived = TRUE WHERE id IN (${placeholders}) RETURNING *`;
+
+    const data = await db.query(query, sessionIds);
+
+    res.status(200).json({
+      result: 'success',
+      message: `${data.length} sessions archived successfully`,
+      data: keysToCamel(data)
+    });
+  } catch (err) {
+    res.status(500).json({
+      result: 'error',
+      message: err.message
+    });
+  }
+});
+
+// Batch delete endpoint
+bookingsRouter.delete("/batch/delete", async (req, res) => {
+  try {
+    const { sessionIds } = req.body;
+
+    console.log("session IDS from bookings router", sessionIds);
+
+    if (!sessionIds || !Array.isArray(sessionIds) || sessionIds.length === 0) {
+      return res.status(400).json({
+        result: 'error',
+        message: 'Invalid or empty sessionIds array'
+      });
+    }
+
+    // Create a parameterized query with multiple placeholders
+    const placeholders = sessionIds.map((_, index) => `$${index + 1}`).join(',');
+
+    // Delete all specified bookings in a single query
+    const query = `DELETE FROM bookings WHERE id IN (${placeholders}) RETURNING *`;
+
+    const data = await db.query(query, sessionIds);
+
+    res.status(200).json({
+      result: 'success',
+      message: `${data.length} sessions deleted successfully`,
+      data: keysToCamel(data)
+    });
+  } catch (err) {
+    res.status(500).json({
+      result: 'error',
+      message: err.message
+    });
+  }
+});
+
+// Batch operation for a specific event's bookings
+bookingsRouter.post("/event/:eventId/batch/archive", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Archive all bookings for a specific event
+    const query = `UPDATE bookings SET archived = TRUE WHERE event_id = $1 RETURNING *`;
+
+    const data = await db.query(query, [eventId]);
+
+    res.status(200).json({
+      result: 'success',
+      message: `${data.length} sessions archived for event ${eventId}`,
+      data: keysToCamel(data)
+    });
+  } catch (err) {
+    res.status(500).json({
+      result: 'error',
+      message: err.message
+    });
+  }
+});
 
 export { bookingsRouter };
