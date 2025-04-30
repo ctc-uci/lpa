@@ -1,27 +1,26 @@
 import {
-    Button,
-    Center,
-    Link as ChakraLink,
-    FormControl,
-    FormErrorMessage,
-    Heading,
-    Input,
-    InputGroup, 
-    InputLeftElement,
-    VStack,
-    Text,
-    Image,
-    useToast,
-    Flex,
-    Box,
+  Box,
+  Button,
+  Center,
+  Link as ChakraLink,
+  FormControl,
+  FormErrorMessage,
+  Heading,
+  Icon,
+  Input,
+  Text,
+  useToast,
+  VStack,
+  HStack
 } from "@chakra-ui/react";
 
-import { FaEnvelope } from "react-icons/fa6";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { AiFillMail } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
+import logo from "../../assets/logo/logo.png";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 
 const forgotPasswordSchema = z.object({
@@ -45,90 +44,116 @@ export const ForgotPassword = () => {
   const handleResetEmail = async (data) => {
     try {
       const email = data.email;
-      await resetPassword({email});
+      await resetPassword({ email });
       navigate("/forgotpassword/sent");
     } catch (error) {
-        toast({
-            title: "An error occurred while sending reset email",
-            description: error.message,
-            status: "error",
-            variant: "subtle"
-        });
+      toast({
+        title: "An error occurred while sending reset email",
+        description: error.message,
+        status: "error",
+        variant: "subtle",
+      });
     }
   };
 
   return (
-    <Center h="100vh">
-      <VStack spacing={4} w="100%" maxW="500px" textAlign="center">
-        <Image
-          src="src/assets/logo/logo.png"
-          alt="Logo"
-          w="40%"
-          objectFit="contain"
-        />
-
-        <Heading color="#4E4AE7" fontSize="4xl">
-          Forgot Password?
-        </Heading>
+    <Center
+      h="100vh"
+      className="entry-page"
+    >
+      <VStack
+        spacing={4}
+        className="signup-container"
+      >
         <Box
-          w="45%"
-          h="3px"
-          bg="#4E4AE7"
-          borderRadius="full"
+          as="img"
+          src={logo}
+          className="logo"
         />
 
-        <Text fontSize="lg" color="#474849" mb={6}>
-          All good, we will send reset instructions.
-        </Text>
+        <div className="header-forgot-container">
+          <Heading className="login-heading">Forgot Password</Heading>
+          <Text className="account-info-text">
+            Enter your email associated with this account.
+          </Text>
+          <Text className="account-info-text">
+            We will send reset instructions.
+          </Text>
+        </div>
 
-        <form onSubmit={handleSubmit(handleResetEmail)} style={{ width: "100%" }}>
-          <VStack spacing={4} w="100%">
-            <FormControl isInvalid={!!errors.email} mb={6}>
-              <InputGroup>
-                <InputLeftElement pointerEvents="none" h="100%">
-                  <FaEnvelope color="gray" />
-                </InputLeftElement>
-                <Input
-                  placeholder="Email"
-                  type="email"
-                  size="lg"
-                  {...register("email")}
-                  isRequired
-                  autoComplete="email"
-                  borderRadius="md"
-                  border="1px solid gray"
-                />
-              </InputGroup>
-              <FormErrorMessage>
-                {errors.email?.message?.toString()}
-              </FormErrorMessage>
-            </FormControl>
-
-            <Flex justify="space-between" align="center" w="100%">
-              <Text w="100%" color="#474849">
-                <ChakraLink as={Link} to="/login" fontWeight="bold">
+        <form
+          onSubmit={handleSubmit(handleResetEmail)}
+          style={{ width: "100%" }}
+        >
+          <VStack
+            spacing={4}
+            w="100%"
+          >
+            <div className="login-fields-container">
+              {/* Email Field */}
+              <FormControl
+                isInvalid={!!errors.email}
+                className="form-field-container"
+              >
+                <label
+                  htmlFor="email"
+                  className="form-label"
+                >
+                  Email
+                </label>
+                <div className="input-outer">
+                  <div className="input-icon-container">
+                    <Icon
+                      as={AiFillMail}
+                      boxSize="22px"
+                      color="#718096"
+                    />
+                  </div>
+                  <div className="input-text-container">
+                    <Input
+                      id="email"
+                      placeholder="Your email"
+                      type="text"
+                      variant="unstyled"
+                      className="input-text"
+                      {...register("email")}
+                      isRequired
+                      autoComplete="email"
+                    />
+                  </div>
+                  <div className="input-right-icon-container">
+                    {/* No right icon for email */}
+                  </div>
+                </div>
+                <FormErrorMessage className="form-error">
+                  {errors.email?.message?.toString()}
+                </FormErrorMessage>
+              </FormControl>
+            </div>
+            {/* Button Group */}
+            <HStack className="button-group">
+              <Button
+                type="button"
+                className="cancel-button"
+              >
+                <ChakraLink
+                  as={Link}
+                  to="/login"
+                >
                   Back to Login
                 </ChakraLink>
-              </Text>
+              </Button>
               <Button
                 type="submit"
-                size="lg"
-                bg="#4E4AE7"
-                color="white"
-                _hover={{ bg: "#3b39c4" }}
-                borderRadius="full"
-                fontSize="md"
-                w="100%"
+                className="submit-button"
+                isDisabled={Object.keys(errors).length > 0}
               >
-                Reset Password
+                Send Instructions
               </Button>
-            </Flex>
+            </HStack>
           </VStack>
         </form>
       </VStack>
     </Center>
   );
 };
-
-
-

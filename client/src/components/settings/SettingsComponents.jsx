@@ -1,4 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+
+import { useNavigate } from "react-router-dom";
 
 import {
     Box,
@@ -42,7 +44,6 @@ import { UpDownArrowIcon, PersonIcon, EmailIcon } from "../../assets/AdminSettin
 const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
     const componentMap = {
         "general": <GeneralSettingsMenu setSelectedComponent={setSelectedComponent}></GeneralSettingsMenu>,
-        "account": <h1> Account </h1>,
         "rooms": <RoomsSettings></RoomsSettings>,
         "calendar": <h1> Calendar </h1>
     }
@@ -56,6 +57,7 @@ const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
 
 
 const GeneralSettingsMenu = ({ setSelectedComponent }) => {
+    const navigate = useNavigate();
     return (
         <VStack
             divider={<StackDivider style={{ margin: "0px" }} />}
@@ -68,7 +70,7 @@ const GeneralSettingsMenu = ({ setSelectedComponent }) => {
                 backgroundColor="transparent"
                 justifyContent="start"
                 gap="0.75rem"
-                onClick={() => setSelectedComponent("account")}
+                onClick={() => navigate("/settings/myaccount")}
             >
                 <UserIcon></UserIcon>
                 <Text>
@@ -177,7 +179,6 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
             onCancel();
         } else {
             setRoomName(originalRoomName);
-            // setRoomName(room.name);
             setRoomRate(parseFloat(room.rate).toFixed(2));
             setRoomDescription(room.description);
             setInvalidRoomName(false);
@@ -305,7 +306,6 @@ const RoomSettings = ({ room, isInitiallyEditing = false, onSave, onCancel }) =>
                     isOpen={isCancelModalOpen}
                     onClose={onCancelModalClose}
                     title="Discard changes?"
-                    // body={`Your edits to the ${roomName || "new"} room will not be saved.`}
                     body={`Your edits to the ${room.id ? originalRoomName : roomName || "new"} room will not be saved.`}
                     onConfirm={handleCancel}
                     primaryButtonBackgroundColor="#90080F"

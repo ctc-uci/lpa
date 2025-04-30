@@ -56,7 +56,9 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                     onClick={(e) => {
                       search(e.target.value);
                     }}
-                    value={instructorSearchTerm} id="instructorInput" />
+                    value={instructorSearchTerm} id="instructorInput"
+                    autocomplete="off"
+                    />
                   <Box
                     as="button"
                     onClick={() => {

@@ -300,9 +300,7 @@ export const EditProgram = () => {
             // move to the next date based on the repeat logic
             currentDate = addFunction(currentDate, step);
         }
-
         console.log(dates)
-
         return dates
     };
 

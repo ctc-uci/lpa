@@ -1,36 +1,11 @@
-import { useEffect, useRef, useState } from "react";
 
-
-
-import { Button, Icon, useDisclosure } from "@chakra-ui/react";
-
-
-
+import { useEffect, useRef, useState, React } from "react";
+import { Button, Icon, useDisclosure, useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-
-
-
-
-
-
 import "./EditProgram.css";
-
-
-
-import React from "react";
-
-
-
-import { useToast } from "@chakra-ui/react";
-
-
-
 import { CiCircleMore } from "react-icons/ci";
 import { IoCloseOutline } from "react-icons/io5";
 import { useParams } from "react-router";
-
-
-
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
@@ -72,7 +47,6 @@ export const AddProgram = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedDays, setSelectedDays] = useState([]);
-  const [bookingIds, setBookingIds] = useState([]);
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
@@ -99,7 +73,7 @@ export const AddProgram = () => {
       endDate,
       selectedDays,
     });
-  }, []); // Runs only once when component mounts
+  }, []);
 
   useEffect(() => {
     const currentState = JSON.stringify({
@@ -225,7 +199,7 @@ export const AddProgram = () => {
       (day) => dayMap[day]
     );
 
-    const start = new Date(startDate + "T00:00:00"); // Add time to avoid UTC conversion
+    const start = new Date(startDate + "T00:00:00");
     const end = new Date(endDate + "T23:59:59");
     const dates = [];
 
@@ -396,22 +370,13 @@ export const AddProgram = () => {
           customRepeatType
         );
         for (const date of dates) {
-          console.log(date);
-          const daysMap = {
-            0: "Sun",
-            1: "Mon",
-            2: "Tue",
-            3: "Wed",
-            4: "Thu",
-            5: "Fri",
-            6: "Sat",
-          };
-          const dayOfWeek = daysMap[new Date(date.date).getDay()]; // get which day of the week it is during the date
+          console.log(date)
+          const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
+          const dayOfWeek = daysMap[(new Date(date.date).getDay())];
 
           const start = selectedDays[dayOfWeek].start;
           const end = selectedDays[dayOfWeek].end;
 
-          // make object
           const bookingsData = {
             event_id: newEventId,
             room_id: selectedLocationId,
@@ -444,7 +409,6 @@ export const AddProgram = () => {
         const start = date.start;
         const end = date.end;
 
-        // make object
         const bookingsData = {
           event_id: newEventId,
           room_id: selectedLocationId,

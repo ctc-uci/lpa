@@ -3,9 +3,6 @@ import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { useBackendContext } from '../contexts/hooks/useBackendContext';
-import { IconButton } from "@chakra-ui/react";
-import { DownloadIcon } from "@chakra-ui/icons";
-
 
 const styles = StyleSheet.create({
   page: {
@@ -51,8 +48,8 @@ const styles = StyleSheet.create({
   }
 });
 
-const MyDocument = ({ bookingData }) => { 
-  return ( 
+const MyDocument = ({ bookingData }) => {
+  return (
     <Document>
       <Page size="A4" style={styles.page}>
         {bookingData && bookingData.map((element) => (
@@ -103,5 +100,5 @@ const PDFButton = () => {
     </div>
   );
 };
-  
+
 export default PDFButton;

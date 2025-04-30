@@ -8,10 +8,45 @@ import { LocationIcon } from "../../assets/LocationIcon";
 import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
 import { ProfileIcon } from "../../assets/ProfileIcon";
 import { RepeatIcon } from "../../assets/RepeatIcon";
+import { ArchiveIcon } from "../../assets/ArchiveIcon";
+import { CalendarIcon } from "../../assets/CalendarIcon";
+import { EditIcon } from "../../assets/EditIcon";
+import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
+import { ArtistIcon } from "../../assets/ArtistsIcon";
+import { DeleteIconRed } from "../../assets/DeleteIconRed";
+import { DollarBill } from "../../assets/DollarBill";
+import { DuplicateIcon } from "../../assets/DuplicateIcon";
+import clockSvg from "../../assets/icons/clock.svg";
+import personSvg from "../../assets/icons/person.svg";
+import { CustomOption } from "../../assets/CustomOption";
+import {
+  archiveCalendar,
+  archiveClock,
+  archiveMapPin,
+  DollarIcon,
+  DownloadIcon,
+  filterButton,
+  filterDateCalendar,
+  sessionsCalendar,
+  sessionsEllipsis,
+  sessionsFilterClock,
+  sessionsFilterMapPin,
+  summaryIcon,
+} from "../../assets/icons/ProgramIcons";
+import { LocationPin } from "../../assets/LocationPin";
+import { PersonIcon } from "../../assets/PersonIcon";
+import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
+import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
+import { ReactivateIcon } from "../../assets/ReactivateIcon";
+import { SessionsBookmark } from "../../assets/SessionsBookmark";
 
-import "./Program.css";
+import {
+  ChevronLeftIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
 
-import { ChevronLeftIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
@@ -60,6 +95,10 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 
+
+import "./Program.css";
+import { SessionFilter } from "../filters/SessionsFilter";
+// import { CancelSessionModal } from "./CancelSessionModal";
 import {
   Document,
   Page,
@@ -70,32 +109,14 @@ import {
 } from "@react-pdf/renderer";
 import { EllipsisIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-import { ArchiveIcon } from "../../assets/ArchiveIcon";
-import { CalendarIcon } from "../../assets/CalendarIcon";
-import { EditIcon } from "../../assets/EditIcon";
-import clockSvg from "../../assets/icons/clock.svg";
-import personSvg from "../../assets/icons/person.svg";
-import {
-  archiveCalendar,
-  archiveClock,
-  archiveMapPin,
-  DollarIcon,
-  DownloadIcon,
-  filterButton,
-  filterDateCalendar,
-  sessionsCalendar,
-  sessionsEllipsis,
-  sessionsFilterClock,
-  sessionsFilterMapPin,
-  summaryIcon,
-} from "../../assets/icons/ProgramIcons";
-import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import DateSortingModal from "../filters/DateFilter";
+import { ProgramFilter } from "../filters/ProgramsFilter";
+import { DateRange } from "./DateRange";
+import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 import { SearchBar } from "../searchBar/SearchBar";
 
 const ClockIcon = React.memo(() => (
@@ -119,6 +140,7 @@ export const ProgramSummary = ({
   isArchived,
   setIsArchived,
   eventId,
+  sessions,
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -133,6 +155,21 @@ export const ProgramSummary = ({
   const [lastDay, setLastDay] = useState();
   const [dayTimePattern, setDayTimePattern] = useState();
 
+  const getFilteredAndSortedSessions = () => {
+    if (!sessions || sessions.length === 0) return [];
+
+    const filteredSessions = sessions.filter((session) => !session.archived);
+
+    const sortedSessions = [...filteredSessions].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateA - dateB;
+    });
+
+    return sortedSessions;
+  };
+
+  const filteredAndSortedSessions = getFilteredAndSortedSessions();
   const {
     isOpen: popoverIsOpen,
     onOpen: popoverOnOpen,
@@ -153,7 +190,6 @@ export const ProgramSummary = ({
     setSelectedAction(action);
     setSelectedIcon(iconSrc);
   };
-  //const [loading, setLoading] = useState(false);
 
   const formatTimeString = (timeString) => {
     if (!timeString) return "";
@@ -173,11 +209,13 @@ export const ProgramSummary = ({
 
   const setArchived = async (boolean) => {
     await backend.put(`/programs/` + eventId, { archived: boolean });
+    await backend.put(`/programs/updateSessionArchive/` + eventId, {
+      archived: boolean,
+    });
   };
 
   const duplicateProgram = async () => {
     const eventResponse = await backend.get("/events/allInfo/" + eventId);
-    console.log(eventResponse);
     const eventName = eventResponse.data[0].eventname;
     const generalInformation = eventResponse.data[0].eventdescription;
 
@@ -539,18 +577,24 @@ export const ProgramSummary = ({
                     }
                   }}
                 >
-                  <Flex align="center">
+                  <Button
+                    display="flex"
+                    height="40px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    fontSize="14px"
+                    fontWeight="700"
+                    borderRadius="6px"
+                    onClick={exit}
+                  >
                     <Icon
                       as={ChevronLeftIcon}
-                      boxSize={6}
-                    />
-                    <Text
-                      fontSize="14px"
-                      fontWeight="700"
-                    >
-                      {isArchived ? "Archives" : "Programs"}
-                    </Text>
-                  </Flex>
+                      boxSize={5}
+                    />{" "}
+                    {isArchived ? "Archives" : "Programs"}
+                  </Button>
                 </Flex>
 
                 <Flex
@@ -574,7 +618,6 @@ export const ProgramSummary = ({
                       setIsArchived={setIsArchived}
                     />
                   )}
-
                   <Modal
                     isOpen={modalIsOpen}
                     onClose={modalOnClose}
@@ -630,7 +673,14 @@ export const ProgramSummary = ({
               <Stack spacing={6}>
                 <Heading
                   as="h2"
+                  size="md"
+                  textColor="gray.600"
+                  fontFamily="Inter"
                   fontSize="24px"
+                  fontStyle="normal"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  coilor="#2D3748"
                 >
                   {program[0]?.name || "Untitled Program"}
                 </Heading>
@@ -646,117 +696,59 @@ export const ProgramSummary = ({
                 </Flex>
 
                 <Flex
-                  align="center"
-                  gap={2}
+                  align="flex-start"
+                  gap={4}
+                  color="gray.700"
+                  direction="column"
+                  alignSelf="stretch"
                 >
-                  <Icon as={ClockIcon} />
-                  <Stack>
-                    {/* {nextSession
-                      ? `${formatTimeString(nextSession.startTime)} - ${formatTimeString(nextSession.endTime)}`
-                      : "No session scheduled"} */}
-                    {dayTimePattern
-                      ? dayTimePattern.map(([day, times]) => (
-                          <Flex
-                            key={day}
-                            width="25rem"
-                          >
-                            <Text width="10rem">
-                              {formatTimeString(times[0].split(" - ")[0])} -{" "}
-                              {formatTimeString(times[0].split(" - ")[1])}
-                            </Text>
-                            <Text
-                              key={day}
-                              width="12rem"
-                            >
-                              {" "}
-                              on {shortenDayOfWeek(day)}
-                            </Text>
-                          </Flex>
-                        ))
-                      : "No session scheduled"}
-                  </Stack>
-                </Flex>
-                <Flex
-                  align="center"
-                  gap={2}
-                >
-                  <Icon as={CalendarIcon} />
-                  <HStack spacing=".5rem">
-                    <Text>Starts on</Text>
-                    <Text
-                      as="span"
-                      fontWeight="500"
-                    >
-                      {startDay}
-                    </Text>
-                    <Text
-                      as="span"
-                      fontWeight="500"
-                    >
-                      {nextSession?.date
-                        ? new Date(nextSession.date).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            }
-                          )
-                        : "No date available"}
-                    </Text>
-                    <Text>and ends on</Text>
-                    <Text
-                      as="span"
-                      fontWeight="500"
-                    >
-                      {lastDay}
-                    </Text>
-                    <Text
-                      as="span"
-                      fontWeight="500"
-                    >
-                      {lastBooking
-                        ? new Date(lastBooking).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                          })
-                        : "No date available"}
-                    </Text>
-                  </HStack>
-                </Flex>
-                <Flex
-                  align="center"
-                  gap={2}
-                >
-                  <Icon as={PaintPaletteIcons} />
-                  <Text>
-                    {instructors?.length > 0
-                      ? instructors
-                          .map((instructor) => instructor.clientName)
-                          .join(", ")
-                      : "No instructors"}
-                  </Text>
-                </Flex>
-                <Flex
-                  align="center"
-                  gap={2}
-                >
-                  <Icon as={ProfileIcon} />
-                  <Text>
-                    {payees?.length > 0
-                      ? payees.map((payee) => payee.clientName).join(", ")
-                      : "No payees"}
-                  </Text>
-                </Flex>
-
-                <Flex
-                  spacing={2}
-                  gap={6}
-                >
+                  <Flex
+                    gap={2}
+                    textAlign={"center"}
+                    alignContent={"center"}
+                    direction={"row"}
+                  >
+                    <CustomOption />
+                    <Text>Custom</Text>
+                  </Flex>
+                  <Flex
+                    alignItems="center"
+                    gap="2"
+                  >
+                    <ClockFilled />
+                    <Flex direction="column">
+                      <WeeklyRepeatingSchedule
+                        sessions={filteredAndSortedSessions}
+                      />
+                    </Flex>
+                  </Flex>
+                  <Flex
+                    direction="row"
+                    alignItems="center"
+                    gap="2"
+                  >
+                    <ProgramsCalendarIcon />
+                    <DateRange sessions={filteredAndSortedSessions} />
+                  </Flex>
                   <Flex
                     align="center"
                     gap={2}
+                  >
+                    <ArtistIcon />
+                    <Text
+                      color="#2D3748"
+                      fontWeight="500"
+                    >
+                      {instructors?.length > 0
+                        ? instructors
+                            .map((instructor) => instructor.clientName)
+                            .join(", ")
+                        : "No instructors"}
+                    </Text>
+                  </Flex>
+                  <Flex
+                    spacing={2}
+                    gap={6}
                   >
                     <Icon as={EmailIcon} />
                     <Text>
@@ -768,50 +760,103 @@ export const ProgramSummary = ({
                         : "No emails available"}
                     </Text>
                   </Flex>
-                </Flex>
 
-                <Flex
-                  align="center"
-                  gap={8}
-                >
+                  <Flex
+                    spacing={2}
+                    gap={6}
+                  >
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <ProgramEmailIcon />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {payees?.length > 0
+                          ? [...(payees || [])]
+                              .map((person) => person?.clientEmail)
+                              .filter(Boolean)
+                              .join(", ")
+                          : "No emails available"}
+                      </Text>
+                    </Flex>
+                  </Flex>
+
                   <Flex
                     align="center"
-                    gap={2}
+                    gap={12}
                   >
-                    <Icon as={LocationIcon} />
-                    <Text>{nextRoom?.name || "-"}</Text>
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <LocationPin />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {nextRoom?.name || "-"}
+                      </Text>
+                    </Flex>
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <DollarBill />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {nextRoom?.rate || "-.--"}
+                      </Text>
+                      <Text color="gray.600">/ hour</Text>
+                    </Flex>
                   </Flex>
-                  <Flex
-                    align="center"
-                    gap={2}
-                  >
-                    <DollarIcon />
-                    <Text>{nextRoom?.rate || "-.--"}</Text>
-                    <Text>/ hour</Text>
-                  </Flex>
+                  <Stack spacing={6}>
+                    <Box spacing={2}>
+                      <Heading
+                        size="md"
+                        textColor="gray.600"
+                        fontFamily="Inter"
+                        fontSize="16px"
+                        fontWeight="700"
+                        lineHeight="normal"
+                      >
+                        Room Description
+                      </Heading>
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                        mt={4}
+                        fontSize={14}
+                      >
+                        {nextRoom?.description || "No description available"}
+                      </Text>
+                    </Box>
+
+                    <Box>
+                      <Heading
+                        size="md"
+                        textColor="gray.600"
+                        fontSize="16px"
+                        fontStyle="normal"
+                        fontWeight="700"
+                      >
+                        Program Description
+                      </Heading>
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                        mt={4}
+                        fontSize={14}
+                      >
+                        {program[0]?.description || "No description available"}
+                      </Text>
+                    </Box>
+                  </Stack>
                 </Flex>
-
-                <Stack spacing={6}>
-                  <Box spacing={2}>
-                    <Heading size="md">Room Description</Heading>
-                    <Text
-                      text="xs"
-                      mt={4}
-                    >
-                      {nextRoom?.description || "No description available"}
-                    </Text>
-                  </Box>
-
-                  <Box>
-                    <Heading size="md">Class Description</Heading>
-                    <Text
-                      text="xs"
-                      mt={4}
-                    >
-                      {program[0]?.description || "No description available"}
-                    </Text>
-                  </Box>
-                </Stack>
               </Stack>
             </CardBody>
           </Card>
@@ -837,10 +882,83 @@ export const Sessions = ({
   payees,
   isArchived,
   setIsArchived,
+  refreshSessions,
 }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const { backend } = useBackendContext();
   const navigate = useNavigate();
   const [programToDelete, setProgramToDelete] = useState(null);
+  const {
+    isOpen: cancelModalIsOpen,
+    onOpen: openCancelModal,
+    onClose: closeCancelModal,
+  } = useDisclosure();
+
+  const handleConfirmCancel = async (action, reason, waivedFees) => {
+    // Create an array of session IDs
+    const sessionIds = selectedSessions;
+
+    // Close the modal first to improve perceived performance
+    closeCancelModal();
+
+    try {
+      if (action === "Archive") {
+        // Call the batch archive endpoint
+        await batchArchiveSessions(sessionIds, reason, waivedFees);
+      } else if (action === "Delete") {
+        // Call the batch delete endpoint
+        await batchDeleteSessions(sessionIds, reason);
+      }
+
+      // Reset selected sessions
+      setSelectedSessions([]);
+      setIsSelected(false);
+
+      // Refresh the sessions data
+      refreshSessions();
+    } catch (error) {
+      console.error("Error handling session action:", error);
+    }
+  };
+  const batchArchiveSessions = async (sessionIds, reason, waivedFees) => {
+    try {
+      const response = await backend.post("/bookings/batch/archive", {
+        sessionIds,
+        reason,
+        waivedFees,
+      });
+
+      if (response.data.result === "success") {
+        console.log(`Successfully archived ${sessionIds.length} sessions`);
+        setSelectedSessions([]);
+        setIsSelected(false);
+      } else {
+        console.error("Error archiving sessions:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Failed to archive sessions:", error);
+    }
+  };
+
+  const batchDeleteSessions = async (sessionIds, reason) => {
+    try {
+      const response = await backend.delete("/bookings/batch/delete", {
+        data: { sessionIds, reason }, // For DELETE requests, axios requires data in a 'data' property
+      });
+
+      if (response.data.result === "success") {
+        console.log(`Successfully deleted ${sessionIds.length} sessions`);
+        setSelectedSessions([]);
+        setIsSelected(false);
+      } else {
+        console.error("Error deleting sessions:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Failed to delete sessions:", error);
+    }
+  };
+
+  const [isSelected, setIsSelected] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [status, setStatus] = useState("All");
@@ -850,6 +968,8 @@ export const Sessions = ({
   const [sortKey, setSortKey] = useState("date"); // Default to sorting by date
   const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
   // At the top of your Sessions component where other state variables are defined
+   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
+    []);
 
   const roomsMap = useMemo(() => {
     return rooms ?? new Map();
@@ -861,51 +981,91 @@ export const Sessions = ({
       navigate(`/bookings/edit/${id}`);
     },
     [navigate]
-  );
 
-  const handleDeactivate = useCallback(
-    (id) => {
-      setProgramToDelete(id);
-      onOpen();
-    },
-    [onOpen]
-  );
+  const [filteredSessions, setFilteredSessions] = useState([]);
 
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-
-    // Format the date to "Mon 01/17/2025"
-    const options = {
-      weekday: "short", // "Mon"
-      year: "numeric", // "2025"
-      month: "2-digit", // "01"
-      day: "2-digit",
-    };
-    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
-    formattedDate = formattedDate.replace(",", ".");
-    return formattedDate;
+  const handleStatusChange = (newStatus) => {
+    setStatus(newStatus);
   };
 
-  const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(":").map(Number);
+  console.log(filteredAndSortedSessions);
+  const [sessionMap, setSessionMap] = useState({});
 
-    // Determine AM or PM suffix
-    const period = hours >= 12 ? "p.m." : "a.m.";
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-    // Convert to 12-hour format
-    const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+  const totalSessions = filteredAndSortedSessions?.length || 0;
+  const totalPages = Math.ceil(totalSessions / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalSessions);
 
-    // Return formatted time
-    return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  const currentPageSessions =
+    filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
+
+  const [selectMenuOpen, setSelectMenuOpen] = useState(false);
+  const [selectOption, setSelectOption] = useState("Select");
+  const [selectedSessions, setSelectedSessions] = useState([]);
+
+  console.log("Selected Sessions:", selectedSessions);
+
+  const handleSessionSelection = (sessionId) => {
+    setSelectedSessions((prev) => {
+      if (prev.includes(sessionId)) {
+        return prev.filter((id) => id !== sessionId);
+      } else {
+        return [...prev, sessionId];
+      }
+    });
   };
 
-  // Add this effect to handle both filtering and sorting whenever relevant dependencies change
-  const filterSessions = () => {
-    // Step 1: Filter the sessions
-    return sessions.filter((session) => {
+  const handleSelectOption = (option) => {
+    const originalOption = option;
+    setSelectOption(option);
+    setSelectMenuOpen(false);
+
+    if (option === "Select all") {
+      setSelectedSessions(currentPageSessions.map((session) => session.id));
+    } else if (originalOption === "Deselect") {
+      // Deselect all sessions
+      setSelectedSessions([]);
+      setSelectOption("Select");
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSessions.length === currentPageSessions.length) {
+      setSelectedSessions([]);
+    } else {
+      setSelectedSessions(currentPageSessions.map((session) => session.id));
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  useEffect(() => {
+    if (!sessions || !rooms) return;
+
+    const newSessionMap = {};
+
+    const filtered = sessions.filter((session) => {
       const sessionDate = new Date(session.date);
       const sessionStartTime = session.startTime;
       const sessionEndTime = session.endTime;
+      newSessionMap[session.id] = session;
 
       const isDateInRange =
         (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
@@ -945,35 +1105,18 @@ export const Sessions = ({
         matchesSearch
       );
     });
-  };
+    setSessionMap(newSessionMap); // set sessionMap
 
-  const filteredAndSortedSessions = useMemo(() => {
-    if (
-      !programName ||
-      !sessions ||
-      !roomsMap ||
-      !programName ||
-      !instructors ||
-      !payees
-    )
-      return;
-    // Step 2: Sort the filtered sessions
-    const filtered = filterSessions();
+    console.log(newSessionMap);
     const sorted = [...filtered];
 
-    if (sortKey === "title") {
-      sorted.sort((a, b) =>
-        sortOrder === "asc"
-          ? a.programName.localeCompare(b.programName)
-          : b.programName.localeCompare(a.programName)
-      );
-    } else if (sortKey === "date") {
+    if (sortKey === "date") {
       sorted.sort((a, b) => {
         const aInvalid = !a.date || a.date === "N/A";
         const bInvalid = !b.date || b.date === "N/A";
 
         if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1; // Push invalid dates to the end
+        if (aInvalid) return 1;
         if (bInvalid) return -1;
 
         const dateA = new Date(a.date);
@@ -982,10 +1125,9 @@ export const Sessions = ({
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
     }
+    setFilteredAndSortedSessions(sorted);
 
-    // Step 3: Set the filtered and sorted sessions
-    // setFilteredAndSortedSessions(sorted);
-    return sorted;
+    setCurrentPage(1);
   }, [
     dateRange,
     timeRange,
@@ -1000,10 +1142,43 @@ export const Sessions = ({
     searchQuery,
   ]);
 
+  useEffect(() => {
+    if (sessions && sessions.length > 0) {
+      setFilteredSessions(sessions);
+    }
+  }, [sessions]);
+
   // Function to update sorting
   const handleSortChange = (key, order) => {
     setSortKey(key);
     setSortOrder(order);
+  };
+
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+
+    const options = {
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    };
+    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
+    formattedDate = formattedDate.replace(",", ".");
+    return formattedDate;
+  };
+
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(":").map(Number);
+
+    // Determine AM or PM suffix
+    const period = hours >= 12 ? "p.m." : "a.m.";
+
+    // Convert to 12-hour format
+    const formattedHours = hours % 12 || 12;
+
+    // Return formatted time
+    return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
 
   const hasTimePassed = (dateTimeString) => {
@@ -1012,14 +1187,9 @@ export const Sessions = ({
     const currentTime = new Date();
     return currentTime > givenTime;
   };
+  if (!rooms || rooms.length === 0) {
+    return <div>Loading...</div>;
 
-  // Make sure sessions data is fetched before rendering
-  // if (!sessions || sessions.length === 0) {
-  //   return <div>Loading...</div>; // Possibly change loading indicator
-  // }
-  // Make sure rooms is fetched before rendering
-  if (!rooms || roomsMap.length === 0) {
-    return <div>Loading...</div>; // Possibly change loading indicator
   }
 
   const handleDateChange = (field, value) => {
@@ -1051,7 +1221,7 @@ export const Sessions = ({
           gap={2}
           mb={4}
         >
-          <Icon as={sessionsCalendar} />
+           <SessionsBookmark />
           <Text className="componentTitleText">Sessions</Text>
         </Flex>
         <Card
@@ -1061,53 +1231,312 @@ export const Sessions = ({
           borderRadius="15px"
         >
           <CardBody
-            m={0}
-            p={6}
+            m={6}
+            display="flex"
+            flexDirection="column"
+            justifyContent="space-between"
           >
-            <Flex direction="column">
+            <Flex direction="column" justify="space-between">
               <Flex
                 gap="12px"
-                height="auto"
-                justifyContent="space-between"
+                alignItems="center"
               >
-                <Flex gap="12px">
-                  <Button
-                    fontWeight="bold"
-                    fontSize="14px"
-                    borderRadius="6px"
-                    backgroundColor="#EDF2F7"
-                    height="38px"
-                    px="20px"
-                    _hover={{ bg: "#e0e6ed" }}
+                <Box position="relative">
+                <Button
+                  style={{
+                    display: "flex",
+                    height: "40px",
+                    padding: "0px 16px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "4px",
+                    flex: "1 0 0",
+                    borderRadius: "6px",
+                    backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
+                    color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    fontStyle: "normal",
+                    fontWeight: "700",
+                    lineHeight: "normal",
+                    letterSpacing: "0.07px",
+                  }}
+                  onClick={() => {
+                    setSelectMenuOpen(!selectMenuOpen);
+                    setIsSelected(true);
+                  }}
+                  data-select-menu="true"
+                >
+                  {selectOption}
+                </Button>
+                {selectMenuOpen && (
+                  <Box
+                    position="absolute"
+                    top="45px"
+                    left="0"
+                    display="flex"
+                    width="85px"
+                    padding="4px"
+                    flexDirection="column"
+                    alignItems="flex-start"
+                    gap="10px"
+                    borderRadius="4px"
+                    border="1px solid var(--Secondary-3, #E2E8F0)"
+                    background="#FFF"
+                    boxShadow="0px 1px 2px 0px rgba(0, 0, 0, 0.05)"
+                    zIndex="10"
                   >
-                    Select
-                  </Button>
-                  <Popover>
-                    <PopoverTrigger>
+                    <Stack
+                      spacing="0"
+                      width="100%"
+                    >
                       <Button
-                        color="#1e293b"
-                        fontWeight="bold"
-                        backgroundColor="#EDF2F7"
-                        variant="outline"
-                        minWidth="auto"
-                        height="38px"
-                        border="none"
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => handleSelectOption("Select")}
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
                       >
-                        <Box
-                          display="flex"
-                          flexDirection="row"
-                          alignItems="center"
-                          gap="5px"
-                        >
-                          <Icon as={filterButton} />
-                          <Text fontSize="sm"> Filters </Text>
-                        </Box>
+                        Select
                       </Button>
-                    </PopoverTrigger>
-                    <Portal>
-                      <PopoverContent>
-                        <Box margin="16px">
-                          <PopoverBody>
+                      <Button
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => handleSelectOption("Select all")}
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
+                        letterSpacing={
+                          selectOption === "Select all" ? "0.07px" : "normal"
+                        }
+                      >
+                        Select all
+                      </Button>
+                      <Button
+                        justifyContent="flex-start"
+                        fontWeight="normal"
+                        bg="white"
+                        _hover={{ bg: "#f2f6fb" }}
+                        onClick={() => {
+                          setSelectOption(false);
+                          handleSelectOption("Deselect");
+                          setIsSelected(false);
+                        }}
+                        borderRadius="2px"
+                        height="30px"
+                        width="100%"
+                        padding="4px 8px"
+                        fontSize="14px"
+                        color={
+                          selectOption === "Deselect"
+                            ? "var(--Primary-5-Default, #4441C8)"
+                            : "inherit"
+                        }
+                        letterSpacing={
+                          selectOption === "Deselect" ? "0.07px" : "normal"
+                        }
+                      >
+                        Deselect
+                      </Button>
+                    </Stack>
+                  </Box>
+                )}
+              </Box>
+
+              {/* Cancel button - only shows when isSelected is true */}
+              {isSelected && (
+                <button
+                  style={{
+                    display: "flex",
+                    height: "40px",
+                    padding: "0px 16px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "4px",
+                    borderRadius: "6px",
+                    background: "var(--destructive, #90080F)",
+                    color: "white",
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    fontStyle: "normal",
+                    fontWeight: "700",
+                    lineHeight: "normal",
+                    letterSpacing: "0.07px",
+                    border: "none",
+                    cursor:
+                      selectedSessions.length > 0 ? "pointer" : "not-allowed",
+                    opacity: selectedSessions.length > 0 ? 1 : 0.6,
+                  }}
+                  onClick={() => {
+                    if (selectedSessions.length > 0) {
+                      openCancelModal();
+                    }
+                  }}
+                  disabled={selectedSessions.length === 0}
+                >
+                  <CancelIcon />{" "}
+                  {selectOption === "Select all"
+                    ? "All"
+                    : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
+                </button>
+              )}
+
+              <Popover onClose={onClose}>
+                <PopoverTrigger>
+                  <Button
+                    display="flex"
+                    height="40px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    borderRadius="6px"
+                    bg="var(--Secondary-2-Default, #EDF2F7)"
+                    color="#2D3748"
+                    fontFamily="Inter"
+                    fontSize="14px"
+                    onClick={onOpen}
+                    border="none"
+                  >
+                    <Box
+                      display="flex"
+                      flexDirection="row"
+                      alignItems="center"
+                      gap="5px"
+                    >
+                      <SessionFilter
+                        sessions={sessions}
+                        setFilteredSessions={setFilteredSessions}
+                        rooms={rooms}
+                      />
+                    </Box>
+                  </Button>
+                          <FormControl id="date">
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              justifyContent="center"
+                              alignItems="flex-start"
+                              gap="16px"
+                              alignSelf="stretch"
+                            >
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="5px"
+                                alignSelf="stretch"
+                              >
+                                <CalendarIcon />
+                                <Text
+                                  fontWeight="bold"
+                                  color="#767778"
+                                >
+                                  DATE
+                                </Text>
+                              </Box>
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="8px"
+                              >
+                                <Input
+                                  size="sm"
+                                  borderRadius="5px"
+                                  borderColor="#D2D2D2"
+                                  backgroundColor="#F6F6F6"
+                                  width="35%"
+                                  height="20%"
+                                  type="date"
+                                  placeholder="MM/DD/YYYY"
+                                  onChange={(e) =>
+                                    handleDateChange("start", e.target.value)
+                                  }
+                                />
+                                <Text> to </Text>
+                                <Input
+                                  size="sm"
+                                  borderRadius="5px"
+                                  borderColor="#D2D2D2"
+                                  backgroundColor="#F6F6F6"
+                                  width="35%"
+                                  height="20%"
+                                  type="date"
+                                  placeholder="MM/DD/YYYY"
+                                  onChange={(e) =>
+                                    handleDateChange("end", e.target.value)
+                                  }
+                                />
+                              </Box>
+                            </Box>
+                          </FormControl>
+                          <FormControl id="time">
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              justifyContent="center"
+                              alignItems="flex-start"
+                              gap="16px"
+                              alignSelf="stretch"
+                            >
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="5px"
+                                alignSelf="stretch"
+                              >
+                                <Icon as={sessionsFilterClock} />
+                                <Text
+                                  fontWeight="bold"
+                                  color="#767778"
+                                >
+                                  Time
+                                </Text>
+                              </Box>
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="8px"
+                              >
+                                <Input
+                                  size="xs"
+                                  borderRadius="5px"
+                                  borderColor="#D2D2D2"
+                                  backgroundColor="#F6F6F6"
+                                  width="30%"
+                                  height="20%"
+                                  type="time"
+                                  placeholder="00:00 am"
+                                  onChange={(e) =>
+                                    handleTimeChange("start", e.target.value)
+                                  }
+                                />
+                                <Text> to </Text>
+                                <Input
+                                  size="xs"
+                                  borderRadius="5px"
+                                  borderColor="#D2D2D2"
+                                  backgroundColor="#F6F6F6"
+                                  width="30%"
+                                  height="20%"
+                                  type="time"
+                                  placeholder="00:00 pm"
+                                  onChange={(e) =>
+                                    handleTimeChange("end", e.target.value)
+                                  }
+                                />
+                              </Box>
+                            </Box>
+                          </FormControl>
+                          <FormControl id="status">
                             <Box
                               display="flex"
                               flexDirection="column"
@@ -1115,14 +1544,45 @@ export const Sessions = ({
                               gap="24px"
                               alignSelf="stretch"
                             >
-                              <FormControl id="date">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
+                              <Text
+                                fontWeight="bold"
+                                color="#767778"
+                                visibility={isSelected ? "visible" : "hidden"}
+                              >
+                                Status
+                              </Text>
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="8px"
+                              >
+                                <Button
+                                  borderRadius="30px"
+                                  borderWidth="1px"
+                                  minWidth="auto"
+                                  height="20%"
+                                  onClick={() => setStatus("All")}
+                                  backgroundColor={
+                                    status === "All" ? "#EDEDFD" : "#F6F6F6"
+                                  }
+                                  borderColor={
+                                    status === "All" ? "#4E4AE7" : "#767778"
+                                  }
+                                >
+                                  All
+                                </Button>
+                                <Button
+                                  borderRadius="30px"
+                                  borderWidth="1px"
+                                  minWidth="auto"
+                                  height="20%"
+                                  onClick={() => setStatus("Active")}
+                                  backgroundColor={
+                                    status === "Active" ? "#EDEDFD" : "#F6F6F6"
+                                  }
+                                  borderColor={
+                                    status === "Active" ? "#4E4AE7" : "#767778"
+                                  }
                                 >
                                   <Box
                                     display="flex"
@@ -1354,16 +1814,12 @@ export const Sessions = ({
                                     gap="5px"
                                     alignSelf="stretch"
                                   >
-                                    <Icon as={sessionsFilterMapPin} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Room
-                                    </Text>
-                                  </Box>
-                                  <Wrap spacing={2}>
-                                    <WrapItem>
+                                    All
+                                  </Button>
+                                </WrapItem>
+                                {Array.from(rooms.values()).map(
+                                  (room, index) => (
+                                    <WrapItem key={index}>
                                       <Button
                                         borderRadius="30px"
                                         borderWidth="1px"
@@ -1418,113 +1874,177 @@ export const Sessions = ({
                             </Box>
                           </PopoverBody>
                         </Box>
-                      </PopoverContent>
-                    </Portal>
-                  </Popover>
-                </Flex>
-                <SearchBar
-                  handleSearch={handleSearch}
-                  searchQuery={searchQuery}
-                />
-              </Flex>
-              <TableContainer>
-                <Table variant="unstyled">
-                  <Thead
-                    borderBottom="1px"
-                    color="#D2D2D2"
-                  >
-                    <Tr>
-                      <Th pl={0}>
+                      </PopoverBody>
+                    </Box>
+                  </PopoverContent>
+                </Portal>
+              </Popover>
+            </Flex>
+            <TableContainer>
+              <Table variant="unstyled">
+                <Thead
+                  borderBottom="1px"
+                  color="#D2D2D2"
+                >
+                  <Tr>
+                    {isSelected && <Th />}
+                    {!isArchived ? (
+                      <Th>
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          Status
+                        </Text>
+                      </Th>
+                    ) : (
+                      <div></div>
+                    )}
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        <FilledOutCalendar />
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          DATE
+                        </Text>
                         <Box
                           className="sessionsColumnContainer"
                           justifyContent="left"
                         >
                           <Text className="sessionsColumnTitle">STATUS</Text>
                         </Box>
-                      </Th>
-                      <Th>
-                        <Box className="sessionsColumnContainer">
-                          <Flex
-                            justifyContent="space-between"
-                            width="9rem"
-                          >
-                            <Flex
-                              align="center"
-                              gap="8px"
-                            >
-                              <Box>
-                                <Icon as={archiveCalendar} />
-                              </Box>
-                              <Box>
-                                <Text
-                                  className="sessionsColumnTitle"
-                                  textTransform="none"
-                                >
-                                  DATE
-                                </Text>
-                              </Box>
-                            </Flex>
-                            <Box>
-                              <DateSortingModal
-                                onSortChange={handleSortChange}
-                              />
-                            </Box>
-                          </Flex>
-                        </Box>
-                      </Th>
-                      <Th>
-                        <Box className="sessionsColumnContainer">
-                          <Icon as={archiveClock} />
-                          <Text
-                            className="sessionsColumnTitle"
-                            textTransform="none"
-                          >
-                            UPCOMING TIME
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th>
-                        <Box className="sessionsColumnContainer">
-                          <Icon as={archiveMapPin} />
-                          <Text
-                            className="sessionsColumnTitle"
-                            textTransform="none"
-                          >
-                            ROOM
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th>
-                        <HStack>
-                          <PaintPaletteIcons />
-                          <Text
-                            className="sessionsColumnTitle"
-                            textTransform="none"
-                          >
-                            LEAD ARTIST(S)
-                          </Text>
-                        </HStack>
-                      </Th>
-                      <Th>
-                        <HStack>
-                          <PersonIcon />
-                          <Text
-                            className="sessionsColumnTitle"
-                            textTransform="none"
-                          >
-                            PAYER(S)
-                          </Text>
-                        </HStack>
-                      </Th>
-                      <Th> </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {filteredAndSortedSessions !== undefined &&
-                    filteredAndSortedSessions.length > 0 ? (
-                      filteredAndSortedSessions.map((session) => (
-                        <Tr key={session.id}>
-                          <Td pl={0}>
+                      </Box>
+                    </Th>
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        <Icon as={sessionsClock} />
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          TIME
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        <Icon
+                          as={sessionsMapPin}
+                          boxSize={4}
+                          mr={1}
+                        />
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          ROOM
+                        </Text>
+                      </Box>
+                    </Th>
+                    {/* Add Lead Artist column */}
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        <ArtistIcon />
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          LEAD ARTIST(S)
+                        </Text>
+                      </Box>
+                    </Th>
+                    {/* Add Payees column */}
+                    <Th>
+                      <Box
+                        display="flex"
+                        padding="8px"
+                        justifyContent="center"
+                        alignItems="center"
+                        gap="8px"
+                      >
+                        <PersonIcon />
+                        <Text
+                          textTransform="none"
+                          color="#767778"
+                          fontSize="16px"
+                          fontStyle="normal"
+                        >
+                          PAYEE(S)
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th></Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {filteredSessions.length > 0 ? (
+                    filteredSessions.map((session) => (
+                      <Tr key={session.id}>
+                        {isSelected && (
+                          <Td width="50px">
+                            <Checkbox
+                              isChecked={selectedSessions.includes(session.id)}
+                              onChange={() =>
+                                handleSessionSelection(session.id)
+                              }
+                              sx={{
+                                "& .chakra-checkbox__control[data-checked]": {
+                                  backgroundColor: "#90080F",
+                                  borderColor: "#90080F",
+                                },
+                                "&:hover .chakra-checkbox__control[data-checked]":
+                                  {
+                                    backgroundColor: "#90080F",
+                                    borderColor: "#90080F",
+                                  },
+                                "& .chakra-checkbox__control[data-checked]:hover":
+                                  {
+                                    backgroundColor: "#90080F",
+                                    borderColor: "#90080F",
+                                  },
+                              }}
+                            />
+                          </Td>
+                        )}
+
+                        {!isArchived ? (
+                          <Td>
                             <Box
                               display="flex"
                               justifyContent="left"
@@ -1596,16 +2116,122 @@ export const Sessions = ({
                             No sessions available
                           </Box>
                         </Td>
+                        {/* Add Lead Artist data */}
+                        <Td>
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {session.instructor
+                              ? truncateNames(session.instructor)
+                              : "N/A"}
+                          </Box>
+                        </Td>
+                        {/* Add Payees data */}
+                        <Td>
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {session.payee
+                              ? truncateNames(session.payee)
+                              : "N/A"}
+                          </Box>
+                        </Td>
+                        <Td>
+                          <Icon
+                            boxSize="7"
+                            padding="5px"
+                            borderRadius="6px"
+                            backgroundColor="#EDF2F7"
+                          >
+                            <EllipsisIcon />
+                          </Icon>
+                        </Td>
                       </Tr>
-                    )}
-                  </Tbody>
-                </Table>
-              </TableContainer>
-            </Flex>
-          </CardBody>
-        </Card>
-      </Box>
-    </>
+                    ))
+                  ) : (
+                    <Tr>
+                      <Td colSpan={isArchived ? 6 : 7}>
+                        <Box
+                          textAlign="center"
+                          py={6}
+                          color="gray.500"
+                          fontSize="md"
+                        >
+                          No sessions available
+                        </Box>
+                      </Td>
+                    </Tr>
+                  )}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </Flex>
+
+          {/* Pagination Controls - moved to bottom right */}
+          <Box
+            width="100%"
+            display="flex"
+            justifyContent="flex-end"
+            mt="auto"
+            pt={4}
+          >
+            {totalPages > 1 && (
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                mb={2}
+              >
+                <Text
+                  mr={2}
+                  fontSize="sm"
+                  color="#474849"
+                  fontFamily="Inter, sans-serif"
+                >
+                  {currentPage} of {totalPages}
+                </Text>
+                <Button
+                  onClick={goToPreviousPage}
+                  isDisabled={currentPage === 1}
+                  size="sm"
+                  variant="ghost"
+                  padding={0}
+                  minWidth="auto"
+                  color="gray.500"
+                >
+                  <ChevronLeftIcon />
+                </Button>
+                <Button
+                  onClick={goToNextPage}
+                  isDisabled={currentPage === totalPages}
+                  size="sm"
+                  variant="ghost"
+                  padding={0}
+                  minWidth="auto"
+                  color="gray.500"
+                >
+                  <ChevronRightIcon />
+                </Button>
+              </Flex>
+            )}
+          </Box>
+          <CancelSessionModal
+            isOpen={cancelModalIsOpen}
+            onClose={closeCancelModal}
+            selectedSessions={selectedSessions
+              .map((id) => sessionMap[id])
+              .filter(Boolean)}
+            setSelectedSessions={setSelectedSessions}
+            onConfirm={handleConfirmCancel}
+            eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
+            refreshSessions={refreshSessions}
+          />
+        </CardBody>
+      </Card>
+    </Box>
   );
 };
 
@@ -1679,6 +2305,8 @@ const MyDocument = ({ bookingData }) => {
     </Document>
   );
 };
+
+console.log();
 
 const PDFButton = () => {
   const { backend } = useBackendContext();

@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+
+import { Box, Flex } from "@chakra-ui/react";
+
 import { formatDistanceToNow } from "date-fns";
+import { AiFillMail } from "react-icons/ai";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import { CounterComponent } from "./Counter";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
-import { InboxTab } from "./InboxTab";
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
@@ -18,12 +21,66 @@ export const Notifications = () => {
     endDate: null,
   }); // all, overdue, neardue
 
+  const getDueTime = (endDate) => {
+    const now = new Date();
+    const msInDay = 1000 * 60 * 60 * 24;
+    const daysDiff = (endDate - now) / msInDay;
+
+    // console.log("Days difference:", daysDiff);
+    if (daysDiff >= 0 && daysDiff <= 7) {
+      return formatDistanceToNow(endDate, { addSuffix: true });
+    } else {
+      return endDate
+        .toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "numeric",
+          day: "numeric",
+          year: "numeric",
+        })
+        .replace(/,/g, ".");
+    }
+  };
+
+
+  const getDescription = (payStatus, payers) => {
+    console.log("PAYERS", payers);
+    
+    if (!payers || !payers.length) {
+      return getBaseDescription(payStatus, "unknown recipients");
+    }
+    
+    const instructorNames = payers
+      .filter(payer => payer.role === "instructor")
+      .map(payer => payer.clientName)
+      .filter(name => name && name.trim() !== ""); 
+    
+    if (instructorNames.length === 0) {
+      return getBaseDescription(payStatus, "unknown recipients");
+    }
+    
+    const formattedNames = instructorNames.length === 1 
+      ? instructorNames[0]
+      : `${instructorNames.slice(0, -1).join(", ")}, and ${instructorNames[instructorNames.length - 1]}`;
+    
+    return getBaseDescription(payStatus, formattedNames);
+  };
+  
+  const getBaseDescription = (payStatus, names) => {
+    if (payStatus === "overdue") {
+      return `Payment not recorded 5 days or more since the payment deadline for `;
+    } else if (payStatus === "neardue") {
+      return `Email has not been sent to ${names} 1 week before the payment deadline for `;
+    } else { // highpriority
+      return `Email has not been sent to ${names} 1 week prior and payment not received 5 days past the deadline for `;
+    }
+  };
+
   useEffect(() => {
     const fetchNotifs = async () => {
       try {
         const today = new Date();
         let endpoints = [];
-
+  
         // Only modify the endpoint if we're filtering by type AND it's not "all"
         if (filterType.type === "all") {
           endpoints = [
@@ -34,13 +91,13 @@ export const Notifications = () => {
         } else {
           endpoints = [`/invoices/${filterType.type}`];
         }
-
+  
         const responses = await Promise.all(
           endpoints.map((endpoint) => backend.get(endpoint))
         );
-
+  
         const notifsData = responses.flatMap((res) => res.data);
-
+  
         // Fetch additional data for each invoice (total, paid, event name)
         const enrichedInvoices = await Promise.all(
           notifsData.map(async (invoice) => {
@@ -50,9 +107,13 @@ export const Notifications = () => {
                 backend.get(`/invoices/paid/${invoice.id}`),
                 backend.get(`/events/${invoice.eventId}`),
               ]);
-
+  
+              const eventId = eventRes.data[0]?.id;
+              const payersRes = await backend.get(`/assignments/event/${eventId}`);
+              console.log("HERE", payersRes);
+  
               const endDate = new Date(invoice.endDate);
-              const dueTime = formatDistanceToNow(endDate, { addSuffix: true });
+              const dueTime = getDueTime(endDate);
               let payStatus = "";
               if (endDate < today && invoice.isSent) {
                 payStatus = "overdue";
@@ -61,13 +122,14 @@ export const Notifications = () => {
               } else {
                 payStatus = "neardue";
               }
-
+  
               return {
                 ...invoice,
                 eventName: eventRes.data[0]?.name || "Unknown Event",
                 total: totalRes.data.total,
                 paid: paidRes.data.paid,
                 payStatus,
+                description: getDescription(payStatus, payersRes.data),
                 dueTime,
               };
             } catch (err) {
@@ -82,11 +144,12 @@ export const Notifications = () => {
                 paid: 0,
                 payStatus: "Unknown",
                 dueTime: "Unknown",
+                payers: [],
               };
             }
           })
         );
-
+  
         setNotifications(enrichedInvoices); // attaches additional info onto invoices
       } catch (err) {
         console.error("Failed to fetch invoices", err);
@@ -95,38 +158,43 @@ export const Notifications = () => {
     fetchNotifs();
   }, [filterType, backend]);
 
+
   return (
     <Navbar currentPage="notifications">
-      <div
-        style={{
-          marginLeft: "57px",
-          marginTop: "90px",
-          marginRight: "57px",
-          flex: 1,
-        }}
+      <Box
+        padding="26px"
+        // border="1px"
       >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+        <Flex
+          align="center"
+          gap={5}
+          height="34px"
+          padding="0px 19px 0px 8px"
+          flex-shrink="0"
+          mb="27px"
         >
-          <div className={styles.titleContainer}>
-            <h1 className={styles.title}>Invoice Notifications</h1>
-            <CounterComponent count={notifications.length} />
-          </div>
-        </div>
-        <div style={{display: "flex", flexDirection: "row", gap: "50px", marginBottom: "20px"}}>
-          <InboxTab/>
-          <FilterButton
-            setFilterType={setFilterType}
-            currentFilter={filterType}
-          />
-        </div>
-        <NotificationsComponents notifications={notifications} />
-      </div>
+          <AiFillMail size={28} />
+          <h1 className={styles.title}>Invoice Notifications</h1>
+        </Flex>
+        <Flex
+          w="100%"
+          flexDirection="column"
+          padding="20px"
+          border="1px solid var(--medium-light-grey)"
+          borderRadius="12px"
+        >
+          <Flex
+            justifyContent="space-between"
+            mb="27px"
+          >
+            <FilterButton
+              setFilterType={setFilterType}
+              currentFilter={filterType}
+            />
+          </Flex>
+          <NotificationsComponents notifications={notifications} />
+        </Flex>
+      </Box>
     </Navbar>
   );
 };

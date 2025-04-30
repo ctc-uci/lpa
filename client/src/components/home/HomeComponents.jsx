@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ChevronDownIcon, DeleteIcon } from "@chakra-ui/icons";
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
@@ -8,6 +13,7 @@ import {
   Box,
   Button,
   Checkbox,
+  filter,
   Flex,
   HStack,
   Icon,
@@ -62,10 +68,10 @@ import ProgramSortingModal from "../filters/ProgramFilter";
 import { SearchBar } from "../searchBar/SearchBar";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
+import { ProgramFilter } from "../filters/ProgramsFilter";
 
 import "./Home.css";
 
-// Memoize icon components
 const ActiveStatusIcon = React.memo(() => (
   <img
     src={activeSvg}
@@ -122,7 +128,6 @@ const PersonIcon = React.memo(() => (
   />
 ));
 
-// Memoize the TableRow component to prevent unnecessary re-renders
 const TableRow = React.memo(
   ({
     program,
@@ -195,7 +200,6 @@ const TableRow = React.memo(
   }
 );
 
-// Memoize table headers for better performance
 const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
   <Thead>
     <Tr>
@@ -290,6 +294,9 @@ export const ProgramsTable = () => {
     payee: "all",
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const { backend } = useBackendContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
@@ -297,7 +304,6 @@ export const ProgramsTable = () => {
   // const [selectedAction, setSelectedAction] = useState("Archive");
   // const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
 
-  // Memoize expensive functions
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "No bookings";
     const date = new Date(dateString);
@@ -325,7 +331,6 @@ export const ProgramsTable = () => {
     return `${formatSingleTime(startTime)} - ${formatSingleTime(endTime)}`;
   }, []);
 
-  // Fetch Programs with optimized mapping
   const fetchPrograms = useCallback(async () => {
     try {
       const response = await backend.get("/programs");
@@ -336,14 +341,10 @@ export const ProgramsTable = () => {
         return;
       }
 
-      // Filter active programs first to reduce mapping work
       const activePrograms = response.data.filter(
         (program) => program.archived === false
       );
-
-      // Format programs data for display - optimized mapping
       const programsData = activePrograms.map((program) => {
-        // Handle multiple instructors or payees with a single operation
         const instructor = Array.isArray(program.instructorName)
           ? program.instructorName.join(", ")
           : program.instructorName || "N/A";
@@ -375,7 +376,8 @@ export const ProgramsTable = () => {
       });
 
       setPrograms(programsData);
-      setFilteredPrograms(programsData); // Initialize filtered programs
+      setFilteredPrograms(programsData);
+      setCurrentPage(1);
     } catch (error) {
       console.error("Failed to fetch programs:", error);
     }
@@ -394,14 +396,12 @@ export const ProgramsTable = () => {
     return `${names.substring(0, maxLength)}...`;
   }, []);
 
-  // Apply Filters - optimized with early returns
   const applyFilters = useCallback(() => {
     if (!programs.length) return [];
 
     let result = [...programs];
     const hasSearchTerm = searchTerm.trim() !== "";
 
-    // Apply search filter first as it's likely to filter out many items
     if (hasSearchTerm) {
       const searchLower = searchTerm.toLowerCase();
       result = result.filter((program) =>
@@ -409,9 +409,7 @@ export const ProgramsTable = () => {
       );
     }
 
-    // Only apply other filters if we have a non-empty result
     if (result.length > 0) {
-      // Date Range filter
       if (filters.dateRange.start || filters.dateRange.end) {
         result = result.filter((program) => {
           if (!program.date) return false;
@@ -425,7 +423,6 @@ export const ProgramsTable = () => {
         });
       }
 
-      // Status filter (faster than time range filter)
       if (filters.status !== "all") {
         const statusLower = filters.status.toLowerCase();
         result = result.filter(
@@ -433,12 +430,10 @@ export const ProgramsTable = () => {
         );
       }
 
-      // Room filter (simple equality check)
       if (filters.room !== "all") {
         result = result.filter((program) => program.room === filters.room);
       }
 
-      // Time Range filter (more expensive)
       if (filters.timeRange.start || filters.timeRange.end) {
         result = result.filter((program) => {
           if (program.upcomingTime === "N/A") return false;
@@ -454,7 +449,6 @@ export const ProgramsTable = () => {
         });
       }
 
-      // Instructor filter
       if (filters.instructor !== "all") {
         const instructorLower = filters.instructor.toLowerCase();
         result = result.filter(
@@ -464,7 +458,6 @@ export const ProgramsTable = () => {
         );
       }
 
-      // Payee filter
       if (filters.payee !== "all") {
         const payeeLower = filters.payee.toLowerCase();
         result = result.filter(
@@ -477,13 +470,12 @@ export const ProgramsTable = () => {
     return result;
   }, [programs, filters, searchTerm]);
 
-  // Apply filters when dependencies change
   useEffect(() => {
     const filteredResults = applyFilters();
     setFilteredPrograms(filteredResults);
+    setCurrentPage(1);
   }, [applyFilters]);
 
-  // Memoize sorted programs to avoid recalculation
   const sortedPrograms = useMemo(() => {
     if (!filteredPrograms.length) return [];
 
@@ -499,8 +491,8 @@ export const ProgramsTable = () => {
         const aInvalid = !a.date || a.date === "N/A";
         const bInvalid = !b.date || b.date === "N/A";
         if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1; // a is invalid, push to end
-        if (bInvalid) return -1; // b is invalid, push to end
+        if (aInvalid) return 1;
+        if (bInvalid) return -1;
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
@@ -509,7 +501,30 @@ export const ProgramsTable = () => {
     return sorted;
   }, [filteredPrograms, sortKey, sortOrder]);
 
-  // Handlers - memoized to prevent recreation on each render
+  const totalPrograms = sortedPrograms.length;
+  const totalPages = Math.ceil(totalPrograms / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalPrograms);
+
+  // Get current page data
+  const currentPagePrograms = sortedPrograms.slice(startIndex, endIndex);
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   const handleApplyFilters = useCallback((newFilters) => {
     setFilters(newFilters);
     setIsFiltersModalOpen(false);
@@ -547,6 +562,31 @@ export const ProgramsTable = () => {
     setSearchTerm(query);
   };
 
+  // console.log("filterprograms", filteredPrograms);
+
+  useEffect(() => {
+    const calculateRowsPerPage = () => {
+      const viewportHeight = window.innerHeight;
+      const rowHeight = 56;
+      
+      const availableHeight = viewportHeight * 0.4;
+      
+      console.log(availableHeight / rowHeight)
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
+    };
+  
+    setItemsPerPage(calculateRowsPerPage());
+  
+    const handleResize = () => {
+      setItemsPerPage(calculateRowsPerPage());
+    };
+  
+    window.addEventListener("resize", handleResize);
+  
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   return (
     <>
       <CancelProgram
@@ -581,12 +621,9 @@ export const ProgramsTable = () => {
             searchQuery={searchTerm}
           />
         </Flex>
-
-        <TableContainer className="programs-table__container">
-          <Table
-            variant="simple"
-            size="sm"
-            className="programs-table__table"
+          <TableContainer
+            className="programs-table__container"
+            width="100%"
           >
             <TableHeaders
               handleSortChange={handleSortChange}

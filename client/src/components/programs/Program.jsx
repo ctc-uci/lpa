@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
-import './Program.css';
-import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
+
+import "./Program.css";
+
+import { ChevronLeftIcon} from "@chakra-ui/icons";
+import { FileTextIcon } from "lucide-react";
+import { Box, Flex, IconButton, Text, Icon } from "@chakra-ui/react";
+
 
 import { useParams } from "react-router";
 
+import { InfoIconRed } from "../../assets/InfoIconRed";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
@@ -97,9 +103,9 @@ export const Program = () => {
       const sessionsData = sessionsResponse.data;
 
       sessionsData.sort((a, b) => new Date(a.date) - new Date(b.date));
-
       console.log("programData", sessionsData);
       setSessions(sessionsData);
+      
       // Get set of room ids
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),

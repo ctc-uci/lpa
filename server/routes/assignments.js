@@ -95,7 +95,6 @@ assignmentsRouter.get("/search", async (req, res) => {
 assignmentsRouter.get("/instructors/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    // console.log(req.params)
     const data = await db.query(
       `
         SELECT *
