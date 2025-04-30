@@ -572,11 +572,9 @@ export const ProgramSummary = ({
                   fontWeight="700"
                   borderRadius="6px"
                   onClick={() => {
-                    {
-                      isArchived
-                        ? navigate("/programs/archived")
-                        : navigate("/programs");
-                    }
+                    isArchived
+                      ? navigate("/programs/archived")
+                      : navigate("/programs");
                   }}
                 >
                   <Icon
@@ -1429,9 +1427,7 @@ export const Sessions = ({
                             Status
                           </Text>
                         </Th>
-                      ) : (
-                        null
-                      )}
+                      ) : null}
                       <Th>
                         <Box
                           display="flex"
@@ -1587,9 +1583,7 @@ export const Sessions = ({
                                 ></Box>
                               </Box>
                             </Td>
-                          ) : (
-                            null
-                          )}
+                          ) : null}
                           <Td>
                             <Box
                               display="flex"
