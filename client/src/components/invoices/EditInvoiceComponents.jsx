@@ -554,13 +554,10 @@ const StatementComments = ({
                       >
                         <Flex
                           align="center"
-                          justifyContent="space-evenly"
                           gap="2"
                         >
                           <Text
-                            w="85px"
-                            px="2"
-                            textAlign="center"
+                            whiteSpace="nowrap"
                             fontSize="14px"
                           >
                             {booking.startTime
@@ -583,10 +580,8 @@ const StatementComments = ({
                           </Text>
                           <Text fontSize="14px">-</Text>
                           <Text
-                            w="85px"
-                            px="2"
+                            whiteSpace="nowrap"
                             fontSize="14px"
-                            textAlign="center"
                           >
                             {booking.endTime
                               ? (() => {
