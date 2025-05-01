@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router";
@@ -12,15 +12,19 @@ import {
   Card, 
   CardBody, 
   Icon, 
+  IconButton,
   Heading, 
   TableContainer, 
   Table, 
   Td, 
   Th, 
   Tr, 
+  Menu, 
+  MenuButton, 
+  MenuList, 
+  MenuItem, 
   Thead,
   Input, 
-  Select,
   Select,
   Tab,
   TabList,
@@ -28,15 +32,18 @@ import {
   TabPanels,
   Tabs,
   useDisclosure, 
-  Tbody} from "@chakra-ui/react";
+  Tbody } from "@chakra-ui/react";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { EllipsisIcon } from "lucide-react";
+import { CalendarIcon } from "../../assets/CalendarIcon";
+import { AiOutlinePlus } from 'react-icons/ai';
 
 import Navbar from "../navbar/Navbar";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
-import { MdAddCircleOutline } from "react-icons/md";
+import { IoCloseOutline } from "react-icons/io5";
 import { MdFeaturedPlayList } from "../../assets/MdFeaturedPlayList";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
+import { TbRepeat } from "react-icons/tb";
 import {
   sessionsClock,
   sessionsMapPin,
@@ -48,7 +55,8 @@ import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
 
 
-// TODO: does it also handle edit session?
+// TODO: does it also handle edit session in recurring sessions page?
+// lead artists and payees?
 export const EditRecurringSessions = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
@@ -101,16 +109,25 @@ export const EditRecurringSessions = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const [isRecurring, setIsRecurring] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(true);
   const [isChanged, setIsChanged] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
 
   const [deleteAll, setDeleteAll] = useState(false);
 
   // States for new sessions
+  const [recurringFrequency, setRecurringFrequency] = useState("week");
   const [newSessions, setNewSessions] = useState({
-    single: [],
-    recurring: []
+    single: [{ date: "", startTime: "", endTime: "", roomId: "", archived: false }],
+    recurring: [{ 
+        id: Date.now(), // Just a unique id
+        frequency: recurringFrequency, 
+        weekday: "", 
+        startTime: "", 
+        endTime: "", 
+        roomId: "" ,
+        archived: false
+      }]
   });
 
   // States for general information
@@ -132,10 +149,10 @@ export const EditRecurringSessions = () => {
       recurring: [...prev.recurring, { 
         id: Date.now(), // Just a unique id
         frequency: recurringFrequency, 
-        weekday: weekdaySelection, 
+        weekday: "", 
         startTime: "", 
         endTime: "", 
-        roomId: "" ,
+        roomId: "",
         archived: false
       }]
     }));
@@ -149,33 +166,47 @@ export const EditRecurringSessions = () => {
       )
     }));
   
-    if (type === 'recurring') {
-      const recurringSession = { ...newSessions.recurring[index], [field]: value };
-      if (Object.values(recurringSession).every(val => val !== "")) {
-        const generatedSessions = generateRecurringSessions(recurringSession, startDate, endDate);
-        setIsChanged(true);
-        setAllSessions(prev => {
-          const filteredSessions = prev.filter(s => s.recurringId !== recurringSession.id);
-          return [...filteredSessions, ...generatedSessions.map(s => ({ 
-            ...s, 
-            recurringId: recurringSession.id,
-            isNew: true 
-          }))];
-        });
+    setAllSessions(prev => {
+      let updatedSessions = [...prev];
+  
+      if (type === 'recurring') {
+        const recurringSession = { ...newSessions.recurring[index], [field]: value };
+        
+        // Remove all sessions with this recurringId
+        updatedSessions = updatedSessions.filter(s => s.recurringId !== recurringSession.id);
+  
+        if (Object.values(recurringSession).every(val => val !== "")) {
+          const generatedSessions = generateRecurringSessions(recurringSession, startDate, endDate);
+          updatedSessions = [
+            ...updatedSessions,
+            ...generatedSessions.map(s => ({ 
+              ...s, 
+              recurringId: recurringSession.id,
+              isNew: true 
+            }))
+          ];
+        }
+      } else if (type === 'single') {
+        const singleSession = { ...newSessions.single[index], [field]: value };
+        
+        // Find and update the existing session or add a new one
+        const existingIndex = updatedSessions.findIndex(s => 
+          s.id === singleSession.id || 
+          (s.date === singleSession.date && s.startTime === singleSession.startTime)
+        );
+  
+        if (existingIndex !== -1) {
+          updatedSessions[existingIndex] = { ...updatedSessions[existingIndex], ...singleSession, isNew: true };
+        } else if (Object.values(singleSession).every(val => val !== "")) {
+          updatedSessions.push({ ...singleSession, id: singleSession.id || Date.now(), isNew: true });
+        }
       }
-    } else if (type === 'single') {
-      const singleSession = { ...newSessions.single[index], [field]: value };
-      if (Object.values(singleSession).every(val => val !== "")) {
-        setIsChanged(true);
-        setAllSessions(prev => {
-          // Check for duplicates
-          if (!prev.some(s => s.date === singleSession.date && s.startTime === singleSession.startTime)) {
-            return [...prev, { ...singleSession, id: Date.now(), isNew: true }];
-          }
-          return prev;
-        });
-      }
-    }
+  
+      setIsChanged(true);
+      return updatedSessions;
+    });
+  
+    console.log("Updated sessions:", allSessions);
   };
 
   const generateRecurringSessions = (recurringSession, startDate, endDate) => {
@@ -234,38 +265,85 @@ export const EditRecurringSessions = () => {
     setIsChanged(true);
   };
 
+  const handleArchiveSession = (sessionId) => {
+    setAllSessions(prevSessions => 
+      prevSessions.map(session => {
+        if (session.id === sessionId) {
+          // If it's a new session, just toggle the archived status
+          if (session.isNew) {
+            return { ...session, archived: !session.archived };
+          }
+          // If it's an original session, mark it for update
+          return { 
+            ...session, 
+            archived: !session.archived, 
+            isUpdated: true 
+          };
+        }
+        return session;
+      })
+    );
+  };
+  
+  const handleDeleteSession = (sessionId) => {
+    setAllSessions(prevSessions => {
+      const sessionToDelete = prevSessions.find(s => s.id === sessionId);
+      if (sessionToDelete) {
+        // If it's a new session, remove it entirely
+        if (sessionToDelete.isNew) {
+          return prevSessions.filter(s => s.id !== sessionId);
+        }
+        // If it's an original session, mark it for deletion
+        return prevSessions.map(s => 
+          s.id === sessionId ? { ...s, isDeleted: true } : s
+        );
+      }
+      return prevSessions;
+    });
+  };
+
   const saveChanges = async () => {
     try {
-      const newSessions = allSessions.filter(session => session.isNew);
-      const convertedSessions = newSessions.map(s => ({
-        event_id: id,
-        room_id: s.roomId,
-        start_time: s.startTime,
-        end_time: s.endTime,
-        date: s.date,
-        archived: s.archived
-      }));
-      const response = await backend.post(`/bookings/`, convertedSessions);
-      console.log("Added sessions:", response.data);
-    }
-    catch (error) {
-      console.error("Error adding sessions:", error);
-    }
+      // Handle new sessions
+      const newSessions = allSessions.filter(s => s.isNew && !s.isDeleted);
+      await Promise.all(newSessions.map(s => 
+        backend.post('/bookings/', {
+          event_id: id,
+          room_id: s.roomId,
+          start_time: s.startTime,
+          end_time: s.endTime,
+          date: s.date,
+          archived: s.archived
+        })
+      ));
+  
+      // Handle updated sessions
+      const updatedSessions = allSessions.filter(s => s.isUpdated && !s.isDeleted);
+      await Promise.all(updatedSessions.map(s => 
+        backend.put(`/bookings/${s.id}`, {
+          event_id: id,
+          room_id: s.roomId,
+          start_time: s.startTime,
+          end_time: s.endTime,
+          date: s.date,
+          archived: s.archived
+        })
+      ));
+  
+      // Handle deleted sessions
+      const deletedSessions = allSessions.filter(s => s.isDeleted && !s.isNew);
+      await Promise.all(deletedSessions.map(s => 
+        backend.delete(`/bookings/${s.id}`)
+      ));
 
-    // Delete all if deleteAll is true
-    if (deleteAll) {
-      try {
-        const response = await backend.delete(`/bookings/event/${id}`);
-        console.log("Deleted sessions:", response.data);
-      } catch (error) {
-        console.error("Error deleting sessions:", error);
-      }
+    } catch (error) {
+      console.error("Error saving changes:", error);
     }
   };
 
   const handleGoBack = () => {
       saveChanges();
-      navigate(`/programs/${eventId}`);
+      navigate(`/programs/${id}`);
   };
 
   const fetchAllRooms = async () => {
@@ -285,7 +363,12 @@ export const EditRecurringSessions = () => {
       const allSessionsResponse = await backend.get(`/bookings/byEvent/${id}`);
       const allSessionsData = allSessionsResponse.data;
       console.log("All sessions:", allSessionsData);
-      setAllSessions(allSessionsData);
+      
+      setAllSessions((prevSessions) => {
+        const existingSessionIds = new Set(prevSessions.map(session => session.id));
+        const newSessions = allSessionsData.filter(session => !existingSessionIds.has(session.id));
+        return [...prevSessions, ...newSessions];
+      });
       // Fetch program name
       try {
         const programResponse = await backend.get(`/events/${id}`);
@@ -304,6 +387,94 @@ export const EditRecurringSessions = () => {
     fetchAllRooms();
     fetchAllInfo();
   }, [id]);
+
+  const addRecurring = (
+    <TabPanel>
+        <Flex align="center" mb="20px" gap="10px">
+            <CalendarIcon />
+            <Text fontSize="16px" fontWeight="500">Starts on</Text>
+            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} maxW="10%" />
+            <Text fontSize="16px" fontWeight="500">and ends on</Text>
+            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} maxW="10%" />
+        </Flex>
+       <Flex align="center" gap="10px" mb={15}>
+          <TbRepeat />
+          <Select
+            maxW="15%"
+            value={recurringFrequency}
+            onChange={(e) => setRecurringFrequency(e.target.value)}
+          >
+            <option value="week">Every Week</option>
+            <option value="month">Every Month</option>
+            <option value="year">Every Year</option>
+          </Select>
+        </Flex>
+
+        {newSessions.recurring.map((session, index) => (
+          <Box key={index} mb={4}>
+            <Flex align="center" gap="10px">
+            <Text>Every</Text>
+            <Select
+              maxW="10%"
+              value={session.weekday}
+              onChange={(e) => handleChangeSessionField('recurring', index, "weekday", e.target.value)}
+            >
+              {["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                <option key={day} value={day}>
+                  {day}
+                </option>
+              ))}
+            </Select>
+              <Text>from</Text>
+              <Input
+                maxW="10%"
+                type="time"
+                value={session.startTime}
+                onChange={(e) => handleChangeSessionField('recurring', index, "startTime", e.target.value)}
+              />
+              <Text>to</Text>
+              <Input
+                maxW="10%"
+                type="time"
+                value={session.endTime}
+                onChange={(e) => handleChangeSessionField('recurring', index, "endTime", e.target.value)}
+              />
+              <Text>in</Text>
+              <Select
+                maxW="20%"
+                value={session.roomId}
+                onChange={(e) => handleChangeSessionField('recurring', index, "roomId", e.target.value)}
+              >
+                <option value="">Select a room</option>
+                {allRooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    {room.name}
+                  </option>
+                ))}
+              </Select>
+              <Icon
+                as={IoCloseOutline}
+                boxSize="6"
+                color="#2D3748"
+                cursor="pointer"
+                onClick={() => {
+                  onDeleteRowModalOpen();
+                  setRowToDelete({ type: isRecurring ? 'recurring' : 'single', index });
+                }}
+              />
+            </Flex>
+          </Box>
+        ))}
+        <Button
+          onClick={handleAddRecurringRow}
+          leftIcon={<AiOutlinePlus />}
+          bg="white"
+          textColor="#718096"
+        >
+          Row
+        </Button>
+    </TabPanel>
+  );
 
   const addSingle = (
     <TabPanel>
@@ -333,6 +504,7 @@ export const EditRecurringSessions = () => {
               value={session.roomId}
               onChange={(e) => handleChangeSessionField('single', index, "roomId", e.target.value)}
             >
+              <option value="">Select a room</option>
               {allRooms.map((room) => (
                 <option key={room.id} value={room.id}>
                   {room.name}
@@ -340,7 +512,7 @@ export const EditRecurringSessions = () => {
               ))}
             </Select>
             <Icon
-              as={MdAddCircleOutline}
+              as={IoCloseOutline}
               boxSize="6"
               color="#2D3748"
               cursor="pointer"
@@ -352,80 +524,14 @@ export const EditRecurringSessions = () => {
           </Flex>
         </Box>
       ))}
-      <Button onClick={handleAddSingleRow} colorScheme="teal" leftIcon={<MdAddCircleOutline />}>
-        Add Row
+      <Button 
+        onClick={handleAddSingleRow} 
+        bg="white"
+        textColor="#718096" 
+        leftIcon={<AiOutlinePlus />}
+      >
+        Row
       </Button>
-    </TabPanel>
-  );
-
-  const addRecurring = (
-    <TabPanel>
-      <Flex direction="column" gap="15px">
-        <Select
-          value={recurringFrequency}
-          onChange={(e) => setRecurringFrequency(e.target.value)}
-        >
-          <option value="week">Every Week</option>
-          <option value="month">Every Month</option>
-          <option value="year">Every Year</option>
-        </Select>
-        <Text>Every</Text>
-        <Select
-          value={weekdaySelection}
-          onChange={(e) => setWeekdaySelection(e.target.value)}
-        >
-          {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-            <option key={day} value={day}>
-              {day}
-            </option>
-          ))}
-        </Select>
-
-        {newSessions.recurring.map((session, index) => (
-          <Box key={index} mb={4}>
-            <Flex align="center" gap="10px">
-              <Text>Every</Text>
-              <Text fontWeight="bold">{session.weekday}</Text>
-              <Text>from</Text>
-              <Input
-                type="time"
-                value={session.startTime}
-                onChange={(e) => handleChangeSessionField('recurring', index, "startTime", e.target.value)}
-              />
-              <Text>to</Text>
-              <Input
-                type="time"
-                value={session.endTime}
-                onChange={(e) => handleChangeSessionField('recurring', index, "endTime", e.target.value)}
-              />
-              <Text>in</Text>
-              <Select
-                value={session.roomId}
-                onChange={(e) => handleChangeSessionField('recurring', index, "roomId", e.target.value)}
-              >
-                {allRooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    {room.name}
-                  </option>
-                ))}
-              </Select>
-              <Icon
-                as={MdAddCircleOutline}
-                boxSize="6"
-                color="#2D3748"
-                cursor="pointer"
-                onClick={() => {
-                  onDeleteRowModalOpen();
-                  setRowToDelete({ type: isRecurring ? 'recurring' : 'single', index });
-                }}
-              />
-            </Flex>
-          </Box>
-        ))}
-        <Button onClick={handleAddRecurringRow} colorScheme="teal" leftIcon={<MdAddCircleOutline />}>
-          Add Row
-        </Button>
-      </Flex>
     </TabPanel>
   );
 
@@ -433,37 +539,39 @@ export const EditRecurringSessions = () => {
     <Box minH="10vh" width="100%" minW="100%" py={8}>
       <Card shadow="md" border="1px" borderColor="gray.300" borderRadius="15px">
         <CardBody m={6} display="flex" flexDirection="column" justifyContent="space-between">
-          <Flex align="center" mb="15px" gap="10px">
+          <Flex align="center" mb="20px" gap="10px">
             <SessionsBookmark />
             <Text fontSize="24px" fontWeight="700" color="#2D3748">
               {" "}
               Sessions{" "}
             </Text>
           </Flex>
-          <Flex align="center" mb="15px" gap="10px">
-            <Text fontSize="16px" fontWeight="500">starts on</Text>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} maxW="20%" />
-            <Text fontSize="16px" fontWeight="500">and ends on</Text>
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} maxW="20%" />
-          </Flex>
 
           <Flex justify="space-between" align="center" mb={4}>
-            <Tabs index={isRecurring ? 1 : 0} onChange={(index) => setIsRecurring(index === 1)} variant="enclosed" flex={1}>
-              <TabList>
-                <Tab>Single</Tab>
-                <Tab>Recurring</Tab>
-              </TabList>
+            <Tabs 
+              index={isRecurring ? 0 : 1} 
+              onChange={(index) => setIsRecurring(index === 0)} 
+              flex={1}
+            >
+              <Flex justify="space-between" align="center" width="100%">
+                <TabList color="#3834B6">
+                  <Tab fontWeight="bold" color="#718096" _selected={{ color: "#3834B6" }}>Recurring</Tab>
+                  <Tab fontWeight="bold" color="#718096" _selected={{ color: "#3834B6" }}>Single</Tab>
+                </TabList>
+                <Button 
+                  onClick={handleResetSessions} 
+                  color="#EDF2F7"
+                  textColor="#2D3748"
+                >
+                  Reset All Sessions
+                </Button>
+              </Flex>
+              <TabPanels>
+                <TabPanel padding={0}>{addRecurring}</TabPanel>
+                <TabPanel padding={0}>{addSingle}</TabPanel>
+              </TabPanels>
             </Tabs>
-            <Button onClick={() => setDeleteAll(true)} colorScheme="red" size="sm">
-              Reset All Sessions
-            </Button>
           </Flex>
-          
-          <TabPanels>
-            {addSingle}
-            {addRecurring}
-          </TabPanels>
-          
         </CardBody>
       </Card>
     </Box>
@@ -597,11 +705,13 @@ export const EditRecurringSessions = () => {
                 </Tr>
               </Thead>
               <Tbody>
-              {allSessions.map((session) => (
+              {allSessions
+                .filter(session => !session.isDeleted)
+                .map((session) => (
                 <Tr
                   key={session.id}
                   textColor={session.archived === true ? "#A0AEC0" : "#2D3748"}
-                  backgroundColor={session.isNew ? "#F8F8FF" : "white"}
+                  backgroundColor={session.isNew || session.isUpdated ? "#F8F8FF" : "white"}
                 >
                   <Td>
                     <Box
@@ -645,20 +755,30 @@ export const EditRecurringSessions = () => {
                         fontSize="16px"
                         fontStyle="normal"
                       >
-                        {allRooms.find((room) => room.id === session.roomId)?.name || "N/A"}
+                        {allRooms.find((room) => room.id === Number(session.roomId))?.name || "N/A"}
                       </Text>
                     </Box>
                   </Td>
                   <Td>
-                    <Icon
-                      boxSize="7"
-                      padding="5px"
-                      borderRadius="6px"
-                      backgroundColor="#EDF2F7"
-                      color="black"
-                    >
-                      <EllipsisIcon />
-                    </Icon>
+                    <Menu>
+                      <MenuButton
+                        as={IconButton}
+                        boxSize="7"
+                        icon={<EllipsisIcon />}
+                        backgroundColor="#EDF2F7"
+                        color="#2D3748"
+                        textColor="#2D3748"
+                        cursor="pointer"
+                      />
+                      <MenuList>
+                        <MenuItem onClick={() => handleArchiveSession(session.id)}>
+                          {session.archived ? "Unarchive" : "Archive"}
+                        </MenuItem>
+                        <MenuItem onClick={() => handleDeleteSession(session.id)}>
+                          Delete
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
                   </Td>
                 </Tr>
               ))}
@@ -692,7 +812,7 @@ export const EditRecurringSessions = () => {
               if (isChanged) {
                 onUnsavedSessionModalOpen();
               } else {
-                navigate(`/programs/${eventId}`);
+                navigate(`/programs/${id}`);
               }
             }}
           >
@@ -744,7 +864,7 @@ export const EditRecurringSessions = () => {
           onClose={onUnsavedSessionModalClose}
           noSave={() => {
             onUnsavedSessionModalClose(); 
-            navigate(`/programs/${eventId}`);}}
+            navigate(`/programs/${id}`);}}
           save={handleGoBack}
         />}
 

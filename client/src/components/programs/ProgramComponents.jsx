@@ -900,6 +900,7 @@ export const Sessions = ({
   setIsArchived,
   refreshSessions,
 }) => {
+  const navigate = useNavigate();
   const { backend } = useBackendContext();
   const {
     isOpen: cancelModalIsOpen,
@@ -1939,6 +1940,7 @@ export const Sessions = ({
                             padding="5px"
                             borderRadius="6px"
                             backgroundColor="#EDF2F7"
+                            onClick={() => {navigate(`/programs/edit/session/${session.id}`)}}
                           >
                             <EllipsisIcon />
                           </Icon>
