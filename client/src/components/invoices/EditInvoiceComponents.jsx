@@ -15,6 +15,7 @@ import {
   Radio,
   RadioGroup,
   SimpleGrid,
+  Slide,
   Stack,
   Table,
   Tbody,
@@ -23,6 +24,7 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
   VStack,
 } from "@chakra-ui/react";
 
@@ -258,9 +260,12 @@ const StatementComments = ({
   const [expandedCommentIndex, setExpandedCommentIndex] = useState(null); // Track which row is expanded
   const [rowHoveredIndex, setRowHoveredIndex] = useState(null);
   const [newSubtotalValue, setNewSubtotalValue] = useState(0);
+  const [activeRowId, setActiveRowId] = React.useState(null);
   const [inputValues, setInputValues] = useState(
     Array(comments.length).fill("")
   ); // Initialize local state for input values
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
 
   const handleCommentToggle = (index) => {
     setExpandedCommentIndex(expandedCommentIndex === index ? null : index);
@@ -379,7 +384,7 @@ const StatementComments = ({
         <Box
           position="relative"
           maxH="400px"
-          overflowY="hidden"
+          overflowY="auto"
           p="3"
         >
           <Table
@@ -431,10 +436,10 @@ const StatementComments = ({
                   </Flex>
                 </Th>
                 <Th
-                  textTransform="none"
                   textAlign="end"
-                  pr="40px"
-                  fontSize="14px"
+                  pr="85px"
+                  fontSize="12px"
+                  color="#718096"
                 >
                   Total
                 </Th>
@@ -457,6 +462,8 @@ const StatementComments = ({
                       onMouseEnter={() => setRowHoveredIndex(index)} // When mouse enters, set hovered index
                       onMouseLeave={() => setRowHoveredIndex(null)}
                       borderTop="none"
+                      border={activeRowId === booking.id ? "#718096" : "none"}
+                      borderRadius="6px"
                     >
                       <Td
                         position="relative"
@@ -615,9 +622,45 @@ const StatementComments = ({
                           py="2"
                           fontSize="small"
                           height="32px"
+                          opacity={activeRowId === null || activeRowId === booking.id ? 1 : 0.3} // dim others
+                          onClick={() => setActiveRowId(booking.id)}
+                          isDisabled={activeRowId !== null && activeRowId !== booking.id} // Optional: disable others
                         >
                           Adjust
                         </Button>
+                        <Slide direction="right" in={activeRowId !== null} style={{ zIndex: 200 }}>
+                          <Box
+                            w="400px"
+                            h="100vh"
+                            bg="white"
+                            p={6}
+                            boxShadow="lg"
+                            position="fixed"
+                            right={0}
+                            top={0}
+                          >
+                            <Flex alignItems="center" gap="26px" alignSelf="stretch">
+                            <Button
+                              onClick={() => setActiveRowId(null)}
+                              variant="ghost"
+                              size="sm"
+                              p={0}
+                              minW="auto"
+                            >
+                              ✕
+                            </Button>
+                            <Text
+                              fontWeight="500"
+                              color="#4A5568"
+                              fontSize="14px"
+
+                            >
+                              {booking.date ? format(new Date(booking.date), "M/d/yy") : "N/A"} Room Fee Adjustment
+                            </Text>
+                            </Flex>
+
+                          </Box>
+                        </Slide>
                       </Td>
                       <Td
                         borderBottom="none"
@@ -713,29 +756,43 @@ const StatementComments = ({
                 </Tr>
               )}
 
-              <Tr>
-                <Td
-                  py="8"
-                  textAlign="right"
-                  colSpan={5}
-                  fontSize="16px"
+            <Tr>
+              <Td
+                py="4" // smaller padding
+                textAlign="right"
+                colSpan={5}
+                fontSize="14px"
+              >
+                <Text
+                  fontWeight="bold"
+                  color="gray.500"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
                 >
-                  <Text fontWeight="bold">Subtotal</Text>
-                </Td>
-                <Td
-                  fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                  py="8"
-                  textAlign="right"
+                  Subtotal
+                </Text>
+              </Td>
+              <Td
+                py="4"
+                textAlign="right"
+              >
+                <Text
+                  fontWeight="700"
+                  fontSize="24px"
+                  color="gray.800"
+                  fontFamily="Inter"
                 >
-                  <Text textAlign="center">{`$ ${newSubtotalValue?.toFixed(2)}`}</Text>
-                </Td>
-              </Tr>
+                  {`$${newSubtotalValue?.toFixed(2)}`}
+                </Text>
+              </Td>
+            </Tr>
             </Tbody>
           </Table>
         </Box>
       </Flex>
     </Flex>
   );
+
 };
 
 const InvoiceSummary = ({
@@ -789,6 +846,7 @@ const InvoiceSummary = ({
       }
     }
   };
+
 
   return (
     <Box
