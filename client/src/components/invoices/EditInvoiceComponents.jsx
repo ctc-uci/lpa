@@ -7,6 +7,7 @@ import {
   Flex,
   Heading,
   HStack,
+  Icon,
   IconButton,
   Image,
   Input,
@@ -30,6 +31,7 @@ import { format } from "date-fns";
 import commentsIcon from "../../assets/icons/comments.svg";
 import plusIcon from "../../assets/icons/plus.svg";
 import logo from "../../assets/logo/logo.png";
+import { CalendarIcon, LocationIcon, ClockIcon, EditDocumentIcon, DollarSignIcon, PencilIcon } from "../../assets/EditInvoiceIcons";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -377,7 +379,7 @@ const StatementComments = ({
         <Box
           position="relative"
           maxH="400px"
-          overflowY="auto"
+          overflowY="hidden"
           p="3"
         >
           <Table
@@ -387,34 +389,46 @@ const StatementComments = ({
             <Thead>
               <Tr color="#4A5568">
                 <Th
-                  textTransform="none"
-                  fontSize="14px"
+                  fontSize="12px"
                 >
-                  Date
+                  <Flex align="center">
+                    <Icon as={CalendarIcon} />
+                    <Text marginLeft="4px" color="#718096">Date</Text>
+                  </Flex>
                 </Th>
                 <Th
-                  textTransform="none"
-                  fontSize="14px"
+                  fontSize="12px"
                 >
-                  Classroom
+                  <Flex align="center">
+                    <Icon as={LocationIcon} />
+                    <Text marginLeft="4px" color="#718096">Classroom</Text>
+                  </Flex>
                 </Th>
                 <Th
-                  textTransform="none"
-                  fontSize="14px"
+                  fontSize="12px"
                 >
-                  Rental Hours
+                  <Flex align="center">
+                    <Icon as={ClockIcon} />
+                    <Text marginLeft="4px" color="#718096">Rental Hours</Text>
+                  </Flex>
                 </Th>
                 <Th
-                  textTransform="none"
-                  fontSize="14px"
+                  fontSize="12px"
+                  whiteSpace="nowrap"
                 >
-                  Room Fee
+                  <Flex align="center">
+                    <Icon as={EditDocumentIcon} />
+                    <Text marginLeft="4px" color="#718096">Room Fee Adjustment</Text>
+                  </Flex>
                 </Th>
                 <Th
-                  textTransform="none"
-                  fontSize="14px"
+                  fontSize="12px"
+                  whiteSpace="nowrap"
                 >
-                  Adjustment Type(s)
+                  <Flex align="center">
+                    <Icon as={DollarSignIcon} />
+                    <Text marginLeft="4px" color="#718096">Room Fee</Text>
+                  </Flex>
                 </Th>
                 <Th
                   textTransform="none"
@@ -519,8 +533,10 @@ const StatementComments = ({
                           width="100px"
                           fontSize="14px"
                           ml="6"
+                          whiteSpace="nowrap"
+                          color="#2D3748"
                         >
-                          {format(new Date(comment.datetime), "M/d/yy")}
+                          {format(new Date(comment.datetime), "EEE.")} {format(new Date(comment.datetime), "M/d/yyyy")}
                         </Text>
                       </Td>
                       <Td
@@ -558,14 +574,14 @@ const StatementComments = ({
                                       .map(Number);
                                     const period = hours >= 12 ? "pm" : "am";
                                     const hour12 = hours % 12 || 12;
-                                    return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                    return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
                                   };
 
                                   return `${formatTime(startTime)}`;
                                 })()
                               : "N/A"}
                           </Text>
-                          <Text fontSize="14px">to</Text>
+                          <Text fontSize="14px">-</Text>
                           <Text
                             w="85px"
                             px="2"
@@ -583,7 +599,7 @@ const StatementComments = ({
                                       .map(Number);
                                     const period = hours >= 12 ? "pm" : "am";
                                     const hour12 = hours % 12 || 12;
-                                    return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+                                    return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
                                   };
 
                                   return `${formatTime(endTime)}`;
