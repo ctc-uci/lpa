@@ -69,13 +69,13 @@ const InvoicesDashboard = () => {
     const getUnpaidInvoices = () => {
       // Only show toast once when the page loads, not on filter changes
       if (hasShownToast.current) return;
-      
+
       const filteredPastDueInvoices = filteredInvoices.filter(invoice => getPaymentStatus(invoice) === "Past Due");
       const notifCounter = filteredPastDueInvoices.length;
 
       if (notifCounter > 0) {
         hasShownToast.current = true; // Set ref to true to prevent multiple toasts
-        
+
         toast({
           title: "Unpaid Invoices",
           status: "error",
@@ -83,7 +83,7 @@ const InvoicesDashboard = () => {
           position: "bottom-right",
           isClosable: true,
           render: () => (
-            <Flex 
+            <Flex
               width="375px"
               height="63px"
               padding="0"
@@ -97,7 +97,7 @@ const InvoicesDashboard = () => {
               <Flex padding="0 0 0 16px" alignItems="center" height="100%">
                 <Image src={AlertIcon} />
                 <Flex flexDirection="column" justifyContent="center">
-                  <Heading 
+                  <Heading
                     fontFamily="Inter"
                     fontSize="16px"
                     fontWeight="700"
@@ -112,8 +112,8 @@ const InvoicesDashboard = () => {
                       ? `You have ${notifCounter} past due invoices`
                       : `${filteredPastDueInvoices[0].name} -
                       ${formatDate(filteredPastDueInvoices[0].endDate, {
-                        month: "2-digit", 
-                        day: "2-digit", 
+                        month: "2-digit",
+                        day: "2-digit",
                         year: "2-digit"
                       })}`
                     }
@@ -121,7 +121,7 @@ const InvoicesDashboard = () => {
                 </Flex>
               </Flex>
               <Spacer />
-              <Box 
+              <Box
                 position="absolute"
                 right="102px"
                 height="100%"
@@ -162,25 +162,24 @@ const InvoicesDashboard = () => {
       // If query is empty, don't filter - show complete list from filter component
       return;
     }
-    
+
     const lowercaseQuery = query.toLowerCase();
     // Only filter based on program name (eventName)
-    const results = invoices.filter(invoice => 
+    const results = invoices.filter(invoice =>
       invoice.eventName.toLowerCase().includes(lowercaseQuery)
     );
-    
+
     setFilteredInvoices(results);
   }, [query, invoices]);
 
   return(
     <Navbar>
-      <Flex w='95%' m='50px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px"> 
+      <Flex w='95%' m='50px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px">
         <Flex justifyContent='space-between' alignItems='center' mb='40px'>
           {/* <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} /> */}
           <InvoiceFilter invoices={invoices} setFilteredInvoices={setFilteredInvoices}/>
-
-          <InputGroup 
-            w='311px' 
+          <InputGroup
+            w='311px'
             h='40px'
             border='1px solid var(--Secondary-3, #E2E8F0)'
             borderRadius='6px'
@@ -206,9 +205,9 @@ const InvoicesDashboard = () => {
                 color: 'var(--Secondary-6, #718096)'
               }}
             />
-            <InputRightElement 
-              h='100%' 
-              bgColor="#EDF2F7" 
+            <InputRightElement
+              h='100%'
+              bgColor="#EDF2F7"
               borderRadius='0px 6px 6px 0px'
               display='flex'
               alignItems='center'
@@ -217,9 +216,9 @@ const InvoicesDashboard = () => {
               onClick={() => {
                 // Simple program name search on icon click
                 if (!query || query.trim() === '') return;
-                
+
                 const lowercaseQuery = query.toLowerCase();
-                const results = invoices.filter(invoice => 
+                const results = invoices.filter(invoice =>
                   invoice.eventName.toLowerCase().includes(lowercaseQuery)
                 );
                 setFilteredInvoices(results);
@@ -229,12 +228,12 @@ const InvoicesDashboard = () => {
             </InputRightElement>
           </InputGroup>
         </Flex>
-        <InvoicesTable 
-          filteredInvoices={filteredInvoices} 
-          isPaidColor={getPaymentStatusColor} 
+        <InvoicesTable
+          filteredInvoices={filteredInvoices}
+          isPaidColor={getPaymentStatusColor}
           seasonColor={getSeasonColors}
         />
-        
+
       </Flex>
     </Navbar>
   );

@@ -197,35 +197,9 @@ export const ProgramSummary = ({
       .slice(0, 2)
       .join(":");
 
-    const instructors = Array.from(
-      new Map(
-        eventResponse.data
-          .filter((instructor) => instructor.clientrole === "instructor")
-          .map((instructor) => [
-            instructor.email,
-            {
-              id: instructor.clientId,
-              name: instructor.clientname,
-              email: instructor.email,
-            },
-          ])
-      ).values()
-    );
-
-    const payees = Array.from(
-      new Map(
-        eventResponse.data
-          .filter((client) => client.clientrole === "payee")
-          .map((client) => [
-            client.email,
-            {
-              id: client.clientId,
-              name: client.clientname,
-              email: client.email,
-            },
-          ])
-      ).values()
-    );
+    const rolesResponse = await backend.get(`/programs/${eventId}/roles`);
+    const instructors = rolesResponse.data.instructors;
+    const payees = rolesResponse.data.payees;
 
     const eventInfo = {
       name: "[Unarchived] " + eventName,

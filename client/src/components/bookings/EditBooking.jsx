@@ -121,38 +121,9 @@ export const EditBooking = () => {
       eventResponse.data[eventResponse.data.length - 1].date.split("T")[0]
     );
 
-    const instructors = Array.from(
-      new Map(
-        eventResponse.data
-          .filter((instructor) => instructor.clientrole === "instructor")
-          .map((instructor) => [
-            instructor.email,
-            {
-              id: instructor.clientId,
-              name: instructor.clientname,
-              email: instructor.email,
-            },
-          ])
-      ).values()
-    );
-
-    const payees = Array.from(
-      new Map(
-        eventResponse.data
-          .filter((client) => client.clientrole === "payee")
-          .map((client) => [
-            client.email,
-            {
-              id: client.clientId,
-              name: client.clientname,
-              email: client.email,
-            },
-          ])
-      ).values()
-    );
-
-    setSelectedInstructors(instructors);
-    setSelectedPayees(payees);
+    const rolesResponse = await backend.get(`/programs/${id}/roles`);
+    setSelectedInstructors(rolesResponse.data.instructors);
+    setSelectedPayees(rolesResponse.data.payees);
   };
 
   const getInitialLocations = async () => {

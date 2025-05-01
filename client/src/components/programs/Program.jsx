@@ -74,11 +74,9 @@ export const Program = () => {
           clientEmail: clientResponse.data.email,
         };
 
-        if (assignment.role === "instructor") {
-          nextBooking.instructors.push(assignmentWithClient);
-        } else if (assignment.role === "payee") {
-          nextBooking.payees.push(assignmentWithClient);
-        }
+        const rolesResponse = await backend.get(`/programs/${program.id}/roles`);
+        nextBooking.instructors = rolesResponse.data.instructors;
+        nextBooking.payees = rolesResponse.data.payees;
       }
 
       setNextBookingInfo(nextBooking);
@@ -95,7 +93,7 @@ export const Program = () => {
       // Only get activeSessions
       const activeSessions = sessionsData.filter(session => session.archived === false);
       setSessions(activeSessions);
-      
+
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),
       ];

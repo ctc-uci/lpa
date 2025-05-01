@@ -115,25 +115,9 @@ export const EditProgram = () => {
   }
 
   const getInitialAssignmentsData = async () => {
-    const eventClientResponse = await backend.get('/assignments/event/' + id);
-
-    const instructors = eventClientResponse.data
-  .filter(client => client.role === "instructor")
-  .map(client => ({
-    id: client.clientId,
-    name: client.clientName,
-    email: client.clientEmail
-  }));
-
-const payees = eventClientResponse.data
-  .filter(client => client.role === "payee")
-  .map(client => ({
-    id: client.clientId,
-    name: client.clientName,
-    email: client.clientEmail
-  }));
-    setSelectedInstructors(instructors);
-    setSelectedPayees(payees);
+    const rolesResponse = await backend.get(`/programs/${id}/roles`);
+    setSelectedInstructors(rolesResponse.data.instructors);
+    setSelectedPayees(rolesResponse.data.payees);
   }
 
   const getInitialLocations = async () => {

@@ -181,16 +181,9 @@ export const ArchivedPrograms = () => {
             roomName = room[0]?.name || "N/A";
 
             // get artists and payees
-            const assignmentsResponse = await backend.get(
-              `/assignments/event/${program.id}`
-            );
-            for (const assignment of assignmentsResponse.data) {
-              if (assignment.role === "instructor") {
-                thisAssignments.instructors.push(assignment);
-              } else if (assignment.role === "payee") {
-                thisAssignments.payees.push(assignment);
-              }
-            }
+            const rolesResponse = await backend.get(`/programs/${program.id}/roles`);
+            thisAssignments.instructors = rolesResponse.data.instructors;
+            thisAssignments.payees = rolesResponse.data.payees;
           }
         } catch (error) {
           console.error(

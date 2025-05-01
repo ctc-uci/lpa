@@ -779,10 +779,10 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         const month = date.toLocaleString("default", { month: "long" });
         const year = date.getFullYear();
         const description = `${programTitle}, ${month} ${year} Invoice`;
-  
+
         // Track this invoice as shown
         shownToasts.current.add(invoice.id);
-        
+
         setTimeout(() => {
           toast({
             title: "Invoice Past Due",
@@ -791,7 +791,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
             isClosable: true,
             position: "bottom-right",
             render: () => (
-              <Flex 
+              <Flex
                 width="375px"
                 height="63px"
                 padding="0"
@@ -805,7 +805,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 <Flex padding="0 0 0 16px" alignItems="center" height="100%">
                   <Image src={AlertIcon} alt="Alert Icon" mr="12px" />
                   <Flex flexDirection="column" justifyContent="center">
-                    <Heading 
+                    <Heading
                       fontFamily="Inter"
                       fontSize="16px"
                       fontWeight="700"
@@ -821,7 +821,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                   </Flex>
                 </Flex>
                 <Spacer />
-                <Box 
+                <Box
                   position="absolute"
                   right="102px"
                   height="100%"
@@ -853,9 +853,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         }, index * 500);
       }
     });
-    
+
   }, [filteredInvoices, toast, navigate]);
-  
+
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
@@ -1233,6 +1233,22 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 }
 
 function InvoicesFilter({ invoices, filter, setFilter }) {
+  const [instructors, setInstructors] = useState([]);
+  const [payees, setPayees] = useState([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await backend.get(`/programs/${programId}/roles`);
+        setInstructors(response.data.instructors);
+        setPayees(response.data.payees);
+      } catch (error) {
+        console.error("Failed to fetch roles:", error);
+      }
+    };
+    if (programId) fetchRoles();
+  }, [programId]);
+
   return (
     <>
       <Popover placement="bottom-start">
@@ -1264,6 +1280,7 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
           flexDirection="column"
           gap="16px"
         >
+          {/* date filter */}
           <Flex
             alignItems="center"
             gap="8px"
@@ -1302,6 +1319,7 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
             />
           </Flex>
 
+          {/* status filter */}
           <Text
             size="sm"
             as="b"
@@ -1335,6 +1353,7 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
             ))}
           </Flex>
 
+          {/* instructors filter */}
           <Flex
             justifyContent="space-between"
             alignItems="center"
@@ -1363,20 +1382,13 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
               }
             >
               <option>All</option>
-              {invoices
-                .filter((invoice) => invoice.role === "instructor")
-                .reduce((uniqueNames, invoice) => {
-                  if (!uniqueNames.includes(invoice.name)) {
-                    uniqueNames.push(invoice.name);
-                  }
-                  return uniqueNames;
-                }, [])
-                .map((name, index) => (
-                  <option key={index}>{name}</option>
-                ))}
+              {instructors.map((instructor, index) => (
+                <option key={index}>{instructor.name}</option>
+              ))}
             </Select>
           </Flex>
 
+          {/* payee filter */}
           <Flex
             justifyContent="space-between"
             alignItems="center"
@@ -1402,17 +1414,9 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
               onChange={(e) => setFilter({ ...filter, payee: e.target.value })}
             >
               <option>All</option>
-              {invoices
-                .filter((invoice) => invoice.role === "payee")
-                .reduce((uniqueNames, invoice) => {
-                  if (!uniqueNames.includes(invoice.name)) {
-                    uniqueNames.push(invoice.name);
-                  }
-                  return uniqueNames;
-                }, [])
-                .map((name, index) => (
-                  <option key={index}>{name}</option>
-                ))}
+              {payees.map((payee, index) => (
+                <option key={index}>{payee.name}</option>
+              ))}
             </Select>
           </Flex>
         </PopoverContent>
