@@ -604,36 +604,35 @@ const StatementComments = ({
                         </Flex>
                       </Td>
                       <Td
-                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
+                        borderBottom="none"
+                      >
+                        <Button
+                          leftIcon={<Icon as={PencilIcon}/>}
+                          color="white"
+                          background="#4441C8"
+                          borderRadius="md"
+                          px="3"
+                          py="2"
+                          fontSize="small"
+                          height="32px"
+                        >
+                          Adjust
+                        </Button>
+                      </Td>
+                      <Td
                         borderBottom="none"
                       >
                         <Flex
                           align="center"
-                          gap="1"
                         >
                           <Text
                             fontSize="14"
-                            w="95px"
                           >
                             {room && room.length > 0
-                              ? `$${room[0].rate}`
+                              ? `$${room[0].rate}/hr`
                               : "N/A"}
                           </Text>
-                          <Text fontSize="14px">/hr</Text>
                         </Flex>
-                      </Td>
-                      <Td
-                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                        borderBottom="none"
-                      >
-                        <RadioDropdown
-                          index={index}
-                          onSelectionChange={(value) => {
-                            handleAdjustmentChange(index, value);
-                          }}
-                          commentsState={commentsState}
-                          setComments={setComments}
-                        />
                       </Td>
                       <Td
                         fontSize="clamp(.5rem, 1rem, 1.5rem)"
