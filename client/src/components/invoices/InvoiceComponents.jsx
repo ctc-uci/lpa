@@ -71,17 +71,10 @@ import StatusSortingModal from "../filters/StatusFilter";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+import { getPaymentStatus, formatBillingPeriodDate, formatTableDate, formatModalDate } from "../../utils/invoiceUtils";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
-  const isPaid = () => {
-    if (isSent && paymentStatus === "full") {
-      return "Paid";
-    }
-    if (!isSent && new Date() < new Date(endDate) && paymentStatus !== "full") {
-      return "Not Paid";
-    }
-    return "Past Due";
-  };
+  const paymentStatusText = getPaymentStatus({ isSent, paymentStatus, endDate });
 
   return (
     <Flex
@@ -123,15 +116,11 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
           height={"20px"}
           padding={"15px 8px"}
           gap={"6px"}
-          backgroundColor={isPaid() === "Paid" ? "#F0FFF4" : "#FFF5F5"}
-          color={isPaid() === "Paid" ? "#38A169" : "#E53E3E"}
+          backgroundColor={paymentStatusText === "Paid" ? "#F0FFF4" : "#FFF5F5"}
+          color={paymentStatusText === "Paid" ? "#38A169" : "#E53E3E"}
           variant="solid"
         >
-          {isPaid() === "Paid"
-            ? "Paid"
-            : isPaid() === "Not Paid"
-              ? "Not Paid"
-              : "Past Due"}
+          {paymentStatusText}
         </Button>
       </Flex>
     </Flex>
@@ -144,14 +133,6 @@ const InvoiceStats = ({
   amountDue,
   remainingBalance,
 }) => {
-  const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
     <Flex
       direction="column"
@@ -182,8 +163,8 @@ const InvoiceStats = ({
               fontSize="14px"
               fontWeight="500"
             >
-              {formatDate(billingPeriod["startDate"])} -{" "}
-              {formatDate(billingPeriod["endDate"])}
+              {formatBillingPeriodDate(billingPeriod["startDate"])} -{" "}
+              {formatBillingPeriodDate(billingPeriod["endDate"])}
             </Text>
           ) : (
             <Text
@@ -492,17 +473,6 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
     setHasUnsavedChanges(true);
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/,/g, ".");
-  };
-
   return (
     <Flex
       direction="column"
@@ -671,7 +641,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                   mt={"10px"}
                 >
                   Delete Payment for{" "}
-                  {selectedComment ? formatDate(selectedComment.datetime) : ""}?
+                  {selectedComment ? formatModalDate(selectedComment.datetime) : ""}?
                 </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
@@ -865,18 +835,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/,/g, ".");
-  };
-
   // Get current page data
   const currentInvoices = sortedPrograms.slice(startIndex, endIndex);
 
@@ -1047,7 +1005,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                             ? validPayers[0].trim()
                             : "N/A"}
                       </Td>
-                      <Td>{formatDate(invoice.endDate)}</Td>
+                      <Td>{formatTableDate(invoice.endDate)}</Td>
                       <Td>
                         <Tag
                           bg={tagBgColor}

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
 import AlertIcon from "../../assets/alertIcon.svg"
 import { InvoiceFilter } from "../filters/InvoicesFilter";
+import { getPaymentStatus, getPaymentStatusColor, getSeason, getSeasonColors, formatDate } from "../../utils/invoiceUtils";
 
 
 const InvoicesDashboard = () => {
@@ -24,52 +25,6 @@ const InvoicesDashboard = () => {
     instructor : "all",
     payee : "all"
   })
-
-  const isPaidColor = (invoice) => {
-    if (invoice.isSent && invoice.paymentStatus === "full") {
-        return "#474849";
-    }
-    if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
-        return "none";
-    }
-    return "#90080F";
-  };
-
-  const seasonColor = (invoice) => {
-    if (invoice.season === "Winter") {
-      return ["#EBF8FF", "#3182CE"];
-    } else if (invoice.season === "Summer") {
-      return ["#FFF5F7", "#D53F8C"];
-    } else if (invoice.season === "Fall") {
-      return ["#FFFAF0", "#DD6B20"];
-    } else {
-      return ["#e6f7ec", "#008000"];
-    }
-  }
-
-  const getSeason = (invoice) => {
-    const month = new Date(invoice.endDate).getMonth();
-    if (month >= 1 && month <= 4) {
-      return "Winter";
-    } else if (month >= 5 && month <= 8) {
-      return "Summer";
-    } else if (month >= 9 && month <= 12) {
-      return "Fall";
-    } else {
-      return "N/A";
-    }
-  }
-
-  const isPaid = (invoice) => {
-    if (invoice.isSent && invoice.paymentStatus === "full") {
-        return "Paid";
-    }
-    if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
-        return "Not Paid";
-    }
-    return "Past Due";
-  };
-
 
   useEffect(() => {
     const fetchInvoicesData = async () => {
@@ -96,7 +51,7 @@ const InvoicesDashboard = () => {
         const invoices = Object.values(groupedInvoices).map(invoice => ({
             ...invoice,
             season: getSeason(invoice),
-            isPaid: isPaid(invoice)
+            isPaid: getPaymentStatus(invoice)
           }
         ));
         setInvoices(invoices);
@@ -112,7 +67,7 @@ const InvoicesDashboard = () => {
     if (invoices.length === 0 || hasShownToast.current) return;
 
     const getUnpaidInvoices = () => {
-      const filteredPastDueInvoices = filteredInvoices.filter(invoice => isPaid(invoice) === "PAST DUE");
+      const filteredPastDueInvoices = filteredInvoices.filter(invoice => getPaymentStatus(invoice) === "Past Due");
       const notifCounter = filteredPastDueInvoices.length;
 
       if (notifCounter > 0) {
@@ -121,7 +76,11 @@ const InvoicesDashboard = () => {
           title: "Unpaid Invoices",
           description: notifCounter > 1
             ? `You have ${notifCounter} past due invoices`
-            : `${filteredPastDueInvoices[0].name} - ${filteredPastDueInvoices[0].endDate.split("T")[0]}`,
+            : `${filteredPastDueInvoices[0].name} - ${formatDate(filteredPastDueInvoices[0].endDate, {
+                month: "2-digit", 
+                day: "2-digit", 
+                year: "2-digit"
+              })}`,
           status: "error",
           duration: 9000,
           position: "bottom-right",
@@ -136,7 +95,11 @@ const InvoicesDashboard = () => {
                 {notifCounter > 1
                   ? `You have ${notifCounter} past due invoices`
                   : `${filteredPastDueInvoices[0].name} -
-                  ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "2-digit",})}`
+                  ${formatDate(filteredPastDueInvoices[0].endDate, {
+                    month: "2-digit", 
+                    day: "2-digit", 
+                    year: "2-digit"
+                  })}`
                 }
                 </Text>
               </Flex>
@@ -171,7 +134,11 @@ const InvoicesDashboard = () => {
             />
           </InputGroup>
         </Flex>
-        <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
+        <InvoicesTable 
+          filteredInvoices={filteredInvoices} 
+          isPaidColor={getPaymentStatusColor} 
+          seasonColor={getSeasonColors}
+        />
         
       </Flex>
     </Navbar>
