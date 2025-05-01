@@ -19,11 +19,9 @@ import {
 
 import { format } from "date-fns";
 
-import { CalendarIcon } from "../../assets/EditInvoiceIcons";
+import { CalendarIcon, DollarSignIcon, EditDocumentIcon } from "../../assets/EditInvoiceIcons";
 import { LocationIcon } from "../../assets/EditInvoiceIcons";
 import { ClockFilled } from "../../assets/ClockFilled";
-import { BiggerDollarIcon } from "../../assets/BiggerDollarIcon";
-import { PaperPencil } from "../../assets/PaperPencil";
 
 const SavedStatementComments = ({
   comments = [],
@@ -180,7 +178,7 @@ const SavedStatementComments = ({
                   color="#718096"
                 >
                   <HStack>
-                    <PaperPencil/>
+                    <EditDocumentIcon/>
                     <Text>
 
                       ROOM FEE ADJUSTMENT
@@ -195,7 +193,7 @@ const SavedStatementComments = ({
                 >
                   
                   <HStack gap="1">
-                    <BiggerDollarIcon />
+                    <DollarSignIcon />
                     <Text>ROOM FEE</Text>
                   </HStack>
                 </Th>
@@ -479,7 +477,7 @@ const SavedInvoiceSummary = ({
                   fontSize={compactView && "6px"}
                 >
                   <HStack color="#718096">
-                    <BiggerDollarIcon />
+                    <DollarSignIcon />
                     <Text>
                       DESCRIPTION
                       </Text>
@@ -491,7 +489,7 @@ const SavedInvoiceSummary = ({
                   fontSize={compactView && "6px"}
                 >
                   <HStack color="#718096">
-                    <PaperPencil />
+                    <EditDocumentIcon />
                     <Text>
                     ROOM FEE ADJUSTMENT
                       </Text>
