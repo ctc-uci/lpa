@@ -53,43 +53,33 @@ export const Program = () => {
         payees: [],
       };
 
+      // nextSession
       const nextSession = sessions?.find((session) => !session.archived);
-
       if (!nextSession) {
         console.log("No upcoming sessions found");
         return;
       }
-
       nextBooking.nextSession = nextSession;
       const roomResponse = await backend.get(
         `/rooms/${nextBooking.nextSession.roomId}`
       );
+
+      // nextRoom
       nextBooking.nextRoom = roomResponse.data[0];
 
+      // assignments
       const assignmentsResponse = await backend.get(
         `/assignments/event/${program[0].id}`
       );
-
       nextBooking.assignments = assignmentsResponse.data;
       console.log("nextbooking assignments: ", nextBooking.assignments);
 
-      for (const assignment of assignmentsResponse.data) {
-        const clientResponse = await backend.get(
-          `/clients/${assignment.clientId}`
-        );
-        const assignmentWithClient = {
-          ...assignment,
-          clientName: clientResponse.data.name,
-          clientEmail: clientResponse.data.email,
-        };
+      // instuctors & payees
+      const rolesResponse = await backend.get(`/programs/${id}/roles`);
+      nextBooking.instructors = rolesResponse.data.instructors;
+      nextBooking.payees = rolesResponse.data.payees;
 
-        if (assignment.role === "instructor") {
-          nextBooking.instructors.push(assignmentWithClient);
-        } else if (assignment.role === "payee") {
-          nextBooking.payees.push(assignmentWithClient);
-        }
-      }
-
+      console.log("nextBooking", nextBooking)
       setNextBookingInfo(nextBooking);
     } catch (error) {
       console.log("From getNextBookingInfo: ", error);
@@ -101,9 +91,9 @@ export const Program = () => {
       const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
 
-      sessionsData.sort((a, b) => new Date(a.date) - new Date(b.date));
-      console.log("programData", sessionsData);
-      setSessions(sessionsData);
+      // Only get activeSessions
+      const activeSessions = sessionsData.filter(session => session.archived === false);
+      setSessions(activeSessions);
 
       // Get set of room ids
       const uniqueRoomIds = [

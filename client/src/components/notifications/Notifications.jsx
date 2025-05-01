@@ -10,6 +10,7 @@ import Navbar from "../navbar/Navbar";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
+import { getDueTime, getNotificationDescription, getNotificationType } from "../../utils/invoiceUtils";
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
@@ -20,60 +21,6 @@ export const Notifications = () => {
     startDate: null,
     endDate: null,
   }); // all, overdue, neardue
-
-  const getDueTime = (endDate) => {
-    const now = new Date();
-    const msInDay = 1000 * 60 * 60 * 24;
-    const daysDiff = (endDate - now) / msInDay;
-
-    // console.log("Days difference:", daysDiff);
-    if (daysDiff >= 0 && daysDiff <= 7) {
-      return formatDistanceToNow(endDate, { addSuffix: true });
-    } else {
-      return endDate
-        .toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "numeric",
-          day: "numeric",
-          year: "numeric",
-        })
-        .replace(/,/g, ".");
-    }
-  };
-
-
-  const getDescription = (payStatus, payers) => {
-    console.log("PAYERS", payers);
-    
-    if (!payers || !payers.length) {
-      return getBaseDescription(payStatus, "unknown recipients");
-    }
-    
-    const instructorNames = payers
-      .filter(payer => payer.role === "instructor")
-      .map(payer => payer.clientName)
-      .filter(name => name && name.trim() !== ""); 
-    
-    if (instructorNames.length === 0) {
-      return getBaseDescription(payStatus, "unknown recipients");
-    }
-    
-    const formattedNames = instructorNames.length === 1 
-      ? instructorNames[0]
-      : `${instructorNames.slice(0, -1).join(", ")}, and ${instructorNames[instructorNames.length - 1]}`;
-    
-    return getBaseDescription(payStatus, formattedNames);
-  };
-  
-  const getBaseDescription = (payStatus, names) => {
-    if (payStatus === "overdue") {
-      return `Payment not recorded 5 days or more since the payment deadline for `;
-    } else if (payStatus === "neardue") {
-      return `Email has not been sent to ${names} 1 week before the payment deadline for `;
-    } else { // highpriority
-      return `Email has not been sent to ${names} 1 week prior and payment not received 5 days past the deadline for `;
-    }
-  };
 
   useEffect(() => {
     const fetchNotifs = async () => {
@@ -110,18 +57,10 @@ export const Notifications = () => {
   
               const eventId = eventRes.data[0]?.id;
               const payersRes = await backend.get(`/assignments/event/${eventId}`);
-              console.log("HERE", payersRes);
-  
+              
               const endDate = new Date(invoice.endDate);
               const dueTime = getDueTime(endDate);
-              let payStatus = "";
-              if (endDate < today && invoice.isSent) {
-                payStatus = "overdue";
-              } else if (endDate < today && !invoice.isSent) {
-                payStatus = "highpriority";
-              } else {
-                payStatus = "neardue";
-              }
+              const payStatus = getNotificationType(invoice);
   
               return {
                 ...invoice,
@@ -129,7 +68,7 @@ export const Notifications = () => {
                 total: totalRes.data.total,
                 paid: paidRes.data.paid,
                 payStatus,
-                description: getDescription(payStatus, payersRes.data),
+                description: getNotificationDescription(payStatus, payersRes.data),
                 dueTime,
               };
             } catch (err) {

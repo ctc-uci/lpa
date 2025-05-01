@@ -165,35 +165,9 @@ export const ProgramSummary = ({
       .slice(0, 2)
       .join(":");
 
-    const instructors = Array.from(
-      new Map(
-        eventResponse.data
-          .filter((instructor) => instructor.clientrole === "instructor")
-          .map((instructor) => [
-            instructor.email,
-            {
-              id: instructor.clientId,
-              name: instructor.clientname,
-              email: instructor.email,
-            },
-          ])
-      ).values()
-    );
-
-    const payees = Array.from(
-      new Map(
-        eventResponse.data
-          .filter((client) => client.clientrole === "payee")
-          .map((client) => [
-            client.email,
-            {
-              id: client.clientId,
-              name: client.clientname,
-              email: client.email,
-            },
-          ])
-      ).values()
-    );
+    const rolesResponse = await backend.get(`/programs/${eventId}/roles`);
+    const instructors = rolesResponse.data.instructors;
+    const payees = rolesResponse.data.payees;
 
     const eventInfo = {
       name: "[Unarchived] " + eventName,
@@ -664,7 +638,7 @@ export const ProgramSummary = ({
                     >
                       {instructors?.length > 0
                         ? instructors
-                            .map((instructor) => instructor.clientName)
+                            .map((instructor) => instructor.name)
                             .join(", ")
                         : "No instructors"}
                     </Text>
@@ -673,15 +647,20 @@ export const ProgramSummary = ({
                     spacing={2}
                     gap={6}
                   >
-                    <Icon as={EmailIcon} />
-                    <Text>
-                      {payees?.length > 0
-                        ? [...(payees || [])]
-                            .map((person) => person?.clientEmail)
-                            .filter(Boolean)
-                            .join(", ")
-                        : "No emails available"}
-                    </Text>
+                    <Flex
+                      align="center"
+                      gap={2}
+                    >
+                      <PersonIcon />
+                      <Text
+                        color="#2D3748"
+                        fontWeight="500"
+                      >
+                        {payees?.length > 0
+                          ? payees.map((payee) => payee.name).join(", ")
+                          : "No payees"}
+                      </Text>
+                    </Flex>
                   </Flex>
 
                   <Flex
@@ -699,7 +678,7 @@ export const ProgramSummary = ({
                       >
                         {payees?.length > 0
                           ? [...(payees || [])]
-                              .map((person) => person?.clientEmail)
+                              .map((person) => person?.email)
                               .filter(Boolean)
                               .join(", ")
                           : "No emails available"}

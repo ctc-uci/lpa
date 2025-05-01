@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -48,6 +48,7 @@ import {
   useDisclosure,
   useToast,
   VStack,
+  Heading,
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
@@ -65,23 +66,17 @@ import {
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
 import personIcon from "../../assets/person.svg";
+import AlertIcon from "../../assets/alertIcon.svg";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import StatusSortingModal from "../filters/StatusFilter";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+import { getPaymentStatus, formatBillingPeriodDate, formatTableDate, formatModalDate } from "../../utils/invoiceUtils";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
-  const isPaid = () => {
-    if (isSent && paymentStatus === "full") {
-      return "Paid";
-    }
-    if (!isSent && new Date() < new Date(endDate) && paymentStatus !== "full") {
-      return "Not Paid";
-    }
-    return "Past Due";
-  };
+  const paymentStatusText = getPaymentStatus({ isSent, paymentStatus, endDate });
 
   return (
     <Flex
@@ -123,15 +118,11 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
           height={"20px"}
           padding={"15px 8px"}
           gap={"6px"}
-          backgroundColor={isPaid() === "Paid" ? "#F0FFF4" : "#FFF5F5"}
-          color={isPaid() === "Paid" ? "#38A169" : "#E53E3E"}
+          backgroundColor={paymentStatusText === "Paid" ? "#F0FFF4" : "#FFF5F5"}
+          color={paymentStatusText === "Paid" ? "#38A169" : "#E53E3E"}
           variant="solid"
         >
-          {isPaid() === "Paid"
-            ? "Paid"
-            : isPaid() === "Not Paid"
-              ? "Not Paid"
-              : "Past Due"}
+          {paymentStatusText}
         </Button>
       </Flex>
     </Flex>
@@ -144,14 +135,6 @@ const InvoiceStats = ({
   amountDue,
   remainingBalance,
 }) => {
-  const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
     <Flex
       direction="column"
@@ -182,8 +165,8 @@ const InvoiceStats = ({
               fontSize="14px"
               fontWeight="500"
             >
-              {formatDate(billingPeriod["startDate"])} -{" "}
-              {formatDate(billingPeriod["endDate"])}
+              {formatBillingPeriodDate(billingPeriod["startDate"])} -{" "}
+              {formatBillingPeriodDate(billingPeriod["endDate"])}
             </Text>
           ) : (
             <Text
@@ -492,17 +475,6 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
     setHasUnsavedChanges(true);
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/,/g, ".");
-  };
-
   return (
     <Flex
       direction="column"
@@ -671,7 +643,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                   mt={"10px"}
                 >
                   Delete Payment for{" "}
-                  {selectedComment ? formatDate(selectedComment.datetime) : ""}?
+                  {selectedComment ? formatModalDate(selectedComment.datetime) : ""}?
                 </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
@@ -786,6 +758,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortKey, setSortKey] = useState("title");
   const [sortOrder, setSortOrder] = useState("asc");
+  const shownToasts = useRef(new Set()); // Track which invoices we've shown toasts for
 
   const navigate = useNavigate();
   const toast = useToast();
@@ -798,28 +771,91 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   );
 
   useEffect(() => {
+    // Show toast only for past due invoices that we haven't shown yet
     filteredInvoices.forEach((invoice, index) => {
-      if (invoice.isPaid === "Past Due") {
+      if (invoice.isPaid === "Past Due" && !shownToasts.current.has(invoice.id)) {
         const programTitle = invoice.eventName.split(" ").slice(0, 3).join(" ");
         const date = new Date(invoice.endDate);
         const month = date.toLocaleString("default", { month: "long" });
         const year = date.getFullYear();
         const description = `${programTitle}, ${month} ${year} Invoice`;
-  
+
+        // Track this invoice as shown
+        shownToasts.current.add(invoice.id);
+
         setTimeout(() => {
           toast({
             title: "Invoice Past Due",
-            description: description,
             status: "error",
             duration: 1000,
             isClosable: true,
             position: "bottom-right",
+            render: () => (
+              <Flex
+                width="375px"
+                height="63px"
+                padding="0"
+                alignItems="center"
+                borderRadius="6px"
+                borderLeft="4px solid var(--red-500, #E53E3E)"
+                bg="var(--red-100, #FED7D7)"
+                onClick={() => navigate("/notification")}
+                position="relative"
+              >
+                <Flex padding="0 0 0 16px" alignItems="center" height="100%">
+                  <Image src={AlertIcon} alt="Alert Icon" mr="12px" />
+                  <Flex flexDirection="column" justifyContent="center">
+                    <Heading
+                      fontFamily="Inter"
+                      fontSize="16px"
+                      fontWeight="700"
+                      lineHeight="normal"
+                      letterSpacing="0.08px"
+                      mb="2px"
+                    >
+                      Invoice Past Due
+                    </Heading>
+                    <Text fontSize="14px">
+                      {description}
+                    </Text>
+                  </Flex>
+                </Flex>
+                <Spacer />
+                <Box
+                  position="absolute"
+                  right="102px"
+                  height="100%"
+                  width="1px"
+                  borderLeft="1px solid var(--red-500, #E53E3E)"
+                />
+                <Flex
+                  width="102px"
+                  height="100%"
+                  padding="0"
+                  justifyContent="center"
+                  alignItems="center"
+                  flexShrink="0"
+                >
+                  <Text
+                    color="#EA4335"
+                    fontFamily="Inter"
+                    fontSize="16px"
+                    fontWeight="700"
+                    lineHeight="normal"
+                    letterSpacing="0.08px"
+                  >
+                    View
+                  </Text>
+                </Flex>
+              </Flex>
+            )
           });
         }, index * 500);
       }
     });
-  }, [filteredInvoices, toast]);
-  
+
+  }, [filteredInvoices, toast, navigate]);
+
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
@@ -864,18 +900,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/,/g, ".");
-  };
 
   // Get current page data
   const currentInvoices = sortedPrograms.slice(startIndex, endIndex);
@@ -932,7 +956,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
               <Tr>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
+                  fontFamily="Inter"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  color="var(--Secondary-6, #718096)"
+                  borderBottom="1px solid var(--Secondary-3, #E2E8F0)"
+                  paddingBottom="8px"
                 >
                   <HStack
                     spacing={2}
@@ -944,13 +974,25 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
+                  fontFamily="Inter"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  color="var(--Secondary-6, #718096)"
+                  borderBottom="1px solid var(--Secondary-3, #E2E8F0)"
+                  paddingBottom="8px"
                 >
                   INVOICE SENT
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
+                  fontFamily="Inter"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  color="var(--Secondary-6, #718096)"
+                  borderBottom="1px solid var(--Secondary-3, #E2E8F0)"
+                  paddingBottom="8px"
                 >
                   <HStack
                     spacing={2}
@@ -963,7 +1005,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
+                  fontFamily="Inter"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  color="var(--Secondary-6, #718096)"
+                  borderBottom="1px solid var(--Secondary-3, #E2E8F0)"
+                  paddingBottom="8px"
                 >
                   <Flex align="center">
                     <FaUser style={{ marginRight: "8px" }} />
@@ -972,7 +1020,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
+                  fontFamily="Inter"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  color="var(--Secondary-6, #718096)"
+                  borderBottom="1px solid var(--Secondary-3, #E2E8F0)"
+                  paddingBottom="8px"
                 >
                   <HStack
                     spacing={2}
@@ -986,16 +1040,34 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
+                  fontFamily="Inter"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  color="var(--Secondary-6, #718096)"
+                  borderBottom="1px solid var(--Secondary-3, #E2E8F0)"
+                  paddingBottom="8px"
                 >
                   SEASON
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
+                  fontFamily="Inter"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  color="var(--Secondary-6, #718096)"
+                  borderBottom="1px solid var(--Secondary-3, #E2E8F0)"
+                  paddingBottom="8px"
                 >
                   DOWNLOADS
                 </Th>
+                <Th
+                  textTransform="none"
+                  width="1%"
+                  borderBottom="1px solid var(--Secondary-3, #E2E8F0)"
+                  paddingBottom="8px"
+                ></Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -1039,15 +1111,40 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                           )}
                         </Flex>
                       </Td>
-                      <Td>{invoice.eventName}</Td>
-                      <Td>
+                      <Td
+                        fontFamily="Inter"
+                        fontSize="14px"
+                        fontWeight="400"
+                        lineHeight="normal"
+                        letterSpacing="0.07px"
+                        color="#474849"
+                      >
+                        {invoice.eventName}
+                      </Td>
+                      <Td
+                        fontFamily="Inter"
+                        fontSize="14px"
+                        fontWeight="400"
+                        lineHeight="normal"
+                        letterSpacing="0.07px"
+                        color="#474849"
+                      >
                         {validPayers.length > 1
                           ? `${validPayers[0].trim()},...`
                           : validPayers.length === 1
                             ? validPayers[0].trim()
                             : "N/A"}
                       </Td>
-                      <Td>{formatDate(invoice.endDate)}</Td>
+                      <Td
+                        fontFamily="Inter"
+                        fontSize="14px"
+                        fontWeight="400"
+                        lineHeight="normal"
+                        letterSpacing="0.07px"
+                        color="#474849"
+                      >
+                        {formatTableDate(invoice.endDate)}
+                      </Td>
                       <Td>
                         <Tag
                           bg={tagBgColor}
@@ -1070,7 +1167,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                           borderRadius="md"
                         />
                       </Td>
-
                     </Tr>
                 );
               })}
@@ -1137,6 +1233,22 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 }
 
 function InvoicesFilter({ invoices, filter, setFilter }) {
+  const [instructors, setInstructors] = useState([]);
+  const [payees, setPayees] = useState([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await backend.get(`/programs/${programId}/roles`);
+        setInstructors(response.data.instructors);
+        setPayees(response.data.payees);
+      } catch (error) {
+        console.error("Failed to fetch roles:", error);
+      }
+    };
+    if (programId) fetchRoles();
+  }, [programId]);
+
   return (
     <>
       <Popover placement="bottom-start">
@@ -1144,7 +1256,7 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
           <Button
             backgroundColor="#EDF2F7"
             borderRadius="6px"
-            h="48px"
+            h="63px"
             px="12px"
             textColor="#2D3748"
           >
@@ -1168,6 +1280,7 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
           flexDirection="column"
           gap="16px"
         >
+          {/* date filter */}
           <Flex
             alignItems="center"
             gap="8px"
@@ -1206,6 +1319,7 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
             />
           </Flex>
 
+          {/* status filter */}
           <Text
             size="sm"
             as="b"
@@ -1239,6 +1353,7 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
             ))}
           </Flex>
 
+          {/* instructors filter */}
           <Flex
             justifyContent="space-between"
             alignItems="center"
@@ -1267,20 +1382,13 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
               }
             >
               <option>All</option>
-              {invoices
-                .filter((invoice) => invoice.role === "instructor")
-                .reduce((uniqueNames, invoice) => {
-                  if (!uniqueNames.includes(invoice.name)) {
-                    uniqueNames.push(invoice.name);
-                  }
-                  return uniqueNames;
-                }, [])
-                .map((name, index) => (
-                  <option key={index}>{name}</option>
-                ))}
+              {instructors.map((instructor, index) => (
+                <option key={index}>{instructor.name}</option>
+              ))}
             </Select>
           </Flex>
 
+          {/* payee filter */}
           <Flex
             justifyContent="space-between"
             alignItems="center"
@@ -1306,17 +1414,9 @@ function InvoicesFilter({ invoices, filter, setFilter }) {
               onChange={(e) => setFilter({ ...filter, payee: e.target.value })}
             >
               <option>All</option>
-              {invoices
-                .filter((invoice) => invoice.role === "payee")
-                .reduce((uniqueNames, invoice) => {
-                  if (!uniqueNames.includes(invoice.name)) {
-                    uniqueNames.push(invoice.name);
-                  }
-                  return uniqueNames;
-                }, [])
-                .map((name, index) => (
-                  <option key={index}>{name}</option>
-                ))}
+              {payees.map((payee, index) => (
+                <option key={index}>{payee.name}</option>
+              ))}
             </Select>
           </Flex>
         </PopoverContent>

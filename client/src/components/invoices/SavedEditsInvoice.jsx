@@ -113,37 +113,13 @@ export const SavedEdit = () => {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         setPayees(payeesResponse.data);
 
-        const subtotalResponse = await backend.get("/invoices/total/" + id);
-        setSubtotal(subtotalResponse.data.total);
-
-        // get the unpaid/remaining invoices
-        const unpaidInvoicesResponse = await backend.get(
-          "/events/remaining/" + invoice.data[0]["eventId"]
-        );
-
-        // calculate sum of unpaid/remaining invoices
-        const unpaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/total/${invoice.id}`)
-          )
-        );
-        const partiallyPaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/paid/${invoice.id}`)
-          )
-        );
-        const unpaidTotal = unpaidTotals.reduce(
-          (sum, res) => sum + res.data.total,
-          0
-        );
-        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-          (sum, res) => {
-            return sum + Number(res.data.total); // Had to change to number because was causing NaN
-          },
-          0
-        );
-        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
-        setPastDue(remainingBalance);
+        // Get invoice balance information (total, paid, remaining, pastDue)
+        const balanceResponse = await backend.get(`/invoices/${id}/balance`);
+        const { total, pastDue } = balanceResponse.data;
+        
+        setSubtotal(total);
+        setPastDue(pastDue);
+        
       } catch (error) {
         console.error("Error fetching data:", error);
       }

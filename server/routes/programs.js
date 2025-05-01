@@ -67,6 +67,43 @@ programsRouter.get("/:id", async (req, res) => {
   }
 });
 
+programsRouter.get("/:id/roles", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = `
+      SELECT c.id, c.name, c.email, a.role
+      FROM events AS e
+      LEFT JOIN assignments AS a ON e.id = a.event_id
+      LEFT JOIN clients AS c ON a.client_id = c.id
+      WHERE e.id = $1;
+    `
+    const result = await db.query(query, [id]);
+
+    console.log("Query result:", result);
+
+    const instructors = [];
+    const payees = [];
+
+    result.forEach(row => {
+      const person = {
+        id: row.id,
+        name: row.name,
+        email: row.email
+      };
+
+      if (row.role === "instructor") {
+        instructors.push(person);
+      } else if (row.role === "payee") {
+        payees.push(person);
+      }
+    });
+
+    res.status(200).json({ instructors, payees });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 programsRouter.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
