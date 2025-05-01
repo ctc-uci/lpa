@@ -45,6 +45,7 @@ export const Login = () => {
   const { backend } = useBackendContext();
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [credentialsError, setCredentialsError] = useState(false);
   const [permissionError, setPermissionError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -102,6 +103,8 @@ export const Login = () => {
           setPasswordError("Please enter a valid password.");
           break;
         case "auth/invalid-credential":
+          setCredentialsError("Invalid email and password. Please try again or create an account.");
+          break;
         case "auth/invalid-email":
           setEmailError("Please enter a valid email address.");
           break;
@@ -296,8 +299,8 @@ export const Login = () => {
                 </label>
               </div>
             </HStack>
-            
-            {permissionError && (
+
+            {(permissionError || credentialsError) && (
               <Box
                 bg="#FFF5F5"
                 border="1px solid"
@@ -316,12 +319,16 @@ export const Login = () => {
               >
 
                 <VStack gap={0} align="start">
-                  <Text>
-                    {permissionError} 
-                  </Text>
-                  <Text>
-                    Please contact rocio@lapena.org
-                  </Text>
+                  {credentialsError ? (
+                    <>
+                      <Text>{credentialsError}</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text>{permissionError}</Text>
+                      <Text>Please contact rocio@lapena.org</Text>
+                    </>
+                  )}
                 </VStack>
               </Box>
             )}
