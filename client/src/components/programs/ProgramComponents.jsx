@@ -113,6 +113,8 @@ export const ProgramSummary = ({
   setIsArchived,
   eventId,
   sessions,
+  instructors,
+  payees,
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -324,8 +326,6 @@ export const ProgramSummary = ({
   const defaultBookingInfo = {
     nextSession: null,
     nextRoom: null,
-    instructors: [],
-    payees: [],
   };
 
   const safeBookingInfo = {
@@ -372,7 +372,7 @@ export const ProgramSummary = ({
     );
   }
 
-  const { nextSession, nextRoom, instructors, payees } = safeBookingInfo;
+  const { nextSession, nextRoom } = safeBookingInfo;
 
   return (
     <Box
@@ -899,6 +899,8 @@ export const Sessions = ({
   isArchived,
   setIsArchived,
   refreshSessions,
+  instructors,
+  payees
 }) => {
   const navigate = useNavigate();
   const { backend } = useBackendContext();
@@ -1917,8 +1919,8 @@ export const Sessions = ({
                             justifyContent="center"
                             alignItems="center"
                           >
-                            {session.instructor
-                              ? truncateNames(session.instructor)
+                            {instructors?.length > 0
+                              ? instructors.map((instructor) => instructor.clientName).join(", ")
                               : "N/A"}
                           </Box>
                         </Td>
@@ -1929,8 +1931,8 @@ export const Sessions = ({
                             justifyContent="center"
                             alignItems="center"
                           >
-                            {session.payee
-                              ? truncateNames(session.payee)
+                            {payees?.length > 0
+                              ? payees.map((payee) => payee.clientName).join(", ")
                               : "N/A"}
                           </Box>
                         </Td>

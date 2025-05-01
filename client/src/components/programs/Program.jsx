@@ -23,6 +23,9 @@ export const Program = () => {
   const [roomNames, setRoomNames] = useState(null);
   const [nextBookingInfo, setNextBookingInfo] = useState(null);
   const [isArchived, setIsArchived] = useState(false);
+  const [ assignments, setAssignments ] = useState(false);
+  const [ instructors, setInstructors ] = useState([]);
+  const [ payees, setPayees ] = useState([]);
 
   const getProgram = async () => {
     try {
@@ -33,6 +36,34 @@ export const Program = () => {
     } catch {
       console.log("From getProgram: ", error);
     }
+  };
+
+  const getAssignments = async () => {
+    const assignmentsResponse = await backend.get(
+      `/assignments/event/${id}`
+    );
+
+    const newInstructors = [];
+    const newPayees = [];
+
+    for (const assignment of assignmentsResponse.data) {
+      const clientResponse = await backend.get(
+        `/clients/${assignment.clientId}`
+      );
+      const assignmentWithClient = {
+        ...assignment,
+        clientName: clientResponse.data.name,
+        clientEmail: clientResponse.data.email,
+      };
+
+      if (assignment.role === "instructor") {
+        newInstructors.push(assignmentWithClient);
+      } else if (assignment.role === "payee") {
+        newPayees.push(assignmentWithClient);
+      }
+    }
+    setInstructors(newInstructors)
+    setPayees(newPayees)
   };
 
   const getNextBookingInfo = async () => {
@@ -57,30 +88,7 @@ export const Program = () => {
         `/rooms/${nextBooking.nextSession.roomId}`
       );
       nextBooking.nextRoom = roomResponse.data[0];
-
-      const assignmentsResponse = await backend.get(
-        `/assignments/event/${program[0].id}`
-      );
-
-      nextBooking.assignments = assignmentsResponse.data;
-
-      for (const assignment of assignmentsResponse.data) {
-        const clientResponse = await backend.get(
-          `/clients/${assignment.clientId}`
-        );
-        const assignmentWithClient = {
-          ...assignment,
-          clientName: clientResponse.data.name,
-          clientEmail: clientResponse.data.email,
-        };
-
-        if (assignment.role === "instructor") {
-          nextBooking.instructors.push(assignmentWithClient);
-        } else if (assignment.role === "payee") {
-          nextBooking.payees.push(assignmentWithClient);
-        }
-      }
-
+      nextBooking.assignments = assignments;
       setNextBookingInfo(nextBooking);
     } catch (error) {
       console.log("From getNextBookingInfo: ", error);
@@ -95,7 +103,7 @@ export const Program = () => {
       // Only get activeSessions
       const activeSessions = sessionsData.filter(session => session.archived === false);
       setSessions(activeSessions);
-      
+
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),
       ];
@@ -123,6 +131,7 @@ export const Program = () => {
   useEffect(() => {
     getProgram();
     getSessions();
+    getAssignments();
   }, [id]);
 
   useEffect(() => {
@@ -174,6 +183,8 @@ export const Program = () => {
           setIsArchived={setIsArchived}
           eventId={id}
           sessions={sessions}
+          instructors={instructors}
+          payees={payees}
         />
         <Sessions
           sessions={sessions}
@@ -182,6 +193,8 @@ export const Program = () => {
           setIsArchived={setIsArchived}
           eventId={id}
           refreshSessions={getSessions}
+          instructors={instructors}
+          payees={payees}
         />
       </Box>
     </Navbar>
