@@ -45,6 +45,7 @@ export const Login = () => {
   const { backend } = useBackendContext();
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [permissionError, setPermissionError] = useState("");
 
   const [boxChecked, setBoxChecked] = useState(false);
 
@@ -117,7 +118,7 @@ export const Login = () => {
           toastLoginError("You have been signed out. Please sign in again.");
           break;
         case "auth/no-permission":
-          toastLoginError("Your permission has not been approved by admin.");
+          setPermissionError("Your account is still waiting for approval.");
           break;
         default:
           toastLoginError(firebaseErrorMsg);
@@ -290,6 +291,35 @@ export const Login = () => {
                 </label>
               </div>
             </HStack>
+
+            {permissionError && (
+              <Box
+                bg="#FFF5F5"
+                border="1px solid"
+                borderColor="red.400"
+                color="red.800"
+                px={10}
+                py={3}
+                borderRadius="md"
+                w="360px"
+                textAlign="left"
+                fontFamily="Inter"
+                fontSize="14px"
+                fontWeight="500"
+                lineHeight="normal"
+                letterSpacing="0.07px"
+              >
+
+                <VStack gap={0} align="start">
+                  <Text>
+                    {permissionError} 
+                  </Text>
+                  <Text>
+                    Please contact rocio@lapena.org
+                  </Text>
+                </VStack>
+              </Box>
+            )}
 
             {/* Button Group */}
             <HStack className="button-group">
