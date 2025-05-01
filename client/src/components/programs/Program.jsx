@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 import "./Program.css";
 
-import { ChevronLeftIcon} from "@chakra-ui/icons";
 import { FileTextIcon } from "lucide-react";
 import { Box, Flex, IconButton, Text, Icon } from "@chakra-ui/react";
 
@@ -13,15 +12,23 @@ import { InfoIconRed } from "../../assets/InfoIconRed";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
+import { ChevronLeftIcon } from "@chakra-ui/icons";
 
 export const Program = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const [program, setProgram] = useState(null);
+  const [programName, setProgramName] = useState("");
   const [sessions, setSessions] = useState(null);
   const [roomIds, setRoomIds] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
-  const [nextBookingInfo, setNextBookingInfo] = useState(null);
+  const [nextBookingInfo, setNextBookingInfo] = useState({
+    nextSession: {},
+    nextRoom: {},
+    assignments: {},
+    instructors: [],
+    payees: [],
+  });
   const [isArchived, setIsArchived] = useState(false);
 
   const getProgram = async () => {
@@ -29,6 +36,7 @@ export const Program = () => {
       const programResponse = await backend.get(`/events/${id}`);
       const programData = programResponse.data;
       setProgram(programData); // programData should have what Events table in DB model contains
+      setProgramName(programData[0].name);
       setIsArchived(programData[0].archived);
     } catch {
       console.log("From getProgram: ", error);
@@ -64,6 +72,7 @@ export const Program = () => {
         `/assignments/event/${program[0].id}`
       );
       nextBooking.assignments = assignmentsResponse.data;
+      console.log("nextbooking assignments: ", nextBooking.assignments);
 
       // instuctors & payees
       const rolesResponse = await backend.get(`/programs/${id}/roles`);
@@ -86,10 +95,12 @@ export const Program = () => {
       const activeSessions = sessionsData.filter(session => session.archived === false);
       setSessions(activeSessions);
 
+      // Get set of room ids
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),
       ];
       setRoomIds(uniqueRoomIds);
+
     } catch (error) {
       console.log("From getSessions: ", error);
     }
@@ -129,50 +140,25 @@ export const Program = () => {
 
   return (
     <Navbar>
-      <Box style={{ width: "100%", padding: "20px 20px 20px 20px" }}>
-        <Flex
-          align="center"
-          gap={2}
-        >
-          <Icon
-            as={FileTextIcon}
-            boxSize={6}
-            color="gray.600"
+      <Box style={{width: "100%", padding: "26px 26px "}}>
+          <ProgramSummary
+            program={program}
+            sessions={sessions}
+            bookingInfo={nextBookingInfo}
+            isArchived={isArchived}
+            setIsArchived={setIsArchived}
+            eventId={id}
           />
-          <Text
-            fontFamily="Inter"
-            fontSize="24px"
-            fontStyle="normal"
-            fontWeight="700"
-            lineHeight="normal"
-          >
-            Summary
-          </Text>
-        </Flex>
-        {isArchived ? (
-          <div id="infoRed">
-            <InfoIconRed id="infoIcon" />
-            <p>You are viewing an archived program</p>
-          </div>
-        ) : (
-          <div></div>
-        )}
-        <ProgramSummary
-          program={program}
-          bookingInfo={nextBookingInfo}
-          isArchived={isArchived}
-          setIsArchived={setIsArchived}
-          eventId={id}
-          sessions={sessions}
-        />
-        <Sessions
-          sessions={sessions}
-          rooms={roomNames}
-          isArchived={isArchived}
-          setIsArchived={setIsArchived}
-          eventId={id}
-          refreshSessions={getSessions}
-        />
+          <Sessions
+            programName={programName}
+            sessions={sessions}
+            rooms={roomNames}
+            instructors={nextBookingInfo.instructors}
+            payees={nextBookingInfo.payees}
+            isArchived={isArchived}
+            setIsArchived={setIsArchived}
+            eventId={id}
+          />
       </Box>
     </Navbar>
   );

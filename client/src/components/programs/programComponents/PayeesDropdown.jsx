@@ -17,7 +17,7 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (!event.target.closest("#payeeContainer")) {
+            if (!event.target.closest("#payeeContainer") && !event.target.closest(".payeeTag")) {
                 setDropdownVisible(false);
             }
         }
@@ -28,24 +28,36 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
         }
     }, []);
 
+  const search = (searchTerm) => {
+    setPayeeSearchTerm(searchTerm);
+    getPayeeResults(searchTerm);
+    setDropdownVisible(true);
+  };
+
+  useEffect(() => {
+    search(payeeSearchTerm);
+  }, [selectedPayees, payeeSearchTerm]);
+
     return (
     <HStack gap="12px">
         <Box as="img" src={personSvg} boxSize="20px" />
-        <div id="payeeContainer">
-            <div id="payees">
-                <div id="payeeSelection">
-                    <Box>
+        <div id="payeeContainer" >
+            <div id="payees" className="inputElement">
+                <div id="payeeSelection" >
+                    <Box >
                         <div id="payeeInputContainer">
                             <Input
-                                placeholder="Payee(s)"
-                                onChange={(e) => {
-                                getPayeeResults(e.target.value);
-                                setPayeeSearchTerm(e.target.value);
-                                setDropdownVisible(true);
-                                }}
-                                value={payeeSearchTerm} id="payeeInput"
-                                autocomplete="off"
-                                />
+                              autoComplete="off"
+                              placeholder="Payee(s)"
+                              _placeholder={{ color: '#CBD5E0' }}
+                              onChange={(e) => {
+                                search(e.target.value);
+                              }}
+                              onClick={(e) => {
+                                search(e.target.value);
+                              }}
+                              value={payeeSearchTerm}
+                              id="payeeInput"/>
                             <Box
                                 as="button"
                                 onClick={() => {
@@ -58,9 +70,6 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                     if (payee && !selectedPayees.some(p => p.id === payee.id)) {
                                     setSelectedPayees((prevItems) => [...prevItems, payee]);
                                     }
-                                    setPayeeSearchTerm("");
-                                    setSearchedPayees([]);
-                                    getPayeeResults(")")
                                 }
                                 }}
                                 disabled={
@@ -90,9 +99,18 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                     <Box
                                         key={payee.id}
                                         onClick={() => {
-                                            setPayeeSearchTerm(payee.name);
-                                            setDropdownVisible(false);
-                                        }}
+                                        const alreadySelected = selectedPayees.find(
+                                            (pay) => pay.id.toString() === payee.id
+                                        );
+
+                                        if (payee && !alreadySelected) {
+                                            setSelectedPayees((prevItems) => [...prevItems, payee]);
+                                            const filteredPayees = searchedPayees.filter(
+                                            (pay) => payee.id !== pay.id.toString()
+                                            );
+                                            setSearchedPayees(filteredPayees);
+                                        }
+                                    }}
                                         style={{
                                             padding: "10px",
                                             fontSize: "16px",

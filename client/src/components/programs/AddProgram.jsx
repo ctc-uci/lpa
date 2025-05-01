@@ -1,27 +1,26 @@
-import {
-  Button,
-  Icon,
-} from "@chakra-ui/react";
 
-import { useEffect, useState, useRef } from "react";
-import { useNavigate } from 'react-router-dom';
-import './EditProgram.css';
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useEffect, useRef, useState, React } from "react";
+import { Button, Icon, useDisclosure, useToast } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
+import "./EditProgram.css";
+import { CiCircleMore } from "react-icons/ci";
 import { IoCloseOutline } from "react-icons/io5";
+import { useParams } from "react-router";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import React from 'react';
-
-import { TitleInformation } from "./programComponents/TitleInformation";
-import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
-import { PayeesDropdown } from "./programComponents/PayeesDropdown"
-import { LocationDropdown } from "./programComponents/LocationDropdown"
-import { RoomInformation } from "./programComponents/RoomInformation"
-import { ProgramInformation } from "./programComponents/ProgramInformation"
-import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown"
-import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
 import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
+import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { DateInputs } from "./programComponents/DateInputs";
+import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { LocationDropdown } from "./programComponents/LocationDropdown";
+import { PayeesDropdown } from "./programComponents/PayeesDropdown";
+import { ProgramInformation } from "./programComponents/ProgramInformation";
+import { ReoccuranceDropdown } from "./programComponents/ReoccuranceDropdown";
+import { RoomInformation } from "./programComponents/RoomInformation";
 import { TimeInputs } from "./programComponents/TimeInputs";
+import { TitleInformation } from "./programComponents/TitleInformation";
+
 
 import { getDatesForDays } from "../../helpers/getDatesForDays";
 
@@ -29,7 +28,9 @@ import { getDatesForDays } from "../../helpers/getDatesForDays";
 export const AddProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
-  const [locations, setLocations] = useState({});
+  const toast = useToast();
+
+  const [locations, setLocations] = useState({}); // rooms.id rooms.name
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState("");
   const [locationRate, setLocationRate] = useState("--.--");
@@ -53,7 +54,12 @@ export const AddProgram = () => {
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
   const initialState = useRef(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: cancelIsOpen,
+    onOpen: cancelOnOpen,
+    onClose: cancelOnClose,
+  } = useDisclosure();
 
   useEffect(() => {
     initialState.current = JSON.stringify({
@@ -68,10 +74,9 @@ export const AddProgram = () => {
       endTime,
       startDate,
       endDate,
-      selectedDays
+      selectedDays,
     });
   }, []);
-
 
   useEffect(() => {
     const currentState = JSON.stringify({
@@ -86,7 +91,7 @@ export const AddProgram = () => {
       endTime,
       startDate,
       endDate,
-      selectedDays
+      selectedDays,
     });
 
     setHasChanges(currentState !== initialState.current);
@@ -102,9 +107,8 @@ export const AddProgram = () => {
     endTime,
     startDate,
     endDate,
-    selectedDays
+    selectedDays,
   ]);
-
 
   useEffect(() => {
     getInitialLocations();
@@ -120,29 +124,39 @@ export const AddProgram = () => {
 
   useEffect(() => {
     console.log("Selected location ID updated:", selectedLocationId);
-}, [selectedLocationId]);
+  }, [selectedLocationId]);
 
-  const exit = (newEventId = "") => {
-    console.log(newEventId);
-    if (hasChanges) {
-      setIsConfirmModalOpen(true);
-      return;
-    }
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-        navigate("/dashboard");
-    }
+  const exit = () => {
+    navigate('/programs');
+    // if (hasChanges) {
+    //   onOpen();
+    //   toast({
+    //     title: "You have unsaved changes",
+    //     description: "Please save your changes before leaving.",
+    //     status: "warning",
+    //     duration: 3000,
+    //     isClosable: true,
+    //   });
+    // return;
+    // }
+    // if (window.history.length > 1) {
+    //   navigate(-1);
+    // } else {
+    //   navigate("/home");
+    // }
   };
 
   const saveAndExit = (newEventId = "") => {
-    navigate('/programs/' + newEventId);
+    navigate("/programs/" + newEventId);
   };
 
   const isFormValid = () => {
     return (
       eventName.trim() !== "" &&
-      startDate && endDate &&
+      startTime &&
+      endTime &&
+      startDate &&
+      endDate &&
       selectedLocationId !== "" &&
       selectedInstructors.length > 0 &&
       selectedPayees.length > 0
@@ -154,26 +168,20 @@ export const AddProgram = () => {
       const locationResponse = await backend.get("/rooms");
       setLocations(locationResponse.data);
     } catch (error) {
-        console.error("Error getting locations:", error);
+      console.error("Error getting locations:", error);
     }
   };
-
-
-
-
-
 
   const getInstructorResults = async (search) => {
     try {
       if (search !== "") {
         const instructorResponse = await backend.get("/clients/search", {
           params: {
-            searchTerm: search
-          }
+            searchTerm: search,
+          },
         });
         filterSelectedInstructorsFromSearch(instructorResponse.data);
-      }
-      else {
+      } else {
         setSearchedInstructors([]);
       }
     } catch (error) {
@@ -182,10 +190,9 @@ export const AddProgram = () => {
   };
 
   const filterSelectedInstructorsFromSearch = (instructorData) => {
-    const filteredInstructors =  instructorData.filter(
-      instructor => !selectedInstructors.some(
-        selected => selected.id === instructor.id
-      )
+    const filteredInstructors = instructorData.filter(
+      (instructor) =>
+        !selectedInstructors.some((selected) => selected.id === instructor.id)
     );
     setSearchedInstructors(filteredInstructors);
   };
@@ -195,29 +202,26 @@ export const AddProgram = () => {
       if (search !== "") {
         const payeeResponse = await backend.get("/clients/search", {
           params: {
-            searchTerm: search
-          }
+            searchTerm: search,
+          },
         });
         filterSelectedPayeesFromSearch(payeeResponse.data);
-      }
-      else {
+      } else {
         setSearchedPayees([]);
       }
     } catch (error) {
-        console.error("Error getting instructors:", error);
+      console.error("Error getting instructors:", error);
     }
   };
 
   const filterSelectedPayeesFromSearch = (payeesData) => {
     const filteredPayees = payeesData.filter(
-      (payee) => !selectedPayees.some(
-        (selectedPayee) => selectedPayee.id === payee.id
-      )
+      (payee) =>
+        !selectedPayees.some((selectedPayee) => selectedPayee.id === payee.id)
     );
 
     setSearchedPayees(filteredPayees);
   };
-
 
   const saveEvent = async () => {
     try {
@@ -227,15 +231,13 @@ export const AddProgram = () => {
       console.log("Newly added Instructors:", selectedInstructors);
       console.log("Newly added Payees:", selectedPayees);
 
-      const response = await backend.post('/events/', {
-          name: eventName,
-          description: generalInformation,
-          archived: eventArchived
+      const response = await backend.post("/events/", {
+        name: eventName,
+        description: generalInformation,
+        archived: eventArchived,
       });
 
       const newEventId = response.data.id;
-
-
 
       console.log("Newly added Start Date:", startDate);
       console.log("Newly added End Date:", endDate);
@@ -243,14 +245,21 @@ export const AddProgram = () => {
 
       let dates;
       if (repeatType !== "Does not repeat") {
-        dates = getDatesForDays(startDate, endDate, selectedDays, repeatType, repeatInterval, customRepeatType);
+        dates = getDatesForDays(
+          startDate,
+          endDate,
+          selectedDays,
+          repeatType,
+          repeatInterval,
+          customRepeatType
+        );
         for (const date of dates) {
           console.log(date)
           const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
           const dayOfWeek = daysMap[(new Date(date.date).getDay())];
 
-          const start = selectedDays[dayOfWeek].start
-          const end = selectedDays[dayOfWeek].end
+          const start = selectedDays[dayOfWeek].start;
+          const end = selectedDays[dayOfWeek].end;
 
           const bookingsData = {
             event_id: newEventId,
@@ -261,18 +270,28 @@ export const AddProgram = () => {
             archived: eventArchived,
           };
 
-          console.log("Saving event with location ID:", selectedLocationId, "for date:", date, "with times:", start, "-", end);
-          await backend.post('/bookings', bookingsData);
+          console.log(
+            "Saving event with location ID:",
+            selectedLocationId,
+            "for date:",
+            date,
+            "with times:",
+            start,
+            "-",
+            end
+          );
+          await backend.post("/bookings", bookingsData);
         }
+      } else {
+        const date = {
+          date: new Date(startDate),
+          start: startTime,
+          end: endTime,
+        };
+        console.log(date);
 
-
-      }
-      else {
-        const date = { date: new Date(startDate), start: startTime, end: endTime };
-        console.log(date)
-
-        const start = date.start
-        const end = date.end
+        const start = date.start;
+        const end = date.end;
 
         const bookingsData = {
           event_id: newEventId,
@@ -283,22 +302,29 @@ export const AddProgram = () => {
           archived: eventArchived,
         };
 
-        console.log("Saving event with location ID:", selectedLocationId, "for date:", date, "with times:", start, "-", end);
-        await backend.post('/bookings', bookingsData);
+        console.log(
+          "Saving event with location ID:",
+          selectedLocationId,
+          "for date:",
+          date,
+          "with times:",
+          start,
+          "-",
+          end
+        );
+        await backend.post("/bookings", bookingsData);
       }
 
       console.log("Newly added bookings for dates:", dates);
-
-
 
       console.log("Assigning instructors...");
       console.log("Instructor object:", selectedInstructors);
       for (const instructor of selectedInstructors) {
         console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
-            eventId: newEventId,
-            clientId: instructor.id,
-            role: "instructor"
+          eventId: newEventId,
+          clientId: instructor.id,
+          role: "instructor",
         });
       }
 
@@ -306,48 +332,45 @@ export const AddProgram = () => {
       for (const payee of selectedPayees) {
         console.log("Assigning payee:", payee);
         await backend.post("/assignments", {
-            eventId: newEventId,
-            clientId: payee.id,
-            role: "payee"
+          eventId: newEventId,
+          clientId: payee.id,
+          role: "payee",
         });
       }
       console.log("Save complete, navigating away...");
       saveAndExit(newEventId);
-
     } catch (error) {
-        console.error("Error getting instructors:", error);
+      console.error("Error getting instructors:", error);
     }
   };
 
   return (
     <Navbar>
-      <DeleteConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-      />
       <div id="body">
         <div id="programsBody">
-          <div><Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon></div>
+          <div>
+            <Icon
+              fontSize="xl"
+              onClick={cancelOnOpen}
+              id="leftCancel"
+            >
+              <IoCloseOutline />
+            </Icon>
+            <UnsavedChangesModal
+              isOpen={cancelIsOpen}
+              onOpen={cancelOnOpen}
+              onClose={cancelOnClose}
+              exit={exit}
+              save={saveEvent}
+              isFormValid={isFormValid}
+            />
+          </div>
           <div id="eventInfoBody">
             <div id="title">
-
               <TitleInformation
                 eventName={eventName}
                 setEventName={setEventName}
               />
-
-              <div id = "saveCancel">
-                <Button
-                  id="save"
-                  onClick={saveEvent}
-                  isDisabled={!isFormValid()}
-                  backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
-                  _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
-                >
-                  Save
-
-                </Button>
-              </div>
             </div>
             <div id="innerBody">
               <ReoccuranceDropdown
@@ -361,7 +384,7 @@ export const AddProgram = () => {
                 newProgram={true}
               />
 
-             <TimeInputs
+              <TimeInputs
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
                 startTime={startTime}
@@ -397,29 +420,39 @@ export const AddProgram = () => {
                 setSearchedPayees={setSearchedPayees}
               />
 
-              <EmailDropdown
-                selectedPayees={selectedPayees}
-              />
+              <EmailDropdown selectedPayees={selectedPayees} />
 
               <LocationDropdown
                 locations={locations}
                 locationRate={locationRate}
                 selectedLocationId={selectedLocationId}
+                selectedLocation={selectedLocation}
                 setSelectedLocation={setSelectedLocation}
                 setSelectedLocationId={setSelectedLocationId}
                 setRoomDescription={setRoomDescription}
                 setLocationRate={setLocationRate}
               />
 
-              <RoomInformation
-                roomDescription={roomDescription}
-              />
+              <RoomInformation roomDescription={roomDescription} />
 
               <ProgramInformation
                 generalInformation={generalInformation}
                 setGeneralInformation={setGeneralInformation}
               />
             </div>
+          </div>
+          <div id="saveCancel">
+            <Button
+              id="save"
+              onClick={saveEvent}
+              isDisabled={!isFormValid()}
+              backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
+              _hover={{
+                backgroundColor: isFormValid() ? "purple.700" : "gray.300",
+              }}
+            >
+              Save
+            </Button>
           </div>
         </div>
       </div>

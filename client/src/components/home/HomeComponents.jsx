@@ -45,24 +45,30 @@ import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
-// Icon imports - consider using React.memo for these components
-import actionsSvg from "../../assets/icons/actions.svg";
+import { CancelIcon } from "../../assets/CancelIcon";
+import { EditIcon } from "../../assets/EditIcon";
 import activeSvg from "../../assets/icons/active.svg";
-import cancelSvg from "../../assets/icons/cancel.svg";
 import clockSvg from "../../assets/icons/clock.svg";
-import editSvg from "../../assets/icons/edit.svg";
 import locationSvg from "../../assets/icons/location.svg";
 import noneSvg from "../../assets/icons/none.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
 import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import searchSvg from "../../assets/icons/search.svg";
+import { LocationPinIcon } from "../../assets/LocationPinIcon";
+import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
+// Icon imports - consider using React.memo for these components
+import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
+import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
+import { ProgramFilter } from "../filters/ProgramsFilter";
+import { SearchBar } from "../searchBar/SearchBar";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
-import { ProgramFilter } from "../filters/ProgramsFilter";
 
 import "./Home.css";
 
@@ -85,20 +91,20 @@ const NoneStatusIcon = React.memo(() => (
   />
 ));
 const ActionsIcon = React.memo(() => (
-  <img
-    src={actionsSvg}
+  <Icon
+    as={MenuOptionsIcon}
     alt="Actions"
   />
 ));
-const EditIcon = React.memo(() => (
-  <img
-    src={editSvg}
+const EditPencilIcon = React.memo(() => (
+  <Icon
+    as={EditIcon}
     alt="Edit"
   />
 ));
-const CancelIcon = React.memo(() => (
-  <img
-    src={cancelSvg}
+const CancelXIcon = React.memo(() => (
+  <Icon
+    as={CancelIcon}
     alt="Cancel"
   />
 ));
@@ -114,12 +120,7 @@ const ClockIcon = React.memo(() => (
     alt="Clock"
   />
 ));
-const LocationIcon = React.memo(() => (
-  <img
-    src={locationSvg}
-    alt="Location"
-  />
-));
+
 const PersonIcon = React.memo(() => (
   <img
     src={personSvg}
@@ -134,6 +135,11 @@ const TableRow = React.memo(
     handleEdit,
     handleDeactivate,
     truncateNames,
+    selectedIcon,
+    selectedAction,
+    onOpen,
+    isOpen,
+    onClose,
   }) => {
     const rowClass = "programs-table__row--even";
 
@@ -144,8 +150,18 @@ const TableRow = React.memo(
         cursor="pointer"
         className={rowClass}
       >
-        <Td borderLeftRadius="12px">{program.name}</Td>
-        <Td>
+        <Td
+          style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}
+        >
+          {truncateNames(program.name)}
+        </Td>
+        <Td
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           {program.status?.toLowerCase() === "active" ? (
             <ActiveStatusIcon />
           ) : program.status?.toLowerCase() === "past" ? (
@@ -156,39 +172,28 @@ const TableRow = React.memo(
         </Td>
         <Td>{program.upcomingDate}</Td>
         <Td>{program.upcomingTime}</Td>
-        <Td>{program.room}</Td>
-        <Td>{truncateNames(program.instructor)}</Td>
-        <Td>{truncateNames(program.payee)}</Td>
+        <Td>
+          <Box maxWidth="5rem">{truncateNames(program.room, true)}</Box>
+        </Td>
+        <Td>
+          <Box className="programs-ellipsis-box">
+            {truncateNames(program.instructor)}
+          </Box>
+        </Td>
+        <Td>
+          <Box className="programs-ellipsis-box">
+            {truncateNames(program.payee)}
+          </Box>
+        </Td>
         <Td
           borderRightRadius="12px"
           onClick={(e) => e.stopPropagation()}
         >
-          <Menu>
-            <MenuButton
-              as={IconButton}
-              aria-label="Options"
-              icon={<ActionsIcon />}
-              variant="ghost"
-              bg="transparent"
-              _hover={{ bg: "transparent" }}
-              className="actions-container"
-            />
-            <MenuList className="menu-list-custom">
-              <MenuItem
-                onClick={(e) => handleEdit(program.id, e)}
-                className="menu-item menu-item--edit"
-              >
-                <EditIcon style={{ marginRight: "6px" }} />
-                <Text>Edit</Text>
-              </MenuItem>
-              <MenuItem
-                icon={<Icon as={CancelIcon} />}
-                onClick={() => handleDeactivate(program.id)}
-              >
-                Deactivate
-              </MenuItem>
-            </MenuList>
-          </Menu>
+          <EditCancelPopup
+            handleEdit={handleEdit}
+            handleDeactivate={handleDeactivate}
+            id={program.id}
+          />
         </Td>
       </Tr>
     );
@@ -198,7 +203,9 @@ const TableRow = React.memo(
 const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
   <Thead>
     <Tr>
-      <Th>
+      <Th
+        style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}
+      >
         <HStack
           spacing={2}
           alignItems="center"
@@ -223,29 +230,22 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
             <Icon as={archiveCalendar} />
           </Box>
           <Box>
-            <Text
-              textTransform="none"
-              color="#767778"
-              fontSize="16px"
-              fontStyle="normal"
-            >
-              DATE
-            </Text>
+            <Text className="table-header-text">DATE</Text>
           </Box>
           <Box flexShrink={0}>
             <DateSortingModal onSortChange={handleSortChange} />
           </Box>
         </Flex>
       </Th>
-      <Th>
+      <Th justifyContent="center">
         <HStack>
           <ClockIcon />
           <Text className="table-header-text">UPCOMING TIME</Text>
         </HStack>
       </Th>
-      <Th>
+      <Th justifyContent="center">
         <HStack>
-          <LocationIcon />
+          <LocationPinIcon />
           <Text
             ml={-1}
             className="table-header-text"
@@ -254,13 +254,19 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
           </Text>
         </HStack>
       </Th>
-      <Th>
+      <Th
+        justifyContent="center"
+        maxWidth="8rem"
+      >
         <HStack>
-          <PersonIcon />
+          <PaintPaletteIcons />
           <Text className="table-header-text">LEAD ARTIST(S)</Text>
         </HStack>
       </Th>
-      <Th>
+      <Th
+        justifyContent="center"
+        maxWidth="10rem"
+      >
         <HStack>
           <PersonIcon />
           <Text className="table-header-text">PAYER(S)</Text>
@@ -295,8 +301,8 @@ export const ProgramsTable = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const toast = useToast();
-  const [selectedAction, setSelectedAction] = useState("Archive");
-  const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
+  // const [selectedAction, setSelectedAction] = useState("Archive");
+  // const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
 
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "No bookings";
@@ -381,7 +387,11 @@ export const ProgramsTable = () => {
     fetchPrograms();
   }, [fetchPrograms]);
 
-  const truncateNames = useCallback((names, maxLength = 30) => {
+  // Truncate long lists of instructors/payees - memoized
+  const truncateNames = useCallback((names, isRoom = false, maxLength = 30) => {
+    if (isRoom) {
+      maxLength = 10;
+    }
     if (!names || names.length <= maxLength) return names;
     return `${names.substring(0, maxLength)}...`;
   }, []);
@@ -530,7 +540,7 @@ export const ProgramsTable = () => {
   const handleEdit = useCallback(
     (id, e) => {
       e.stopPropagation();
-      navigate(`/programs/${id}`);
+      navigate(`/programs/edit/${id}`);
     },
     [navigate]
   );
@@ -543,82 +553,14 @@ export const ProgramsTable = () => {
     [onOpen]
   );
 
-  const handleSelect = useCallback((action, iconSrc) => {
-    setSelectedAction(action);
-    setSelectedIcon(iconSrc);
-  }, []);
-
-  const handleArchive = useCallback(async () => {
-    try {
-      await backend.put(`/events/${programToDelete}`, {
-        archived: true,
-      });
-      setPrograms((prev) => prev.filter((p) => p.id !== programToDelete));
-      onClose();
-      toast({
-        title: "Program archived",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.log("Couldn't archive", error);
-      toast({
-        title: "Archive failed",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  }, [backend, programToDelete, onClose, toast]);
-
-  const handleDelete = useCallback(async () => {
-    try {
-      const response = await backend.delete(`/events/${programToDelete}`);
-      if (response.data.result === "success") {
-        setPrograms((prev) => prev.filter((p) => p.id !== programToDelete));
-        toast({
-          title: "Program deleted",
-          description:
-            "The program and all related records have been successfully deleted.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        throw new Error("Failed to delete program");
-      }
-    } catch (error) {
-      console.error("Failed to delete program:", error);
-      toast({
-        title: "Delete failed",
-        description:
-          error.response?.data?.message ||
-          "An error occurred while deleting the program.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-    onClose();
-  }, [backend, programToDelete, onClose, toast]);
-
-  const handleConfirm = useCallback(async () => {
-    if (selectedAction === "Archive") {
-      await handleArchive();
-    } else if (selectedAction === "Delete") {
-      await handleDelete();
-    }
-  }, [selectedAction, handleArchive, handleDelete]);
-
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
     setSortOrder(order);
   }, []);
 
-  const handleSearchChange = useCallback((e) => {
-    setSearchTerm(e.target.value);
-  }, []);
+  const handleSearchChange = (query) => {
+    setSearchTerm(query);
+  };
 
   // console.log("filterprograms", filteredPrograms);
 
@@ -626,282 +568,103 @@ export const ProgramsTable = () => {
     const calculateRowsPerPage = () => {
       const viewportHeight = window.innerHeight;
       const rowHeight = 56;
-      
+
       const availableHeight = viewportHeight * 0.4;
-      
-      console.log(availableHeight / rowHeight)
+
+      console.log(availableHeight / rowHeight);
       return Math.max(5, Math.floor(availableHeight / rowHeight));
     };
-  
+
     setItemsPerPage(calculateRowsPerPage());
-  
+
     const handleResize = () => {
       setItemsPerPage(calculateRowsPerPage());
     };
-  
+
     window.addEventListener("resize", handleResize);
-  
+
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
   return (
     <>
-      <Box
-        width="100%"
-        height="80vh"
-        display="flex"
-        flexDirection="column"
-        justifyContent="space-between"
-      >
-        <Box className="programs-table" >
-          <Flex className="programs-table__filter-row">
-            {/* <ProgramFiltersModal onApplyFilters={handleApplyFilters} /> */}
-            <ProgramFilter programs={programs} setFilteredPrograms={setFilteredPrograms}/>
-            <Box flex="1" />
-            <div className="search-wrapper">
-              <div className="searchbar-container">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                />
-              </div>
-              <div className="searchbar-icon-container">
-                <SearchIcon />
-              </div>
-            </div>
-          </Flex>
+      <CancelProgram
+        id={programToDelete}
+        setPrograms={setPrograms}
+        onOpen={onOpen}
+        isOpen={isOpen}
+        onClose={onClose}
+        type={"Program"}
+      />
+      <Box className="programs-table">
+        <Flex className="programs-table__filter-row">
 
-          <TableContainer
-            className="programs-table__container"
+          <div className="archive">
+            <Icon
+              as={ProgramArchiveIcon}
+              alt="Archives"
+              className="archive-icon"
+            />
+            <span
+              className="archive-text"
+              onClick={() => {
+                navigate("/programs/archived");
+              }}
+            >
+              Archives
+            </span>
+          </div>
+          <ProgramFilter programs={programs} setFilteredPrograms={setFilteredPrograms}/>
+          {/* <ProgramFiltersModal onApplyFilters={handleApplyFilters} /> */}
+          <Box flex="1" />
+          <SearchBar
+            handleSearch={handleSearchChange}
+            searchQuery={searchTerm}
+          />
+        </Flex>
+        <TableContainer
+          className="programs-table__container"
+          width="100%"
+        >
+          <Table
+            variant="simple"
+            size="sm"
+            className="programs-table__table"
             width="100%"
           >
-            <Table
-              variant="simple"
-              size="sm"
-              className="programs-table__table"
-              width="100%"
-            >
-              <TableHeaders
-                handleSortChange={handleSortChange}
-                sortOrder={sortOrder}
-              />
-              <Tbody>
-                {currentPagePrograms.length === 0 ? (
-                  <Tr>
-                    <Td
-                      colSpan={8}
-                      textAlign="center"
-                    >
-                      No programs available.
-                    </Td>
-                  </Tr>
-                ) : (
-                  currentPagePrograms.map((program) => (
-                    <TableRow
-                      key={program.id}
-                      program={program}
-                      handleRowClick={handleRowClick}
-                      handleEdit={handleEdit}
-                      handleDeactivate={handleDeactivate}
-                      truncateNames={truncateNames}
-                    />
-                  ))
-                )}
-              </Tbody>
-            </Table>
-          </TableContainer>
-        </Box>
-
-        <Box
-          width="100%"
-          display="flex"
-          justifyContent="flex-end"
-        >
-          {totalPages > 1 && (
-            <Flex
-              alignItems="center"
-              justifyContent="center"
-              mt={4}
-              mb={4}
-              pr={4}
-            >
-              <Text
-                mr={2}
-                fontSize="sm"
-                color="#474849"
-                fontFamily="Inter, sans-serif"
-              >
-                {currentPage} of {totalPages}
-              </Text>
-              <Button
-                onClick={goToPreviousPage}
-                isDisabled={currentPage === 1}
-                size="sm"
-                variant="ghost"
-                padding={0}
-                minWidth="auto"
-                color="gray.500"
-                mr="16px"
-              >
-                <ChevronLeftIcon />
-              </Button>
-              <Button
-                onClick={goToNextPage}
-                isDisabled={currentPage === totalPages}
-                size="sm"
-                variant="ghost"
-                padding={0}
-                minWidth="auto"
-                color="gray.500"
-              >
-                <ChevronRightIcon />
-              </Button>
-            </Flex>
-          )}
-        </Box>
-
-        <Modal
-          isOpen={isOpen}
-          onClose={onClose}
-        >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Deactivate Program?</ModalHeader>
-            <ModalBody>
-              <Alert
-                status="error"
-                borderRadius="md"
-                p={4}
-                display="flex"
-                flexDirection="column"
-              >
-                <Box color="#90080F">
-                  <Flex alignitems="center">
-                    <Box
-                      color="#90080F0"
-                      mr={2}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <Info />
-                    </Box>
-                    <AlertTitle
-                      color="#90080F"
-                      fontSize="md"
-                      fontWeight="500"
-                    >
-                      The deactivation fee deadline for this program is{" "}
-                      <AlertDescription
-                        fontSize="md"
-                        fontWeight="bold"
-                      >
-                        Thu. 1/2/2025.
-                      </AlertDescription>
-                    </AlertTitle>
-                  </Flex>
-                  <Flex
-                    mt={4}
-                    align="center"
-                    justify="center"
-                    width="100%"
+            <TableHeaders
+              handleSortChange={handleSortChange}
+              sortOrder={sortOrder}
+            />
+            <Tbody>
+              {sortedPrograms.length === 0 ? (
+                <Tr>
+                  <Td
+                    colSpan={8}
+                    textAlign="center"
                   >
-                    <Checkbox
-                      fontWeight="500"
-                      sx={{
-                        ".chakra-checkbox__control": {
-                          bg: "white",
-                          border: "#D2D2D2",
-                        },
-                      }}
-                    >
-                      Waive fee
-                    </Checkbox>
-                  </Flex>
-                </Box>
-              </Alert>
-              <Box mt={4}>
-                <Text
-                  fontWeight="medium"
-                  mb={2}
-                >
-                  Reason for Deactivation:
-                </Text>
-                <Textarea
-                  bg="#F0F1F4"
-                  placeholder="..."
-                  size="md"
-                  borderRadius="md"
-                />
-              </Box>
-              <Box
-                mt={4}
-                display="flex"
-                justifyContent="right"
-              >
-                <Menu>
-                  <MenuButton
-                    as={Button}
-                    rightIcon={<ChevronDownIcon />}
-                    bg="#F0F1F4"
-                    variant="outline"
-                    width="50%"
-                    justify="right"
-                  >
-                    {selectedIcon} {selectedAction}
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem
-                      icon={
-                        <Box
-                          display="inline-flex"
-                          alignItems="center"
-                        >
-                          <Icon
-                            as={ArchiveIcon}
-                            boxSize={4}
-                          />
-                        </Box>
-                      }
-                      onClick={() => handleSelect("Archive", ArchiveIcon)}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      Archive
-                    </MenuItem>
-                    <MenuItem
-                      icon={<DeleteIcon />}
-                      onClick={() => handleSelect("Delete", <DeleteIcon />)}
-                    >
-                      Delete
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-              </Box>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                bg="transparent"
-                onClick={onClose}
-                color="#767778"
-                borderRadius="30px"
-                mr={3}
-              >
-                Exit
-              </Button>
-              <Button
-                onClick={handleConfirm}
-                style={{ backgroundColor: "#90080F" }}
-                colorScheme="white"
-                borderRadius="30px"
-              >
-                Confirm
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+                    No programs available.
+                  </Td>
+                </Tr>
+              ) : (
+                sortedPrograms.map((program) => (
+                  <TableRow
+                    key={program.id}
+                    program={program}
+                    handleRowClick={handleRowClick}
+                    handleEdit={handleEdit}
+                    handleDeactivate={handleDeactivate}
+                    truncateNames={truncateNames}
+                    onOpen={onOpen}
+                    isOpen={isOpen}
+                    onClose={onClose}
+                  />
+                ))
+              )}
+            </Tbody>
+          </Table>
+        </TableContainer>
       </Box>
     </>
   );

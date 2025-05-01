@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@chakra-ui/icons";
+import { useNavigate } from "react-router-dom";
+
+import "./ArchivedPrograms.css";
+
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertTitle,
@@ -40,8 +41,10 @@ import {
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
   useDisclosure,
+  useToast,
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
@@ -54,7 +57,9 @@ import {
   archiveClock,
   archiveMagnifyingGlass,
   archiveMapPin,
+  archivePaintPalette,
   archivePerson,
+  BackIcon,
   deleteIcon,
   duplicateIcon,
   filterButton,
@@ -63,12 +68,16 @@ import {
   sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
+  TooltipIcon,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { ArchivedFilter } from "../filters/ArchivedFilter";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import Navbar from "../navbar/Navbar";
-import { ArchivedFilter } from "../filters/ArchivedFilter";
+import { SearchBar } from "../searchBar/SearchBar";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -85,6 +94,7 @@ export const ArchivedPrograms = () => {
   const [programToDelete, setProgramToDelete] = useState(null);
   const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+  const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -233,7 +243,7 @@ export const ArchivedPrograms = () => {
 
   useEffect(() => {
     getArchivedPrograms();
-  }, []);
+  }, [archivedSessions]);
 
   useEffect(() => {
     // Runs whenever searchQuery, dateRange, or timeRange changes
@@ -285,6 +295,13 @@ export const ArchivedPrograms = () => {
     // Sets query for filterSessions
     setSearchQuery(query);
   };
+
+  const handleRowClick = useCallback(
+    (id) => {
+      navigate(`/programs/${id}`);
+    },
+    [navigate]
+  );
 
   const filterSessions = () => {
     return archivedSessions.filter((program) => {
@@ -395,100 +412,6 @@ export const ArchivedPrograms = () => {
     }
   };
 
-  const reactivateArchivedProgram = async (programId) => {
-    try {
-      await backend.put(`/events/${programId}`, {
-        archived: false,
-      });
-      // unarchive all related sessions(bookings)
-      await backend.put(`/programs/updateSessionArchive/${programId}`, {
-        archived: false,
-      });
-    } catch (error) {
-      console.log("Couldn't reactivate", error);
-    }
-  };
-
-  const duplicateArchivedProgram = async (programId) => {
-    try {
-      // Get original program data
-      const originalEvent = await backend.get(`/events/${programId}`);
-      const originalSessions = await backend.get(
-        `/bookings/byEvent/${programId}`
-      );
-      const originalAssignments = await backend.get(
-        `/assignments/event/${programId}`
-      );
-
-      // Create a new program
-      const newEventData = { ...originalEvent.data[0] };
-      delete newEventData.id; // Remove the original ID
-      newEventData.name = `${originalEvent.data[0].name}`;
-      newEventData.description = `${originalEvent.data[0].description}`;
-      newEventData.archived = false; // Ensure the new event is not archived
-      const newEvent = await backend.post("/events", newEventData);
-      console.log("New event created:", newEvent.data);
-      console.log(newEventData);
-
-      // Create copies of sessions for the new program
-      for (const session of originalSessions.data) {
-        const newSessionData = {
-          event_id: newEvent.data.id,
-          room_id: session.roomId,
-          start_time: session.startTime,
-          end_time: session.endTime,
-          date: session.date,
-          archived: false,
-        };
-        const newBooking = await backend.post("/bookings", newSessionData);
-        console.log("New booking", newSessionData);
-        console.log(newBooking);
-      }
-
-      // Create copies of assignments for the new program
-      for (const assignment of originalAssignments.data) {
-        const newAssignmentData = {
-          event_id: newEvent.data.id, // Set the new event ID
-          client_id: assignment.clientId, // Ensure clientId is a number
-          role: assignment.role,
-        };
-        const newAssignment = await backend.post(
-          "/assignments",
-          newAssignmentData
-        );
-      }
-
-      return newEvent.data;
-    } catch (error) {
-      console.log("Couldn't duplicate event", error);
-    }
-  };
-
-  const handleDuplicate = async (programId) => {
-    try {
-      await duplicateArchivedProgram(programId);
-    } catch (error) {
-      console.log("Couldn't duplicate program", error);
-    }
-  };
-
-  const handleReactivate = async (programId) => {
-    try {
-      await reactivateArchivedProgram(programId);
-      // Update local state
-      setArchivedProgramSessions((prevSessions) =>
-        prevSessions.filter((session) => session.programId !== programId)
-      );
-    } catch (error) {
-      console.log("Couldn't reactivate program", error);
-    }
-  };
-
-  const handleConfirmDelete = (programId) => {
-    onOpen();
-    setProgramToDelete(programId);
-  };
-
   const handleDelete = async (programId) => {
     try {
       await deleteArchivedProgram(programId);
@@ -506,10 +429,24 @@ export const ArchivedPrograms = () => {
   return (
     <Navbar>
       <Box margin="40px">
+        <Flex
+          align="center"
+          mb="24px"
+        >
+          <Icon as={archiveBox} />
+          <Text
+            fontSize="24px"
+            fontWeight="semibold"
+            color="#2D3748"
+            ml="8px"
+          >
+            Archived
+          </Text>
+        </Flex>
         <Card
-          shadow="md"
+          shadow="none"
           border="1px"
-          borderColor="gray.300"
+          borderColor="#E2E8F0"
           borderRadius="15px"
         >
           <CardBody margin="6px">
@@ -517,20 +454,6 @@ export const ArchivedPrograms = () => {
               direction="column"
               justify="space-between"
             >
-              <Flex
-                align="center"
-                mb="15px"
-              >
-                <Icon as={archiveBox} />
-                <Text
-                  fontSize="25px"
-                  fontWeight="semibold"
-                  color="#474849"
-                  ml="8px"
-                >
-                  Archived
-                </Text>
-              </Flex>
               <Box
                 display="flex"
                 justify-content="space-between"
@@ -539,37 +462,277 @@ export const ArchivedPrograms = () => {
                 marginTop="5px"
                 marginBottom="15px"
               >
-                <Flex marginRight="auto">
-                  <ArchivedFilter
-                    archived={archivedSessions}
-                    setArchivedPrograms={setFilteredArchived}
-                    roomMap={roomNames}/>
-                </Flex>
-                <Flex>
-                  <InputGroup
-                    size="md"
-                    width="300px"
-                    variant="outline"
-                    borderColor="#D2D2D2"
-                    background="white"
-                    type="text"
+                <Flex
+                  marginRight="auto"
+                  gap="1.25rem"
+                  alignItems="center"
+                >
+                  <Button
+                    id="programButton"
+                    display="flex"
+                    gap="0.25rem"
+                    onClick={() => {
+                      navigate("/programs");
+                    }}
                   >
-                    <Input
-                      placeholder="Search..."
-                      borderRadius="15px"
-                      onChange={(e) => handleSearch(e.target.value)}
-                    />
-                    <InputRightElement marginRight="4px">
+                    <BackIcon />
+                    <Text
+                      fontSize="sm"
+                      color="#2D3748"
+                    >
+                      Programs
+                    </Text>
+                  </Button>
+                  <Popover>
+                    {/* <PopoverTrigger>
                       <Button
-                        size="sm"
-                        borderRadius="15px"
-                        background="#F0F1F4"
-                        onClick={() => handleSearch(searchQuery)}
+                        backgroundColor="#EDF2F7"
+                        midWidth="auto"
+                        borderRadius="6px"
                       >
-                        <Icon as={archiveMagnifyingGlass} />
+                        <Box
+                          display="flex"
+                          flexDirection="row"
+                          alignItems="center"
+                          gap="5px"
+                        >
+                          <Icon as={filterButton} />
+                          <Text
+                            fontSize="sm"
+                            color="#2D3748"
+                          >
+                            Filters
+                          </Text>
+                        </Box>
                       </Button>
-                    </InputRightElement>
-                  </InputGroup>
+                    </PopoverTrigger> */}
+                    <Portal>
+                      <PopoverContent>
+                        <Box margin="16px">
+                          <PopoverBody>
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              alignItems="flex-start"
+                              gap="24px"
+                              alignSelf="stretch"
+                            >
+                              <FormControl id="date">
+                                <Box
+                                  display="flex"
+                                  flexDirection="column"
+                                  justifyContent="center"
+                                  alignItems="flex-start"
+                                  gap="16px"
+                                  alignSelf="stretch"
+                                >
+                                  <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    gap="5px"
+                                    alignSelf="stretch"
+                                  >
+                                    <Icon as={filterDateCalendar} />
+                                    <Text
+                                      fontWeight="bold"
+                                      color="#767778"
+                                    >
+                                      Date
+                                    </Text>
+                                  </Box>
+                                  <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Input
+                                      size="sm"
+                                      borderRadius="5px"
+                                      borderColor="#D2D2D2"
+                                      backgroundColor="#F6F6F6"
+                                      width="35%"
+                                      height="20%"
+                                      type="date"
+                                      placeholder="MM/DD/YYYY"
+                                      onChange={(e) =>
+                                        handleDateChange(
+                                          "start",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                    <Text> to </Text>
+                                    <Input
+                                      size="sm"
+                                      borderRadius="5px"
+                                      borderColor="#D2D2D2"
+                                      backgroundColor="#F6F6F6"
+                                      width="35%"
+                                      height="20%"
+                                      type="date"
+                                      placeholder="MM/DD/YYYY"
+                                      onChange={(e) =>
+                                        handleDateChange("end", e.target.value)
+                                      }
+                                    />
+                                  </Box>
+                                </Box>
+                              </FormControl>
+                              <FormControl id="time">
+                                <Box
+                                  display="flex"
+                                  flexDirection="column"
+                                  justifyContent="center"
+                                  alignItems="flex-start"
+                                  gap="16px"
+                                  alignSelf="stretch"
+                                >
+                                  <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    gap="5px"
+                                    alignSelf="stretch"
+                                  >
+                                    <Icon as={sessionsFilterClock} />
+                                    <Text
+                                      fontWeight="bold"
+                                      color="#767778"
+                                    >
+                                      Time
+                                    </Text>
+                                  </Box>
+                                  <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    gap="8px"
+                                  >
+                                    <Input
+                                      size="xs"
+                                      borderRadius="5px"
+                                      borderColor="#D2D2D2"
+                                      backgroundColor="#F6F6F6"
+                                      width="30%"
+                                      height="20%"
+                                      type="time"
+                                      placeholder="00:00 am"
+                                      onChange={(e) =>
+                                        handleTimeChange(
+                                          "start",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                    <Text> to </Text>
+                                    <Input
+                                      size="xs"
+                                      borderRadius="5px"
+                                      borderColor="#D2D2D2"
+                                      backgroundColor="#F6F6F6"
+                                      width="30%"
+                                      height="20%"
+                                      type="time"
+                                      placeholder="00:00 pm"
+                                      onChange={(e) =>
+                                        handleTimeChange("end", e.target.value)
+                                      }
+                                    />
+                                  </Box>
+                                </Box>
+                              </FormControl>
+                              <FormControl id="room">
+                                <Box
+                                  display="flex"
+                                  flexDirection="column"
+                                  justifyContent="center"
+                                  alignItems="flex-start"
+                                  gap="16px"
+                                  alignSelf="stretch"
+                                >
+                                  <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    gap="5px"
+                                    alignSelf="stretch"
+                                  >
+                                    <Icon as={sessionsFilterMapPin} />
+                                    <Text
+                                      fontWeight="bold"
+                                      color="#767778"
+                                    >
+                                      Room
+                                    </Text>
+                                  </Box>
+                                  <Wrap spacing={2}>
+                                    <WrapItem>
+                                      <Button
+                                        borderRadius="30px"
+                                        borderWidth="1px"
+                                        width="auto"
+                                        height="20px"
+                                        onClick={() => setSelectedRoom("All")}
+                                        backgroundColor={
+                                          selectedRoom === "All"
+                                            ? "#EDEDFD"
+                                            : "#F6F6F6"
+                                        }
+                                        borderColor={
+                                          selectedRoom === "All"
+                                            ? "#4E4AE7"
+                                            : "#767778"
+                                        }
+                                      >
+                                        All
+                                      </Button>
+                                    </WrapItem>
+                                    {roomNames &&
+                                      Array.from(roomNames.values()).map(
+                                        (room, index) => (
+                                          <WrapItem>
+                                            <Button
+                                              key={index}
+                                              borderRadius="30px"
+                                              borderWidth="1px"
+                                              minWidth="auto"
+                                              height="20px"
+                                              onClick={() =>
+                                                setSelectedRoom(room)
+                                              }
+                                              backgroundColor={
+                                                selectedRoom === room
+                                                  ? "#EDEDFD"
+                                                  : "#F6F6F6"
+                                              }
+                                              borderColor={
+                                                selectedRoom === room
+                                                  ? "#4E4AE7"
+                                                  : "#767778"
+                                              }
+                                            >
+                                              {room}
+                                            </Button>
+                                          </WrapItem>
+                                        )
+                                      )}
+                                  </Wrap>
+                                </Box>
+                              </FormControl>
+                            </Box>
+                          </PopoverBody>
+                        </Box>
+                      </PopoverContent>
+                    </Portal>
+                  </Popover>
+                  <Flex marginRight="auto">
+                    <ArchivedFilter
+                      archived={archivedSessions}
+                      setArchivedPrograms={setFilteredArchived}
+                      roomMap={roomNames}
+                    />
+                  </Flex>
+                  <SearchBar
+                    handleSearch={handleSearch}
+                    searchQuery={searchQuery}
+                  />
                 </Flex>
               </Box>
               <TableContainer>
@@ -579,152 +742,138 @@ export const ArchivedPrograms = () => {
                     color="#D2D2D2"
                   >
                     <Tr>
-                      <Th>
+                      <Th
+                        className="th"
+                        minWidth="20rem"
+                      >
                         <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
+                          className="columnContainer"
+                          width="100%"
                         >
                           <Text
+                            className="archiveHeaderText"
                             textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
                           >
-                            Program
+                            PROGRAM
                           </Text>
                           <ProgramSortingModal
                             onSortChange={handleSortChange}
                           />
                         </Box>
                       </Th>
-
-                      <Th>
-                        <Flex
-                          align="center"
-                          gap="8px"
+                      <Th className="th">
+                        <Box
+                          className="columnContainer"
+                          justifyContent="space-between"
                         >
-                          <Box>
-                            <Icon as={archiveCalendar} />
-                          </Box>
-                          <Box>
-                            <Text
-                              textTransform="none"
-                              color="#767778"
-                              fontSize="16px"
-                              fontStyle="normal"
-                            >
-                              Date
-                            </Text>
-                          </Box>
+                          <Flex
+                            align="center"
+                            gap="8px"
+                          >
+                            <Box>
+                              <Icon as={archiveCalendar} />
+                            </Box>
+                            <Box>
+                              <Text
+                                className="archiveHeaderText"
+                                textTransform="none"
+                              >
+                                DATE
+                              </Text>
+                            </Box>
+                          </Flex>
                           <Box>
                             <DateSortingModal onSortChange={handleSortChange} />
                           </Box>
-                        </Flex>
+                        </Box>
                       </Th>
-
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
-                        >
+                      <Th className="th">
+                        <Box className="columnContainer">
                           <Icon as={archiveClock} />
                           <Text
+                            className="archiveHeaderText"
                             textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
                           >
-                            Time
+                            UPCOMING TIME
                           </Text>
                         </Box>
                       </Th>
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
-                        >
+                      <Th
+                        className="th"
+                        maxWidth="6rem"
+                      >
+                        <Box className="columnContainer">
                           <Icon as={archiveMapPin} />
                           <Text
+                            className="archiveHeaderText"
                             textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
                           >
-                            Room
+                            ROOM
                           </Text>
                         </Box>
                       </Th>
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
-                        >
+                      <Th className="th">
+                        <Box className="columnContainer">
+                          <Icon as={archivePaintPalette} />
+                          <Text
+                            className="archiveHeaderText"
+                            textTransform="none"
+                          >
+                            LEAD ARTIST(S)
+                          </Text>
+                        </Box>
+                      </Th>
+                      <Th className="th">
+                        <Box className="columnContainer">
                           <Icon as={archivePerson} />
                           <Text
+                            className="archiveHeaderText"
                             textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
                           >
-                            Lead Artist(s)
+                            PAYER(S)
                           </Text>
                         </Box>
                       </Th>
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
-                        >
-                          <Icon as={archivePerson} />
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Payer(s)
-                          </Text>
-                        </Box>
+                      <Th className="th">
+                        {/* Empty column for ellipsis button */}
                       </Th>
-                      <Th>{/* Empty column for ellipsis button */}</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
                     {sortedArchivedSessions.length > 0 ? (
-                      currentPagePrograms.map((programSession) => (
-                        <Tr key={programSession.programId}>
-                          <Td>{programSession.programName}</Td>
-                          <Td>
+                      sortedArchivedSessions.map((programSession) => (
+                        <Tr
+                          key={programSession.programId}
+                          onClick={() =>
+                            handleRowClick(programSession.programId)
+                          }
+                          cursor="pointer"
+                        >
+                          <Td
+                            className="td"
+                            minWidth="20rem"
+                          >
+                            {programSession.programName}
+                          </Td>
+                          <Td className="td">
                             {programSession.sessionDate !== "N/A"
                               ? formatDate(programSession.sessionDate)
                               : "N/A"}
                           </Td>
-                          <Td>
+                          <Td className="td">
                             {programSession.sessionStart !== "N/A"
                               ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
                               : "N/A"}
                           </Td>
-                          <Td>
+                          <Td
+                            className="td"
+                            maxWidth="6rem"
+                          >
                             {programSession.room !== "N/A"
                               ? programSession.room
                               : "N/A"}
                           </Td>
-                          <Td>
+                          <Td className="td">
                             {programSession.instructors &&
                             programSession.instructors.length > 0
                               ? programSession.instructors
@@ -732,7 +881,7 @@ export const ArchivedPrograms = () => {
                                   .join(", ")
                               : "N/A"}
                           </Td>
-                          <Td>
+                          <Td className="td">
                             {programSession.payees &&
                             programSession.payees.length > 0
                               ? programSession.payees
@@ -740,66 +889,19 @@ export const ArchivedPrograms = () => {
                                   .join(", ")
                               : "N/A"}
                           </Td>
-                          <Td>
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                height="30px"
-                                width="30px"
-                                rounded="full"
-                                variant="ghost"
-                                icon={<Icon as={sessionsEllipsis} />}
-                              />
-                              <MenuList>
-                                <MenuItem
-                                  onClick={() =>
-                                    handleDuplicate(programSession.programId)
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    padding="12px 16px"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Icon as={duplicateIcon} />
-                                    <Text color="#767778">Duplicate</Text>
-                                  </Box>
-                                </MenuItem>
-                                <MenuItem
-                                  onClick={() =>
-                                    handleReactivate(programSession.programId)
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    padding="12px 16px"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Icon as={reactivateIcon} />
-                                    <Text color="#767778">Reactivate</Text>
-                                  </Box>
-                                </MenuItem>
-                                <MenuItem
-                                  onClick={() =>
-                                    handleConfirmDelete(
-                                      programSession.programId
-                                    )
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    padding="12px 16px"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Icon as={deleteIcon} />
-                                    <Text color="#90080F">Delete</Text>
-                                  </Box>
-                                </MenuItem>
-                              </MenuList>
-                            </Menu>
+                          <Td
+                            className="td"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ArchivedDropdown
+                              programId={programSession.programId}
+                              programName={programSession.programName}
+                              setProgramToDelete={setProgramToDelete}
+                              onOpen={onOpen}
+                              setArchivedProgramSessions={
+                                setArchivedProgramSessions
+                              }
+                            />
                           </Td>
                         </Tr>
                       ))
@@ -808,6 +910,7 @@ export const ArchivedPrograms = () => {
                         <Td
                           colSpan={7}
                           textAlign="center"
+                          className="td"
                         >
                           <Box
                             justifyContent="center"
@@ -817,7 +920,7 @@ export const ArchivedPrograms = () => {
                             width="300px"
                             margin="auto"
                           >
-                            <Text>
+                            <Text textAlign={"center"}>
                               No archived program or session data to display.
                             </Text>
                           </Box>
@@ -830,6 +933,15 @@ export const ArchivedPrograms = () => {
             </Flex>
           </CardBody>
         </Card>
+        {/* <CancelProgram
+          id={programToDelete}
+          setPrograms={setPrograms}
+          onOpen={onOpen}
+          isOpen={isOpen}
+          onClose={onClose}
+          type="Program"
+        />*/}
+
         <Box
           width="100%"
           display="flex"
@@ -877,69 +989,6 @@ export const ArchivedPrograms = () => {
             </Flex>
           )}
         </Box>
-        <Modal
-          isOpen={isOpen}
-          onClose={onClose}
-        >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader
-              fontStyle="normal"
-              fontWeight="400"
-              color="#474849"
-            >
-              Delete Program?
-            </ModalHeader>
-            <ModalBody>
-              <Alert
-                status="error"
-                borderRadius="md"
-                p={4}
-                display="flex"
-                flexDirection="column"
-              >
-                <Box color="#90080F">
-                  <Flex alignitems="center">
-                    <Box
-                      color="#90080F0"
-                      mr={2}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <Info />
-                    </Box>
-                    <AlertTitle
-                      color="#90080F"
-                      fontStyle="normal"
-                      fontWeight="500"
-                    >
-                      Program will be permanently deleted from Archives.
-                    </AlertTitle>
-                  </Flex>
-                </Box>
-              </Alert>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                bg="transparent"
-                onClick={onClose}
-                color="#767778"
-                borderRadius="30px"
-                mr={3}
-              >
-                Exit
-              </Button>
-              <Button
-                onClick={() => handleDelete(programToDelete)}
-                style={{ backgroundColor: "#90080F" }}
-                colorScheme="white"
-                borderRadius="30px"
-              >
-                Confirm
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
       </Box>
     </Navbar>
   );

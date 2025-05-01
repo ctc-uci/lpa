@@ -51,19 +51,41 @@ bookingsRouter.get("/:id", async (req, res) => {
 bookingsRouter.get("/displayData/:id", async (req, res) => {
   try {
       const { id } = req.params;
-      const data = await db.query(`SELECT *, events.name as eventName, events.description as eventDescription, rooms.name as roomName, rooms.description as roomDescription, assignments.role as clientRole, clients.name as clientName
+      const data = await db.query(
+        `SELECT
+        bookings.id            AS booking_id,
+        bookings.event_id      AS booking_event_id,
+        bookings.room_id       AS booking_room_id,
+        bookings.date,
+        bookings.start_time,
+        bookings.end_time,
+
+        events.id              AS event_id,
+        events.name            AS eventName,
+        events.description     AS eventDescription,
+
+        rooms.id               AS room_id,
+        rooms.name             AS roomName,
+        rooms.description      AS roomDescription,
+
+        assignments.role       AS clientRole,
+        clients.id             AS clientId,
+        clients.name           AS clientName,
+        clients.email          AS clientEmail
+
         FROM bookings
-        JOIN events ON events.id = bookings.event_id
-        JOIN rooms ON bookings.room_id = rooms.id
-        JOIN assignments ON bookings.event_id = assignments.event_id
-        JOIN clients ON assignments.client_id = clients.id
-        WHERE bookings.id = $1`, [
-          id
-      ]);
-      res.status(200).json(keysToCamel(data));
-  } catch (err) {
-      res.status(500).send(err.message);
-  }
+        LEFT JOIN events      ON events.id      = bookings.event_id
+        LEFT JOIN rooms       ON rooms.id       = bookings.room_id
+        LEFT JOIN assignments ON assignments.event_id = bookings.event_id
+        LEFT JOIN clients     ON clients.id     = assignments.client_id
+        WHERE bookings.id = $1;`, 
+        [
+            id
+        ]);
+        res.status(200).json(keysToCamel(data));
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
 bookingsRouter.get("/byEvent/:id", async (req, res) => {
