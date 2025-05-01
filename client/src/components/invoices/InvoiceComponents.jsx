@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -276,7 +276,7 @@ const InvoiceStats = ({
   );
 };
 
-const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, handleNavBarClick }) => {
+const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, setHasUnsavedChanges, handleOtherButtonClick }, ref) => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
@@ -334,6 +334,11 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, handleNa
     fetchData();
   }, [backend, id]);
 
+  useImperativeHandle(ref, () => ({
+    handleSaveComment: handleSaveComment,
+  }));
+
+
   const currentPageComments = comments ?? [];
 
   const handleDeleteComment = async () => {
@@ -351,9 +356,17 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, handleNa
 
   const handleShowDelete = (comment) => {
     try {
-      setSelectedComment(comment);
-      setDeleteID(comment.id);
-      onOpen();
+      if (hasUnsavedChanges) {
+        handleButtonWhileUnsaved(() => {
+          setSelectedComment(comment);
+          setDeleteID(comment.id);
+          onOpen();
+      });
+        } else {
+            setSelectedComment(comment);
+            setDeleteID(comment.id);
+            onOpen();
+        }
     } catch (error) {
       console.error("Error showing modal:", error);
     }
@@ -361,9 +374,17 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, handleNa
 
   const handleEditComment = (edit) => {
     try {
-      setEditID(edit);
-      setShowEditRow(true);
-      setHasUnsavedChanges(true);
+      if (hasUnsavedChanges) {
+        handleButtonWhileUnsaved(() => {
+          setEditID(edit);
+          setShowEditRow(true);
+          setHasUnsavedChanges(true);
+        });
+      } else {
+        setEditID(edit);
+        setShowEditRow(true);
+        setHasUnsavedChanges(true);
+      }
     } catch (error) {
       console.error("Error editing:", error);
     }
@@ -492,10 +513,8 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, handleNa
     setHasUnsavedChanges(true);
   };
 
-  const handleButtonWhileUnsaved = async () => {
-    if (hasUnsavedChanges){
-      handleNavBarClick()
-    }
+  const handleButtonWhileUnsaved = (onContinue) => {
+      handleOtherButtonClick(onContinue)
   }
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -625,6 +644,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, handleNa
                           borderRadius={6}
                           backgroundColor="#EDF2F7"
                           icon={<Icon as={sessionsEllipsis} />}
+                          
                         />
                         <MenuList>
                           <MenuItem
@@ -784,7 +804,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, handleNa
       </Flex>
     </Flex>
   );
-};
+});
 
 function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -801,7 +821,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     },
     [navigate]
   );
-
+  
   useEffect(() => {
     filteredInvoices.forEach((invoice, index) => {
       if (invoice.isPaid === "Past Due") {

@@ -4,7 +4,7 @@ import { Link as RouterLink } from "react-router-dom";
 import { CalendarSelected } from "../../assets/CalendarSelected";
 import { InvoiceSelected } from "../../assets/InvoiceSelected";
 
-const NavBarButton = ({ item, isActive }) => {
+const NavBarButton = ({ item, isActive, onNavigateAttempt }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const widthMap = {
@@ -12,6 +12,11 @@ const NavBarButton = ({ item, isActive }) => {
     "Invoices": 114, 
     "Notifications": 169,
     "Settings": 115
+  };
+
+  const handleNavigation = (event) => {
+    event.preventDefault(); // Prevent immediate navigation by RouterLink
+    onNavigateAttempt(item.path); // Call the handler in the parent
   };
   
   // Get width based on hover or active state
@@ -32,9 +37,12 @@ const NavBarButton = ({ item, isActive }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <RouterLink to={item.path}>
+      {/* <RouterLink to={item.path}> */}
         <Box
           bg={isHovered && !isActive ? "#EDF2F7" : "none"}
+          as={RouterLink}
+          to={item.path}
+          onClick={handleNavigation}
           borderRadius={isActive ? "none" : "6px"}
           className="nav-item-wrapper"
           width={getButtonWidth()}
@@ -133,7 +141,7 @@ const NavBarButton = ({ item, isActive }) => {
             )}
           </Flex>
         </Box>
-      </RouterLink>
+      {/* </RouterLink> */}
     </div>
   );
 };

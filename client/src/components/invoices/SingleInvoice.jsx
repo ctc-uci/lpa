@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 
 import {
   Button,
@@ -57,7 +57,9 @@ export const SingleInvoice = () => {
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [actionToContinue, setActionToContinue] = useState(null);
 
+  const invoicePaymentsRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -200,17 +202,20 @@ export const SingleInvoice = () => {
   }, [comments, backend, room]);
 
   const handlePreviewClick = () => {
-    navigate(`/invoices/savededits/${id}`);
+    // navigate(`/invoices/savededits/${id}`);
+    console.log("Preview clicked");
   };
 
-  const handleModalConfirm = () => {
-    console.log("Handle modal confirm executed");
-    if (intendedPath) {
-      navigate(intendedPath);
-      setIntendedPath(null);
-    } else {
-      navigate("/invoices");
-    }
+  const handleSaveChanges = () => {
+      if (pendingNavigation) {
+        invoicePaymentsRef.current?.handleSaveComment();
+        pendingNavigation();
+        setPendingNavigation(null);
+        setHasUnsavedChanges(false);
+      } else {
+        invoicePaymentsRef.current?.handleSaveComment();
+        setHasUnsavedChanges(false);
+      }
   };
 
   const handleNavbarClick = (path) => {
@@ -222,13 +227,13 @@ export const SingleInvoice = () => {
     }
   };
 
-  const handleOtherButtonClick = () => {
+  const handleOtherButtonClick = useCallback((onContinueAction) => {
+    setActionToContinue(() => onContinueAction);
     openModal();
-    
-  }
+  }, []);
 
   return (
-    <Navbar onNavbarClick={handleNavbarClick}>
+    <Navbar handleNavbarClick={handleNavbarClick} hasUnsavedChanges={hasUnsavedChanges}>
       <Flex
         direction="row"
         height="100%"
@@ -266,6 +271,10 @@ export const SingleInvoice = () => {
                     if (pendingNavigation) {
                       pendingNavigation();
                       setHasUnsavedChanges(false);
+                    } else if (actionToContinue){
+                      actionToContinue();
+                      setActionToContinue(null);
+                      setHasUnsavedChanges(false);
                     }
                   }}
                   backgroundColor="#EDF2F7"
@@ -276,7 +285,10 @@ export const SingleInvoice = () => {
                   Don't Save
                 </Button>
                 <Button
-                  onClick={closeModal}
+                  onClick={() => {
+                    closeModal();
+                    handleSaveChanges();
+                  }}
                   backgroundColor="#4441C8"
                   color="#FFFFFF"
                   fontSize="14px"
@@ -313,7 +325,7 @@ export const SingleInvoice = () => {
               marginLeft="auto"
               gap={1}
             >
-              <PDFButtonInvoice id={id} />
+              <PDFButtonInvoice id={id} hasUnsavedChanges={hasUnsavedChanges} handleOtherButtonClick={handleOtherButtonClick}/>
               <Button
                 height={"40px"}
                 backgroundColor="#4441C8"
@@ -323,7 +335,17 @@ export const SingleInvoice = () => {
                 fontSize="14px"
                 gap={"4px"}
                 padding={"0px 16px"}
-                onClick={handlePreviewClick}
+                onClick={() => {
+                  console.log(hasUnsavedChanges);
+                  if (hasUnsavedChanges) {
+                    openModal();
+                    setPendingNavigation(() => () => navigate(`/invoices/savededits/${id}`));
+                    console.log("has unsaved changes");
+                  } else{
+                    handlePreviewClick();
+                  }
+                }
+                }
               >
                 <FiExternalLink></FiExternalLink>
                 Preview
@@ -359,7 +381,10 @@ export const SingleInvoice = () => {
                   comments={comments}
                   setComments={setComments}
                   setHasUnsavedChanges={setHasUnsavedChanges}
-                  handleNavbarClick={handleNavbarClick}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  handleOtherButtonClick={handleOtherButtonClick}
+                  handleSaveChanges={handleSaveChanges}
+                  ref={invoicePaymentsRef}
                 ></InvoicePayments>
                 <EmailHistory emails={emails}></EmailHistory>
               </Flex>

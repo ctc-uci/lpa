@@ -8,12 +8,11 @@ import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
 import { useState, useEffect } from "react";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
-const Navbar = ({ children }) => {
+const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
   const { backend } = useBackendContext();
   const location = useLocation();
   const currentPath = location.pathname;
   const [count, setCount] = useState(0); // Initialize with 0 instead of undefined
-  const [hoveredItem, setHoveredItem] = useState(null);
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -60,6 +59,12 @@ const Navbar = ({ children }) => {
     },
   ];
 
+  const handleNavigateAttempt = (path) => {
+    if (hasUnsavedChanges) { // Function to check unsaved changes in SingleInvoice
+      handleNavbarClick(path);
+    }
+  };
+
   return (
     <div id="navbarBody">
       {/* Fixed width container to prevent layout shifts */}
@@ -90,6 +95,7 @@ const Navbar = ({ children }) => {
                 currentPath === item.path ||
                 (currentPath.startsWith(item.path + "/") && item.path !== "/")
               }
+              onNavigateAttempt={handleNavigateAttempt}
             />
           ))}
         </VStack>

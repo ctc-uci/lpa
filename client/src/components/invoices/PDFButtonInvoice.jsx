@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
 
 import { DownloadIcon } from "@chakra-ui/icons";
 import { Box, Flex, IconButton, Spinner } from "@chakra-ui/react";
@@ -35,10 +35,11 @@ const handleSubtotalSum = (startTime, endTime, rate) => {
   return total;
 };
 
-const PDFButtonInvoice = ({ id }) => {
+const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
+
 
   const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
@@ -163,7 +164,19 @@ const PDFButtonInvoice = ({ id }) => {
     <Box>
         <IconButton
         icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
-        onClick={handleDownload}
+        onClick={() => {
+          if (hasUnsavedChanges) {
+            console.log("has unsaved changes");
+            handleOtherButtonClick(() => {
+              handleDownload();
+            })
+          }
+          else {
+            handleDownload();
+            console.log("no unsaved changes");
+          }
+        }
+      }
         backgroundColor="transparent"
         aria-label="Download PDF"
         isDisabled={loading}
