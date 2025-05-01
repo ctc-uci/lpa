@@ -45,40 +45,32 @@ export const Program = () => {
         payees: [],
       };
 
+      // nextSession
       const nextSession = sessions?.find((session) => !session.archived);
-
       if (!nextSession) {
         console.log("No upcoming sessions found");
         return;
       }
-
       nextBooking.nextSession = nextSession;
       const roomResponse = await backend.get(
         `/rooms/${nextBooking.nextSession.roomId}`
       );
+
+      // nextRoom
       nextBooking.nextRoom = roomResponse.data[0];
 
+      // assignments
       const assignmentsResponse = await backend.get(
         `/assignments/event/${program[0].id}`
       );
-
       nextBooking.assignments = assignmentsResponse.data;
 
-      for (const assignment of assignmentsResponse.data) {
-        const clientResponse = await backend.get(
-          `/clients/${assignment.clientId}`
-        );
-        const assignmentWithClient = {
-          ...assignment,
-          clientName: clientResponse.data.name,
-          clientEmail: clientResponse.data.email,
-        };
+      // instuctors & payees
+      const rolesResponse = await backend.get(`/programs/${id}/roles`);
+      nextBooking.instructors = rolesResponse.data.instructors;
+      nextBooking.payees = rolesResponse.data.payees;
 
-        const rolesResponse = await backend.get(`/programs/${program.id}/roles`);
-        nextBooking.instructors = rolesResponse.data.instructors;
-        nextBooking.payees = rolesResponse.data.payees;
-      }
-
+      console.log("nextBooking", nextBooking)
       setNextBookingInfo(nextBooking);
     } catch (error) {
       console.log("From getNextBookingInfo: ", error);

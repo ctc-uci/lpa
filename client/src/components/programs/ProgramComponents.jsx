@@ -596,7 +596,7 @@ export const ProgramSummary = ({
                     >
                       {instructors?.length > 0
                         ? instructors
-                            .map((instructor) => instructor.clientName)
+                            .map((instructor) => instructor.name)
                             .join(", ")
                         : "No instructors"}
                     </Text>
@@ -616,7 +616,7 @@ export const ProgramSummary = ({
                         fontWeight="500"
                       >
                         {payees?.length > 0
-                          ? payees.map((payee) => payee.clientName).join(", ")
+                          ? payees.map((payee) => payee.name).join(", ")
                           : "No payees"}
                       </Text>
                     </Flex>
@@ -637,7 +637,7 @@ export const ProgramSummary = ({
                       >
                         {payees?.length > 0
                           ? [...(payees || [])]
-                              .map((person) => person?.clientEmail)
+                              .map((person) => person?.email)
                               .filter(Boolean)
                               .join(", ")
                           : "No emails available"}
