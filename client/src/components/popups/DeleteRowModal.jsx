@@ -8,7 +8,7 @@ import {
   ModalBody,
 } from "@chakra-ui/react";
 
-export const DeleteRowModal = ({isOpen, onClose, pendingNavigation, setHasUnsavedChanges, programName}) => {
+export const DeleteRowModal = ({isOpen, onClose, onDelete}) => {
   return (
     <Modal
       isOpen={isOpen}
@@ -42,13 +42,7 @@ export const DeleteRowModal = ({isOpen, onClose, pendingNavigation, setHasUnsave
           p="0"
         >
           <Button
-            onClick={() => {
-              onClose();
-              if (pendingNavigation) {
-                pendingNavigation();
-                setHasUnsavedChanges(false);
-              }
-            }}
+            onClick={onClose}
             backgroundColor="#EDF2F7"
             color="#2D3748"
             fontSize="14px"
@@ -60,7 +54,10 @@ export const DeleteRowModal = ({isOpen, onClose, pendingNavigation, setHasUnsave
             Exit
           </Button>
           <Button
-            onClick={onClose}
+            onClick={() => {
+              onDelete();
+              onClose();
+            }}
             backgroundColor="#90080F"
             color="#EDF2F7"
             fontSize="14px"

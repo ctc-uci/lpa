@@ -190,12 +190,13 @@ const App = () => {
                 />
                 <Route
                   path="/programs/edit/sessions/:id"
-                  element={
-                    <ProtectedRoute
-                      element={<EditRecurringSessions />}
-                      allowedRoles={["admin"]}
-                    />
-                  }
+                  // element={
+                  //   <ProtectedRoute
+                  //     element={<EditRecurringSessions />}
+                  //     allowedRoles={["admin"]}
+                  //   />
+                  // }
+                  element={<EditRecurringSessions />}
                 />
                 <Route
                   path="/programs/edit/session/:id"

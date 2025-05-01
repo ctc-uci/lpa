@@ -89,13 +89,9 @@ export const EditSingleSession = () => {
   // Function to format time
   // to "12:00 a.m." or "12:00 p.m."
   const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(":").map(Number);
-
-    // Determine AM or PM suffix
+    const [hours, minutes] = timeString.split(":").map(Number)
     const period = hours >= 12 ? "p.m." : "a.m.";
-    // Convert to 12-hour format
     const formattedHours = hours % 12 || 12;
-    // Return formatted time
     return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
 
