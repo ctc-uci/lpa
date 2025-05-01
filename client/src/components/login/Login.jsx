@@ -46,7 +46,8 @@ export const Login = () => {
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [permissionError, setPermissionError] = useState("");
-
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [boxChecked, setBoxChecked] = useState(false);
 
   const togglePasswordVisibility = () => {
@@ -98,11 +99,15 @@ export const Login = () => {
 
       switch (errorCode) {
         case "auth/wrong-password":
+          setPasswordError("Please enter a valid password.");
+          break;
         case "auth/invalid-credential":
         case "auth/invalid-email":
+          setEmailError("Please enter a valid email address.");
+          break;
         case "auth/user-not-found":
           toastLoginError(
-            "Email address or password does not match our records!"
+            "Invalid and password. Please try again or create a new account."
           );
           break;
         case "auth/unverified-email":
@@ -186,7 +191,7 @@ export const Login = () => {
                 >
                   Email
                 </label>
-                <div className="input-outer">
+                <div className={errors.email ? "input-outer-email-error" : "input-outer-email"}>
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillMail}
@@ -226,7 +231,7 @@ export const Login = () => {
                 >
                   Password
                 </label>
-                <div className="input-outer">
+                <div className={errors.password ? "input-outer-password-error" : "input-outer-password"}>
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillLock}
@@ -291,7 +296,7 @@ export const Login = () => {
                 </label>
               </div>
             </HStack>
-
+            
             {permissionError && (
               <Box
                 bg="#FFF5F5"
@@ -316,6 +321,32 @@ export const Login = () => {
                   </Text>
                   <Text>
                     Please contact rocio@lapena.org
+                  </Text>
+                </VStack>
+              </Box>
+            )}
+
+            {passwordError && (
+              <Box
+                bg="#FFF5F5"
+                border="1px solid"
+                borderColor="red.400"
+                color="red.800"
+                px={10}
+                py={3}
+                borderRadius="md"
+                w="360px"
+                textAlign="left"
+                fontFamily="Inter"
+                fontSize="14px"
+                fontWeight="500"
+                lineHeight="normal"
+                letterSpacing="0.07px"
+              >
+
+                <VStack gap={0} align="start">
+                  <Text>
+                    {passwordError} 
                   </Text>
                 </VStack>
               </Box>

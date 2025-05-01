@@ -107,7 +107,7 @@ export const ForgotPassword = () => {
                 >
                   Email
                 </label>
-                <div className="input-outer">
+                <div className={errors.email ? "input-outer-email-error" : "input-outer-email"}>
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillMail}
@@ -131,7 +131,7 @@ export const ForgotPassword = () => {
                     {/* No right icon for email */}
                   </div>
                 </div>
-                <FormErrorMessage className="form-error">
+                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500} alignContent="center">
                   {errors.email?.message?.toString()}
                 </FormErrorMessage>
               </FormControl>

@@ -133,7 +133,7 @@ export const Signup = () => {
                       >
                         First Name
                       </label>
-                      <div className="name-input-outer">
+                      <div className={errors.first_name ? "name-input-outer-error" : "name-input-outer"}>
                         <div className="name-input-container">
                           <Input
                             id="first"
@@ -165,7 +165,8 @@ export const Signup = () => {
                       >
                         Last Name
                       </label>
-                      <div className="name-input-outer">
+                      <div className={errors.last_name ? "name-input-outer-error" : "name-input-outer"}>
+
                         <div className="name-input-container">
                           <Input
                             id="last"
@@ -200,7 +201,8 @@ export const Signup = () => {
                 >
                   Email
                 </label>
-                <div className="input-outer">
+                <div className={errors.email ? "input-outer-email-error" : "input-outer-email"}>
+
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillMail}
@@ -240,7 +242,7 @@ export const Signup = () => {
                 >
                   Password
                 </label>
-                <div className="input-outer">
+                <div className={errors.password ? "input-outer-password-error" : "input-outer-password"}>
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillLock}
@@ -290,7 +292,8 @@ export const Signup = () => {
                 >
                   Confirm Password
                 </label>
-                <div className="input-outer">
+                <div className={errors.confirmPassword ? "input-outer-password-confirm-error" : "input-outer-password-confirm"}>
+
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillLock}
