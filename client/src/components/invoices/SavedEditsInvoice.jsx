@@ -7,8 +7,13 @@ import {
   IconButton,
   Image,
   VStack,
+  HStack,
+  useDisclosure,
+  Text,
+  Button,
+  Link as ChakraLink
 } from "@chakra-ui/react";
-import { useNavigate, useParams} from "react-router-dom";
+import { Link, useNavigate, useParams} from "react-router-dom";
 
 import { BackArrowIcon } from "../../assets/BackArrowIcon";
 import { SavedInvoiceEllipsisIcon } from "../../assets/SavedInvoiceEllipsisIcon.jsx";
@@ -16,8 +21,30 @@ import { SavedInvoiceEllipsisIcon } from "../../assets/SavedInvoiceEllipsisIcon.
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { InvoiceView } from "./InvoiceView";
+import { EmailSidebar } from "../email/EmailSidebar.jsx";
+import { EditIcon } from "../../assets/EditIcon.jsx";
 
-const SavedInvoiceNavBar = ({ onBack, id }) => {
+const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const getGeneratedDate = () => {
+    if (comments.length > 0) {
+      const latestComment = comments?.sort(
+        (a, b) => new Date(b.datetime) - new Date(a.datetime)
+      )[0];
+
+      const latestDate = new Date(latestComment.datetime);
+      const month = latestDate.toLocaleString("default", { month: "long" });
+
+      const year = latestDate.getFullYear();
+
+      return `${month}  ${year}`;
+    } else {
+      return "No Date Found";
+    }
+  };
+
+
     return (
       <Flex
         width="100%"
@@ -28,6 +55,7 @@ const SavedInvoiceNavBar = ({ onBack, id }) => {
         bg="white"
         borderBottom="1px solid #E2E8F0"
       >
+        <HStack>
         <IconButton
           icon={<BackArrowIcon/>}
           onClick={onBack}
@@ -36,18 +64,20 @@ const SavedInvoiceNavBar = ({ onBack, id }) => {
           fontSize="1.5em"
           aria-label="Go back"
         />
+        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}</Text>
+      </HStack>
 
-        <Icon
-          viewBox="0 0 17 16"
-          boxSize={5}
-          color="#4A5568"
-        >
-          <SavedInvoiceEllipsisIcon/>
-          <path
-            d="M8.17904 6.6665C7.4457 6.6665 6.8457 7.2665 6.8457 7.99984C6.8457 8.73317 7.4457 9.33317 8.17904 9.33317C8.91237 9.33317 9.51237 8.73317 9.51237 7.99984C9.51237 7.2665 8.91237 6.6665 8.17904 6.6665ZM12.179 6.6665C11.4457 6.6665 10.8457 7.2665 10.8457 7.99984C10.8457 8.73317 11.4457 9.33317 12.179 9.33317C12.9124 9.33317 13.5124 8.73317 13.5124 7.99984C13.5124 7.2665 12.9124 6.6665 12.179 6.6665ZM4.17904 6.6665C3.4457 6.6665 2.8457 7.2665 2.8457 7.99984C2.8457 8.73317 3.4457 9.33317 4.17904 9.33317C4.91237 9.33317 5.51237 8.73317 5.51237 7.99984C5.51237 7.2665 4.91237 6.6665 4.17904 6.6665Z"
-            fill="currentColor"
-          />
-        </Icon>
+        <HStack>
+          
+          {/* Edit Icon looks different from Figma HiFi, so lmk if yall want me to make another edit icon or just reuse the icon we already have */}
+            <Button leftIcon={<EditIcon color="black"/>}>
+              <ChakraLink as={Link} to="/invoices/edit/22">
+                Edit
+              </ChakraLink>
+              </Button>
+          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees} pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`} invoice={invoice}/>
+        </HStack>
+
 
 
 
@@ -198,6 +228,10 @@ export const SavedEdit = () => {
         <SavedInvoiceNavBar
           onBack={handleBack}
           id={id}
+          invoice={invoice}
+          payees={payees}
+          programName={programName}
+          comments={comments}
         />
 
         <InvoiceView

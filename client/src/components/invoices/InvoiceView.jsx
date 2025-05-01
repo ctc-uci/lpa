@@ -30,7 +30,9 @@ const InvoiceView = ({
 }) => {
 
   return (
-      <Flex direction="column" alignItems="center">
+      <Flex direction="column" alignItems="center"
+        w={compactView ? "100%" : "80%"}
+      >
         <Image
           position="relative"
           src={InvoiceHeaderBackground}
@@ -42,7 +44,7 @@ const InvoiceView = ({
           spacing={4}
           px={8}
         >
-          <Box w="100%">
+          <Box w="90%">
             <EditInvoiceTitle
                 comments={comments}
                 invoice={invoice?.data}

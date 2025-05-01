@@ -369,7 +369,6 @@ export const SingleInvoice = () => {
 
               <Flex
                 direction="column"
-                height="100%"
                 width="50%"
                 gap="1.25vw"
                 borderWidth={25}

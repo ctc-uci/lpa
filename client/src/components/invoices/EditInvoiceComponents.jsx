@@ -956,11 +956,11 @@ const InvoiceSummary = ({
 const FooterDescription = ({compactView = false}) => {
   return (
     <Flex
-      mt={compactView ? "4" : "24"}
+      mt={compactView ? "4" : "16"}
       justifyContent="space-between"
       gap={10}
       color="black"
-      mx={compactView ? "2" : "24"}
+      mx={compactView ? "2" : "16"}
     >
       {/* left text */}
       <VStack

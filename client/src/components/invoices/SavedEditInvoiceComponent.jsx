@@ -4,6 +4,7 @@ import {
   Box,
   Flex,
   Heading,
+  HStack,
   Icon,
   Table,
   Tbody,
@@ -17,6 +18,12 @@ import {
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
+
+import { CalendarIcon } from "../../assets/EditInvoiceIcons";
+import { LocationIcon } from "../../assets/EditInvoiceIcons";
+import { ClockFilled } from "../../assets/ClockFilled";
+import { BiggerDollarIcon } from "../../assets/BiggerDollarIcon";
+import { PaperPencil } from "../../assets/PaperPencil";
 
 const SavedStatementComments = ({
   comments = [],
@@ -132,46 +139,71 @@ const SavedStatementComments = ({
           >
             {/* header row */}
             <Thead>
-              <Tr color="#4A5568" maxW="50%">
+              <Tr maxW="50%">
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
+                  color="#718096"
                 >
-                  DATE
+                  <HStack>
+                    <CalendarIcon />
+                    <Text>DATE</Text>
+                  </HStack>
                 </Th>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6"}
+                  color="#718096"
                 >
-                  CLASSROOM
+                  <HStack gap="1">
+                    <LocationIcon />
+                    <Text>CLASSROOM</Text>
+                  </HStack>
                 </Th>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
+                  color="#718096"
                 >
-                  RENTAL HOURS
+                  <HStack gap="1">
+                    <ClockFilled />
+                    <Text>RENTAL HOURS</Text>
+                  </HStack>
                 </Th>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
+                  color="#718096"
                 >
-                  ROOM FEE ADJUSTMENT
+                  <HStack>
+                    <PaperPencil/>
+                    <Text>
+
+                      ROOM FEE ADJUSTMENT
+                    </Text>
+                  </HStack>
                 </Th>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
+                  color="#718096"
                 >
-                  ROOM FEE
+                  
+                  <HStack gap="1">
+                    <BiggerDollarIcon />
+                    <Text>ROOM FEE</Text>
+                  </HStack>
                 </Th>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
+                  color="#718096"
                 >
                   TOTAL
                 </Th>
@@ -205,7 +237,12 @@ const SavedStatementComments = ({
                         py={compactView ? 0 : 4}
                         fontSize={compactView && "6.38px"}
                       >
-                        <Flex align="center" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
+                        <Flex
+                          align="center"
+                          whiteSpace="nowrap"
+                          overflow="hidden"
+                          textOverflow="ellipsis"
+                        >
                           <Text>{formatTimeString(booking.startTime)}</Text>
                           <Text>-</Text>
                           <Text>{formatTimeString(booking.endTime)}</Text>
@@ -299,9 +336,7 @@ const SavedStatementComments = ({
                 </Tr>
               )}
 
-              <Tr 
-              py={compactView ? 0 : 4}
-              >
+              <Tr py={compactView ? 0 : 4}>
                 <Td
                   textAlign="right"
                   colSpan={5}
@@ -423,7 +458,10 @@ const SavedInvoiceSummary = ({
         px="12px"
         width="100%"
       >
-        <Box width="100%" overflowX="auto">
+        <Box
+          width="100%"
+          overflowX="auto"
+        >
           <Table
             color="#EDF2F7"
             width="100%"
@@ -440,14 +478,24 @@ const SavedInvoiceSummary = ({
                   borderBottom="none"
                   fontSize={compactView && "6px"}
                 >
-                  Description
+                  <HStack color="#718096">
+                    <BiggerDollarIcon />
+                    <Text>
+                      DESCRIPTION
+                      </Text>
+                  </HStack>
                 </Th>
                 <Th
                   textTransform="none"
                   borderBottom="none"
                   fontSize={compactView && "6px"}
                 >
-                  Adjustment Type(s)
+                  <HStack color="#718096">
+                    <PaperPencil />
+                    <Text>
+                    ROOM FEE ADJUSTMENT
+                      </Text>
+                  </HStack>
                 </Th>
                 <Th
                   textTransform="none"
@@ -456,7 +504,7 @@ const SavedInvoiceSummary = ({
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
                 >
-                  Total
+                  TOTAL
                 </Th>
               </Tr>
             </Thead>
@@ -475,7 +523,7 @@ const SavedInvoiceSummary = ({
               {/* Room Fee Body Row */}
 
               {summary.map((row) => (
-                <Tr >
+                <Tr>
                   <Td
                     borderBottom="none"
                     colSpan={4}
@@ -485,10 +533,11 @@ const SavedInvoiceSummary = ({
                   >
                     {room[0]?.name}
                   </Td>
-                  <Td borderBottom="none"
-                        fontSize={compactView && "6.38px"}
-                        py={compactView ? 0 : 4}
-                        >
+                  <Td
+                    borderBottom="none"
+                    fontSize={compactView && "6.38px"}
+                    py={compactView ? 0 : 4}
+                  >
                     {row.adjustmentValues.length === 0 ? (
                       "None"
                     ) : (
@@ -516,7 +565,7 @@ const SavedInvoiceSummary = ({
                     borderBottom="none"
                     textAlign="end"
                     py={compactView ? 0 : 4}
-                  fontSize={compactView && "6.38px"}
+                    fontSize={compactView && "6.38px"}
                   >
                     {room && room.length > 0 ? `$${room[0].rate}/hr` : "N/A"}
                   </Td>
@@ -544,12 +593,19 @@ const SavedInvoiceSummary = ({
 
               {/* current statement balance row */}
               <Tr>
-                <Td colSpan={4}
-                py={compactView ? 0 : 4}
-                  fontSize={compactView && "6.38px"}>Current Statement Subtotal</Td>
+                <Td
+                  colSpan={4}
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView && "6.38px"}
+                >
+                  Current Statement Subtotal
+                </Td>
                 <Td
                   py={compactView ? 0 : 4}
-                  fontSize={compactView && "6.38px"}>None</Td>
+                  fontSize={compactView && "6.38px"}
+                >
+                  None
+                </Td>
                 <Td
                   textAlign="end"
                   py={compactView ? 0 : 4}
