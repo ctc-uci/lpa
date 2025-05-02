@@ -90,6 +90,18 @@ export const Login = () => {
 
   const handleLogin = async (data) => {
     try {
+      const methods = await fetchSignInMethodsForEmail(auth, data.email);
+      if (methods.length === 0) {
+        setEmailError("Please enter a valid email address");
+        return; 
+      }
+    } catch (emailCheckError) {
+      setEmailError("Please enter a valid email address");
+      return; 
+    }
+
+
+    try {
       await login(
         {
           email: data.email,
@@ -109,6 +121,17 @@ export const Login = () => {
     } catch (err) {
       const errorCode = err.code;
       const firebaseErrorMsg = err.message;
+
+      console.log(errorCode);
+      console.log(firebaseErrorMsg);
+
+      switch(firebaseErrorMsg) {
+        case "fetchSignInMethodsForEmail is not defined":
+          setEmailError("Please enter a valid email address");
+          break;
+        default:
+          return;
+      }
 
       switch (errorCode) {
         case "auth/wrong-password":
@@ -237,6 +260,23 @@ export const Login = () => {
                 Please enter a valid email address.
                 </FormErrorMessage>
               </FormControl>
+
+              {emailError && (
+              <Box
+                color="#90080F"
+                py={-1}
+                textAlign="left"
+                fontFamily="Inter"
+                fontSize="14px"
+                fontWeight="500"
+                lineHeight="normal"
+                letterSpacing="0.07px"
+              >
+                <Text>
+                  {emailError} 
+                </Text>
+              </Box>
+            )}
 
               {/* Password Field */}
               <FormControl
