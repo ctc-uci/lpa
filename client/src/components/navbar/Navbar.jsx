@@ -7,9 +7,11 @@ import "./Navbar.css";
 import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
 import { useState, useEffect } from "react";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
   const { backend } = useBackendContext();
+  const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
   const [count, setCount] = useState(0); // Initialize with 0 instead of undefined
@@ -62,6 +64,8 @@ const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
   const handleNavigateAttempt = (path) => {
     if (hasUnsavedChanges) { // Function to check unsaved changes in SingleInvoice
       handleNavbarClick(path);
+    } else {
+      navigate(path);
     }
   };
 
