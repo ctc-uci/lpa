@@ -13,6 +13,10 @@ import {
   Image,
   Input,
   Link,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
   Radio,
   RadioGroup,
   SimpleGrid,
@@ -34,7 +38,17 @@ import { format } from "date-fns";
 import commentsIcon from "../../assets/icons/comments.svg";
 import plusIcon from "../../assets/icons/plus.svg";
 import logo from "../../assets/logo/logo.png";
-import { CalendarIcon, LocationIcon, ClockIcon, EditDocumentIcon, DollarSignIcon, PencilIcon } from "../../assets/EditInvoiceIcons";
+import {
+  CalendarIcon,
+  LocationIcon,
+  ClockIcon,
+  EditDocumentIcon,
+  DollarSignIcon,
+  PencilIcon,
+  PlusIcon,
+  CancelIcon
+} from "../../assets/EditInvoiceIcons";
+import RoomFeeAdjustmentSideBar from "./RoomFeeAdjustmentSideBar";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -266,7 +280,25 @@ const StatementComments = ({
     Array(comments.length).fill("")
   ); // Initialize local state for input values
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [adjustmentsByBooking, setAdjustmentsByBooking] = useState({});
 
+  const addAdjustment = (type, bookingId) => {
+    setAdjustmentsByBooking(prev => {
+      const existing = prev[bookingId] || [];
+      return {
+        ...prev,
+        [bookingId]: [
+          ...existing,
+          {
+            type,
+            appliedRate: room && room.length > 0 ? room[0].rate : 0,
+            value: 0,
+            isNegative: false
+          }
+        ]
+      };
+    });
+  };
 
   const handleCommentToggle = (index) => {
     setExpandedCommentIndex(expandedCommentIndex === index ? null : index);
@@ -633,38 +665,21 @@ const StatementComments = ({
                         >
                           Adjust
                         </Button>
-                        <Slide direction="right" in={activeRowId !== null} style={{ zIndex: 200 }}>
-                          <Box
-                            w="400px"
-                            h="100vh"
-                            bg="white"
-                            p={6}
-                            boxShadow="lg"
-                            position="fixed"
-                            right={0}
-                            top={0}
-                          >
-                            <Flex alignItems="center" gap="26px" alignSelf="stretch">
-                            <Button
-                              onClick={() => setActiveRowId(null)}
-                              variant="ghost"
-                              size="sm"
-                              p={0}
-                              minW="auto"
-                            >
-                              ✕
-                            </Button>
-                            <Text
-                              fontWeight="500"
-                              color="#4A5568"
-                              fontSize="14px"
-
-                            >
-                              {comment.datetime ? format(new Date(comment.datetime), "M/d/yy") : "N/A"} Room Fee Adjustment
-                            </Text>
-                            </Flex>
-                          </Box>
-                        </Slide>
+                        <RoomFeeAdjustmentSideBar
+                          isOpen={activeRowId === booking.id}
+                          onClose={() => setActiveRowId(null)}
+                          comment={comment}
+                          booking={booking}
+                          room={room}
+                          addAdjustment={(type) => addAdjustment(type, booking.id)}
+                          adjustments={adjustmentsByBooking[booking.id] || []}
+                          setAdjustments={(newAdjustments) => {
+                            setAdjustmentsByBooking(prev => ({
+                              ...prev,
+                              [booking.id]: newAdjustments
+                            }));
+                          }}
+                        />
                       </Td>
                       <Td
                         borderBottom="none"
@@ -694,7 +709,6 @@ const StatementComments = ({
                           <Text fontSize="14px">$</Text>
                           <Input
                             w="80px"
-                            // px="2"
                             textAlign="center"
                             fontSize="14px"
                             value={
@@ -796,7 +810,6 @@ const StatementComments = ({
       </Flex>
     </Flex>
   );
-
 };
 
 const InvoiceSummary = ({
