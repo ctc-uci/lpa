@@ -54,7 +54,7 @@ export const NewProgram = () => {
   };
 
   const saveAndExit = (newEventId = "") => {
-    navigate('/programs/' + newEventId);
+    navigate('/programs/edit/sessions/' + newEventId);
   };
 
   const noSave = () => {
