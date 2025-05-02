@@ -2,21 +2,17 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 
 
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, DeleteIcon } from "@chakra-ui/icons";
-import { Alert, AlertDescription, AlertTitle, Box, Button, Card, CardBody, Checkbox, Container, Flex, FormControl, Heading, HStack, Icon, IconButton, Input, Menu, MenuButton, MenuItem, MenuList, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Portal, Stack, Table, TableContainer, Tbody, Td, Text, Textarea, Th, Thead, Tr, useDisclosure, Wrap, WrapItem } from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import {Box, Button, Card, CardBody, Checkbox, Container, Flex, FormControl, Heading, HStack, Icon, IconButton, Input, Menu, MenuButton, MenuItem, MenuList, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Portal, Stack, Table, TableContainer, Tbody, Td, Text, Textarea, Th, Thead, Tr, useDisclosure, Wrap, WrapItem } from "@chakra-ui/react";
 
 
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
-import { CalendarIcon } from "../../assets/CalendarIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
-import { DeleteIconRed } from "../../assets/DeleteIconRed";
 import { DollarBill } from "../../assets/DollarBill";
-import { DuplicateIcon } from "../../assets/DuplicateIcon";
-import { EditIcon } from "../../assets/EditIcon";
 import { EmailIcon } from "../../assets/EmailIcon";
 import { EyeIcon } from "../../assets/EyeIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";

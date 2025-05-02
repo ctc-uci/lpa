@@ -1,39 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DeleteIcon,
-} from "@chakra-ui/icons";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Box,
-  Button,
-  Checkbox,
-  filter,
   Flex,
   HStack,
   Icon,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   Table,
   TableContainer,
   Tbody,
   Td,
   Text,
-  Textarea,
   Th,
   Thead,
   Tr,
@@ -41,15 +17,11 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import activeSvg from "../../assets/icons/active.svg";
 import clockSvg from "../../assets/icons/clock.svg";
-import locationSvg from "../../assets/icons/location.svg";
 import noneSvg from "../../assets/icons/none.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
@@ -67,7 +39,6 @@ import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
 import { SearchBar } from "../searchBar/SearchBar";
-import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
 
 import "./Home.css";

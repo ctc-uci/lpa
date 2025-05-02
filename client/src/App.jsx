@@ -22,8 +22,6 @@ import { SavedEdit } from "./components/invoices/SavedEditsInvoice";
 import { SingleInvoice } from "./components/invoices/SingleInvoice";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
-import PDFButton from "./components/PDFButton";
-import { Playground } from "./components/playground/Playground";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
 import { ModifyProgram } from "./components/programs/ModifyProgram";
 import { Program } from "./components/programs/Program";
@@ -37,7 +35,6 @@ import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
-import { PDFButtonInvoice, TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
 
 const App = () => {
   return (
@@ -97,10 +94,7 @@ const App = () => {
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
                 />
-                <Route
-                  path="/playground"
-                  element={<Playground />}
-                />
+
 
                 {/* ADMIN ONLY oh my goodness! */}
                 <Route
@@ -226,15 +220,6 @@ const App = () => {
                     <ProtectedRoute
                       element={<ArchivedPrograms />}
                       allowedRoles={["admin"]}
-                    />
-                  }
-                />
-
-                <Route
-                  path="/pdftest"
-                  element={
-                    <ProtectedRoute
-                      element={<TestPDFViewer />}
                     />
                   }
                 />

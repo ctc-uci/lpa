@@ -3,12 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
-  Box,
   Button,
   Flex,
   HStack,
   Icon,
-  Image,
   Table,
   TableContainer,
   Tbody,
@@ -19,7 +17,6 @@ import {
   Tr,
 } from "@chakra-ui/react";
 
-import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import { CalendarIcon } from "./CalendarIcon";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";

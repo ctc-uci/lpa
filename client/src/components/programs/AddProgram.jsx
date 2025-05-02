@@ -3,13 +3,10 @@ import { useEffect, useRef, useState, React } from "react";
 import { Button, Icon, useDisclosure, useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import "./EditProgram.css";
-import { CiCircleMore } from "react-icons/ci";
 import { IoCloseOutline } from "react-icons/io5";
-import { useParams } from "react-router";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
-import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
 import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
 import { DateInputs } from "./programComponents/DateInputs";
 import { EmailDropdown } from "./programComponents/EmailDropdown";
@@ -25,7 +22,6 @@ import { TitleInformation } from "./programComponents/TitleInformation";
 export const AddProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
-  const toast = useToast();
 
   const [locations, setLocations] = useState({}); // rooms.id rooms.name
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -51,7 +47,6 @@ export const AddProgram = () => {
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
   const initialState = useRef(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: cancelIsOpen,
     onOpen: cancelOnOpen,
@@ -125,22 +120,6 @@ export const AddProgram = () => {
 
   const exit = () => {
     navigate('/programs');
-    // if (hasChanges) {
-    //   onOpen();
-    //   toast({
-    //     title: "You have unsaved changes",
-    //     description: "Please save your changes before leaving.",
-    //     status: "warning",
-    //     duration: 3000,
-    //     isClosable: true,
-    //   });
-    // return;
-    // }
-    // if (window.history.length > 1) {
-    //   navigate(-1);
-    // } else {
-    //   navigate("/home");
-    // }
   };
 
   const saveAndExit = (newEventId = "") => {
@@ -177,15 +156,6 @@ export const AddProgram = () => {
     customRepeatInterval,
     customRepeatType
   ) => {
-    console.log(
-      "in getDatesForDays",
-      startDate,
-      endDate,
-      selectedDays,
-      repeatInterval,
-      customRepeatInterval,
-      customRepeatType
-    );
     const dayMap = {
       Sun: 0,
       Mon: 1,
@@ -341,12 +311,6 @@ export const AddProgram = () => {
 
   const saveEvent = async () => {
     try {
-      console.log("Newly added name:", eventName);
-      console.log("Newly added Description:", generalInformation);
-      console.log("Newly added Location ID:", selectedLocationId);
-      console.log("Newly added Instructors:", selectedInstructors);
-      console.log("Newly added Payees:", selectedPayees);
-
       const response = await backend.post("/events/", {
         name: eventName,
         description: generalInformation,
@@ -354,10 +318,6 @@ export const AddProgram = () => {
       });
 
       const newEventId = response.data.id;
-
-      console.log("Newly added Start Date:", startDate);
-      console.log("Newly added End Date:", endDate);
-      console.log("Newly added Selected Days:", selectedDays);
 
       let dates;
       if (repeatType !== "Does not repeat") {
@@ -370,7 +330,6 @@ export const AddProgram = () => {
           customRepeatType
         );
         for (const date of dates) {
-          console.log(date)
           const daysMap = { 0: 'Sun', 1: 'Mon', 2: "Tue", 3: "Wed", 4: "Thu", 5: 'Fri', 6: "Sat" }
           const dayOfWeek = daysMap[(new Date(date.date).getDay())];
 
@@ -430,13 +389,7 @@ export const AddProgram = () => {
         );
         await backend.post("/bookings", bookingsData);
       }
-
-      console.log("Newly added bookings for dates:", dates);
-
-      console.log("Assigning instructors...");
-      console.log("Instructor object:", selectedInstructors);
       for (const instructor of selectedInstructors) {
-        console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
           eventId: newEventId,
           clientId: instructor.id,
@@ -444,16 +397,13 @@ export const AddProgram = () => {
         });
       }
 
-      console.log("payee object:", selectedPayees);
       for (const payee of selectedPayees) {
-        console.log("Assigning payee:", payee);
         await backend.post("/assignments", {
           eventId: newEventId,
           clientId: payee.id,
           role: "payee",
         });
       }
-      console.log("Save complete, navigating away...");
       saveAndExit(newEventId);
     } catch (error) {
       console.error("Error getting instructors:", error);

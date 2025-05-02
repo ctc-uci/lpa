@@ -162,7 +162,6 @@ export const EditProgram = () => {
             setSelectedLocationId(bookingResponse.data[0].roomId);
             setRoomDescription(bookingResponse.data[0].description);
             setLocationRate(bookingResponse.data[0].rate);
-            // console.log("start time: " , bookingResponse.data[0].startTime.split(":").slice(0, 2).join(':'));
             setStartTime(bookingResponse.data[0].startTime.split(':').slice(0, 2).join(':'));
             setEndTime(bookingResponse.data[0].endTime.split(':').slice(0, 2).join(':'));
             setStartDate(bookingResponse.data[0].date.split("T")[0]);
