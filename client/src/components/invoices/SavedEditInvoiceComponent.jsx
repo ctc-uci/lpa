@@ -501,6 +501,7 @@ const SavedInvoiceSummary = ({
                   textAlign="end"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
+                  color="#718096"
                 >
                   TOTAL
                 </Th>
@@ -620,8 +621,9 @@ const SavedInvoiceSummary = ({
                   colSpan={5}
                   fontWeight="700"
                   fontSize={compactView && "6.38px"}
+                  color="#718096"
                 >
-                  Total Amount Due
+                  TOTAL AMOUNT DUE
                 </Td>
                 <Td
                   fontWeight="700"

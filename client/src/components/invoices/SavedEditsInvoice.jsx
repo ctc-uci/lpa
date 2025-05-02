@@ -22,7 +22,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { InvoiceView } from "./InvoiceView";
 import { EmailSidebar } from "../email/EmailSidebar.jsx";
-import { EditIcon } from "../../assets/EditIcon.jsx";
+import { PencilIcon } from "../../assets/EditInvoiceIcons.jsx";
 
 const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -64,14 +64,15 @@ const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}</Text>
+        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)}_Classroom Rental Statement`}</Text>
       </HStack>
 
         <HStack>
           
           {/* Edit Icon looks different from Figma HiFi, so lmk if yall want me to make another edit icon or just reuse the icon we already have */}
-            <Button leftIcon={<EditIcon color="black"/>}>
-              <ChakraLink as={Link} to="/invoices/edit/22">
+            <Button leftIcon={<PencilIcon color="black"/>}>
+            {/* // !!! HARD CODED */}
+              <ChakraLink as={Link} to="/invoices/edit/22"> 
                 Edit
               </ChakraLink>
               </Button>

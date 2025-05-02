@@ -130,7 +130,7 @@ const EditInvoiceDetails = ({
           fontWeight={"600"}
           fontSize={compactView ? "13.827px" : "2xl"}
         >
-          {`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
+          Classroom Rental Monthly Statement
         </Heading>
         <Heading
           fontSize={compactView ? "8.509px" : "sm"}
