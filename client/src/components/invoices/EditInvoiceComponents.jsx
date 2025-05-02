@@ -4,6 +4,7 @@ import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  Divider,
   Flex,
   Heading,
   HStack,
@@ -380,21 +381,24 @@ const StatementComments = ({
         borderRadius="18px"
         minH="24"
         px="12px"
+        position="relative"
       >
         <Box
           position="relative"
-          maxH="400px"
           overflowY="auto"
-          p="3"
+          p="4"
         >
           <Table
             color="#EDF2F7"
             textAlign="center"
+            variant="simple"
+            size="sm"
           >
             <Thead>
               <Tr color="#4A5568">
                 <Th
                   fontSize="12px"
+                  maxWidth="80px"
                 >
                   <Flex align="center">
                     <Icon as={CalendarIcon} />
@@ -411,6 +415,7 @@ const StatementComments = ({
                 </Th>
                 <Th
                   fontSize="12px"
+                  maxWidth="100px"
                 >
                   <Flex align="center">
                     <Icon as={ClockIcon} />
@@ -429,6 +434,7 @@ const StatementComments = ({
                 <Th
                   fontSize="12px"
                   whiteSpace="nowrap"
+                  maxWidth="120px"
                 >
                   <Flex align="center">
                     <Icon as={DollarSignIcon} />
@@ -537,7 +543,6 @@ const StatementComments = ({
                           />
                         </VStack>
                         <Text
-                          width="100px"
                           fontSize="14px"
                           ml="6"
                           whiteSpace="nowrap"
@@ -655,10 +660,9 @@ const StatementComments = ({
                               fontSize="14px"
 
                             >
-                              {booking.date ? format(new Date(booking.date), "M/d/yy") : "N/A"} Room Fee Adjustment
+                              {comment.datetime ? format(new Date(comment.datetime), "M/d/yy") : "N/A"} Room Fee Adjustment
                             </Text>
                             </Flex>
-
                           </Box>
                         </Slide>
                       </Td>
@@ -689,8 +693,8 @@ const StatementComments = ({
                         >
                           <Text fontSize="14px">$</Text>
                           <Input
-                            w="85px"
-                            px="2"
+                            w="80px"
+                            // px="2"
                             textAlign="center"
                             fontSize="14px"
                             value={
