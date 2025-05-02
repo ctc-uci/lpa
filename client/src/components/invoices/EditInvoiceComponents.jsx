@@ -28,6 +28,7 @@ import {
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
   useDisclosure,
   VStack,
@@ -300,6 +301,22 @@ const StatementComments = ({
     });
   };
 
+  const getAdjustedRate = (bookingId) => {
+    let newRate = Number(room[0]?.rate || 0);
+
+    const adjustments = adjustmentsByBooking[bookingId] || [];
+
+    adjustments.forEach(adj => {
+      const amount = adj.type === "dollar"
+        ? Number(adj.value || 0)
+        : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
+
+      newRate += adj.isNegative ? -amount : amount;
+    });
+
+    return newRate;
+  };
+
   const handleCommentToggle = (index) => {
     setExpandedCommentIndex(expandedCommentIndex === index ? null : index);
   };
@@ -327,7 +344,20 @@ const StatementComments = ({
           const diff = endMinutes - startMinutes;
           const totalHours = Math.ceil(diff / 60);
 
-          return parseFloat((totalHours * room[0]?.rate).toFixed(2));
+          // Start with the base rate
+          let newRate = Number(room[0]?.rate || 0);
+
+          const adjustments = adjustmentsByBooking[booking.id] || [];
+
+          adjustments.forEach(adj => {
+            const amount = adj.type === "dollar"
+              ? Number(adj.value || 0)
+              : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
+
+            newRate += adj.isNegative ? -amount : amount;
+          });
+
+          return parseFloat((totalHours * newRate).toFixed(2));
         });
 
         const newSubtotal = totals.reduce((sum, total) => sum + total, 0);
@@ -346,7 +376,7 @@ const StatementComments = ({
       setBooking(booking);
       setRoom(room);
     }
-  }, [comments, booking, room]);
+  }, [comments, booking, room, adjustmentsByBooking]);
 
   // Handle adjustmentType change
   const handleAdjustmentChange = (index, value) => {
@@ -647,24 +677,47 @@ const StatementComments = ({
                           </Text>
                         </Flex>
                       </Td>
-                      <Td
-                        borderBottom="none"
-                      >
-                        <Button
-                          leftIcon={<Icon as={PencilIcon}/>}
-                          color="white"
-                          background="#4441C8"
-                          borderRadius="md"
-                          px="3"
-                          py="2"
-                          fontSize="small"
-                          height="32px"
-                          opacity={activeRowId === null || activeRowId === booking.id ? 1 : 0.3} // dim others
-                          onClick={() => setActiveRowId(booking.id)}
-                          isDisabled={activeRowId !== null && activeRowId !== booking.id} // Optional: disable others
-                        >
-                          Adjust
-                        </Button>
+                      <Td borderBottom="none">
+                        <Flex align="center" gap={2}>
+                          <Button
+                            leftIcon={<Icon as={PencilIcon}/>}
+                            color="white"
+                            background="#4441C8"
+                            borderRadius="md"
+                            px="3"
+                            py="2"
+                            fontSize="small"
+                            height="32px"
+                            opacity={activeRowId === null || activeRowId === booking.id ? 1 : 0.3}
+                            onClick={() => setActiveRowId(booking.id)}
+                            isDisabled={activeRowId !== null && activeRowId !== booking.id}
+                          >
+                            Adjust
+                          </Button>
+
+                          {adjustmentsByBooking[booking.id] && adjustmentsByBooking[booking.id].length > 0 ? (
+                            <Tooltip
+                              label={adjustmentsByBooking[booking.id].map(adj => {
+                                const sign = adj.isNegative ? "-" : "+";
+                                return `${sign}${adj.type === "dollar" ? "$" + adj.value : adj.value + "%"}`;
+                              }).join(", ")}
+                            >
+                              <Text
+                                whiteSpace="nowrap"
+                                overflow="hidden"
+                                textOverflow="ellipsis"
+                                maxW="120px"
+                              >
+                                {adjustmentsByBooking[booking.id].map(adj => {
+                                  const sign = adj.isNegative ? "-" : "+";
+                                  return `${sign}${adj.type === "dollar" ? "$" + adj.value : adj.value + "%"}`;
+                                }).join(", ")}
+                              </Text>
+                            </Tooltip>
+                          ) : (
+                            <Text></Text>
+                          )}
+                        </Flex>
                         <RoomFeeAdjustmentSideBar
                           isOpen={activeRowId === booking.id}
                           onClose={() => setActiveRowId(null)}
@@ -679,6 +732,12 @@ const StatementComments = ({
                               [booking.id]: newAdjustments
                             }));
                           }}
+                          onApplyAdjustments={(bookingId, adjustments) => {
+                            setAdjustmentsByBooking(prev => ({
+                              ...prev,
+                              [bookingId]: adjustments
+                            }));
+                          }}
                         />
                       </Td>
                       <Td
@@ -691,7 +750,7 @@ const StatementComments = ({
                             fontSize="14"
                           >
                             {room && room.length > 0
-                              ? `$${room[0].rate}/hr`
+                              ? `$${getAdjustedRate(booking.id).toFixed(2)}/hr`
                               : "N/A"}
                           </Text>
                         </Flex>

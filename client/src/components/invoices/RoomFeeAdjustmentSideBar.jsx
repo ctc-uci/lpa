@@ -24,7 +24,8 @@ export default function RoomFeeAdjustmentSideBar({
   room,
   addAdjustment,
   adjustments,
-  setAdjustments
+  setAdjustments,
+  onApplyAdjustments
 }) {
   const calculateNewTotals = () => {
     let newRate = Number(room && room.length > 0 ? room[0].rate : 0);
@@ -222,8 +223,9 @@ export default function RoomFeeAdjustmentSideBar({
               borderRadius="md"
               fontWeight="bold"
               onClick={() => {
-                console.log("Apply clicked for booking", booking.id);
-                console.log("Current adjustments:", adjustments);
+                // Pass the adjustments back to the table
+                onApplyAdjustments(booking.id, adjustments);
+                onClose();
               }}
               _hover={{ bg: "#322EAF" }}
             >
