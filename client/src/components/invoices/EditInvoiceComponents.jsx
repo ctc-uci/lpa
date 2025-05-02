@@ -4,6 +4,7 @@ import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  Divider,
   Flex,
   Heading,
   HStack,
@@ -12,9 +13,14 @@ import {
   Image,
   Input,
   Link,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
   Radio,
   RadioGroup,
   SimpleGrid,
+  Slide,
   Stack,
   Table,
   Tbody,
@@ -22,7 +28,9 @@ import {
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
+  useDisclosure,
   VStack,
 } from "@chakra-ui/react";
 
@@ -31,7 +39,17 @@ import { format } from "date-fns";
 import commentsIcon from "../../assets/icons/comments.svg";
 import plusIcon from "../../assets/icons/plus.svg";
 import logo from "../../assets/logo/logo.png";
-import { CalendarIcon, LocationIcon, ClockIcon, EditDocumentIcon, DollarSignIcon, PencilIcon } from "../../assets/EditInvoiceIcons";
+import {
+  CalendarIcon,
+  LocationIcon,
+  ClockIcon,
+  EditDocumentIcon,
+  DollarSignIcon,
+  PencilIcon,
+  PlusIcon,
+  CancelIcon
+} from "../../assets/EditInvoiceIcons";
+import RoomFeeAdjustmentSideBar from "./RoomFeeAdjustmentSideBar";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -258,9 +276,46 @@ const StatementComments = ({
   const [expandedCommentIndex, setExpandedCommentIndex] = useState(null); // Track which row is expanded
   const [rowHoveredIndex, setRowHoveredIndex] = useState(null);
   const [newSubtotalValue, setNewSubtotalValue] = useState(0);
+  const [activeRowId, setActiveRowId] = React.useState(null);
   const [inputValues, setInputValues] = useState(
     Array(comments.length).fill("")
   ); // Initialize local state for input values
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [adjustmentsByBooking, setAdjustmentsByBooking] = useState({});
+
+  const addAdjustment = (type, bookingId) => {
+    setAdjustmentsByBooking(prev => {
+      const existing = prev[bookingId] || [];
+      return {
+        ...prev,
+        [bookingId]: [
+          ...existing,
+          {
+            type,
+            appliedRate: room && room.length > 0 ? room[0].rate : 0,
+            value: 0,
+            isNegative: false
+          }
+        ]
+      };
+    });
+  };
+
+  const getAdjustedRate = (bookingId) => {
+    let newRate = Number(room[0]?.rate || 0);
+
+    const adjustments = adjustmentsByBooking[bookingId] || [];
+
+    adjustments.forEach(adj => {
+      const amount = adj.type === "dollar"
+        ? Number(adj.value || 0)
+        : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
+
+      newRate += adj.isNegative ? -amount : amount;
+    });
+
+    return newRate;
+  };
 
   const handleCommentToggle = (index) => {
     setExpandedCommentIndex(expandedCommentIndex === index ? null : index);
@@ -289,7 +344,20 @@ const StatementComments = ({
           const diff = endMinutes - startMinutes;
           const totalHours = Math.ceil(diff / 60);
 
-          return parseFloat((totalHours * room[0]?.rate).toFixed(2));
+          // Start with the base rate
+          let newRate = Number(room[0]?.rate || 0);
+
+          const adjustments = adjustmentsByBooking[booking.id] || [];
+
+          adjustments.forEach(adj => {
+            const amount = adj.type === "dollar"
+              ? Number(adj.value || 0)
+              : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
+
+            newRate += adj.isNegative ? -amount : amount;
+          });
+
+          return parseFloat((totalHours * newRate).toFixed(2));
         });
 
         const newSubtotal = totals.reduce((sum, total) => sum + total, 0);
@@ -308,7 +376,7 @@ const StatementComments = ({
       setBooking(booking);
       setRoom(room);
     }
-  }, [comments, booking, room]);
+  }, [comments, booking, room, adjustmentsByBooking]);
 
   // Handle adjustmentType change
   const handleAdjustmentChange = (index, value) => {
@@ -375,21 +443,24 @@ const StatementComments = ({
         borderRadius="18px"
         minH="24"
         px="12px"
+        position="relative"
       >
         <Box
           position="relative"
-          maxH="400px"
-          overflowY="hidden"
-          p="3"
+          overflowY="auto"
+          p="4"
         >
           <Table
             color="#EDF2F7"
             textAlign="center"
+            variant="simple"
+            size="sm"
           >
             <Thead>
               <Tr color="#4A5568">
                 <Th
                   fontSize="12px"
+                  maxWidth="80px"
                 >
                   <Flex align="center">
                     <Icon as={CalendarIcon} />
@@ -406,6 +477,7 @@ const StatementComments = ({
                 </Th>
                 <Th
                   fontSize="12px"
+                  maxWidth="100px"
                 >
                   <Flex align="center">
                     <Icon as={ClockIcon} />
@@ -424,6 +496,7 @@ const StatementComments = ({
                 <Th
                   fontSize="12px"
                   whiteSpace="nowrap"
+                  maxWidth="120px"
                 >
                   <Flex align="center">
                     <Icon as={DollarSignIcon} />
@@ -431,10 +504,10 @@ const StatementComments = ({
                   </Flex>
                 </Th>
                 <Th
-                  textTransform="none"
                   textAlign="end"
-                  pr="40px"
-                  fontSize="14px"
+                  pr="85px"
+                  fontSize="12px"
+                  color="#718096"
                 >
                   Total
                 </Th>
@@ -457,6 +530,8 @@ const StatementComments = ({
                       onMouseEnter={() => setRowHoveredIndex(index)} // When mouse enters, set hovered index
                       onMouseLeave={() => setRowHoveredIndex(null)}
                       borderTop="none"
+                      border={activeRowId === booking.id ? "#718096" : "none"}
+                      borderRadius="6px"
                     >
                       <Td
                         position="relative"
@@ -530,7 +605,6 @@ const StatementComments = ({
                           />
                         </VStack>
                         <Text
-                          width="100px"
                           fontSize="14px"
                           ml="6"
                           whiteSpace="nowrap"
@@ -603,37 +677,83 @@ const StatementComments = ({
                           </Text>
                         </Flex>
                       </Td>
+                      <Td borderBottom="none">
+                        <Flex align="center" gap={2}>
+                          <Button
+                            leftIcon={<Icon as={PencilIcon}/>}
+                            color="white"
+                            background="#4441C8"
+                            borderRadius="md"
+                            px="3"
+                            py="2"
+                            fontSize="small"
+                            height="32px"
+                            opacity={activeRowId === null || activeRowId === booking.id ? 1 : 0.3}
+                            onClick={() => setActiveRowId(booking.id)}
+                            isDisabled={activeRowId !== null && activeRowId !== booking.id}
+                          >
+                            Adjust
+                          </Button>
+
+                          {adjustmentsByBooking[booking.id] && adjustmentsByBooking[booking.id].length > 0 ? (
+                            <Tooltip
+                              label={adjustmentsByBooking[booking.id].map(adj => {
+                                const sign = adj.isNegative ? "-" : "+";
+                                return `${sign}${adj.type === "dollar" ? "$" + adj.value : adj.value + "%"}`;
+                              }).join(", ")}
+                            >
+                              <Text
+                                whiteSpace="nowrap"
+                                overflow="hidden"
+                                textOverflow="ellipsis"
+                                maxW="120px"
+                              >
+                                {adjustmentsByBooking[booking.id].map(adj => {
+                                  const sign = adj.isNegative ? "-" : "+";
+                                  return `${sign}${adj.type === "dollar" ? "$" + adj.value : adj.value + "%"}`;
+                                }).join(", ")}
+                              </Text>
+                            </Tooltip>
+                          ) : (
+                            <Text></Text>
+                          )}
+                        </Flex>
+                        <RoomFeeAdjustmentSideBar
+                          isOpen={activeRowId === booking.id}
+                          onClose={() => setActiveRowId(null)}
+                          comment={comment}
+                          booking={booking}
+                          room={room}
+                          addAdjustment={(type) => addAdjustment(type, booking.id)}
+                          adjustments={adjustmentsByBooking[booking.id] || []}
+                          setAdjustments={(newAdjustments) => {
+                            setAdjustmentsByBooking(prev => ({
+                              ...prev,
+                              [booking.id]: newAdjustments
+                            }));
+                          }}
+                          onApplyAdjustments={(bookingId, adjustments) => {
+                            setAdjustmentsByBooking(prev => ({
+                              ...prev,
+                              [bookingId]: adjustments
+                            }));
+                          }}
+                        />
+                      </Td>
                       <Td
-                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
                         borderBottom="none"
                       >
                         <Flex
                           align="center"
-                          gap="1"
                         >
                           <Text
                             fontSize="14"
-                            w="95px"
                           >
                             {room && room.length > 0
-                              ? `$${room[0].rate}`
+                              ? `$${getAdjustedRate(booking.id).toFixed(2)}/hr`
                               : "N/A"}
                           </Text>
-                          <Text fontSize="14px">/hr</Text>
                         </Flex>
-                      </Td>
-                      <Td
-                        fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                        borderBottom="none"
-                      >
-                        <RadioDropdown
-                          index={index}
-                          onSelectionChange={(value) => {
-                            handleAdjustmentChange(index, value);
-                          }}
-                          commentsState={commentsState}
-                          setComments={setComments}
-                        />
                       </Td>
                       <Td
                         fontSize="clamp(.5rem, 1rem, 1.5rem)"
@@ -647,8 +767,7 @@ const StatementComments = ({
                         >
                           <Text fontSize="14px">$</Text>
                           <Input
-                            w="85px"
-                            px="2"
+                            w="80px"
                             textAlign="center"
                             fontSize="14px"
                             value={
@@ -714,23 +833,36 @@ const StatementComments = ({
                 </Tr>
               )}
 
-              <Tr>
-                <Td
-                  py="8"
-                  textAlign="right"
-                  colSpan={5}
-                  fontSize="16px"
+            <Tr>
+              <Td
+                py="4" // smaller padding
+                textAlign="right"
+                colSpan={5}
+                fontSize="14px"
+              >
+                <Text
+                  fontWeight="bold"
+                  color="gray.500"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
                 >
-                  <Text fontWeight="bold">Subtotal</Text>
-                </Td>
-                <Td
-                  fontSize="clamp(.5rem, 1rem, 1.5rem)"
-                  py="8"
-                  textAlign="right"
+                  Subtotal
+                </Text>
+              </Td>
+              <Td
+                py="4"
+                textAlign="right"
+              >
+                <Text
+                  fontWeight="700"
+                  fontSize="24px"
+                  color="gray.800"
+                  fontFamily="Inter"
                 >
-                  <Text textAlign="center">{`$ ${newSubtotalValue?.toFixed(2)}`}</Text>
-                </Td>
-              </Tr>
+                  {`$${newSubtotalValue?.toFixed(2)}`}
+                </Text>
+              </Td>
+            </Tr>
             </Tbody>
           </Table>
         </Box>
@@ -790,6 +922,7 @@ const InvoiceSummary = ({
       }
     }
   };
+
 
   return (
     <Box
