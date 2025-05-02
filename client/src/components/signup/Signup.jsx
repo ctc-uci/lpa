@@ -32,18 +32,18 @@ const signupSchema = z
   .object({
     first_name: z
       .string("Invalid first name")
-      .min(1, { message: "First name required" }),
+      .min(1, { message: "" }),
     last_name: z
       .string("Invalid last name")
-      .min(1, { message: "Last name required" }),
+      .min(1, { message: "" }),
     email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters long"),
+    password: z.string().min(6, "Password must contain at least 6 characters."),
     confirmPassword: z
       .string()
       .min(6, "Confirm Password must be at least 6 characters long"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Please confirm same password.",
     path: ["confirmPassword"],
   });
 
@@ -54,6 +54,7 @@ export const Signup = () => {
   const { backend } = useBackendContext();
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [emailInUseError, setEmailInUseError] = useState("");
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
     useState(false);
 
@@ -78,16 +79,28 @@ export const Signup = () => {
         navigate("/signup/requested");
       }
     } catch (err) {
-      if (err instanceof Error) {
-        toast({
-          title: "An error occurred",
-          description: err.message,
-          status: "error",
-          variant: "subtle",
-        });
+      const errorCode = err.code;
+      const firebaseErrorMsg = err.message;
+
+      switch (errorCode) {
+        case "auth/email-already-in-use":
+          setEmailInUseError(
+            "Email already has an associated account."
+          );
+          break;
       }
+    //   if (err instanceof Error) {
+    //     toast({
+    //       title: "An error occurred",
+    //       description: err.message,
+    //       status: "error",
+    //       variant: "subtle",
+    //     });
+    //   }
     }
   };
+
+  console.log(emailInUseError)
 
   useEffect(() => {
     handleRedirectResult(backend, navigate, toast);
@@ -147,7 +160,7 @@ export const Signup = () => {
                         </div>
                       </div>
                     </div>
-                    <FormErrorMessage className="form-error">
+                    <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
                       {errors.first_name?.message?.toString()}
                     </FormErrorMessage>
                   </FormControl>
@@ -180,7 +193,7 @@ export const Signup = () => {
                         </div>
                       </div>
                     </div>
-                    <FormErrorMessage className="form-error">
+                    <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
                       {errors.last_name?.message?.toString()}
                     </FormErrorMessage>
                   </FormControl>
@@ -192,7 +205,7 @@ export const Signup = () => {
             <div className="fields-container">
               {/* Email Field */}
               <FormControl
-                isInvalid={!!errors.email}
+                isInvalid={!!errors.email || !!emailInUseError}
                 className="form-field-container"
               >
                 <label
@@ -226,8 +239,8 @@ export const Signup = () => {
                     {/* No right icon for email */}
                   </div>
                 </div>
-                <FormErrorMessage className="form-error">
-                  {errors.email?.message?.toString()}
+                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
+                  {emailInUseError}
                 </FormErrorMessage>
               </FormControl>
 
@@ -276,7 +289,7 @@ export const Signup = () => {
                     </button>
                   </div>
                 </div>
-                <FormErrorMessage className="form-error">
+                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
                   {errors.password?.message?.toString()}
                 </FormErrorMessage>
               </FormControl>
@@ -329,7 +342,7 @@ export const Signup = () => {
                     </button>
                   </div>
                 </div>
-                <FormErrorMessage className="form-error">
+                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
                   {errors.confirmPassword?.message}
                 </FormErrorMessage>
               </FormControl>
