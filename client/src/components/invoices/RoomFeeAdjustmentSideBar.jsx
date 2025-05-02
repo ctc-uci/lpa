@@ -27,12 +27,12 @@ export default function RoomFeeAdjustmentSideBar({
   setAdjustments
 }) {
   const calculateNewTotals = () => {
-    let newRate = room && room.length > 0 ? room[0].rate : 0;
+    let newRate = Number(room && room.length > 0 ? room[0].rate : 0);
 
     adjustments.forEach(adj => {
       const amount = adj.type === "dollar"
-        ? adj.value
-        : (adj.value / 100) * adj.appliedRate;
+        ? Number(adj.value || 0)
+        : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
 
       newRate += adj.isNegative ? -amount : amount;
     });
@@ -75,7 +75,7 @@ export default function RoomFeeAdjustmentSideBar({
         top={0}
         display="flex"
         flexDirection="column"
-        justifyContent="space-between"
+        flex="1"
       >
         <Flex alignItems="center" gap="26px" alignSelf="stretch" whiteSpace="nowrap">
           <IconButton
@@ -99,78 +99,90 @@ export default function RoomFeeAdjustmentSideBar({
           }} />
         </Flex>
 
-        {adjustments.map((adj, index) => (
-          <Box
-            key={index}
-            borderBottom="1px solid #E2E8F0"
-            py={3}
-            mt={3}
-          >
-            <Flex justify="space-between" align="center">
-              <Text fontWeight="bold">
-                {adj.type === "dollar" ? "Dollar ($)" : "Percent (%)"}
-              </Text>
-              <IconButton
-                aria-label="Remove adjustment"
-                icon={<Icon as={CancelIcon} />}
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const newAdjustments = adjustments.filter((_, i) => i !== index);
-                  setAdjustments(newAdjustments);
-                }}
-              />
-            </Flex>
-            <Flex align="center" gap={2} mt={2}>
-              <Text color="gray.500">
-                Applied to: ${adj.appliedRate.toFixed(2)}/hr
-              </Text>
-              <IconButton
-                aria-label="Toggle sign"
-                icon={adj.isNegative ? "-" : "+"}
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const newAdjustments = adjustments.map((a, i) =>
-                    i === index ? { ...a, isNegative: !a.isNegative } : a
-                  );
-                  setAdjustments(newAdjustments);
-                }}
-              />
-              {adj.type === "dollar" ? (
-                <>
-                  <Text>$</Text>
-                  <Input
-                    value={adj.value}
-                    onChange={(e) => {
-                      const newAdjustments = adjustments.map((a, i) =>
-                        i === index ? { ...a, value: parseFloat(e.target.value) || 0 } : a
-                      );
-                      setAdjustments(newAdjustments);
-                    }}
-                    size="sm"
-                    width="80px"
-                  />
-                </>
-              ) : (
-                <>
-                  <Input
-                    value={adj.value}
-                    onChange={(e) => {
-                      const newAdjustments = adjustments.map((a, i) =>
-                        i === index ? { ...a, value: parseFloat(e.target.value) || 0 } : a
-                      );
-                      setAdjustments(newAdjustments);
-                    }}
-                    size="sm"
-                    width="80px"
-                  />
-                  <Text>%</Text>
-                </>
-              )}
-            </Flex>
-          </Box>
-        ))}
+        <Box
+          marginTop="4px"
+          overflowY="auto"
+          flex="1"
+        >
+          {adjustments.map((adj, index) => (
+            <Box
+              key={index}
+              borderBottom="1px solid #E2E8F0"
+              py={3}
+              mt={3}
+            >
+              <Flex justify="space-between" align="center">
+                <Text fontWeight="bold">
+                  {adj.type === "dollar" ? "Dollar ($)" : "Percent (%)"}
+                </Text>
+                <IconButton
+                  aria-label="Remove adjustment"
+                  icon={<Icon as={CancelIcon} />}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const newAdjustments = adjustments.filter((_, i) => i !== index);
+                    setAdjustments(newAdjustments);
+                  }}
+                />
+              </Flex>
+
+              {/* Second row: applied rate + controls */}
+              <Flex align="center" gap={2} mt={2}>
+                <Text fontSize="sm" color="gray.500">
+                  Applied to: ${Number(adj.appliedRate || 0).toFixed(2)}/hr
+                </Text>
+
+                <IconButton
+                  aria-label="Toggle sign"
+                  icon={adj.isNegative ? "−" : "+"}
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => {
+                    const newAdjustments = adjustments.map((a, i) =>
+                      i === index ? { ...a, isNegative: !a.isNegative } : a
+                    );
+                    setAdjustments(newAdjustments);
+                  }}
+                />
+
+                {adj.type === "dollar" ? (
+                  <>
+                    <Text>$</Text>
+                    <Input
+                      value={adj.value}
+                      onChange={(e) => {
+                        const newAdjustments = adjustments.map((a, i) =>
+                          i === index ? { ...a, value: parseFloat(e.target.value) || 0 } : a
+                        );
+                        setAdjustments(newAdjustments);
+                      }}
+                      size="sm"
+                      width="80px"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Input
+                      value={adj.value}
+                      onChange={(e) => {
+                        const newAdjustments = adjustments.map((a, i) =>
+                          i === index ? { ...a, value: parseFloat(e.target.value) || 0 } : a
+                        );
+                        setAdjustments(newAdjustments);
+                      }}
+                      size="sm"
+                      width="80px"
+                    />
+                    <Text>%</Text>
+                  </>
+                )}
+
+
+              </Flex>
+            </Box>
+          ))}
+        </Box>
         <Box mt={4} p={2}>
           <Flex justifyContent="right" alignItems="center" gap="10px">
             <Heading
