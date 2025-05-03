@@ -226,7 +226,7 @@ const InvoiceStats = ({
             Remaining Balance
           </Text>
         </Box>
-
+        
         <Box h={7}>
           <Flex
             gap={2}

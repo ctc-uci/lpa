@@ -19,7 +19,7 @@ import {
 
 import { format } from "date-fns";
 
-import { CalendarIcon, DollarSignIcon, EditDocumentIcon } from "../../assets/EditInvoiceIcons";
+import { CalendarIcon, ClockIcon, DollarSignIcon, EditDocumentIcon } from "../../assets/EditInvoiceIcons";
 import { LocationIcon } from "../../assets/EditInvoiceIcons";
 import { ClockFilled } from "../../assets/ClockFilled";
 
@@ -156,8 +156,8 @@ const SavedStatementComments = ({
                   fontSize={compactView ? "6" : "sm"}
                   color="#718096"
                 >
-                  <HStack gap="1">
-                    <LocationIcon />
+                  <HStack gap="0.5">
+                    <LocationIcon width={compactView && "8"} height={compactView && "10"}/>
                     <Text>CLASSROOM</Text>
                   </HStack>
                 </Th>
@@ -168,8 +168,8 @@ const SavedStatementComments = ({
                   color="#718096"
                 >
                   <HStack gap="1">
-                    <ClockFilled />
-                    <Text>RENTAL HOURS</Text>
+                    <ClockIcon width={compactView && "8"} height={compactView && "10"}/>
+                    <Text whiteSpace="nowrap">RENTAL HOURS</Text>
                   </HStack>
                 </Th>
                 <Th
@@ -179,8 +179,8 @@ const SavedStatementComments = ({
                   color="#718096"
                 >
                   <HStack>
-                    <EditDocumentIcon/>
-                    <Text fontSize={compactView ? "6" : "sm"}>
+                    <EditDocumentIcon width={compactView && "8"} height={compactView && "10"}/>
+                    <Text whiteSpace="nowrap" fontSize={compactView ? "6" : "sm"}>
 
                       ROOM FEE ADJUSTMENT
                     </Text>
@@ -194,8 +194,8 @@ const SavedStatementComments = ({
                 >
                   
                   <HStack gap="1">
-                    <DollarSignIcon />
-                    <Text fontSize={compactView ? "6" : "sm"}>ROOM FEE</Text>
+                    <DollarSignIcon width={compactView && "8"} height={compactView && "10"} />
+                    <Text whiteSpace="nowrap" fontSize={compactView ? "6" : "sm"}>ROOM FEE</Text>
                   </HStack>
                 </Th>
                 <Th
@@ -218,6 +218,7 @@ const SavedStatementComments = ({
                       <Td
                         py={compactView ? 0 : 4}
                         fontSize={compactView ? "6.38" : "sm"}
+                        whiteSpace="nowrap"
                       >
                         {/* Doing Tue. instead of Tues. because its built in and format doesn't allow that kind of customization */}
                         {format(new Date(sessions.datetime), "EEE. M/d/yy")}
@@ -238,7 +239,7 @@ const SavedStatementComments = ({
                       >
                         <Flex
                           align="center"
-                          // whiteSpace="nowrap"
+                          whiteSpace="nowrap"
                           overflow="hidden"
                           textOverflow="ellipsis"
                         >
@@ -266,11 +267,12 @@ const SavedStatementComments = ({
                               w="auto"
                             >
                               <Text
-                                textOverflow="ellipsis"
+                                // textOverflow="ellipsis"
                                 // whiteSpace="nowrap"
-                                overflow="hidden"
+                                // overflow="hidden"
                               >
-                                {sessions.adjustmentValues.join(", ")}
+                                {sessions.adjustmentValues.slice(0, 3).join(", ")}
+                                {sessions.adjustmentValues.length > 3 ? ", ..." : ""}
                               </Text>
                             </Tooltip>
                           </Box>

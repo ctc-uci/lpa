@@ -353,11 +353,12 @@ export const SingleInvoice = () => {
               direction="row"
               width="100%"
               justify="space-between"
+              gap="16"
             >
               <Flex
                 direction="column"
                 height="100%"
-                // width="50%"
+                w="50%"
                 // padding="2.5vw"
                 gap="1.25vw"
               >
@@ -379,8 +380,8 @@ export const SingleInvoice = () => {
                 gap="1.25vw"
                 borderWidth={25}
                 borderRadius={18}
-                maxWidth="50%"
-                width="100%"
+                w="50%"
+                // width="100%"
                 height="fit-content"
                 borderColor="#D9D9D933"
                 overflow="hidden" // Important: prevents scrollbars from fighting transform

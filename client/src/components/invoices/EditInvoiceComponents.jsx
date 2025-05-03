@@ -717,6 +717,7 @@ const StatementComments = ({
                             opacity={activeRowId === null || activeRowId === booking.id ? 1 : 0.3}
                             onClick={() => setActiveRowId(booking.id)}
                             isDisabled={activeRowId !== null && activeRowId !== booking.id}
+                            _hover={{ bg:"#312E8A"}}
                           >
                             Adjust
                           </Button>

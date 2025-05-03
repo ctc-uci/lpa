@@ -227,13 +227,7 @@ export default function RoomFeeAdjustmentSideBar({
               py={2}
               borderRadius="md"
               fontWeight="bold"
-              // onClick={() => {
-              //   // Pass the adjustments back to the table
-              //   onApplyAdjustments(booking.id, adjustments);
-              //   onClose();
-              // }}
-              // _hover={{ bg: "#322EAF" }}
-              _hover={{ bg: "#322EAF" }}
+              _hover={{ bg: "#312E8A" }}
               onClick={async () => {
                 try {
                   // Loop over all adjustments and create a comment for each
