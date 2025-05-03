@@ -75,7 +75,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   flex: 1;
   margin-left: 2.5%;
   margin-right: 2.5%;
-  width: 90vw!important;
 }
 
 
