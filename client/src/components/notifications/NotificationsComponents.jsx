@@ -229,15 +229,27 @@ const NotificationsComponents = ({
           {currentNotifications.length > 0 ? (
             currentNotifications.map((item, index) => (
               <Tr key={index}>
-                <Td paddingLeft="0px">{getNotifType(item.payStatus)}</Td>
-                <Td paddingLeft="24px">
+                <Td 
+                    paddingLeft="0px"
+                    width="10%"
+                    minWidth="100px"
+                >
+                    {getNotifType(item.payStatus)}
+                    </Td>
+                <Td 
+                    paddingLeft="24px"
+                    width="800%"
+                >
                   {paymentText(
                     item.eventName,
                     item.description,
                     item.id
                   )}
                 </Td>
-                <Td>
+                <Td
+                    width="10%"
+                    minWidth="100px"
+                >
                   <Text
                     fontSize="sm"
                     color="#2D3748"
