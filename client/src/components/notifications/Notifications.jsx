@@ -188,11 +188,11 @@ export const Notifications = () => {
             justifyContent="space-between"
             mb="27px"
           >
-            <NotificationFilter/>
-            {/* <FilterButton
+            {/* <NotificationFilter/> */}
+            <FilterButton
               setFilterType={setFilterType}
               currentFilter={filterType}
-            /> */}
+            />
           </Flex>
           <NotificationsComponents notifications={notifications} />
         </Flex>
