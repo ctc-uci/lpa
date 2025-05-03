@@ -1398,10 +1398,15 @@ export const Sessions = ({
             <Flex
               gap="12px"
               alignItems="center"
+              width="100%"
             >
               {/* HERE */}
-              <TableContainer>
-                <Table variant="unstyled">
+              <TableContainer
+                width="100%"
+              >
+                <Table variant="unstyled"
+                    width="100%"
+                >
                   <Thead
                     borderBottom="1px"
                     color="#D2D2D2"
@@ -1558,7 +1563,10 @@ export const Sessions = ({
                           )}
 
                           {!isArchived ? (
-                            <Td>
+                            <Td
+                                width="10%"
+                                minWidth="100px"
+                            >
                               <Box
                                 display="flex"
                                 justifyContent="center"
@@ -1576,7 +1584,10 @@ export const Sessions = ({
                               </Box>
                             </Td>
                           ) : null}
-                          <Td>
+                          <Td
+                            width="15%"
+                            minWidth="150px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1585,7 +1596,10 @@ export const Sessions = ({
                               {formatDate(session.date)}
                             </Box>
                           </Td>
-                          <Td>
+                          <Td
+                            width="15%"
+                            minWidth="150px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1595,7 +1609,10 @@ export const Sessions = ({
                               {formatTime(session.endTime)}
                             </Box>
                           </Td>
-                          <Td>
+                          <Td
+                            width="20%"
+                            minWidth="200px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1605,7 +1622,10 @@ export const Sessions = ({
                             </Box>
                           </Td>
                           {/* Add Lead Artist data */}
-                          <Td>
+                          <Td
+                            width="20%"
+                            minWidth="200px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1617,7 +1637,10 @@ export const Sessions = ({
                             </Box>
                           </Td>
                           {/* Add Payees data */}
-                          <Td>
+                          <Td
+                            width="10%"
+                            minWidth="50px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1628,7 +1651,10 @@ export const Sessions = ({
                                 : "N/A"}
                             </Box>
                           </Td>
-                          <Td>
+                          <Td
+                            width="10%"
+                            minWidth="50px"
+                          >
                             <EditCancelPopup
                               handleEdit={(e) => handleEdit(session.id, e)}
                               handleDeactivate={() =>
