@@ -216,21 +216,42 @@ export const EditInvoice = () => {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        if (!comments || !Array.isArray(comments) || comments.length === 0) {
-          return;
-        }
+        // if (!comments || !Array.isArray(comments) || comments.length === 0) {
+        //   return;
+        // }
 
-        const commentWithBookingId = comments[0].bookingId;
-
+        // const commentWithBookingId = comments[0].bookingId;
+        // Gets all bookings within the invoice start and end date
         const bookingResponse = await backend.get(
-          `/bookings/${commentWithBookingId}`
+          `/bookings`, {
+            params: {
+              start: invoice.data[0].startDate,
+              end: invoice.data[0].endDate
+            }
+          }
         );
-        setBookingDetails(bookingResponse.data[0]);
+        // Filter for only the bookings that match the event id
+        const bookingsWithinDate = bookingResponse.data;
+        const bookingsWithEventId = bookingsWithinDate.filter(booking => booking.eventId === invoice.data[0].eventId);
+        console.log("Bookings with event id is:", bookingsWithEventId)
 
-        const roomResponse = await backend.get(
-          `/rooms/${bookingResponse.data[0].roomId}`
+        setBookingDetails(bookingsWithEventId);
+
+        // Now fetch rooms for all those bookings
+        const roomPromises = bookingsWithEventId.map(booking =>
+          backend.get(`/rooms/${booking.roomId}`)
         );
-        setRoom(roomResponse.data);
+
+        // Wait for all the room requests to complete in parallel:
+        const roomResponses = await Promise.all(roomPromises);
+
+        // Extract just the room data from the responses:
+        const roomsArray = roomResponses.map(response => response.data[0]);
+
+        console.log("Fetched rooms:", roomsArray);
+
+        setRoom(roomsArray);
+
       } catch (error) {
         console.error("Error fetching booking details:", error);
       }
@@ -363,8 +384,9 @@ export const EditInvoice = () => {
               invoice={invoice?.data}
             />
             <StatementComments
-              booking={booking}
-              room={room}
+              invoice={invoice?.data}
+              bookings={booking}
+              rooms={room}
               subtotal={editedSubtotal}
               comments={editedComments}
               onCommentsChange={handleCommentUpdate}

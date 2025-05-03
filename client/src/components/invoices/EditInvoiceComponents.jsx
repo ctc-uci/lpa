@@ -50,6 +50,9 @@ import {
   CancelIcon
 } from "../../assets/EditInvoiceIcons";
 import RoomFeeAdjustmentSideBar from "./RoomFeeAdjustmentSideBar";
+import { getCurrentUser } from "../../utils/auth/firebase";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -260,39 +263,56 @@ const EditInvoiceDetails = ({
 };
 
 const StatementComments = ({
+  invoice,
   comments = [],
-  booking = [],
-  room = [],
+  bookings = [],
+  rooms = [],
   subtotal = 0.0,
   onCommentsChange,
   onSubtotalChange,
   compactView = false,
 }) => {
+  const { backend } = useBackendContext();
   const [commentsState, setComments] = useState(comments);
-  const [bookingState, setBooking] = useState(booking);
-  const [roomState, setRoom] = useState(room);
+  const [bookingState, setBooking] = useState(bookings);
+  const [roomState, setRoom] = useState(rooms);
   const [sessionTotals, setSessionTotals] = useState([]);
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const [expandedCommentIndex, setExpandedCommentIndex] = useState(null); // Track which row is expanded
+  const [expandedBookingIndex, setExpandedBookingIndex] = useState(null); // Track which row is expanded
   const [rowHoveredIndex, setRowHoveredIndex] = useState(null);
   const [newSubtotalValue, setNewSubtotalValue] = useState(0);
   const [activeRowId, setActiveRowId] = React.useState(null);
   const [inputValues, setInputValues] = useState(
     Array(comments.length).fill("")
   ); // Initialize local state for input values
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [adjustmentsByBooking, setAdjustmentsByBooking] = useState({});
+  const [userId, setUserId] = useState(null);
+
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const currentFirebaseUser = await getCurrentUser();
+      const firebaseUid = currentFirebaseUser?.uid;
+      if (!firebaseUid) return;
+      const userRes = await backend.get(`/users/${firebaseUid}`);
+      setUserId(userRes.data[0].id);
+    };
+
+    fetchUserId();
+  }, []);
 
   const addAdjustment = (type, bookingId) => {
     setAdjustmentsByBooking(prev => {
       const existing = prev[bookingId] || [];
+      const booking = bookingState.find(b => b.id === bookingId);
+      const roomForBooking = rooms.find(r => r.id === booking.roomId);
       return {
         ...prev,
         [bookingId]: [
           ...existing,
           {
             type,
-            appliedRate: room && room.length > 0 ? room[0].rate : 0,
+            appliedRate: roomForBooking ? roomForBooking.rate : 0,
             value: 0,
             isNegative: false
           }
@@ -302,9 +322,13 @@ const StatementComments = ({
   };
 
   const getAdjustedRate = (bookingId) => {
-    let newRate = Number(room[0]?.rate || 0);
+    // let newRate = Number(roomForBooking?.rate || 0);
 
     const adjustments = adjustmentsByBooking[bookingId] || [];
+
+    const booking = bookingState.find(b => b.id === bookingId);
+    const roomForBooking = rooms.find(r => r.id === booking.roomId);
+    let newRate = Number(roomForBooking?.rate || 0);
 
     adjustments.forEach(adj => {
       const amount = adj.type === "dollar"
@@ -325,13 +349,12 @@ const StatementComments = ({
     // Calculate subtotal on initial load
     const calculateSubtotal = () => {
       if (
-        comments &&
-        comments.length > 0 &&
-        booking &&
-        room &&
-        room.length > 0
+        bookings &&
+        bookings.length > 0 &&
+        rooms &&
+        rooms.length > 0
       ) {
-        const totals = comments.map(() => {
+        const totals = bookings.map((booking) => {
           if (!booking.startTime || !booking.endTime) return 0;
 
           const timeToMinutes = (timeStr) => {
@@ -345,7 +368,8 @@ const StatementComments = ({
           const totalHours = Math.ceil(diff / 60);
 
           // Start with the base rate
-          let newRate = Number(room[0]?.rate || 0);
+          const roomForBooking = rooms.find(r => r.id === booking.roomId);
+          let newRate = Number(roomForBooking?.rate || 0);
 
           const adjustments = adjustmentsByBooking[booking.id] || [];
 
@@ -373,10 +397,10 @@ const StatementComments = ({
 
     if (comments && comments.length > 0) {
       setComments(comments);
-      setBooking(booking);
-      setRoom(room);
+      setBooking(bookings);
+      setRoom(rooms);
     }
-  }, [comments, booking, room, adjustmentsByBooking]);
+  }, [comments, bookings, rooms, adjustmentsByBooking]);
 
   // Handle adjustmentType change
   const handleAdjustmentChange = (index, value) => {
@@ -423,7 +447,7 @@ const StatementComments = ({
     onCommentsChange(updatedComments);
     console.log(updatedComments);
   };
-
+  console.log("Bookingsstate:", bookingState)
   return (
     <Flex
       direction="column"
@@ -514,14 +538,16 @@ const StatementComments = ({
               </Tr>
             </Thead>
             <Tbody color="#2D3748">
-              {commentsState.length > 0 ? (
-                commentsState
-                  .map((comment, index) => [
+              {bookingState.length > 0 ? (
+                bookingState
+                  .map((booking, index) => {
+                    const roomForBooking = rooms.find(r => r.id === booking.roomId);
+                    return [
                     <Tr
-                      key={`comment-${comment.id || "unknown"}-${index}`}
+                      key={`booking-${booking.id || "unknown"}-${index}`}
                       position="relative"
                       borderBottom={
-                        expandedCommentIndex === index
+                        expandedBookingIndex === index
                           ? "none" // No bottom border for the row with expanded comment
                           : hoveredIndex === index
                             ? "1.5px solid purple" // Apply purple bottom border when hovered
@@ -610,7 +636,7 @@ const StatementComments = ({
                           whiteSpace="nowrap"
                           color="#2D3748"
                         >
-                          {format(new Date(comment.datetime), "EEE.")} {format(new Date(comment.datetime), "M/d/yyyy")}
+                          {format(new Date(booking.date), "EEE.")} {format(new Date(booking.date), "M/d/yyyy")}
                         </Text>
                       </Td>
                       <Td
@@ -618,7 +644,7 @@ const StatementComments = ({
                         borderBottom="none"
                       >
                         <Text fontSize="14px">
-                          {room && room.length > 0 ? `${room[0].name}` : "N/A"}
+                          {roomForBooking && rooms.length > 0 ? `${roomForBooking.name}` : "N/A"}
                         </Text>
                       </Td>
                       {/* Rest of the row content remains the same */}
@@ -721,9 +747,10 @@ const StatementComments = ({
                         <RoomFeeAdjustmentSideBar
                           isOpen={activeRowId === booking.id}
                           onClose={() => setActiveRowId(null)}
-                          comment={comment}
+                          invoice={invoice[0]}
                           booking={booking}
-                          room={room}
+                          room={roomForBooking}
+                          userId={userId}
                           addAdjustment={(type) => addAdjustment(type, booking.id)}
                           adjustments={adjustmentsByBooking[booking.id] || []}
                           setAdjustments={(newAdjustments) => {
@@ -749,7 +776,7 @@ const StatementComments = ({
                           <Text
                             fontSize="14"
                           >
-                            {room && room.length > 0
+                            {roomForBooking && rooms.length > 0
                               ? `$${getAdjustedRate(booking.id).toFixed(2)}/hr`
                               : "N/A"}
                           </Text>
@@ -794,14 +821,14 @@ const StatementComments = ({
                         </Flex>
                       </Td>
                     </Tr>,
-                    expandedCommentIndex === index && (
+                    expandedBookingIndex === index && (
                       <Tr
-                        key={`comment-text-expanded-${comment.id || "unknown"}-${index}`}
+                        key={`booking-text-expanded-${booking.id || "unknown"}-${index}`}
                         borderBottom={
                           hoveredIndex === index
                             ? "1px solid purple"
                             : "1px solid rgb(240, 240, 240)"
-                        } // Add bottom border to the expanded comment
+                        } // Add bottom border to the expanded booking
                       >
                         <Td
                           colSpan={6}
@@ -819,8 +846,9 @@ const StatementComments = ({
                           </Text>
                         </Td>
                       </Tr>
-                    ),
-                  ])
+                    )
+                  ];
+                })
                   .flat()
               ) : (
                 <Tr>
@@ -828,7 +856,7 @@ const StatementComments = ({
                     colSpan={7}
                     textAlign="center"
                   >
-                    No comments available.
+                    No sessions for this month.
                   </Td>
                 </Tr>
               )}
