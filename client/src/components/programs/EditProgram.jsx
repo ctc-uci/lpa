@@ -665,8 +665,8 @@ export const EditProgram = () => {
                         id="saveProgram"
                         onClick={saveEvent}
                         isDisabled={!isFormValid()}
-                        backgroundColor={isFormValid() ? "#4441C8.600" : "gray.300"}
-                        _hover={{ backgroundColor: isFormValid() ? "#4441C8.700" : "gray.300" }}
+                        backgroundColor={isFormValid() ? "#4441C8" : "gray.300"}
+                        _hover={{ backgroundColor: isFormValid() ? "#312E8A" : "gray.300" }}
                     >
                         Save
                     </Button>

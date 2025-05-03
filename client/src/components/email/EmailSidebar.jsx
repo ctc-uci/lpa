@@ -295,7 +295,7 @@ export const EmailSidebar = ({
         onClick={() => setisDrawerOpen(true)}
         leftIcon={<EnvelopeIcon />}
         backgroundColor="#4441C8"
-        _hover="#4441C8"
+        _hover="#312E8A"
         color="white"
         borderRadius={10}
       >

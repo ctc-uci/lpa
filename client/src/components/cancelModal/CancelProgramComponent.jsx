@@ -45,7 +45,10 @@ export const CancelProgram = ({
     const fetchData = async () => {
       const request = await backend.get(`events/${id}`);
       setEventDescription(request.data[0].description);
-      console.log("event description: ", request.data[0].description);
+      if (request.data[0].description) {
+        setEventDescription(request.data[0].description);
+        console.log("event description: ", request.data[0].description);
+      }
     };
     fetchData();
   }, [backend, id]);

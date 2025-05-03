@@ -73,7 +73,7 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
             >
               Clear
             </Button>
-            <Button _hover="#4441C8" backgroundColor="#4441C8" color="white" onClick={handleApply}>
+            <Button _hover="#312E8A" backgroundColor="#4441C8" color="white" onClick={handleApply}>
               Apply
             </Button>
           </DrawerFooter>

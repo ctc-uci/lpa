@@ -81,7 +81,7 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                 !searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
                                 ? "not-allowed" : "pointer"
                                 }
-                                _hover={{ color: payeeSearchTerm.trim() !== "" ? "#800080" : "inherit" }}
+                                _hover={{ color: payeeSearchTerm.trim() !== "" ? "#312E8A" : "inherit" }}
                             >
                                 <PlusFilledIcon
                                     color={

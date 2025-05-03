@@ -38,7 +38,7 @@ export const DiscardEmailModal = ({ isOpen, onClose, emptyInputs, setisDrawerOpe
             </Button>
             <Button 
               background='#90080F' 
-              _hover='#90080F'
+              _hover='#71060C'
               color="white" 
               onClick={() => {
                 setisDrawerOpen(false);

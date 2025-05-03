@@ -1,11 +1,50 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-
-
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import {Box, Button, Card, CardBody, Checkbox, Container, Flex, FormControl, Heading, HStack, Icon, IconButton, Input, Menu, MenuButton, MenuItem, MenuList, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Portal, Stack, Table, TableContainer, Tbody, Td, Text, Textarea, Th, Thead, Tr, useDisclosure, Wrap, WrapItem } from "@chakra-ui/react";
-
-
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Checkbox,
+  Container,
+  Flex,
+  FormControl,
+  Heading,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Popover,
+  PopoverBody,
+  PopoverContent,
+  PopoverTrigger,
+  Portal,
+  Stack,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Textarea,
+  Th,
+  Thead,
+  Tr,
+  useDisclosure,
+  Wrap,
+  WrapItem,
+} from "@chakra-ui/react";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
@@ -17,7 +56,22 @@ import { EmailIcon } from "../../assets/EmailIcon";
 import { EyeIcon } from "../../assets/EyeIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
 import clockSvg from "../../assets/icons/clock.svg";
-import { archiveCalendar, archiveClock, archiveMapPin, DollarIcon, DownloadIcon, filterButton, filterDateCalendar, sessionsCalendar, sessionsClock, sessionsEllipsis, sessionsFilterClock, sessionsFilterMapPin, sessionsMapPin, summaryIcon } from "../../assets/icons/ProgramIcons";
+import {
+  archiveCalendar,
+  archiveClock,
+  archiveMapPin,
+  DollarIcon,
+  DownloadIcon,
+  filterButton,
+  filterDateCalendar,
+  sessionsCalendar,
+  sessionsClock,
+  sessionsEllipsis,
+  sessionsFilterClock,
+  sessionsFilterMapPin,
+  sessionsMapPin,
+  summaryIcon,
+} from "../../assets/icons/ProgramIcons";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { LocationIcon } from "../../assets/LocationIcon";
 import { LocationPin } from "../../assets/LocationPin";
@@ -30,17 +84,18 @@ import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { RepeatIcon } from "../../assets/RepeatIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 
-
-
 import "./Program.css";
 
-
-
-import { Document, Page, PDFDownloadLink, Text as PDFText, View as PDFView, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  PDFDownloadLink,
+  Text as PDFText,
+  View as PDFView,
+  StyleSheet,
+} from "@react-pdf/renderer";
 import { EllipsisIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
@@ -54,13 +109,17 @@ import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
-
 const ClockIcon = React.memo(() => (
   <img
     src={clockSvg}
     alt="Clock"
   />
 ));
+
+const truncateNames = (name, maxLength = 30) => {
+  if (!name) return "N/A";
+  return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+};
 
 export const ProgramSummary = ({
   program,
@@ -1466,8 +1525,8 @@ export const Sessions = ({
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {filteredSessions.length > 0 ? (
-                      filteredSessions.map((session) => (
+                    {currentPageSessions.length > 0 ? (
+                      currentPageSessions.map((session) => (
                         <Tr key={session.id}>
                           {isSelected && (
                             <Td width="50px">
@@ -1569,20 +1628,12 @@ export const Sessions = ({
                                 : "N/A"}
                             </Box>
                           </Td>
-                          {/* <Td>
-                            <Icon
-                              boxSize="7"
-                              padding="5px"
-                              borderRadius="6px"
-                              backgroundColor="#EDF2F7"
-                            >
-                              <EllipsisIcon />
-                            </Icon>
-                          </Td> */}
                           <Td>
                             <EditCancelPopup
-                              handleEdit={handleEdit}
-                              handleDeactivate={handleDeactivate}
+                              handleEdit={(e) => handleEdit(session.id, e)}
+                              handleDeactivate={() =>
+                                handleDeactivate(session.id)
+                              }
                               id={session.id}
                             />
                           </Td>

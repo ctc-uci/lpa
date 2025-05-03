@@ -75,8 +75,8 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, pr
         <Button
           height="2.5em"
           borderRadius={10}
-          backgroundColor="#4E4AE7"
-          _hover="#4441C8"
+          backgroundColor="#4441C8"
+          _hover="#312E8A"
           color="#FFF"
           fontSize="clamp(.75rem, 1rem, 1.25rem)"
           onClick={onSave}

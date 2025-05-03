@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { Box, Flex } from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { Box, Button, Flex, Text } from "@chakra-ui/react";
 
 import { formatDistanceToNow } from "date-fns";
 import { AiFillMail } from "react-icons/ai";
@@ -21,12 +22,42 @@ export const Notifications = () => {
     endDate: null,
   }); // all, overdue, neardue
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Sorting state
+  const [sortKey, setSortKey] = useState("date");
+  const [sortOrder, setSortOrder] = useState("asc");
+
+  // Calculate pagination values
+  const totalNotifications = notifications?.length || 0;
+  const totalPages = Math.ceil(totalNotifications / itemsPerPage);
+
+  // Pagination handlers
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Function to update sorting
+  const handleSortChange = (key, order) => {
+    setSortKey(key);
+    setSortOrder(order);
+  };
+
   const getDueTime = (endDate) => {
     const now = new Date();
     const msInDay = 1000 * 60 * 60 * 24;
     const daysDiff = (endDate - now) / msInDay;
 
-    // console.log("Days difference:", daysDiff);
     if (daysDiff >= 0 && daysDiff <= 7) {
       return formatDistanceToNow(endDate, { addSuffix: true });
     } else {
@@ -41,36 +72,61 @@ export const Notifications = () => {
     }
   };
 
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, notifications]);
+
+  // Calculate responsive itemsPerPage
+  useEffect(() => {
+    const calculateRowsPerPage = () => {
+      const viewportHeight = window.innerHeight;
+      const rowHeight = 56;
+      const availableHeight = viewportHeight * 0.5;
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
+    };
+
+    setItemsPerPage(calculateRowsPerPage());
+
+    const handleResize = () => {
+      setItemsPerPage(calculateRowsPerPage());
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const getDescription = (payStatus, payers) => {
-    console.log("PAYERS", payers);
-    
     if (!payers || !payers.length) {
       return getBaseDescription(payStatus, "unknown recipients");
     }
-    
+
     const instructorNames = payers
-      .filter(payer => payer.role === "instructor")
-      .map(payer => payer.clientName)
-      .filter(name => name && name.trim() !== ""); 
-    
+      .filter((payer) => payer.role === "instructor")
+      .map((payer) => payer.clientName)
+      .filter((name) => name && name.trim() !== "");
+
     if (instructorNames.length === 0) {
       return getBaseDescription(payStatus, "unknown recipients");
     }
-    
-    const formattedNames = instructorNames.length === 1 
-      ? instructorNames[0]
-      : `${instructorNames.slice(0, -1).join(", ")}, and ${instructorNames[instructorNames.length - 1]}`;
-    
+
+    const formattedNames =
+      instructorNames.length === 1
+        ? instructorNames[0]
+        : `${instructorNames.slice(0, -1).join(", ")}, and ${instructorNames[instructorNames.length - 1]}`;
+
     return getBaseDescription(payStatus, formattedNames);
   };
-  
+
   const getBaseDescription = (payStatus, names) => {
     if (payStatus === "overdue") {
       return `Payment not recorded 5 days or more since the payment deadline for `;
     } else if (payStatus === "neardue") {
       return `Email has not been sent to ${names} 1 week before the payment deadline for `;
-    } else { // highpriority
+    } else {
+      // highpriority
       return `Email has not been sent to ${names} 1 week prior and payment not received 5 days past the deadline for `;
     }
   };
@@ -80,7 +136,7 @@ export const Notifications = () => {
       try {
         const today = new Date();
         let endpoints = [];
-  
+
         // Only modify the endpoint if we're filtering by type AND it's not "all"
         if (filterType.type === "all") {
           endpoints = [
@@ -91,13 +147,13 @@ export const Notifications = () => {
         } else {
           endpoints = [`/invoices/${filterType.type}`];
         }
-  
+
         const responses = await Promise.all(
           endpoints.map((endpoint) => backend.get(endpoint))
         );
-  
+
         const notifsData = responses.flatMap((res) => res.data);
-  
+
         // Fetch additional data for each invoice (total, paid, event name)
         const enrichedInvoices = await Promise.all(
           notifsData.map(async (invoice) => {
@@ -107,11 +163,12 @@ export const Notifications = () => {
                 backend.get(`/invoices/paid/${invoice.id}`),
                 backend.get(`/events/${invoice.eventId}`),
               ]);
-  
+
               const eventId = eventRes.data[0]?.id;
-              const payersRes = await backend.get(`/assignments/event/${eventId}`);
-              console.log("HERE", payersRes);
-  
+              const payersRes = await backend.get(
+                `/assignments/event/${eventId}`
+              );
+
               const endDate = new Date(invoice.endDate);
               const dueTime = getDueTime(endDate);
               let payStatus = "";
@@ -122,7 +179,7 @@ export const Notifications = () => {
               } else {
                 payStatus = "neardue";
               }
-  
+
               return {
                 ...invoice,
                 eventName: eventRes.data[0]?.name || "Unknown Event",
@@ -149,7 +206,7 @@ export const Notifications = () => {
             }
           })
         );
-  
+
         setNotifications(enrichedInvoices); // attaches additional info onto invoices
       } catch (err) {
         console.error("Failed to fetch invoices", err);
@@ -158,13 +215,9 @@ export const Notifications = () => {
     fetchNotifs();
   }, [filterType, backend]);
 
-
   return (
     <Navbar currentPage="notifications">
-      <Box
-        padding="26px"
-        // border="1px"
-      >
+      <Box padding="26px">
         <Flex
           align="center"
           gap={5}
@@ -192,8 +245,65 @@ export const Notifications = () => {
               currentFilter={filterType}
             />
           </Flex>
-          <NotificationsComponents notifications={notifications} />
+
+          {/* Table component */}
+          <Box
+            borderWidth="1px"
+            borderColor="gray.200"
+            borderRadius="md"
+            overflow="hidden"
+            mb={4}
+          >
+            <NotificationsComponents
+              notifications={notifications}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              sortKey={sortKey}
+              sortOrder={sortOrder}
+              onSortChange={handleSortChange}
+            />
+          </Box>
         </Flex>
+
+        {/* Pagination Controls - now outside the table component */}
+        {totalPages > 0 && (
+          <Flex
+            alignItems="center"
+            justifyContent="flex-end"
+            mt={2}
+            pr={4}
+          >
+            <Text
+              mr={2}
+              fontSize="sm"
+              color="#474849"
+              fontFamily="Inter, sans-serif"
+            >
+              {currentPage} of {totalPages}
+            </Text>
+            <Button
+              onClick={goToPreviousPage}
+              isDisabled={currentPage === 1}
+              size="md"
+              variant="ghost"
+              minWidth="auto"
+              color="gray.500"
+              mr="16px"
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <Button
+              onClick={goToNextPage}
+              isDisabled={currentPage === totalPages}
+              size="md"
+              variant="ghost"
+              minWidth="auto"
+              color="gray.500"
+            >
+              <ChevronRightIcon />
+            </Button>
+          </Flex>
+        )}
       </Box>
     </Navbar>
   );
