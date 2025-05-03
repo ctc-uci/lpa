@@ -23,15 +23,16 @@ import {
 } from "@chakra-ui/react";
 
 import { useParams } from "react-router-dom";
-import { sendSaveEmail } from "./utils.jsx";
 
 import { EnvelopeIcon } from "../../assets/EnvelopeIcon.jsx";
 import IoPaperPlane from "../../assets/IoPaperPlane.svg";
 import logo from "../../assets/logo/logo.png";
-import { PlusFilledIcon } from "../../assets/PlusFilledIcon.jsx";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { EmailDropdown } from "../clientsearch/EmailDropdown.jsx";
 import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { DiscardEmailModal } from "./DiscardEmailModal";
+import { EmailInput } from "./EmailInput.jsx";
+import { sendSaveEmail } from "./utils.jsx";
 
 export const EmailSidebar = ({
   isOpen,
@@ -52,9 +53,15 @@ export const EmailSidebar = ({
   const [ccEmails, setCcEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
 
+  const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
+  const [searchedInstructors, setSearchedInstructors] = useState([]);
+  const [selectedInstructors, setSelectedInstructors] = useState([]);
+
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
+
+  const [allUsers, SetAllUsers] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -87,25 +94,93 @@ export const EmailSidebar = ({
     const fetchData = async () => {
       try {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
-        const payeeEmails = payeesResponse.data.map((payee) => payee.email);
+        const instructorResponse = await backend.get("/clients/");
+        const userList = [...payeesResponse.data, ...instructorResponse.data];
+        const uniqueUsers = userList.filter((user, index, self) =>
+          index === self.findIndex(u => u.email === user.email)
+        );
+        SetAllUsers(uniqueUsers);
+        console.log(uniqueUsers);
+
+        const payeeEmails = payeesResponse.data.map(
+          (payee) => payee.email
+        );
+        
+        const instructorEmails = instructorResponse.data.map(
+          (instructor) => instructor.email
+        );
 
         setEmails((prevEmails) => {
           const newEmails = [...prevEmails];
-          payeeEmails.forEach((email) => {
+          [...payeeEmails, ...instructorEmails].forEach((email) => {
             if (!newEmails.includes(email)) {
               newEmails.push(email);
             }
           });
           return newEmails;
         });
-        setOriginalEmails(emails);
+  
+        setOriginalEmails([...payeeEmails, ...instructorEmails]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
+  
     fetchData();
   }, []);
+  
+  const getInstructorResults = async (search) => {
+    try {
+      if (search !== "") {
+        const instructorResponse = await backend.get("/clients/search", {
+          params: {
+            searchTerm: search,
+          },
+        });
+        const payeesResponse = await backend.get("/invoices/payees/" + id);
+        filterSelectedInstructorsFromSearch(
+          instructorResponse.data,
+          payeesResponse.data
+        );
+      } else {
+        setSearchedInstructors([]);
+      }
+    } catch (error) {
+      console.error("Error getting instructors:", error);
+    }
+  };
+
+  const filterSelectedInstructorsFromSearch = (instructorData, payeeData) => {
+    const filteredInstructors = instructorData.filter(
+      (instructor) =>
+        !selectedInstructors.some((selected) => selected.email === instructor.email)
+    );
+    setSearchedInstructors(filteredInstructors);
+  };
+
+  // useEffect(() => {
+  //   // Extract emails from selected instructors and add them to the emails list
+  //   const instructorEmails = selectedInstructors
+  //     .filter((instructor) => instructor.email)
+  //     .map((instructor) => instructor.email);
+
+  //   if (instructorEmails.length > 0) {
+  //     setEmails((prevEmails) => {
+  //       const newEmails = [...prevEmails];
+  //       instructorEmails.forEach((email) => {
+  //         if (!newEmails.includes(email)) {
+  //           newEmails.push(email);
+  //         }
+  //       });
+  //       return newEmails;
+  //     });
+  //   }
+  // }, [selectedInstructors]);
+
+  // Listen for changes in the instructor search term
+  useEffect(() => {
+    getInstructorResults(instructorSearchTerm);
+  }, [instructorSearchTerm]);
 
   const emptyInputs = () => {
     setTitle(pdf_title);
@@ -176,7 +251,6 @@ export const EmailSidebar = ({
     3105 Shattuck Ave., Berkeley, CA 94705
     lapena.org`;
 
-
   const handleSubtotalSum = (startTime, endTime, rate) => {
     if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
 
@@ -205,14 +279,14 @@ export const EmailSidebar = ({
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
-      invoiceTotalResponse
+      invoiceTotalResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
       backend.get(`/comments/invoice/22`),
       backend.get(`/events/${eventId}`),
       backend.get(`/invoices/payees/22`),
       backend.get(`/events/remaining/${eventId}`),
-      backend.get(`/invoices/total/22`)
+      backend.get(`/invoices/total/22`),
     ]);
 
     const comments = commentsResponse.data;
@@ -220,7 +294,9 @@ export const EmailSidebar = ({
     let room = [];
 
     if (comments.length > 0 && comments[0].bookingId) {
-      const bookingResponse = await backend.get(`/bookings/${comments[0].bookingId}`);
+      const bookingResponse = await backend.get(
+        `/bookings/${comments[0].bookingId}`
+      );
       booking = bookingResponse.data[0];
 
       const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
@@ -228,17 +304,20 @@ export const EmailSidebar = ({
     }
 
     const unpaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map(invoice =>
+      unpaidInvoicesResponse.data.map((invoice) =>
         backend.get(`/invoices/total/${invoice.id}`)
       )
     );
     const partiallyPaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map(invoice =>
+      unpaidInvoicesResponse.data.map((invoice) =>
         backend.get(`/invoices/paid/${invoice.id}`)
       )
     );
 
-    const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
+    const unpaidTotal = unpaidTotals.reduce(
+      (sum, res) => sum + res.data.total,
+      0
+    );
     const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
       return res.data.total ? sum + Number(res.data.total) : sum;
     }, 0);
@@ -246,8 +325,17 @@ export const EmailSidebar = ({
     const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
     let subtotalSum = 0;
-    if (comments.length && booking.startTime && booking.endTime && room[0]?.rate) {
-      const total = handleSubtotalSum(booking.startTime, booking.endTime, room[0].rate);
+    if (
+      comments.length &&
+      booking.startTime &&
+      booking.endTime &&
+      room[0]?.rate
+    ) {
+      const total = handleSubtotalSum(
+        booking.startTime,
+        booking.endTime,
+        room[0].rate
+      );
       subtotalSum = parseFloat(total) * comments.length;
     }
 
@@ -265,7 +353,31 @@ export const EmailSidebar = ({
 
   const handleEmailClick = async () => {
     const invoiceData = await fetchInvoiceData(invoice);
-    sendSaveEmail(setLoading, setisConfirmModalOpen, invoice, pdf_title, invoiceData, emails, title, message, ccEmails, bccEmails, backend, id);
+    sendSaveEmail(
+      setLoading,
+      setisConfirmModalOpen,
+      invoice,
+      pdf_title,
+      invoiceData,
+      emails,
+      title,
+      message,
+      ccEmails,
+      bccEmails,
+      backend,
+      id
+    );
+  };
+
+  const HandleEmailSearch = (email) => {
+    backend
+      .get(`/users/email/${email}`)
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.error("User not found");
+      });
   };
 
   return (
@@ -364,71 +476,17 @@ export const EmailSidebar = ({
                 >
                   To:
                 </Text>
-                <InputGroup w="200px">
-                  <Input
-                    placeholder="johndoe@gmail.com"
-                    onChange={(e) => setToInput(e.target.value)}
-                    value={toInput}
-                    onKeyDown={handleKeyDown}
-                  />
-                  <InputRightElement>
-                    <IconButton
-                      bgColor="transparent"
-                      sx={{
-                        svg: {
-                          width: "16px",
-                          height: "16px",
-                        },
-                      }}
-                      _hover={{
-                        bgColor: "transparent",
-                        svg: {
-                          rect: { fill: "#4441C8" },
-                        },
-                      }}
-                      _active={{ bgColor: "transparent" }}
-                      _focus={{ boxShadow: "none" }}
-                      icon={<PlusFilledIcon />}
-                      onClick={handleAddEmail}
-                    />
-                  </InputRightElement>
-                </InputGroup>
+                {/* <EmailInput initialEmails={emails} /> */}
+                <EmailDropdown
+                  instructorSearchTerm={instructorSearchTerm}
+                  searchedInstructors={searchedInstructors}
+                  selectedInstructors={selectedInstructors}
+                  setSelectedInstructors={setSelectedInstructors}
+                  setSearchedInstructors={setSearchedInstructors}
+                  getInstructorResults={getInstructorResults}
+                  setInstructorSearchTerm={setInstructorSearchTerm}
+                />
               </Flex>
-              <Flex
-                gap="4"
-                justifyContent="start"
-                wrap="wrap"
-              >
-                {[...emails].map((email, index) => (
-                  <Tag
-                    key={index}
-                    size="lg"
-                    borderRadius="full"
-                    variant="solid"
-                    bg={"white"}
-                    border={"1px solid"}
-                    borderColor={"#E2E8F0"}
-                    textColor={"#080A0E"}
-                    fontWeight={"normal"}
-                  >
-                    <TagLabel>{email}</TagLabel>
-                    <TagCloseButton
-                      onClick={() =>
-                        setEmails((prevEmails) =>
-                          prevEmails.filter((e) => e !== email)
-                        )
-                      }
-                      bgColor={"#718096"}
-                      opacity={"none"}
-                      _hover={{
-                        bg: "#4441C8",
-                      }}
-                      textColor={"white"}
-                    />
-                  </Tag>
-                ))}
-              </Flex>
-
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
@@ -439,35 +497,7 @@ export const EmailSidebar = ({
                 >
                   Cc:
                 </Text>
-                <InputGroup w="200px">
-                  <Input
-                    placeholder="johndoe@gmail.com"
-                    value={ccInput}
-                    onChange={(e) => setCcInput(e.target.value)}
-                    onKeyDown={handleKeyPressCc}
-                  />
-                  <InputRightElement>
-                    <IconButton
-                      bgColor="transparent"
-                      sx={{
-                        svg: {
-                          width: "16px",
-                          height: "16px",
-                        },
-                      }}
-                      _hover={{
-                        bgColor: "transparent",
-                        svg: {
-                          rect: { fill: "#4441C8" },
-                        },
-                      }}
-                      _active={{ bgColor: "transparent" }}
-                      _focus={{ boxShadow: "none" }}
-                      onClick={handleAddCcEmail}
-                      icon={<PlusFilledIcon />}
-                    />
-                  </InputRightElement>
-                </InputGroup>
+                <EmailInput />
               </Flex>
               <Flex
                 gap="4"
@@ -512,35 +542,7 @@ export const EmailSidebar = ({
                 >
                   Bcc:
                 </Text>
-                <InputGroup w="200px">
-                  <Input
-                    placeholder="johndoe@gmail.com"
-                    value={bccInput}
-                    onChange={(e) => setBccInput(e.target.value)}
-                    onKeyDown={handleKeyPressBcc}
-                  />
-                  <InputRightElement>
-                    <IconButton
-                      bgColor="transparent"
-                      sx={{
-                        svg: {
-                          width: "16px",
-                          height: "16px",
-                        },
-                      }}
-                      _hover={{
-                        bgColor: "transparent",
-                        svg: {
-                          rect: { fill: "#4441C8" },
-                        },
-                      }}
-                      _active={{ bgColor: "transparent" }}
-                      _focus={{ boxShadow: "none" }}
-                      onClick={handleAddBccEmail}
-                      icon={<PlusFilledIcon />}
-                    />
-                  </InputRightElement>
-                </InputGroup>
+                {/* <EmailInput /> */}
               </Flex>
               <Flex
                 gap="4"

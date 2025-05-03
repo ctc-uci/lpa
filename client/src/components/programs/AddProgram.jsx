@@ -23,6 +23,7 @@ import { DeleteConfirmationModal } from "./DiscardConfirmationModal";
 import { DateInputs } from "./programComponents/DateInputs";
 import { TimeInputs } from "./programComponents/TimeInputs";
 
+
 export const AddProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -51,6 +52,14 @@ export const AddProgram = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const initialState = useRef(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  const [clientsearchQuery, setclientsearchQuery] = useState("");
+
+  const handleClientSearch = (query) => {
+    setclientsearchQuery(query);
+    // come back and fill this in
+    console.log("Searching for:", query);
+  }
 
   useEffect(() => {
     initialState.current = JSON.stringify({
@@ -427,6 +436,11 @@ export const AddProgram = () => {
               <TitleInformation
                 eventName={eventName}
                 setEventName={setEventName}
+              />
+
+              <SearchBar 
+                handleSearch={handleClientSearch}
+                searchQuery={clientsearchQuery}
               />
 
               <div id = "saveCancel">

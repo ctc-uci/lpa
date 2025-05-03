@@ -1,0 +1,41 @@
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    width: 100%;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    background: #FFFFFF;
+    padding: 0 12px;
+}
+
+.searchbar-container {
+    flex: 1;
+    border: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.searchbar-input {
+    border: none;
+    outline: none;
+    font-family: Inter;
+    font-size: 15px;
+    color: #9CA3AF;
+    background: transparent;
+    padding-left: 24px;
+}
+
+.searchbar-right-element {
+    width: auto;
+    height: auto;
+}
+
+.searchbar-icon-container {
+    height: 28px;
+    width: 28px;
+    border-radius: 50%;
+    background: #9CA3AF;
+    border: none;
+}
