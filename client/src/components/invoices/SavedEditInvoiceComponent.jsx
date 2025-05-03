@@ -127,32 +127,33 @@ const SavedStatementComments = ({
       >
         <Box
           width="100%"
-          overflowX="auto"
+          // overflowX="auto"
         >
           <Table
             color="#EDF2F7"
             width="100%"
             textAlign="center"
-            size="sm"
+            tableLayout="auto"
           >
             {/* header row */}
             <Thead>
-              <Tr maxW="50%">
+              <Tr>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
                   color="#718096"
+                  w="auto"
                 >
-                  <HStack>
-                    <CalendarIcon />
-                    <Text>DATE</Text>
+                  <HStack gap="1">
+                    <CalendarIcon width={compactView && "8"}/>
+                    <Text fontSize={compactView ? "6" : "sm"}>DATE</Text>
                   </HStack>
                 </Th>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
-                  fontSize={compactView && "6"}
+                  fontSize={compactView ? "6" : "sm"}
                   color="#718096"
                 >
                   <HStack gap="1">
@@ -163,7 +164,7 @@ const SavedStatementComments = ({
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
-                  fontSize={compactView && "6px"}
+                  fontSize={compactView ? "6" : "sm"}
                   color="#718096"
                 >
                   <HStack gap="1">
@@ -174,12 +175,12 @@ const SavedStatementComments = ({
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
-                  fontSize={compactView && "6px"}
+                  fontSize={compactView ? "6" : "sm"}
                   color="#718096"
                 >
                   <HStack>
                     <EditDocumentIcon/>
-                    <Text>
+                    <Text fontSize={compactView ? "6" : "sm"}>
 
                       ROOM FEE ADJUSTMENT
                     </Text>
@@ -188,19 +189,19 @@ const SavedStatementComments = ({
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
-                  fontSize={compactView && "6px"}
+                  fontSize={compactView ? "6" : "sm"}
                   color="#718096"
                 >
                   
                   <HStack gap="1">
                     <DollarSignIcon />
-                    <Text>ROOM FEE</Text>
+                    <Text fontSize={compactView ? "6" : "sm"}>ROOM FEE</Text>
                   </HStack>
                 </Th>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
-                  fontSize={compactView && "6px"}
+                  fontSize={compactView ? "6" : "sm"}
                   color="#718096"
                 >
                   TOTAL
@@ -216,7 +217,7 @@ const SavedStatementComments = ({
                       {/* date */}
                       <Td
                         py={compactView ? 0 : 4}
-                        fontSize={compactView && "6.38px"}
+                        fontSize={compactView ? "6.38" : "sm"}
                       >
                         {/* Doing Tue. instead of Tues. because its built in and format doesn't allow that kind of customization */}
                         {format(new Date(sessions.datetime), "EEE. M/d/yy")}
@@ -225,7 +226,7 @@ const SavedStatementComments = ({
                       {/* classroom */}
                       <Td
                         py={compactView ? 0 : 4}
-                        fontSize={compactView && "6.38px"}
+                        fontSize={compactView ? "6.38" : "sm"}
                       >
                         {room && room.length > 0 ? `${room[0].name}` : "N/A"}
                       </Td>
@@ -233,11 +234,11 @@ const SavedStatementComments = ({
                       {/* rental hours */}
                       <Td
                         py={compactView ? 0 : 4}
-                        fontSize={compactView && "6.38px"}
+                        fontSize={compactView ? "6.38" : "sm"}
                       >
                         <Flex
                           align="center"
-                          whiteSpace="nowrap"
+                          // whiteSpace="nowrap"
                           overflow="hidden"
                           textOverflow="ellipsis"
                         >
@@ -249,7 +250,7 @@ const SavedStatementComments = ({
 
                       {/* room fee */}
                       <Td
-                        fontSize={compactView && "6.38px"}
+                        fontSize={compactView ? "6.38" : "sm"}
                         py={compactView ? 0 : 4}
                       >
                         {sessions.adjustmentValues.length === 0 ? (
@@ -266,7 +267,7 @@ const SavedStatementComments = ({
                             >
                               <Text
                                 textOverflow="ellipsis"
-                                whiteSpace="nowrap"
+                                // whiteSpace="nowrap"
                                 overflow="hidden"
                               >
                                 {sessions.adjustmentValues.join(", ")}
@@ -279,7 +280,7 @@ const SavedStatementComments = ({
                       {/* adjustment type */}
                       <Td
                         py={compactView ? 0 : 4}
-                        fontSize={compactView && "6.38px"}
+                        fontSize={compactView ? "6.38" : "sm"}
                       >
                         <Text
                           h="40px"
@@ -296,7 +297,7 @@ const SavedStatementComments = ({
                       {/* total */}
                       <Td
                         py={compactView ? 0 : 4}
-                        fontSize={compactView && "6.38px"}
+                        fontSize={compactView ? "6.38" : "sm"}
                       >
                         <Flex
                           justifyContent="center"
@@ -339,7 +340,7 @@ const SavedStatementComments = ({
                   textAlign="right"
                   colSpan={5}
                   fontWeight="bold"
-                  fontSize={compactView && "6.38px"}
+                  fontSize={compactView ? "6.38" : "sm"}
                 >
                   Subtotal
                 </Td>
@@ -347,7 +348,7 @@ const SavedStatementComments = ({
                   borderBottom="none"
                   py={compactView ? "0" : "8"}
                   textAlign="center"
-                  fontSize={compactView && "6.38px"}
+                  fontSize={compactView ? "6.38" : "sm"}
                 >
                   {`$ ${subtotalSum.toFixed(2)}`}
                 </Td>
@@ -478,7 +479,7 @@ const SavedInvoiceSummary = ({
                 >
                   <HStack color="#718096">
                     <DollarSignIcon />
-                    <Text>
+                    <Text fontSize={compactView ? "6" : "sm"}>
                       DESCRIPTION
                       </Text>
                   </HStack>
@@ -490,9 +491,9 @@ const SavedInvoiceSummary = ({
                 >
                   <HStack color="#718096">
                     <EditDocumentIcon />
-                    <Text>
-                    ROOM FEE ADJUSTMENT
-                      </Text>
+                    <Text fontSize={compactView ? "6" : "sm"}> 
+                      ROOM FEE ADJUSTMENT
+                    </Text>
                   </HStack>
                 </Th>
                 <Th
@@ -551,7 +552,7 @@ const SavedInvoiceSummary = ({
                         >
                           <Text
                             textOverflow="ellipsis"
-                            whiteSpace="nowrap"
+                            // whiteSpace="nowrap"
                             overflow="hidden"
                           >
                             {row.adjustmentValues.join(", ")}

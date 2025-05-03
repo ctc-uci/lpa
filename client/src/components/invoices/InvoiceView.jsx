@@ -40,11 +40,11 @@ const InvoiceView = ({
           backgroundRepeat="no-repeat"
         />
         <VStack
-          width="100%"
+          // width="100%"
           spacing={4}
           px={8}
         >
-          <Box w="90%">
+          <Box>
             <EditInvoiceTitle
                 comments={comments}
                 invoice={invoice?.data}

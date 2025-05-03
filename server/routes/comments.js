@@ -45,7 +45,7 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
 });
 
 const formatAdjustmentFee = (adjustmentType, val) => {
-  if (adjustmentType === "rate_percent") return `$${val}%`;
+  if (adjustmentType === "rate_percent")  return val > 0 ? `+${val}%` : `-${val}%`;
   if (adjustmentType === "rate_flat") return val > 0 ? `+$${val}` : `-$${val}`;
   return null;
 };

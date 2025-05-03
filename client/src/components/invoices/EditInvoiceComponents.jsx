@@ -175,11 +175,11 @@ const EditInvoiceDetails = ({
             color={"#718096"}
             margin={"0 0"}
             padding={0}
-            fontSize={compactView && "8.509px"}
+            fontSize={compactView ? "8.509px" : "sm"}
           >
             Recurring Program:
           </Text>
-          <Text fontSize={compactView && "8.509px"}>
+          <Text fontSize={compactView ? "8.509px" : "sm"}>
             {programName || "No program name found"}
           </Text>
           <VStack
@@ -190,7 +190,7 @@ const EditInvoiceDetails = ({
             <Text
               fontWeight="500"
               color={"#718096"}
-              fontSize={compactView && "8.509px"}
+              fontSize={compactView ? "8.509px" : "sm"}
             >
               Designated Payer(s):
             </Text>
@@ -200,7 +200,7 @@ const EditInvoiceDetails = ({
                   key={index}
                   mr={2}
                   borderRadius="0"
-                  fontSize={compactView && "8.509px"}
+                  fontSize={compactView ? "8.509px" : "sm"}
                 >
                   {payee.name} - {payee.email}
                 </Text>
@@ -209,7 +209,7 @@ const EditInvoiceDetails = ({
               <Text
                 mr={2}
                 borderRadius="0"
-                fontSize={compactView && "8.509px"}
+                fontSize={compactView ? "8.509px" : "sm"}
               >
                 No payees found.
               </Text>
@@ -228,7 +228,7 @@ const EditInvoiceDetails = ({
             <Text
               fontWeight="500"
               color={"#718096"}
-              fontSize={compactView && "8.509px"}
+              fontSize={compactView ? "8.509px" : "sm"}
             >
               Lead Artist(s):
             </Text>
@@ -237,7 +237,7 @@ const EditInvoiceDetails = ({
                 <HStack key={index}>
                   <Text
                     mr={2}
-                    fontSize={compactView && "8.509px"}
+                    fontSize={compactView ? "8.509px" : "sm"}
                   >
                     {instructor.name} - {instructor.email}
                   </Text>
@@ -247,7 +247,7 @@ const EditInvoiceDetails = ({
               <Text
                 mr={2}
                 borderRadius="0"
-                fontSize={compactView && "8.509px"}
+                fontSize={compactView ? "8.509px" : "sm"}
               >
                 No instructors found.
               </Text>
