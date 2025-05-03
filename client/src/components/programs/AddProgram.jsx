@@ -438,11 +438,6 @@ export const AddProgram = () => {
                 setEventName={setEventName}
               />
 
-              <SearchBar 
-                handleSearch={handleClientSearch}
-                searchQuery={clientsearchQuery}
-              />
-
               <div id = "saveCancel">
                 <Button
                   id="save"
