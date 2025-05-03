@@ -15,20 +15,25 @@ import {
 } from "@chakra-ui/react";
 import { CancelIcon, PlusIcon } from "../../assets/EditInvoiceIcons";
 import { format } from "date-fns";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export default function RoomFeeAdjustmentSideBar({
   isOpen,
   onClose,
-  comment,
+  invoice,
   booking,
   room,
+  userId,
   addAdjustment,
   adjustments,
   setAdjustments,
   onApplyAdjustments
 }) {
+  console.log("This is invoice", invoice)
+  const { backend } = useBackendContext();
   const calculateNewTotals = () => {
-    let newRate = Number(room && room.length > 0 ? room[0].rate : 0);
+    console.log("This is room:", room)
+    let newRate = Number(room ? room.rate : 0);
 
     adjustments.forEach(adj => {
       const amount = adj.type === "dollar"
@@ -93,7 +98,7 @@ export default function RoomFeeAdjustmentSideBar({
             fontSize="14px"
             whiteSpace="nowrap"
           >
-            {comment?.datetime ? format(new Date(comment.datetime), "M/d/yy") : "N/A"} Room Fee Adjustment
+            {booking?.date ? format(new Date(booking.date), "M/d/yy") : "N/A"} Room Fee Adjustment
           </Text>
           <AdjustmentTypeSelector onSelect={(type) => {
             addAdjustment(type, booking.id);
@@ -222,12 +227,39 @@ export default function RoomFeeAdjustmentSideBar({
               py={2}
               borderRadius="md"
               fontWeight="bold"
-              onClick={() => {
-                // Pass the adjustments back to the table
-                onApplyAdjustments(booking.id, adjustments);
-                onClose();
-              }}
+              // onClick={() => {
+              //   // Pass the adjustments back to the table
+              //   onApplyAdjustments(booking.id, adjustments);
+              //   onClose();
+              // }}
+              // _hover={{ bg: "#322EAF" }}
               _hover={{ bg: "#322EAF" }}
+              onClick={async () => {
+                try {
+                  // Loop over all adjustments and create a comment for each
+                  for (const adjustment of adjustments) {
+                    const adjustment_type = adjustment.type === "dollar" ? "rate_flat" : "rate_percent";
+                    const adjustment_value = adjustment.isNegative ? -adjustment.value : adjustment.value;
+                    const adjustmentComment = adjustment.type === "dollar" ? `Room fee adjustment of $${adjustment_value}` : `Room fee adjustment of ${adjustment_value}%`
+
+                    await backend.post("/comments", {
+                      user_id: userId,
+                      booking_id: booking.id,
+                      invoice_id: invoice.id,
+                      comment: adjustmentComment,
+                      adjustment_type: adjustment_type,
+                      adjustment_value: adjustment_value,
+                    });
+                  }
+
+                  // Update the UI state with the new adjustments
+                  onApplyAdjustments(booking.id, adjustments);
+                  // setActiveRowId(null); // close sidebar
+                  onClose();
+                } catch (err) {
+                  console.error("Failed to apply adjustments and save comments:", err);
+                }
+              }}
             >
               Apply
             </Button>
