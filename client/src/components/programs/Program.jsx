@@ -110,6 +110,7 @@ export const Program = () => {
     }
   };
 
+
   // Use set of room ids to create map of room id to name, pass map into sessions component
   const getRoomNames = async () => {
     try {

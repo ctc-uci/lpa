@@ -1683,54 +1683,6 @@ export const Sessions = ({
                 </Table>
               </TableContainer>
             </Flex>
-
-            {/* Pagination Controls - moved to bottom right */}
-            <Box
-              width="100%"
-              display="flex"
-              justifyContent="flex-end"
-              mt="auto"
-              pt={4}
-            >
-              {totalPages > 1 && (
-                <Flex
-                  alignItems="center"
-                  justifyContent="center"
-                  mb={2}
-                >
-                  <Text
-                    mr={2}
-                    fontSize="sm"
-                    color="#474849"
-                    fontFamily="Inter, sans-serif"
-                  >
-                    {currentPage} of {totalPages}
-                  </Text>
-                  <Button
-                    onClick={goToPreviousPage}
-                    isDisabled={currentPage === 1}
-                    size="sm"
-                    variant="ghost"
-                    padding={0}
-                    minWidth="auto"
-                    color="gray.500"
-                  >
-                    <ChevronLeftIcon />
-                  </Button>
-                  <Button
-                    onClick={goToNextPage}
-                    isDisabled={currentPage === totalPages}
-                    size="sm"
-                    variant="ghost"
-                    padding={0}
-                    minWidth="auto"
-                    color="gray.500"
-                  >
-                    <ChevronRightIcon />
-                  </Button>
-                </Flex>
-              )}
-            </Box>
             <CancelSessionModal
               isOpen={cancelModalIsOpen}
               onClose={closeCancelModal}
@@ -1746,6 +1698,51 @@ export const Sessions = ({
             />
           </CardBody>
         </Card>
+      </Box>
+      {/* Pagination Controls - moved to bottom right */}
+      <Box
+        width="100%"
+        display="flex"
+        justifyContent="flex-end"
+        mt="auto"
+        pt={4}
+      >
+        {totalPages > 1 && (
+          <Flex
+            alignItems="center"
+            justifyContent="center"
+            mb={2}
+          >
+            <Text
+              mr={2}
+              fontSize="sm"
+              color="#474849"
+              fontFamily="Inter, sans-serif"
+            >
+              {currentPage} of {totalPages}
+            </Text>
+            <Button
+              onClick={goToPreviousPage}
+              isDisabled={currentPage === 1}
+              size="md"
+              variant="ghost"
+              minWidth="auto"
+              color="gray.500"
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <Button
+              onClick={goToNextPage}
+              isDisabled={currentPage === totalPages}
+              size="md"
+              variant="ghost"
+              minWidth="auto"
+              color="gray.500"
+            >
+              <ChevronRightIcon />
+            </Button>
+          </Flex>
+        )}
       </Box>
     </>
   );
