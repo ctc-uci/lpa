@@ -44,9 +44,6 @@ const SavedStatementComments = ({
   // const [roomState, setRoom] = useState(room);
   // const commentsWithBooking = comments.filter((comment) => comment.bookingId !== null)
 
-  const [subtotalSum, setSubtotalSum] = useState(subtotal);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
-
   const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
     if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
 
@@ -96,8 +93,10 @@ const SavedStatementComments = ({
       );
       return acc + total;
     }, 0);
-  
-    return totalSum.toFixed(2);
+
+    const total = totalSum.toFixed(2)
+    setSubtotal(total)
+    return total;
   };
 
   const formatTimeString = (timeStr) => {
@@ -412,64 +411,11 @@ const SavedInvoiceSummary = ({
   booking = [],
   room = [],
   subtotal = 0.0,
-  setSubtotal,
   pastDue,
   summary = [],
   compactView = false,
 }) => {
-  //! THIS RECALCULATES EVERYTHING BUT PASSING IT BETWEEN COMPONENTS WASNT WORKING
 
-  const [commentsState, setComments] = useState(comments);
-  const [bookingState, setBooking] = useState(booking);
-  const [roomState, setRoom] = useState(room);
-  const [subtotalSum, setSubtotalSum] = useState(subtotal);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
-
-  const handleSubtotalSum = (startTime, endTime, rate) => {
-    if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
-
-    const timeToMinutes = (timeStr) => {
-      const [hours, minutes] = timeStr.split(":").map(Number);
-      return hours * 60 + minutes;
-    };
-
-    const startMinutes = timeToMinutes(startTime.substring(0, 5));
-    const endMinutes = timeToMinutes(endTime.substring(0, 5));
-    const diff = endMinutes - startMinutes;
-
-    const totalHours = Math.ceil(diff / 60);
-
-    const total = (totalHours * rate).toFixed(2);
-
-    return total;
-  };
-
-  useEffect(() => {
-    if (comments && comments.length > 0) {
-      setComments(comments);
-      setBooking(booking);
-      setRoom(room);
-    }
-  }, [booking, comments, room]);
-
-  useEffect(() => {
-    // Ensure all required values are available and this only runs once
-    if (
-      bookingState &&
-      room &&
-      bookingState.startTime &&
-      bookingState.endTime &&
-      room[0]?.rate &&
-      !isDataLoaded
-    ) {
-
-      
-      console.log("subtotlaSum", subtotalSum)
-      setSubtotal(subtotalSum);
-
-      setIsDataLoaded(true);
-    }
-  }, [bookingState, room, commentsState, isDataLoaded]);
 
   return (
     <Flex
@@ -651,14 +597,13 @@ const SavedInvoiceSummary = ({
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6.38px"}
                 >
-                  None
                 </Td>
                 <Td
                   textAlign="end"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6.38px"}
                 >
-                  $ {subtotalSum.toFixed(2)}
+                   {`$ ${subtotal}`}
                 </Td>
               </Tr>
 
@@ -680,7 +625,7 @@ const SavedInvoiceSummary = ({
                   fontSize={compactView ? "6.38px" : "2xl"}
                   py={compactView ? 0 : 8}
                 >
-                  {`$ ${(pastDue + subtotalSum).toFixed(2)}`}
+                  {`$ ${(parseFloat(pastDue) + parseFloat(subtotal)).toFixed(2)}`}
                 </Td>
               </Tr>
             </Tbody>

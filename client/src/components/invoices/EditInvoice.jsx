@@ -371,7 +371,7 @@ export const EditInvoice = () => {
           spacing={4}
           px={8}
         >
-          <Box width="100%">
+          <Box>
             <EditInvoiceTitle
               comments={editedComments}
               invoice={invoice?.data}

@@ -29,6 +29,7 @@ const InvoiceView = ({
   compactView = false,
 }) => {
 
+
   return (
       <Flex direction="column" alignItems="center"
         w={compactView ? "100%" : "80%"}

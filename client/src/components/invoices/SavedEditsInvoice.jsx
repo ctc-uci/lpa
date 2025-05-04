@@ -147,8 +147,8 @@ export const SavedEdit = () => {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         setPayees(payeesResponse.data);
 
-        const subtotalResponse = await backend.get("/invoices/total/" + id);
-        setSubtotal(subtotalResponse.data.total);
+        // const subtotalResponse = await backend.get("/invoices/total/" + id);
+        // setSubtotal(subtotalResponse.data.total);
 
         // get the unpaid/remaining invoices
         const unpaidInvoicesResponse = await backend.get(
