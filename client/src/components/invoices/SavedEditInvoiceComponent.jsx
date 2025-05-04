@@ -47,7 +47,7 @@ const SavedStatementComments = ({
   const [subtotalSum, setSubtotalSum] = useState(subtotal);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-  const handleSubtotalSum = (startTime, endTime, rate, adjustmentValues) => {
+  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
     if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
 
     const timeToMinutes = (timeStr) => {
@@ -80,7 +80,24 @@ const SavedStatementComments = ({
     }, hourlyRate) ?? hourlyRate;
 
     return adjustedTotal.toFixed(2);
+  };
 
+  const calculateSubtotal = (sessions, startTime, endTime, rate) => {
+    if (!sessions || sessions.length === 0) return "0.00";
+  
+    const totalSum = sessions.reduce((acc, session) => {
+      const total = parseFloat(
+        calculateTotalBookingRow(
+          startTime,
+          endTime,
+          rate,
+          session.adjustmentValues
+        )
+      );
+      return acc + total;
+    }, 0);
+  
+    return totalSum.toFixed(2);
   };
 
   const formatTimeString = (timeStr) => {
@@ -98,36 +115,6 @@ const SavedStatementComments = ({
     return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
 
-  useEffect(() => {
-    // Ensure all required values are available and this only runs once
-    if (
-      booking &&
-      room &&
-      booking.startTime &&
-      booking.endTime &&
-      room[0]?.rate &&
-      !isDataLoaded
-    ) {
-      const total = handleSubtotalSum(
-        booking.startTime,
-        booking.endTime,
-        room[0]?.rate
-      );
-
-      console.log("total", total)
-
-      // Add subtotal for each comment (this logic is now inside useEffect)
-      // if (sessions && sessions.length > 0) {
-      //   sessions.forEach(() => {
-      //     setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
-      //   });
-      // }
-
-      // setSubtotal(subtotalSum);
-      // Set flag to prevent future reruns of this effect
-      setIsDataLoaded(true);
-    }
-  }, [booking, room, sessions, isDataLoaded]);
 
   return (
     <Flex
@@ -369,7 +356,7 @@ const SavedStatementComments = ({
                             booking.startTime &&
                             booking.endTime &&
                             room[0]?.rate
-                              ? handleSubtotalSum(
+                              ? calculateTotalBookingRow(
                                   booking.startTime,
                                   booking.endTime,
                                   room[0]?.rate,
@@ -409,7 +396,7 @@ const SavedStatementComments = ({
                   textAlign="center"
                   fontSize={compactView ? "6.38" : "sm"}
                 >
-                  {`$ ${subtotalSum.toFixed(2)}`}
+                  {`$ ${calculateSubtotal(sessions, booking.startTime, booking.endTime, room[0]?.rate)}`}
                 </Td>
               </Tr>
             </Tbody>
