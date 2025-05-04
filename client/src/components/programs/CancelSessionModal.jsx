@@ -413,7 +413,6 @@ export const CancelSessionModal = ({
           <Button
             bg="#90080F"
             color="white"
-            _hover={{ bg: "#7D070D" }}
             borderRadius="30px"
             onClick={handleConfirmAndClose} // Use the new handler that calls onConfirm and onClose
           >

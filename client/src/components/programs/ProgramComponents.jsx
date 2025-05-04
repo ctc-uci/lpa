@@ -1,27 +1,77 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-
-
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, DeleteIcon } from "@chakra-ui/icons";
-import { Alert, AlertDescription, AlertTitle, Box, Button, Card, CardBody, Checkbox, Container, Flex, FormControl, Heading, HStack, Icon, IconButton, Input, Menu, MenuButton, MenuItem, MenuList, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Portal, Stack, Table, TableContainer, Tbody, Td, Text, Textarea, Th, Thead, Tr, useDisclosure, Wrap, WrapItem } from "@chakra-ui/react";
-
-
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Checkbox,
+  Container,
+  Flex,
+  FormControl,
+  Heading,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Popover,
+  PopoverBody,
+  PopoverContent,
+  PopoverTrigger,
+  Portal,
+  Stack,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Textarea,
+  Th,
+  Thead,
+  Tr,
+  useDisclosure,
+  Wrap,
+  WrapItem,
+} from "@chakra-ui/react";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
-import { CalendarIcon } from "../../assets/CalendarIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
-import { DeleteIconRed } from "../../assets/DeleteIconRed";
 import { DollarBill } from "../../assets/DollarBill";
-import { DuplicateIcon } from "../../assets/DuplicateIcon";
-import { EditIcon } from "../../assets/EditIcon";
 import { EmailIcon } from "../../assets/EmailIcon";
 import { EyeIcon } from "../../assets/EyeIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
 import clockSvg from "../../assets/icons/clock.svg";
-import { archiveCalendar, archiveClock, archiveMapPin, DollarIcon, DownloadIcon, filterButton, filterDateCalendar, sessionsCalendar, sessionsClock, sessionsEllipsis, sessionsFilterClock, sessionsFilterMapPin, sessionsMapPin, summaryIcon } from "../../assets/icons/ProgramIcons";
+import {
+  archiveCalendar,
+  archiveClock,
+  archiveMapPin,
+  DollarIcon,
+  DownloadIcon,
+  filterButton,
+  filterDateCalendar,
+  sessionsCalendar,
+  sessionsClock,
+  sessionsEllipsis,
+  sessionsFilterClock,
+  sessionsFilterMapPin,
+  sessionsMapPin,
+  summaryIcon,
+} from "../../assets/icons/ProgramIcons";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { LocationIcon } from "../../assets/LocationIcon";
 import { LocationPin } from "../../assets/LocationPin";
@@ -34,17 +84,18 @@ import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { RepeatIcon } from "../../assets/RepeatIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 
-
-
 import "./Program.css";
 
-
-
-import { Document, Page, PDFDownloadLink, Text as PDFText, View as PDFView, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  PDFDownloadLink,
+  Text as PDFText,
+  View as PDFView,
+  StyleSheet,
+} from "@react-pdf/renderer";
 import { EllipsisIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
@@ -58,13 +109,17 @@ import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
-
 const ClockIcon = React.memo(() => (
   <img
     src={clockSvg}
     alt="Clock"
   />
 ));
+
+const truncateNames = (name, maxLength = 30) => {
+  if (!name) return "N/A";
+  return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+};
 
 export const ProgramSummary = ({
   program,
@@ -1343,10 +1398,15 @@ export const Sessions = ({
             <Flex
               gap="12px"
               alignItems="center"
+              width="100%"
             >
               {/* HERE */}
-              <TableContainer>
-                <Table variant="unstyled">
+              <TableContainer
+                width="100%"
+              >
+                <Table variant="unstyled"
+                    width="100%"
+                >
                   <Thead
                     borderBottom="1px"
                     color="#D2D2D2"
@@ -1470,8 +1530,8 @@ export const Sessions = ({
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {filteredSessions.length > 0 ? (
-                      filteredSessions.map((session) => (
+                    {currentPageSessions.length > 0 ? (
+                      currentPageSessions.map((session) => (
                         <Tr key={session.id}>
                           {isSelected && (
                             <Td width="50px">
@@ -1503,7 +1563,10 @@ export const Sessions = ({
                           )}
 
                           {!isArchived ? (
-                            <Td>
+                            <Td
+                                width="10%"
+                                minWidth="100px"
+                            >
                               <Box
                                 display="flex"
                                 justifyContent="center"
@@ -1521,7 +1584,10 @@ export const Sessions = ({
                               </Box>
                             </Td>
                           ) : null}
-                          <Td>
+                          <Td
+                            width="15%"
+                            minWidth="150px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1530,7 +1596,10 @@ export const Sessions = ({
                               {formatDate(session.date)}
                             </Box>
                           </Td>
-                          <Td>
+                          <Td
+                            width="15%"
+                            minWidth="150px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1540,7 +1609,10 @@ export const Sessions = ({
                               {formatTime(session.endTime)}
                             </Box>
                           </Td>
-                          <Td>
+                          <Td
+                            width="20%"
+                            minWidth="200px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1550,7 +1622,10 @@ export const Sessions = ({
                             </Box>
                           </Td>
                           {/* Add Lead Artist data */}
-                          <Td>
+                          <Td
+                            width="20%"
+                            minWidth="200px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1562,7 +1637,10 @@ export const Sessions = ({
                             </Box>
                           </Td>
                           {/* Add Payees data */}
-                          <Td>
+                          <Td
+                            width="10%"
+                            minWidth="50px"
+                          >
                             <Box
                               display="flex"
                               justifyContent="center"
@@ -1573,20 +1651,15 @@ export const Sessions = ({
                                 : "N/A"}
                             </Box>
                           </Td>
-                          {/* <Td>
-                            <Icon
-                              boxSize="7"
-                              padding="5px"
-                              borderRadius="6px"
-                              backgroundColor="#EDF2F7"
-                            >
-                              <EllipsisIcon />
-                            </Icon>
-                          </Td> */}
-                          <Td>
+                          <Td
+                            width="10%"
+                            minWidth="50px"
+                          >
                             <EditCancelPopup
-                              handleEdit={handleEdit}
-                              handleDeactivate={handleDeactivate}
+                              handleEdit={(e) => handleEdit(session.id, e)}
+                              handleDeactivate={() =>
+                                handleDeactivate(session.id)
+                              }
                               id={session.id}
                             />
                           </Td>
@@ -1610,54 +1683,6 @@ export const Sessions = ({
                 </Table>
               </TableContainer>
             </Flex>
-
-            {/* Pagination Controls - moved to bottom right */}
-            <Box
-              width="100%"
-              display="flex"
-              justifyContent="flex-end"
-              mt="auto"
-              pt={4}
-            >
-              {totalPages > 1 && (
-                <Flex
-                  alignItems="center"
-                  justifyContent="center"
-                  mb={2}
-                >
-                  <Text
-                    mr={2}
-                    fontSize="sm"
-                    color="#474849"
-                    fontFamily="Inter, sans-serif"
-                  >
-                    {currentPage} of {totalPages}
-                  </Text>
-                  <Button
-                    onClick={goToPreviousPage}
-                    isDisabled={currentPage === 1}
-                    size="sm"
-                    variant="ghost"
-                    padding={0}
-                    minWidth="auto"
-                    color="gray.500"
-                  >
-                    <ChevronLeftIcon />
-                  </Button>
-                  <Button
-                    onClick={goToNextPage}
-                    isDisabled={currentPage === totalPages}
-                    size="sm"
-                    variant="ghost"
-                    padding={0}
-                    minWidth="auto"
-                    color="gray.500"
-                  >
-                    <ChevronRightIcon />
-                  </Button>
-                </Flex>
-              )}
-            </Box>
             <CancelSessionModal
               isOpen={cancelModalIsOpen}
               onClose={closeCancelModal}
@@ -1673,6 +1698,51 @@ export const Sessions = ({
             />
           </CardBody>
         </Card>
+      </Box>
+      {/* Pagination Controls - moved to bottom right */}
+      <Box
+        width="100%"
+        display="flex"
+        justifyContent="flex-end"
+        mt="auto"
+        pt={4}
+      >
+        {totalPages > 1 && (
+          <Flex
+            alignItems="center"
+            justifyContent="center"
+            mb={2}
+          >
+            <Text
+              mr={2}
+              fontSize="sm"
+              color="#474849"
+              fontFamily="Inter, sans-serif"
+            >
+              {currentPage} of {totalPages}
+            </Text>
+            <Button
+              onClick={goToPreviousPage}
+              isDisabled={currentPage === 1}
+              size="md"
+              variant="ghost"
+              minWidth="auto"
+              color="gray.500"
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <Button
+              onClick={goToNextPage}
+              isDisabled={currentPage === totalPages}
+              size="md"
+              variant="ghost"
+              minWidth="auto"
+              color="gray.500"
+            >
+              <ChevronRightIcon />
+            </Button>
+          </Flex>
+        )}
       </Box>
     </>
   );

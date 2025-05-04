@@ -1,10 +1,8 @@
 import { React } from "react";
 
-import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
-  Flex,
   Menu,
   MenuButton,
   MenuItem,

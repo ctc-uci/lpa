@@ -380,7 +380,7 @@ export const EditBooking = () => {
               onClick={saveEvent}
               isDisabled={!isFormValid()}
               backgroundColor={isFormValid() ? "#4441C8.600" : "gray.300"}
-              _hover={{ backgroundColor: isFormValid() ? "#4441C8.700" : "gray.300" }}
+              _hover={{ backgroundColor: isFormValid() ? "#312E8A.700" : "gray.300" }}
             >
               Save
             </Button>

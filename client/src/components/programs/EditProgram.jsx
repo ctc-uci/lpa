@@ -162,7 +162,6 @@ export const EditProgram = () => {
             setSelectedLocationId(bookingResponse.data[0].roomId);
             setRoomDescription(bookingResponse.data[0].description);
             setLocationRate(bookingResponse.data[0].rate);
-            // console.log("start time: " , bookingResponse.data[0].startTime.split(":").slice(0, 2).join(':'));
             setStartTime(bookingResponse.data[0].startTime.split(':').slice(0, 2).join(':'));
             setEndTime(bookingResponse.data[0].endTime.split(':').slice(0, 2).join(':'));
             setStartDate(bookingResponse.data[0].date.split("T")[0]);
@@ -666,8 +665,8 @@ export const EditProgram = () => {
                         id="saveProgram"
                         onClick={saveEvent}
                         isDisabled={!isFormValid()}
-                        backgroundColor={isFormValid() ? "#4441C8.600" : "gray.300"}
-                        _hover={{ backgroundColor: isFormValid() ? "#4441C8.700" : "gray.300" }}
+                        backgroundColor={isFormValid() ? "#4441C8" : "gray.300"}
+                        _hover={{ backgroundColor: isFormValid() ? "#312E8A" : "gray.300" }}
                     >
                         Save
                     </Button>

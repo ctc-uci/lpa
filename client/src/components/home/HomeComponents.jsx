@@ -1,39 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DeleteIcon,
-} from "@chakra-ui/icons";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Box,
   Button,
-  Checkbox,
-  filter,
   Flex,
   HStack,
   Icon,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   Table,
   TableContainer,
   Tbody,
   Td,
   Text,
-  Textarea,
   Th,
   Thead,
   Tr,
@@ -41,15 +19,12 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import activeSvg from "../../assets/icons/active.svg";
 import clockSvg from "../../assets/icons/clock.svg";
-import locationSvg from "../../assets/icons/location.svg";
 import noneSvg from "../../assets/icons/none.svg";
 import pastSvg from "../../assets/icons/past.svg";
 import personSvg from "../../assets/icons/person.svg";
@@ -67,7 +42,6 @@ import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
 import { SearchBar } from "../searchBar/SearchBar";
-import { ProgramFiltersModal } from "./ProgramFiltersModal";
 import StatusTooltip from "./StatusIcon";
 
 import "./Home.css";
@@ -599,7 +573,6 @@ export const ProgramsTable = () => {
       />
       <Box className="programs-table">
         <Flex className="programs-table__filter-row">
-
           <div className="archive">
             <Icon
               as={ProgramArchiveIcon}
@@ -615,7 +588,10 @@ export const ProgramsTable = () => {
               Archives
             </span>
           </div>
-          <ProgramFilter programs={programs} setFilteredPrograms={setFilteredPrograms}/>
+          <ProgramFilter
+            programs={programs}
+            setFilteredPrograms={setFilteredPrograms}
+          />
           {/* <ProgramFiltersModal onApplyFilters={handleApplyFilters} /> */}
           <Box flex="1" />
           <SearchBar
@@ -638,7 +614,7 @@ export const ProgramsTable = () => {
               sortOrder={sortOrder}
             />
             <Tbody>
-              {sortedPrograms.length === 0 ? (
+              {currentPagePrograms.length === 0 ? (
                 <Tr>
                   <Td
                     colSpan={8}
@@ -648,7 +624,7 @@ export const ProgramsTable = () => {
                   </Td>
                 </Tr>
               ) : (
-                sortedPrograms.map((program) => (
+                currentPagePrograms.map((program) => (
                   <TableRow
                     key={program.id}
                     program={program}
@@ -666,6 +642,45 @@ export const ProgramsTable = () => {
           </Table>
         </TableContainer>
       </Box>
+      {/* Add pagination controls here */}
+      {totalPages > 1 && (
+        <Flex
+          alignItems="center"
+          justifyContent="flex-end"
+          w="100%"
+          pr={4}
+        >
+          <Text
+            mr={2}
+            fontSize="sm"
+            color="#474849"
+            fontFamily="Inter, sans-serif"
+          >
+            {currentPage} of {totalPages}
+          </Text>
+          <Button
+            onClick={goToPreviousPage}
+            isDisabled={currentPage === 1}
+            size="md"
+            variant="ghost"
+            minWidth="auto"
+            color="gray.500"
+            mr="16px"
+          >
+            <ChevronLeftIcon />
+          </Button>
+          <Button
+            onClick={goToNextPage}
+            isDisabled={currentPage === totalPages}
+            size="md"
+            variant="ghost"
+            minWidth="auto"
+            color="gray.500"
+          >
+            <ChevronRightIcon />
+          </Button>
+        </Flex>
+      )}
     </>
   );
 };
