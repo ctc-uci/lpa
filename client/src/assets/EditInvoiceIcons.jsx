@@ -68,7 +68,7 @@ export const EditDocumentIcon = ({ width = "16", height = "20" }) => {
   );
 };
 
-export const DollarSignIcon = ({ width = "12", height = "20" }) => {
+export const DollarSignIcon = ({ width = "10", height = "10" }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -85,7 +85,11 @@ export const DollarSignIcon = ({ width = "12", height = "20" }) => {
   );
 };
 
-export const PencilIcon = ({ color = "white", width = "16", height = "16" }) => {
+export const PencilIcon = ({
+  color = "white",
+  width = "16",
+  height = "16",
+}) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -134,6 +138,23 @@ export const CancelIcon = ({ width = "16", height = "16" }) => {
     >
       <path
         d="M8.00048 7.05781L11.3005 3.75781L12.2431 4.70048L8.94315 8.00048L12.2431 11.3005L11.3005 12.2431L8.00048 8.94315L4.70048 12.2431L3.75781 11.3005L7.05781 8.00048L3.75781 4.70048L4.70048 3.75781L8.00048 7.05781Z"
+        fill="#2D3748"
+      />
+    </svg>
+  );
+};
+
+export const BookWithBookmarkIcon = ({ width = "16", height = "16" }) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 16 21"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M2 20.5C1.45 20.5 0.979333 20.3043 0.588 19.913C0.196666 19.5217 0.000666667 19.0507 0 18.5V2.5C0 1.95 0.196 1.47933 0.588 1.088C0.98 0.696667 1.45067 0.500667 2 0.5H14C14.55 0.5 15.021 0.696 15.413 1.088C15.805 1.48 16.0007 1.95067 16 2.5V18.5C16 19.05 15.8043 19.521 15.413 19.913C15.0217 20.305 14.5507 20.5007 14 20.5H2ZM7 2.5V8.625C7 8.825 7.07933 8.971 7.238 9.063C7.39667 9.155 7.56733 9.15067 7.75 9.05L8.975 8.325C9.14167 8.225 9.31267 8.175 9.488 8.175C9.66333 8.175 9.834 8.225 10 8.325L11.225 9.05C11.4083 9.15 11.5833 9.15433 11.75 9.063C11.9167 8.97167 12 8.82567 12 8.625V2.5H7Z"
         fill="#2D3748"
       />
     </svg>

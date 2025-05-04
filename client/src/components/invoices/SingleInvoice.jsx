@@ -387,7 +387,7 @@ export const SingleInvoice = () => {
                 overflow="hidden" // Important: prevents scrollbars from fighting transform
               >
                 <TransformWrapper
-                  limitToBounds={false} // KEY: allows panning beyond edges
+                  limitToBounds={false}
                   centerOnInit={true}
                   limitToWrapper={true}
                   panning={{ velocityDisabled: true }}

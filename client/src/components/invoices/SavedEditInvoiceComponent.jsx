@@ -19,9 +19,15 @@ import {
 
 import { format } from "date-fns";
 
-import { CalendarIcon, ClockIcon, DollarSignIcon, EditDocumentIcon } from "../../assets/EditInvoiceIcons";
-import { LocationIcon } from "../../assets/EditInvoiceIcons";
 import { ClockFilled } from "../../assets/ClockFilled";
+import {
+  BookWithBookmarkIcon,
+  CalendarIcon,
+  ClockIcon,
+  DollarSignIcon,
+  EditDocumentIcon,
+  LocationIcon,
+} from "../../assets/EditInvoiceIcons";
 
 const SavedStatementComments = ({
   comments = [],
@@ -112,12 +118,16 @@ const SavedStatementComments = ({
       fontFamily="Inter"
       color="#2D3748"
     >
-      <Heading
-        size={compactView ? "11.7px" : "md"}
-        mb="2"
-      >
-        Sessions
-      </Heading>
+      <HStack align="baseline">
+        <BookWithBookmarkIcon />
+        <Heading
+          size={compactView ? "1.2em" : "md"}
+          mb="2"
+          
+        >
+          Sessions
+        </Heading>
+      </HStack>
       <Flex
         border="1px solid #D2D2D2"
         borderRadius="9.57px"
@@ -126,26 +136,28 @@ const SavedStatementComments = ({
         width="100%"
       >
         <Box
-          width="100%"
+          // width="100%"
           // overflowX="auto"
+          // p="4"
+          position="relative"
+          overflowY="auto"
         >
           <Table
             color="#EDF2F7"
-            width="100%"
             textAlign="center"
-            tableLayout="auto"
+            variant="simple"
+            size="sm"
           >
             {/* header row */}
             <Thead>
-              <Tr>
+              {/* <Tr>
                 <Th
                   textTransform="none"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
                   color="#718096"
-                  w="auto"
                 >
-                  <HStack gap="1">
+                  <HStack>
                     <CalendarIcon width={compactView && "8"}/>
                     <Text fontSize={compactView ? "6" : "sm"}>DATE</Text>
                   </HStack>
@@ -156,10 +168,10 @@ const SavedStatementComments = ({
                   fontSize={compactView ? "6" : "sm"}
                   color="#718096"
                 >
-                  <HStack gap="0.5">
-                    <LocationIcon width={compactView && "8"} height={compactView && "10"}/>
-                    <Text>CLASSROOM</Text>
-                  </HStack>
+                  <Flex align="center">
+                    <LocationIcon width={compactView ? "8" : "12"} height={compactView && "10"}/>
+                    <Text ml={compactView ? "1" : "4"}>CLASSROOM</Text>
+                  </Flex>
                 </Th>
                 <Th
                   textTransform="none"
@@ -167,8 +179,8 @@ const SavedStatementComments = ({
                   fontSize={compactView ? "6" : "sm"}
                   color="#718096"
                 >
-                  <HStack gap="1">
-                    <ClockIcon width={compactView && "8"} height={compactView && "10"}/>
+                  <HStack>
+                    <ClockIcon width={compactView ? "8" : "14"} height={compactView && "10"}/>
                     <Text whiteSpace="nowrap">RENTAL HOURS</Text>
                   </HStack>
                 </Th>
@@ -179,7 +191,7 @@ const SavedStatementComments = ({
                   color="#718096"
                 >
                   <HStack>
-                    <EditDocumentIcon width={compactView && "8"} height={compactView && "10"}/>
+                    <EditDocumentIcon width={compactView ? "8" : "10"} height={compactView && "10"}/>
                     <Text whiteSpace="nowrap" fontSize={compactView ? "6" : "sm"}>
 
                       ROOM FEE ADJUSTMENT
@@ -205,6 +217,95 @@ const SavedStatementComments = ({
                   color="#718096"
                 >
                   TOTAL
+                </Th>
+              </Tr> */}
+              <Tr color="#4A5568">
+                <Th
+                  fontSize={compactView ? "6" : "12px"}
+                  maxWidth="80px"
+                  py={compactView ? "4" : "8"}
+                >
+                  <Flex align="center">
+                    <CalendarIcon width={compactView && "8"} />
+                    <Text
+                      marginLeft="4px"
+                      fontSize={compactView ? "6" : "sm"}
+                      color="#718096"
+                    >
+                      Date
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th fontSize={compactView ? "6" : "12px"}>
+                  <Flex align="center">
+                    <LocationIcon
+                      width={compactView ? "8" : "12"}
+                      height={compactView && "10"}
+                    />
+                    <Text
+                      marginLeft="4px"
+                      color="#718096"
+                    >
+                      Classroom
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th fontSize={compactView ? "6" : "12px"}>
+                  <Flex align="center">
+                    <ClockIcon
+                      width={compactView ? "8" : "24"}
+                      height={compactView ? "10" : "16"}
+                    />
+                    <Text
+                      marginLeft="4px"
+                      color="#718096"
+                      whiteSpace="nowrap"
+                    >
+                      Rental Hours
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  fontSize={compactView ? "6" : "12px"}
+                  whiteSpace="nowrap"
+                >
+                  <Flex align="center">
+                    <EditDocumentIcon
+                      width={compactView ? "8" : "16"}
+                      height={compactView && "10"}
+                    />
+                    <Text
+                      marginLeft="4px"
+                      color="#718096"
+                    >
+                      Room Fee Adjustment
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  fontSize={compactView ? "6" : "12px"}
+                  whiteSpace="nowrap"
+                  maxWidth="120px"
+                >
+                  <Flex align="center">
+                    <DollarSignIcon
+                      width={compactView ? "12" : "20"}
+                      height={compactView ? "12" : "20"}
+                    />
+                    <Text
+                      marginLeft="4px"
+                      color="#718096"
+                    >
+                      Room Fee
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  textAlign="end"
+                  fontSize={compactView ? "6" : "12px"}
+                  color="#718096"
+                >
+                  Total
                 </Th>
               </Tr>
             </Thead>
@@ -267,12 +368,16 @@ const SavedStatementComments = ({
                               w="auto"
                             >
                               <Text
-                                // textOverflow="ellipsis"
-                                // whiteSpace="nowrap"
-                                // overflow="hidden"
+                              // textOverflow="ellipsis"
+                              // whiteSpace="nowrap"
+                              // overflow="hidden"
                               >
-                                {sessions.adjustmentValues.slice(0, 3).join(", ")}
-                                {sessions.adjustmentValues.length > 3 ? ", ..." : ""}
+                                {sessions.adjustmentValues
+                                  .slice(0, 3)
+                                  .join(", ")}
+                                {sessions.adjustmentValues.length > 3
+                                  ? ", ..."
+                                  : ""}
                               </Text>
                             </Tooltip>
                           </Box>
@@ -446,12 +551,15 @@ const SavedInvoiceSummary = ({
       color="#2D3748"
       mt={8}
     >
-      <Heading
-        mb="2"
-        size={compactView ? "11.7px" : "md"}
-      >
-        Summary
-      </Heading>
+      <HStack align="baseline">
+        <BookWithBookmarkIcon />
+        <Heading
+          mb="2"
+          size={compactView ? "11.7px" : "md"}
+          >
+          Summary
+        </Heading>
+      </HStack>
       <Flex
         border="1px solid #D2D2D2"
         borderRadius="9.57px"
@@ -476,31 +584,42 @@ const SavedInvoiceSummary = ({
                 <Th
                   colSpan={4}
                   textTransform="none"
-                  borderBottom="none"
                   fontSize={compactView && "6px"}
+                  py={compactView ? "4" : "8"}
                 >
-                  <HStack color="#718096">
-                    <DollarSignIcon />
-                    <Text fontSize={compactView ? "6" : "sm"}>
-                      DESCRIPTION
-                      </Text>
-                  </HStack>
+                  <Flex
+                    color="#718096"
+                    align="center"
+                  >
+                    <DollarSignIcon
+                      width={compactView ? "12" : "20"}
+                      height={compactView ? "12" : "20"}
+                    />
+                    <Text fontSize={compactView ? "6" : "sm"}>DESCRIPTION</Text>
+                  </Flex>
                 </Th>
                 <Th
                   textTransform="none"
-                  borderBottom="none"
                   fontSize={compactView && "6px"}
                 >
-                  <HStack color="#718096">
-                    <EditDocumentIcon />
-                    <Text fontSize={compactView ? "6" : "sm"}> 
+                  <Flex
+                    color="#718096"
+                    align="center"
+                  >
+                    <EditDocumentIcon
+                      width={compactView ? "8" : "16"}
+                      height={compactView && "10"}
+                    />
+                    <Text
+                      fontSize={compactView ? "6" : "sm"}
+                      ml="4px"
+                    >
                       ROOM FEE ADJUSTMENT
                     </Text>
-                  </HStack>
+                  </Flex>
                 </Th>
                 <Th
                   textTransform="none"
-                  borderBottom="none"
                   textAlign="end"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6px"}
@@ -518,6 +637,7 @@ const SavedInvoiceSummary = ({
                   borderBottom="none"
                   colSpan={4}
                   fontSize={compactView && "6.38px"}
+                  py={compactView ? "2" : "8"}
                 >
                   Room Fee
                 </Td>
@@ -527,18 +647,16 @@ const SavedInvoiceSummary = ({
               {summary.map((row) => (
                 <Tr>
                   <Td
-                    borderBottom="none"
                     colSpan={4}
                     pl="16"
                     fontSize={compactView && "6.38px"}
-                    py={compactView ? 0 : 4}
+                    py={compactView ? 2 : 4}
                   >
                     {room[0]?.name}
                   </Td>
                   <Td
-                    borderBottom="none"
                     fontSize={compactView && "6.38px"}
-                    py={compactView ? 0 : 4}
+                    py={compactView ? 2 : 4}
                   >
                     {row.adjustmentValues.length === 0 ? (
                       "None"
@@ -564,7 +682,6 @@ const SavedInvoiceSummary = ({
                     )}
                   </Td>
                   <Td
-                    borderBottom="none"
                     textAlign="end"
                     py={compactView ? 0 : 4}
                     fontSize={compactView && "6.38px"}
@@ -576,15 +693,14 @@ const SavedInvoiceSummary = ({
               {/* past due balance row */}
               <Tr>
                 <Td
-                  borderBottom="none"
                   colSpan={4}
                   fontSize={compactView && "6.38px"}
+                  py={compactView ? "2" : "8"}
                 >
                   Past Due Balance
                 </Td>
-                <Td borderBottom="none"></Td>
+                <Td></Td>
                 <Td
-                  borderBottom="none"
                   textAlign="end"
                   py={compactView ? 0 : 4}
                   fontSize={compactView && "6.38px"}
@@ -623,7 +739,7 @@ const SavedInvoiceSummary = ({
                   textAlign="right"
                   colSpan={5}
                   fontWeight="700"
-                  fontSize={compactView && "6.38px"}
+                  fontSize={compactView ? "6.38px" : "sm"}
                   color="#718096"
                 >
                   TOTAL AMOUNT DUE
@@ -632,7 +748,7 @@ const SavedInvoiceSummary = ({
                   fontWeight="700"
                   borderBottom="none"
                   textAlign="end"
-                  fontSize={compactView && "6.38px"}
+                  fontSize={compactView ? "6.38px" : "2xl"}
                   py={compactView ? 0 : 8}
                 >
                   {`$ ${(pastDue + subtotalSum).toFixed(2)}`}
