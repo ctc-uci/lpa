@@ -47,7 +47,7 @@ const SavedStatementComments = ({
   const [subtotalSum, setSubtotalSum] = useState(subtotal);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-  const handleSubtotalSum = (startTime, endTime, rate) => {
+  const handleSubtotalSum = (startTime, endTime, rate, adjustmentValues) => {
     if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
 
     const timeToMinutes = (timeStr) => {
@@ -61,9 +61,26 @@ const SavedStatementComments = ({
 
     const totalHours = Math.ceil(diff / 60);
 
-    const total = (totalHours * rate).toFixed(2);
+    const hourlyRate = totalHours * rate;
 
-    return total;
+    const adjustedTotal = adjustmentValues?.reduce((acc, val) => {
+      const sign = val[0];
+      const isPercent = val.includes('%');
+      const cleanStr = val.slice(1).replace('$', '').replace('%', '');
+      const num = parseFloat(cleanStr);
+  
+      if (isNaN(num)) return acc;
+  
+      if (isPercent) {
+        const factor = 1 + (sign === '+' ? num : -num) / 100;
+        return acc * factor;
+      } else {
+        return sign === '+' ? acc + num : acc - num;
+      }
+    }, hourlyRate) ?? hourlyRate;
+
+    return adjustedTotal.toFixed(2);
+
   };
 
   const formatTimeString = (timeStr) => {
@@ -97,14 +114,16 @@ const SavedStatementComments = ({
         room[0]?.rate
       );
 
-      // Add subtotal for each comment (this logic is now inside useEffect)
-      if (sessions && sessions.length > 0) {
-        sessions.forEach(() => {
-          setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
-        });
-      }
+      console.log("total", total)
 
-      setSubtotal(subtotalSum);
+      // Add subtotal for each comment (this logic is now inside useEffect)
+      // if (sessions && sessions.length > 0) {
+      //   sessions.forEach(() => {
+      //     setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
+      //   });
+      // }
+
+      // setSubtotal(subtotalSum);
       // Set flag to prevent future reruns of this effect
       setIsDataLoaded(true);
     }
@@ -150,75 +169,7 @@ const SavedStatementComments = ({
           >
             {/* header row */}
             <Thead>
-              {/* <Tr>
-                <Th
-                  textTransform="none"
-                  py={compactView ? 0 : 4}
-                  fontSize={compactView && "6px"}
-                  color="#718096"
-                >
-                  <HStack>
-                    <CalendarIcon width={compactView && "8"}/>
-                    <Text fontSize={compactView ? "6" : "sm"}>DATE</Text>
-                  </HStack>
-                </Th>
-                <Th
-                  textTransform="none"
-                  py={compactView ? 0 : 4}
-                  fontSize={compactView ? "6" : "sm"}
-                  color="#718096"
-                >
-                  <Flex align="center">
-                    <LocationIcon width={compactView ? "8" : "12"} height={compactView && "10"}/>
-                    <Text ml={compactView ? "1" : "4"}>CLASSROOM</Text>
-                  </Flex>
-                </Th>
-                <Th
-                  textTransform="none"
-                  py={compactView ? 0 : 4}
-                  fontSize={compactView ? "6" : "sm"}
-                  color="#718096"
-                >
-                  <HStack>
-                    <ClockIcon width={compactView ? "8" : "14"} height={compactView && "10"}/>
-                    <Text whiteSpace="nowrap">RENTAL HOURS</Text>
-                  </HStack>
-                </Th>
-                <Th
-                  textTransform="none"
-                  py={compactView ? 0 : 4}
-                  fontSize={compactView ? "6" : "sm"}
-                  color="#718096"
-                >
-                  <HStack>
-                    <EditDocumentIcon width={compactView ? "8" : "10"} height={compactView && "10"}/>
-                    <Text whiteSpace="nowrap" fontSize={compactView ? "6" : "sm"}>
 
-                      ROOM FEE ADJUSTMENT
-                    </Text>
-                  </HStack>
-                </Th>
-                <Th
-                  textTransform="none"
-                  py={compactView ? 0 : 4}
-                  fontSize={compactView ? "6" : "sm"}
-                  color="#718096"
-                >
-                  
-                  <HStack gap="1">
-                    <DollarSignIcon width={compactView && "8"} height={compactView && "10"} />
-                    <Text whiteSpace="nowrap" fontSize={compactView ? "6" : "sm"}>ROOM FEE</Text>
-                  </HStack>
-                </Th>
-                <Th
-                  textTransform="none"
-                  py={compactView ? 0 : 4}
-                  fontSize={compactView ? "6" : "sm"}
-                  color="#718096"
-                >
-                  TOTAL
-                </Th>
-              </Tr> */}
               <Tr color="#4A5568">
                 <Th
                   fontSize={compactView ? "6" : "12px"}
@@ -421,7 +372,8 @@ const SavedStatementComments = ({
                               ? handleSubtotalSum(
                                   booking.startTime,
                                   booking.endTime,
-                                  room[0]?.rate
+                                  room[0]?.rate,
+                                  sessions.adjustmentValues
                                 )
                               : "N/A"}
                           </Text>
@@ -523,21 +475,11 @@ const SavedInvoiceSummary = ({
       room[0]?.rate &&
       !isDataLoaded
     ) {
-      const total = handleSubtotalSum(
-        bookingState.startTime,
-        bookingState.endTime,
-        room[0]?.rate
-      );
 
-      // Add subtotal for each comment (this logic is now inside useEffect)
-      if (commentsState && commentsState.length > 0) {
-        commentsState.forEach(() => {
-          setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
-        });
-      }
-
+      
+      console.log("subtotlaSum", subtotalSum)
       setSubtotal(subtotalSum);
-      // Set flag to prevent future reruns of this effect
+
       setIsDataLoaded(true);
     }
   }, [bookingState, room, commentsState, isDataLoaded]);
@@ -644,8 +586,8 @@ const SavedInvoiceSummary = ({
               </Tr>
               {/* Room Fee Body Row */}
 
-              {summary.map((row) => (
-                <Tr>
+              {summary.map((row, key) => (
+                <Tr key={key}>
                   <Td
                     colSpan={4}
                     pl="16"
