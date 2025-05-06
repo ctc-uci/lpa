@@ -211,7 +211,8 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
         </HStack>
       </Th>
       <Th>
-        <StatusTooltip />
+        {/* <StatusTooltip /> */}
+        <Text className="table-header-text">STATUS</Text>
       </Th>
       <Th>
         <Flex
@@ -223,14 +224,7 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
             <Icon as={archiveCalendar} />
           </Box>
           <Box>
-            <Text
-              textTransform="none"
-              color="#767778"
-              fontSize="16px"
-              fontStyle="normal"
-            >
-              DATE
-            </Text>
+            <Text className="table-header-text">DATE</Text>
           </Box>
           <Box flexShrink={0}>
             <DateSortingModal onSortChange={handleSortChange} />
