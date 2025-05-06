@@ -168,14 +168,10 @@ export const SingleInvoice = () => {
         const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
         setEvent(eventResponse.data);
 
-        const sessionResponse = await backend.get(
-          `comments/invoice/sessions/${id}`
-        );
-        setSessions(sessionResponse.data);
+        const sessionResponse = await backend.get(`comments/invoice/sessions/${id}`)
+        setSessions(sessionResponse.data)
 
-        const summaryResponse = await backend.get(
-          `comments/invoice/sessions/${id}?includeNoBooking=true`
-        );
+        const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
         setSummary(summaryResponse.data);
       } catch (error) {
         // Invoice/field does not exist
@@ -394,8 +390,11 @@ export const SingleInvoice = () => {
                 >
                   <TransformComponent >
                     <Box transform="scale(0.95)" transformOrigin="center">
-                      <InvoiceView
+                    <InvoiceView
                         comments={comments}
+                        sessions={sessions}
+                        setSessions={setSessions}
+                        summary={summary}
                         booking={booking}
                         room={room}
                         subtotal={subtotal}
@@ -406,9 +405,6 @@ export const SingleInvoice = () => {
                         instructors={instructors}
                         invoice={invoice?.data}
                         compactView={true}
-                        sessions={sessions}
-                        setSessions={setSessions}
-                        summary={summary}
                       />
                     </Box>
                   </TransformComponent>

@@ -471,6 +471,7 @@ const SavedInvoiceSummary = ({
     return total;
   };
 
+  // TODOD FIX PREVIEW LOADING ISSUE, SHOWING $28.10/hr INSTEAD OF $30.00/hr
   useEffect(() => {
     if (!summary?.[0]?.adjustmentValues || sessions.length === 0) return;
 
