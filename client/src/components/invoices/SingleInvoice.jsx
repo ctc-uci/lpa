@@ -407,6 +407,7 @@ export const SingleInvoice = () => {
                         invoice={invoice?.data}
                         compactView={true}
                         sessions={sessions}
+                        setSessions={setSessions}
                         summary={summary}
                       />
                     </Box>

@@ -361,12 +361,13 @@ const SavedStatementComments = ({
                         >
                           <Td
                             colSpan={6}
-                            fontSize="sm"
                             pl={compactView ? 2 : 4}
                             color="gray.600"
-                            py="6"
+                            py={compactView ? 2 : 6}
+                            fontSize={compactView ? "6.38" : "sm"}
                             borderBottom={isLast ? "1px solid" : "none"}
                             borderColor="gray.200"
+                            
                           >
                             {line}
                           </Td>
