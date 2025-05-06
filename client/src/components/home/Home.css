@@ -1,0 +1,273 @@
+:root {
+  --light-grey: #f6f6f6;
+  --medium-grey: #767778;
+  --medium-light-grey: #d2d2d2;
+  --white: #fff;
+  --indigo: #4e4ae7;
+  --deep-red: #90080f;
+  --font-inter: "Inter", sans-serif;
+}
+
+/* ========================= */
+/* Global / Page Layout CSS  */
+/* ========================= */
+
+.home {
+  display: flex;
+  width: 100%;
+  padding: 32px 32px 0px 32px;
+  align-items: flex-start;
+  gap: 32px;
+  align-self: stretch;
+}
+
+.home-inner {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  padding: 26px 26px 16px 26px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
+  flex-shrink: 0;
+}
+
+.header-row {
+  display: flex;
+  width: 100%;
+  justify-content: right;
+  align-items: center;
+  gap: 24px;
+  align-self: stretch;
+}
+
+.google-calendar {
+  display: flex;
+  padding: 12px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  background: #edf2f7;
+  cursor: pointer;
+}
+
+.google-calendar-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.google-calendar-text {
+  color: #2d3748;
+  font-family: var(--font-inter);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.archive {
+  margin-right: 24px;
+  display: flex;
+  height: 40px;
+  padding: 0px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  cursor: pointer;
+  background-color: #edf2f7;
+  border-radius: 6px !important;
+}
+
+.archive-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.archive-text {
+  color: #2d3748;
+  font-family: var(--font-inter);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.new-program {
+  display: flex;
+  padding: 12px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  background: #4441c8;
+  cursor: pointer;
+}
+
+.new-program-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.new-program-text {
+  color: var(--white);
+  font-family: var(--font-inter);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ========================= */
+/* Programs Table CSS        */
+/* ========================= */
+
+/* In general, opt to use Chakra for styling built-in component styles such as width, margin, border, border radius, padding, etc. */
+.programs-table {
+  width: 100%;
+  margin: 0px auto 0 auto;
+  border: 1px solid var(--Secondary-3, #e2e8f0);
+  border-radius: 15px;
+  padding: 0px 26px 16px 26px;
+}
+
+.programs-table__filter-row {
+  height: 1rem;
+  width: 95%;
+  margin: 40px auto 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.programs-table__container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.programs-table__table {
+  border-spacing: 0 10px !important;
+  border-collapse: separate !important;
+  margin-top: 20px;
+}
+
+.programs-table__row--odd {
+  background-color: var(--light-grey);
+}
+
+.programs-table__row--even {
+  background-color: var(--white);
+}
+
+.programs-table__row--no-booking {
+  background-color: #e0e0e0 !important;
+}
+
+/* ========================= */
+/* Filter Box & Search CSS   */
+/* ========================= */
+
+.filter-box {
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  background: var(--white) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px;
+  cursor: pointer;
+  background-color: #edf2f7 !important;
+}
+
+.filter-box-text {
+  color: #2d3748;
+  font-family: var(--font-inter);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 54.795px;
+  border: 1px solid var(--Secondary-3, #e2e8f0);
+  border-radius: 6px;
+}
+
+.searchbar-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex: 1 0 0;
+  align-self: stretch;
+  padding: 0px 16px;
+  border-radius: 5px 0px 0px 5px;
+  background: var(--Secondary-1, #f7fafc);
+}
+
+.searchbar-container input {
+  border: none;
+  outline: none;
+  width: 400px;
+  font-family: var(--font-inter);
+  font-size: 16px;
+  background: transparent;
+}
+
+.searchbar-icon-container {
+  display: flex;
+  align-self: stretch;
+  width: 48px;
+  padding: 0px 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 0px 5px 5px 0px;
+  background: #edf2f7;
+}
+
+/* ========================= */
+/* Table Header Text         */
+/* ========================= */
+
+.table-header-text {
+  color: #718096;
+  font-family: var(--font-inter);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+  text-transform: none;
+}
+
+.programs-ellipsis-box {
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis !important;
+  white-space: nowrap;
+  display: block;
+}
+
+/* ========================= */
+/* Additional CSS for Filters and Tooltip  */
+/* ========================= */
+
+.program-filters-menu-list {
+  padding: 12px;
+  max-height: 500px;
+  max-width: 400px;
+  min-width: 100px;
+  overflow-y: auto;
+}
+
+.status-tooltip-text {
+  font-size: 16px;
+  font-family: var(--font-inter);
+  font-weight: 400;
+  color: var(--medium-grey, #767778);
+  line-height: 20px;
+  text-transform: none;
+}

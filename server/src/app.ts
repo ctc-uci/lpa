@@ -36,7 +36,11 @@ if (process.env.NODE_ENV === "production") {
   app.use(verifyToken);
 }
 
+<<<<<<< Updated upstream:server/src/app.ts
 app.use("/", sampleRouter); // TODO: delete sample endpoint
+=======
+// Good backend
+>>>>>>> Stashed changes:server/src/app.js
 app.use("/users", usersRouter);
 
 app.listen(SERVER_PORT, () => {
