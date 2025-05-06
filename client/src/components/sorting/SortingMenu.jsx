@@ -29,11 +29,11 @@ const SortingMenu = ({ options, onSortChange }) => {
       >
         <img src={arrowsSvg} alt="Arrows" className="menu-button-icon" />
       </MenuButton>
-      <MenuList className="sorting-popup">
+      <MenuList className="program-sorting-popup">
         {options.map(({ label, value, order }) => (
           <MenuItem key={label} onClick={() => onSortChange(value, order)}>
-            <Flex align="center" gap={2} className="sort-menu-item">
-              <Box className="icon-style">{label}</Box>
+            <Flex align="center" className="sort-menu-item">
+              <Box className="icon-style" >{label}</Box>
             </Flex>
           </MenuItem>
         ))}
