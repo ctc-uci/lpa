@@ -71,8 +71,7 @@ const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments
           
           {/* Edit Icon looks different from Figma HiFi, so lmk if yall want me to make another edit icon or just reuse the icon we already have */}
             <Button leftIcon={<PencilIcon color="black"/>}>
-            {/* // !!! HARD CODED */}
-              <ChakraLink as={Link} to="/invoices/edit/22"> 
+              <ChakraLink as={Link} to={`/invoices/edit/${id}`}> 
                 Edit
               </ChakraLink>
               </Button>
@@ -136,7 +135,6 @@ export const SavedEdit = () => {
         setInstructors(instructorResponse.data);
 
         const commentsResponse = await backend.get("/comments/invoice/" + id); 
-        console.log("commentsResponse", commentsResponse)
         setComments(commentsResponse.data);
 
         const programNameResponse = await backend.get(
@@ -150,7 +148,7 @@ export const SavedEdit = () => {
         // const subtotalResponse = await backend.get("/invoices/total/" + id);
         // setSubtotal(subtotalResponse.data.total);
 
-        // get the unpaid/remaining invoices
+        // ==== PAST DUE CALCULATION ====
         const unpaidInvoicesResponse = await backend.get(
           "/events/remaining/" + invoice.data[0]["eventId"]
         );
@@ -179,10 +177,12 @@ export const SavedEdit = () => {
         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
         setPastDue(remainingBalance);
 
+        // ==== END OF PAST DUE CALCULATION ====
+
         const sessionResponse = await backend.get(`comments/invoice/sessions/${id}`)
         setSessions(sessionResponse.data)
 
-        const summaryResponse = await backend.get(`comments/invoice/sessions/${id}?includeNoBooking=true`)
+        const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
         setSummary(summaryResponse.data);
 
       } catch (error) {
@@ -192,31 +192,32 @@ export const SavedEdit = () => {
     fetchData();
   }, [invoice]);
 
-  useEffect(() => {
-    const fetchBookingDetails = async () => {
-      try {
-        if (!comments || !Array.isArray(comments) || comments.length === 0) {
-          return;
-        }
+  // useEffect(() => {
+  //   const fetchBookingDetails = async () => {
+  //     try {
+  //       if (!comments || !Array.isArray(comments) || comments.length === 0) {
+  //         return;
+  //       }
 
-        const commentWithBookingId = comments[0].bookingId;
+  //       const commentWithBookingId = comments[0].bookingId;
 
-        const bookingResponse = await backend.get(
-          `/bookings/${commentWithBookingId}`
-        );
-        setBookingDetails(bookingResponse.data[0]);
+  //       const bookingResponse = await backend.get(
+  //         `/bookings/${commentWithBookingId}`
+  //       );
+  //       setBookingDetails(bookingResponse.data[0]);
 
-        const roomResponse = await backend.get(
-          `/rooms/${bookingResponse.data[0].roomId}`
-        );
-        setRoom(roomResponse.data);
-      } catch (error) {
-        console.error("Error fetching booking details:", error);
-      }
-    };
+  //       const roomResponse = await backend.get(
+  //         `/rooms/${bookingResponse.data[0].roomId}`
+  //       );
+  //       setRoom(roomResponse.data);
+  //       console.log("roomresponse.data", roomResponse.data)
+  //     } catch (error) {
+  //       console.error("Error fetching booking details:", error);
+  //     }
+  //   };
 
-    fetchBookingDetails();
-  }, [comments, backend]);
+  //   fetchBookingDetails();
+  // }, [comments, backend]);
 
   const handleBack = () => {
     navigate(`/invoices/${id}`);
@@ -238,6 +239,7 @@ export const SavedEdit = () => {
         <InvoiceView
           comments={comments}
           sessions={sessions}
+          setSessions={setSessions}
           summary={summary}
           booking={booking}
           room={room}

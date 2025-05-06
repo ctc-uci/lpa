@@ -380,10 +380,11 @@ export const SingleInvoice = () => {
                 borderWidth={25}
                 borderRadius={18}
                 w="50%"
-                // width="100%"
                 height="fit-content"
                 borderColor="#D9D9D933"
                 overflow="hidden" // Important: prevents scrollbars from fighting transform
+                justifyContent="center" 
+                alignItems="center"
               >
                 <TransformWrapper
                   limitToBounds={false}
@@ -391,10 +392,8 @@ export const SingleInvoice = () => {
                   limitToWrapper={true}
                   panning={{ velocityDisabled: true }}
                 >
-                  <TransformComponent>
-                    <Box
-                      width="fit-content"
-                    >
+                  <TransformComponent >
+                    <Box transform="scale(0.95)" transformOrigin="center">
                       <InvoiceView
                         comments={comments}
                         booking={booking}

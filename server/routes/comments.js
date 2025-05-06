@@ -53,15 +53,16 @@ const formatAdjustmentFee = (adjustmentType, val) => {
 commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { includeNoBooking } = req.query;
 
-    let query = "SELECT * FROM comments WHERE invoice_id = $1";
+    const query = `SELECT comments.*, bookings.*, rooms.*
+                FROM comments
+                LEFT JOIN bookings ON comments.booking_id = bookings.id
+                LEFT JOIN rooms ON bookings.room_id = rooms.id
+                WHERE comments.invoice_id = $1 
+                AND comments.booking_id IS NOT NULL`;;
     const queryParams = [id];
 
-    if (includeNoBooking !== 'true')
-      query += " AND booking_id IS NOT NULL";
-    else 
-      query += " AND booking_id IS NULL";
+
 
     const data = await db.query(query, queryParams);
     const comments = keysToCamel(data);
@@ -71,19 +72,28 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       const bookingId = comment.bookingId;
       const formattedValue = formatAdjustmentFee(comment.adjustmentType, comment.adjustmentValue);
 
-      if (formattedValue !== null) {
-        if (groupedComments[bookingId]) {
-          groupedComments[bookingId].adjustmentValues.push(formattedValue);
-        } else {
-          groupedComments[bookingId] = { ...comment, adjustmentValues: [formattedValue] };
-          delete groupedComments[bookingId].adjustmentValue;
-        }
+      if (!groupedComments[bookingId]) {
+        groupedComments[bookingId] = {
+          ...comment,
+          comments: comment.comment ? [comment.comment] : [],
+          adjustmentValues: formattedValue ? [formattedValue] : []
+        };
       } else {
-        if (!groupedComments[bookingId]) {
-          groupedComments[bookingId] = { ...comment, adjustmentValues: [] };
-          delete groupedComments[bookingId].adjustmentValue;
+        // Add comment if it's not empty
+        if (comment.comment) {
+          groupedComments[bookingId].comments.push(comment.comment);
+        }
+
+        // Add adjustment value if not already included
+        if (formattedValue && !groupedComments[bookingId].adjustmentValues.includes(formattedValue)) {
+          groupedComments[bookingId].adjustmentValues.push(formattedValue);
         }
       }
+
+      // Clean up unnecessary fields
+      delete groupedComments[bookingId].adjustmentType;
+      delete groupedComments[bookingId].adjustmentValue;
+      delete groupedComments[bookingId].comment;
     });
 
     res.status(200).json(Object.values(groupedComments));
@@ -91,6 +101,58 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+
+commentsRouter.get("/invoice/summary/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { includeNoBooking } = req.query;
+
+    const query = `SELECT comments.*
+                FROM comments
+                WHERE comments.invoice_id = $1 
+                AND comments.booking_id IS NULL`;
+    const queryParams = [id];
+
+
+    const data = await db.query(query, queryParams);
+    const comments = keysToCamel(data);
+    const groupedComments = {};
+
+    comments.forEach((comment) => {
+      const bookingId = comment.bookingId;
+      const formattedValue = formatAdjustmentFee(comment.adjustmentType, comment.adjustmentValue);
+
+      if (!groupedComments[bookingId]) {
+        groupedComments[bookingId] = {
+          ...comment,
+          comments: comment.comment ? [comment.comment] : [],
+          adjustmentValues: formattedValue ? [formattedValue] : []
+        };
+      } else {
+        // Add comment if it's not empty
+        if (comment.comment) {
+          groupedComments[bookingId].comments.push(comment.comment);
+        }
+
+        // Add adjustment value if not already included
+        if (formattedValue && !groupedComments[bookingId].adjustmentValues.includes(formattedValue)) {
+          groupedComments[bookingId].adjustmentValues.push(formattedValue);
+        }
+      }
+
+      // Clean up unnecessary fields
+      delete groupedComments[bookingId].adjustmentType;
+      delete groupedComments[bookingId].adjustmentValue;
+      delete groupedComments[bookingId].comment;
+    });
+
+    res.status(200).json(Object.values(groupedComments));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+
 
 commentsRouter.get("/paidInvoices/:id", async (req, res) => {
   try {

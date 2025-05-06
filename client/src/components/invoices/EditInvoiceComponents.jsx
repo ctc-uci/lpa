@@ -447,7 +447,7 @@ const StatementComments = ({
     onCommentsChange(updatedComments);
     console.log(updatedComments);
   };
-  console.log("Bookingsstate:", bookingState)
+
   return (
     <Flex
       direction="column"
@@ -717,7 +717,6 @@ const StatementComments = ({
                             opacity={activeRowId === null || activeRowId === booking.id ? 1 : 0.3}
                             onClick={() => setActiveRowId(booking.id)}
                             isDisabled={activeRowId !== null && activeRowId !== booking.id}
-                            _hover={{ bg:"#312E8A"}}
                           >
                             Adjust
                           </Button>
