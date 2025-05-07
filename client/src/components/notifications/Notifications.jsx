@@ -10,6 +10,7 @@ import Navbar from "../navbar/Navbar";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
+import { NotificationFilter } from "./NotificationFIlterModal";
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
@@ -187,6 +188,7 @@ export const Notifications = () => {
             justifyContent="space-between"
             mb="27px"
           >
+            {/* <NotificationFilter/> */}
             <FilterButton
               setFilterType={setFilterType}
               currentFilter={filterType}

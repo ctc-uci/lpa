@@ -1,9 +1,9 @@
 import { React, useState, useEffect } from "react";
-import { FilterContainer } from "./FilterContainer";
-import { DateFilter, DayFilter, ProgramStatusFilter, TimeFilter, RoomFilter, ClientsFilter } from "./FilterComponents";
+import { FilterContainer } from "../filters/FilterContainer";
+import { DateFilter, DayFilter, ProgramStatusFilter, TimeFilter, RoomFilter, ClientsFilter } from "../filters/FilterComponents.jsx";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
-export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
+export const NotificationFilter = ({ programs, setFilteredPrograms }) => {
     const { backend } = useBackendContext();
 
     const [rooms, setRooms] = useState([]);

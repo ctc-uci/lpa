@@ -22,6 +22,7 @@ import { TimeInputs } from "./programComponents/TimeInputs";
 import { TitleInformation } from "./programComponents/TitleInformation";
 
 
+
 export const AddProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -57,6 +58,14 @@ export const AddProgram = () => {
     onOpen: cancelOnOpen,
     onClose: cancelOnClose,
   } = useDisclosure();
+
+  const [clientsearchQuery, setclientsearchQuery] = useState("");
+
+  const handleClientSearch = (query) => {
+    setclientsearchQuery(query);
+    // come back and fill this in
+    console.log("Searching for:", query);
+  }
 
   useEffect(() => {
     initialState.current = JSON.stringify({

@@ -892,7 +892,7 @@ export const Sessions = ({
   const [sortOrder, setSortOrder] = useState("asc"); // Default to ascending order
   // At the top of your Sessions component where other state variables are defined
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
-    []
+    []  
   );
 
   const roomsMap = useMemo(() => {
