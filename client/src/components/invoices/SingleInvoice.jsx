@@ -245,7 +245,7 @@ export const SingleInvoice = () => {
           direction="column"
           height="100%"
           width="100%"
-          padding="2.5vw"
+          paddingY="2.5vw"
           gap="1.25vw"
         >
           <Modal
@@ -348,7 +348,7 @@ export const SingleInvoice = () => {
               direction="row"
               width="100%"
               justify="space-between"
-              gap="16"
+              gap="16px"
             >
               <Flex
                 direction="column"
@@ -376,7 +376,7 @@ export const SingleInvoice = () => {
                 borderWidth={25}
                 borderRadius={18}
                 w="50%"
-                height="fit-content"
+                h="80%"
                 borderColor="#D9D9D933"
                 overflow="hidden" // Important: prevents scrollbars from fighting transform
                 justifyContent="center" 
@@ -389,7 +389,7 @@ export const SingleInvoice = () => {
                   panning={{ velocityDisabled: true }}
                 >
                   <TransformComponent >
-                    <Box transform="scale(0.95)" transformOrigin="center">
+                    <Box transform="scale(0.85)" transformOrigin="center">
                     <InvoiceView
                         comments={comments}
                         sessions={sessions}

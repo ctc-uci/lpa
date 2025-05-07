@@ -1,20 +1,28 @@
+import { useRef } from "react";
+
 import {
-  Slide,
   Box,
   Button,
   Flex,
   Heading,
-  IconButton,
   Icon,
-  Text,
+  IconButton,
+  Input,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
-  Input
+  Slide,
+  Text,
 } from "@chakra-ui/react";
-import { CancelIcon, PlusIcon } from "../../assets/EditInvoiceIcons";
+
 import { format } from "date-fns";
+
+import { CancelIcon, PlusIcon } from "../../assets/EditInvoiceIcons";
+import { MinusFilledIcon } from "../../assets/MinusFilledIcon";
+import { MinusOutlineIcon } from "../../assets/MinusOutlineIcon";
+import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
+import { PlusOutlineIcon } from "../../assets/PlusOutlineIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export default function RoomFeeAdjustmentSideBar({
@@ -27,18 +35,20 @@ export default function RoomFeeAdjustmentSideBar({
   addAdjustment,
   adjustments,
   setAdjustments,
-  onApplyAdjustments
+  onApplyAdjustments,
 }) {
-  console.log("This is invoice", invoice)
+  // console.log("This is invoice", invoice)
+  // console.log("adjustments", adjustments)
   const { backend } = useBackendContext();
   const calculateNewTotals = () => {
-    console.log("This is room:", room)
+    // console.log("This is room:", room)
     let newRate = Number(room ? room.rate : 0);
 
-    adjustments.forEach(adj => {
-      const amount = adj.type === "dollar"
-        ? Number(adj.value || 0)
-        : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
+    adjustments.forEach((adj) => {
+      const amount =
+        adj.type === "dollar"
+          ? Number(adj.value || 0)
+          : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
 
       newRate += adj.isNegative ? -amount : amount;
     });
@@ -62,14 +72,19 @@ export default function RoomFeeAdjustmentSideBar({
 
     return {
       newRate,
-      newTotal
+      newTotal,
     };
   };
 
   const { newRate, newTotal } = calculateNewTotals();
+  const plusIconRefs = useRef({});
 
   return (
-    <Slide direction="right" in={isOpen} style={{ zIndex: 200 }}>
+    <Slide
+      direction="right"
+      in={isOpen}
+      style={{ zIndex: 200 }}
+    >
       <Box
         w="400px"
         h="100vh"
@@ -83,7 +98,12 @@ export default function RoomFeeAdjustmentSideBar({
         flexDirection="column"
         flex="1"
       >
-        <Flex alignItems="center" gap="26px" alignSelf="stretch" whiteSpace="nowrap">
+        <Flex
+          alignItems="center"
+          gap="26px"
+          alignSelf="stretch"
+          whiteSpace="nowrap"
+        >
           <IconButton
             onClick={onClose}
             variant="ghost"
@@ -98,11 +118,24 @@ export default function RoomFeeAdjustmentSideBar({
             fontSize="14px"
             whiteSpace="nowrap"
           >
-            {booking?.date ? format(new Date(booking.date), "M/d/yy") : "N/A"} Room Fee Adjustment
+            {booking?.date ? format(new Date(booking.date), "M/d/yy") : "N/A"}{" "}
+            Room Fee Adjustment
           </Text>
-          <AdjustmentTypeSelector onSelect={(type) => {
-            addAdjustment(type, booking.id);
-          }} />
+          {/* <AdjustmentTypeSelector onSelect={(type) => {
+            if (adjustments.length === 0){
+              addAdjustment(type, booking.id, 0);
+            }
+            else{
+              console.log("adjustments", adjustments)
+              addAdjustment(type, booking.id, adjustments[adjustments.length - 1].appliedRate);
+            }
+              
+          }} /> */}
+          <AdjustmentTypeSelector
+            onSelect={(type) => {
+              addAdjustment(type, booking.id, 0); // fallbackRate now only applies if it's the first adjustment
+            }}
+          />
         </Flex>
 
         <Box
@@ -117,7 +150,10 @@ export default function RoomFeeAdjustmentSideBar({
               py={3}
               mt={3}
             >
-              <Flex justify="space-between" align="center">
+              <Flex
+                justify="space-between"
+                align="center"
+              >
                 <Text fontWeight="bold">
                   {adj.type === "dollar" ? "Dollar ($)" : "Percent (%)"}
                 </Text>
@@ -125,28 +161,47 @@ export default function RoomFeeAdjustmentSideBar({
                   aria-label="Remove adjustment"
                   icon={<Icon as={CancelIcon} />}
                   variant="ghost"
+                  _hover="none"
                   size="sm"
                   onClick={() => {
-                    const newAdjustments = adjustments.filter((_, i) => i !== index);
+                    const newAdjustments = adjustments.filter(
+                      (_, i) => i !== index
+                    );
                     setAdjustments(newAdjustments);
                   }}
                 />
               </Flex>
 
               {/* Second row: applied rate + controls */}
-              <Flex align="center" gap={2} mt={2}>
-                <Text fontSize="sm" color="gray.500">
+              <Flex
+                align="center"
+                gap={2}
+                mt={2}
+              >
+                <Text
+                  fontSize="sm"
+                  color="gray.500"
+                >
                   Applied to: ${Number(adj.appliedRate || 0).toFixed(2)}/hr
                 </Text>
 
                 <IconButton
-                  aria-label="Toggle sign"
-                  icon={adj.isNegative ? "−" : "+"}
+                  aria-label="Negative sign"
+                  icon={
+                    plusIconRefs.current[index] ? (
+                      <MinusOutlineIcon size="16" />
+                    ) : (
+                      <MinusFilledIcon />
+                    )
+                  }
                   variant="ghost"
                   size="xs"
+                  _hover="none"
+                  _active="none"
                   onClick={() => {
+                    plusIconRefs.current[index] = false;
                     const newAdjustments = adjustments.map((a, i) =>
-                      i === index ? { ...a, isNegative: !a.isNegative } : a
+                      i === index ? { ...a, isNegative: true } : a
                     );
                     setAdjustments(newAdjustments);
                   }}
@@ -159,7 +214,9 @@ export default function RoomFeeAdjustmentSideBar({
                       value={adj.value}
                       onChange={(e) => {
                         const newAdjustments = adjustments.map((a, i) =>
-                          i === index ? { ...a, value: parseFloat(e.target.value) || 0 } : a
+                          i === index
+                            ? { ...a, value: parseFloat(e.target.value) || 0 }
+                            : a
                         );
                         setAdjustments(newAdjustments);
                       }}
@@ -173,7 +230,9 @@ export default function RoomFeeAdjustmentSideBar({
                       value={adj.value}
                       onChange={(e) => {
                         const newAdjustments = adjustments.map((a, i) =>
-                          i === index ? { ...a, value: parseFloat(e.target.value) || 0 } : a
+                          i === index
+                            ? { ...a, value: parseFloat(e.target.value) || 0 }
+                            : a
                         );
                         setAdjustments(newAdjustments);
                       }}
@@ -183,14 +242,45 @@ export default function RoomFeeAdjustmentSideBar({
                     <Text>%</Text>
                   </>
                 )}
+                <IconButton
+                  aria-label="Plus sign"
+                  icon={
+                    plusIconRefs.current[index] ? (
+                      <PlusFilledIcon
+                        color="#4441C8"
+                        size="20"
+                      />
+                    ) : (
+                      <PlusOutlineIcon />
+                    )
+                  }
+                  _hover="none"
+                  _active="none"
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => {
+                    plusIconRefs.current[index] = true;
+                    const newAdjustments = adjustments.map((a, i) =>
+                      i === index ? { ...a, isNegative: false } : a
+                    );
 
-
+                    console.log("newAdjustments", newAdjustments);
+                    setAdjustments(newAdjustments);
+                  }}
+                />
               </Flex>
             </Box>
           ))}
         </Box>
-        <Box mt={4} p={2}>
-          <Flex justifyContent="right" alignItems="center" gap="10px">
+        <Box
+          mt={4}
+          p={2}
+        >
+          <Flex
+            justifyContent="right"
+            alignItems="center"
+            gap="10px"
+          >
             <Heading
               size="xs"
               color="#718096"
@@ -200,7 +290,12 @@ export default function RoomFeeAdjustmentSideBar({
             </Heading>
             <Heading size="md"> ${Number(newRate || 0).toFixed(2)}/hr</Heading>
           </Flex>
-          <Flex justifyContent="right" alignItems="center" gap="10px" marginTop="10px">
+          <Flex
+            justifyContent="right"
+            alignItems="center"
+            gap="10px"
+            marginTop="10px"
+          >
             <Heading
               size="xs"
               color="#718096"
@@ -210,7 +305,12 @@ export default function RoomFeeAdjustmentSideBar({
             </Heading>
             <Heading size="md"> ${Number(newTotal || 0).toFixed(2)}</Heading>
           </Flex>
-          <Flex mt="30px" justifyContent="flex-end" alignItems="center" gap="4px">
+          <Flex
+            mt="30px"
+            justifyContent="flex-end"
+            alignItems="center"
+            gap="4px"
+          >
             <Button
               variant="ghost"
               fontSize="14px"
@@ -232,9 +332,17 @@ export default function RoomFeeAdjustmentSideBar({
                 try {
                   // Loop over all adjustments and create a comment for each
                   for (const adjustment of adjustments) {
-                    const adjustment_type = adjustment.type === "dollar" ? "rate_flat" : "rate_percent";
-                    const adjustment_value = adjustment.isNegative ? -adjustment.value : adjustment.value;
-                    const adjustmentComment = adjustment.type === "dollar" ? `Room fee adjustment of $${adjustment_value}` : `Room fee adjustment of ${adjustment_value}%`
+                    const adjustment_type =
+                      adjustment.type === "dollar"
+                        ? "rate_flat"
+                        : "rate_percent";
+                    const adjustment_value = adjustment.isNegative
+                      ? -adjustment.value
+                      : adjustment.value;
+                    const adjustmentComment =
+                      adjustment.type === "dollar"
+                        ? `Room fee adjustment of $${adjustment_value}`
+                        : `Room fee adjustment of ${adjustment_value}%`;
 
                     await backend.post("/comments", {
                       user_id: userId,
@@ -251,7 +359,10 @@ export default function RoomFeeAdjustmentSideBar({
                   // setActiveRowId(null); // close sidebar
                   onClose();
                 } catch (err) {
-                  console.error("Failed to apply adjustments and save comments:", err);
+                  console.error(
+                    "Failed to apply adjustments and save comments:",
+                    err
+                  );
                 }
               }}
             >
@@ -274,19 +385,13 @@ export function AdjustmentTypeSelector({ onSelect }) {
         size="sm"
         marginLeft="60px"
       />
-      <MenuList minW="120px" w="120px">
-        <MenuItem
-          onClick={() => onSelect("dollar")}
-        >
-          Dollar ($)
-        </MenuItem>
-        <MenuItem
-        onClick={() => onSelect("percent")}
-        >
-          Percent (%)
-        </MenuItem>
+      <MenuList
+        minW="120px"
+        w="120px"
+      >
+        <MenuItem onClick={() => onSelect("dollar")}>Dollar ($)</MenuItem>
+        <MenuItem onClick={() => onSelect("percent")}>Percent (%)</MenuItem>
       </MenuList>
     </Menu>
   );
 }
-

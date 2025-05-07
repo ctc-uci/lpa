@@ -53,6 +53,7 @@ import logo from "../../assets/logo/logo.png";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
 import RoomFeeAdjustmentSideBar from "./RoomFeeAdjustmentSideBar";
+import SummaryRoomFeeAdjustmentSidebar from "./SummaryRoomFeeAdjustmentSidebar"
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -281,7 +282,7 @@ const StatementComments = ({
   const [expandedBookingIndex, setExpandedBookingIndex] = useState(null); // Track which row is expanded
   const [rowHoveredIndex, setRowHoveredIndex] = useState(null);
   const [newSubtotalValue, setNewSubtotalValue] = useState(0);
-  const [activeRowId, setActiveRowId] = React.useState(null);
+  const [activeRowId, setActiveRowId] = useState(null);
   const [inputValues, setInputValues] = useState(
     Array(comments.length).fill("")
   ); // Initialize local state for input values
@@ -300,26 +301,41 @@ const StatementComments = ({
     fetchUserId();
   }, []);
 
-  const addAdjustment = (type, bookingId) => {
+  const addAdjustment = (type, bookingId, fallbackRate = 0) => {
     setAdjustmentsByBooking((prev) => {
+      console.log("type", type)
       const existing = prev[bookingId] || [];
-      const booking = bookingState.find((b) => b.id === bookingId);
-      const roomForBooking = rooms.find((r) => r.id === booking.roomId);
+  
+      let lastAppliedRate = fallbackRate;
+  
+      if (existing.length > 0) {
+        const last = existing[existing.length - 1];
+        const lastValue = last.isNegative ? -last.value : last.value;
+        lastAppliedRate = last.type === "dollar"
+          ? (parseFloat(last.appliedRate) + parseFloat(lastValue)) // Dollar: add the value to the appliedRate
+          : (parseFloat(last.appliedRate) * (1 + parseFloat(lastValue) / 100)); // Percent: apply the percentage change
+
+      } else {
+        const booking = bookingState.find((b) => b.id === bookingId);
+        const roomForBooking = rooms.find((r) => r.id === booking?.roomId);
+        lastAppliedRate = roomForBooking ? roomForBooking.rate : fallbackRate;
+      }
+  
       return {
         ...prev,
         [bookingId]: [
           ...existing,
           {
             type,
-            appliedRate: roomForBooking ? roomForBooking.rate : 0,
+            appliedRate: lastAppliedRate,
             value: 0,
-            isNegative: false,
+            isNegative: true,
           },
         ],
       };
     });
   };
-
+  
   const getAdjustedRate = (bookingId) => {
     // let newRate = Number(roomForBooking?.rate || 0);
 
@@ -948,6 +964,10 @@ const InvoiceSummary = ({
   setSummary,
 }) => {
 
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const btnRef = React.useRef()
+
+
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
 
@@ -1020,8 +1040,7 @@ const InvoiceSummary = ({
     }
   }, [summary]);
 
-  
-  console.log("sessions summary", sessions);
+
   return (
     <Flex
       direction="column"
@@ -1128,10 +1147,13 @@ const InvoiceSummary = ({
                     py="2"
                     fontSize="small"
                     height="32px"
+                    ref={btnRef}
+                    onClick={onOpen}
                   >
                     Adjust
                   </Button>
                 </Td>
+                <SummaryRoomFeeAdjustmentSidebar btnRef={btnRef} isOpen={isOpen} onClose={onClose} />
               </Tr>
               {/* Room Fee Body Row */}
 

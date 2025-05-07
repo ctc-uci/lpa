@@ -7,6 +7,7 @@ import {
   HStack,
   Icon,
   Table,
+  TableContainer,
   Tbody,
   Td,
   Text,
@@ -117,7 +118,7 @@ const SavedStatementComments = ({
   return (
     <Flex
       direction="column"
-      w="100%"
+
       minH="24"
       fontFamily="Inter"
       color="#2D3748"
@@ -136,10 +137,10 @@ const SavedStatementComments = ({
         borderRadius="9.57px"
         minH="24"
         px="12px"
-        width="100%"
+
       >
         <Box
-          width="100%"
+
           position="relative"
         >
           <Table
@@ -147,7 +148,7 @@ const SavedStatementComments = ({
             textAlign="center"
             variant="simple"
             size="sm"
-            w="100%"
+
           >
             {/* header row */}
             <Thead>
@@ -522,10 +523,10 @@ const SavedInvoiceSummary = ({
         minH="24"
         px="12px"
       >
-        <Box width="100%">
+        <Box w="100%">
           <Table
             color="#EDF2F7"
-            width="100%"
+
             textAlign="center"
             size="sm"
           >
