@@ -119,6 +119,9 @@ export const EditInvoice = () => {
 
   const [subtotalValue, setSubtotalValue] = useState(0);
 
+  const [sessions, setSessions] = useState([]);
+  const [summary, setSummary] = useState([]);
+
   useEffect(() => {
     if (id) {
       sessionStorage.setItem("userId", id);
@@ -206,6 +209,13 @@ export const EditInvoice = () => {
           subtotal: subtotalResponse.data.total,
           pastDue: remainingBalance,
         });
+
+
+        const sessionResponse = await backend.get(`comments/invoice/sessions/${id}`)
+        setSessions(sessionResponse.data)
+
+        const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
+        setSummary(summaryResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -248,7 +258,7 @@ export const EditInvoice = () => {
         // Extract just the room data from the responses:
         const roomsArray = roomResponses.map(response => response.data[0]);
 
-        console.log("Fetched rooms:", roomsArray);
+
 
         setRoom(roomsArray);
 
@@ -400,6 +410,10 @@ export const EditInvoice = () => {
               onSubtotalChange={handleSubtotalUpdate}
               room={room}
               setRoom={setRoom}
+              sessions={sessions}
+              setSessions={setSessions}
+              summary={summary}
+              setSummary={setSummary}
             />
             <FooterDescription />
           </Box>
