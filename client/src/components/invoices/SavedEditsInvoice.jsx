@@ -14,8 +14,8 @@ import {
   Link as ChakraLink
 } from "@chakra-ui/react";
 import { Link, useNavigate, useParams} from "react-router-dom";
+import { LeftIcon } from "../../assets/LeftIcon.jsx";
 
-import { BackArrowIcon } from "../../assets/BackArrowIcon";
 import { SavedInvoiceEllipsisIcon } from "../../assets/SavedInvoiceEllipsisIcon.jsx";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -57,14 +57,14 @@ const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments
       >
         <HStack>
         <IconButton
-          icon={<BackArrowIcon/>}
+          icon={<LeftIcon color="black"/>}
           onClick={onBack}
           variant="link"
           color="#474849"
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)}_Classroom Rental Statement`}</Text>
+        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)}_Classroom Rental Summary`}</Text>
       </HStack>
 
         <HStack>

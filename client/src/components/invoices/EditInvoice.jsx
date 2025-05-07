@@ -28,7 +28,7 @@ import {
 } from "./EditInvoiceComponents";
 
 import { EmailSidebar } from "../email/EmailSidebar";
-import { BackArrowIcon } from "../../assets/BackArrowIcon";
+import { LeftIcon } from "../../assets/LeftIcon";
 
 const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, programName }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -62,14 +62,14 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, pr
     >
       <HStack>
         <IconButton
-          icon={<BackArrowIcon/>}
+          icon={<LeftIcon color="black"/>}
           onClick={onBack}
           variant="link"
           color="#474849"
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}</Text>
+        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}_${getGeneratedDate(comments, invoice, false)}_Classroom Rental Summary`}</Text>
       </HStack>
       <HStack>
         <Button
@@ -216,6 +216,7 @@ export const EditInvoice = () => {
 
         const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
         setSummary(summaryResponse.data);
+
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -398,13 +399,19 @@ export const EditInvoice = () => {
               bookings={booking}
               rooms={room}
               subtotal={editedSubtotal}
+              setSubtotal={setEditedSubtotal}
               comments={editedComments}
               onCommentsChange={handleCommentUpdate}
               onSubtotalChange={handleSubtotalUpdate}
+              sessions={sessions}
+              setSessions={setSessions}
+              summary={summary}
+              setSummary={setSummary}
             />
             <InvoiceSummary
               pastDue={pastDue}
-              subtotal={subtotalValue}
+              subtotal={subtotal}
+              setSubtotal={setSubtotalValue}
               comments={editedComments}
               onCommentsChange={handleCommentUpdate}
               onSubtotalChange={handleSubtotalUpdate}
