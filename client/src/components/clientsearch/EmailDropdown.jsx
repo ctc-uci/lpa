@@ -1,138 +1,126 @@
-import { useState, useEffect } from 'react'
-import {
-  Box,
-  HStack,
-  Icon,
-  Input,
-  Tag,
-} from "@chakra-ui/react"
+import { useEffect, useState } from "react";
+import { Box, Flex, Icon, Input, Tag, TagLabel, InputGroup, InputRightElement } from "@chakra-ui/react";
+import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
+import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
 
-import { CloseFilledIcon } from '../../assets/CloseFilledIcon';
-import { PlusFilledIcon } from '../../assets/PlusFilledIcon';
-
-export const EmailDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, getInstructorResults, setInstructorSearchTerm} ) => {
+export const EmailDropdown = ({
+  searchTerm,
+  searchedUser,
+  selectedUsers,
+  setSelectedUsers,
+  setSearchedUsers,
+  getUserResults,
+  setSearchTerm,
+}) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest("#instructorContainer")) {
-          setDropdownVisible(false);
+      if (!event.target.closest("#emailContainer")) {
+        setDropdownVisible(false);
       }
-    }
+    };
 
     document.addEventListener("click", handleClickOutside);
     return () => {
       document.removeEventListener("click", handleClickOutside);
-    }
+    };
   }, []);
 
   return (
-    <HStack gap="12px" ml={24}>
-      <div id="instructorContainer">
-        <div id="instructors">
-          <div id="instructorSelection">
-            <Box>
-              <div id="instructorInputContainer">
-                <Input
-                    placeholder="Lead Artist(s)"
-                    onChange={(e) => {
-                      getInstructorResults(e.target.value);
-                      setInstructorSearchTerm(e.target.value); 
-                      setDropdownVisible(true);
-                    }}
-                    value={instructorSearchTerm} id="instructorInput"
-                    autocomplete="off"
-                    w="60vw"
-                    
-                    />
-                  <Box
-                    as="button"
-                    onClick={() => {
-                      if (instructorSearchTerm.trim() !== "") {
-                        // Find the instructor from the searched list
-                        const instructor = searchedInstructors.find(
-                          (instr) => instr.email.toLowerCase() === instructorSearchTerm.toLowerCase()
-                        );
-                        // If instructor exists and is not already selected, add it as a tag
-                        if (instructor && !selectedInstructors.some(instr => instr.id === instructor.id)) {
-                          setSelectedInstructors((prevItems) => [...prevItems, instructor]);
-                        }
-                        setInstructorSearchTerm("");
-                        setSearchedInstructors([]);
-                        getInstructorResults(")")
-                      }
-                    }}
-                    disabled={
-                      instructorSearchTerm.trim() === "" ||
-                      !searchedInstructors.some(instr => instr.email.toLowerCase() === instructorSearchTerm.toLowerCase())
-                    }
-                    cursor={
-                      instructorSearchTerm.trim()==="" ||
-                      !searchedInstructors.some(instr => instr.email.toLowerCase() === instructorSearchTerm.toLowerCase())
-                      ? "not-allowed" : "pointer"
-                    }
-                  >
-                    <PlusFilledIcon
-                      color={
-                        instructorSearchTerm.trim() !== "" &&
-                          searchedInstructors.some(instr => instr.email.toLowerCase() === instructorSearchTerm.toLowerCase())
-                          ? "#4441C8" : "#718096"
-                      }
-                    />
-                  </Box>
-                </div>
+    <Box w="70%" id="emailContainer">
+      <InputGroup size="md" justifyContent="center">
+        <Input
+          placeholder="Email(s)"
+          onChange={(e) => {
+            getUserResults(e.target.value);
+            setSearchTerm(e.target.value);
+            setDropdownVisible(true);
+          }}
+          value={searchTerm}
+          id="emailInput"
+          autoComplete="off"
+          pr="2.5rem"
+        />
+        <InputRightElement width="3rem">
+          <Box
+            as="button"
+            onClick={() => {
+              if (searchTerm && searchTerm.trim() !== "") {
+                const user = searchedUser && searchedUser.find(
+                  (u) => u && u.email && u.email.toLowerCase() === searchTerm.toLowerCase()
+                );
+                if (user && selectedUsers && !selectedUsers.some((u) => u.id === user.id)) {
+                  setSelectedUsers((prevItems) => [...(prevItems || []), user]);
+                }
+                setSearchTerm("");
+                setSearchedUsers([]);
+                getUserResults("");
+              }
+            }}
+            disabled={
+              !searchTerm || searchTerm.trim() === "" ||
+              !searchedUser || !searchedUser.some(
+                (u) => u && u.email && u.email.toLowerCase() === searchTerm.toLowerCase()
+              )
+            }
+            cursor={
+              !searchTerm || searchTerm.trim() === "" ||
+              !searchedUser || !searchedUser.some(
+                (u) => u && u.email && u.email.toLowerCase() === searchTerm.toLowerCase()
+              )
+                ? "not-allowed" : "pointer"
+            }
+          >
+            <PlusFilledIcon
+              color={
+                searchTerm && searchTerm.trim() !== "" &&
+                searchedUser && searchedUser.some(
+                  (u) => u && u.email && u.email.toLowerCase() === searchTerm.toLowerCase()
+                )
+                  ? "#4441C8" : "#718096"
+              }
+            />
+          </Box>
+        </InputRightElement>
+      </InputGroup>
 
-                {dropdownVisible && searchedInstructors.length > 0 && instructorSearchTerm.length > 0 && (
-                  <Box id="instructorDropdown" w="100%" maxW="195px">
-                    {searchedInstructors.map((instructor) => (
-                      <Box
-                        key={instructor.id}
-                        onClick={() => {
-                          setInstructorSearchTerm(instructor.email);
-                          setDropdownVisible(false);
-                        }}
-                          style={{
-                            padding: "10px",
-                            fontSize: "16px",
-                            cursor: "pointer",
-                            transition: "0.2s",
-                            backgroundColor:"#FFF",
-                          }}
-                          bg="#F6F6F6"
-                          _hover={{ bg: "#D9D9D9" }}
-                        >
-                          {instructor.email}
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
-                </Box>
-              </div>
-            </div>
-            <div id="instructorTags">
-              {selectedInstructors.length > 0 ? (
-                selectedInstructors.map((instructor, ind) => (
-                  <div className="instructorTag" key={ind}>
-                    <Tag value={instructor.id}>
-                      <TagLabel>{instructor.email}</TagLabel>
-                    </Tag>
-                    <Icon
-                        fontSize="lg"
-                        color = "#718096"
-                        _hover={{ color: "#4441C8" }}
-                        cursor="pointer"
-                        onClick={() => {
-                            setSelectedInstructors(prevItems =>
-                            prevItems.filter(item => item.id !== instructor.id));
-                        }}
-                    >
-                        <CloseFilledIcon color="currentColor"/>
-                    </Icon>
-                  </div>
-                ))
-            ) : <div></div> }
-        </div>
-      </div>
-    </HStack>
-  )
-}
+      {dropdownVisible && searchedUser && searchedUser.length > 0 && searchTerm && searchTerm.length > 0 && (
+        <Box
+          id="emailDropdown"
+          w="100%"
+          position="absolute"
+          zIndex="10"
+          bg="white"
+          boxShadow="md"
+          borderRadius="md"
+          mt="1"
+        >
+          {searchedUser.map(
+            (user) => user && user.email && (
+              <Box
+                key={user.id}
+                onClick={() => {
+                  if (selectedUsers && !selectedUsers.some((u) => u.id === user.id)) {
+                    setSelectedUsers((prevItems) => [...(prevItems || []), user]);
+                  }
+                  setSearchTerm("");
+                  setDropdownVisible(false);
+                  setSearchedUsers([]);
+                }}
+                p="10px"
+                fontSize="16px"
+                cursor="pointer"
+                transition="0.2s"
+                bg="#F6F6F6"
+                _hover={{ bg: "#D9D9D9" }}
+              >
+                {user.email}
+              </Box>
+            )
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+};

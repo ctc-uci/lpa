@@ -57,6 +57,14 @@ export const EmailSidebar = ({
   const [searchedInstructors, setSearchedInstructors] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
 
+  const [ccSearchTerm, setCcSearchTerm] = useState("");
+  const [searchedCc, setSearchedCc] = useState([]);
+  const [selectedCc, setSelectedCc] = useState([]);
+
+  const [bccSearchTerm, setBccSearchTerm] = useState("");
+  const [searchedBcc, setSearchedBcc] = useState([]);
+  const [selectedBcc, setSelectedBcc] = useState([]);
+
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
@@ -96,16 +104,15 @@ export const EmailSidebar = ({
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         const instructorResponse = await backend.get("/clients/");
         const userList = [...payeesResponse.data, ...instructorResponse.data];
-        const uniqueUsers = userList.filter((user, index, self) =>
-          index === self.findIndex(u => u.email === user.email)
+        const uniqueUsers = userList.filter(
+          (user, index, self) =>
+            index === self.findIndex((u) => u.email === user.email)
         );
         SetAllUsers(uniqueUsers);
         console.log(uniqueUsers);
 
-        const payeeEmails = payeesResponse.data.map(
-          (payee) => payee.email
-        );
-        
+        const payeeEmails = payeesResponse.data.map((payee) => payee.email);
+
         const instructorEmails = instructorResponse.data.map(
           (instructor) => instructor.email
         );
@@ -119,43 +126,105 @@ export const EmailSidebar = ({
           });
           return newEmails;
         });
-  
+
         setOriginalEmails([...payeeEmails, ...instructorEmails]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-  
+
     fetchData();
   }, []);
-  
-  const getInstructorResults = async (search) => {
+
+  // const getInstructorResults = async ({ searchTerm, setSearchedResults, selectedUsers }) => {
+  //   try {
+  //     if (search !== "") {
+  //       const instructorResponse = await backend.get("/clients/search", {
+  //         params: {
+  //           searchTerm: search,
+  //         },
+  //       });
+  //       const payeesResponse = await backend.get("/invoices/payees/" + id);
+  //       filterSelectedInstructorsFromSearch(
+  //         instructorResponse.data,
+  //         payeesResponse.data,
+  //         setSearched,
+  //         selectedUser
+  //       );
+  //     } else {
+  //       setSearched([]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error getting instructors:", error);
+  //   }
+  // };
+
+  const getInstructorResults = async (search, setSearched, selectedUser) => {
     try {
-      if (search !== "") {
+      // Make sure search is a string to avoid TypeErrors
+      const searchString = typeof search === "string" ? search : "";
+
+      if (searchString !== "") {
         const instructorResponse = await backend.get("/clients/search", {
           params: {
-            searchTerm: search,
+            searchTerm: searchString,
           },
         });
         const payeesResponse = await backend.get("/invoices/payees/" + id);
+
+        // Make sure selectedUser is an array
+        const safeSelectedUser = Array.isArray(selectedUser)
+          ? selectedUser
+          : [];
+
         filterSelectedInstructorsFromSearch(
           instructorResponse.data,
-          payeesResponse.data
+          payeesResponse.data,
+          setSearched,
+          safeSelectedUser
         );
       } else {
-        setSearchedInstructors([]);
+        if (typeof setSearched === "function") {
+          setSearched([]);
+        }
       }
     } catch (error) {
       console.error("Error getting instructors:", error);
     }
   };
+  // const filterSelectedInstructorsFromSearch = (instructorData, payeeData, setSearched, selectedUser) => {
+  //   const filteredInstructors = instructorData.filter(
+  //     (instructor) =>
+  //       !selectedUser || !selectedUser.some((selected) => selected && selected.email === instructor.email)
+  //   );
+  //   setSearched(filteredInstructors);
+  // };
 
-  const filterSelectedInstructorsFromSearch = (instructorData, payeeData) => {
-    const filteredInstructors = instructorData.filter(
+  const filterSelectedInstructorsFromSearch = (
+    instructorData,
+    payeeData,
+    setSearched,
+    selectedUser
+  ) => {
+    // Add null checks and make sure arrays are arrays
+    const safeInstructorData = Array.isArray(instructorData)
+      ? instructorData
+      : [];
+    const safeSelectedUser = Array.isArray(selectedUser) ? selectedUser : [];
+
+    const filteredInstructors = safeInstructorData.filter(
       (instructor) =>
-        !selectedInstructors.some((selected) => selected.email === instructor.email)
+        instructor &&
+        instructor.email &&
+        !safeSelectedUser.some(
+          (selected) =>
+            selected && selected.email && instructor.email === selected.email
+        )
     );
-    setSearchedInstructors(filteredInstructors);
+
+    if (typeof setSearched === "function") {
+      setSearched(filteredInstructors);
+    }
   };
 
   // useEffect(() => {
@@ -177,10 +246,57 @@ export const EmailSidebar = ({
   //   }
   // }, [selectedInstructors]);
 
-  // Listen for changes in the instructor search term
+  //TO
+  // useEffect(() => {
+  //   getInstructorResults({
+  //     searchTerm: instructorSearchTerm,
+  //     setSearchedResults: setSearchedInstructors,
+  //     selectedUsers: selectedInstructors
+  //   });
+  // }, [instructorSearchTerm, selectedInstructors]);
+
+  // //CC
+  // useEffect(() => {
+  //   getInstructorResults({
+  //     searchTerm: ccSearchTerm,
+  //     setSearchedResults: setSearchedCc,
+  //     selectedUsers: selectedCc
+  //   });
+  // }, [ccSearchTerm, selectedCc]);
+
+  // //BCC
+  // useEffect(() => {
+  //   getInstructorResults({
+  //     searchTerm: bccSearchTerm,
+  //     setSearchedResults: setSearchedBcc,
+  //     selectedUsers: selectedBcc
+  //   });
+  // }, [bccSearchTerm, selectedBcc]);
+
   useEffect(() => {
-    getInstructorResults(instructorSearchTerm);
+    // Only call if instructorSearchTerm is defined
+    if (instructorSearchTerm !== undefined) {
+      getInstructorResults(
+        instructorSearchTerm,
+        setSearchedInstructors,
+        selectedInstructors
+      );
+    }
   }, [instructorSearchTerm]);
+
+  useEffect(() => {
+    // Only call if ccSearchTerm is defined
+    if (ccSearchTerm !== undefined) {
+      getInstructorResults(ccSearchTerm, setSearchedCc, selectedCc);
+    }
+  }, [ccSearchTerm]);
+
+  useEffect(() => {
+    // Only call if bccSearchTerm is defined
+    if (bccSearchTerm !== undefined) {
+      getInstructorResults(bccSearchTerm, setSearchedBcc, selectedBcc);
+    }
+  }, [bccSearchTerm]);
 
   const emptyInputs = () => {
     setTitle(pdf_title);
@@ -463,9 +579,11 @@ export const EmailSidebar = ({
           </DrawerHeader>
           <DrawerBody ml="4">
             <Stack
-              w="300px"
+              w="100%"
               mb="20px"
             >
+              {/* // Here are the fixed EmailDropdown calls for the EmailSidebar
+              component // For the "To:" section */}
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
@@ -476,17 +594,59 @@ export const EmailSidebar = ({
                 >
                   To:
                 </Text>
-                {/* <EmailInput initialEmails={emails} /> */}
                 <EmailDropdown
-                  instructorSearchTerm={instructorSearchTerm}
-                  searchedInstructors={searchedInstructors}
-                  selectedInstructors={selectedInstructors}
-                  setSelectedInstructors={setSelectedInstructors}
-                  setSearchedInstructors={setSearchedInstructors}
-                  getInstructorResults={getInstructorResults}
-                  setInstructorSearchTerm={setInstructorSearchTerm}
+                  searchTerm={instructorSearchTerm}
+                  searchedUser={searchedInstructors}
+                  selectedUsers={selectedInstructors}
+                  setSelectedUsers={setSelectedInstructors}
+                  setSearchedUsers={setSearchedInstructors}
+                  getUserResults={getInstructorResults}
+                  setSearchTerm={setInstructorSearchTerm}
                 />
               </Flex>
+              {/* Display selected To: emails */}
+              <Flex
+                gap="4"
+                justifyContent="end"
+              >
+                {selectedInstructors &&
+                  selectedInstructors.length > 0 &&
+                  selectedInstructors.map(
+                    (user, index) =>
+                      user &&
+                      user.email && (
+                        <Tag
+                          key={`user-${index}`}
+                          size="lg"
+                          borderRadius="full"
+                          variant="solid"
+                          bg={"white"}
+                          border={"1px solid"}
+                          borderColor={"#E2E8F0"}
+                          textColor={"#080A0E"}
+                          fontWeight={"normal"}
+                        >
+                          <TagLabel>{user.email}</TagLabel>
+                          <TagCloseButton
+                            onClick={() => {
+                              setSelectedInstructors((prevUsers) =>
+                                prevUsers.filter(
+                                  (item) => item && item.id !== user.id
+                                )
+                              );
+                            }}
+                            bgColor={"#718096"}
+                            opacity={"none"}
+                            _hover={{
+                              bg: "#4441C8",
+                            }}
+                            textColor={"white"}
+                          />
+                        </Tag>
+                      )
+                  )}
+              </Flex>
+              {/* For the "Cc:" section */}
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
@@ -497,16 +657,25 @@ export const EmailSidebar = ({
                 >
                   Cc:
                 </Text>
-                <EmailInput />
+                <EmailDropdown
+                  searchTerm={ccSearchTerm}
+                  searchedUser={searchedCc}
+                  selectedUsers={selectedCc}
+                  setSelectedUsers={setSelectedCc}
+                  setSearchedUsers={setSearchedCc}
+                  getUserResults={getInstructorResults}
+                  setSearchTerm={setCcSearchTerm}
+                />
               </Flex>
+              {/* Display selected Cc: emails */}
               <Flex
                 gap="4"
-                justifyContent="start"
-                wrap="wrap"
+                justifyContent="end"
               >
+                {/* Display regular cc emails */}
                 {ccEmails.map((email, index) => (
                   <Tag
-                    key={index}
+                    key={`string-${index}`}
                     size="lg"
                     borderRadius="full"
                     variant="solid"
@@ -518,9 +687,9 @@ export const EmailSidebar = ({
                   >
                     <TagLabel>{email}</TagLabel>
                     <TagCloseButton
-                      onClick={() =>
-                        setCcEmails(ccEmails.filter((e) => e !== email))
-                      }
+                      onClick={() => {
+                        setCcEmails(ccEmails.filter((e) => e !== email));
+                      }}
                       bgColor={"#718096"}
                       opacity={"none"}
                       _hover={{
@@ -530,8 +699,46 @@ export const EmailSidebar = ({
                     />
                   </Tag>
                 ))}
-              </Flex>
 
+                {/* Display selected cc users from dropdown */}
+                {selectedCc &&
+                  selectedCc.length > 0 &&
+                  selectedCc.map(
+                    (user, index) =>
+                      user &&
+                      user.email && (
+                        <Tag
+                          key={`user-${index}`}
+                          size="lg"
+                          borderRadius="full"
+                          variant="solid"
+                          bg={"white"}
+                          border={"1px solid"}
+                          borderColor={"#E2E8F0"}
+                          textColor={"#080A0E"}
+                          fontWeight={"normal"}
+                        >
+                          <TagLabel>{user.email}</TagLabel>
+                          <TagCloseButton
+                            onClick={() => {
+                              setSelectedCc((prevUsers) =>
+                                prevUsers.filter(
+                                  (item) => item && item.id !== user.id
+                                )
+                              );
+                            }}
+                            bgColor={"#718096"}
+                            opacity={"none"}
+                            _hover={{
+                              bg: "#4441C8",
+                            }}
+                            textColor={"white"}
+                          />
+                        </Tag>
+                      )
+                  )}
+              </Flex>
+              {/* For the "Bcc:" section */}
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
@@ -542,16 +749,25 @@ export const EmailSidebar = ({
                 >
                   Bcc:
                 </Text>
-                {/* <EmailInput /> */}
+                <EmailDropdown
+                  searchTerm={bccSearchTerm}
+                  searchedUser={searchedBcc}
+                  selectedUsers={selectedBcc}
+                  setSelectedUsers={setSelectedBcc}
+                  setSearchedUsers={setSearchedBcc}
+                  getUserResults={getInstructorResults}
+                  setSearchTerm={setBccSearchTerm}
+                />
               </Flex>
+              {/* Display selected Bcc: emails */}
               <Flex
                 gap="4"
-                justifyContent="start"
-                wrap="wrap"
+                justifyContent="end"
               >
+                {/* Display regular bcc emails */}
                 {bccEmails.map((email, index) => (
                   <Tag
-                    key={index}
+                    key={`string-${index}`}
                     size="lg"
                     borderRadius="full"
                     variant="solid"
@@ -575,6 +791,44 @@ export const EmailSidebar = ({
                     />
                   </Tag>
                 ))}
+
+                {/* Display selected bcc users from dropdown */}
+                {selectedBcc &&
+                  selectedBcc.length > 0 &&
+                  selectedBcc.map(
+                    (user, index) =>
+                      user &&
+                      user.email && (
+                        <Tag
+                          key={`user-${index}`}
+                          size="lg"
+                          borderRadius="full"
+                          variant="solid"
+                          bg={"white"}
+                          border={"1px solid"}
+                          borderColor={"#E2E8F0"}
+                          textColor={"#080A0E"}
+                          fontWeight={"normal"}
+                        >
+                          <TagLabel>{user.email}</TagLabel>
+                          <TagCloseButton
+                            onClick={() => {
+                              setSelectedBcc((prevUsers) =>
+                                prevUsers.filter(
+                                  (item) => item && item.id !== user.id
+                                )
+                              );
+                            }}
+                            bgColor={"#718096"}
+                            opacity={"none"}
+                            _hover={{
+                              bg: "#4441C8",
+                            }}
+                            textColor={"white"}
+                          />
+                        </Tag>
+                      )
+                  )}
               </Flex>
             </Stack>
 
