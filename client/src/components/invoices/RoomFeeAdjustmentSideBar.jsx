@@ -38,46 +38,40 @@ export default function RoomFeeAdjustmentSideBar({
   session = {},
   setSessions,
   sessionIndex,
+  subtotal = 0.0
 }) {
   // console.log("session", session)
 
   const { backend } = useBackendContext();
 
-  const calculateNewTotals = () => {
-    let newRate = Number(room ? room.rate : 0);
+  console.log("session.rate", session.rate)
 
-    adjustments.forEach((adj) => {
-      const amount =
-        adj.type === "dollar"
-          ? Number(adj.value || 0)
-          : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
+  const calculateNewRate = () => {
+    let newRate = Number(session.rate || 0);
+  
+    session.adjustmentValues.forEach((val) => {
+      const isNegative = val.startsWith("-");
+      const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
 
-      newRate += adj.isNegative ? -amount : amount;
+  
+      let adjustmentAmount = 0;
+  
+      if (val.includes("$")) {
+        adjustmentAmount = numericPart;
+      } else if (val.includes("%")) {
+        adjustmentAmount = (numericPart / 100) * Number(newRate|| 0);
+      }
+      
+      if (isNegative) {
+        newRate -= adjustmentAmount; 
+      } else {
+        newRate += adjustmentAmount;
+      }
     });
-
-    const timeToMinutes = (timeStr) => {
-      const [hours, minutes] = timeStr.split(":").map(Number);
-      return hours * 60 + minutes;
-    };
-
-    const startMinutes = booking?.startTime
-      ? timeToMinutes(booking.startTime.substring(0, 5))
-      : 0;
-    const endMinutes = booking?.endTime
-      ? timeToMinutes(booking.endTime.substring(0, 5))
-      : 0;
-
-    const diffMinutes = endMinutes - startMinutes;
-    const hours = Math.ceil(diffMinutes / 60);
-
-    const newTotal = newRate * hours;
-
-    return {
-      newRate,
-      newTotal,
-    };
+    
+    return newRate;
   };
-
+  
   return (
     <Slide
       direction="right"
@@ -364,7 +358,7 @@ export default function RoomFeeAdjustmentSideBar({
               NEW ROOM FEE
             </Heading>
             {/* <Heading size="md"> ${Number(newRate || 0).toFixed(2)}/hr</Heading> */}
-            <Heading size="md">0.00/hr</Heading>
+            <Heading size="md">${calculateNewRate()}/hr</Heading>
           </Flex>
           <Flex
             justifyContent="right"
@@ -379,8 +373,8 @@ export default function RoomFeeAdjustmentSideBar({
             >
               NEW SESSION TOTAL
             </Heading>
-            {/* <Heading size="md"> ${Number(newTotal || 0).toFixed(2)}</Heading> */}
-            <Heading size="md">0.00/hr</Heading>
+            <Heading size="md"> ${Number(subtotal || 0).toFixed(2)}</Heading>
+            {/* <Heading size="md">0.00/hr</Heading> */}
           </Flex>
           <Flex
             mt="30px"

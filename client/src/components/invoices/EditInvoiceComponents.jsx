@@ -436,27 +436,48 @@ const StatementComments = ({
 
     const totalHours = Math.ceil(diff / 60);
 
-    const hourlyRate = totalHours * rate;
+    let newRate = totalHours * rate;
 
-    const adjustedTotal =
-      adjustmentValues?.reduce((acc, val) => {
-        const sign = val[0];
-        const isPercent = val.includes("%");
-        const cleanStr = val.slice(1).replace("$", "").replace("%", "");
-        const num = parseFloat(cleanStr);
+    adjustmentValues.forEach((val) => {
+      const isNegative = val.startsWith("-");
+      const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
 
-        if (isNaN(num)) return acc;
+  
+      let adjustmentAmount = 0;
+  
+      if (val.includes("$")) {
+        adjustmentAmount = numericPart;
+      } else if (val.includes("%")) {
+        adjustmentAmount = (numericPart / 100) * Number(newRate|| 0);
+      }
+      
+      if (isNegative) {
+        newRate -= adjustmentAmount; 
+      } else {
+        newRate += adjustmentAmount;
+      }
+    });
 
-        if (isPercent) {
-          const factor = 1 + (sign === "+" ? num : -num) / 100;
+    // const adjustedTotal =
+    //   adjustmentValues?.reduce((acc, val) => {
+    //     const sign = val[0];
+    //     const isPercent = val.includes("%");
+    //     const cleanStr = val.slice(1).replace("$", "").replace("%", "");
+    //     const num = parseFloat(cleanStr);
 
-          return acc * factor;
-        } else {
-          return sign === "+" ? acc + num : acc - num;
-        }
-      }, hourlyRate) ?? hourlyRate;
+    //     if (isNaN(num)) return acc;
 
-    return adjustedTotal.toFixed(2);
+    //     if (isPercent) {
+    //       const factor = 1 + (sign === "+" ? num : -num) / 100;
+
+    //       return acc * factor;
+    //     } else {
+    //       return sign === "+" ? acc + num : acc - num;
+    //     }
+    //   }, hourlyRate) ?? hourlyRate;
+    
+    console.log("newRate", newRate)
+    return newRate.toFixed(2);
   };
 
   const calculateSubtotal = (sessions) => {
@@ -495,7 +516,6 @@ const StatementComments = ({
   };
 
 
-  // console.log("sessions", sessions)
   
   return (
     <Flex
@@ -744,6 +764,12 @@ const StatementComments = ({
                             session={session}
                             setSessions={setSessions}
                             sessionIndex={index}
+                            subtotal={calculateTotalBookingRow(
+                              session.startTime,
+                              session.endTime,
+                              session.rate,
+                              session.adjustmentValues
+                            )}
                             // onApplyAdjustments={(bookingId, adjustments) => {
                             //   setAdjustmentsByBooking((prev) => ({
                             //     ...prev,
