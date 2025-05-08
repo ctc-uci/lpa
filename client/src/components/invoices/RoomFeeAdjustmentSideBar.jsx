@@ -741,15 +741,15 @@ const SummaryFeeAdjustmentSideBar = ({
                   _hover="none"
                   size="sm"
                   onClick={() => {
-                    setSessions((prevSessions) => {
-                      const newSessions = [...prevSessions];
+                    setSummary((prevSummary) => {
+                      const newSummary = [...prevSummary];
                       const updatedAdjustmentValues =
-                        session.adjustmentValues.filter((_, i) => i !== index);
-                      newSessions[sessionIndex] = {
-                        ...newSessions[sessionIndex],
+                        summary.adjustmentValues.filter((_, i) => i !== index);
+                        newSummary[sessionIndex] = {
+                        ...newSummary[sessionIndex],
                         adjustmentValues: updatedAdjustmentValues,
                       };
-                      return newSessions;
+                      return newSummary;
                     });
                   }}
                 />
