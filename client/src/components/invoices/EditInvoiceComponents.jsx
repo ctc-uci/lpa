@@ -52,8 +52,7 @@ import plusIcon from "../../assets/icons/plus.svg";
 import logo from "../../assets/logo/logo.png";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
-import RoomFeeAdjustmentSideBar from "./RoomFeeAdjustmentSideBar";
-import SummaryRoomFeeAdjustmentSidebar from "./SummaryRoomFeeAdjustmentSidebar";
+import {RoomFeeAdjustmentSideBar, SummaryFeeAdjustmentSideBar} from "./RoomFeeAdjustmentSideBar";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -262,6 +261,16 @@ const EditInvoiceDetails = ({
     </VStack>
   );
 };
+
+// TODO
+// ! - Summary Sidebar
+// ! - Add comments row
+// ! - Add fees row
+// ! - POST Functionality
+// - Fix Current Statement Total in EditInvoice being different that SavedInvoice
+// - Make it so removing a comment adjustmenttype from sidebar only applies when pressing apply, otherwise it stays
+// - Fix subtotal loading twice
+// - Fix recalculation when summary fee adjustment is made
 
 const StatementComments = ({
   invoice,
@@ -713,7 +722,7 @@ const StatementComments = ({
                       >
                       Adjust
                     </Button>
-                    
+
                     {/* Adjust Sidebar */}
                     <RoomFeeAdjustmentSideBar
                             isOpen={activeRowId === session.id}
@@ -853,6 +862,7 @@ const InvoiceSummary = ({
   summary = [],
   setSummary,
 }) => {
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const btnRef = useRef();
 
@@ -877,6 +887,7 @@ const InvoiceSummary = ({
         return sign === "+" ? acc + num : acc - num;
       }
     }, baseRate);
+
 
     return adjustedTotal.toFixed(2);
   };
@@ -919,7 +930,7 @@ const InvoiceSummary = ({
           rate: adjustedRate,
         };
       }
-
+      
       return session;
     });
 
@@ -1026,24 +1037,39 @@ const InvoiceSummary = ({
                 </Td>
                 <Td borderBottom="none">
                   <Button
-                    leftIcon={<Icon as={PencilIcon} />}
-                    color="white"
-                    background="#4441C8"
-                    borderRadius="md"
-                    px="3"
-                    py="2"
-                    fontSize="small"
-                    height="32px"
-                    ref={btnRef}
-                    onClick={onOpen}
-                  >
-                    Adjust
-                  </Button>
+                        // onClose={() => setActiveRowId(null)}
+                        leftIcon={<Icon as={PencilIcon} />}
+                        color="white"
+                        background="#4441C8"
+                        borderRadius="md"
+                        px="3"
+                        py="2"
+                        fontSize="small"
+                        height="32px"
+                        // opacity={
+                        //   activeRowId === null ||
+                        //   activeRowId === session.id
+                        //     ? 1
+                        //     : 0.3
+                        // }
+                        // onClick={() => setActiveRowId(session.id)}
+                        // isDisabled={
+                        //   activeRowId !== null &&
+                        //   activeRowId !== session.id
+                        // }
+                        onClick={onOpen}
+                      >
+                      Adjust
+                    </Button>
                 </Td>
-                <SummaryRoomFeeAdjustmentSidebar
-                  btnRef={btnRef}
-                  isOpen={isOpen}
-                  onClose={onClose}
+
+                <SummaryFeeAdjustmentSideBar 
+                    isOpen={isOpen}
+                    onClose={onClose}
+                    summary={summary[0]}
+                    setSummary={setSummary}
+                    sessionIndex={0}
+                    subtotal={subtotal}
                 />
               </Tr>
               {/* Room Fee Body Row */}
@@ -1088,6 +1114,7 @@ const InvoiceSummary = ({
                         </Tooltip>
                       </Box>
                     )}
+
                   </Td>
                   <Td
                     textAlign="end"

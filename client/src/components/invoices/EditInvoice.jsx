@@ -217,6 +217,8 @@ export const EditInvoice = () => {
         const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
         setSummary(summaryResponse.data);
 
+        console.log("summaryResponse", summaryResponse)
+
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -283,9 +285,7 @@ export const EditInvoice = () => {
         rate: room[0].rate,
       };
 
-      console.log("roomData", roomData);
       const roomResponse = await backend.put(`/rooms/${room[0].id}`, roomData);
-      console.log("roomResponse", roomResponse);
 
       for (const comment of editedComments) {
         const commentData = {
