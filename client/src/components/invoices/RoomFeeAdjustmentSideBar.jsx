@@ -29,19 +29,21 @@ export default function RoomFeeAdjustmentSideBar({
   isOpen,
   onClose,
   invoice,
-  booking,
   room,
   userId,
   addAdjustment,
   adjustments,
   setAdjustments,
   onApplyAdjustments,
+  session = {},
+  setSessions,
+  sessionIndex,
 }) {
-  // console.log("This is invoice", invoice)
-  // console.log("adjustments", adjustments)
+  // console.log("session", session)
+
   const { backend } = useBackendContext();
+
   const calculateNewTotals = () => {
-    // console.log("This is room:", room)
     let newRate = Number(room ? room.rate : 0);
 
     adjustments.forEach((adj) => {
@@ -75,9 +77,6 @@ export default function RoomFeeAdjustmentSideBar({
       newTotal,
     };
   };
-
-  const { newRate, newTotal } = calculateNewTotals();
-  const plusIconRefs = useRef({});
 
   return (
     <Slide
@@ -118,32 +117,37 @@ export default function RoomFeeAdjustmentSideBar({
             fontSize="14px"
             whiteSpace="nowrap"
           >
-            {booking?.date ? format(new Date(booking.date), "M/d/yy") : "N/A"}{" "}
+            {session.datetime
+              ? format(new Date(session.datetime), "M/d/yy")
+              : "N/A"}{" "}
             Room Fee Adjustment
           </Text>
-          {/* <AdjustmentTypeSelector onSelect={(type) => {
-            if (adjustments.length === 0){
-              addAdjustment(type, booking.id, 0);
-            }
-            else{
-              console.log("adjustments", adjustments)
-              addAdjustment(type, booking.id, adjustments[adjustments.length - 1].appliedRate);
-            }
-              
-          }} /> */}
+
           <AdjustmentTypeSelector
-            onSelect={(type) => {
-              addAdjustment(type, booking.id, 0); // fallbackRate now only applies if it's the first adjustment
+            onSelect={(type, index) => {
+              setSessions((prevSessions) => {
+                const newSessions = [...prevSessions];
+
+                if (type === "percent")
+                  newSessions[index].adjustmentValues.push("-0%");
+                else if (type === "dollar")
+                  newSessions[index].adjustmentValues.push("-$0");
+
+                return newSessions;
+              });
             }}
+            sessionIndex={sessionIndex}
           />
         </Flex>
 
+        {/* Each adjustment value in sidebar */}
         <Box
           marginTop="4px"
           overflowY="auto"
           flex="1"
         >
-          {adjustments.map((adj, index) => (
+          {/* each row */}
+          {session.adjustmentValues.map((val, index) => (
             <Box
               key={index}
               borderBottom="1px solid #E2E8F0"
@@ -155,7 +159,7 @@ export default function RoomFeeAdjustmentSideBar({
                 align="center"
               >
                 <Text fontWeight="bold">
-                  {adj.type === "dollar" ? "Dollar ($)" : "Percent (%)"}
+                  {val.includes("$") ? "Dollar ($)" : "Percent (%)"}
                 </Text>
                 <IconButton
                   aria-label="Remove adjustment"
@@ -164,10 +168,16 @@ export default function RoomFeeAdjustmentSideBar({
                   _hover="none"
                   size="sm"
                   onClick={() => {
-                    const newAdjustments = adjustments.filter(
-                      (_, i) => i !== index
-                    );
-                    setAdjustments(newAdjustments);
+                    setSessions((prevSessions) => {
+                      const newSessions = [...prevSessions];
+                      const updatedAdjustmentValues =
+                        session.adjustmentValues.filter((_, i) => i !== index);
+                      newSessions[sessionIndex] = {
+                        ...newSessions[sessionIndex],
+                        adjustmentValues: updatedAdjustmentValues,
+                      };
+                      return newSessions;
+                    });
                   }}
                 />
               </Flex>
@@ -182,16 +192,16 @@ export default function RoomFeeAdjustmentSideBar({
                   fontSize="sm"
                   color="gray.500"
                 >
-                  Applied to: ${Number(adj.appliedRate || 0).toFixed(2)}/hr
+                  {/* Applied to: ${Number(adj.appliedRate || 0).toFixed(2)}/hr */}
                 </Text>
 
                 <IconButton
                   aria-label="Negative sign"
                   icon={
-                    plusIconRefs.current[index] ? (
-                      <MinusOutlineIcon size="16" />
-                    ) : (
+                    session.adjustmentValues[index].startsWith("-") ? (
                       <MinusFilledIcon />
+                    ) : (
+                      <MinusOutlineIcon size="16" />
                     )
                   }
                   variant="ghost"
@@ -199,26 +209,59 @@ export default function RoomFeeAdjustmentSideBar({
                   _hover="none"
                   _active="none"
                   onClick={() => {
-                    plusIconRefs.current[index] = false;
-                    const newAdjustments = adjustments.map((a, i) =>
-                      i === index ? { ...a, isNegative: true } : a
-                    );
-                    setAdjustments(newAdjustments);
+                    setSessions((prevSessions) => {
+                      const newSessions = [...prevSessions];
+
+                      // Get the current value
+                      const currentValue =
+                        newSessions[sessionIndex].adjustmentValues[index];
+
+                      // Remove any existing sign (+ or -) from the value
+                      const valueWithoutSign = currentValue.replace(
+                        /^[+-]/,
+                        ""
+                      );
+
+                      // Add the new sign based on isPositive
+                      const newValue = "-" + valueWithoutSign;
+
+                      // Update the specific adjustment value
+                      newSessions[sessionIndex].adjustmentValues[index] = newValue;
+
+                      return newSessions;
+                    });
                   }}
                 />
 
-                {adj.type === "dollar" ? (
+                {val.includes("$") ? (
                   <>
                     <Text>$</Text>
                     <Input
-                      value={adj.value}
+                      value={parseFloat(val.replace(/[+$%]/g, ""))}
                       onChange={(e) => {
-                        const newAdjustments = adjustments.map((a, i) =>
-                          i === index
-                            ? { ...a, value: parseFloat(e.target.value) || 0 }
-                            : a
-                        );
-                        setAdjustments(newAdjustments);
+                        setSessions((prevSessions) => {
+                          const newSessions = [...prevSessions];
+                          
+                          const currentValue =
+                            newSessions[sessionIndex].adjustmentValues[index];
+
+                          console.log("currentValue", currentValue)
+
+                          const type = currentValue.includes("$") ? "$" : "%";
+                          const sign = currentValue.trim().startsWith("-")
+                            ? "-"
+                            : "+";
+
+                          const numericValue =
+                            Math.abs(parseFloat(e.target.value)) || 0;
+
+                          newSessions[sessionIndex].adjustmentValues[index] =
+                            type === "$"
+                              ? `${sign}$${numericValue}`
+                              : `${sign}${numericValue}%`;
+
+                          return newSessions;
+                        });
                       }}
                       size="sm"
                       width="80px"
@@ -227,25 +270,41 @@ export default function RoomFeeAdjustmentSideBar({
                 ) : (
                   <>
                     <Input
-                      value={adj.value}
+                      value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
                       onChange={(e) => {
-                        const newAdjustments = adjustments.map((a, i) =>
-                          i === index
-                            ? { ...a, value: parseFloat(e.target.value) || 0 }
-                            : a
-                        );
-                        setAdjustments(newAdjustments);
+                        setSessions((prevSessions) => {
+                          const newSessions = [...prevSessions];
+
+                          const currentValue =
+                            newSessions[sessionIndex].adjustmentValues[index];
+
+                          const type = currentValue.includes("$") ? "$" : "%";
+                          const sign = currentValue.trim().startsWith("-")
+                            ? "-"
+                            : "+";
+
+                          const numericValue =
+                            Math.abs(parseFloat(e.target.value)) || 0;
+
+                          newSessions[sessionIndex].adjustmentValues[index] =
+                            type === "$"
+                              ? `${sign}$${numericValue}`
+                              : `${sign}${numericValue}%`;
+
+                          return newSessions;
+                        });
                       }}
                       size="sm"
                       width="80px"
                     />
+
                     <Text>%</Text>
                   </>
                 )}
                 <IconButton
                   aria-label="Plus sign"
                   icon={
-                    plusIconRefs.current[index] ? (
+                    session.adjustmentValues[index].startsWith("+") ? (
                       <PlusFilledIcon
                         color="#4441C8"
                         size="20"
@@ -259,19 +318,35 @@ export default function RoomFeeAdjustmentSideBar({
                   variant="ghost"
                   size="xs"
                   onClick={() => {
-                    plusIconRefs.current[index] = true;
-                    const newAdjustments = adjustments.map((a, i) =>
-                      i === index ? { ...a, isNegative: false } : a
-                    );
+                    setSessions((prevSessions) => {
+                      const newSessions = [...prevSessions];
 
-                    console.log("newAdjustments", newAdjustments);
-                    setAdjustments(newAdjustments);
+                      // Get the current value
+                      const currentValue =
+                        newSessions[sessionIndex].adjustmentValues[index];
+
+                      // Remove any existing sign (+ or -) from the value
+                      const valueWithoutSign = currentValue.replace(
+                        /^[+-]/,
+                        ""
+                      );
+
+                      // Add the new sign based on isPositive
+                      const newValue = "+" + valueWithoutSign;
+
+                      // Update the specific adjustment value
+                      newSessions[sessionIndex].adjustmentValues[index] = newValue;
+
+                      return newSessions;
+                    });
                   }}
                 />
               </Flex>
             </Box>
           ))}
+          {/* each row */}
         </Box>
+
         <Box
           mt={4}
           p={2}
@@ -288,7 +363,8 @@ export default function RoomFeeAdjustmentSideBar({
             >
               NEW ROOM FEE
             </Heading>
-            <Heading size="md"> ${Number(newRate || 0).toFixed(2)}/hr</Heading>
+            {/* <Heading size="md"> ${Number(newRate || 0).toFixed(2)}/hr</Heading> */}
+            <Heading size="md">0.00/hr</Heading>
           </Flex>
           <Flex
             justifyContent="right"
@@ -303,7 +379,8 @@ export default function RoomFeeAdjustmentSideBar({
             >
               NEW SESSION TOTAL
             </Heading>
-            <Heading size="md"> ${Number(newTotal || 0).toFixed(2)}</Heading>
+            {/* <Heading size="md"> ${Number(newTotal || 0).toFixed(2)}</Heading> */}
+            <Heading size="md">0.00/hr</Heading>
           </Flex>
           <Flex
             mt="30px"
@@ -316,7 +393,7 @@ export default function RoomFeeAdjustmentSideBar({
               fontSize="14px"
               fontWeight="500"
               color="#2D3748"
-              onClick={() => setAdjustments([])}
+              // onClick={() => setAdjustments([])}
             >
               Clear All
             </Button>
@@ -328,43 +405,43 @@ export default function RoomFeeAdjustmentSideBar({
               borderRadius="md"
               fontWeight="bold"
               _hover={{ bg: "#312E8A" }}
-              onClick={async () => {
-                try {
-                  // Loop over all adjustments and create a comment for each
-                  for (const adjustment of adjustments) {
-                    const adjustment_type =
-                      adjustment.type === "dollar"
-                        ? "rate_flat"
-                        : "rate_percent";
-                    const adjustment_value = adjustment.isNegative
-                      ? -adjustment.value
-                      : adjustment.value;
-                    const adjustmentComment =
-                      adjustment.type === "dollar"
-                        ? `Room fee adjustment of $${adjustment_value}`
-                        : `Room fee adjustment of ${adjustment_value}%`;
+              // onClick={async () => {
+              //   try {
+              //     // Loop over all adjustments and create a comment for each
+              //     for (const adjustment of adjustments) {
+              //       const adjustment_type =
+              //         adjustment.type === "dollar"
+              //           ? "rate_flat"
+              //           : "rate_percent";
+              //       const adjustment_value = adjustment.isNegative
+              //         ? -adjustment.value
+              //         : adjustment.value;
+              //       const adjustmentComment =
+              //         adjustment.type === "dollar"
+              //           ? `Room fee adjustment of $${adjustment_value}`
+              //           : `Room fee adjustment of ${adjustment_value}%`;
 
-                    await backend.post("/comments", {
-                      user_id: userId,
-                      booking_id: booking.id,
-                      invoice_id: invoice.id,
-                      comment: adjustmentComment,
-                      adjustment_type: adjustment_type,
-                      adjustment_value: adjustment_value,
-                    });
-                  }
+              //       await backend.post("/comments", {
+              //         user_id: userId,
+              //         booking_id: booking.id,
+              //         invoice_id: invoice.id,
+              //         comment: adjustmentComment,
+              //         adjustment_type: adjustment_type,
+              //         adjustment_value: adjustment_value,
+              //       });
+              //     }
 
-                  // Update the UI state with the new adjustments
-                  onApplyAdjustments(booking.id, adjustments);
-                  // setActiveRowId(null); // close sidebar
-                  onClose();
-                } catch (err) {
-                  console.error(
-                    "Failed to apply adjustments and save comments:",
-                    err
-                  );
-                }
-              }}
+              //     // Update the UI state with the new adjustments
+              //     onApplyAdjustments(booking.id, adjustments);
+              //     // setActiveRowId(null); // close sidebar
+              //     onClose();
+              //   } catch (err) {
+              //     console.error(
+              //       "Failed to apply adjustments and save comments:",
+              //       err
+              //     );
+              //   }
+              // }}
             >
               Apply
             </Button>
@@ -375,7 +452,7 @@ export default function RoomFeeAdjustmentSideBar({
   );
 }
 
-export function AdjustmentTypeSelector({ onSelect }) {
+export function AdjustmentTypeSelector({ onSelect, sessionIndex }) {
   return (
     <Menu>
       <MenuButton
@@ -389,8 +466,12 @@ export function AdjustmentTypeSelector({ onSelect }) {
         minW="120px"
         w="120px"
       >
-        <MenuItem onClick={() => onSelect("dollar")}>Dollar ($)</MenuItem>
-        <MenuItem onClick={() => onSelect("percent")}>Percent (%)</MenuItem>
+        <MenuItem onClick={() => onSelect("dollar", sessionIndex)}>
+          Dollar ($)
+        </MenuItem>
+        <MenuItem onClick={() => onSelect("percent", sessionIndex)}>
+          Percent (%)
+        </MenuItem>
       </MenuList>
     </Menu>
   );
