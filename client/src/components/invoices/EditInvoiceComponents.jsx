@@ -303,60 +303,60 @@ const StatementComments = ({
     fetchUserId();
   }, []);
 
-  const addAdjustment = (type, bookingId, fallbackRate = 0) => {
-    setAdjustmentsByBooking((prev) => {
-      const existing = prev[bookingId] || [];
+  // const addAdjustment = (type, bookingId, fallbackRate = 0) => {
+  //   setAdjustmentsByBooking((prev) => {
+  //     const existing = prev[bookingId] || [];
 
-      let lastAppliedRate = fallbackRate;
+  //     let lastAppliedRate = fallbackRate;
 
-      if (existing.length > 0) {
-        const last = existing[existing.length - 1];
-        const lastValue = last.isNegative ? -last.value : last.value;
-        lastAppliedRate =
-          last.type === "dollar"
-            ? parseFloat(last.appliedRate) + parseFloat(lastValue) // Dollar: add the value to the appliedRate
-            : parseFloat(last.appliedRate) * (1 + parseFloat(lastValue) / 100); // Percent: apply the percentage change
-      } else {
-        const booking = bookingState.find((b) => b.id === bookingId);
-        const roomForBooking = rooms.find((r) => r.id === booking?.roomId);
-        lastAppliedRate = roomForBooking ? roomForBooking.rate : fallbackRate;
-      }
+  //     if (existing.length > 0) {
+  //       const last = existing[existing.length - 1];
+  //       const lastValue = last.isNegative ? -last.value : last.value;
+  //       lastAppliedRate =
+  //         last.type === "dollar"
+  //           ? parseFloat(last.appliedRate) + parseFloat(lastValue) // Dollar: add the value to the appliedRate
+  //           : parseFloat(last.appliedRate) * (1 + parseFloat(lastValue) / 100); // Percent: apply the percentage change
+  //     } else {
+  //       const booking = bookingState.find((b) => b.id === bookingId);
+  //       const roomForBooking = rooms.find((r) => r.id === booking?.roomId);
+  //       lastAppliedRate = roomForBooking ? roomForBooking.rate : fallbackRate;
+  //     }
 
-      return {
-        ...prev,
-        [bookingId]: [
-          ...existing,
-          {
-            type,
-            appliedRate: lastAppliedRate,
-            value: 0,
-            isNegative: true,
-          },
-        ],
-      };
-    });
-  };
+  //     return {
+  //       ...prev,
+  //       [bookingId]: [
+  //         ...existing,
+  //         {
+  //           type,
+  //           appliedRate: lastAppliedRate,
+  //           value: 0,
+  //           isNegative: true,
+  //         },
+  //       ],
+  //     };
+  //   });
+  // };
 
-  const getAdjustedRate = (bookingId) => {
-    // let newRate = Number(roomForBooking?.rate || 0);
+  // const getAdjustedRate = (bookingId) => {
+  //   // let newRate = Number(roomForBooking?.rate || 0);
 
-    const adjustments = adjustmentsByBooking[bookingId] || [];
+  //   const adjustments = adjustmentsByBooking[bookingId] || [];
 
-    const booking = bookingState.find((b) => b.id === bookingId);
-    const roomForBooking = rooms.find((r) => r.id === booking.roomId);
-    let newRate = Number(roomForBooking?.rate || 0);
+  //   const booking = bookingState.find((b) => b.id === bookingId);
+  //   const roomForBooking = rooms.find((r) => r.id === booking.roomId);
+  //   let newRate = Number(roomForBooking?.rate || 0);
 
-    adjustments.forEach((adj) => {
-      const amount =
-        adj.type === "dollar"
-          ? Number(adj.value || 0)
-          : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
+  //   adjustments.forEach((adj) => {
+  //     const amount =
+  //       adj.type === "dollar"
+  //         ? Number(adj.value || 0)
+  //         : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
 
-      newRate += adj.isNegative ? -amount : amount;
-    });
+  //     newRate += adj.isNegative ? -amount : amount;
+  //   });
 
-    return newRate;
-  };
+  //   return newRate;
+  // };
 
 
 
@@ -713,26 +713,13 @@ const StatementComments = ({
                       >
                       Adjust
                     </Button>
-                      </Td>
-                      
-                      {/* Adjust Sidebar */}
+                    
+                    {/* Adjust Sidebar */}
                     <RoomFeeAdjustmentSideBar
                             isOpen={activeRowId === session.id}
                             onClose={() => setActiveRowId(null)}
                             invoice={invoice[0]}
-
-                            room={session.name}
                             userId={userId}
-                            addAdjustment={(type) =>
-                              addAdjustment(type, session.id)
-                            }
-                            adjustments={adjustmentsByBooking[session.id] || []}
-                            setAdjustments={(newAdjustments) => {
-                              setAdjustmentsByBooking((prev) => ({
-                                ...prev,
-                                [session.id]: newAdjustments,
-                              }));
-                            }}
                             session={session}
                             setSessions={setSessions}
                             sessionIndex={index}
@@ -742,13 +729,10 @@ const StatementComments = ({
                               session.rate,
                               session.adjustmentValues
                             )}
-                            // onApplyAdjustments={(bookingId, adjustments) => {
-                            //   setAdjustmentsByBooking((prev) => ({
-                            //     ...prev,
-                            //     [bookingId]: adjustments,
-                            //   }));
-                            // }}
                           />
+                      </Td>
+                      
+                      
 
                       {/* Adjustment type */}
                       <Td
