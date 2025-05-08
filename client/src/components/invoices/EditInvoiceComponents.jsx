@@ -417,68 +417,40 @@ const StatementComments = ({
 
 
 
-  const calculateTotalBookingRow = (
-    startTime,
-    endTime,
-    rate,
-    adjustmentValues
-  ) => {
-    if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
-
+  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
+    if (!startTime || !endTime || !rate) return "0.00";
+  
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
       return hours * 60 + minutes;
     };
-
-    const startMinutes = timeToMinutes(startTime.substring(0, 5));
-    const endMinutes = timeToMinutes(endTime.substring(0, 5));
-    const diff = endMinutes - startMinutes;
-
-    const totalHours = Math.ceil(diff / 60);
-
-    let newRate = totalHours * rate;
-
-    adjustmentValues.forEach((val) => {
+  
+    const rawStart = timeToMinutes(startTime.substring(0, 5));
+    const rawEnd = timeToMinutes(endTime.substring(0, 5));
+    const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
+    const durationInHours = (endAdjusted - rawStart) / 60;
+  
+    const baseRate = Number(rate);
+  
+    const adjustedRate = adjustmentValues.reduce((currentRate, val) => {
       const isNegative = val.startsWith("-");
-      const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
-
+      const numericPart = parseFloat(val.replace(/[+$%-]/g, ""));
+      if (isNaN(numericPart)) return currentRate;
   
-      let adjustmentAmount = 0;
+      const adjustmentAmount = val.includes("$")
+        ? numericPart
+        : val.includes("%")
+        ? (numericPart / 100) * currentRate
+        : 0;
   
-      if (val.includes("$")) {
-        adjustmentAmount = numericPart;
-      } else if (val.includes("%")) {
-        adjustmentAmount = (numericPart / 100) * Number(newRate|| 0);
-      }
-      
-      if (isNegative) {
-        newRate -= adjustmentAmount; 
-      } else {
-        newRate += adjustmentAmount;
-      }
-    });
-
-    // const adjustedTotal =
-    //   adjustmentValues?.reduce((acc, val) => {
-    //     const sign = val[0];
-    //     const isPercent = val.includes("%");
-    //     const cleanStr = val.slice(1).replace("$", "").replace("%", "");
-    //     const num = parseFloat(cleanStr);
-
-    //     if (isNaN(num)) return acc;
-
-    //     if (isPercent) {
-    //       const factor = 1 + (sign === "+" ? num : -num) / 100;
-
-    //       return acc * factor;
-    //     } else {
-    //       return sign === "+" ? acc + num : acc - num;
-    //     }
-    //   }, hourlyRate) ?? hourlyRate;
-    
-    console.log("newRate", newRate)
-    return newRate.toFixed(2);
+      return isNegative ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
+    }, baseRate);
+  
+    const total = adjustedRate * durationInHours;
+    return total.toFixed(2);
   };
+  
+  
 
   const calculateSubtotal = (sessions) => {
     if (!sessions || sessions.length === 0) return "0.00";
