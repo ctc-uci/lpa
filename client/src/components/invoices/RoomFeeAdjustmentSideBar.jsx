@@ -358,7 +358,7 @@ const RoomFeeAdjustmentSideBar = ({
               NEW ROOM FEE
             </Heading>
             {/* <Heading size="md"> ${Number(newRate || 0).toFixed(2)}/hr</Heading> */}
-            <Heading size="md">${calculateNewRate()}/hr</Heading>
+            <Heading size="md">${calculateNewRate().toFixed(2)}/hr</Heading>
           </Flex>
           <Flex
             justifyContent="right"
@@ -649,7 +649,7 @@ const SummaryFeeAdjustmentSideBar = ({
                               type === "$"
                                 ? `${sign}$${numericValue}`
                                 : `${sign}${numericValue}%`;
-
+                            
                             return newSummary;
                           });
                         }}
@@ -710,27 +710,16 @@ const SummaryFeeAdjustmentSideBar = ({
                     onClick={() => {
                       setSummary((prevSummary) => {
                         const newSummary = [...prevSummary];
-
-                        // Get the current value
-                        const currentValue =
-                          val;
-
-                        // Remove any existing sign (+ or -) from the value
-                        const valueWithoutSign = currentValue.replace(
-                          /^[+-]/,
-                          ""
-                        );
-
-                        // Add the new sign based on isPositive
+                        const currentValue = val;
+                        const valueWithoutSign = currentValue.replace(/^[+-]/,"");
                         const newValue = "+" + valueWithoutSign;
-
-                        // Update the specific adjustment value
                         newSummary[0].adjustmentValues[index] =
                           newValue;
                         
-                        console.log("newSummary", newSummary)
                         return newSummary;
                       });
+
+                      
                     }}
                   /> 
                 </Flex>

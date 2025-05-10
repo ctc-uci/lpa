@@ -269,35 +269,17 @@ const EditInvoiceDetails = ({
 // ! - POST Functionality
 // - Fix Current Statement Total in EditInvoice being different that SavedInvoice
 // - Make it so removing a comment adjustmenttype from sidebar only applies when pressing apply, otherwise it stays
-// - Fix subtotal loading twice
-// - Fix recalculation when summary fee adjustment is made
+// - Fix subtotal loading twice -> Fix recalculation when summary fee adjustment is made
 
 const StatementComments = ({
   invoice,
-  comments = [],
-  bookings = [],
-  rooms = [],
-  subtotal = 0.0,
-  onCommentsChange,
-  onSubtotalChange,
   compactView = false,
   sessions = [],
   setSessions,
   setSubtotal
 }) => {
   const { backend } = useBackendContext();
-  const [commentsState, setComments] = useState(comments);
-  const [bookingState, setBooking] = useState(bookings);
-  const [roomState, setRoom] = useState(rooms);
-  const [sessionTotals, setSessionTotals] = useState([]);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-  const [expandedBookingIndex, setExpandedBookingIndex] = useState(null); // Track which row is expanded
-  const [newSubtotalValue, setNewSubtotalValue] = useState(0);
   const [activeRowId, setActiveRowId] = useState(null);
-  const [inputValues, setInputValues] = useState(
-    Array(comments.length).fill("")
-  ); // Initialize local state for input values
-  const [adjustmentsByBooking, setAdjustmentsByBooking] = useState({});
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
@@ -312,120 +294,7 @@ const StatementComments = ({
     fetchUserId();
   }, []);
 
-  // const addAdjustment = (type, bookingId, fallbackRate = 0) => {
-  //   setAdjustmentsByBooking((prev) => {
-  //     const existing = prev[bookingId] || [];
-
-  //     let lastAppliedRate = fallbackRate;
-
-  //     if (existing.length > 0) {
-  //       const last = existing[existing.length - 1];
-  //       const lastValue = last.isNegative ? -last.value : last.value;
-  //       lastAppliedRate =
-  //         last.type === "dollar"
-  //           ? parseFloat(last.appliedRate) + parseFloat(lastValue) // Dollar: add the value to the appliedRate
-  //           : parseFloat(last.appliedRate) * (1 + parseFloat(lastValue) / 100); // Percent: apply the percentage change
-  //     } else {
-  //       const booking = bookingState.find((b) => b.id === bookingId);
-  //       const roomForBooking = rooms.find((r) => r.id === booking?.roomId);
-  //       lastAppliedRate = roomForBooking ? roomForBooking.rate : fallbackRate;
-  //     }
-
-  //     return {
-  //       ...prev,
-  //       [bookingId]: [
-  //         ...existing,
-  //         {
-  //           type,
-  //           appliedRate: lastAppliedRate,
-  //           value: 0,
-  //           isNegative: true,
-  //         },
-  //       ],
-  //     };
-  //   });
-  // };
-
-  // const getAdjustedRate = (bookingId) => {
-  //   // let newRate = Number(roomForBooking?.rate || 0);
-
-  //   const adjustments = adjustmentsByBooking[bookingId] || [];
-
-  //   const booking = bookingState.find((b) => b.id === bookingId);
-  //   const roomForBooking = rooms.find((r) => r.id === booking.roomId);
-  //   let newRate = Number(roomForBooking?.rate || 0);
-
-  //   adjustments.forEach((adj) => {
-  //     const amount =
-  //       adj.type === "dollar"
-  //         ? Number(adj.value || 0)
-  //         : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
-
-  //     newRate += adj.isNegative ? -amount : amount;
-  //   });
-
-  //   return newRate;
-  // };
-
-
-
-  // useEffect(() => {
-  //   // Calculate subtotal on initial load
-  //   const calculateSubtotal = () => {
-  //     if (bookings && bookings.length > 0 && rooms && rooms.length > 0) {
-  //       const totals = bookings.map((booking) => {
-  //         if (!booking.startTime || !booking.endTime) return 0;
-
-  //         const timeToMinutes = (timeStr) => {
-  //           const [hours, minutes] = timeStr.split(":").map(Number);
-  //           return hours * 60 + minutes;
-  //         };
-
-  //         const startMinutes = timeToMinutes(booking.startTime.substring(0, 5));
-  //         const endMinutes = timeToMinutes(booking.endTime.substring(0, 5));
-  //         const diff = endMinutes - startMinutes;
-  //         const totalHours = Math.ceil(diff / 60);
-
-  //         // Start with the base rate
-  //         const roomForBooking = rooms.find((r) => r.id === booking.roomId);
-  //         let newRate = Number(roomForBooking?.rate || 0);
-
-  //         const adjustments = adjustmentsByBooking[booking.id] || [];
-
-  //         adjustments.forEach((adj) => {
-  //           const amount =
-  //             adj.type === "dollar"
-  //               ? Number(adj.value || 0)
-  //               : (Number(adj.value || 0) / 100) * Number(adj.appliedRate || 0);
-
-  //           newRate += adj.isNegative ? -amount : amount;
-  //         });
-
-  //         return parseFloat((totalHours * newRate).toFixed(2));
-  //       });
-
-  //       const newSubtotal = totals.reduce((sum, total) => sum + total, 0);
-  //       setSessionTotals(totals);
-  //       if (onSubtotalChange) {
-  //         onSubtotalChange(newSubtotal);
-  //         setNewSubtotalValue(newSubtotal);
-  //       }
-  //     }
-  //   };
-
-  //   calculateSubtotal();
-
-  //   if (comments && comments.length > 0) {
-  //     setComments(comments);
-  //     setBooking(bookings);
-  //     setRoom(rooms);
-  //   }
-  // }, [comments, bookings, rooms, adjustmentsByBooking]);
-
- 
-
-
-
+  
   const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
     if (!startTime || !endTime || !rate) return "0.00";
   
@@ -892,39 +761,30 @@ const InvoiceSummary = ({
     return adjustedTotal.toFixed(2);
   };
 
-  const calculateSubtotal = (sessions) => {
-    if (!sessions || sessions.length === 0) return "0.00";
+  const [newSession, setNewSession] = useState(sessions);
 
-    const totalSum = sessions.reduce((acc, session) => {
-      const total = parseFloat(
-        calculateTotalBookingRow(
-          session.startTime,
-          session.endTime,
-          session.rate,
-          session.adjustmentValues
-        )
-      );
-      return acc + total;
-    }, 0);
-
-    const total = totalSum.toFixed(2);
-    setSubtotal(total);
-    return total;
-  };
-
+  const originalSessionRateRef = useRef(null);
+  
   useEffect(() => {
-    if (!summary?.[0]?.adjustmentValues || sessions.length === 0) return;
-
-    let shouldUpdate = false;
-
+    if (sessions?.length > 0 && originalSessionRateRef.current === null) {
+      originalSessionRateRef.current = sessions[0]?.rate;
+      console.log("Original session rate set:", originalSessionRateRef.current);
+    }
+  }, [sessions]);
+  
+  useEffect(() => {
+    if (!summary?.[0]?.adjustmentValues || sessions.length === 0 || originalSessionRateRef.current === null) return;
+    
+    const originalSessionRate = originalSessionRateRef.current;
+    
     const updatedSessions = sessions.map((session) => {
+
       const adjustedRate = calculateTotalBookingRow(
-        session?.rate,
+        originalSessionRate,
         summary[0]?.adjustmentValues
       );
 
       if (session.rate !== adjustedRate) {
-        shouldUpdate = true;
         return {
           ...session,
           rate: adjustedRate,
@@ -934,10 +794,19 @@ const InvoiceSummary = ({
       return session;
     });
 
-    if (shouldUpdate) {
-      setSessions(updatedSessions);
+    console.log("updatedSessions", updatedSessions);
+    setNewSession(updatedSessions);
+    setSessions(updatedSessions)
+    
+  }, [summary]); 
+
+
+  useEffect(() => {
+    if (newSession.length > 0) {
+      console.log("Updated newSessions", newSession[0]?.rate);
     }
-  }, [summary]);
+  }, [newSession]);
+  
 
   return (
     <Flex
