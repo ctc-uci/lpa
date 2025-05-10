@@ -365,6 +365,32 @@ const StatementComments = ({
     return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
 
+  // Room Fee Per Hour After Adjustments
+  const calculateNewRate = (session) => {
+    let newRate = Number(session.rate || 0);
+
+    session.adjustmentValues.forEach((val) => {
+      const isNegative = val.startsWith("-");
+      const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
+
+      let adjustmentAmount = 0;
+
+      if (val.includes("$")) {
+        adjustmentAmount = numericPart;
+      } else if (val.includes("%")) {
+        adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
+      }
+
+      if (isNegative) {
+        newRate -= adjustmentAmount;
+      } else {
+        newRate += adjustmentAmount;
+      }
+    });
+
+    return newRate;
+  };
+
 
   
   return (
@@ -626,7 +652,7 @@ const StatementComments = ({
                           display="flex"
                           alignItems="center"
                         >
-                          ${parseFloat(session.rate).toFixed(2)}/hr
+                          ${calculateNewRate(session).toFixed(2)}/hr
                         </Text>
                       </Td>
 
@@ -733,7 +759,6 @@ const InvoiceSummary = ({
 }) => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const btnRef = useRef();
 
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
@@ -761,14 +786,12 @@ const InvoiceSummary = ({
     return adjustedTotal.toFixed(2);
   };
 
-  const [newSession, setNewSession] = useState(sessions);
-
+  // Summary Sidebar total calculations
   const originalSessionRateRef = useRef(null);
   
   useEffect(() => {
     if (sessions?.length > 0 && originalSessionRateRef.current === null) {
       originalSessionRateRef.current = sessions[0]?.rate;
-      console.log("Original session rate set:", originalSessionRateRef.current);
     }
   }, [sessions]);
   
@@ -794,18 +817,10 @@ const InvoiceSummary = ({
       return session;
     });
 
-    console.log("updatedSessions", updatedSessions);
-    setNewSession(updatedSessions);
     setSessions(updatedSessions)
     
   }, [summary]); 
 
-
-  useEffect(() => {
-    if (newSession.length > 0) {
-      console.log("Updated newSessions", newSession[0]?.rate);
-    }
-  }, [newSession]);
   
 
   return (
