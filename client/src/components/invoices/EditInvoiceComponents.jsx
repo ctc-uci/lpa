@@ -954,6 +954,7 @@ const InvoiceSummary = ({
                     setSummary={setSummary}
                     sessionIndex={0}
                     subtotal={subtotal}
+                    session={sessions[0]}
                 />
               </Tr>
               {/* Room Fee Body Row */}

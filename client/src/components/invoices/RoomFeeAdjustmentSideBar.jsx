@@ -25,28 +25,29 @@ import { MinusOutlineIcon } from "../../assets/MinusOutlineIcon";
 import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
 import { PlusOutlineIcon } from "../../assets/PlusOutlineIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useState, useEffect } from "react";
 
 const RoomFeeAdjustmentSideBar = ({
   isOpen,
   onClose,
-  // invoice,
-  // room,
-  // userId,
   session = {},
   setSessions,
   sessionIndex,
   subtotal = 0.0,
 }) => {
-  // console.log("session", session)
-
   const { backend } = useBackendContext();
+  const [tempSession, setTempSession] = useState(session || {});
 
-  // console.log("session.rate", session.rate || 0);
+  useEffect(() => {
+    if (session) {
+      setTempSession(JSON.parse(JSON.stringify(session)));
+    }
+  }, [session, isOpen]);
 
   const calculateNewRate = () => {
     let newRate = Number(session.rate || 0);
 
-    session.adjustmentValues.forEach((val) => {
+    tempSession.adjustmentValues.forEach((val) => {
       const isNegative = val.startsWith("-");
       const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
 
@@ -68,31 +69,69 @@ const RoomFeeAdjustmentSideBar = ({
     return newRate;
   };
 
+  const handleNegativeClick = (index) => {
+    setTempSession(prev => {
+      const newSession = JSON.parse(JSON.stringify(prev));
+      const currentValue = newSession.adjustmentValues[index];
+      const valueWithoutSign = currentValue.replace(/^[+-]/, '');
+      newSession.adjustmentValues[index] = '-' + valueWithoutSign;
+      return newSession;
+    });
+  };
+
+  const handlePositiveClick = (index) => {
+    setTempSession(prev => {
+      const newSession = JSON.parse(JSON.stringify(prev));
+      const currentValue = newSession.adjustmentValues[index];
+      const valueWithoutSign = currentValue.replace(/^[+-]/, '');
+      newSession.adjustmentValues[index] = '+' + valueWithoutSign;
+      return newSession;
+    });
+  };
+
+  const handleValueChange = (index, newValue, type) => {
+    setTempSession(prev => {
+      const newSession = JSON.parse(JSON.stringify(prev));
+      const currentValue = newSession.adjustmentValues[index];
+      const sign = currentValue.trim().startsWith("-") ? "-" : "+";
+      const numericValue = Math.abs(parseFloat(newValue)) || 0;
+      
+      newSession.adjustmentValues[index] = type === "$" 
+        ? `${sign}$${numericValue}`
+        : `${sign}${numericValue}%`;
+      
+      return newSession;
+    });
+  };
+
+  const handleRemoveAdjustment = (index) => {
+    setTempSession(prev => ({
+      ...prev,
+      adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleClearAll = () => {
+    setTempSession(prev => ({
+      ...prev,
+      adjustmentValues: []
+    }));
+  };
+
+  const handleApply = () => {
+    setSessions(prevSessions => {
+      const newSessions = [...prevSessions];
+      newSessions[sessionIndex] = tempSession;
+      return newSessions;
+    });
+    onClose();
+  };
+
   return (
-    <Slide
-      direction="right"
-      in={isOpen}
-      style={{ zIndex: 200 }}
-    >
-      <Box
-        w="400px"
-        h="100vh"
-        bg="white"
-        p={6}
-        boxShadow="lg"
-        position="fixed"
-        right={0}
-        top={0}
-        display="flex"
-        flexDirection="column"
-        flex="1"
-      >
-        <Flex
-          alignItems="center"
-          gap="26px"
-          alignSelf="stretch"
-          whiteSpace="nowrap"
-        >
+    <Slide direction="right" in={isOpen} style={{ zIndex: 200 }}>
+      <Box w="400px" h="100vh" bg="white" p={6} boxShadow="lg" position="fixed" right={0} top={0} 
+        display="flex" flexDirection="column" flex="1">
+        <Flex alignItems="center" gap="26px" alignSelf="stretch" whiteSpace="nowrap">
           <IconButton
             onClick={onClose}
             variant="ghost"
@@ -101,109 +140,44 @@ const RoomFeeAdjustmentSideBar = ({
             minW="auto"
             icon={<Icon as={CancelIcon} />}
           />
-          <Text
-            fontWeight="500"
-            color="#4A5568"
-            fontSize="14px"
-            whiteSpace="nowrap"
-          >
-            {session.datetime
-              ? format(new Date(session.datetime), "M/d/yy")
-              : "N/A"}{" "}
+          <Text fontWeight="500" color="#4A5568" fontSize="14px" whiteSpace="nowrap">
+            {session.datetime ? format(new Date(session.datetime), "M/d/yy") : "N/A"}{" "}
             Room Fee Adjustment
           </Text>
 
           <AdjustmentTypeSelector
-            onSelect={(type, index) => {
-              setSessions((prevSessions) => {
-                const newSessions = [...prevSessions];
-
-                if (type === "percent")
-                  newSessions[index].adjustmentValues.push("-0%");
-                else if (type === "dollar")
-                  newSessions[index].adjustmentValues.push("-$0");
-
-                return newSessions;
-              });
+            onSelect={(type) => {
+              setTempSession(prev => ({
+                ...prev,
+                adjustmentValues: [
+                  ...prev.adjustmentValues,
+                  type === "percent" ? "-0%" : "-$0"
+                ]
+              }));
             }}
             sessionIndex={sessionIndex}
           />
         </Flex>
 
-        {/* Each adjustment value in sidebar */}
-        <Box
-          marginTop="4px"
-          overflowY="auto"
-          flex="1"
-        >
-          {/* each row */}
-          {session.adjustmentValues.map((val, index) => (
-            <Box
-              key={index}
-              borderBottom="1px solid #E2E8F0"
-              py={3}
-              mt={3}
-            >
-              <Flex
-                justify="space-between"
-                align="center"
-              >
+        <Box marginTop="4px" overflowY="auto" flex="1">
+          {tempSession.adjustmentValues.map((val, index) => (
+            <Box key={index} borderBottom="1px solid #E2E8F0" py={3} mt={3}>
+              <Flex justify="space-between" align="center">
                 <Text fontWeight="bold">
                   {val.includes("$") ? "Dollar ($)" : "Percent (%)"}
                 </Text>
               </Flex>
 
               <HStack justifyContent="space-between">
-                {/* Second row: applied rate + controls */}
-                <Flex
-                  align="center"
-                  gap={2}
-                  mt={2}
-                >
-                  <Text
-                    fontSize="sm"
-                    color="gray.500"
-                  >
-                    {/* Applied to: ${Number(adj.appliedRate || 0).toFixed(2)}/hr */}
-                  </Text>
-
+                <Flex align="center" gap={2} mt={2}>
                   <IconButton
                     aria-label="Negative sign"
-                    icon={
-                      session.adjustmentValues[index].startsWith("-") ? (
-                        <MinusFilledIcon />
-                      ) : (
-                        <MinusOutlineIcon size="16" />
-                      )
-                    }
+                    icon={val.startsWith("-") ? <MinusFilledIcon /> : <MinusOutlineIcon size="16" />}
                     variant="ghost"
                     size="xs"
                     _hover="none"
                     _active="none"
-                    onClick={() => {
-                      setSessions((prevSessions) => {
-                        const newSessions = [...prevSessions];
-
-                        // Get the current value
-                        const currentValue =
-                          newSessions[sessionIndex].adjustmentValues[index];
-
-                        // Remove any existing sign (+ or -) from the value
-                        const valueWithoutSign = currentValue.replace(
-                          /^[+-]/,
-                          ""
-                        );
-
-                        // Add the new sign based on isPositive
-                        const newValue = "-" + valueWithoutSign;
-
-                        // Update the specific adjustment value
-                        newSessions[sessionIndex].adjustmentValues[index] =
-                          newValue;
-
-                        return newSessions;
-                      });
-                    }}
+                    onClick={() => handleNegativeClick(index)}
                   />
 
                   {val.includes("$") ? (
@@ -211,31 +185,7 @@ const RoomFeeAdjustmentSideBar = ({
                       <Text>$</Text>
                       <Input
                         value={parseFloat(val.replace(/[+$%]/g, ""))}
-                        onChange={(e) => {
-                          setSessions((prevSessions) => {
-                            const newSessions = [...prevSessions];
-
-                            const currentValue =
-                              newSessions[sessionIndex].adjustmentValues[index];
-
-                            console.log("currentValue", currentValue);
-
-                            const type = currentValue.includes("$") ? "$" : "%";
-                            const sign = currentValue.trim().startsWith("-")
-                              ? "-"
-                              : "+";
-
-                            const numericValue =
-                              Math.abs(parseFloat(e.target.value)) || 0;
-
-                            newSessions[sessionIndex].adjustmentValues[index] =
-                              type === "$"
-                                ? `${sign}$${numericValue}`
-                                : `${sign}${numericValue}%`;
-
-                            return newSessions;
-                          });
-                        }}
+                        onChange={(e) => handleValueChange(index, e.target.value, "$")}
                         size="sm"
                         width="80px"
                       />
@@ -244,150 +194,61 @@ const RoomFeeAdjustmentSideBar = ({
                     <>
                       <Input
                         value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
-                        onChange={(e) => {
-                          setSessions((prevSessions) => {
-                            const newSessions = [...prevSessions];
-
-                            const currentValue =
-                              newSessions[sessionIndex].adjustmentValues[index];
-
-                            const type = currentValue.includes("$") ? "$" : "%";
-                            const sign = currentValue.trim().startsWith("-")
-                              ? "-"
-                              : "+";
-
-                            const numericValue =
-                              Math.abs(parseFloat(e.target.value)) || 0;
-
-                            newSessions[sessionIndex].adjustmentValues[index] =
-                              type === "$"
-                                ? `${sign}$${numericValue}`
-                                : `${sign}${numericValue}%`;
-
-                            return newSessions;
-                          });
-                        }}
+                        onChange={(e) => handleValueChange(index, e.target.value, "%")}
                         size="sm"
                         width="80px"
                       />
-
                       <Text>%</Text>
                     </>
                   )}
+
                   <IconButton
                     aria-label="Plus sign"
-                    icon={
-                      session.adjustmentValues[index].startsWith("+") ? (
-                        <PlusFilledIcon
-                          color="#4441C8"
-                          size="20"
-                        />
-                      ) : (
-                        <PlusOutlineIcon />
-                      )
+                    icon={val.startsWith("+") ? 
+                      <PlusFilledIcon color="#4441C8" size="20" /> : 
+                      <PlusOutlineIcon />
                     }
                     _hover="none"
                     _active="none"
                     variant="ghost"
                     size="xs"
-                    onClick={() => {
-                      setSessions((prevSessions) => {
-                        const newSessions = [...prevSessions];
-
-                        // Get the current value
-                        const currentValue =
-                          newSessions[sessionIndex].adjustmentValues[index];
-
-                        // Remove any existing sign (+ or -) from the value
-                        const valueWithoutSign = currentValue.replace(
-                          /^[+-]/,
-                          ""
-                        );
-
-                        // Add the new sign based on isPositive
-                        const newValue = "+" + valueWithoutSign;
-
-                        // Update the specific adjustment value
-                        newSessions[sessionIndex].adjustmentValues[index] =
-                          newValue;
-
-                        return newSessions;
-                      });
-                    }}
+                    onClick={() => handlePositiveClick(index)}
                   />
                 </Flex>
+
                 <IconButton
                   aria-label="Remove adjustment"
                   icon={<Icon as={CancelIcon} />}
                   variant="ghost"
                   _hover="none"
                   size="sm"
-                  onClick={() => {
-                    setSessions((prevSessions) => {
-                      const newSessions = [...prevSessions];
-                      const updatedAdjustmentValues =
-                        session.adjustmentValues.filter((_, i) => i !== index);
-                      newSessions[sessionIndex] = {
-                        ...newSessions[sessionIndex],
-                        adjustmentValues: updatedAdjustmentValues,
-                      };
-                      return newSessions;
-                    });
-                  }}
+                  onClick={() => handleRemoveAdjustment(index)}
                 />
               </HStack>
             </Box>
           ))}
-          {/* each row */}
         </Box>
 
-        <Box
-          mt={4}
-          p={2}
-        >
-          <Flex
-            justifyContent="right"
-            alignItems="center"
-            gap="10px"
-          >
-            <Heading
-              size="xs"
-              color="#718096"
-              marginRight="15px"
-            >
+        <Box mt={4} p={2}>
+          <Flex justifyContent="right" alignItems="center" gap="10px">
+            <Heading size="xs" color="#718096" marginRight="15px">
               NEW ROOM FEE
             </Heading>
-            {/* <Heading size="md"> ${Number(newRate || 0).toFixed(2)}/hr</Heading> */}
             <Heading size="md">${calculateNewRate().toFixed(2)}/hr</Heading>
           </Flex>
-          <Flex
-            justifyContent="right"
-            alignItems="center"
-            gap="10px"
-            marginTop="10px"
-          >
-            <Heading
-              size="xs"
-              color="#718096"
-              marginRight="15px"
-            >
+          <Flex justifyContent="right" alignItems="center" gap="10px" marginTop="10px">
+            <Heading size="xs" color="#718096" marginRight="15px">
               NEW SESSION TOTAL
             </Heading>
             <Heading size="md"> ${Number(subtotal || 0).toFixed(2)}</Heading>
-            {/* <Heading size="md">0.00/hr</Heading> */}
           </Flex>
-          <Flex
-            mt="30px"
-            justifyContent="flex-end"
-            alignItems="center"
-            gap="4px"
-          >
+          <Flex mt="30px" justifyContent="flex-end" alignItems="center" gap="4px">
             <Button
               variant="ghost"
               fontSize="14px"
               fontWeight="500"
               color="#2D3748"
-              // onClick={() => setAdjustments([])}
+              onClick={handleClearAll}
             >
               Clear All
             </Button>
@@ -399,43 +260,7 @@ const RoomFeeAdjustmentSideBar = ({
               borderRadius="md"
               fontWeight="bold"
               _hover={{ bg: "#312E8A" }}
-              // onClick={async () => {
-              //   try {
-              //     // Loop over all adjustments and create a comment for each
-              //     for (const adjustment of adjustments) {
-              //       const adjustment_type =
-              //         adjustment.type === "dollar"
-              //           ? "rate_flat"
-              //           : "rate_percent";
-              //       const adjustment_value = adjustment.isNegative
-              //         ? -adjustment.value
-              //         : adjustment.value;
-              //       const adjustmentComment =
-              //         adjustment.type === "dollar"
-              //           ? `Room fee adjustment of $${adjustment_value}`
-              //           : `Room fee adjustment of ${adjustment_value}%`;
-
-              //       await backend.post("/comments", {
-              //         user_id: userId,
-              //         booking_id: booking.id,
-              //         invoice_id: invoice.id,
-              //         comment: adjustmentComment,
-              //         adjustment_type: adjustment_type,
-              //         adjustment_value: adjustment_value,
-              //       });
-              //     }
-
-              //     // Update the UI state with the new adjustments
-              //     onApplyAdjustments(booking.id, adjustments);
-              //     // setActiveRowId(null); // close sidebar
-              //     onClose();
-              //   } catch (err) {
-              //     console.error(
-              //       "Failed to apply adjustments and save comments:",
-              //       err
-              //     );
-              //   }
-              // }}
+              onClick={handleApply}
             >
               Apply
             </Button>
@@ -444,48 +269,119 @@ const RoomFeeAdjustmentSideBar = ({
       </Box>
     </Slide>
   );
-}
+};
 
 const SummaryFeeAdjustmentSideBar = ({
   isOpen,
   onClose,
-  // invoice,
-  // room,
-  // userId,
   summary,
   setSummary,
   sessionIndex,
   subtotal = 0.0,
+  session
 }) => {
-
   const { backend } = useBackendContext();
-  // console.log("summary", summary)
+  const [tempSummary, setTempSummary] = useState(summary || {});
+  const originalRate = useRef(null);
 
+  useEffect(() => {
+    if (session && originalRate.current === null) {
+      const baseRate = Number(session.rate);
+      const existingAdjustments = summary?.adjustmentValues || [];
+      
+      let originalValue = baseRate;
+      existingAdjustments.forEach((val) => {
+        const isNegative = val.startsWith("-");
+        const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
 
-  // const calculateNewRate = () => {
-  //   let newRate = Number(session.rate || 0);
+        let adjustmentAmount = 0;
+        if (val.includes("$")) {
+          adjustmentAmount = numericPart;
+        } else if (val.includes("%")) {
+          adjustmentAmount = (numericPart / 100) * originalValue;
+        }
 
-  //   session.adjustmentValues.forEach((val) => {
-  //     const isNegative = val.startsWith("-");
-  //     const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
+        if (isNegative) {
+          originalValue += adjustmentAmount;
+        } else {
+          originalValue -= adjustmentAmount;
+        }
+      });
 
-  //     let adjustmentAmount = 0;
+      originalRate.current = originalValue;
+    }
+  }, [session, summary]);
 
-  //     if (val.includes("$")) {
-  //       adjustmentAmount = numericPart;
-  //     } else if (val.includes("%")) {
-  //       adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
-  //     }
+  useEffect(() => {
+    if (summary) {
+      setTempSummary(JSON.parse(JSON.stringify(summary)));
+    }
+  }, [summary, isOpen]);
 
-  //     if (isNegative) {
-  //       newRate -= adjustmentAmount;
-  //     } else {
-  //       newRate += adjustmentAmount;
-  //     }
-  //   });
+  const calculateTempRate = () => {
+    if (originalRate.current === null) return 0;
+    
+    let newRate = originalRate.current;
 
-  //   return newRate;
-  // };
+    if (tempSummary?.adjustmentValues) {
+      tempSummary.adjustmentValues.forEach((val) => {
+        const isNegative = val.startsWith("-");
+        const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
+
+        let adjustmentAmount = 0;
+
+        if (val.includes("$")) {
+          adjustmentAmount = numericPart;
+        } else if (val.includes("%")) {
+          adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
+        }
+
+        if (isNegative) {
+          newRate -= adjustmentAmount;
+        } else {
+          newRate += adjustmentAmount;
+        }
+      });
+    }
+
+    return newRate;
+  };
+
+  const handleNegativeClick = (index) => {
+    setTempSummary(prev => {
+      const newSummary = JSON.parse(JSON.stringify(prev));
+      const currentValue = newSummary.adjustmentValues[index];
+      const valueWithoutSign = currentValue.replace(/^[+-]/, '');
+      newSummary.adjustmentValues[index] = '-' + valueWithoutSign;
+      return newSummary;
+    });
+  };
+
+  const handlePositiveClick = (index) => {
+    setTempSummary(prev => {
+      const newSummary = JSON.parse(JSON.stringify(prev));
+      const currentValue = newSummary.adjustmentValues[index];
+      const valueWithoutSign = currentValue.replace(/^[+-]/, '');
+      newSummary.adjustmentValues[index] = '+' + valueWithoutSign;
+      return newSummary;
+    });
+  };
+
+  const handleClearAll = () => {
+    setTempSummary(prev => ({
+      ...prev,
+      adjustmentValues: []
+    }));
+  };
+
+  const handleApply = () => {
+    setSummary(prevSummary => {
+      const newSummary = [...prevSummary];
+      newSummary[sessionIndex] = tempSummary;
+      return newSummary;
+    });
+    onClose();
+  };
 
   return (
     <Slide
@@ -546,16 +442,12 @@ const SummaryFeeAdjustmentSideBar = ({
           />
         </Flex>
 
-        {/* Each adjustment value in sidebar */}
         <Box
           marginTop="4px"
           overflowY="auto"
           flex="1"
         >
-
-
-          {/* each row */}
-          {summary?.adjustmentValues.map((val, index) => (
+          {tempSummary.adjustmentValues && tempSummary?.adjustmentValues.map((val, index) => (
             <Box
               key={index}
               borderBottom="1px solid #E2E8F0"
@@ -572,7 +464,6 @@ const SummaryFeeAdjustmentSideBar = ({
               </Flex>
 
               <HStack justifyContent="space-between">
-                {/* Second row: applied rate + controls */}
                 <Flex
                   align="center"
                   gap={2}
@@ -582,7 +473,6 @@ const SummaryFeeAdjustmentSideBar = ({
                     fontSize="sm"
                     color="gray.500"
                   >
-                    {/* Applied to: ${Number(adj.appliedRate || 0).toFixed(2)}/hr */}
                   </Text>
 
                   <IconButton
@@ -598,30 +488,7 @@ const SummaryFeeAdjustmentSideBar = ({
                     size="xs"
                     _hover="none"
                     _active="none"
-                    onClick={() => {
-                      setSummary((prevSummary) => {
-                        const newSummary = [...prevSummary];
-
-                        // Get the current value
-                        const currentValue =
-                          val;
-
-                        // Remove any existing sign (+ or -) from the value
-                        const valueWithoutSign = currentValue.replace(
-                          /^[+-]/,
-                          ""
-                        );
-
-                        // Add the new sign based on isPositive
-                        const newValue = "-" + valueWithoutSign;
-
-                        // // Update the specific adjustment value
-                        newSummary[0].adjustmentValues[index] =
-                          newValue;
-                          console.log("newSummary", newSummary)
-                        return newSummary;
-                      });
-                    }}
+                    onClick={() => handleNegativeClick(index)}
                   />
 
                   {val.includes("$") ? ( 
@@ -630,28 +497,12 @@ const SummaryFeeAdjustmentSideBar = ({
                       <Input
                         value={parseFloat(val.replace(/[+$%]/g, ""))}
                         onChange={(e) => {
-                          setSummary((prevSummary) => {
-                            const newSummary = [...prevSummary];
-
-                            const currentValue =
-                            newSummary[0].adjustmentValues[index];
-
-
-                            const type = currentValue.includes("$") ? "$" : "%";
-                            const sign = currentValue.trim().startsWith("-")
-                              ? "-"
-                              : "+";
-
-                            const numericValue =
-                              Math.abs(parseFloat(e.target.value)) || 0;
-
-                              newSummary[0].adjustmentValues[index] =
-                              type === "$"
-                                ? `${sign}$${numericValue}`
-                                : `${sign}${numericValue}%`;
-                            
-                            return newSummary;
-                          });
+                          setTempSummary((prev) => ({
+                            ...prev,
+                            adjustmentValues: prev.adjustmentValues.map((v, i) =>
+                              i === index ? e.target.value : v
+                            )
+                          }));
                         }}
                         size="sm"
                         width="80px"
@@ -662,27 +513,12 @@ const SummaryFeeAdjustmentSideBar = ({
                       <Input
                         value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
                         onChange={(e) => {
-                          setSummary((prevSessions) => {
-                            const newSessions = [...prevSessions];
-
-                            const currentValue =
-                              newSessions[sessionIndex].adjustmentValues[index];
-
-                            const type = currentValue.includes("$") ? "$" : "%";
-                            const sign = currentValue.trim().startsWith("-")
-                              ? "-"
-                              : "+";
-
-                            const numericValue =
-                              Math.abs(parseFloat(e.target.value)) || 0;
-
-                            newSessions[sessionIndex].adjustmentValues[index] =
-                              type === "$"
-                                ? `${sign}$${numericValue}`
-                                : `${sign}${numericValue}%`;
-
-                            return newSessions;
-                          });
+                          setTempSummary((prev) => ({
+                            ...prev,
+                            adjustmentValues: prev.adjustmentValues.map((v, i) =>
+                              i === index ? e.target.value : v
+                            )
+                          }));
                         }}
                         size="sm"
                         width="80px"
@@ -707,20 +543,7 @@ const SummaryFeeAdjustmentSideBar = ({
                     _active="none"
                     variant="ghost"
                     size="xs"
-                    onClick={() => {
-                      setSummary((prevSummary) => {
-                        const newSummary = [...prevSummary];
-                        const currentValue = val;
-                        const valueWithoutSign = currentValue.replace(/^[+-]/,"");
-                        const newValue = "+" + valueWithoutSign;
-                        newSummary[0].adjustmentValues[index] =
-                          newValue;
-                        
-                        return newSummary;
-                      });
-
-                      
-                    }}
+                    onClick={() => handlePositiveClick(index)}
                   /> 
                 </Flex>
                 <IconButton
@@ -730,22 +553,15 @@ const SummaryFeeAdjustmentSideBar = ({
                   _hover="none"
                   size="sm"
                   onClick={() => {
-                    setSummary((prevSummary) => {
-                      const newSummary = [...prevSummary];
-                      const updatedAdjustmentValues =
-                        summary.adjustmentValues.filter((_, i) => i !== index);
-                        newSummary[sessionIndex] = {
-                        ...newSummary[sessionIndex],
-                        adjustmentValues: updatedAdjustmentValues,
-                      };
-                      return newSummary;
-                    });
+                    setTempSummary((prev) => ({
+                      ...prev,
+                      adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index)
+                    }));
                   }}
                 />
               </HStack>
             </Box>
           ))} 
-          {/* each row */}
         </Box>
 
         <Box
@@ -764,7 +580,7 @@ const SummaryFeeAdjustmentSideBar = ({
             >
               NEW ROOM FEE
             </Heading>
-            {/* <Heading size="md">${calculateNewRate()}/hr</Heading> */}
+            <Heading size="md">${calculateTempRate().toFixed(2)}/hr</Heading>
           </Flex>
           <Flex
             justifyContent="right"
@@ -792,7 +608,7 @@ const SummaryFeeAdjustmentSideBar = ({
               fontSize="14px"
               fontWeight="500"
               color="#2D3748"
-              // onClick={() => setAdjustments([])}
+              onClick={handleClearAll}
             >
               Clear All
             </Button>
@@ -804,43 +620,7 @@ const SummaryFeeAdjustmentSideBar = ({
               borderRadius="md"
               fontWeight="bold"
               _hover={{ bg: "#312E8A" }}
-              // onClick={async () => {
-              //   try {
-              //     // Loop over all adjustments and create a comment for each
-              //     for (const adjustment of adjustments) {
-              //       const adjustment_type =
-              //         adjustment.type === "dollar"
-              //           ? "rate_flat"
-              //           : "rate_percent";
-              //       const adjustment_value = adjustment.isNegative
-              //         ? -adjustment.value
-              //         : adjustment.value;
-              //       const adjustmentComment =
-              //         adjustment.type === "dollar"
-              //           ? `Room fee adjustment of $${adjustment_value}`
-              //           : `Room fee adjustment of ${adjustment_value}%`;
-
-              //       await backend.post("/comments", {
-              //         user_id: userId,
-              //         booking_id: booking.id,
-              //         invoice_id: invoice.id,
-              //         comment: adjustmentComment,
-              //         adjustment_type: adjustment_type,
-              //         adjustment_value: adjustment_value,
-              //       });
-              //     }
-
-              //     // Update the UI state with the new adjustments
-              //     onApplyAdjustments(booking.id, adjustments);
-              //     // setActiveRowId(null); // close sidebar
-              //     onClose();
-              //   } catch (err) {
-              //     console.error(
-              //       "Failed to apply adjustments and save comments:",
-              //       err
-              //     );
-              //   }
-              // }}
+              onClick={handleApply}
             >
               Apply
             </Button>
@@ -850,8 +630,6 @@ const SummaryFeeAdjustmentSideBar = ({
     </Slide>
   );
 }
-
-
 
 const AdjustmentTypeSelector = ({ onSelect, sessionIndex }) => {
   return (
@@ -877,7 +655,6 @@ const AdjustmentTypeSelector = ({ onSelect, sessionIndex }) => {
     </Menu>
   );
 }
-
 
 export {
   RoomFeeAdjustmentSideBar,
