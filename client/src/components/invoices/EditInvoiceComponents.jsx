@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { ChevronDownIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -263,13 +263,10 @@ const EditInvoiceDetails = ({
 };
 
 // TODO
-// ! - Summary Sidebar
 // ! - Add comments row
 // ! - Add fees row
 // ! - POST Functionality
 // - Fix Current Statement Total in EditInvoice being different that SavedInvoice
-// - Make it so removing a comment adjustmenttype from sidebar only applies when pressing apply, otherwise it stays
-// - Fix subtotal loading twice -> Fix recalculation when summary fee adjustment is made
 
 const StatementComments = ({
   invoice,
@@ -281,6 +278,9 @@ const StatementComments = ({
   const { backend } = useBackendContext();
   const [activeRowId, setActiveRowId] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [activeCommentId, setActiveCommentId] = useState(null);
+  const [commentText, setCommentText] = useState("");
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -391,8 +391,86 @@ const StatementComments = ({
     return newRate;
   };
 
+  const saveComment = (sessionId, commentIndex = null) => {
+    if (!commentText.trim()) {
+      setActiveCommentId(null);
+      setCommentText("");
+      return;
+    }
 
-  
+    setSessions(prevSessions => {
+      return prevSessions.map(session => {
+        if (session.id === sessionId) {
+          const comments = session.comments || [];
+          if (commentIndex !== null) {
+            // Edit existing comment
+            const newComments = [...comments];
+            newComments[commentIndex] = commentText;
+            return {
+              ...session,
+              comments: newComments
+            };
+          } else {
+            // Add new comment
+            return {
+              ...session,
+              comments: [...comments, commentText]
+            };
+          }
+        }
+        return session;
+      });
+    });
+    setActiveCommentId(null);
+    setCommentText("");
+  };
+
+  const handleAddComment = (sessionId) => {
+    if (activeCommentId === sessionId) {
+      saveComment(sessionId);
+    } else {
+      setCommentText("");
+      setActiveCommentId(sessionId);
+    }
+  };
+
+  const handleEditComment = (sessionId, commentIndex) => {
+    const session = sessions.find(s => s.id === sessionId);
+    setCommentText(session?.comments[commentIndex] || "");
+    setActiveCommentId(`${session.id}-${commentIndex}`);
+  };
+
+  const handleKeyDown = (e, sessionId, commentIndex = null) => {
+    if (e.key === 'Enter') {
+      saveComment(sessionId, commentIndex);
+    }
+  };
+
+  const handleBlur = (e, sessionId, commentIndex = null) => {
+    // Small timeout to allow clicking on buttons
+    setTimeout(() => {
+      if (activeCommentId) {
+        saveComment(sessionId, commentIndex);
+      }
+    }, 100);
+  };
+
+  const handleDeleteComment = (sessionId, commentIndex) => {
+    setSessions(prevSessions => {
+      return prevSessions.map(session => {
+        if (session.id === sessionId) {
+          const newComments = [...(session.comments || [])];
+          newComments.splice(commentIndex, 1);
+          return {
+            ...session,
+            comments: newComments
+          };
+        }
+        return session;
+      });
+    });
+  };
+
   return (
     <Flex
       direction="column"
@@ -409,338 +487,430 @@ const StatementComments = ({
           Sessions
         </Heading>
       </HStack>
-      <Flex
-        border="1px solid #D2D2D2"
-        borderRadius="9.57px"
-        minH="24"
-        px="12px"
-      >
-        <Box position="relative">
-          <Table
-            color="#EDF2F7"
-            textAlign="center"
-            variant="simple"
-            size="sm"
-          >
-            {/* header row */}
-            <Thead>
-              <Tr color="#4A5568">
-                <Th
-                  fontSize={compactView ? "6" : "12px"}
-                  py={compactView ? "4" : "8"}
-                >
-                  <Flex align="center">
-                    <CalendarIcon width={compactView && "8"} />
-                    <Text
-                      marginLeft="4px"
-                      fontSize={compactView ? "6" : "sm"}
-                      color="#718096"
-                    >
-                      Date
-                    </Text>
-                  </Flex>
-                </Th>
-                <Th fontSize={compactView ? "6" : "12px"}>
-                  <Flex align="center">
-                    <LocationIcon
-                      width={compactView ? "8" : "12"}
-                      height={compactView && "10"}
-                    />
-                    <Text
-                      marginLeft="4px"
-                      color="#718096"
-                    >
-                      Classroom
-                    </Text>
-                  </Flex>
-                </Th>
-                <Th fontSize={compactView ? "6" : "12px"}>
-                  <Flex align="center">
-                    <ClockIcon
-                      width={compactView ? "8" : "24"}
-                      height={compactView ? "10" : "16"}
-                    />
-                    <Text
-                      marginLeft="4px"
-                      color="#718096"
-                      whiteSpace="nowrap"
-                    >
-                      Rental Hours
-                    </Text>
-                  </Flex>
-                </Th>
-                <Th
-                  fontSize={compactView ? "6" : "12px"}
-                  whiteSpace="nowrap"
-                >
-                  <Flex align="center">
-                    <EditDocumentIcon
-                      width={compactView ? "8" : "16"}
-                      height={compactView && "10"}
-                    />
-                    <Text
-                      marginLeft="4px"
-                      color="#718096"
-                    >
-                      Room Fee Adjustment
-                    </Text>
-                  </Flex>
-                </Th>
-                <Th
-                  fontSize={compactView ? "6" : "12px"}
-                  whiteSpace="nowrap"
-                >
-                  <Flex align="center">
-                    <DollarSignIcon
-                      width={compactView ? "12" : "20"}
-                      height={compactView ? "12" : "20"}
-                    />
-                    <Text
-                      marginLeft="4px"
-                      color="#718096"
-                    >
-                      Room Fee
-                    </Text>
-                  </Flex>
-                </Th>
-                <Th
-                  textAlign="end"
-                  fontSize={compactView ? "6" : "12px"}
-                  color="#718096"
-                >
-                  Total
-                </Th>
-              </Tr>
-            </Thead>
-
-            <Tbody color="#2D3748">
-              {sessions.length > 0 ? (
-                sessions.flatMap((session, index) => {
-                  // console.log("session", session)
-
-                  const sessionRow = (
-                    <Tr key={`session-${session.id || "unknown"}-${index}`}>
-                      {/* Date */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
+      <Box position="relative">
+        <Flex border="1px solid #D2D2D2" borderRadius="9.57px" minH="24" px="12px">
+          <Box width="100%">
+            <Table
+              color="#EDF2F7"
+              textAlign="center"
+              variant="simple"
+              size="sm"
+            >
+              {/* header row */}
+              <Thead>
+                <Tr color="#4A5568">
+                  <Th
+                    fontSize={compactView ? "6" : "12px"}
+                    py={compactView ? "4" : "8"}
+                  >
+                    <Flex align="center">
+                      <CalendarIcon width={compactView && "8"} />
+                      <Text
+                        marginLeft="4px"
+                        fontSize={compactView ? "6" : "sm"}
+                        color="#718096"
+                      >
+                        Date
+                      </Text>
+                    </Flex>
+                  </Th>
+                  <Th fontSize={compactView ? "6" : "12px"}>
+                    <Flex align="center">
+                      <LocationIcon
+                        width={compactView ? "8" : "12"}
+                        height={compactView && "10"}
+                      />
+                      <Text
+                        marginLeft="4px"
+                        color="#718096"
+                      >
+                        Classroom
+                      </Text>
+                    </Flex>
+                  </Th>
+                  <Th fontSize={compactView ? "6" : "12px"}>
+                    <Flex align="center">
+                      <ClockIcon
+                        width={compactView ? "8" : "24"}
+                        height={compactView ? "10" : "16"}
+                      />
+                      <Text
+                        marginLeft="4px"
+                        color="#718096"
                         whiteSpace="nowrap"
-                        borderBottom={
-                          session.comments.length > 0 ? "none" : undefined
-                        }
                       >
-                        {format(new Date(session.datetime), "EEE. M/d/yy")}
-                      </Td>
+                        Rental Hours
+                      </Text>
+                    </Flex>
+                  </Th>
+                  <Th
+                    fontSize={compactView ? "6" : "12px"}
+                    whiteSpace="nowrap"
+                  >
+                    <Flex align="center">
+                      <EditDocumentIcon
+                        width={compactView ? "8" : "16"}
+                        height={compactView && "10"}
+                      />
+                      <Text
+                        marginLeft="4px"
+                        color="#718096"
+                      >
+                        Room Fee Adjustment
+                      </Text>
+                    </Flex>
+                  </Th>
+                  <Th
+                    fontSize={compactView ? "6" : "12px"}
+                    whiteSpace="nowrap"
+                  >
+                    <Flex align="center">
+                      <DollarSignIcon
+                        width={compactView ? "12" : "20"}
+                        height={compactView ? "12" : "20"}
+                      />
+                      <Text
+                        marginLeft="4px"
+                        color="#718096"
+                      >
+                        Room Fee
+                      </Text>
+                    </Flex>
+                  </Th>
+                  <Th
+                    textAlign="end"
+                    fontSize={compactView ? "6" : "12px"}
+                    color="#718096"
+                  >
+                    Total
+                  </Th>
+                </Tr>
+              </Thead>
 
-                      {/* Classroom */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments.length > 0 ? "none" : undefined
-                        }
+              <Tbody color="#2D3748">
+                {sessions && sessions.length > 0 ? (
+                  sessions.map((session, index) => (
+                    <React.Fragment key={session.id || index}>
+                      <Tr 
+                        position="relative"
+                        onMouseEnter={() => setHoveredRowIndex(index)}
+                        onMouseLeave={() => setHoveredRowIndex(null)}
                       >
-                        {session.name}
-                      </Td>
-
-                      {/* Rental hours */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments.length > 0 ? "none" : undefined
-                        }
-                      >
-                        <Flex
-                          align="center"
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
                           whiteSpace="nowrap"
-                          overflow="hidden"
-                          textOverflow="ellipsis"
+                          borderBottom={
+                            session.comments.length > 0 ? "none" : undefined
+                          }
                         >
-                          <Text>{formatTimeString(session.startTime)}</Text>
-                          <Text>-</Text>
-                          <Text>{formatTimeString(session.endTime)}</Text>
-                        </Flex>
-                      </Td>
-
-                      {/* Room fee */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments.length > 0 ? "none" : undefined
-                        }
-                      >
-                        {session.adjustmentValues.length === 0 ? (
-                          "None"
-                        ) : (
-                          <Box display="inline-block">
-                            <Tooltip
-                              label={session.adjustmentValues.join(", ")}
-                              placement="top"
-                              bg="gray"
-                              w="auto"
-                            >
-                              <Text>
-                                {session.adjustmentValues
-                                  .slice(0, 3)
-                                  .join(", ")}
-                                {session.adjustmentValues.length > 3
-                                  ? ", ..."
-                                  : ""}
-                              </Text>
-                            </Tooltip>
-                          </Box>
-                        )}
-
-                        {/* Adjust Button  */}
-                      <Button
-                        leftIcon={<Icon as={PencilIcon} />}
-                        color="white"
-                        background="#4441C8"
-                        borderRadius="md"
-                        px="3"
-                        py="2"
-                        fontSize="small"
-                        height="32px"
-                        opacity={
-                          activeRowId === null ||
-                          activeRowId === session.id
-                            ? 1
-                            : 0.3
-                        }
-                        onClick={() => setActiveRowId(session.id)}
-                        isDisabled={
-                          activeRowId !== null &&
-                          activeRowId !== session.id
-                        }
-                      >
-                      Adjust
-                    </Button>
-
-                    {/* Adjust Sidebar */}
-                    <RoomFeeAdjustmentSideBar
-                            isOpen={activeRowId === session.id}
-                            onClose={() => setActiveRowId(null)}
-                            invoice={invoice[0]}
-                            userId={userId}
-                            session={session}
-                            setSessions={setSessions}
-                            sessionIndex={index}
-                            subtotal={calculateTotalBookingRow(
-                              session.startTime,
-                              session.endTime,
-                              session.rate,
-                              session.adjustmentValues
-                            )}
-                          />
-                      </Td>
-                      
-                      
-
-                      {/* Adjustment type */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments.length > 0 ? "none" : undefined
-                        }
-                      >
-                        <Text
-                          h="40px"
-                          p={compactView ? "0" : "2"}
-                          display="flex"
-                          alignItems="center"
-                        >
-                          ${calculateNewRate(session).toFixed(2)}/hr
-                        </Text>
-                      </Td>
-
-                      {/* Total */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments.length > 0 ? "none" : undefined
-                        }
-                      >
-                        <Flex
-                          justifyContent="center"
-                          alignItems="center"
-                          gap={2}
-                        >
-                          <Text>$</Text>
-                          <Text textAlign="center">
-                            {calculateTotalBookingRow(
-                              session.startTime,
-                              session.endTime,
-                              session.rate,
-                              session.adjustmentValues
-                            )}
-                          </Text>
-                        </Flex>
-                      </Td>
-                    </Tr>
-                  );
-
-                  const textRows =
-                    session.comments?.map((line, textIndex) => {
-                      const isLast = textIndex === session.comments.length - 1;
-                      return (
-                        <Tr
-                          key={`text-${session.id || "unknown"}-${index}-${textIndex}`}
-                        >
-                          <Td
-                            colSpan={6}
-                            pl={compactView ? 2 : 4}
-                            color="gray.600"
-                            py={compactView ? 2 : 6}
-                            fontSize={compactView ? "6.38" : "sm"}
-                            borderBottom={isLast ? "1px solid" : "none"}
-                            borderColor="gray.200"
+                          <VStack 
+                            position="absolute"
+                            left="-80px"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            zIndex="1"
+                            opacity={hoveredRowIndex === index || activeCommentId === session.id ? 1 : 0}
+                            transition="opacity 0.2s"
                           >
-                            {line}
+                            <Button
+                              size="sm"
+                              colorScheme="gray"
+                              onClick={() => handleAddComment(session.id)}
+                            >
+                              {activeCommentId === session.id ? "Save" : "Comment"}
+                            </Button>
+                          </VStack>
+                          {format(new Date(session.datetime), "EEE. M/d/yy")}
+                        </Td>
+
+                        {/* Classroom */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments.length > 0 ? "none" : undefined
+                          }
+                        >
+                          {session.name}
+                        </Td>
+
+                        {/* Rental hours */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments.length > 0 ? "none" : undefined
+                          }
+                        >
+                          <Flex
+                            align="center"
+                            whiteSpace="nowrap"
+                            overflow="hidden"
+                            textOverflow="ellipsis"
+                          >
+                            <Text>{formatTimeString(session.startTime)}</Text>
+                            <Text>-</Text>
+                            <Text>{formatTimeString(session.endTime)}</Text>
+                          </Flex>
+                        </Td>
+
+                        {/* Room fee */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments.length > 0 ? "none" : undefined
+                          }
+                        >
+                          {session.adjustmentValues.length === 0 ? (
+                            "None"
+                          ) : (
+                            <Box display="inline-block">
+                              <Tooltip
+                                label={session.adjustmentValues.join(", ")}
+                                placement="top"
+                                bg="gray"
+                                w="auto"
+                              >
+                                <Text>
+                                  {session.adjustmentValues
+                                    .slice(0, 3)
+                                    .join(", ")}
+                                  {session.adjustmentValues.length > 3
+                                    ? ", ..."
+                                    : ""}
+                                </Text>
+                              </Tooltip>
+                            </Box>
+                          )}
+
+                          {/* Adjust Button  */}
+                        <Button
+                          leftIcon={<PencilIcon color="black" />}
+                          colorScheme="gray"
+                          borderRadius="md"
+                          px="3"
+                          py="2"
+                          fontSize="small"
+                          height="32px"
+                          opacity={
+                            activeRowId === null ||
+                            activeRowId === session.id
+                              ? 1
+                              : 0.3
+                          }
+                          onClick={() => setActiveRowId(session.id)}
+                          isDisabled={
+                            activeRowId !== null &&
+                            activeRowId !== session.id
+                          }
+                        >
+                        Adjust
+                      </Button>
+
+                      {/* Adjust Sidebar */}
+                      <RoomFeeAdjustmentSideBar
+                              isOpen={activeRowId === session.id}
+                              onClose={() => setActiveRowId(null)}
+                              invoice={invoice[0]}
+                              userId={userId}
+                              session={session}
+                              setSessions={setSessions}
+                              sessionIndex={index}
+                              subtotal={calculateTotalBookingRow(
+                                session.startTime,
+                                session.endTime,
+                                session.rate,
+                                session.adjustmentValues
+                              )}
+                            />
+                        </Td>
+                        
+                        
+
+                        {/* Adjustment type */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments.length > 0 ? "none" : undefined
+                          }
+                        >
+                          <Text
+                            h="40px"
+                            p={compactView ? "0" : "2"}
+                            display="flex"
+                            alignItems="center"
+                          >
+                            ${calculateNewRate(session).toFixed(2)}/hr
+                          </Text>
+                        </Td>
+
+                        {/* Total */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments.length > 0 ? "none" : undefined
+                          }
+                        >
+                          <Flex
+                            justifyContent="center"
+                            alignItems="center"
+                            gap={2}
+                          >
+                            <Text>$</Text>
+                            <Text textAlign="center">
+                              {calculateTotalBookingRow(
+                                session.startTime,
+                                session.endTime,
+                                session.rate,
+                                session.adjustmentValues
+                              )}
+                            </Text>
+                          </Flex>
+                        </Td>
+                      </Tr>
+                      
+                      {/* Display all comments */}
+                      {session.comments?.map((comment, commentIndex) => (
+                        <React.Fragment key={`comment-${commentIndex}`}>
+                          {activeCommentId === `${session.id}-${commentIndex}` ? (
+                            <Tr>
+                              <Td colSpan={6} py={2}>
+                                <Input
+                                  placeholder="Edit your comment..."
+                                  value={commentText}
+                                  onChange={(e) => setCommentText(e.target.value)}
+                                  onKeyDown={(e) => handleKeyDown(e, session.id, commentIndex)}
+                                  onBlur={(e) => handleBlur(e, session.id, commentIndex)}
+                                  size="sm"
+                                  autoFocus
+                                  borderColor="#A0AEC0"
+                                  height="40px"
+                                  _hover={{ borderColor: "#A0AEC0" }}
+                                  _focus={{ borderColor: "#A0AEC0", boxShadow: "none" }}
+                                  rounded="lg"
+                                  sx={{
+                                    '&': {
+                                      paddingY: '8'
+                                    }
+                                  }}
+                                />
+                              </Td>
+                            </Tr>
+                          ) : (
+                            <Tr>
+                              <Td 
+                                colSpan={6} 
+                                py={2} 
+                                textAlign="left" 
+                                fontSize="sm" 
+                                color="gray.600"
+                                position="relative"
+                                role="group"
+                              >
+                                <Flex 
+                                  alignItems="center" 
+                                  justifyContent="space-between"
+                                >
+                                  <Box
+                                    cursor="pointer"
+                                    onClick={() => handleEditComment(session.id, commentIndex)}
+                                    flex="1"
+                                    pr={4}
+                                    py="4"
+                                    borderRadius="8"
+                                  >
+                                    {comment}
+                                  </Box>
+                                  <IconButton
+                                    icon={<CloseIcon boxSize={3} />}
+                                    size="xs"
+                                    variant="ghost"
+                                    colorScheme="gray"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteComment(session.id, commentIndex);
+                                    }}
+                                    opacity="0"
+                                    _groupHover={{ opacity: 1 }}
+                                    aria-label="Delete comment"
+                                    ml={2}
+                                    minW="20px"
+                                    height="20px"
+                                  />
+                                </Flex>
+                              </Td>
+                            </Tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                      
+                      {/* New comment input */}
+                      {activeCommentId === session.id && (
+                        <Tr>
+                          <Td colSpan={6} py={2}>
+                            <Input
+                              placeholder="Add your comment here..."
+                              value={commentText}
+                              onChange={(e) => setCommentText(e.target.value)}
+                              onKeyDown={(e) => handleKeyDown(e, session.id)}
+                              onBlur={(e) => handleBlur(e, session.id)}
+                              size="sm"
+                              autoFocus
+                              borderColor="#A0AEC0"
+                              height="40px"
+                              _hover={{ borderColor: "#A0AEC0" }}
+                              _focus={{ borderColor: "#A0AEC0", boxShadow: "none" }}
+                              rounded="lg"
+                              sx={{
+                                '&': {
+                                  paddingY: '8'
+                                }
+                              }}
+                            />
                           </Td>
                         </Tr>
-                      );
-                    }) || [];
+                      )}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <Tr py="4">
+                    <Td
+                      colSpan={6}
+                      textAlign="center"
+                      fontSize={compactView && "8.509px"}
+                    >
+                      No comments available.
+                    </Td>
+                  </Tr>
+                )}
 
-                  return [sessionRow, ...textRows];
-                })
-              ) : (
-                <Tr py="4">
+                <Tr py={compactView ? 0 : 4}>
                   <Td
-                    colSpan={7}
-                    textAlign="center"
-                    fontSize={compactView && "8.509px"}
+                    textAlign="right"
+                    colSpan={5}
+                    fontWeight="bold"
+                    fontSize={compactView ? "6.38" : "sm"}
                   >
-                    No comments available.
+                    Subtotal
+                  </Td>
+                  <Td
+                    borderBottom="none"
+                    py={compactView ? "0" : "8"}
+                    textAlign="center"
+                    fontSize={compactView ? "6.38" : "sm"}
+                  >
+                    {`$ ${calculateSubtotal(sessions)}`}
                   </Td>
                 </Tr>
-              )}
-
-              <Tr py={compactView ? 0 : 4}>
-                <Td
-                  textAlign="right"
-                  colSpan={5}
-                  fontWeight="bold"
-                  fontSize={compactView ? "6.38" : "sm"}
-                >
-                  Subtotal
-                </Td>
-                <Td
-                  borderBottom="none"
-                  py={compactView ? "0" : "8"}
-                  textAlign="center"
-                  fontSize={compactView ? "6.38" : "sm"}
-                >
-                  {`$ ${calculateSubtotal(sessions)}`}
-                </Td>
-              </Tr>
-            </Tbody>
-          </Table>
-        </Box>
-      </Flex>
+              </Tbody>
+            </Table>
+          </Box>
+        </Flex>
+      </Box>
     </Flex>
   );
 };
@@ -922,9 +1092,8 @@ const InvoiceSummary = ({
                 <Td borderBottom="none">
                   <Button
                         // onClose={() => setActiveRowId(null)}
-                        leftIcon={<Icon as={PencilIcon} />}
-                        color="white"
-                        background="#4441C8"
+                        leftIcon={<PencilIcon color="black" />}
+                        colorScheme="gray"
                         borderRadius="md"
                         px="3"
                         py="2"
