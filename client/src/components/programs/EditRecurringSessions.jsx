@@ -4,34 +4,34 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
-import { 
-  Box, 
-  Flex, 
-  Button, 
-  Text, 
-  Card, 
-  CardBody, 
-  Icon, 
+import {
+  Box,
+  Flex,
+  Button,
+  Text,
+  Card,
+  CardBody,
+  Icon,
   IconButton,
-  Heading, 
-  TableContainer, 
-  Table, 
-  Td, 
-  Th, 
-  Tr, 
-  Menu, 
-  MenuButton, 
-  MenuList, 
-  MenuItem, 
+  Heading,
+  TableContainer,
+  Table,
+  Td,
+  Th,
+  Tr,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
   Thead,
-  Input, 
+  Input,
   Select,
   Tab,
   TabList,
   TabPanel,
   TabPanels,
   Tabs,
-  useDisclosure, 
+  useDisclosure,
   Tbody } from "@chakra-ui/react";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { EllipsisIcon } from "lucide-react";
@@ -63,15 +63,15 @@ export const EditRecurringSessions = () => {
   const navigate = useNavigate();
 
   const { isOpen: isSaveSessionModalOpen,
-          onOpen: onSaveSessionModalOpen, 
+          onOpen: onSaveSessionModalOpen,
           onClose: onSaveSessionModalClose } = useDisclosure();
 
   const { isOpen: isUnsavedSessionModalOpen,
-          onOpen: onUnsavedSessionModalOpen, 
+          onOpen: onUnsavedSessionModalOpen,
           onClose: onUnsavedSessionModalClose } = useDisclosure();
 
   const { isOpen: isDeleteRowModalOpen,
-          onOpen: onDeleteRowModalOpen, 
+          onOpen: onDeleteRowModalOpen,
           onClose: onDeleteRowModalClose } = useDisclosure();
 
   // Function to update sorting
@@ -82,19 +82,23 @@ export const EditRecurringSessions = () => {
 
   // Function to format date
   // to "Mon. 01.01.2023"
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
+// Function to format date to "Mon. 01.01.2023"
+const formatDate = (isoString) => {
+  const localDateString = isoString.includes('T') ? isoString : `${isoString}T12:00:00`;
+  const date = new Date(localDateString);
 
-    const options = {
-      weekday: "short",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    };
-    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
-    formattedDate = formattedDate.replace(",", ".");
-    return formattedDate;
+  const options = {
+    weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "UTC" 
   };
+
+  let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
+  formattedDate = formattedDate.replace(",", ".");
+  return formattedDate;
+};
 
   // Function to format time
   // to "12:00 a.m." or "12:00 p.m."
@@ -119,12 +123,12 @@ export const EditRecurringSessions = () => {
   const [recurringFrequency, setRecurringFrequency] = useState("week");
   const [newSessions, setNewSessions] = useState({
     single: [{ date: "", startTime: "", endTime: "", roomId: "", archived: false }],
-    recurring: [{ 
+    recurring: [{
         id: Date.now(), // Just a unique id
-        frequency: recurringFrequency, 
-        weekday: "", 
-        startTime: "", 
-        endTime: "", 
+        frequency: recurringFrequency,
+        weekday: "",
+        startTime: "",
+        endTime: "",
         roomId: "" ,
         archived: false
       }]
@@ -142,16 +146,16 @@ export const EditRecurringSessions = () => {
       single: [...prev.single, { date: "", startTime: "", endTime: "", roomId: "", archived: false }]
     }));
   };
-  
+
   const handleAddRecurringRow = () => {
     setNewSessions(prev => ({
       ...prev,
-      recurring: [...prev.recurring, { 
+      recurring: [...prev.recurring, {
         id: Date.now(), // Just a unique id
-        frequency: recurringFrequency, 
-        weekday: "", 
-        startTime: "", 
-        endTime: "", 
+        frequency: recurringFrequency,
+        weekday: "",
+        startTime: "",
+        endTime: "",
         roomId: "",
         archived: false
       }]
@@ -161,81 +165,93 @@ export const EditRecurringSessions = () => {
   const handleChangeSessionField = (type, index, field, value) => {
     setNewSessions(prev => ({
       ...prev,
-      [type]: prev[type].map((session, i) => 
+      [type]: prev[type].map((session, i) =>
         i === index ? { ...session, [field]: value } : session
       )
     }));
-  
+
     setAllSessions(prev => {
       let updatedSessions = [...prev];
-  
+
       if (type === 'recurring') {
         const recurringSession = { ...newSessions.recurring[index], [field]: value };
-        
+
         // Remove all sessions with this recurringId
         updatedSessions = updatedSessions.filter(s => s.recurringId !== recurringSession.id);
-  
+
         if (Object.values(recurringSession).every(val => val !== "")) {
+          console.log("recurringSession: ", recurringSession);
           const generatedSessions = generateRecurringSessions(recurringSession, startDate, endDate);
           updatedSessions = [
             ...updatedSessions,
-            ...generatedSessions.map(s => ({ 
-              ...s, 
+            ...generatedSessions.map(s => ({
+              ...s,
               recurringId: recurringSession.id,
-              isNew: true 
+              isNew: true
             }))
           ];
         }
       } else if (type === 'single') {
         const singleSession = { ...newSessions.single[index], [field]: value };
-        
+
         // Find and update the existing session or add a new one
-        const existingIndex = updatedSessions.findIndex(s => 
-          s.id === singleSession.id || 
+        const existingIndex = updatedSessions.findIndex(s =>
+          s.id === singleSession.id ||
           (s.date === singleSession.date && s.startTime === singleSession.startTime)
         );
-  
+
         if (existingIndex !== -1) {
           updatedSessions[existingIndex] = { ...updatedSessions[existingIndex], ...singleSession, isNew: true };
         } else if (Object.values(singleSession).every(val => val !== "")) {
           updatedSessions.push({ ...singleSession, id: singleSession.id || Date.now(), isNew: true });
         }
       }
-  
+
       setIsChanged(true);
       return updatedSessions;
     });
-  
+
     console.log("Updated sessions:", allSessions);
   };
 
   const generateRecurringSessions = (recurringSession, startDate, endDate) => {
     const sessions = [];
-    let currentDate = new Date(startDate);
+    const currentTimezoneDate = new Date(startDate.replace(/-/g, '\/').replace(/T.+/, ''));
+    const currentDate = new Date(startDate);
     const endDateObj = new Date(endDate);
-  
-    while (currentDate <= endDateObj) {
-      if (currentDate.getDay() === ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].indexOf(recurringSession.weekday.toLowerCase())) {
-        sessions.push({
-          date: currentDate.toISOString().split('T')[0],
-          startTime: recurringSession.startTime,
-          endTime: recurringSession.endTime,
-          roomId: recurringSession.roomId,
-          id: Date.now() + sessions.length // Unique ID
-        });
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
+    const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const weekdayIndex = weekdays.indexOf(recurringSession.weekday.toLowerCase());
+    const startDayOfWeek = currentTimezoneDate.getDay() ;
+    console.log("stuff: ", recurringSession.weekday.toLowerCase(), weekdayIndex, startDayOfWeek);
+    const daysUntilFirst = (weekdayIndex - startDayOfWeek + 7) % 7;
+    console.log("daysUntilFirst: ", daysUntilFirst);
+
+    if (daysUntilFirst > 0) {
+      currentDate.setDate(currentDate.getDate() + daysUntilFirst );
     }
-  
+
+    while (currentDate <= endDateObj) {
+      console.log("cur date: ", currentDate.toISOString().split('T')[0])
+        sessions.push({
+            date: currentDate.toISOString().split('T')[0],
+            startTime: recurringSession.startTime,
+            endTime: recurringSession.endTime,
+            roomId: recurringSession.roomId,
+            id: Date.now() + sessions.length
+        });
+
+        currentDate.setDate(currentDate.getDate() + 7);
+    }
+
     return sessions;
-  };
+};
 
   const handleDeleteRow = (type, index) => {
     setNewSessions(prev => ({
       ...prev,
       [type]: prev[type].filter((_, i) => i !== index)
     }));
-  
+
     if (type === 'recurring') {
       // Remove all sessions associated with this recurring row
       const recurringId = newSessions.recurring[index].id;
@@ -243,10 +259,10 @@ export const EditRecurringSessions = () => {
     } else if (type === 'single') {
       // Remove the specific single session
       const sessionToDelete = newSessions.single[index];
-      setAllSessions(prev => prev.filter(session => 
-        !(session.date === sessionToDelete.date && 
-          session.startTime === sessionToDelete.startTime && 
-          session.endTime === sessionToDelete.endTime && 
+      setAllSessions(prev => prev.filter(session =>
+        !(session.date === sessionToDelete.date &&
+          session.startTime === sessionToDelete.startTime &&
+          session.endTime === sessionToDelete.endTime &&
           session.roomId === sessionToDelete.roomId)
       ));
     }
@@ -266,7 +282,7 @@ export const EditRecurringSessions = () => {
   };
 
   const handleArchiveSession = (sessionId) => {
-    setAllSessions(prevSessions => 
+    setAllSessions(prevSessions =>
       prevSessions.map(session => {
         if (session.id === sessionId) {
           // If it's a new session, just toggle the archived status
@@ -274,17 +290,17 @@ export const EditRecurringSessions = () => {
             return { ...session, archived: !session.archived };
           }
           // If it's an original session, mark it for update
-          return { 
-            ...session, 
-            archived: !session.archived, 
-            isUpdated: true 
+          return {
+            ...session,
+            archived: !session.archived,
+            isUpdated: true
           };
         }
         return session;
       })
     );
   };
-  
+
   const handleDeleteSession = (sessionId) => {
     setAllSessions(prevSessions => {
       const sessionToDelete = prevSessions.find(s => s.id === sessionId);
@@ -294,7 +310,7 @@ export const EditRecurringSessions = () => {
           return prevSessions.filter(s => s.id !== sessionId);
         }
         // If it's an original session, mark it for deletion
-        return prevSessions.map(s => 
+        return prevSessions.map(s =>
           s.id === sessionId ? { ...s, isDeleted: true } : s
         );
       }
@@ -306,7 +322,8 @@ export const EditRecurringSessions = () => {
     try {
       // Handle new sessions
       const newSessions = allSessions.filter(s => s.isNew && !s.isDeleted);
-      await Promise.all(newSessions.map(s => 
+      console.log("newSessions: ", newSessions);
+      await Promise.all(newSessions.map(s =>
         backend.post('/bookings/', {
           event_id: id,
           room_id: s.roomId,
@@ -316,10 +333,10 @@ export const EditRecurringSessions = () => {
           archived: s.archived
         })
       ));
-  
+
       // Handle updated sessions
       const updatedSessions = allSessions.filter(s => s.isUpdated && !s.isDeleted);
-      await Promise.all(updatedSessions.map(s => 
+      await Promise.all(updatedSessions.map(s =>
         backend.put(`/bookings/${s.id}`, {
           event_id: id,
           room_id: s.roomId,
@@ -329,10 +346,10 @@ export const EditRecurringSessions = () => {
           archived: s.archived
         })
       ));
-  
+
       // Handle deleted sessions
       const deletedSessions = allSessions.filter(s => s.isDeleted && !s.isNew);
-      await Promise.all(deletedSessions.map(s => 
+      await Promise.all(deletedSessions.map(s =>
         backend.delete(`/bookings/${s.id}`)
       ));
 
@@ -341,8 +358,8 @@ export const EditRecurringSessions = () => {
     }
   };
 
-  const handleGoBack = () => {
-      saveChanges();
+  const handleGoBack = async () => {
+      await saveChanges();
       navigate(`/programs/${id}`);
   };
 
@@ -351,19 +368,17 @@ export const EditRecurringSessions = () => {
     try {
       const response = await backend.get('/rooms/');
       const data = response.data;
-      console.log("All rooms:", data);
       setAllRooms(data);
     } catch (error) {
       console.error("Error fetching all rooms:", error);
     }
   };
-  
+
   const fetchAllInfo = async () => {
     try {
       const allSessionsResponse = await backend.get(`/bookings/byEvent/${id}`);
       const allSessionsData = allSessionsResponse.data;
-      console.log("All sessions:", allSessionsData);
-      
+
       setAllSessions((prevSessions) => {
         const existingSessionIds = new Set(prevSessions.map(session => session.id));
         const newSessions = allSessionsData.filter(session => !existingSessionIds.has(session.id));
@@ -373,7 +388,6 @@ export const EditRecurringSessions = () => {
       try {
         const programResponse = await backend.get(`/events/${id}`);
         const programData = programResponse.data;
-        console.log("Program:", programData);
         setProgramName(programData[0].name);
       } catch (programError) {
         console.error("Error fetching program name:", programError);
@@ -382,7 +396,7 @@ export const EditRecurringSessions = () => {
     console.error("Error processing session data or fetching all sessions:", allSessionError);
     }
   };
-  
+
   useEffect(() => {
     fetchAllRooms();
     fetchAllInfo();
@@ -524,10 +538,10 @@ export const EditRecurringSessions = () => {
           </Flex>
         </Box>
       ))}
-      <Button 
-        onClick={handleAddSingleRow} 
+      <Button
+        onClick={handleAddSingleRow}
         bg="white"
-        textColor="#718096" 
+        textColor="#718096"
         leftIcon={<AiOutlinePlus />}
       >
         Row
@@ -548,9 +562,9 @@ export const EditRecurringSessions = () => {
           </Flex>
 
           <Flex justify="space-between" align="center" mb={4}>
-            <Tabs 
-              index={isRecurring ? 0 : 1} 
-              onChange={(index) => setIsRecurring(index === 0)} 
+            <Tabs
+              index={isRecurring ? 0 : 1}
+              onChange={(index) => setIsRecurring(index === 0)}
               flex={1}
             >
               <Flex justify="space-between" align="center" width="100%">
@@ -558,8 +572,8 @@ export const EditRecurringSessions = () => {
                   <Tab fontWeight="bold" color="#718096" _selected={{ color: "#3834B6" }}>Recurring</Tab>
                   <Tab fontWeight="bold" color="#718096" _selected={{ color: "#3834B6" }}>Single</Tab>
                 </TabList>
-                <Button 
-                  onClick={handleResetSessions} 
+                <Button
+                  onClick={handleResetSessions}
                   color="#EDF2F7"
                   textColor="#2D3748"
                 >
@@ -805,14 +819,16 @@ export const EditRecurringSessions = () => {
             justifyContent="center"
             alignItems="center"
             gap="4px"
+            color="#2D3748"
             fontSize="14px"
-            fontWeight="600"
+            fontWeight="700"
             borderRadius="6px"
+            background="#EDF2F7"
             onClick={() => {
               if (isChanged) {
                 onUnsavedSessionModalOpen();
               } else {
-                navigate(`/programs/${id}`);
+                navigate(`/programs/edit/${id}`);
               }
             }}
           >
@@ -820,7 +836,7 @@ export const EditRecurringSessions = () => {
               as={ChevronLeftIcon}
               boxSize={5}
             />{" "}
-            Programs
+            Program Summary
           </Button>
         </Flex>
 
@@ -851,19 +867,19 @@ export const EditRecurringSessions = () => {
           }}
         />
 
-        <SaveSessionModal 
-          isOpen={isSaveSessionModalOpen} 
+        <SaveSessionModal
+          isOpen={isSaveSessionModalOpen}
           onClose={onSaveSessionModalClose}
           noSave={onSaveSessionModalClose}
           save={handleGoBack}
-          programName={programName} 
+          programName={programName}
         />
 
         {isChanged && <UnsavedChangesModal
           isOpen={isUnsavedSessionModalOpen}
           onClose={onUnsavedSessionModalClose}
           noSave={() => {
-            onUnsavedSessionModalClose(); 
+            onUnsavedSessionModalClose();
             navigate(`/programs/${id}`);}}
           save={handleGoBack}
         />}
