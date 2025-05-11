@@ -187,7 +187,7 @@ const formatDate = (isoString) => {
           ];
         }
       } else if (type === 'single') {
-        const singleSession = { ...newSessions.single[index], [field]: value };
+        const singleSession = { ...newSessions.single[index], [field]: value, id:index };
 
         // Find and update the existing session or add a new one
         const existingIndex = updatedSessions.findIndex(s =>
@@ -195,10 +195,12 @@ const formatDate = (isoString) => {
           (s.date === singleSession.date && s.startTime === singleSession.startTime)
         );
 
+        console.log("existingIndex: ", existingIndex, singleSession.id);
+
         if (existingIndex !== -1) {
           updatedSessions[existingIndex] = { ...updatedSessions[existingIndex], ...singleSession, isNew: true };
         } else if (Object.values(singleSession).every(val => val !== "")) {
-          updatedSessions.push({ ...singleSession, id: singleSession.id || Date.now(), isNew: true });
+          updatedSessions.push({ ...singleSession, id: singleSession.id , isNew: true });
         }
       }
 
@@ -331,6 +333,7 @@ const formatDate = (isoString) => {
 
       // Handle updated sessions
       const updatedSessions = allSessions.filter(s => s.isUpdated && !s.isDeleted);
+      console.log("updatedSessions: ", updatedSessions);
       await Promise.all(updatedSessions.map(s =>
         backend.put(`/bookings/${s.id}`, {
           event_id: id,
