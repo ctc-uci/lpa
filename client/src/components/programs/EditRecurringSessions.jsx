@@ -219,22 +219,20 @@ const formatDate = (isoString) => {
     const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     const weekdayIndex = weekdays.indexOf(recurringSession.weekday.toLowerCase());
     const startDayOfWeek = currentTimezoneDate.getDay() ;
-    console.log("stuff: ", recurringSession.weekday.toLowerCase(), weekdayIndex, startDayOfWeek);
     const daysUntilFirst = (weekdayIndex - startDayOfWeek + 7) % 7;
-    console.log("daysUntilFirst: ", daysUntilFirst);
 
     if (daysUntilFirst > 0) {
       currentDate.setDate(currentDate.getDate() + daysUntilFirst );
     }
 
     while (currentDate <= endDateObj) {
-      console.log("cur date: ", currentDate.toISOString().split('T')[0])
         sessions.push({
-            date: currentDate.toISOString().split('T')[0],
+            date: currentDate.toISOString(),
             startTime: recurringSession.startTime,
             endTime: recurringSession.endTime,
             roomId: recurringSession.roomId,
-            id: Date.now() + sessions.length
+            eventId: id,
+            archived: false,
         });
 
         currentDate.setDate(currentDate.getDate() + 7);
@@ -317,10 +315,12 @@ const formatDate = (isoString) => {
   const saveChanges = async () => {
     try {
       await backend.delete('bookings/event/' + id);
+      console.log("allSessions: ",allSessions);
+
       // Handle new sessions
-      const newSessions = allSessions.filter(s => s.isNew && !s.isDeleted);
-      console.log("newSessions: ", newSessions);
-      await Promise.all(newSessions.map(s =>
+      // const newSessions = allSessions.filter(s => s.isNew && !s.isDeleted);
+      // console.log("newSessions: ", newSessions);
+      await Promise.all(allSessions.map(s =>
         backend.post('/bookings/', {
           event_id: id,
           room_id: s.roomId,
@@ -332,18 +332,18 @@ const formatDate = (isoString) => {
       ));
 
       // Handle updated sessions
-      const updatedSessions = allSessions.filter(s => s.isUpdated && !s.isDeleted);
-      console.log("updatedSessions: ", updatedSessions);
-      await Promise.all(updatedSessions.map(s =>
-        backend.put(`/bookings/${s.id}`, {
-          event_id: id,
-          room_id: s.roomId,
-          start_time: s.startTime,
-          end_time: s.endTime,
-          date: s.date,
-          archived: s.archived
-        })
-      ));
+      // const updatedSessions = allSessions.filter(s => s.isUpdated && !s.isDeleted);
+      // console.log("updatedSessions: ", updatedSessions);
+      // await Promise.all(updatedSessions.map(s =>
+      //   backend.put(`/bookings/${s.id}`, {
+      //     event_id: id,
+      //     room_id: s.roomId,
+      //     start_time: s.startTime,
+      //     end_time: s.endTime,
+      //     date: s.date,
+      //     archived: s.archived
+      //   })
+      // ));
     } catch (error) {
       console.error("Error saving changes:", error);
     }
