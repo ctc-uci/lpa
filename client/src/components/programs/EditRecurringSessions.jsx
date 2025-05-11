@@ -61,6 +61,7 @@ export const EditRecurringSessions = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const [ sortOrder, setSortOrder ] = useState("asc");
 
   const { isOpen: isSaveSessionModalOpen,
           onOpen: onSaveSessionModalOpen,
@@ -74,15 +75,8 @@ export const EditRecurringSessions = () => {
           onOpen: onDeleteRowModalOpen,
           onClose: onDeleteRowModalClose } = useDisclosure();
 
-  // Function to update sorting
-  const handleSortChange = (key, order) => {
-    setSortKey(key);
-    setSortOrder(order);
-  };
-
   // Function to format date
   // to "Mon. 01.01.2023"
-// Function to format date to "Mon. 01.01.2023"
 const formatDate = (isoString) => {
   const localDateString = isoString.includes('T') ? isoString : `${isoString}T12:00:00`;
   const date = new Date(localDateString);
@@ -92,7 +86,7 @@ const formatDate = (isoString) => {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-    timeZone: "UTC" 
+    timeZone: "UTC"
   };
 
   let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
@@ -670,7 +664,7 @@ const formatDate = (isoString) => {
                         alignItems="flex-start"
                         gap="2px"
                       >
-                        <DateSortingModal onSortChange={handleSortChange} />
+                        <DateSortingModal sortOrder={sortOrder} setSortOrder={setSortOrder} />
                       </Box>
                     </Box>
                   </Th>
@@ -721,6 +715,7 @@ const formatDate = (isoString) => {
               <Tbody>
               {allSessions
                 .filter(session => !session.isDeleted)
+                .sort((a, b) => { return sortOrder === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date) })
                 .map((session) => (
                 <Tr
                   key={session.id}

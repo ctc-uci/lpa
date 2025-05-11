@@ -1,4 +1,4 @@
-import React from "react";
+import React , { useRef } from "react";
 
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import {
@@ -15,9 +15,11 @@ import arrowsSvg from "../../assets/icons/right-icon.svg";
 
 import "./Sorting.css";
 
-const DateSortingModal = ({ onSortChange }) => {
+const DateSortingModal = ({ sortOrder, setSortOrder }) => {
+  const initialRef = useRef();
+
   return (
-    <Menu>
+    <Menu initialFocusRef={initialRef}>
       <MenuButton
         as={Button}
         variant="ghost"
@@ -29,6 +31,7 @@ const DateSortingModal = ({ onSortChange }) => {
           marginLeft: "auto",
           marginRight: "-14px",
         }}
+
       >
         <img
           src={arrowsSvg}
@@ -36,11 +39,17 @@ const DateSortingModal = ({ onSortChange }) => {
           className="menu-button-icon"
         />
       </MenuButton>
-      <MenuList className="date-sorting-popup">
-        <MenuItem onClick={() => onSortChange("date", "asc")}>
+      <MenuList className="date-sorting-popup" ref={initialRef}>
+        <MenuItem
+          onClick={() => setSortOrder("asc")}
+          backgroundColor={sortOrder === "asc" ? "#EDF2F7" : "transparent"}
+        >
           <Box className="icon-style">Soonest - Latest</Box>
         </MenuItem>
-        <MenuItem onClick={() => onSortChange("date", "desc")}>
+        <MenuItem
+          onClick={() => setSortOrder("desc")}
+          backgroundColor={sortOrder === "desc" ? "#EDF2F7" : "transparent"}
+        >
           <Box className="icon-style">Latest - Soonest</Box>
         </MenuItem>
       </MenuList>
