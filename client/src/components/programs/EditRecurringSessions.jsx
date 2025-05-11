@@ -75,6 +75,8 @@ export const EditRecurringSessions = () => {
           onOpen: onDeleteRowModalOpen,
           onClose: onDeleteRowModalClose } = useDisclosure();
 
+  const [deleteIds, setDeleteIds] = useState([]);
+
   // Function to format date
   // to "Mon. 01.01.2023"
 const formatDate = (isoString) => {
@@ -111,7 +113,6 @@ const formatDate = (isoString) => {
   const [isChanged, setIsChanged] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
 
-  const [deleteAll, setDeleteAll] = useState(false);
 
   // States for new sessions
   const [recurringFrequency, setRecurringFrequency] = useState("week");
@@ -263,7 +264,6 @@ const formatDate = (isoString) => {
   };
 
   const handleResetSessions = () => {
-    setDeleteIds(allSessions.filter(session => session.isNew === undefined).map(session => session.id));
     // Clear all sessions
     setAllSessions([]);
     setNewSessions({
@@ -271,7 +271,7 @@ const formatDate = (isoString) => {
       recurring: []
     });
     // Reset any other relevant state
-    setDeleteAll(true);
+    handleAddSingleRow();
     setIsChanged(true);
   };
 
@@ -314,6 +314,7 @@ const formatDate = (isoString) => {
 
   const saveChanges = async () => {
     try {
+      await backend.delete('bookings/event/' + id);
       // Handle new sessions
       const newSessions = allSessions.filter(s => s.isNew && !s.isDeleted);
       console.log("newSessions: ", newSessions);
@@ -340,13 +341,6 @@ const formatDate = (isoString) => {
           archived: s.archived
         })
       ));
-
-      // Handle deleted sessions
-      const deletedSessions = allSessions.filter(s => s.isDeleted && !s.isNew);
-      await Promise.all(deletedSessions.map(s =>
-        backend.delete(`/bookings/${s.id}`)
-      ));
-
     } catch (error) {
       console.error("Error saving changes:", error);
     }
@@ -397,7 +391,7 @@ const formatDate = (isoString) => {
   }, [id]);
 
   const addRecurring = (
-    <TabPanel>
+    <>
         <Flex align="center" mb="20px" gap="10px">
             <CalendarIcon />
             <Text fontSize="16px" fontWeight="500">Starts on</Text>
@@ -481,11 +475,11 @@ const formatDate = (isoString) => {
         >
           Row
         </Button>
-    </TabPanel>
+    </>
   );
 
   const addSingle = (
-    <TabPanel>
+    <>
       {newSessions.single.map((session, index) => (
         <Box key={index} mb={4}>
           <Flex align="center" gap="10px">
@@ -540,7 +534,7 @@ const formatDate = (isoString) => {
       >
         Row
       </Button>
-    </TabPanel>
+    </>
   );
 
   const sessionsComponent = (
@@ -575,8 +569,8 @@ const formatDate = (isoString) => {
                 </Button>
               </Flex>
               <TabPanels>
-                <TabPanel padding={0}>{addRecurring}</TabPanel>
-                <TabPanel padding={0}>{addSingle}</TabPanel>
+                <TabPanel padding={4}>{addRecurring}</TabPanel>
+                <TabPanel padding={4}>{addSingle}</TabPanel>
               </TabPanels>
             </Tabs>
           </Flex>

@@ -103,6 +103,7 @@ import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
+import { DeleteRowModal } from "../popups/DeleteRowModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
@@ -898,6 +899,7 @@ export const Sessions = ({
   rooms,
   isArchived,
   setIsArchived,
+  eventId,
   refreshSessions,
   instructors,
   payees
@@ -909,6 +911,7 @@ export const Sessions = ({
     onOpen: openCancelModal,
     onClose: closeCancelModal,
   } = useDisclosure();
+  const { isOpen: deleteModalIsOpen, onOpen: deleteModalOnOpen, onClose: deleteModalOnClose } = useDisclosure();
 
   const handleConfirmCancel = async (action, reason, waivedFees) => {
     // Create an array of session IDs
@@ -1008,8 +1011,7 @@ export const Sessions = ({
   const [selectMenuOpen, setSelectMenuOpen] = useState(false);
   const [selectOption, setSelectOption] = useState("Select");
   const [selectedSessions, setSelectedSessions] = useState([]);
-
-  console.log("Selected Sessions:", selectedSessions);
+  const [selectedSingleSession, setSelectedSingleSession ] = useState(null);
 
   const handleSessionSelection = (sessionId) => {
     setSelectedSessions((prev) => {
@@ -1120,7 +1122,7 @@ export const Sessions = ({
   ]);
 
   useEffect(() => {
-    if (sessions && sessions.length > 0) {
+    if (sessions) {
       setFilteredSessions(sessions);
     }
   }, [sessions]);
@@ -1176,11 +1178,18 @@ export const Sessions = ({
     setTimeRange((prev) => ({ ...prev, [field]: value }));
   };
 
+  const deleteSingleSession = async () => {
+    console.log(selectedSingleSession);
+    await backend.delete('/bookings/' + selectedSingleSession);
+    refreshSessions();
+  };
+
   return (
     <Box
       marginBottom="50px"
       width="100%"
     >
+      <DeleteRowModal isOpen={deleteModalIsOpen} onClose={deleteModalOnClose} onDelete={deleteSingleSession}/>
       <Flex
         align="center"
         mb="15px"
@@ -1214,13 +1223,509 @@ export const Sessions = ({
           >
             <Flex
               gap="12px"
+              justifyContent="space-between"
               alignItems="center"
+              flex="1 0 0"
             >
-              <Box position="relative">
+              <Flex
+                alignItems="flex-start"
+                gap="8px"
+                alignSelf="stretch"
+              >
+                <Box position="relative">
+                  <Button
+                    style={{
+                      display: "flex",
+                      height: "40px",
+                      width: "85px",
+                      padding: "0px 16px",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "4px",
+                      flex: "1 0 0",
+                      borderRadius: "6px",
+                      backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
+                      color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
+                      fontFamily: "Inter",
+                      fontSize: "14px",
+                      fontStyle: "normal",
+                      fontWeight: "700",
+                      lineHeight: "normal",
+                      letterSpacing: "0.07px",
+                    }}
+                    onClick={() => {
+                      setSelectMenuOpen(!selectMenuOpen);
+                      setIsSelected(true);
+                    }}
+                    data-select-menu="true"
+                  >
+                    {selectOption}
+                  </Button>
+                  {selectMenuOpen && (
+                    <Box
+                      position="absolute"
+                      top="45px"
+                      left="0"
+                      display="flex"
+                      width="85px"
+                      padding="4px"
+                      flexDirection="column"
+                      alignItems="flex-start"
+                      gap="10px"
+                      borderRadius="4px"
+                      border="1px solid var(--Secondary-3, #E2E8F0)"
+                      background="#FFF"
+                      boxShadow="0px 1px 2px 0px rgba(0, 0, 0, 0.05)"
+                      zIndex="10"
+                    >
+                      <Stack
+                        spacing="0"
+                        width="100%"
+                      >
+                        <Button
+                          justifyContent="flex-start"
+                          fontWeight="normal"
+                          bg="white"
+                          _hover={{ bg: "#f2f6fb" }}
+                          onClick={() => handleSelectOption("Select")}
+                          borderRadius="2px"
+                          height="30px"
+                          width="100%"
+                          padding="4px 8px"
+                          fontSize="14px"
+                        >
+                          Select
+                        </Button>
+                        <Button
+                          justifyContent="flex-start"
+                          fontWeight="normal"
+                          bg="white"
+                          _hover={{ bg: "#f2f6fb" }}
+                          onClick={() => handleSelectOption("Select all")}
+                          borderRadius="2px"
+                          height="30px"
+                          width="100%"
+                          padding="4px 8px"
+                          fontSize="14px"
+                          letterSpacing={
+                            selectOption === "Select all" ? "0.07px" : "normal"
+                          }
+                        >
+                          Select all
+                        </Button>
+                        <Button
+                          justifyContent="flex-start"
+                          fontWeight="normal"
+                          bg="white"
+                          _hover={{ bg: "#f2f6fb" }}
+                          onClick={() => {
+                            setSelectOption(false);
+                            handleSelectOption("Deselect");
+                            setIsSelected(false);
+                          }}
+                          borderRadius="2px"
+                          height="30px"
+                          width="100%"
+                          padding="4px 8px"
+                          fontSize="14px"
+                          color={
+                            selectOption === "Deselect"
+                              ? "var(--Primary-5-Default, #4441C8)"
+                              : "inherit"
+                          }
+                          letterSpacing={
+                            selectOption === "Deselect" ? "0.07px" : "normal"
+                          }
+                        >
+                          Deselect
+                        </Button>
+                      </Stack>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Cancel button - only shows when isSelected is true */}
+                {isSelected && (
+                  <button
+                    style={{
+                      display: "flex",
+                      height: "40px",
+                      padding: "0px 16px",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "4px",
+                      borderRadius: "6px",
+                      background: "var(--destructive, #90080F)",
+                      color: "white",
+                      fontFamily: "Inter",
+                      fontSize: "14px",
+                      fontStyle: "normal",
+                      fontWeight: "700",
+                      lineHeight: "normal",
+                      letterSpacing: "0.07px",
+                      border: "none",
+                      cursor:
+                        selectedSessions.length > 0 ? "pointer" : "not-allowed",
+                      opacity: selectedSessions.length > 0 ? 1 : 0.6,
+                    }}
+                    onClick={() => {
+                      if (selectedSessions.length > 0) {
+                        openCancelModal();
+                      }
+                    }}
+                    disabled={selectedSessions.length === 0}
+                  >
+                    <CancelIcon />{" "}
+                    {selectOption === "Select all"
+                      ? "All"
+                      : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
+                  </button>
+                )}
+
+
+                <Popover onClose={onClose}>
+                  <PopoverTrigger>
+                    <Button
+                      display="flex"
+                      height="40px"
+                      width="96px"
+                      padding="0px 16px"
+                      justifyContent="center"
+                      alignItems="center"
+                      gap="4px"
+                      borderRadius="6px"
+                      bg="var(--Secondary-2-Default, #EDF2F7)"
+                      color="#2D3748"
+                      fontFamily="Inter"
+                      fontSize="14px"
+                      onClick={onOpen}
+                      border="none"
+                    >
+                      <Box
+                        display="flex"
+                        flexDirection="row"
+                        alignItems="center"
+                        gap="5px"
+                      >
+                        <SessionFilter
+                          sessions={sessions}
+                          setFilteredSessions={setFilteredSessions}
+                          rooms={rooms}
+                        />
+                      </Box>
+                    </Button>
+                  </PopoverTrigger>
+                  <Portal>
+                    <PopoverContent>
+                      <Box margin="16px">
+                        <PopoverBody>
+                          <Box
+                            display="flex"
+                            flexDirection="column"
+                            alignItems="flex-start"
+                            gap="24px"
+                            alignSelf="stretch"
+                          >
+                            <FormControl id="date">
+                              <Box
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems="flex-start"
+                                gap="16px"
+                                alignSelf="stretch"
+                              >
+                                <Box
+                                  display="flex"
+                                  alignItems="center"
+                                  gap="5px"
+                                  alignSelf="stretch"
+                                >
+                                  <CalendarIcon />
+                                  <Text
+                                    fontWeight="bold"
+                                    color="#767778"
+                                  >
+                                    DATE
+                                  </Text>
+                                </Box>
+                                <Box
+                                  display="flex"
+                                  alignItems="center"
+                                  gap="8px"
+                                >
+                                  <Input
+                                    size="sm"
+                                    borderRadius="5px"
+                                    borderColor="#D2D2D2"
+                                    backgroundColor="#F6F6F6"
+                                    width="35%"
+                                    height="20%"
+                                    type="date"
+                                    placeholder="MM/DD/YYYY"
+                                    onChange={(e) =>
+                                      handleDateChange("start", e.target.value)
+                                    }
+                                  />
+                                  <Text> to </Text>
+                                  <Input
+                                    size="sm"
+                                    borderRadius="5px"
+                                    borderColor="#D2D2D2"
+                                    backgroundColor="#F6F6F6"
+                                    width="35%"
+                                    height="20%"
+                                    type="date"
+                                    placeholder="MM/DD/YYYY"
+                                    onChange={(e) =>
+                                      handleDateChange("end", e.target.value)
+                                    }
+                                  />
+                                </Box>
+                              </Box>
+                            </FormControl>
+                            <FormControl id="time">
+                              <Box
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems="flex-start"
+                                gap="16px"
+                                alignSelf="stretch"
+                              >
+                                <Box
+                                  display="flex"
+                                  alignItems="center"
+                                  gap="5px"
+                                  alignSelf="stretch"
+                                >
+                                  <Icon as={sessionsFilterClock} />
+                                  <Text
+                                    fontWeight="bold"
+                                    color="#767778"
+                                  >
+                                    Time
+                                  </Text>
+                                </Box>
+                                <Box
+                                  display="flex"
+                                  alignItems="center"
+                                  gap="8px"
+                                >
+                                  <Input
+                                    size="xs"
+                                    borderRadius="5px"
+                                    borderColor="#D2D2D2"
+                                    backgroundColor="#F6F6F6"
+                                    width="30%"
+                                    height="20%"
+                                    type="time"
+                                    placeholder="00:00 am"
+                                    onChange={(e) =>
+                                      handleTimeChange("start", e.target.value)
+                                    }
+                                  />
+                                  <Text> to </Text>
+                                  <Input
+                                    size="xs"
+                                    borderRadius="5px"
+                                    borderColor="#D2D2D2"
+                                    backgroundColor="#F6F6F6"
+                                    width="30%"
+                                    height="20%"
+                                    type="time"
+                                    placeholder="00:00 pm"
+                                    onChange={(e) =>
+                                      handleTimeChange("end", e.target.value)
+                                    }
+                                  />
+                                </Box>
+                              </Box>
+                            </FormControl>
+                            <FormControl id="status">
+                              <Box
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems="flex-start"
+                                gap="16px"
+                                alignSelf="stretch"
+                              >
+                                <Text
+                                  fontWeight="bold"
+                                  color="#767778"
+                                  visibility={isSelected ? "visible" : "hidden"}
+                                >
+                                  Status
+                                </Text>
+                                <Box
+                                  display="flex"
+                                  alignItems="center"
+                                  gap="8px"
+                                >
+                                  <Button
+                                    borderRadius="30px"
+                                    borderWidth="1px"
+                                    minWidth="auto"
+                                    height="20%"
+                                    onClick={() => setStatus("All")}
+                                    backgroundColor={
+                                      status === "All" ? "#EDEDFD" : "#F6F6F6"
+                                    }
+                                    borderColor={
+                                      status === "All" ? "#4E4AE7" : "#767778"
+                                    }
+                                  >
+                                    All
+                                  </Button>
+                                  <Button
+                                    borderRadius="30px"
+                                    borderWidth="1px"
+                                    minWidth="auto"
+                                    height="20%"
+                                    onClick={() => setStatus("Active")}
+                                    backgroundColor={
+                                      status === "Active" ? "#EDEDFD" : "#F6F6F6"
+                                    }
+                                    borderColor={
+                                      status === "Active" ? "#4E4AE7" : "#767778"
+                                    }
+                                  >
+                                    <Box
+                                      display="flex"
+                                      justifyContent="center"
+                                      alignItems="center"
+                                      gap="4px"
+                                    >
+                                      <Box
+                                        width="10px"
+                                        height="10px"
+                                        borderRadius="50%"
+                                        bg="#0C824D"
+                                      />
+                                      Active
+                                    </Box>
+                                  </Button>
+                                  <Button
+                                    borderRadius="30px"
+                                    borderWidth="1px"
+                                    minWidth="auto"
+                                    height="20%"
+                                    onClick={() => setStatus("Past")}
+                                    backgroundColor={
+                                      status === "Past" ? "#EDEDFD" : "#F6F6F6"
+                                    }
+                                    borderColor={
+                                      status === "Past" ? "#4E4AE7" : "#767778"
+                                    }
+                                  >
+                                    <Box
+                                      display="flex"
+                                      justifyContent="center"
+                                      alignItems="center"
+                                      gap="4px"
+                                    >
+                                      <Box
+                                        width="10px"
+                                        height="10px"
+                                        borderRadius="50%"
+                                        bg="#DAB434"
+                                      />
+                                      Past
+                                    </Box>
+                                  </Button>
+                                </Box>
+                              </Box>
+                            </FormControl>
+                            <FormControl id="room">
+                              <Box
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems="flex-start"
+                                gap="16px"
+                                alignSelf="stretch"
+                              >
+                                <Box
+                                  display="flex"
+                                  alignItems="center"
+                                  gap="5px"
+                                  alignSelf="stretch"
+                                >
+                                  <Icon as={sessionsFilterMapPin} />
+                                  <Text
+                                    fontWeight="bold"
+                                    color="#767778"
+                                  >
+                                    Room
+                                  </Text>
+                                </Box>
+                                <Wrap spacing={2}>
+                                  <WrapItem>
+                                    <Button
+                                      borderRadius="30px"
+                                      borderWidth="1px"
+                                      width="auto"
+                                      height="20px"
+                                      onClick={() => setSelectedRoom("All")}
+                                      backgroundColor={
+                                        selectedRoom === "All"
+                                          ? "#EDEDFD"
+                                          : "#F6F6F6"
+                                      }
+                                      borderColor={
+                                        selectedRoom === "All"
+                                          ? "#4E4AE7"
+                                          : "#767778"
+                                      }
+                                    >
+                                      All
+                                    </Button>
+                                  </WrapItem>
+                                  {Array.from(rooms.values()).map(
+                                    (room, index) => (
+                                      <WrapItem key={index}>
+                                        <Button
+                                          borderRadius="30px"
+                                          borderWidth="1px"
+                                          minWidth="auto"
+                                          height="20px"
+                                          onClick={() => setSelectedRoom(room)}
+                                          backgroundColor={
+                                            selectedRoom === room
+                                              ? "#EDEDFD"
+                                              : "#F6F6F6"
+                                          }
+                                          borderColor={
+                                            selectedRoom === room
+                                              ? "#4E4AE7"
+                                              : "#767778"
+                                          }
+                                        >
+                                          {room}
+                                        </Button>
+                                      </WrapItem>
+                                    )
+                                  )}
+                                </Wrap>
+                              </Box>
+                            </FormControl>
+                          </Box>
+                        </PopoverBody>
+                      </Box>
+                    </PopoverContent>
+                  </Portal>
+                </Popover>
+              </Flex>
+
+              <Flex
+                alignItems="flex-end"
+              >
                 <Button
                   style={{
                     display: "flex",
                     height: "40px",
+                    width: "156px",
                     padding: "0px 16px",
                     justifyContent: "center",
                     alignItems: "center",
@@ -1236,467 +1741,12 @@ export const Sessions = ({
                     lineHeight: "normal",
                     letterSpacing: "0.07px",
                   }}
-                  onClick={() => {
-                    setSelectMenuOpen(!selectMenuOpen);
-                    setIsSelected(true);
-                  }}
+                  onClick={() => { navigate(`/programs/edit/sessions/${eventId}`) }}
                   data-select-menu="true"
                 >
-                  {selectOption}
+                  Revise Session(s)
                 </Button>
-                {selectMenuOpen && (
-                  <Box
-                    position="absolute"
-                    top="45px"
-                    left="0"
-                    display="flex"
-                    width="85px"
-                    padding="4px"
-                    flexDirection="column"
-                    alignItems="flex-start"
-                    gap="10px"
-                    borderRadius="4px"
-                    border="1px solid var(--Secondary-3, #E2E8F0)"
-                    background="#FFF"
-                    boxShadow="0px 1px 2px 0px rgba(0, 0, 0, 0.05)"
-                    zIndex="10"
-                  >
-                    <Stack
-                      spacing="0"
-                      width="100%"
-                    >
-                      <Button
-                        justifyContent="flex-start"
-                        fontWeight="normal"
-                        bg="white"
-                        _hover={{ bg: "#f2f6fb" }}
-                        onClick={() => handleSelectOption("Select")}
-                        borderRadius="2px"
-                        height="30px"
-                        width="100%"
-                        padding="4px 8px"
-                        fontSize="14px"
-                      >
-                        Select
-                      </Button>
-                      <Button
-                        justifyContent="flex-start"
-                        fontWeight="normal"
-                        bg="white"
-                        _hover={{ bg: "#f2f6fb" }}
-                        onClick={() => handleSelectOption("Select all")}
-                        borderRadius="2px"
-                        height="30px"
-                        width="100%"
-                        padding="4px 8px"
-                        fontSize="14px"
-                        letterSpacing={
-                          selectOption === "Select all" ? "0.07px" : "normal"
-                        }
-                      >
-                        Select all
-                      </Button>
-                      <Button
-                        justifyContent="flex-start"
-                        fontWeight="normal"
-                        bg="white"
-                        _hover={{ bg: "#f2f6fb" }}
-                        onClick={() => {
-                          setSelectOption(false);
-                          handleSelectOption("Deselect");
-                          setIsSelected(false);
-                        }}
-                        borderRadius="2px"
-                        height="30px"
-                        width="100%"
-                        padding="4px 8px"
-                        fontSize="14px"
-                        color={
-                          selectOption === "Deselect"
-                            ? "var(--Primary-5-Default, #4441C8)"
-                            : "inherit"
-                        }
-                        letterSpacing={
-                          selectOption === "Deselect" ? "0.07px" : "normal"
-                        }
-                      >
-                        Deselect
-                      </Button>
-                    </Stack>
-                  </Box>
-                )}
-              </Box>
-
-              {/* Cancel button - only shows when isSelected is true */}
-              {isSelected && (
-                <button
-                  style={{
-                    display: "flex",
-                    height: "40px",
-                    padding: "0px 16px",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "4px",
-                    borderRadius: "6px",
-                    background: "var(--destructive, #90080F)",
-                    color: "white",
-                    fontFamily: "Inter",
-                    fontSize: "14px",
-                    fontStyle: "normal",
-                    fontWeight: "700",
-                    lineHeight: "normal",
-                    letterSpacing: "0.07px",
-                    border: "none",
-                    cursor:
-                      selectedSessions.length > 0 ? "pointer" : "not-allowed",
-                    opacity: selectedSessions.length > 0 ? 1 : 0.6,
-                  }}
-                  onClick={() => {
-                    if (selectedSessions.length > 0) {
-                      openCancelModal();
-                    }
-                  }}
-                  disabled={selectedSessions.length === 0}
-                >
-                  <CancelIcon />{" "}
-                  {selectOption === "Select all"
-                    ? "All"
-                    : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
-                </button>
-              )}
-
-              <Popover onClose={onClose}>
-                <PopoverTrigger>
-                  <Button
-                    display="flex"
-                    height="40px"
-                    padding="0px 16px"
-                    justifyContent="center"
-                    alignItems="center"
-                    gap="4px"
-                    borderRadius="6px"
-                    bg="var(--Secondary-2-Default, #EDF2F7)"
-                    color="#2D3748"
-                    fontFamily="Inter"
-                    fontSize="14px"
-                    onClick={onOpen}
-                    border="none"
-                  >
-                    <Box
-                      display="flex"
-                      flexDirection="row"
-                      alignItems="center"
-                      gap="5px"
-                    >
-                      <SessionFilter
-                        sessions={sessions}
-                        setFilteredSessions={setFilteredSessions}
-                        rooms={rooms}
-                      />
-                    </Box>
-                  </Button>
-                </PopoverTrigger>
-                <Portal>
-                  <PopoverContent>
-                    <Box margin="16px">
-                      <PopoverBody>
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          alignItems="flex-start"
-                          gap="24px"
-                          alignSelf="stretch"
-                        >
-                          <FormControl id="date">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <CalendarIcon />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  DATE
-                                </Text>
-                              </Box>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Input
-                                  size="sm"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="35%"
-                                  height="20%"
-                                  type="date"
-                                  placeholder="MM/DD/YYYY"
-                                  onChange={(e) =>
-                                    handleDateChange("start", e.target.value)
-                                  }
-                                />
-                                <Text> to </Text>
-                                <Input
-                                  size="sm"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="35%"
-                                  height="20%"
-                                  type="date"
-                                  placeholder="MM/DD/YYYY"
-                                  onChange={(e) =>
-                                    handleDateChange("end", e.target.value)
-                                  }
-                                />
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="time">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <Icon as={sessionsFilterClock} />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  Time
-                                </Text>
-                              </Box>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Input
-                                  size="xs"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="30%"
-                                  height="20%"
-                                  type="time"
-                                  placeholder="00:00 am"
-                                  onChange={(e) =>
-                                    handleTimeChange("start", e.target.value)
-                                  }
-                                />
-                                <Text> to </Text>
-                                <Input
-                                  size="xs"
-                                  borderRadius="5px"
-                                  borderColor="#D2D2D2"
-                                  backgroundColor="#F6F6F6"
-                                  width="30%"
-                                  height="20%"
-                                  type="time"
-                                  placeholder="00:00 pm"
-                                  onChange={(e) =>
-                                    handleTimeChange("end", e.target.value)
-                                  }
-                                />
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="status">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Text
-                                fontWeight="bold"
-                                color="#767778"
-                                visibility={isSelected ? "visible" : "hidden"}
-                              >
-                                Status
-                              </Text>
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("All")}
-                                  backgroundColor={
-                                    status === "All" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "All" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  All
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Active")}
-                                  backgroundColor={
-                                    status === "Active" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Active" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    gap="4px"
-                                  >
-                                    <Box
-                                      width="10px"
-                                      height="10px"
-                                      borderRadius="50%"
-                                      bg="#0C824D"
-                                    />
-                                    Active
-                                  </Box>
-                                </Button>
-                                <Button
-                                  borderRadius="30px"
-                                  borderWidth="1px"
-                                  minWidth="auto"
-                                  height="20%"
-                                  onClick={() => setStatus("Past")}
-                                  backgroundColor={
-                                    status === "Past" ? "#EDEDFD" : "#F6F6F6"
-                                  }
-                                  borderColor={
-                                    status === "Past" ? "#4E4AE7" : "#767778"
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    gap="4px"
-                                  >
-                                    <Box
-                                      width="10px"
-                                      height="10px"
-                                      borderRadius="50%"
-                                      bg="#DAB434"
-                                    />
-                                    Past
-                                  </Box>
-                                </Button>
-                              </Box>
-                            </Box>
-                          </FormControl>
-                          <FormControl id="room">
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              justifyContent="center"
-                              alignItems="flex-start"
-                              gap="16px"
-                              alignSelf="stretch"
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="5px"
-                                alignSelf="stretch"
-                              >
-                                <Icon as={sessionsFilterMapPin} />
-                                <Text
-                                  fontWeight="bold"
-                                  color="#767778"
-                                >
-                                  Room
-                                </Text>
-                              </Box>
-                              <Wrap spacing={2}>
-                                <WrapItem>
-                                  <Button
-                                    borderRadius="30px"
-                                    borderWidth="1px"
-                                    width="auto"
-                                    height="20px"
-                                    onClick={() => setSelectedRoom("All")}
-                                    backgroundColor={
-                                      selectedRoom === "All"
-                                        ? "#EDEDFD"
-                                        : "#F6F6F6"
-                                    }
-                                    borderColor={
-                                      selectedRoom === "All"
-                                        ? "#4E4AE7"
-                                        : "#767778"
-                                    }
-                                  >
-                                    All
-                                  </Button>
-                                </WrapItem>
-                                {Array.from(rooms.values()).map(
-                                  (room, index) => (
-                                    <WrapItem key={index}>
-                                      <Button
-                                        borderRadius="30px"
-                                        borderWidth="1px"
-                                        minWidth="auto"
-                                        height="20px"
-                                        onClick={() => setSelectedRoom(room)}
-                                        backgroundColor={
-                                          selectedRoom === room
-                                            ? "#EDEDFD"
-                                            : "#F6F6F6"
-                                        }
-                                        borderColor={
-                                          selectedRoom === room
-                                            ? "#4E4AE7"
-                                            : "#767778"
-                                        }
-                                      >
-                                        {room}
-                                      </Button>
-                                    </WrapItem>
-                                  )
-                                )}
-                              </Wrap>
-                            </Box>
-                          </FormControl>
-                        </Box>
-                      </PopoverBody>
-                    </Box>
-                  </PopoverContent>
-                </Portal>
-              </Popover>
+              </Flex>
             </Flex>
             <TableContainer>
               <Table variant="unstyled">
@@ -1937,15 +1987,42 @@ export const Sessions = ({
                           </Box>
                         </Td>
                         <Td>
-                          <Icon
-                            boxSize="7"
-                            padding="5px"
-                            borderRadius="6px"
-                            backgroundColor="#EDF2F7"
-                            onClick={() => {navigate(`/programs/edit/session/${session.id}`)}}
-                          >
-                            <EllipsisIcon />
-                          </Icon>
+                          <Menu>
+                            <MenuButton
+                              as={IconButton}
+                              minWidth="24px"
+                              height="24px"
+                              borderRadius={6}
+                              backgroundColor="#EDF2F7"
+                              icon={<Icon as={sessionsEllipsis} />}
+                            />
+                            <MenuList>
+                              <MenuItem
+                                onClick={() => navigate(`/programs/edit/session/${session.id}`)}
+                              >
+                                <Box
+                                  display="flex"
+                                  padding="12px 16px"
+                                  alignItems="center"
+                                  gap="8px"
+                                >
+                                  <Icon as={EditIcon} />
+                                  <Text color="#767778">Edit</Text>
+                                </Box>
+                              </MenuItem>
+                              <MenuItem onClick={() => { setSelectedSingleSession(session.id); deleteModalOnOpen(); }}>
+                                <Box
+                                  display="flex"
+                                  padding="12px 16px"
+                                  alignItems="center"
+                                  gap="8px"
+                                >
+                                  <Icon as={CancelIcon} />
+                                  <Text color="#90080F">Cancel</Text>
+                                </Box>
+                              </MenuItem>
+                            </MenuList>
+                          </Menu>
                         </Td>
                       </Tr>
                     ))
