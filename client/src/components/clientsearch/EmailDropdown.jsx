@@ -17,7 +17,7 @@ export const EmailDropdown = ({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest("#emailContainer")) {
-        setDropdownVisible(false);
+        setDropdownVisible(true);
       }
     };
 

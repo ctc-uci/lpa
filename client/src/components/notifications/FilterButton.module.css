@@ -35,7 +35,7 @@ padding: 0;
 }
 
 .filterButton {
-border: 1px solid #E4E4ED !important;
+/* border: 1px solid #E4E4ED !important; */
 border-radius: 20px !important;
 padding: 8px 20px !important;
 background: #F9F9FC !important;
@@ -57,7 +57,7 @@ background: #edf1f8 !important;
   color: #5951F3 !important;
   border-radius: 50px !important;
   border: 1px solid #3F37D1 !important;
-  background: #EDECFD !important;
+  background: #edf1f7 !important;
 }
 
 .buttonRow {
