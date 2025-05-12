@@ -259,7 +259,7 @@
 }
 
 .menu-list-custom .chakra-menu__menuitem {
-  background: var(--light-grey, #f6f6f6) !important;
+  background: var(--hover-bg) !important;
   display: flex !important;
   padding: 8px 12px !important;
   align-items: center !important;

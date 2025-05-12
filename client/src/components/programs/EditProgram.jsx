@@ -5,6 +5,7 @@ import {
   Button,
   Icon,
   useDisclosure,
+  Flex,
 } from "@chakra-ui/react";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -219,14 +220,20 @@ export const EditProgram = () => {
       <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEventUnsaved} isFormValid={isUnsavedValid}/>
       <div id="body">
         <div id="programsBody">
-          <div style={{width: "48px",
+          <Flex style={{width: "48px",
             height: "40px",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
-          }}>
-            <Icon fontSize="2xl" onClick={exit} id="leftCancel"><IoCloseOutline/></Icon>
-          </div>
+            justifyContent: "center",
+            borderRadius:"6px",
+          }}
+            _hover={{bgColor: "#EDF2F7"}}>
+            <Icon fontSize="2xl"
+              onClick={exit}
+              id="leftCancel"
+            ><IoCloseOutline/>
+            </Icon>
+          </Flex>
           <div id="eventInfoBody">
             <div id="title">
               <TitleInformation
@@ -275,11 +282,11 @@ export const EditProgram = () => {
               id="save"
               onClick={saveEventToSessions}
               isDisabled={!isFormValid()}
-              backgroundColor={isFormValid() ? "purple.600" : "gray.300"}
-              _hover={{ backgroundColor: isFormValid() ? "purple.700" : "gray.300" }}
+              backgroundColor={"#4441C8"}
+              _hover={{ bgColor: "#312E8A" }}
               rightIcon={<SessionsRightIcon/>}
             >
-              Sessions
+              Session
             </Button>
           </div>
         </div>

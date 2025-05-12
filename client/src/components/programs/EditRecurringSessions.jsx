@@ -43,6 +43,7 @@ import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { IoCloseOutline } from "react-icons/io5";
 import { MdFeaturedPlayList } from "../../assets/MdFeaturedPlayList";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 import { TbRepeat } from "react-icons/tb";
 import {
   sessionsClock,
@@ -167,7 +168,7 @@ const formatDate = (isoString) => {
         i === index ? { ...session, [field]: value } : session
       )
     }));
-
+console.log(type,index, field, value);
     setAllSessions(prev => {
       let updatedSessions = [...prev];
 
@@ -176,10 +177,14 @@ const formatDate = (isoString) => {
 
         // Remove all sessions with this recurringId
         updatedSessions = updatedSessions.filter(s => s.recurringId !== recurringSession.id);
+        console.log("updatedSessions: ", updatedSessions);
+        console.log("recurringSession: ", recurringSession);
 
         if (Object.values(recurringSession).every(val => val !== "")) {
-          console.log("recurringSession: ", recurringSession);
-          const generatedSessions = generateRecurringSessions(recurringSession, startDate, endDate);
+          const generatedSessions = generateRecurringSessions( {
+            ...recurringSession
+          }, startDate, endDate);
+          console.log("generatedSessions: ", generatedSessions)
           updatedSessions = [
             ...updatedSessions,
             ...generatedSessions.map(s => ({
@@ -383,7 +388,6 @@ const formatDate = (isoString) => {
   }, [id]);
 
   const isFormValid = () => {
-  console.log(allSessions.length !== 0 &&isChanged === true);
     return allSessions.length !== 0 && isChanged === true;
   };
 
@@ -392,65 +396,168 @@ const formatDate = (isoString) => {
         <Flex align="center" mb="20px" gap="10px">
             <CalendarIcon />
             <Text fontSize="16px" fontWeight="500">Starts on</Text>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} maxW="10%" />
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              width="137px"
+              color={startDate ? "#2D3748" : "#CBD5E0"}
+            />
             <Text fontSize="16px" fontWeight="500">and ends on</Text>
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} maxW="10%" />
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              width="137px"
+              color={endDate ? "#2D3748" : "#CBD5E0"}
+            />
         </Flex>
        <Flex align="center" gap="10px" mb={15}>
           <TbRepeat />
-          <Select
-            maxW="15%"
-            value={recurringFrequency}
-            onChange={(e) => setRecurringFrequency(e.target.value)}
-          >
-            <option value="week">Every Week</option>
-            <option value="month">Every Month</option>
-            <option value="year">Every Year</option>
-          </Select>
+          <Menu autoSelect={false}>
+            <MenuButton as={Button} rightIcon={<ChevronDownIcon />}
+             _hover={{
+                bgColor: "#EDF2F7",
+                borderRadius: "4px",
+              }}
+              _active={{
+                bgColor: "#EDF2F7",
+                borderRadius: "4px",
+              }}
+              background="transparent"
+              border="1px solid #E2E8F0"
+              borderRadius="4px"
+              fontWeight="400"
+              fontSize="14px"
+              width="200px"
+              display="flex"
+              alignItems="center"
+              padding="0px 16px"
+              justifyContent="flex-start"
+              gap="4px"
+              textAlign="left"
+            >Every {recurringFrequency.charAt(0).toUpperCase() + recurringFrequency.slice(1)}
+            </MenuButton>
+            <MenuList minWidth="200px" padding="4px">
+             {[
+                { value: "week", label: "Every Week" },
+                { value: "month", label: "Every Month" },
+                { value: "year", label: "Every Year" },
+              ].map((option) => (
+                <MenuItem
+                  key={option.value}
+                  onClick={() => { setRecurringFrequency(option.value); setIsChanged(true); }}
+                  bg={recurringFrequency === option.value ? "#EDF2F7" : "transparent"}
+                >
+                  {option.label}
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Menu>
         </Flex>
 
         {newSessions.recurring.map((session, index) => (
           <Box key={index} mb={4}>
             <Flex align="center" gap="10px">
             <Text>Every</Text>
-            <Select
-              maxW="10%"
-              value={session.weekday}
-              onChange={(e) => handleChangeSessionField('recurring', index, "weekday", e.target.value)}
-            >
-              {["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                <option key={day} value={day}>
-                  {day}
-                </option>
-              ))}
-            </Select>
-              <Text>from</Text>
-              <Input
-                maxW="10%"
-                type="time"
-                value={session.startTime}
-                onChange={(e) => handleChangeSessionField('recurring', index, "startTime", e.target.value)}
-              />
-              <Text>to</Text>
-              <Input
-                maxW="10%"
-                type="time"
-                value={session.endTime}
-                onChange={(e) => handleChangeSessionField('recurring', index, "endTime", e.target.value)}
-              />
-              <Text>in</Text>
-              <Select
-                maxW="20%"
-                value={session.roomId}
-                onChange={(e) => handleChangeSessionField('recurring', index, "roomId", e.target.value)}
+            <Menu autoSelect={false}>
+              <MenuButton
+                as={Button}
+                rightIcon={<ChevronDownIcon />}
+                background="transparent"
+                border="1px solid #E2E8F0"
+                borderRadius="4px"
+                fontWeight="400"
+                fontSize="14px"
+                width="200px"
+                display="flex"
+                alignItems="center"
+                padding="0px 16px"
+                justifyContent="flex-start"
+                gap="4px"
+                textAlign="left"
+                color={session.weekday ? "#2D3748" : "#CBD5E0"}
+                _hover={{
+                  bgColor: "#EDF2F7",
+                  borderRadius: "4px",
+                }}
+                _active={{
+                  bgColor: "#EDF2F7",
+                  borderRadius: "4px",
+                }}
               >
-                <option value="" disabled>Select a room</option>
-                {allRooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    {room.name}
-                  </option>
+                {session.weekday || "Weekday"}
+              </MenuButton>
+              <MenuList minWidth="200px" padding="4px" borderRadius="4px" overflow="hidden">
+                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                  <MenuItem
+                    key={day}
+                    onClick={() => { handleChangeSessionField('recurring', index, "weekday", day); setIsChanged(true); }}
+                    bg={session.weekday === day ? "#EDF2F7" : "transparent"}
+                    >
+                    {day}
+                  </MenuItem>
                 ))}
-              </Select>
+              </MenuList>
+            </Menu>
+            <Text>from</Text>
+            <Input
+              width="96px"
+              type="time"
+              value={session.startTime || "00:00"}
+              color={session.startTime ? "#2D3748" : "#CBD5E0"}
+              onChange={(e) =>
+                handleChangeSessionField('recurring', index, "startTime", e.target.value)
+              }
+            />
+            <Text>to</Text>
+            <Input
+              width="96px"
+              type="time"
+              value={session.endTime || "00:00"}
+              color={session.endTime ? "#2D3748" : "#CBD5E0"}
+              onChange={(e) =>
+                handleChangeSessionField('recurring', index, "endTime", e.target.value)
+              }
+            />
+              <Text>in</Text>
+              <Menu autoSelect={false}>
+                <MenuButton
+                  as={Button}
+                  rightIcon={<ChevronDownIcon />}
+                  _hover={{ bgColor: "#EDF2F7", borderRadius: "4px" }}
+                  _active={{ bgColor: "#EDF2F7", borderRadius: "4px" }}
+                  background="transparent"
+                  border="1px solid #E2E8F0"
+                  borderRadius="4px"
+                  fontWeight="400"
+                  fontSize="14px"
+                  width="200px"
+                  display="flex"
+                  alignItems="center"
+                  padding="0px 16px"
+                  justifyContent="flex-start"
+                  gap="4px"
+                  textAlign="left"
+                  color={session.weekday ? "#2D3748" : "#CBD5E0"}>
+                  {session.room || "Room"}
+                </MenuButton>
+
+                <MenuList minWidth="200px" padding="4px">
+                  {allRooms.map((room) => (
+                    <MenuItem
+                      key={room.id}
+                      onClick={() => {
+                        handleChangeSessionField('recurring', index, "roomId", room.id);
+                        setIsChanged(true);
+                      }}
+                      bg={session.room === room.name ? "#EDF2F7" : "transparent"}
+                    >
+                      {room.name}
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
               <Icon
                 as={IoCloseOutline}
                 boxSize="6"
@@ -482,28 +589,39 @@ const formatDate = (isoString) => {
           <Flex align="center" gap="10px">
             <Text>On</Text>
             <Input
+              width="137px"
+              minWidth="137px"
               type="date"
               value={session.date}
               onChange={(e) => handleChangeSessionField('single', index, "date", e.target.value)}
+              color={session.date ? "#2D3748" : "#CBD5E0"}
             />
             <Text>from</Text>
             <Input
+              width="96px"
+              minWidth="96px"
               type="time"
-              value={session.startTime}
+              value={session.startTime || "00:00"}
+              color={session.startTime ? "#2D3748" : "#CBD5E0"}
               onChange={(e) => handleChangeSessionField('single', index, "startTime", e.target.value)}
             />
             <Text>to</Text>
             <Input
+              width="96px"
+              minWidth="96px"
               type="time"
-              value={session.endTime}
+              value={session.endTime || "00:00"}
+              color={session.endTime ? "#2D3748" : "#CBD5E0"}
               onChange={(e) => handleChangeSessionField('single', index, "endTime", e.target.value)}
             />
             <Text>in</Text>
             <Select
               value={session.roomId}
+              color={session.roomId ? "#2D3748" : "#CBD5E0"}
+              width="200px"
               onChange={(e) => handleChangeSessionField('single', index, "roomId", e.target.value)}
             >
-              <option value="" disabled>Select a room</option>
+              <option value="" disabled>Room</option>
               {allRooms.map((room) => (
                 <option key={room.id} value={room.id}>
                   {room.name}
@@ -554,8 +672,8 @@ const formatDate = (isoString) => {
             >
               <Flex justify="space-between" align="center" width="100%">
                 <TabList color="#3834B6">
-                  <Tab fontWeight="bold" color="#718096" _selected={{ color: "#3834B6" }}>Recurring</Tab>
-                  <Tab fontWeight="bold" color="#718096" _selected={{ color: "#3834B6" }}>Single</Tab>
+                  <Tab fontWeight="bold" color="#718096" _selected={{ color: "#3834B6", borderBottom: "2px solid #3834B6" }}>Recurring</Tab>
+                  <Tab fontWeight="bold" color="#718096" _selected={{ color: "#3834B6", borderBottom: "2px solid #3834B6" }}>Single</Tab>
                 </TabList>
                 <Button
                   onClick={handleResetSessions}
@@ -774,10 +892,10 @@ const formatDate = (isoString) => {
                         cursor="pointer"
                       />
                       <MenuList>
-                        <MenuItem onClick={() => handleArchiveSession(session.id)}>
+                        <MenuItem onClick={() => {handleArchiveSession(session.id); setIsChanged(true);}}>
                           {session.archived ? "Unarchive" : "Archive"}
                         </MenuItem>
-                        <MenuItem onClick={() => handleDeleteSession(session.id)}>
+                        <MenuItem onClick={() => {handleDeleteSession(session.id); setIsChanged(true);}}>
                           Delete
                         </MenuItem>
                       </MenuList>

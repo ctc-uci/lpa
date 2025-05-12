@@ -83,10 +83,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   height: 42px;
 }
 
-
-
 button#save {
-  background-color: var(--indigo, #4E4AE7);
   color: white;
   justify-content: center;
   align-items: center;

@@ -12,15 +12,16 @@
 }
 
 .chakra-menu__menuitem {
-  border-radius: 15px !important;
+  border-radius: 4px !important;
   transition:
     background 0s ease,
     border-radius 0s ease !important;
 }
 .chakra-menu__menuitem:hover,
-.chakra-menu__menuitem:focus {
+.chakra-menu__menuitem:focus,
+.chakra-menu__menuitem:active {
   background: var(--hover-bg) !important;
-  border-radius: 15px !important;
+  border-radius: 4px !important;
 }
 
 /* General icon/text style */

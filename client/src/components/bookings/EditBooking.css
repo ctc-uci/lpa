@@ -111,7 +111,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 
 #save {
-  background-color: var(--indigo, #4E4AE7);
   color: white;
   justify-content: center;
   align-items: center;
