@@ -272,6 +272,7 @@ const formatDate = (isoString) => {
     });
     // Reset any other relevant state
     handleAddSingleRow();
+    handleAddRecurringRow();
     setIsChanged(true);
   };
 
@@ -318,8 +319,6 @@ const formatDate = (isoString) => {
       console.log("allSessions: ",allSessions);
 
       // Handle new sessions
-      // const newSessions = allSessions.filter(s => s.isNew && !s.isDeleted);
-      // console.log("newSessions: ", newSessions);
       await Promise.all(allSessions.map(s =>
         backend.post('/bookings/', {
           event_id: id,
@@ -331,19 +330,6 @@ const formatDate = (isoString) => {
         })
       ));
 
-      // Handle updated sessions
-      // const updatedSessions = allSessions.filter(s => s.isUpdated && !s.isDeleted);
-      // console.log("updatedSessions: ", updatedSessions);
-      // await Promise.all(updatedSessions.map(s =>
-      //   backend.put(`/bookings/${s.id}`, {
-      //     event_id: id,
-      //     room_id: s.roomId,
-      //     start_time: s.startTime,
-      //     end_time: s.endTime,
-      //     date: s.date,
-      //     archived: s.archived
-      //   })
-      // ));
     } catch (error) {
       console.error("Error saving changes:", error);
     }
@@ -450,7 +436,7 @@ const formatDate = (isoString) => {
                 value={session.roomId}
                 onChange={(e) => handleChangeSessionField('recurring', index, "roomId", e.target.value)}
               >
-                <option value="">Select a room</option>
+                <option value="" disabled>Select a room</option>
                 {allRooms.map((room) => (
                   <option key={room.id} value={room.id}>
                     {room.name}
@@ -509,7 +495,7 @@ const formatDate = (isoString) => {
               value={session.roomId}
               onChange={(e) => handleChangeSessionField('single', index, "roomId", e.target.value)}
             >
-              <option value="">Select a room</option>
+              <option value="" disabled>Select a room</option>
               {allRooms.map((room) => (
                 <option key={room.id} value={room.id}>
                   {room.name}

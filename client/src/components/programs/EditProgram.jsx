@@ -112,18 +112,10 @@ export const EditProgram = () => {
   };
 
   const isFormValid = () => {
-    const currentState = JSON.stringify({
-      eventName,
-      generalInformation,
-      selectedInstructors,
-      selectedPayees,
-      selectedEmails,
-    });
     return (
       eventName.trim() !== "" &&
       selectedInstructors.length > 0 &&
-      selectedPayees.length > 0 &&
-      initialState !== currentState
+      selectedPayees.length > 0 
     );
   };
 
