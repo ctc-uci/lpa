@@ -110,6 +110,7 @@ const ConfirmationModal = ({
   body,
   onConfirm,
   primaryButtonBackgroundColor,
+  hoverColor
 }) => (
   <Modal
     isOpen={isOpen}
@@ -125,7 +126,7 @@ const ConfirmationModal = ({
         <Button onClick={onClose}>Cancel</Button>
         <Button
           marginLeft="0.75rem"
-          _hover={primaryButtonBackgroundColor}
+          _hover={{backgroundColor: hoverColor}}
           backgroundColor={primaryButtonBackgroundColor}
           onClick={onConfirm}
         >
@@ -320,7 +321,7 @@ const RoomSettings = ({
               marginLeft="0.75rem"
               padding="0rem 1.25rem"
               backgroundColor="#4441C8"
-              _hover="#4441C8"
+            _hover={{ backgroundColor: "#312E8A" }}
               onClick={() => {
                 if (room.id) {
                   onSaveModalOpen();
@@ -354,6 +355,7 @@ const RoomSettings = ({
           body={`Your edits to the ${room.id ? originalRoomName : roomName || "new"} room will not be saved.`}
           onConfirm={handleCancel}
           primaryButtonBackgroundColor="#90080F"
+          hoverColor="#71060C"
         />
         {room.id && (
           <ConfirmationModal
@@ -363,6 +365,7 @@ const RoomSettings = ({
             body="Editing this room will affect all upcoming sessions, programs, and invoices that have not been generated yet."
             onConfirm={handleSave}
             primaryButtonBackgroundColor="#4441C8"
+            hoverColor="#312E8A" 
           />
         )}
       </Flex>
@@ -428,7 +431,7 @@ const RoomsSettings = () => {
         </Text>
         <Button
           backgroundColor="#4441C8"
-          _hover="#4441C8"
+          _hover={{ backgroundColor: "#312E8A" }}
           marginLeft="auto"
           gap="0.75rem"
           padding="1.75rem"
@@ -661,7 +664,7 @@ const AdminSettings = () => {
                             </Button>
                             <Button
                               borderRadius="6px"
-                              _hover="#4441C8"
+                              _hover={{ backgroundColor: "#312E8A" }}
                               background="#4441C8"
                               color="#FFFFFF"
                               onClick={() => approveUser(gen.id)}

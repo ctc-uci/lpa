@@ -115,6 +115,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: 6px;
 }
 
+#save:hover {
+  background-color: #312E8A;
+  color: white;
+}
+
 #savecancel {
   display: flex;
   align-items: center;

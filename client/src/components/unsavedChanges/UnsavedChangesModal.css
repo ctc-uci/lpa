@@ -15,8 +15,19 @@
   margin-right: 1rem;
 }
 
+#deactivateCancel:hover {
+  background: #E2E8F0;
+  color: #2D3748;
+}
+
+
 #deactivateConfirm {
   background-color: #4441C8;
   color: white;
   border-radius: 6px;
+}
+
+#deactivateConfirm:hover {
+  background-color: #312E8A;
+  color: white;
 }

@@ -1,17 +1,18 @@
 import { React, useState } from "react";
+
 import {
-    Button,
-    Drawer,
-    DrawerBody,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerOverlay,
-    DrawerContent,
-    DrawerCloseButton,
-    Icon,
-    VStack,
-    useDisclosure
-  } from "@chakra-ui/react";
+  Button,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  Icon,
+  useDisclosure,
+  VStack,
+} from "@chakra-ui/react";
 
 import { FilterIcon } from "../../assets/FilterIcons";
 
@@ -26,13 +27,13 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
   };
 
   const handleReset = async () => {
-    setIsClearing(true);    
+    setIsClearing(true);
     // Force a render cycle to update UI before continuing
-    await new Promise(resolve => setTimeout(resolve, 0));
-    
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     try {
       onReset();
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
     } finally {
       setIsClearing(false);
     }
@@ -42,7 +43,7 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
     <>
       <Button
         onClick={onOpen}
-        leftIcon={<Icon as={FilterIcon}/>}
+        leftIcon={<Icon as={FilterIcon} />}
         width="100px"
       >
         Filters
@@ -56,24 +57,38 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader color="#718096" fontSize="md"> {pageName} Filters</DrawerHeader>
+          <DrawerHeader
+            color="#718096"
+            fontSize="md"
+          >
+            {" "}
+            {pageName} Filters
+          </DrawerHeader>
 
           <DrawerBody>
-            <VStack spacing={4} align="stretch">
+            <VStack
+              spacing={4}
+              align="stretch"
+            >
               {children}
             </VStack>
           </DrawerBody>
 
           <DrawerFooter>
-            <Button 
-              variant="outline" 
-              mr={3} 
+            <Button
+              variant="outline"
+              mr={3}
               onClick={handleReset}
               isLoading={isClearing}
             >
               Clear
             </Button>
-            <Button _hover="#312E8A" backgroundColor="#4441C8" color="white" onClick={handleApply}>
+            <Button
+              _hover={{ backgroundColor: "#312E8A" }}
+              backgroundColor="#4441C8"
+              color="white"
+              onClick={handleApply}
+            >
               Apply
             </Button>
           </DrawerFooter>
@@ -82,4 +97,3 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
     </>
   );
 };
-

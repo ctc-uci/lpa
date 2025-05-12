@@ -58,7 +58,6 @@ export const SingleInvoice = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
 
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -273,6 +272,7 @@ export const SingleInvoice = () => {
                 <Button
                   onClick={closeModal}
                   backgroundColor="#4441C8"
+                  _hover={{ backgroundColor: "#312E8A" }}
                   color="#FFFFFF"
                   fontSize="14px"
                   fontWeight="500"

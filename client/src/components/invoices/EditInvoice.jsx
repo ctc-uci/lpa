@@ -8,16 +8,18 @@ import {
   IconButton,
   Image,
   Text,
+  useDisclosure,
   useToast,
   VStack,
-  useDisclosure
 } from "@chakra-ui/react";
 
 import { useNavigate, useParams } from "react-router-dom";
 
+import { BackArrowIcon } from "../../assets/BackArrowIcon";
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { EmailSidebar } from "../email/EmailSidebar";
 import Navbar from "../navbar/Navbar";
 import {
   EditInvoiceDetails,
@@ -27,10 +29,15 @@ import {
   StatementComments,
 } from "./EditInvoiceComponents";
 
-import { EmailSidebar } from "../email/EmailSidebar";
-import { BackArrowIcon } from "../../assets/BackArrowIcon";
-
-const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, programName }) => {
+const InvoiceNavBar = ({
+  onBack,
+  onSave,
+  isSaving,
+  payees,
+  comments,
+  invoice,
+  programName,
+}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getGeneratedDate = () => {
@@ -62,7 +69,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, pr
     >
       <HStack>
         <IconButton
-          icon={<BackArrowIcon/>}
+          icon={<BackArrowIcon />}
           onClick={onBack}
           variant="link"
           color="#474849"
@@ -76,7 +83,7 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, pr
           height="2.5em"
           borderRadius={10}
           backgroundColor="#4441C8"
-          _hover="#312E8A"
+          _hover={{ backgroundColor: "#312E8A" }}
           color="#FFF"
           fontSize="clamp(.75rem, 1rem, 1.25rem)"
           onClick={onSave}
@@ -85,7 +92,14 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, pr
           Save
         </Button>
         <HStack>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees} pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`} invoice={invoice}/>
+          <EmailSidebar
+            isOpen={isOpen}
+            onOpen={onOpen}
+            onClose={onClose}
+            payees={payees}
+            pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
+            invoice={invoice}
+          />
         </HStack>
       </HStack>
     </Flex>

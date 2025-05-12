@@ -69,7 +69,7 @@
   align-items: center;
   gap: 4px;
   border-radius: 6px;
-  background: var(--Primary-5-Default, #4441c8);
+  background:#4441c8;
   color: white;
   font-family: Inter;
   font-size: 14px;
@@ -77,6 +77,10 @@
   font-weight: 700;
   line-height: normal;
   letter-spacing: 0.07px;
+}
+
+.invoiceButton:hover {
+  background: #312e8a;
 }
 
 #deactivateDeadlineInnerBox {

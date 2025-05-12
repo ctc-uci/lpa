@@ -59,21 +59,17 @@ const InvoicesDashboard = () => {
     setCurrentPage(pageNumber);
   };
 
-  // Calculate total pages
   const totalInvoices = filteredInvoices?.length || 0;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
 
-  // Calculate current page items
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
   const currentPageInvoices = filteredInvoices.slice(startIndex, endIndex);
 
-  // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredInvoices]);
 
-  // Adjust itemsPerPage based on viewport height
   useEffect(() => {
     const calculateRowsPerPage = () => {
       const viewportHeight = window.innerHeight;
@@ -157,23 +153,19 @@ const InvoicesDashboard = () => {
   };
 }, [query]);
 
-  // Add this useEffect to filter based on search query
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setFilteredInvoices(filterComponentResults);
       return;
     }
 
-    // Apply search filter on the already filtered invoices
     const searchResults = filteredInvoices.filter((invoice) => {
-      const searchLower = query.toLowerCase();
+      const searchLower = debouncedQuery.toLowerCase();
 
-      // Search in event name
       if (invoice.eventName.toLowerCase().includes(searchLower)) {
         return true;
       }
 
-      // Search in payers
       if (invoice.payers && Array.isArray(invoice.payers)) {
         for (const payer of invoice.payers) {
           if (payer.toLowerCase().includes(searchLower)) {
@@ -182,12 +174,10 @@ const InvoicesDashboard = () => {
         }
       }
 
-      // Search in status
       if (invoice.isPaid.toLowerCase().includes(searchLower)) {
         return true;
       }
 
-      // Search in season
       if (invoice.season.toLowerCase().includes(searchLower)) {
         return true;
       }
@@ -199,95 +189,95 @@ const InvoicesDashboard = () => {
   }, [debouncedQuery, filterComponentResults]);
 
   useEffect(() => {
-    const fetchInvoicesData = async () => {
-      try {
-        const invoicesResponse = await backend.get("/invoicesAssignments/");
-        const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
-          const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
-          if (invoice.role === "instructor") return acc;
-          if (!acc[key]) {
-            // Create a new entry with a payers array
-            acc[key] = {
-              ...invoice,
-              payers: [invoice.name], // Store payers in an array
-            };
-          } else {
-            // Append the payer only if it's not already in the list (avoid duplicates)
-            if (!acc[key].payers.includes(invoice.name)) {
-              acc[key].payers.push(invoice.name);
-            }
+  const fetchInvoicesData = async () => {
+    try {
+      const invoicesResponse = await backend.get("/invoicesAssignments/");
+      const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
+        const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
+        if (invoice.role === "instructor") return acc;
+        if (!acc[key]) {
+          acc[key] = {
+            ...invoice,
+            payers: [invoice.name], // Store payers in an array
+          };
+        } else {
+          if (!acc[key].payers.includes(invoice.name)) {
+            acc[key].payers.push(invoice.name);
           }
+        }
 
-          return acc;
-        }, {});
-        const invoices = Object.values(groupedInvoices).map((invoice) => ({
-          ...invoice,
-          season: getSeason(invoice),
-          isPaid: isPaid(invoice),
-        }));
-        setInvoices(invoices);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    fetchInvoicesData();
-  }, []);
+        return acc;
+      }, {});
+      
+      const invoices = Object.values(groupedInvoices).map((invoice) => ({
+        ...invoice,
+        season: getSeason(invoice),
+        isPaid: isPaid(invoice),
+      }));
+      
+      setInvoices(invoices);
+      setFilteredInvoices(invoices);
+      setFilterComponentResults(invoices);
+      
+      // Handle toast notifications here, after data is loaded
+      if (!hasShownToast.current) {
+        const pastDueInvoices = invoices.filter(
+          (invoice) => isPaid(invoice) === "Past Due"
+        );
+        const notifCounter = pastDueInvoices.length;
 
-  useEffect(() => {
-    if (invoices.length === 0 || hasShownToast.current) return;
-
-    const getUnpaidInvoices = () => {
-      const filteredPastDueInvoices = filteredInvoices.filter(
-        (invoice) => isPaid(invoice) === "PAST DUE"
-      );
-      const notifCounter = filteredPastDueInvoices.length;
-
-      if (notifCounter > 0) {
-        hasShownToast.current = true; // Set ref to true to prevent multiple toasts
-        toast({
-          title: "Unpaid Invoices",
-          description:
-            notifCounter > 1
-              ? `You have ${notifCounter} past due invoices`
-              : `${filteredPastDueInvoices[0].name} - ${filteredPastDueInvoices[0].endDate.split("T")[0]}`,
-          status: "error",
-          duration: 9000,
-          position: "bottom-right",
-          isClosable: true,
-          render: () => (
-            <Flex
-              p={3}
-              bg="#FED7D7"
-              borderTop="4px solid"
-              borderTopColor="red.500"
-              onClick={() => navigate("/notification")}
-              padding="12px 16px"
-              gap="12px"
-              w="400px"
-            >
-              <Image src={AlertIcon} />
-              <Flex flexDirection="column">
-                <Heading
-                  size="sm"
-                  align-self="stretch"
-                >
-                  Unpaid Invoices
-                </Heading>
-                <Text align-self="stretch">
-                  {notifCounter > 1
-                    ? `You have ${notifCounter} past due invoices`
-                    : `${filteredPastDueInvoices[0].name} -
-                  ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}`}
-                </Text>
+        if (notifCounter > 0) {
+          hasShownToast.current = true; // Set ref to true to prevent multiple toasts
+          toast({
+            title: "Unpaid Invoices",
+            description:
+              notifCounter > 1
+                ? `You have ${notifCounter} past due invoices`
+                : `${pastDueInvoices[0].name} - ${pastDueInvoices[0].endDate.split("T")[0]}`,
+            status: "error",
+            duration: 9000,
+            position: "bottom-right",
+            isClosable: true,
+            render: () => (
+              <Flex
+                p={3}
+                bg="#FED7D7"
+                borderTop="4px solid"
+                borderTopColor="red.500"
+                onClick={() => navigate("/notification")}
+                padding="12px 16px"
+                gap="12px"
+                w="400px"
+              >
+                <Image src={AlertIcon} />
+                <Flex flexDirection="column">
+                  <Heading
+                    size="sm"
+                    align-self="stretch"
+                  >
+                    Unpaid Invoices
+                  </Heading>
+                  <Text align-self="stretch">
+                    {notifCounter > 1
+                      ? `You have ${notifCounter} past due invoices`
+                      : `${pastDueInvoices[0].name} -
+                    ${new Date(pastDueInvoices[0].endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}`}
+                  </Text>
+                </Flex>
               </Flex>
-            </Flex>
-          ),
-        });
+            ),
+          });
+        }
       }
-    };
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  
+  fetchInvoicesData();
+}, [backend, navigate, toast]); // Include dependencies the function uses
 
-    getUnpaidInvoices();
-  }, []);
+  
 
   return (
     <Navbar>

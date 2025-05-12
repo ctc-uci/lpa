@@ -699,7 +699,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                   <Button
                     mr={3}
                     ml={"12px"}
-                    _hover={{ backgroundColor: "#90080F", opacity: "80%" }}
+                    _hover={{ backgroundColor: "#71060C"}}
                     backgroundColor={"#90080F"}
                     fontFamily={"Inter"}
                     fontSize={"14px"}
