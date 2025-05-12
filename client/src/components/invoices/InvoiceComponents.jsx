@@ -55,7 +55,8 @@ import { FaCircle, FaUser } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { useParams } from "react-router";
 
-import { CancelIcon } from "../../assets/CancelIcon";
+import redCancelIcon from "../../assets/redCancelIcon";
+import editBlackIcon from "../../assets/editBlackIcon";
 import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
 import { DollarIcon } from "../../assets/DollarIcon";
 import { EditIcon } from "../../assets/EditIcon";
@@ -656,8 +657,8 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                               alignItems="center"
                               gap="8px"
                             >
-                              <Icon as={EditIcon} />
-                              <Text color="#767778">Edit</Text>
+                              <Icon as={editBlackIcon} />
+                              <Text color="#2D3748">Edit</Text>
                             </Box>
                           </MenuItem>
                           <MenuItem onClick={() => handleShowDelete(comment)}>
@@ -667,7 +668,7 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                               alignItems="center"
                               gap="8px"
                             >
-                              <Icon as={CancelIcon} />
+                              <Icon as={redCancelIcon} />
                               <Text color="#90080F">Cancel</Text>
                             </Box>
                           </MenuItem>

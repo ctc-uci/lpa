@@ -15,7 +15,6 @@ import {
 import { FaAngleLeft } from "react-icons/fa6";
 import { FiExternalLink } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { EmailHistory } from "./EmailHistory";
