@@ -139,7 +139,7 @@ const NotificationsComponents = ({
 
   return (
     <TableContainer padding={"16px"}>
-      <Table variant="simple">
+      <Table>
         <Thead>
           <Tr>
             <Th

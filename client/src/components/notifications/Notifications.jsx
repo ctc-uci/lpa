@@ -8,6 +8,7 @@ import { AiFillMail } from "react-icons/ai";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
+import { PaginationComponent } from "../PaginationComponent";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
@@ -238,7 +239,7 @@ export const Notifications = () => {
         >
           <Flex
             justifyContent="space-between"
-            mb="27px"
+            mb="15px"
           >
             <FilterButton
               setFilterType={setFilterType}
@@ -248,9 +249,6 @@ export const Notifications = () => {
 
           {/* Table component */}
           <Box
-            borderWidth="1px"
-            borderColor="gray.200"
-            borderRadius="md"
             overflow="hidden"
             mb={4}
           >
@@ -264,46 +262,12 @@ export const Notifications = () => {
             />
           </Box>
         </Flex>
-
-        {/* Pagination Controls - now outside the table component */}
-        {totalPages > 0 && (
-          <Flex
-            alignItems="center"
-            justifyContent="flex-end"
-            mt={2}
-            pr={4}
-          >
-            <Text
-              mr={2}
-              fontSize="sm"
-              color="#474849"
-              fontFamily="Inter, sans-serif"
-            >
-              {currentPage} of {totalPages}
-            </Text>
-            <Button
-              onClick={goToPreviousPage}
-              isDisabled={currentPage === 1}
-              size="md"
-              variant="ghost"
-              minWidth="auto"
-              color="gray.500"
-              mr="16px"
-            >
-              <ChevronLeftIcon />
-            </Button>
-            <Button
-              onClick={goToNextPage}
-              isDisabled={currentPage === totalPages}
-              size="md"
-              variant="ghost"
-              minWidth="auto"
-              color="gray.500"
-            >
-              <ChevronRightIcon />
-            </Button>
-          </Flex>
-        )}
+        <PaginationComponent
+          totalPages={totalPages}
+          goToNextPage={goToNextPage}
+          goToPreviousPage={goToPreviousPage}
+          currentPage={currentPage}
+        />
       </Box>
     </Navbar>
   );

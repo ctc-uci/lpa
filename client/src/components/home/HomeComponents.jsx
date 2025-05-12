@@ -41,6 +41,7 @@ import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
+import { PaginationComponent } from "../PaginationComponent";
 import { SearchBar } from "../searchBar/SearchBar";
 import StatusTooltip from "./StatusIcon";
 
@@ -642,45 +643,13 @@ export const ProgramsTable = () => {
           </Table>
         </TableContainer>
       </Box>
-      {/* Add pagination controls here */}
-      {totalPages > 1 && (
-        <Flex
-          alignItems="center"
-          justifyContent="flex-end"
-          w="100%"
-          pr={4}
-        >
-          <Text
-            mr={2}
-            fontSize="sm"
-            color="#474849"
-            fontFamily="Inter, sans-serif"
-          >
-            {currentPage} of {totalPages}
-          </Text>
-          <Button
-            onClick={goToPreviousPage}
-            isDisabled={currentPage === 1}
-            size="md"
-            variant="ghost"
-            minWidth="auto"
-            color="gray.500"
-            mr="16px"
-          >
-            <ChevronLeftIcon />
-          </Button>
-          <Button
-            onClick={goToNextPage}
-            isDisabled={currentPage === totalPages}
-            size="md"
-            variant="ghost"
-            minWidth="auto"
-            color="gray.500"
-          >
-            <ChevronRightIcon />
-          </Button>
-        </Flex>
-      )}
+
+      <PaginationComponent
+        totalPages={totalPages}
+        goToNextPage={goToNextPage}
+        goToPreviousPage={goToPreviousPage}
+        currentPage={currentPage}
+      />
     </>
   );
 };
