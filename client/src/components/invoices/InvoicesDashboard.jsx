@@ -29,6 +29,8 @@ const InvoicesDashboard = () => {
   const [query, setQuery] = useState("");
   const hasShownToast = useRef(false);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
+  const [filterComponentResults, setFilterComponentResults] = useState([]);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -146,6 +148,57 @@ const InvoicesDashboard = () => {
   };
 
   useEffect(() => {
+  const handler = setTimeout(() => {
+    setDebouncedQuery(query);
+  }, 300); // 300ms delay
+
+  return () => {
+    clearTimeout(handler);
+  };
+}, [query]);
+
+  // Add this useEffect to filter based on search query
+  useEffect(() => {
+    if (!debouncedQuery.trim()) {
+      setFilteredInvoices(filterComponentResults);
+      return;
+    }
+
+    // Apply search filter on the already filtered invoices
+    const searchResults = filteredInvoices.filter((invoice) => {
+      const searchLower = query.toLowerCase();
+
+      // Search in event name
+      if (invoice.eventName.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+
+      // Search in payers
+      if (invoice.payers && Array.isArray(invoice.payers)) {
+        for (const payer of invoice.payers) {
+          if (payer.toLowerCase().includes(searchLower)) {
+            return true;
+          }
+        }
+      }
+
+      // Search in status
+      if (invoice.isPaid.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+
+      // Search in season
+      if (invoice.season.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+
+      return false;
+    });
+
+    setFilteredInvoices(searchResults);
+  }, [debouncedQuery, filterComponentResults]);
+
+  useEffect(() => {
     const fetchInvoicesData = async () => {
       try {
         const invoicesResponse = await backend.get("/invoicesAssignments/");
@@ -234,7 +287,7 @@ const InvoicesDashboard = () => {
     };
 
     getUnpaidInvoices();
-  }, [invoices]);
+  }, []);
 
   return (
     <Navbar>
@@ -253,7 +306,10 @@ const InvoicesDashboard = () => {
           {/* <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} /> */}
           <InvoiceFilter
             invoices={invoices}
-            setFilteredInvoices={setFilteredInvoices}
+            setFilteredInvoices={(results) => {
+              setFilterComponentResults(results);
+              setFilteredInvoices(results);
+            }}
           />
 
           <InputGroup

@@ -817,6 +817,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       }
     });
   }, [filteredInvoices, toast]);
+  
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
