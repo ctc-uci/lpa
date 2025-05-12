@@ -1978,7 +1978,7 @@ export const Sessions = ({
                           </Box>
                         </Td>
                         <Td>
-                          <Menu>
+                          <Menu >
                             <MenuButton
                               as={IconButton}
                               minWidth="24px"
@@ -1987,30 +1987,28 @@ export const Sessions = ({
                               backgroundColor="#EDF2F7"
                               icon={<Icon as={sessionsEllipsis} />}
                             />
-                            <MenuList>
+                            <MenuList
+                                style={{minWidth:"139px", padding:"4px"}}>
                               <MenuItem
+                                width="131px"
+                                height="32px"
+                                display="flex"
+                                  padding="6px 8px"
+                                  alignItems="center"
+                                  gap="8px"
                                 onClick={() => navigate(`/programs/edit/session/${session.id}`)}
                               >
-                                <Box
-                                  display="flex"
-                                  padding="12px 16px"
-                                  alignItems="center"
-                                  gap="8px"
-                                >
                                   <Icon as={EditIcon} />
-                                  <Text color="#767778">Edit</Text>
-                                </Box>
+                                  <Text color="#2D3748" fontSize="14px">Edit</Text>
+
                               </MenuItem>
-                              <MenuItem onClick={() => { setSelectedSingleSession(session.id); deleteModalOnOpen(); }}>
-                                <Box
-                                  display="flex"
-                                  padding="12px 16px"
+                              <MenuItem  display="flex"
+                                  padding="6px 8px"
                                   alignItems="center"
-                                  gap="8px"
-                                >
+                                  gap="8px" width="131px" height="32px" onClick={() => { setSelectedSingleSession(session.id); deleteModalOnOpen(); }}>
+
                                   <Icon as={CancelIcon} />
-                                  <Text color="#90080F">Cancel</Text>
-                                </Box>
+                                  <Text color="#90080F" fontSize="14px">Cancel</Text>
                               </MenuItem>
                             </MenuList>
                           </Menu>
