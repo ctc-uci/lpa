@@ -541,8 +541,8 @@ console.log(type,index, field, value);
                   justifyContent="flex-start"
                   gap="4px"
                   textAlign="left"
-                  color={session.weekday ? "#2D3748" : "#CBD5E0"}>
-                  {session.room || "Room"}
+                  color={session.roomId?.name ? "#2D3748" : "#CBD5E0"}>
+                  {session.roomId?.name|| "Room"}
                 </MenuButton>
 
                 <MenuList minWidth="200px" padding="4px">
@@ -550,10 +550,10 @@ console.log(type,index, field, value);
                     <MenuItem
                       key={room.id}
                       onClick={() => {
-                        handleChangeSessionField('recurring', index, "roomId", room.id);
+                        handleChangeSessionField('recurring', index, "roomId", room);
                         setIsChanged(true);
                       }}
-                      bg={session.roomId === room.id ? "#EDF2F7" : "transparent"}
+                      bg={session.roomId.id === room.id ? "#EDF2F7" : "transparent"}
                     >
                       {room.name}
                     </MenuItem>
@@ -878,7 +878,7 @@ console.log(type,index, field, value);
                         fontSize="16px"
                         fontStyle="normal"
                       >
-                        {allRooms.find((room) => room.id === Number(session.roomId))?.name || "N/A"}
+                        {allRooms.find((room) => room.id === Number(session.roomId.id))?.name || "N/A"}
                       </Text>
                     </Box>
                   </Td>
