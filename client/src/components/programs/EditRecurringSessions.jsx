@@ -610,7 +610,10 @@ const formatDate = (isoString) => {
                 Preview{" "}
               </Text>
             </Flex>
-            <Button backgroundColor="#4441C8" onClick={onSaveSessionModalOpen}>
+            <Button backgroundColor="#4441C8"
+              onClick={onSaveSessionModalOpen}
+              isDisabled={allSessions.length === 0}
+            >
               <Text color="#FFFFFF">
                 Save Changes
               </Text>
