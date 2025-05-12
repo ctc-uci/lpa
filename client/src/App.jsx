@@ -35,6 +35,7 @@ import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
+import { Playground } from "./components/playground/Playground";
 
 const App = () => {
   return (
@@ -93,6 +94,11 @@ const App = () => {
                 <Route
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
+                />
+
+                <Route
+                  path="/playground"
+                  element={<Playground />}
                 />
 
 
