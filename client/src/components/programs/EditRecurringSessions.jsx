@@ -39,6 +39,8 @@ import { CalendarIcon } from "../../assets/CalendarIcon";
 import { AiOutlinePlus } from 'react-icons/ai';
 
 import Navbar from "../navbar/Navbar";
+import { DeleteIconRed } from "../../assets/DeleteIconRed";
+import { ArchiveSessionIcon } from "../../assets/ArchiveSessionIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { IoCloseOutline } from "react-icons/io5";
 import { MdFeaturedPlayList } from "../../assets/MdFeaturedPlayList";
@@ -551,7 +553,7 @@ console.log(type,index, field, value);
                         handleChangeSessionField('recurring', index, "roomId", room.id);
                         setIsChanged(true);
                       }}
-                      bg={session.room === room.name ? "#EDF2F7" : "transparent"}
+                      bg={session.roomId === room.id ? "#EDF2F7" : "transparent"}
                     >
                       {room.name}
                     </MenuItem>
@@ -881,7 +883,7 @@ console.log(type,index, field, value);
                     </Box>
                   </Td>
                   <Td>
-                    <Menu>
+                    <Menu >
                       <MenuButton
                         as={IconButton}
                         boxSize="7"
@@ -890,13 +892,25 @@ console.log(type,index, field, value);
                         color="#2D3748"
                         textColor="#2D3748"
                         cursor="pointer"
+                        minWidth="24px"
+                        minHeight="24px"
+                        borderRadius={6}
                       />
-                      <MenuList>
-                        <MenuItem onClick={() => {handleArchiveSession(session.id); setIsChanged(true);}}>
-                          {session.archived ? "Unarchive" : "Archive"}
+                      <MenuList style={{minWidth:"139px", padding:"4px"}}>
+                        <MenuItem display="flex"
+                            padding="6px 8px"
+                            alignItems="center"
+                            gap="8px" width="131px" height="32px"
+                            onClick={() => {handleArchiveSession(session.id); setIsChanged(true);}}>
+                          <Icon as={ArchiveSessionIcon} />
+                          <Text color="#2D3748" fontSize="14px">{session.archived ? "Unarchive" : "Archive"}</Text>
                         </MenuItem>
-                        <MenuItem onClick={() => {handleDeleteSession(session.id); setIsChanged(true);}}>
-                          Delete
+                        <MenuItem  display="flex"
+                            padding="6px 8px"
+                            alignItems="center"
+                            gap="8px" width="131px" height="32px" onClick={() => {handleDeleteSession(session.id); setIsChanged(true);}}>
+                          <Icon as={DeleteIconRed} />
+                          <Text color="#90080F" fontSize="14px">Delete</Text>
                         </MenuItem>
                       </MenuList>
                     </Menu>
