@@ -523,43 +523,44 @@ console.log(type,index, field, value);
               }
             />
               <Text>in</Text>
-              <Menu autoSelect={false}>
-                <MenuButton
-                  as={Button}
-                  rightIcon={<ChevronDownIcon />}
-                  _hover={{ bgColor: "#EDF2F7", borderRadius: "4px" }}
-                  _active={{ bgColor: "#EDF2F7", borderRadius: "4px" }}
-                  background="transparent"
-                  border="1px solid #E2E8F0"
-                  borderRadius="4px"
-                  fontWeight="400"
-                  fontSize="14px"
-                  width="200px"
-                  display="flex"
-                  alignItems="center"
-                  padding="0px 16px"
-                  justifyContent="flex-start"
-                  gap="4px"
-                  textAlign="left"
-                  color={session.roomId?.name ? "#2D3748" : "#CBD5E0"}>
-                  {session.roomId?.name|| "Room"}
-                </MenuButton>
-
-                <MenuList minWidth="200px" padding="4px">
-                  {allRooms.map((room) => (
-                    <MenuItem
-                      key={room.id}
-                      onClick={() => {
-                        handleChangeSessionField('recurring', index, "roomId", room);
-                        setIsChanged(true);
-                      }}
-                      bg={session.roomId.id === room.id ? "#EDF2F7" : "transparent"}
-                    >
-                      {room.name}
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              </Menu>
+             <Menu autoSelect={false}>
+              <MenuButton
+              as={Button} rightIcon={<ChevronDownIcon />}
+              background="transparent"
+                border="1px solid #E2E8F0"
+                borderRadius="4px"
+                fontWeight="400"
+                fontSize="14px"
+                width="200px"
+                display="flex"
+                alignItems="center"
+                padding="0px 16px"
+                justifyContent="flex-start"
+                gap="4px"
+                textAlign="left"
+                color={session.roomId ? "#2D3748" : "#CBD5E0"}
+                _hover={{
+                  bgColor: "#EDF2F7",
+                  borderRadius: "4px",
+                }}
+                _active={{
+                  bgColor: "#EDF2F7",
+                  borderRadius: "4px",
+                }}>
+                {session.roomId ? allRooms.find(room => room.id === session.roomId)?.name : "Room"}
+              </MenuButton>
+              <MenuList minWidth="200px" padding="4px" borderRadius="4px" overflow="hidden">
+                {allRooms.map((room) => (
+                  <MenuItem
+                    key={room.id}
+                    value={room.id}
+                    onClick={() => handleChangeSessionField('recurring', index, "roomId", room.id)}
+                    bg={session.roomId === room.id ? "#EDF2F7" : "transparent"}>
+                    {room.name}
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </Menu>
               <Icon
                 as={IoCloseOutline}
                 boxSize="6"
@@ -878,7 +879,7 @@ console.log(type,index, field, value);
                         fontSize="16px"
                         fontStyle="normal"
                       >
-                        {allRooms.find((room) => room.id === Number(session.roomId.id))?.name || "N/A"}
+                        {allRooms.find((room) => room.id === Number(session.roomId))?.name || "N/A"}
                       </Text>
                     </Box>
                   </Td>
