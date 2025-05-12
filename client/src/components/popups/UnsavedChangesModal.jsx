@@ -53,7 +53,7 @@ export const UnsavedChangesModal = ({isOpen, onClose, noSave, save, isFormValid 
           </Button>
           <Button
             onClick={save}
-            isDisabled={!isFormValid()}
+            isDisabled={!isFormValid}
             backgroundColor="#4441C8"
             color="#FFFFFF"
             fontSize="14px"

@@ -133,6 +133,7 @@ const formatDate = (isoString) => {
   const [allRooms, setAllRooms] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
   const [programName, setProgramName] = useState("");
+  const [changeMade, setChangeMade] = useState(false);
 
   // TODO: allow duplicate sessions? what if a single session is added on a recurring day?
   const handleAddSingleRow = () => {
@@ -140,6 +141,7 @@ const formatDate = (isoString) => {
       ...prev,
       single: [...prev.single, { date: "", startTime: "", endTime: "", roomId: "", archived: false }]
     }));
+    setChangeMade(true);
   };
 
   const handleAddRecurringRow = () => {
@@ -155,6 +157,7 @@ const formatDate = (isoString) => {
         archived: false
       }]
     }));
+    setChangeMade(true);
   };
 
   const handleChangeSessionField = (type, index, field, value) => {
@@ -378,6 +381,11 @@ const formatDate = (isoString) => {
     fetchAllRooms();
     fetchAllInfo();
   }, [id]);
+
+  const isFormValid = () => {
+  console.log(allSessions.length !== 0 &&isChanged === true);
+    return allSessions.length !== 0 && isChanged === true;
+  };
 
   const addRecurring = (
     <>
@@ -863,6 +871,7 @@ const formatDate = (isoString) => {
             onUnsavedSessionModalClose();
             navigate(`/programs/${id}`);}}
           save={handleGoBack}
+          isFormValid={isFormValid()}
         />}
 
       </Box>

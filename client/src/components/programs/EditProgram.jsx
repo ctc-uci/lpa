@@ -50,17 +50,48 @@ export const EditProgram = () => {
   } = useDisclosure();
 
   useEffect(() => {
+    const getInitialEventData = async (eventResponse) => {
+
+      setEventName(eventResponse.data[0].name);
+      setGeneralInformation(eventResponse.data[0].description);
+      setEventArchived(eventResponse.data[0].archived);
+    }
+
+    const getInitialAssignmentsData = async (eventClientResponse) => {
+      const instructors = eventClientResponse.data
+      .filter(client => client.role === "instructor")
+      .map(client => ({
+        id: client.clientId,
+        name: client.clientName,
+        email: client.clientEmail
+      }));
+
+    const payees = eventClientResponse.data
+      .filter(client => client.role === "payee")
+      .map(client => ({
+        id: client.clientId,
+        name: client.clientName,
+        email: client.clientEmail
+      }));
+      setSelectedInstructors(instructors);
+      setSelectedPayees(payees);
+      setSelectedEmails(payees);
+    }
+
     const loadInitialData = async () => {
-      await getInitialEventData().then(() => {
+      const eventResponse = await backend.get(`/events/${id}`);
+      const eventClientResponse = await backend.get('/assignments/event/' + id);
+
+      await getInitialEventData(eventResponse).then(() => {
         setInfoLoaded((prev) => ({ ...prev, event: true }));
       });
-      await getInitialAssignmentsData().then(() => {
+      await getInitialAssignmentsData(eventClientResponse).then(() => {
         setInfoLoaded((prev) => ({ ...prev, assignments: true }));
       });
           };
 
     loadInitialData();
-  }, []);
+  }, [backend, id]);
 
   useEffect(() => {
     if (initialState === null && Object.values(infoLoaded).every(Boolean)) {
@@ -72,7 +103,7 @@ export const EditProgram = () => {
         selectedEmails,
       }));
     }
-  }, [infoLoaded]);
+  }, [eventName, generalInformation, infoLoaded, initialState, selectedEmails, selectedInstructors, selectedPayees]);
 
   const exit = () => {
     const currentState = JSON.stringify({
@@ -115,40 +146,9 @@ export const EditProgram = () => {
     return (
       eventName.trim() !== "" &&
       selectedInstructors.length > 0 &&
-      selectedPayees.length > 0 
+      selectedPayees.length > 0
     );
   };
-
-  const getInitialEventData = async () => {
-    const eventResponse = await backend.get(`/events/${id}`);
-
-    setEventName(eventResponse.data[0].name);
-    setGeneralInformation(eventResponse.data[0].description);
-    setEventArchived(eventResponse.data[0].archived);
-  }
-
-  const getInitialAssignmentsData = async () => {
-    const eventClientResponse = await backend.get('/assignments/event/' + id);
-
-    const instructors = eventClientResponse.data
-    .filter(client => client.role === "instructor")
-    .map(client => ({
-      id: client.clientId,
-      name: client.clientName,
-      email: client.clientEmail
-    }));
-
-  const payees = eventClientResponse.data
-    .filter(client => client.role === "payee")
-    .map(client => ({
-      id: client.clientId,
-      name: client.clientName,
-      email: client.clientEmail
-    }));
-    setSelectedInstructors(instructors);
-    setSelectedPayees(payees);
-    setSelectedEmails(payees);
-  }
 
   const deleteAllAssignments = async () => {
     try {
@@ -177,7 +177,7 @@ export const EditProgram = () => {
           archived: eventArchived
       });
 
-      deleteAllAssignments();
+      await deleteAllAssignments();
       console.log("Selected instructors: ", selectedInstructors)
       console.log("Selected payees: ", selectedPayees)
       console.log("Assigning instructors...");
@@ -190,7 +190,6 @@ export const EditProgram = () => {
       }
 
       for (const payee of selectedPayees) {
-        console.log("Assigning payee:", payee);
         await backend.post("/assignments", {
             eventId: id,
             clientId: payee.id,
@@ -205,12 +204,12 @@ export const EditProgram = () => {
   };
 
   const saveEventUnsaved = async () => {
-    saveEvent();
+    await saveEvent();
     navigate('/programs/' + id);
   };
 
   const saveEventToSessions = async () => {
-    saveEvent();
+    await saveEvent();
     navigate('/programs/edit/sessions/' + id);
   };
 

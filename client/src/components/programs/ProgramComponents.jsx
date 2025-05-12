@@ -248,7 +248,6 @@ export const ProgramSummary = ({
       };
       await backend.post("/bookings", bookingInfo);
     }
-    console.log("event response ", response.data.id);
     const duplicateId = response.data.id;
 
     for (const instructor of instructors) {
@@ -277,7 +276,6 @@ export const ProgramSummary = ({
   };
 
   const handleArchive = async () => {
-    console.log(program[0].id);
     try {
       await backend.put(`/events/${program[0].id}`, {
         archived: true,
@@ -298,9 +296,6 @@ export const ProgramSummary = ({
   };
 
   const handleDelete = async () => {
-    console.log("Starting delete process...");
-    console.log("Program data:", program[0]);
-
     if (!program[0]?.id) {
       console.error("No event ID found in program data");
       return;
@@ -308,7 +303,6 @@ export const ProgramSummary = ({
 
     try {
       await backend.delete(`/events/${program[0].id}`);
-      console.log("Successfully deleted event and all related records");
       onClose();
       navigate("/programs");
     } catch (error) {
@@ -994,7 +988,6 @@ export const Sessions = ({
     setStatus(newStatus);
   };
 
-  console.log(filteredAndSortedSessions);
   const [sessionMap, setSessionMap] = useState({});
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -1089,7 +1082,6 @@ export const Sessions = ({
     });
     setSessionMap(newSessionMap); // set sessionMap
 
-    console.log(newSessionMap);
     const sorted = [...filtered];
 
     if (sortKey === "date") {
@@ -1179,7 +1171,6 @@ export const Sessions = ({
   };
 
   const deleteSingleSession = async () => {
-    console.log(selectedSingleSession);
     await backend.delete('/bookings/' + selectedSingleSession);
     refreshSessions();
   };
@@ -2179,8 +2170,6 @@ const MyDocument = ({ bookingData }) => {
     </Document>
   );
 };
-
-console.log();
 
 const PDFButton = () => {
   const { backend } = useBackendContext();
