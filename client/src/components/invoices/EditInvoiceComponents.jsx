@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { ChevronDownIcon, CloseIcon } from "@chakra-ui/icons";
+import { AddIcon, ChevronDownIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -12,6 +12,8 @@ import {
   IconButton,
   Image,
   Input,
+  InputGroup,
+  InputLeftAddon,
   Link,
   Menu,
   MenuButton,
@@ -52,7 +54,7 @@ import plusIcon from "../../assets/icons/plus.svg";
 import logo from "../../assets/logo/logo.png";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
-import {RoomFeeAdjustmentSideBar, SummaryFeeAdjustmentSideBar} from "./RoomFeeAdjustmentSideBar";
+import { RoomFeeAdjustmentSideBar, SummaryFeeAdjustmentSideBar } from "./RoomFeeAdjustmentSideBar";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -281,6 +283,19 @@ const StatementComments = ({
   const [activeCommentId, setActiveCommentId] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+  const [isAddingCustom, setIsAddingCustom] = useState(false);
+  const [customDate, setCustomDate] = useState("");
+  const [customText, setCustomText] = useState("");
+  const [customAmount, setCustomAmount] = useState("");
+  const [editingCustomRow, setEditingCustomRow] = useState(null);
+  const [editCustomDate, setEditCustomDate] = useState("");
+  const [editCustomText, setEditCustomText] = useState("");
+  const [editCustomAmount, setEditCustomAmount] = useState("");
+  const editRowRef = useRef(null);
+
+  useEffect(() => {
+    console.log(sessions);
+  }, [sessions]);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -294,41 +309,55 @@ const StatementComments = ({
     fetchUserId();
   }, []);
 
-  
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (editRowRef.current && !editRowRef.current.contains(event.target)) {
+        if (editingCustomRow !== null) {
+          handleSaveCustomRow(editingCustomRow);
+        }
+      }
+    };
+
+    if (editingCustomRow !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount]);
+
   const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
     if (!startTime || !endTime || !rate) return "0.00";
-  
+
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
       return hours * 60 + minutes;
     };
-  
+
     const rawStart = timeToMinutes(startTime.substring(0, 5));
     const rawEnd = timeToMinutes(endTime.substring(0, 5));
     const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
     const durationInHours = (endAdjusted - rawStart) / 60;
-  
+
     const baseRate = Number(rate);
-  
+
     const adjustedRate = adjustmentValues.reduce((currentRate, val) => {
       const isNegative = val.startsWith("-");
       const numericPart = parseFloat(val.replace(/[+$%-]/g, ""));
       if (isNaN(numericPart)) return currentRate;
-  
+
       const adjustmentAmount = val.includes("$")
         ? numericPart
         : val.includes("%")
-        ? (numericPart / 100) * currentRate
-        : 0;
-  
+          ? (numericPart / 100) * currentRate
+          : 0;
+
       return isNegative ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
     }, baseRate);
-  
+
     const total = adjustedRate * durationInHours;
     return total.toFixed(2);
   };
-  
-  
 
   const calculateSubtotal = (sessions) => {
     if (!sessions || sessions.length === 0) return "0.00";
@@ -471,6 +500,60 @@ const StatementComments = ({
     });
   };
 
+  const handleAddCustomRow = (session) => {
+    const newSession = {
+      id: `custom-${Date.now()}`, // Generate unique ID
+      date: new Date().toISOString().split('T')[0],
+      datetime: new Date().toISOString().split('T')[0],
+      comments: [editCustomText],
+      rate: editCustomAmount,
+      startTime: "00:00",
+      endTime: "01:00",
+      adjustmentValues: [],
+      archived: session.archived,
+      name: "",
+    };
+    
+    setSessions(prev => [...prev, newSession]);
+    setEditingCustomRow(newSession.id);
+    setEditCustomDate(newSession.date);
+    setEditCustomText('');
+    setEditCustomAmount('0');
+  };
+
+  const handleEditCustomRow = (session) => {
+    setEditingCustomRow(session.id);
+    const date = new Date(session.date);
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    setEditCustomDate(date.toISOString().split('T')[0]);
+    setEditCustomText(session.comments[0]);
+    setEditCustomAmount(session.rate.toString());
+  };
+
+  const handleSaveCustomRow = (sessionId) => {
+    if (!editCustomDate || !editCustomText || !editCustomAmount) return;
+    
+    setSessions(prevSessions => prevSessions.map(session => {
+      if (session.id === sessionId) {
+        const date = new Date(editCustomDate);
+        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+        
+        return {
+          ...session,
+          date: date,
+          datetime: date,
+          startTime: "00:00",
+          endTime: "01:00",
+          bookingId: session.bookingId,
+          comments: [editCustomText],
+          rate: parseFloat(editCustomAmount)
+        };
+      }
+      return session;
+    }));
+    setEditingCustomRow(null);
+  };
+
   return (
     <Flex
       direction="column"
@@ -589,128 +672,199 @@ const StatementComments = ({
 
               <Tbody color="#2D3748">
                 {sessions && sessions.length > 0 ? (
-                  sessions.map((session, index) => (
-                    <React.Fragment key={session.id || index}>
-                      <Tr 
-                        position="relative"
-                        onMouseEnter={() => setHoveredRowIndex(index)}
-                        onMouseLeave={() => setHoveredRowIndex(null)}
-                      >
-                        <Td
-                          py={compactView ? 0 : 4}
-                          fontSize={compactView ? "6.38" : "sm"}
-                          whiteSpace="nowrap"
-                          borderBottom={
-                            session.comments.length > 0 ? "none" : undefined
-                          }
-                        >
-                          <VStack 
-                            position="absolute"
-                            left="-80px"
-                            top="50%"
-                            transform="translateY(-50%)"
-                            zIndex="1"
-                            opacity={hoveredRowIndex === index || activeCommentId === session.id ? 1 : 0}
-                            transition="opacity 0.2s"
-                          >
-                            <Button
-                              size="sm"
-                              colorScheme="gray"
-                              onClick={() => handleAddComment(session.id)}
-                            >
-                              {activeCommentId === session.id ? "Save" : "Comment"}
-                            </Button>
-                          </VStack>
-                          {format(new Date(session.datetime), "EEE. M/d/yy")}
-                        </Td>
-
-                        {/* Classroom */}
-                        <Td
-                          py={compactView ? 0 : 4}
-                          fontSize={compactView ? "6.38" : "sm"}
-                          borderBottom={
-                            session.comments.length > 0 ? "none" : undefined
-                          }
-                        >
-                          {session.name}
-                        </Td>
-
-                        {/* Rental hours */}
-                        <Td
-                          py={compactView ? 0 : 4}
-                          fontSize={compactView ? "6.38" : "sm"}
-                          borderBottom={
-                            session.comments.length > 0 ? "none" : undefined
-                          }
-                        >
-                          <Flex
-                            align="center"
-                            whiteSpace="nowrap"
-                            overflow="hidden"
-                            textOverflow="ellipsis"
-                          >
-                            <Text>{formatTimeString(session.startTime)}</Text>
-                            <Text>-</Text>
-                            <Text>{formatTimeString(session.endTime)}</Text>
-                          </Flex>
-                        </Td>
-
-                        {/* Room fee */}
-                        <Td
-                          py={compactView ? 0 : 4}
-                          fontSize={compactView ? "6.38" : "sm"}
-                          borderBottom={
-                            session.comments.length > 0 ? "none" : undefined
-                          }
-                        >
-                          {session.adjustmentValues.length === 0 ? (
-                            "None"
+                  sessions.map((session, index) => {
+                    if (String(session.id).includes("custom")) {
+                      return (
+                        <React.Fragment key={session.id || index}>
+                          {editingCustomRow === session.id ? (
+                            <Tr ref={editRowRef}>
+                              <Td colSpan={6} py={2}>
+                                <Flex gap={4} alignItems="flex-end">
+                                  <Input
+                                    type="date"
+                                    value={editCustomDate}
+                                    onChange={(e) => setEditCustomDate(e.target.value)}
+                                    size="sm"
+                                    width="fit-content"
+                                    py="6"
+                                    rounded="md"
+                                    textAlign="center"
+                                  />
+                                  <Input
+                                    placeholder="Description"
+                                    value={editCustomText}
+                                    onChange={(e) => setEditCustomText(e.target.value)}
+                                    size="sm"
+                                    flex={1}
+                                    py="6"
+                                    rounded="md"
+                                    border="none"
+                                  />
+                                  <InputGroup size="sm" width="fit-content" alignItems="center">
+                                    <Text>$</Text>
+                                    <Input
+                                      type="number"
+                                      value={editCustomAmount}
+                                      onChange={(e) => setEditCustomAmount(e.target.value)}
+                                      width="9ch"
+                                      py="6"
+                                      rounded="md"
+                                      textAlign="center"
+                                    />
+                                  </InputGroup>
+                                </Flex>
+                              </Td>
+                            </Tr>
                           ) : (
-                            <Box display="inline-block">
-                              <Tooltip
-                                label={session.adjustmentValues.join(", ")}
-                                placement="top"
-                                bg="gray"
-                                w="auto"
-                              >
-                                <Text>
-                                  {session.adjustmentValues
-                                    .slice(0, 3)
-                                    .join(", ")}
-                                  {session.adjustmentValues.length > 3
-                                    ? ", ..."
-                                    : ""}
-                                </Text>
-                              </Tooltip>
-                            </Box>
+                            <Tr 
+                              position="relative"
+                              cursor="pointer"
+                              onClick={() => handleEditCustomRow(session)}
+                              _hover={{ bg: "gray.50" }}
+                            >
+                              <Td py="6">{format(new Date(session.datetime), "EEE. M/d/yy")}</Td>
+                              <Td colSpan={4}>{session.comments[0]}</Td>
+                              <Td textAlign="right">$ {Number(session.rate).toFixed(2)}</Td>
+                            </Tr>
                           )}
-
-                          {/* Adjust Button  */}
-                        <Button
-                          leftIcon={<PencilIcon color="black" />}
-                          colorScheme="gray"
-                          borderRadius="md"
-                          px="3"
-                          py="2"
-                          fontSize="small"
-                          height="32px"
-                          opacity={
-                            activeRowId === null ||
-                            activeRowId === session.id
-                              ? 1
-                              : 0.3
-                          }
-                          onClick={() => setActiveRowId(session.id)}
-                          isDisabled={
-                            activeRowId !== null &&
-                            activeRowId !== session.id
-                          }
+                        </React.Fragment>
+                      )
+                    }
+                    return (
+                      <React.Fragment key={session.id || index}>
+                        <Tr
+                          position="relative"
+                          onMouseEnter={() => setHoveredRowIndex(index)}
+                          onMouseLeave={() => setHoveredRowIndex(null)}
                         >
-                        Adjust
-                      </Button>
+                          <Td
+                            py={compactView ? 0 : 4}
+                            fontSize={compactView ? "6.38" : "sm"}
+                            whiteSpace="nowrap"
+                            borderBottom={
+                              session.comments.length > 0 ? "none" : undefined
+                            }
+                          >
+                            <VStack
+                              position="absolute"
+                              left="-100px"
+                              top="50%"
+                              transform="translateY(-50%)"
+                              zIndex="1"
+                              opacity={hoveredRowIndex === index || activeCommentId === session.id ? 1 : 0}
+                              transition="opacity 0.2s"
+                              alignItems="flex-end"
+                              width="100px"
+                            >
+                              <Button
+                                leftIcon={<AddIcon />}
+                                size="sm"
+                                colorScheme="gray"
+                                onClick={() => handleAddComment(session.id)}
+                                width="100%"
+                              >
+                                Comment
+                              </Button>
+                              <Button
+                                leftIcon={<AddIcon />}
+                                size="sm"
+                                colorScheme="gray"
+                                width="100%"
+                                onClick={() => handleAddCustomRow(session)}
+                              >
+                                Custom
+                              </Button>
+                            </VStack>
+                            {format(new Date(session.datetime), "EEE. M/d/yy")}
+                          </Td>
 
-                      {/* Adjust Sidebar */}
-                      <RoomFeeAdjustmentSideBar
+                          {/* Classroom */}
+                          <Td
+                            py={compactView ? 0 : 4}
+                            fontSize={compactView ? "6.38" : "sm"}
+                            borderBottom={
+                              session.comments.length > 0 ? "none" : undefined
+                            }
+                          >
+                            {session.name}
+                          </Td>
+
+                          {/* Rental hours */}
+                          <Td
+                            py={compactView ? 0 : 4}
+                            fontSize={compactView ? "6.38" : "sm"}
+                            borderBottom={
+                              session.comments.length > 0 ? "none" : undefined
+                            }
+                          >
+                            <Flex
+                              align="center"
+                              whiteSpace="nowrap"
+                              overflow="hidden"
+                              textOverflow="ellipsis"
+                            >
+                              <Text>{formatTimeString(session.startTime)}</Text>
+                              <Text>-</Text>
+                              <Text>{formatTimeString(session.endTime)}</Text>
+                            </Flex>
+                          </Td>
+
+                          {/* Room fee */}
+                          <Td
+                            py={compactView ? 0 : 4}
+                            fontSize={compactView ? "6.38" : "sm"}
+                            borderBottom={
+                              session.comments.length > 0 ? "none" : undefined
+                            }
+                          >
+                            {session.adjustmentValues.length === 0 ? (
+                              "None"
+                            ) : (
+                              <Box display="inline-block">
+                                <Tooltip
+                                  label={session.adjustmentValues.join(", ")}
+                                  placement="top"
+                                  bg="gray"
+                                  w="auto"
+                                >
+                                  <Text>
+                                    {session.adjustmentValues
+                                      .slice(0, 3)
+                                      .join(", ")}
+                                    {session.adjustmentValues.length > 3
+                                      ? ", ..."
+                                      : ""}
+                                  </Text>
+                                </Tooltip>
+                              </Box>
+                            )}
+
+                            {/* Adjust Button  */}
+                            <Button
+                              leftIcon={<PencilIcon color="black" />}
+                              colorScheme="gray"
+                              borderRadius="md"
+                              px="3"
+                              py="2"
+                              fontSize="small"
+                              height="32px"
+                              opacity={
+                                activeRowId === null ||
+                                  activeRowId === session.id
+                                  ? 1
+                                  : 0.3
+                              }
+                              onClick={() => setActiveRowId(session.id)}
+                              isDisabled={
+                                activeRowId !== null &&
+                                activeRowId !== session.id
+                              }
+                            >
+                              Adjust
+                            </Button>
+
+                            {/* Adjust Sidebar */}
+                            <RoomFeeAdjustmentSideBar
                               isOpen={activeRowId === session.id}
                               onClose={() => setActiveRowId(null)}
                               invoice={invoice[0]}
@@ -725,157 +879,158 @@ const StatementComments = ({
                                 session.adjustmentValues
                               )}
                             />
-                        </Td>
-                        
-                        
+                          </Td>
 
-                        {/* Adjustment type */}
-                        <Td
-                          py={compactView ? 0 : 4}
-                          fontSize={compactView ? "6.38" : "sm"}
-                          borderBottom={
-                            session.comments.length > 0 ? "none" : undefined
-                          }
-                        >
-                          <Text
-                            h="40px"
-                            p={compactView ? "0" : "2"}
-                            display="flex"
-                            alignItems="center"
-                          >
-                            ${calculateNewRate(session).toFixed(2)}/hr
-                          </Text>
-                        </Td>
 
-                        {/* Total */}
-                        <Td
-                          py={compactView ? 0 : 4}
-                          fontSize={compactView ? "6.38" : "sm"}
-                          borderBottom={
-                            session.comments.length > 0 ? "none" : undefined
-                          }
-                        >
-                          <Flex
-                            justifyContent="center"
-                            alignItems="center"
-                            gap={2}
+
+                          {/* Adjustment type */}
+                          <Td
+                            py={compactView ? 0 : 4}
+                            fontSize={compactView ? "6.38" : "sm"}
+                            borderBottom={
+                              session.comments.length > 0 ? "none" : undefined
+                            }
                           >
-                            <Text>$</Text>
-                            <Text textAlign="center">
-                              {calculateTotalBookingRow(
-                                session.startTime,
-                                session.endTime,
-                                session.rate,
-                                session.adjustmentValues
-                              )}
+                            <Text
+                              h="40px"
+                              p={compactView ? "0" : "2"}
+                              display="flex"
+                              alignItems="center"
+                            >
+                              ${calculateNewRate(session).toFixed(2)}/hr
                             </Text>
-                          </Flex>
-                        </Td>
-                      </Tr>
-                      
-                      {/* Display all comments */}
-                      {session.comments?.map((comment, commentIndex) => (
-                        <React.Fragment key={`comment-${commentIndex}`}>
-                          {activeCommentId === `${session.id}-${commentIndex}` ? (
-                            <Tr>
-                              <Td colSpan={6} py={2}>
-                                <Input
-                                  placeholder="Edit your comment..."
-                                  value={commentText}
-                                  onChange={(e) => setCommentText(e.target.value)}
-                                  onKeyDown={(e) => handleKeyDown(e, session.id, commentIndex)}
-                                  onBlur={(e) => handleBlur(e, session.id, commentIndex)}
-                                  size="sm"
-                                  autoFocus
-                                  borderColor="#A0AEC0"
-                                  height="40px"
-                                  _hover={{ borderColor: "#A0AEC0" }}
-                                  _focus={{ borderColor: "#A0AEC0", boxShadow: "none" }}
-                                  rounded="lg"
-                                  sx={{
-                                    '&': {
-                                      paddingY: '8'
-                                    }
-                                  }}
-                                />
-                              </Td>
-                            </Tr>
-                          ) : (
-                            <Tr>
-                              <Td 
-                                colSpan={6} 
-                                py={2} 
-                                textAlign="left" 
-                                fontSize="sm" 
-                                color="gray.600"
-                                position="relative"
-                                role="group"
-                              >
-                                <Flex 
-                                  alignItems="center" 
-                                  justifyContent="space-between"
-                                >
-                                  <Box
-                                    cursor="pointer"
-                                    onClick={() => handleEditComment(session.id, commentIndex)}
-                                    flex="1"
-                                    pr={4}
-                                    py="4"
-                                    borderRadius="8"
-                                  >
-                                    {comment}
-                                  </Box>
-                                  <IconButton
-                                    icon={<CloseIcon boxSize={3} />}
-                                    size="xs"
-                                    variant="ghost"
-                                    colorScheme="gray"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteComment(session.id, commentIndex);
-                                    }}
-                                    opacity="0"
-                                    _groupHover={{ opacity: 1 }}
-                                    aria-label="Delete comment"
-                                    ml={2}
-                                    minW="20px"
-                                    height="20px"
-                                  />
-                                </Flex>
-                              </Td>
-                            </Tr>
-                          )}
-                        </React.Fragment>
-                      ))}
-                      
-                      {/* New comment input */}
-                      {activeCommentId === session.id && (
-                        <Tr>
-                          <Td colSpan={6} py={2}>
-                            <Input
-                              placeholder="Add your comment here..."
-                              value={commentText}
-                              onChange={(e) => setCommentText(e.target.value)}
-                              onKeyDown={(e) => handleKeyDown(e, session.id)}
-                              onBlur={(e) => handleBlur(e, session.id)}
-                              size="sm"
-                              autoFocus
-                              borderColor="#A0AEC0"
-                              height="40px"
-                              _hover={{ borderColor: "#A0AEC0" }}
-                              _focus={{ borderColor: "#A0AEC0", boxShadow: "none" }}
-                              rounded="lg"
-                              sx={{
-                                '&': {
-                                  paddingY: '8'
-                                }
-                              }}
-                            />
+                          </Td>
+
+                          {/* Total */}
+                          <Td
+                            py={compactView ? 0 : 4}
+                            fontSize={compactView ? "6.38" : "sm"}
+                            borderBottom={
+                              session.comments.length > 0 ? "none" : undefined
+                            }
+                          >
+                            <Flex
+                              justifyContent="center"
+                              alignItems="center"
+                              gap={2}
+                            >
+                              <Text>$</Text>
+                              <Text textAlign="center">
+                                {calculateTotalBookingRow(
+                                  session.startTime,
+                                  session.endTime,
+                                  session.rate,
+                                  session.adjustmentValues
+                                )}
+                              </Text>
+                            </Flex>
                           </Td>
                         </Tr>
-                      )}
-                    </React.Fragment>
-                  ))
+
+                        {/* Display all comments */}
+                        {session.comments?.map((comment, commentIndex) => (
+                          <React.Fragment key={`comment-${commentIndex}`}>
+                            {activeCommentId === `${session.id}-${commentIndex}` ? (
+                              <Tr>
+                                <Td colSpan={6} py={2}>
+                                  <Input
+                                    placeholder="Edit your comment..."
+                                    value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(e, session.id, commentIndex)}
+                                    onBlur={(e) => handleBlur(e, session.id, commentIndex)}
+                                    size="sm"
+                                    autoFocus
+                                    borderColor="#A0AEC0"
+                                    height="40px"
+                                    _hover={{ borderColor: "#A0AEC0" }}
+                                    _focus={{ borderColor: "#A0AEC0", boxShadow: "none" }}
+                                    rounded="lg"
+                                    sx={{
+                                      '&': {
+                                        paddingY: '8'
+                                      }
+                                    }}
+                                  />
+                                </Td>
+                              </Tr>
+                            ) : (
+                              <Tr>
+                                <Td
+                                  colSpan={6}
+                                  py={2}
+                                  textAlign="left"
+                                  fontSize="sm"
+                                  color="gray.600"
+                                  position="relative"
+                                  role="group"
+                                >
+                                  <Flex
+                                    alignItems="center"
+                                    justifyContent="space-between"
+                                  >
+                                    <Box
+                                      cursor="pointer"
+                                      onClick={() => handleEditComment(session.id, commentIndex)}
+                                      flex="1"
+                                      pr={4}
+                                      py="4"
+                                      borderRadius="8"
+                                    >
+                                      {comment}
+                                    </Box>
+                                    <IconButton
+                                      icon={<CloseIcon boxSize={3} />}
+                                      size="xs"
+                                      variant="ghost"
+                                      colorScheme="gray"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteComment(session.id, commentIndex);
+                                      }}
+                                      opacity="0"
+                                      _groupHover={{ opacity: 1 }}
+                                      aria-label="Delete comment"
+                                      ml={2}
+                                      minW="20px"
+                                      height="20px"
+                                    />
+                                  </Flex>
+                                </Td>
+                              </Tr>
+                            )}
+                          </React.Fragment>
+                        ))}
+
+                        {/* New comment input */}
+                        {activeCommentId === session.id && (
+                          <Tr>
+                            <Td colSpan={6} py={2}>
+                              <Input
+                                placeholder="Add your comment here..."
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(e, session.id)}
+                                onBlur={(e) => handleBlur(e, session.id)}
+                                size="sm"
+                                autoFocus
+                                borderColor="#A0AEC0"
+                                height="40px"
+                                _hover={{ borderColor: "#A0AEC0" }}
+                                _focus={{ borderColor: "#A0AEC0", boxShadow: "none" }}
+                                rounded="lg"
+                                sx={{
+                                  '&': {
+                                    paddingY: '8'
+                                  }
+                                }}
+                              />
+                            </Td>
+                          </Tr>
+                        )}
+                      </React.Fragment>
+                    )
+                  })
                 ) : (
                   <Tr py="4">
                     <Td
@@ -958,18 +1113,18 @@ const InvoiceSummary = ({
 
   // Summary Sidebar total calculations
   const originalSessionRateRef = useRef(null);
-  
+
   useEffect(() => {
     if (sessions?.length > 0 && originalSessionRateRef.current === null) {
       originalSessionRateRef.current = sessions[0]?.rate;
     }
   }, [sessions]);
-  
+
   useEffect(() => {
     if (!summary?.[0]?.adjustmentValues || sessions.length === 0 || originalSessionRateRef.current === null) return;
-    
+
     const originalSessionRate = originalSessionRateRef.current;
-    
+
     const updatedSessions = sessions.map((session) => {
 
       const adjustedRate = calculateTotalBookingRow(
@@ -983,15 +1138,15 @@ const InvoiceSummary = ({
           rate: adjustedRate,
         };
       }
-      
+
       return session;
     });
 
     setSessions(updatedSessions)
-    
-  }, [summary]); 
 
-  
+  }, [summary]);
+
+
 
   return (
     <Flex
@@ -1091,39 +1246,39 @@ const InvoiceSummary = ({
                 </Td>
                 <Td borderBottom="none">
                   <Button
-                        // onClose={() => setActiveRowId(null)}
-                        leftIcon={<PencilIcon color="black" />}
-                        colorScheme="gray"
-                        borderRadius="md"
-                        px="3"
-                        py="2"
-                        fontSize="small"
-                        height="32px"
-                        // opacity={
-                        //   activeRowId === null ||
-                        //   activeRowId === session.id
-                        //     ? 1
-                        //     : 0.3
-                        // }
-                        // onClick={() => setActiveRowId(session.id)}
-                        // isDisabled={
-                        //   activeRowId !== null &&
-                        //   activeRowId !== session.id
-                        // }
-                        onClick={onOpen}
-                      >
-                      Adjust
-                    </Button>
+                    // onClose={() => setActiveRowId(null)}
+                    leftIcon={<PencilIcon color="black" />}
+                    colorScheme="gray"
+                    borderRadius="md"
+                    px="3"
+                    py="2"
+                    fontSize="small"
+                    height="32px"
+                    // opacity={
+                    //   activeRowId === null ||
+                    //   activeRowId === session.id
+                    //     ? 1
+                    //     : 0.3
+                    // }
+                    // onClick={() => setActiveRowId(session.id)}
+                    // isDisabled={
+                    //   activeRowId !== null &&
+                    //   activeRowId !== session.id
+                    // }
+                    onClick={onOpen}
+                  >
+                    Adjust
+                  </Button>
                 </Td>
 
-                <SummaryFeeAdjustmentSideBar 
-                    isOpen={isOpen}
-                    onClose={onClose}
-                    summary={summary[0]}
-                    setSummary={setSummary}
-                    sessionIndex={0}
-                    subtotal={subtotal}
-                    session={sessions[0]}
+                <SummaryFeeAdjustmentSideBar
+                  isOpen={isOpen}
+                  onClose={onClose}
+                  summary={summary[0]}
+                  setSummary={setSummary}
+                  sessionIndex={0}
+                  subtotal={subtotal}
+                  session={sessions[0]}
                 />
               </Tr>
               {/* Room Fee Body Row */}
@@ -1185,6 +1340,7 @@ const InvoiceSummary = ({
                       <Box as="span">$</Box>
                       <Input
                         value={parseFloat(session.rate).toFixed(2)}
+                        readOnly={true}
                         w="8ch"
                         textAlign="center"
                         px={1}
