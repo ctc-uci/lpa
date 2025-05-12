@@ -59,7 +59,8 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
                 LEFT JOIN bookings ON comments.booking_id = bookings.id
                 LEFT JOIN rooms ON bookings.room_id = rooms.id
                 WHERE comments.invoice_id = $1 
-                AND comments.booking_id IS NOT NULL`;;
+                AND comments.booking_id IS NOT NULL
+                ORDER BY comments.id`;
     const queryParams = [id];
 
 
@@ -96,6 +97,7 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       delete groupedComments[bookingId].comment;
     });
 
+    console.log("groupedComments", Object.values(groupedComments));
     res.status(200).json(Object.values(groupedComments));
   } catch (err) {
     res.status(500).send(err.message);

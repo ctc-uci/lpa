@@ -265,11 +265,10 @@ const EditInvoiceDetails = ({
 };
 
 // TODO
-// ! - Add comments row
-// ! - Add fees row
 // ! - POST Functionality
-// - Fix Current Statement Total in EditInvoice being different that SavedInvoice
-
+// ! - Fix Current Statement Total in EditInvoice being different that SavedInvoice
+// ! - Save Edits to Invoice alert modal
+// ! - Fix summary room fee changing session rate -> needs to be passed into sessions with the summary adjustment values -> should be local state
 const StatementComments = ({
   invoice,
   compactView = false,
@@ -283,19 +282,11 @@ const StatementComments = ({
   const [activeCommentId, setActiveCommentId] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
-  const [isAddingCustom, setIsAddingCustom] = useState(false);
-  const [customDate, setCustomDate] = useState("");
-  const [customText, setCustomText] = useState("");
-  const [customAmount, setCustomAmount] = useState("");
   const [editingCustomRow, setEditingCustomRow] = useState(null);
   const [editCustomDate, setEditCustomDate] = useState("");
   const [editCustomText, setEditCustomText] = useState("");
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
-
-  useEffect(() => {
-    console.log(sessions);
-  }, [sessions]);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -502,18 +493,21 @@ const StatementComments = ({
 
   const handleAddCustomRow = (session) => {
     const newSession = {
-      id: `custom-${Date.now()}`, // Generate unique ID
+      // TODO Can change id to be more like other sessions, just need to find max of all other ids and increment
+      id: `custom-${Date.now()}`,
       date: new Date().toISOString().split('T')[0],
       datetime: new Date().toISOString().split('T')[0],
       comments: [editCustomText],
       rate: editCustomAmount,
+      // Keeping the start time and end time to allow calculation of the subtotal
       startTime: "00:00",
       endTime: "01:00",
       adjustmentValues: [],
       archived: session.archived,
+      bookingId: session.bookingId,
       name: "",
     };
-    
+
     setSessions(prev => [...prev, newSession]);
     setEditingCustomRow(newSession.id);
     setEditCustomDate(newSession.date);
@@ -532,12 +526,12 @@ const StatementComments = ({
 
   const handleSaveCustomRow = (sessionId) => {
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
-    
+
     setSessions(prevSessions => prevSessions.map(session => {
       if (session.id === sessionId) {
         const date = new Date(editCustomDate);
         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-        
+
         return {
           ...session,
           date: date,
@@ -671,8 +665,10 @@ const StatementComments = ({
               </Thead>
 
               <Tbody color="#2D3748">
+                {/* //  TODO Should the row's date be the latest comment date or the initial comment date? */}
                 {sessions && sessions.length > 0 ? (
                   sessions.map((session, index) => {
+                    // console.log("session map", session);
                     if (String(session.id).includes("custom")) {
                       return (
                         <React.Fragment key={session.id || index}>
@@ -716,7 +712,7 @@ const StatementComments = ({
                               </Td>
                             </Tr>
                           ) : (
-                            <Tr 
+                            <Tr
                               position="relative"
                               cursor="pointer"
                               onClick={() => handleEditCustomRow(session)}
@@ -1283,7 +1279,8 @@ const InvoiceSummary = ({
               </Tr>
               {/* Room Fee Body Row */}
 
-              {sessions?.map((session, key) => (
+              {/* Custom rows don't have room names, so that's why we filter them out to avoid showing custom rows in the summary */}
+              {sessions?.filter((session) => session.name.length > 0).map((session, key) => (
                 <Tr key={key}>
                   <Td
                     pl="16"

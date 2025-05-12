@@ -217,7 +217,6 @@ export const EditInvoice = () => {
         const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
         setSummary(summaryResponse.data);
 
-        console.log("summaryResponse", summaryResponse)
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -246,7 +245,6 @@ export const EditInvoice = () => {
         // Filter for only the bookings that match the event id
         const bookingsWithinDate = bookingResponse.data;
         const bookingsWithEventId = bookingsWithinDate.filter(booking => booking.eventId === invoice.data[0].eventId);
-        console.log("Bookings with event id is:", bookingsWithEventId)
 
         setBookingDetails(bookingsWithEventId);
 
@@ -280,58 +278,74 @@ export const EditInvoice = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const roomData = {
-        ...room[0],
-        rate: room[0].rate,
-      };
+      for (const session of sessions) {
+        // console.log("session", session)
 
-      const roomResponse = await backend.put(`/rooms/${room[0].id}`, roomData);
+        // const roomData = {
+        //   id: session.roomId,
+        //   name: session.name,
+        //   description: session.description,
+        //   rate: session.rate,
+        // };
 
-      for (const comment of editedComments) {
-        const commentData = {
-          adjustment_type: comment.adjustmentType || null,
-          adjustment_value: comment.adjustmentValue,
-          booking_id: comment.bookingId,
-          comment: comment.comment,
-          datetime: comment.datetime,
-          id: comment.id || null,
-          invoice_id: comment.invoiceId,
-          user_id: comment.userId,
-        };
+        // console.log("roomData", roomData)
 
-        try {
-          if (comment.id) {
-            // Update existing comment
-            const response = await backend.put(
-              `/comments/${comment.id}`,
-              commentData
-            );
-            console.log("Updated comment:", response.data);
-          } else {
-            // Create new comment
-            const response = await backend.post(`/comments`, commentData);
-            console.log("Created new comment:", response.data);
-          }
-        } catch (error) {
-          console.error(`Error saving comment ${comment.id}:`, error);
+        // const roomResponse = await backend.put(`/rooms/${session.roomId}`, roomData);
 
-          if (error.response && error.response.status === 400) {
-            try {
-              const altResponse = await backend.post(
-                `/comments/update/${comment.id}`,
-                commentData
-              );
-            } catch (altError) {
-              console.error("Alternative update failed:", altError);
-              throw altError;
-            }
-          } else {
-            throw error;
-          }
+        // console.log("roomResponse", roomResponse)
+        // for (const adjustment of session.adjustmentValues) {
+        //   console.log("adjustment", adjustment)
+        // }
+
+        for (const comment of session.comments) {
+          console.log("comment", comment)
+
+          const commentData = {
+            id: session.id,
+            comment: comment.comment,
+            datetime: comment.datetime,
+          };
+          console.log("commentData", commentData)
         }
+
+
       }
 
-      navigate(`/invoices/savededits/${id}`);
+
+
+      //   try {
+      //     if (comment.id) {
+      //       // Update existing comment
+      //       const response = await backend.put(
+      //         `/comments/${comment.id}`,
+      //         commentData
+      //       );
+      //       console.log("Updated comment:", response.data);
+      //     } else {
+      //       // Create new comment
+      //       const response = await backend.post(`/comments`, commentData);
+      //       console.log("Created new comment:", response.data);
+      //     }
+      //   } catch (error) {
+      //     console.error(`Error saving comment ${comment.id}:`, error);
+
+      //     if (error.response && error.response.status === 400) {
+      //       try {
+      //         const altResponse = await backend.post(
+      //           `/comments/update/${comment.id}`,
+      //           commentData
+      //         );
+      //       } catch (altError) {
+      //         console.error("Alternative update failed:", altError);
+      //         throw altError;
+      //       }
+      //     } else {
+      //       throw error;
+      //     }
+      //   }
+      // }
+
+      // navigate(`/invoices/savededits/${id}`);
     } catch (error) {
       console.error("Error saving invoice:", error);
     } finally {
@@ -396,17 +410,10 @@ export const EditInvoice = () => {
             />
             <StatementComments
               invoice={invoice?.data}
-              bookings={booking}
-              rooms={room}
               subtotal={editedSubtotal}
               setSubtotal={setEditedSubtotal}
-              comments={editedComments}
-              onCommentsChange={handleCommentUpdate}
-              onSubtotalChange={handleSubtotalUpdate}
               sessions={sessions}
               setSessions={setSessions}
-              summary={summary}
-              setSummary={setSummary}
             />
             <InvoiceSummary
               pastDue={pastDue}
