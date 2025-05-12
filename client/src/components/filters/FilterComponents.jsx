@@ -900,26 +900,26 @@ export const SeasonFilter = ({ value, onChange }) => {
         >
           <RoundedButton
             onClick={() => handleSeasonChange("all")}
-            isActive={localSeason == "all"}
+            isActive={localSeason === "all"}
           >
             All
           </RoundedButton>
           <RoundedButton
             onClick={() => handleSeasonChange("Summer")}
-            isActive={localSeason == "Summer"}
+            isActive={localSeason === "Summer"}
           >
             Summer
           </RoundedButton>
 
           <RoundedButton
             onClick={() => handleSeasonChange("Fall")}
-            isActive={localSeason == "Fall"}
+            isActive={localSeason === "Fall"}
           >
             Fall
           </RoundedButton>
           <RoundedButton
             onClick={() => handleSeasonChange("Winter")}
-            isActive={localSeason == "Winter"}
+            isActive={localSeason === "Winter"}
           >
             Winter
           </RoundedButton>
@@ -962,19 +962,19 @@ export const EmailFilter = ({ value, onChange }) => {
         >
           <RoundedButton
             onClick={() => handleEmailChange("all")}
-            isActive={localEmail == "all"}
+            isActive={localEmail === "all"}
           >
             All
           </RoundedButton>
           <RoundedButton
             onClick={() => handleEmailChange("true")}
-            isActive={localEmail == "true"}
+            isActive={localEmail === "true"}
           >
             Sent
           </RoundedButton>
           <RoundedButton
             onClick={() => handleEmailChange("")}
-            isActive={localEmail == ""}
+            isActive={localEmail === ""}
           >
             Not Sent
           </RoundedButton>
