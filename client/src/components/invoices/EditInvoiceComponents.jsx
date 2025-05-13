@@ -288,8 +288,6 @@ const StatementComments = ({
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
 
-  // console.log("sessions", sessions);
-
   useEffect(() => {
     const fetchUserId = async () => {
       const currentFirebaseUser = await getCurrentUser();
@@ -335,17 +333,16 @@ const StatementComments = ({
     const baseRate = Number(rate);
 
     const adjustedRate = adjustmentValues.reduce((currentRate, val) => {
-      const isNegative = val.startsWith("-");
-      const numericPart = parseFloat(val.replace(/[+$%-]/g, ""));
+      const numericPart = Math.abs(Number(val));
       if (isNaN(numericPart)) return currentRate;
 
-      const adjustmentAmount = val.includes("$")
+      const adjustmentAmount = val.type === "rate_flat"
         ? numericPart
-        : val.includes("%")
+        : val.type === "rate_percent"
           ? (numericPart / 100) * currentRate
           : 0;
 
-      return isNegative ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
+      return val < 0 ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
     }, baseRate);
 
     const total = adjustedRate * durationInHours;
@@ -357,9 +354,10 @@ const StatementComments = ({
 
     const totalSum = sessions.reduce((acc, session) => {
       // For total adjustment sessions, use the total value directly
-      if (session.id && session.id.toString().startsWith('total-')) {
-        return acc + parseFloat(session.total || 0);
-      }
+      // ! TODO - Fix this for total adjustment sessions
+      // if (session.id && session.id.toString().startsWith('total-')) {
+      //   return acc + parseFloat(session.total || 0);
+      // }
       
       // For regular sessions, calculate as before
       const total = parseFloat(
@@ -367,7 +365,7 @@ const StatementComments = ({
           session.startTime,
           session.endTime,
           session.rate,
-          session.adjustmentValues
+          session.adjustmentValues.map(adj => adj.value)
         )
       );
       return acc + total;
@@ -397,15 +395,16 @@ const StatementComments = ({
   const calculateNewRate = (session) => {
     let newRate = Number(session.rate || 0);
 
-    session.adjustmentValues.forEach((val) => {
-      const isNegative = val.startsWith("-");
-      const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
+    session.adjustmentValues.forEach((adj) => {
+      const val = Number(adj.value);
+      const isNegative = val < 0;
+      const numericPart = Math.abs(val);
 
       let adjustmentAmount = 0;
 
-      if (val.includes("$")) {
+      if (adj.type === "rate_flat") {
         adjustmentAmount = numericPart;
-      } else if (val.includes("%")) {
+      } else if (adj.type === "rate_percent") {
         adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
       }
 
@@ -419,7 +418,7 @@ const StatementComments = ({
     return newRate;
   };
 
-  const saveComment = (sessionId, commentIndex = null) => {
+  const saveComment = (index, commentIndex = null) => {
     if (!commentText.trim()) {
       setActiveCommentId(null);
       setCommentText("");
@@ -427,8 +426,8 @@ const StatementComments = ({
     }
 
     setSessions(prevSessions => {
-      return prevSessions.map(session => {
-        if (session.id === sessionId) {
+      return prevSessions.map((session, sessionIndex) => {
+        if (sessionIndex === index) {
           const comments = session.comments || [];
           if (commentIndex !== null) {
             // Edit existing comment
@@ -453,40 +452,43 @@ const StatementComments = ({
     setCommentText("");
   };
 
-  const handleAddComment = (sessionId) => {
-    if (activeCommentId === sessionId) {
-      saveComment(sessionId);
+  const handleAddComment = (index) => {
+
+    if (activeCommentId === index) {
+      saveComment(index);
     } else {
       setCommentText("");
-      setActiveCommentId(sessionId);
+      setActiveCommentId(index);
     }
   };
 
-  const handleEditComment = (sessionId, commentIndex) => {
-    const session = sessions.find(s => s.id === sessionId);
+
+
+  const handleEditComment = (index, commentIndex) => {
+    const session = sessions[index];
     setCommentText(session?.comments[commentIndex] || "");
-    setActiveCommentId(`${session.id}-${commentIndex}`);
+    setActiveCommentId(`${index}-${commentIndex}`);
   };
 
-  const handleKeyDown = (e, sessionId, commentIndex = null) => {
+  const handleKeyDown = (e, index, commentIndex = null) => {
     if (e.key === 'Enter') {
-      saveComment(sessionId, commentIndex);
+      saveComment(index, commentIndex);
     }
   };
 
-  const handleBlur = (e, sessionId, commentIndex = null) => {
+  const handleBlur = (e, index, commentIndex = null) => {
     // Small timeout to allow clicking on buttons
     setTimeout(() => {
       if (activeCommentId) {
-        saveComment(sessionId, commentIndex);
+        saveComment(index, commentIndex);
       }
     }, 100);
   };
 
-  const handleDeleteComment = (sessionId, commentIndex) => {
+  const handleDeleteComment = (sessionIndex, commentIndex) => {
     setSessions(prevSessions => {
-      return prevSessions.map(session => {
-        if (session.id === sessionId) {
+      return prevSessions.map((session, index) => {
+        if (index === sessionIndex) {
           const newComments = [...(session.comments || [])];
           newComments.splice(commentIndex, 1);
           return {
@@ -499,11 +501,9 @@ const StatementComments = ({
     });
   };
 
-  const handleAddCustomRow = (session) => {
+  const handleAddCustomRow = (session, index) => {
     const newSession = {
       // TODO Can change id to be more like other sessions, just need to find max of all other ids and increment
-      id: `custom-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
       datetime: new Date().toISOString().split('T')[0],
       comments: [editCustomText],
       rate: editCustomAmount,
@@ -513,38 +513,37 @@ const StatementComments = ({
       startTime: "00:00",
       endTime: "01:00",
       adjustmentValues: [],
-      archived: session.archived,
+      invoiceId: session.invoiceId,
       bookingId: session.bookingId,
       name: "",
     };
 
     setSessions(prev => [...prev, newSession]);
-    setEditingCustomRow(newSession.id);
-    setEditCustomDate(newSession.date);
+    setEditingCustomRow(index);
+    setEditCustomDate(newSession.datetime);
     setEditCustomText('');
     setEditCustomAmount('0');
   };
 
-  const handleEditCustomRow = (session) => {
-    setEditingCustomRow(session.id);
-    const date = new Date(session.date);
+  const handleEditCustomRow = (session, index) => {
+    setEditingCustomRow(index);
+    const date = new Date(session.datetime);
     date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
     setEditCustomDate(date.toISOString().split('T')[0]);
     setEditCustomText(session.comments[0]);
     setEditCustomAmount(session.rate.toString());
   };
 
-  const handleSaveCustomRow = (sessionId) => {
+  const handleSaveCustomRow = (sessionIndex) => {
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
-    setSessions(prevSessions => prevSessions.map(session => {
-      if (session.id === sessionId) {
+    setSessions(prevSessions => prevSessions.map((session, index) => {
+      if (index === sessionIndex) {
         const date = new Date(editCustomDate);
         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
 
         return {
           ...session,
-          date: date,
           datetime: date,
           startTime: "00:00",
           endTime: "01:00",
@@ -557,6 +556,12 @@ const StatementComments = ({
     }));
     setEditingCustomRow(null);
   };
+
+  // console.log("sessions", sessions)
+
+  if(1===2) return (<>
+    <Text>Hello</Text>
+  </>)
 
   return (
     <Flex
@@ -678,43 +683,67 @@ const StatementComments = ({
                 {sessions && sessions.length > 0 ? (
                   sessions.map((session, index) => {
                     // Check if this is a total adjustment session
-                    if (session.id && session.id.toString().startsWith('total-')) {
+                    const hasTotalAdjustment = session.adjustmentValues && 
+                      session.adjustmentValues.some(adj => adj.type === "total");
+                    
+                    if (hasTotalAdjustment) {
+                      // Display as a custom row
                       return (
-                        <React.Fragment key={session.id || index}>
+                        <React.Fragment key={index}>
+                          {editingCustomRow === index ? (
                             <Tr ref={editRowRef}>
                               <Td colSpan={6} py={2}>
                                 <Flex gap={4} alignItems="flex-end">
-                                  <Text
+                                  <Input
                                     type="date"
+                                    value={editCustomDate}
+                                    onChange={(e) => setEditCustomDate(e.target.value)}
                                     size="sm"
                                     width="fit-content"
                                     py="6"
                                     rounded="md"
                                     textAlign="center"
-                                  >{format(new Date(session.date), "EEE. M/d/yy")}</Text>
-                                  <Text
+                                  />
+                                  <Input
+                                    placeholder="Description"
+                                    value={editCustomText}
+                                    onChange={(e) => setEditCustomText(e.target.value)}
                                     size="sm"
                                     flex={1}
                                     py="6"
                                     rounded="md"
                                     border="none"
-                                  >{session.comments[0]}</Text>
-                                  <HStack alignItems="center" gap="0">
+                                  />
+                                  <InputGroup size="sm" width="fit-content" alignItems="center">
                                     <Text>$</Text>
-                                    <Text
+                                    <Input
+                                      type="number"
                                       value={editCustomAmount}
+                                      onChange={(e) => setEditCustomAmount(e.target.value)}
                                       width="9ch"
                                       py="6"
                                       rounded="md"
                                       textAlign="center"
-                                    >{Number(session.adjustmentValues[0]).toFixed(2)}</Text>
-                                  </HStack>
+                                    />
+                                  </InputGroup>
                                 </Flex>
                               </Td>
                             </Tr>
+                          ) : (
+                            <Tr
+                              position="relative"
+                              cursor="pointer"
+                              onClick={() => handleEditCustomRow(session, index)}
+                              _hover={{ bg: "gray.50" }}
+                            >
+                              <Td py="6">{format(new Date(session.datetime), "EEE. M/d/yy")}</Td>
+                              <Td colSpan={4}>{session.comments[0] || "Custom adjustment"}</Td>
+                              <Td textAlign="right">$ {Number(session.adjustmentValues[0].value || 0).toFixed(2)}</Td>
+                            </Tr>
+                          )}
                         </React.Fragment>
                       );
-                    } else if (String(session.id).includes("custom")) {
+                    } else if (String(session.id || "").includes("custom")) {
                       // Handle existing custom rows
                       return (
                         <React.Fragment key={session.id || index}>
@@ -761,7 +790,7 @@ const StatementComments = ({
                             <Tr
                               position="relative"
                               cursor="pointer"
-                              onClick={() => handleEditCustomRow(session)}
+                              onClick={() => handleEditCustomRow(session, index)}
                               _hover={{ bg: "gray.50" }}
                             >
                               <Td py="6">{format(new Date(session.datetime), "EEE. M/d/yy")}</Td>
@@ -773,7 +802,7 @@ const StatementComments = ({
                       );
                     }
                     
-                    // Handle regular session rows
+                    // For regular sessions, use the existing code
                     return (
                       <React.Fragment key={session.id || index}>
                         <Tr
@@ -804,7 +833,7 @@ const StatementComments = ({
                                 leftIcon={<AddIcon />}
                                 size="sm"
                                 colorScheme="gray"
-                                onClick={() => handleAddComment(session.id)}
+                                onClick={() => handleAddComment(index)}
                                 width="100%"
                               >
                                 Comment
@@ -814,7 +843,7 @@ const StatementComments = ({
                                 size="sm"
                                 colorScheme="gray"
                                 width="100%"
-                                onClick={() => handleAddCustomRow(session)}
+                                onClick={() => handleAddCustomRow(session, index)}
                               >
                                 Custom
                               </Button>
@@ -875,10 +904,10 @@ const StatementComments = ({
                                   ? 1
                                   : 0.3
                               }
-                              onClick={() => setActiveRowId(session.id)}
+                              onClick={() => setActiveRowId(index)}
                               isDisabled={
                                 activeRowId !== null &&
-                                activeRowId !== session.id
+                                activeRowId !== index
                               }
                             >
                               Adjust
@@ -890,7 +919,7 @@ const StatementComments = ({
                             ) : (
                               <Box display="inline-block" marginLeft="10px">
                                 <Tooltip
-                                  label={session.adjustmentValues.join(", ")}
+                                  label={session.adjustmentValues.map(adj => adj.value).join(", ")}
                                   placement="top"
                                   bg="gray"
                                   w="auto"
@@ -898,6 +927,13 @@ const StatementComments = ({
                                   <Text>
                                     {session.adjustmentValues
                                       .slice(0, 3)
+                                      .map(adj => {
+                                        const value = Number(adj.value);
+                                        const sign = value >= 0 ? '+' : '-';
+                                        const isFlat = adj.type === 'rate_flat';
+                                        const absValue = Math.abs(value);
+                                        return isFlat ? `${sign}$${absValue}` : `${sign}${absValue}%`;
+                                      })
                                       .join(", ")}
                                     {session.adjustmentValues.length > 3
                                       ? ", ..."
@@ -909,7 +945,7 @@ const StatementComments = ({
 
                             {/* Adjust Sidebar */}
                             <RoomFeeAdjustmentSideBar
-                              isOpen={activeRowId === session.id}
+                              isOpen={activeRowId === index}
                               onClose={() => setActiveRowId(null)}
                               invoice={invoice[0]}
                               userId={userId}
@@ -920,7 +956,7 @@ const StatementComments = ({
                                 session.startTime,
                                 session.endTime,
                                 session.rate,
-                                session.adjustmentValues
+                                session.adjustmentValues.map(adj => adj.value)
                               )}
                             />
                           </Td>
@@ -963,7 +999,7 @@ const StatementComments = ({
                                   session.startTime,
                                   session.endTime,
                                   session.rate,
-                                  session.adjustmentValues
+                                  session.adjustmentValues.map(adj => adj.value)
                                 )}
                               </Text>
                             </Flex>
@@ -973,15 +1009,15 @@ const StatementComments = ({
                         {/* Display all comments */}
                         {session.comments?.map((comment, commentIndex) => (
                           <React.Fragment key={`comment-${commentIndex}`}>
-                            {activeCommentId === `${session.id}-${commentIndex}` ? (
+                            {activeCommentId === `${index}-${commentIndex}` ? (
                               <Tr>
                                 <Td colSpan={6} py={2}>
                                   <Input
                                     placeholder="Edit your comment..."
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
-                                    onKeyDown={(e) => handleKeyDown(e, session.id, commentIndex)}
-                                    onBlur={(e) => handleBlur(e, session.id, commentIndex)}
+                                    onKeyDown={(e) => handleKeyDown(e, index, commentIndex)}
+                                    onBlur={(e) => handleBlur(e, index, commentIndex)}
                                     size="sm"
                                     autoFocus
                                     borderColor="#A0AEC0"
@@ -1014,7 +1050,7 @@ const StatementComments = ({
                                   >
                                     <Box
                                       cursor="pointer"
-                                      onClick={() => handleEditComment(session.id, commentIndex)}
+                                      onClick={() => handleEditComment(index, commentIndex)}
                                       flex="1"
                                       pr={4}
                                       py="4"
@@ -1029,7 +1065,7 @@ const StatementComments = ({
                                       colorScheme="gray"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleDeleteComment(session.id, commentIndex);
+                                        handleDeleteComment(index, commentIndex);
                                       }}
                                       opacity="0"
                                       _groupHover={{ opacity: 1 }}
@@ -1046,15 +1082,15 @@ const StatementComments = ({
                         ))}
 
                         {/* New comment input */}
-                        {activeCommentId === session.id && (
+                        {activeCommentId === index && (
                           <Tr>
                             <Td colSpan={6} py={2}>
                               <Input
                                 placeholder="Add your comment here..."
                                 value={commentText}
                                 onChange={(e) => setCommentText(e.target.value)}
-                                onKeyDown={(e) => handleKeyDown(e, session.id)}
-                                onBlur={(e) => handleBlur(e, session.id)}
+                                onKeyDown={(e) => handleKeyDown(e, index)}
+                                onBlur={(e) => handleBlur(e, index)}
                                 size="sm"
                                 autoFocus
                                 borderColor="#A0AEC0"
@@ -1131,27 +1167,26 @@ const InvoiceSummary = ({
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
 
-    const baseRate = parseFloat(rate);
+    const baseRate = Number(rate);
+    console.log("baseRate", baseRate)
     if (isNaN(baseRate)) return "0.00";
 
     const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
-      const sign = val[0];
-      const isPercent = val.includes("%");
-      const cleanStr = val.slice(1).replace("$", "").replace("%", "");
-      const num = parseFloat(cleanStr);
+      console.log("acc", acc)
+      console.log("val", val)
 
-      if (isNaN(num)) return acc;
 
-      if (isPercent) {
-        const factor = 1 + (sign === "+" ? num : -num) / 100;
+      if (isNaN(val.value)) return acc;
+
+      if (val.type === "percent") {
+        const factor = 1 + (val.value / 100);
         return acc * factor;
       } else {
-        return sign === "+" ? acc + num : acc - num;
+        return acc + Number(val.value);
       }
     }, baseRate);
 
-
-    return adjustedTotal.toFixed(2);
+    return Number(adjustedTotal).toFixed(2);
   };
 
   // Summary Sidebar total calculations
@@ -1189,7 +1224,7 @@ const InvoiceSummary = ({
 
   }, [summary]);
 
-
+  // console.log("sessions", sessions)
 
   return (
     <Flex
@@ -1317,7 +1352,7 @@ const InvoiceSummary = ({
               {/* Room Fee Body Row */}
 
               {/* Custom rows don't have room names, so that's why we filter them out to avoid showing custom rows in the summary */}
-              {sessions?.filter((session) => session.name?.length > 0).map((session, key) => (
+              {sessions?.filter((session) => session.name?.length > 0 && session.adjustmentValues[0]?.type !== "total" && session.adjustmentValues[0]?.type !== "none").map((session, key) => (
                 <Tr key={key}>
                   <Td
                     pl="16"
@@ -1337,22 +1372,31 @@ const InvoiceSummary = ({
                       key === sessions.length - 1 ? undefined : "none"
                     }
                   >
-                    {summary[0]?.adjustmentValues.length === 0 ? (
+                    {summary[0]?.adjustmentValues?.length === 0 ? (
                       "None"
                     ) : (
                       <Box display="inline-block">
                         <Tooltip
-                          label={summary[0]?.adjustmentValues.join(", ")}
+                          label={summary[0]?.adjustmentValues.map(adj => {
+                            const sign = adj.value < 0 ? "-" : "+";
+                            const isFlat = adj.type === 'rate_flat';
+                            const absValue = Math.abs(adj.value);
+                            return isFlat ? `${sign}$${absValue}` : `${sign}${absValue}%`;
+                          }).join(", ")}
                           placement="top"
                           bg="gray"
                           w="auto"
                         >
                           <Text
                             textOverflow="ellipsis"
-                            // whiteSpace="nowrap"
                             overflow="hidden"
                           >
-                            {summary[0]?.adjustmentValues.join(", ")}
+                            {summary[0]?.adjustmentValues.map(adj => {
+                              const sign = adj.value < 0 ? "-" : "+";
+                              const isFlat = adj.type === 'rate_flat';
+                              const absValue = Math.abs(adj.value);
+                              return isFlat ? `${sign}$${absValue}` : `${sign}${absValue}%`;
+                            }).join(", ")}
                           </Text>
                         </Tooltip>
                       </Box>

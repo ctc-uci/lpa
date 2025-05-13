@@ -58,20 +58,22 @@ const RoomFeeAdjustmentSideBar = ({
   const calculateNewRate = () => {
     let newRate = Number(session.rate || 0);
 
-    tempSession.adjustmentValues.forEach((val) => {
-      const isNegative = val.startsWith("-");
-      const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
+    if (!tempSession.adjustmentValues) return newRate;
 
+    tempSession.adjustmentValues.forEach((adj) => {
+      if (!adj.value) return;
+      
+      const val = Number(adj.value);
       let adjustmentAmount = 0;
 
-      if (val.includes("$")) {
-        adjustmentAmount = numericPart;
-      } else if (val.includes("%")) {
-        adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
+      if (adj.type === "rate_flat") {
+        adjustmentAmount = val;
+      } else if (adj.type === "rate_percent") {
+        adjustmentAmount = (val / 100) * Number(newRate || 0);
       }
 
-      if (isNegative) {
-        newRate -= adjustmentAmount;
+      if (val < 0) {
+        newRate -= Math.abs(adjustmentAmount);
       } else {
         newRate += adjustmentAmount;
       }
@@ -80,12 +82,32 @@ const RoomFeeAdjustmentSideBar = ({
     return newRate;
   };
 
+  const calculateSessionTotal = () => {
+    if (tempSession && tempSession.startTime && tempSession.endTime) {
+      const timeToMinutes = (timeStr) => {
+        const [hours, minutes] = timeStr.split(":").map(Number);
+        return hours * 60 + minutes;
+      };
+
+      const newRate = calculateNewRate();
+      const rawStart = timeToMinutes(tempSession.startTime.substring(0, 5));
+      const rawEnd = timeToMinutes(tempSession.endTime.substring(0, 5));
+      const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
+      const durationInHours = (endAdjusted - rawStart) / 60;
+
+      return newRate * durationInHours;
+    }
+  };
+  
+
   const handleNegativeClick = (index) => {
     setTempSession(prev => {
       const newSession = JSON.parse(JSON.stringify(prev));
-      const currentValue = newSession.adjustmentValues[index];
-      const valueWithoutSign = currentValue.replace(/^[+-]/, '');
-      newSession.adjustmentValues[index] = '-' + valueWithoutSign;
+      if (!newSession.adjustmentValues || !newSession.adjustmentValues[index]) return prev;
+      
+      const currentValue = newSession.adjustmentValues[index].value;
+      const valueWithoutSign = String(currentValue).replace(/^[+-]/, '');
+      newSession.adjustmentValues[index].value = -Math.abs(Number(valueWithoutSign));
       return newSession;
     });
   };
@@ -93,9 +115,11 @@ const RoomFeeAdjustmentSideBar = ({
   const handlePositiveClick = (index) => {
     setTempSession(prev => {
       const newSession = JSON.parse(JSON.stringify(prev));
-      const currentValue = newSession.adjustmentValues[index];
-      const valueWithoutSign = currentValue.replace(/^[+-]/, '');
-      newSession.adjustmentValues[index] = '+' + valueWithoutSign;
+      if (!newSession.adjustmentValues || !newSession.adjustmentValues[index]) return prev;
+      
+      const currentValue = newSession.adjustmentValues[index].value;
+      const valueWithoutSign = String(currentValue).replace(/^[+-]/, '');
+      newSession.adjustmentValues[index].value = Math.abs(Number(valueWithoutSign));
       return newSession;
     });
   };
@@ -103,14 +127,16 @@ const RoomFeeAdjustmentSideBar = ({
   const handleValueChange = (index, newValue, type) => {
     setTempSession(prev => {
       const newSession = JSON.parse(JSON.stringify(prev));
-      const currentValue = newSession.adjustmentValues[index];
-      const sign = currentValue.trim().startsWith("-") ? "-" : "+";
+      if (!newSession.adjustmentValues || !newSession.adjustmentValues[index]) return prev;
+      
+      const currentValue = newSession.adjustmentValues[index].value;
+      const isNegative = Number(currentValue) < 0;
       const numericValue = Math.abs(parseFloat(newValue)) || 0;
-
-      newSession.adjustmentValues[index] = type === "$"
-        ? `${sign}$${numericValue}`
-        : `${sign}${numericValue}%`;
-
+      
+      newSession.adjustmentValues[index].id = prev.adjustmentValues[index].id;
+      newSession.adjustmentValues[index].value = isNegative ? -numericValue : numericValue;
+      newSession.adjustmentValues[index].type = type === "$" ? "rate_flat" : "rate_percent";
+      
       return newSession;
     });
   };
@@ -151,6 +177,8 @@ const RoomFeeAdjustmentSideBar = ({
     onClose();
   };
 
+  // console.log("tempSession", tempSession)
+
   return (
     <>
       <Drawer isOpen={isOpen} placement="right" onClose={handleClose} size="sm">
@@ -175,8 +203,12 @@ const RoomFeeAdjustmentSideBar = ({
                   setTempSession(prev => ({
                     ...prev,
                     adjustmentValues: [
-                      ...prev.adjustmentValues,
-                      type === "percent" ? "-0%" : "-$0"
+                      ...(prev.adjustmentValues || []),
+                      {
+                        id: prev.adjustmentValues[prev.adjustmentValues.length - 1]?.id + 1 || 0,
+                        type: type === "percent" ? "rate_percent" : "rate_flat",
+                        value: -0
+                      }
                     ]
                   }));
                 }}
@@ -185,11 +217,11 @@ const RoomFeeAdjustmentSideBar = ({
             </Flex>
 
             <Box marginTop="4px" overflowY="auto" flex="1">
-              {tempSession.adjustmentValues.map((val, index) => (
+              {tempSession.adjustmentValues && tempSession.adjustmentValues.map((adj, index) => (
                 <Box key={index} borderBottom="1px solid #E2E8F0" py={3} mt={3}>
                   <Flex justify="space-between" align="center">
                     <Text fontWeight="bold">
-                      {val.includes("$") ? "Dollar ($)" : "Percent (%)"}
+                      {adj.type === "rate_flat" ? "Dollar ($)" : "Percent (%)"}
                     </Text>
                   </Flex>
 
@@ -197,7 +229,7 @@ const RoomFeeAdjustmentSideBar = ({
                     <Flex align="center" gap={2} mt={2}>
                       <IconButton
                         aria-label="Negative sign"
-                        icon={val.startsWith("-") ? <MinusFilledIcon /> : <MinusOutlineIcon size="16" />}
+                        icon={Number(adj.value) < 0 ? <MinusFilledIcon /> : <MinusOutlineIcon size="16" />}
                         variant="ghost"
                         size="xs"
                         _hover="none"
@@ -205,11 +237,11 @@ const RoomFeeAdjustmentSideBar = ({
                         onClick={() => handleNegativeClick(index)}
                       />
 
-                      {val.includes("$") ? (
+                      {adj.type === "rate_flat" ? (
                         <>
                           <Text>$</Text>
                           <Input
-                            value={parseFloat(val.replace(/[+$%]/g, ""))}
+                            value={Math.abs(Number(adj.value))}
                             onChange={(e) => handleValueChange(index, e.target.value, "$")}
                             size="sm"
                             width="80px"
@@ -218,7 +250,7 @@ const RoomFeeAdjustmentSideBar = ({
                       ) : (
                         <>
                           <Input
-                            value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
+                            value={Math.abs(Number(adj.value)) || 0}
                             onChange={(e) => handleValueChange(index, e.target.value, "%")}
                             size="sm"
                             width="80px"
@@ -229,7 +261,7 @@ const RoomFeeAdjustmentSideBar = ({
 
                       <IconButton
                         aria-label="Plus sign"
-                        icon={val.startsWith("+") ?
+                        icon={Number(adj.value) >= 0 ?
                           <PlusFilledIcon color="#4441C8" size="20" /> :
                           <PlusOutlineIcon />
                         }
@@ -265,7 +297,7 @@ const RoomFeeAdjustmentSideBar = ({
                 <Heading size="xs" color="#718096" marginRight="15px">
                   NEW SESSION TOTAL
                 </Heading>
-                <Heading size="md"> ${Number(subtotal || 0).toFixed(2)}</Heading>
+                <Heading size="md"> ${calculateSessionTotal().toFixed(2)}</Heading>
               </Flex>
               <Flex mt="30px" justifyContent="flex-end" alignItems="center" gap="4px">
                 <Button
@@ -342,19 +374,20 @@ const SummaryFeeAdjustmentSideBar = ({
       const existingAdjustments = summary?.adjustmentValues || [];
 
       let originalValue = baseRate;
-      existingAdjustments.forEach((val) => {
-        const isNegative = val.startsWith("-");
-        const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
-
+      existingAdjustments.forEach((adj) => {
+        if (!adj.value) return;
+        
+        const val = Number(adj.value);
         let adjustmentAmount = 0;
-        if (val.includes("$")) {
-          adjustmentAmount = numericPart;
-        } else if (val.includes("%")) {
-          adjustmentAmount = (numericPart / 100) * originalValue;
+
+        if (adj.type === "rate_flat") {
+          adjustmentAmount = val;
+        } else if (adj.type === "rate_percent") {
+          adjustmentAmount = (val / 100) * originalValue;
         }
 
-        if (isNegative) {
-          originalValue += adjustmentAmount;
+        if (val < 0) {
+          originalValue += Math.abs(adjustmentAmount);
         } else {
           originalValue -= adjustmentAmount;
         }
@@ -376,20 +409,20 @@ const SummaryFeeAdjustmentSideBar = ({
     let newRate = originalRate.current;
 
     if (tempSummary?.adjustmentValues) {
-      tempSummary.adjustmentValues.forEach((val) => {
-        const isNegative = val.startsWith("-");
-        const numericPart = parseFloat(val.replace(/[+$%-]/g, "")) || 0;
-
+      tempSummary.adjustmentValues.forEach((adj) => {
+        if (!adj.value) return;
+        
+        const val = Number(adj.value);
         let adjustmentAmount = 0;
 
-        if (val.includes("$")) {
-          adjustmentAmount = numericPart;
-        } else if (val.includes("%")) {
-          adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
+        if (adj.type === "rate_flat") {
+          adjustmentAmount = val;
+        } else if (adj.type === "rate_percent") {
+          adjustmentAmount = (val / 100) * Number(newRate || 0);
         }
 
-        if (isNegative) {
-          newRate -= adjustmentAmount;
+        if (val < 0) {
+          newRate -= Math.abs(adjustmentAmount);
         } else {
           newRate += adjustmentAmount;
         }
@@ -401,9 +434,11 @@ const SummaryFeeAdjustmentSideBar = ({
   const handleNegativeClick = (index) => {
     setTempSummary(prev => {
       const newSummary = JSON.parse(JSON.stringify(prev));
-      const currentValue = newSummary.adjustmentValues[index];
-      const valueWithoutSign = currentValue.replace(/^[+-]/, '');
-      newSummary.adjustmentValues[index] = '-' + valueWithoutSign;
+      if (!newSummary.adjustmentValues || !newSummary.adjustmentValues[index]) return prev;
+      
+      const currentValue = newSummary.adjustmentValues[index].value;
+      const valueWithoutSign = String(currentValue).replace(/^[+-]/, '');
+      newSummary.adjustmentValues[index].value = -Math.abs(Number(valueWithoutSign));
       return newSummary;
     });
   };
@@ -411,26 +446,36 @@ const SummaryFeeAdjustmentSideBar = ({
   const handlePositiveClick = (index) => {
     setTempSummary(prev => {
       const newSummary = JSON.parse(JSON.stringify(prev));
-      const currentValue = newSummary.adjustmentValues[index];
-      const valueWithoutSign = currentValue.replace(/^[+-]/, '');
-      newSummary.adjustmentValues[index] = '+' + valueWithoutSign;
+      if (!newSummary.adjustmentValues || !newSummary.adjustmentValues[index]) return prev;
+      
+      const currentValue = newSummary.adjustmentValues[index].value;
+      const valueWithoutSign = String(currentValue).replace(/^[+-]/, '');
+      newSummary.adjustmentValues[index].value = Math.abs(Number(valueWithoutSign));
       return newSummary;
     });
   };
 
   const handleValueChange = (index, newValue, type) => {
     setTempSummary(prev => {
-      const newSummary = {...prev};
-      const currentValue = newSummary.adjustmentValues[index];
-      const sign = currentValue.trim().startsWith("-") ? "-" : "+";
+      const newSummary = JSON.parse(JSON.stringify(prev));
+      if (!newSummary.adjustmentValues || !newSummary.adjustmentValues[index]) return prev;
+      
+      const currentValue = newSummary.adjustmentValues[index].value;
+      const isNegative = Number(currentValue) < 0;
       const numericValue = Math.abs(parseFloat(newValue)) || 0;
       
-      newSummary.adjustmentValues[index] = type === "$" 
-        ? `${sign}$${numericValue}`
-        : `${sign}${numericValue}%`;
+      newSummary.adjustmentValues[index].value = isNegative ? -numericValue : numericValue;
+      newSummary.adjustmentValues[index].type = type === "$" ? "rate_flat" : "rate_percent";
       
       return newSummary;
     });
+  };
+
+  const handleRemoveAdjustment = (index) => {
+    setTempSummary(prev => ({
+      ...prev,
+      adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index)
+    }));
   };
 
   const handleClearAll = () => {
@@ -474,7 +519,7 @@ const SummaryFeeAdjustmentSideBar = ({
               whiteSpace="nowrap"
             >
               <IconButton
-                onClick={onClose}
+                onClick={handleClose}
                 variant="ghost"
                 size="sm"
                 p={0}
@@ -491,12 +536,18 @@ const SummaryFeeAdjustmentSideBar = ({
               </Text>
 
               <AdjustmentTypeSelector
-                onSelect={(type, index) => {
-                  setTempSummary(prevSummary => ({
-                    ...prevSummary,
-                    adjustmentValues: [...prevSummary.adjustmentValues, type === "percent" ? "-0%" : "-$0"]
+                onSelect={(type) => {
+                  setTempSummary(prev => ({
+                    ...prev,
+                    adjustmentValues: [
+                      ...(prev.adjustmentValues || []),
+                      {
+                        id: prev.adjustmentValues?.[prev.adjustmentValues?.length - 1]?.id + 1 || 0,
+                        type: type === "percent" ? "rate_percent" : "rate_flat",
+                        value: -0
+                      }
+                    ]
                   }));
-
                 }}
                 sessionIndex={sessionIndex}
               />
@@ -507,7 +558,7 @@ const SummaryFeeAdjustmentSideBar = ({
               overflowY="auto"
               flex="1"
             >
-              {tempSummary.adjustmentValues && tempSummary?.adjustmentValues.map((val, index) => (
+              {tempSummary.adjustmentValues && tempSummary.adjustmentValues.map((adj, index) => (
                 <Box
                   key={index}
                   borderBottom="1px solid #E2E8F0"
@@ -519,7 +570,7 @@ const SummaryFeeAdjustmentSideBar = ({
                     align="center"
                   >
                     <Text fontWeight="bold">
-                      {val.includes("$") ? "Dollar ($)" : "Percent (%)"}
+                      {adj.type === "rate_flat" ? "Dollar ($)" : "Percent (%)"}
                     </Text>
                   </Flex>
 
@@ -529,21 +580,9 @@ const SummaryFeeAdjustmentSideBar = ({
                       gap={2}
                       mt={2}
                     >
-                      <Text
-                        fontSize="sm"
-                        color="gray.500"
-                      >
-                      </Text>
-
                       <IconButton
                         aria-label="Negative sign"
-                        icon={
-                          val.startsWith("-") ? (
-                            <MinusFilledIcon />
-                          ) : (
-                            <MinusOutlineIcon size="16" />
-                          )
-                        }
+                        icon={Number(adj.value) < 0 ? <MinusFilledIcon /> : <MinusOutlineIcon size="16" />}
                         variant="ghost"
                         size="xs"
                         _hover="none"
@@ -551,11 +590,11 @@ const SummaryFeeAdjustmentSideBar = ({
                         onClick={() => handleNegativeClick(index)}
                       />
 
-                      {val.includes("$") ? (
+                      {adj.type === "rate_flat" ? (
                         <>
                           <Text>$</Text>
                           <Input
-                            value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
+                            value={Math.abs(Number(adj.value))}
                             onChange={(e) => handleValueChange(index, e.target.value, "$")}
                             size="sm"
                             width="80px"
@@ -564,7 +603,7 @@ const SummaryFeeAdjustmentSideBar = ({
                       ) : (
                         <>
                           <Input
-                            value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
+                            value={Math.abs(Number(adj.value)) || 0}
                             onChange={(e) => handleValueChange(index, e.target.value, "%")}
                             size="sm"
                             width="80px"
@@ -574,15 +613,9 @@ const SummaryFeeAdjustmentSideBar = ({
                       )}
                       <IconButton
                         aria-label="Plus sign"
-                        icon={
-                          val.startsWith("+") ? (
-                            <PlusFilledIcon
-                              color="#4441C8"
-                              size="20"
-                            />
-                          ) : (
-                            <PlusOutlineIcon />
-                          )
+                        icon={Number(adj.value) >= 0 ?
+                          <PlusFilledIcon color="#4441C8" size="20" /> :
+                          <PlusOutlineIcon />
                         }
                         _hover="none"
                         _active="none"
@@ -597,12 +630,7 @@ const SummaryFeeAdjustmentSideBar = ({
                       variant="ghost"
                       _hover="none"
                       size="sm"
-                      onClick={() => {
-                        setTempSummary((prev) => ({
-                          ...prev,
-                          adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index)
-                        }));
-                      }}
+                      onClick={() => handleRemoveAdjustment(index)}
                     />
                   </HStack>
                 </Box>
@@ -675,7 +703,6 @@ const SummaryFeeAdjustmentSideBar = ({
         </DrawerContent>
       </Drawer>
 
-      {/* // TODO - Fix: Currently when changes are discarded, the page scrolls to the top*/}
       <AlertDialog
         isOpen={isConfirmationOpen}
         leastDestructiveRef={cancelRef}
