@@ -74,8 +74,8 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { ArchivedFilter } from "../filters/ArchivedFilter";
-import DateSortingModal from "../filters/DateFilter";
-import ProgramSortingModal from "../filters/ProgramFilter";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
 import Navbar from "../navbar/Navbar";
 import { SearchBar } from "../searchBar/SearchBar";
 

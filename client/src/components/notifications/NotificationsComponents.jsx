@@ -21,8 +21,8 @@ import {
 
 import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import { CalendarIcon } from "./CalendarIcon";
-import DateSortingModal from "../filters/DateFilter";
-import ProgramSortingModal from "../filters/ProgramFilter";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
 import { InfoTooltip } from "./InfoTooltip";
 
 const NotificationsComponents = ({ notifications }) => {

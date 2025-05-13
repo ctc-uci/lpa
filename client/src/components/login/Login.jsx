@@ -45,7 +45,10 @@ export const Login = () => {
   const { backend } = useBackendContext();
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-
+  const [credentialsError, setCredentialsError] = useState(false);
+  const [permissionError, setPermissionError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [boxChecked, setBoxChecked] = useState(false);
 
   const togglePasswordVisibility = () => {
@@ -73,6 +76,18 @@ export const Login = () => {
     [toast]
   );
 
+  const handleEmailChange = (e) => {
+    if (credentialsError) setCredentialsError("");
+    setEmailError("");
+    return e.target.value;
+  };
+  
+  const handlePasswordChange = (e) => {
+    if (credentialsError) setCredentialsError("");
+    setPasswordError("");
+    return e.target.value;
+  };
+
   const handleLogin = async (data) => {
     try {
       await login(
@@ -98,10 +113,14 @@ export const Login = () => {
       switch (errorCode) {
         case "auth/wrong-password":
         case "auth/invalid-credential":
+          setCredentialsError("Invalid email and password. Please try again or create an account.");
+          setEmailError("Please enter a valid email address.");
+          setPasswordError("Please enter a valid password.");
+          break;
         case "auth/invalid-email":
         case "auth/user-not-found":
           toastLoginError(
-            "Email address or password does not match our records!"
+            "Invalid and password. Please try again or create a new account."
           );
           break;
         case "auth/unverified-email":
@@ -117,7 +136,7 @@ export const Login = () => {
           toastLoginError("You have been signed out. Please sign in again.");
           break;
         case "auth/no-permission":
-          toastLoginError("Your permission has not been approved by admin.");
+          setPermissionError("Your account is still waiting for approval.");
           break;
         default:
           toastLoginError(firebaseErrorMsg);
@@ -185,7 +204,7 @@ export const Login = () => {
                 >
                   Email
                 </label>
-                <div className="input-outer">
+                <div className={(errors.email || emailError)? "input-outer-email-error" : "input-outer-email"}>
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillMail}
@@ -201,6 +220,11 @@ export const Login = () => {
                       variant="unstyled"
                       className="input-text"
                       {...register("email")}
+                      onChange={(e) => {
+                        handleEmailChange(e);
+                        // let react-hook-form also update its internal state
+                        register("email").onChange(e);
+                      }}
                       isRequired
                       autoComplete="email"
                     />
@@ -209,8 +233,8 @@ export const Login = () => {
                     {/* No right icon for email */}
                   </div>
                 </div>
-                <FormErrorMessage className="form-error">
-                  {errors.email?.message?.toString()}
+                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
+                Please enter a valid email address.
                 </FormErrorMessage>
               </FormControl>
 
@@ -225,7 +249,7 @@ export const Login = () => {
                 >
                   Password
                 </label>
-                <div className="input-outer">
+                <div className={(errors.password || passwordError) ? "input-outer-password-error" : "input-outer-password"}>
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillLock}
@@ -241,6 +265,10 @@ export const Login = () => {
                       variant="unstyled"
                       className="input-text"
                       {...register("password")}
+                      onChange={(e) => {
+                        handlePasswordChange(e);
+                        register("password").onChange(e);
+                      }}
                       isRequired
                       autoComplete="password"
                     />
@@ -259,8 +287,8 @@ export const Login = () => {
                     </button>
                   </div>
                 </div>
-                <FormErrorMessage className="form-error">
-                  {errors.password?.message?.toString()}
+                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
+                  Please enter a valid password.
                 </FormErrorMessage>
               </FormControl>
             </div>
@@ -286,16 +314,43 @@ export const Login = () => {
                   htmlFor="keep-signed-in"
                   className="keep-signed-in-label"
                 >
-                  Keep me signed in
+                  Remember me for 30 days
                 </label>
               </div>
-              <ChakraLink
-                as={Link}
-                to="/forgotpassword"
-              >
-                Forgot password?
-              </ChakraLink>
             </HStack>
+
+            {(permissionError || credentialsError) && (
+              <Box
+                bg="#FFF5F5"
+                border="1px solid"
+                borderColor="red.400"
+                color="red.800"
+                px={10}
+                py={3}
+                borderRadius="md"
+                w="360px"
+                textAlign="left"
+                fontFamily="Inter"
+                fontSize="14px"
+                fontWeight="500"
+                lineHeight="normal"
+                letterSpacing="0.07px"
+              >
+
+                <VStack gap={0} align="start">
+                  {credentialsError ? (
+                    <>
+                      <Text>{credentialsError}</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text>{permissionError}</Text>
+                      <Text>Please contact rocio@lapena.org</Text>
+                    </>
+                  )}
+                </VStack>
+              </Box>
+            )}
 
             {/* Button Group */}
             <HStack className="button-group">
@@ -314,10 +369,25 @@ export const Login = () => {
                 type="submit"
                 className="submit-button"
                 isDisabled={Object.keys(errors).length > 0}
+                onClick = {() => {
+                  setCredentialsError("");
+                  setPermissionError("");
+                  setPasswordError("");
+                  setEmailError("");
+                }}
               >
                 Let's Go
               </Button>
             </HStack>
+            <div className="forgot-password">
+              <ChakraLink
+                as={Link}
+                to="/forgotpassword"
+              >
+                Forgot password?
+              </ChakraLink>
+            </div>
+            
           </VStack>
         </form>
       </VStack>

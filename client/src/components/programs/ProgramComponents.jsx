@@ -101,8 +101,7 @@ import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import DateSortingModal from "../filters/DateFilter";
-import { ProgramFilter } from "../filters/ProgramsFilter";
+import DateSortingModal from "../sorting/DateFilter";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
@@ -980,7 +979,7 @@ export const Sessions = ({
   const [sortKey, setSortKey] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
-    []  
+    []
   );
   const [filteredSessions, setFilteredSessions] = useState([]);
 

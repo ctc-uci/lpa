@@ -1,7 +1,7 @@
 :root {
   --white: #fff;
   --border-color: #d2d2d2;
-  --hover-bg: #EDF2F7;
+  --hover-bg: #f0f1f4;
   --text-color: var(--Secondary-8, #2D3748);
   --font-family: "Inter", sans-serif;
   --font-size: 14px;
@@ -12,14 +12,13 @@
 }
 
 .chakra-menu__menuitem {
-  border-radius: 4px !important;
+  border-radius: 15px !important;
   transition:
     background 0s ease,
     border-radius 0s ease !important;
 }
 .chakra-menu__menuitem:hover,
-.chakra-menu__menuitem:focus,
-.chakra-menu__menuitem:active {
+.chakra-menu__menuitem:focus {
   background: var(--hover-bg) !important;
   border-radius: 4px !important;
 }
@@ -53,10 +52,9 @@
 }
 
 /* Program sorting popup */
-/* Program sorting popup */
 .program-sorting-popup {
   display: flex;
-  width: 176px;
+  width: 165px;
   padding: 4px;
   flex-direction: column;
   align-items: flex-start;
@@ -69,9 +67,10 @@
 
 /* Force inner container to respect width - adjust to match outer container better */
 .program-sorting-popup > div {
-  width: 168px !important; /* Changed from 113px to 168px (176px - 8px for padding) */
-  min-width: 168px !important;
-  max-width: 168px !important;
+  width: 165px !important; /* Changed from 113px to 168px (176px - 8px for padding) */
+  min-width: 165px !important;
+  max-width: 165px !important;
+  /* padding: 4px; */
 }
 
 /* Each menu item inside the program popup */
@@ -80,41 +79,22 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 12px 8px;
+  /* padding: 8px 10px; */
   border-radius: 15px;
 }
 .program-sorting-popup .sort-menu-item:hover {
   background: var(--hover-bg);
 }
 
-/* Date sorting popup */
-.date-sorting-popup {
-  display: flex;
-  width: 200px;
-  padding: 4px;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-/* Each menu item inside the date popup */
-.date-sorting-popup .sort-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px 8px;
-  border-radius: 15px;
-}
-
 /* Override Chakra UI's internal styles */
-/* .chakra-menu__menu-list {
+.chakra-menu__menu-list {
   --menu-list-width: auto !important;
-} */
+  margin: 1px !important;
+}
 
 /* Target Chakra's internal width control specifically for program sorting popup */
 div[role="menu"].program-sorting-popup {
-  width: 129px !important;
-  min-width: 129px !important;
-  max-width: 129px !important;
+  width: 165px !important;
+  min-width: 165px !important;
+  max-width: 165px !important;
 }

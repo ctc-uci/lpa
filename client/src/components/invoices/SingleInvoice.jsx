@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 
 import {
   Button,
@@ -10,7 +10,6 @@ import {
 import { FaAngleLeft } from "react-icons/fa6";
 import { FiExternalLink } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { EmailHistory } from "./EmailHistory";
@@ -53,7 +52,9 @@ export const SingleInvoice = () => {
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [actionToContinue, setActionToContinue] = useState(null);
 
+  const invoicePaymentsRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -196,17 +197,20 @@ export const SingleInvoice = () => {
   }, [comments, backend, room]);
 
   const handlePreviewClick = () => {
-    navigate(`/invoices/savededits/${id}`);
+    // navigate(`/invoices/savededits/${id}`);
+    console.log("Preview clicked");
   };
 
-  const handleModalConfirm = () => {
-    console.log("Handle modal confirm executed");
-    if (intendedPath) {
-      navigate(intendedPath);
-      setIntendedPath(null);
-    } else {
-      navigate("/invoices");
-    }
+  const handleSaveChanges = () => {
+      if (pendingNavigation) {
+        invoicePaymentsRef.current?.handleSaveComment();
+        pendingNavigation();
+        setPendingNavigation(null);
+        setHasUnsavedChanges(false);
+      } else {
+        invoicePaymentsRef.current?.handleSaveComment();
+        setHasUnsavedChanges(false);
+      }
   };
 
   const handleNavbarClick = (path) => {
@@ -218,8 +222,13 @@ export const SingleInvoice = () => {
     }
   };
 
+  const handleOtherButtonClick = useCallback((onContinueAction) => {
+    setActionToContinue(() => onContinueAction);
+    openModal();
+  }, []);
+
   return (
-    <Navbar onNavbarClick={handleNavbarClick}>
+    <Navbar handleNavbarClick={handleNavbarClick} hasUnsavedChanges={hasUnsavedChanges}>
       <Flex
         direction="row"
         height="100%"
@@ -232,12 +241,59 @@ export const SingleInvoice = () => {
           padding="2.5vw"
           gap="1.25vw"
         >
-          <UnsavedChangesModal
+          <Modal
             isOpen={isModalOpen}
             onClose={closeModal}
-            pendingNavigation={pendingNavigation}
-            setHasUnsavedChanges={setHasUnsavedChanges}
-          />
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader
+                textAlign="left"
+                color="#4A5568"
+                pb={4}
+                fontSize="16px"
+                fontWeight="700"
+              >
+                Leave without saving changes?
+              </ModalHeader>
+              <ModalFooter
+                style={{ display: "flex", justifyContent: "flex-end" }}
+                gap={3}
+              >
+                <Button
+                  onClick={() => {
+                    closeModal();
+                    if (pendingNavigation) {
+                      pendingNavigation();
+                      setHasUnsavedChanges(false);
+                    } else if (actionToContinue){
+                      actionToContinue();
+                      setActionToContinue(null);
+                      setHasUnsavedChanges(false);
+                    }
+                  }}
+                  backgroundColor="#EDF2F7"
+                  color="#2D3748"
+                  fontSize="14px"
+                  fontWeight="500"
+                >
+                  Don't Save
+                </Button>
+                <Button
+                  onClick={() => {
+                    closeModal();
+                    handleSaveChanges();
+                  }}
+                  backgroundColor="#4441C8"
+                  color="#FFFFFF"
+                  fontSize="14px"
+                  fontWeight="500"
+                >
+                  Save
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
           <Flex
             direction="row"
             width="100%"
@@ -264,7 +320,7 @@ export const SingleInvoice = () => {
               marginLeft="auto"
               gap={1}
             >
-              <PDFButtonInvoice id={id} />
+              <PDFButtonInvoice id={id} hasUnsavedChanges={hasUnsavedChanges} handleOtherButtonClick={handleOtherButtonClick}/>
               <Button
                 height={"40px"}
                 backgroundColor="#4441C8"
@@ -274,7 +330,17 @@ export const SingleInvoice = () => {
                 fontSize="14px"
                 gap={"4px"}
                 padding={"0px 16px"}
-                onClick={handlePreviewClick}
+                onClick={() => {
+                  console.log(hasUnsavedChanges);
+                  if (hasUnsavedChanges) {
+                    openModal();
+                    setPendingNavigation(() => () => navigate(`/invoices/savededits/${id}`));
+                    console.log("has unsaved changes");
+                  } else{
+                    handlePreviewClick();
+                  }
+                }
+                }
               >
                 <FiExternalLink></FiExternalLink>
                 Preview
@@ -310,6 +376,10 @@ export const SingleInvoice = () => {
                   comments={comments}
                   setComments={setComments}
                   setHasUnsavedChanges={setHasUnsavedChanges}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  handleOtherButtonClick={handleOtherButtonClick}
+                  handleSaveChanges={handleSaveChanges}
+                  ref={invoicePaymentsRef}
                 ></InvoicePayments>
                 <EmailHistory emails={emails}></EmailHistory>
               </Flex>

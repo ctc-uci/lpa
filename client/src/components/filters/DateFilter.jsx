@@ -58,3 +58,4 @@ const DateSortingModal = ({ sortOrder, setSortOrder }) => {
 };
 
 export default DateSortingModal;
+

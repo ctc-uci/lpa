@@ -63,8 +63,8 @@ import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
-import DateSortingModal from "../filters/DateFilter";
-import ProgramSortingModal from "../filters/ProgramFilter";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
 import { SearchBar } from "../searchBar/SearchBar";
 import { ProgramFiltersModal } from "./ProgramFiltersModal";
@@ -218,7 +218,8 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
         </HStack>
       </Th>
       <Th>
-        <StatusTooltip />
+        {/* <StatusTooltip /> */}
+        <Text className="table-header-text">STATUS</Text>
       </Th>
       <Th>
         <Flex

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -55,7 +55,8 @@ import { FaCircle, FaUser } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { useParams } from "react-router";
 
-import { CancelIcon } from "../../assets/CancelIcon";
+import redCancelIcon from "../../assets/redCancelIcon";
+import editBlackIcon from "../../assets/editBlackIcon";
 import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
 import { DollarIcon } from "../../assets/DollarIcon";
 import { EditIcon } from "../../assets/EditIcon";
@@ -65,9 +66,9 @@ import {
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
 import personIcon from "../../assets/person.svg";
-import DateSortingModal from "../filters/DateFilter";
-import ProgramSortingModal from "../filters/ProgramFilter";
-import StatusSortingModal from "../filters/StatusFilter";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
+import StatusSortingModal from "../sorting/StatusFilter";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
@@ -276,7 +277,7 @@ const InvoiceStats = ({
   );
 };
 
-const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
+const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, setHasUnsavedChanges, handleOtherButtonClick }, ref) => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
@@ -334,6 +335,11 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
     fetchData();
   }, [backend, id]);
 
+  useImperativeHandle(ref, () => ({
+    handleSaveComment: handleSaveComment,
+  }));
+
+
   const currentPageComments = comments ?? [];
 
   const handleDeleteComment = async () => {
@@ -351,9 +357,17 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
 
   const handleShowDelete = (comment) => {
     try {
-      setSelectedComment(comment);
-      setDeleteID(comment.id);
-      onOpen();
+      if (hasUnsavedChanges) {
+        handleButtonWhileUnsaved(() => {
+          setSelectedComment(comment);
+          setDeleteID(comment.id);
+          onOpen();
+      });
+        } else {
+            setSelectedComment(comment);
+            setDeleteID(comment.id);
+            onOpen();
+        }
     } catch (error) {
       console.error("Error showing modal:", error);
     }
@@ -361,9 +375,17 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
 
   const handleEditComment = (edit) => {
     try {
-      setEditID(edit);
-      setShowEditRow(true);
-      setHasUnsavedChanges(true);
+      if (hasUnsavedChanges) {
+        handleButtonWhileUnsaved(() => {
+          setEditID(edit);
+          setShowEditRow(true);
+          setHasUnsavedChanges(true);
+        });
+      } else {
+        setEditID(edit);
+        setShowEditRow(true);
+        setHasUnsavedChanges(true);
+      }
     } catch (error) {
       console.error("Error editing:", error);
     }
@@ -492,6 +514,9 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
     setHasUnsavedChanges(true);
   };
 
+  const handleButtonWhileUnsaved = (onContinue) => {
+      handleOtherButtonClick(onContinue)
+  }
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date
@@ -620,6 +645,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                           borderRadius={6}
                           backgroundColor="#EDF2F7"
                           icon={<Icon as={sessionsEllipsis} />}
+                          
                         />
                         <MenuList>
                           <MenuItem
@@ -631,8 +657,8 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                               alignItems="center"
                               gap="8px"
                             >
-                              <Icon as={EditIcon} />
-                              <Text color="#767778">Edit</Text>
+                              <Icon as={editBlackIcon} />
+                              <Text color="#2D3748">Edit</Text>
                             </Box>
                           </MenuItem>
                           <MenuItem onClick={() => handleShowDelete(comment)}>
@@ -642,7 +668,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                               alignItems="center"
                               gap="8px"
                             >
-                              <Icon as={CancelIcon} />
+                              <Icon as={redCancelIcon} />
                               <Text color="#90080F">Cancel</Text>
                             </Box>
                           </MenuItem>
@@ -779,7 +805,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
       </Flex>
     </Flex>
   );
-};
+});
 
 function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -796,7 +822,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     },
     [navigate]
   );
-
+  
   useEffect(() => {
     filteredInvoices.forEach((invoice, index) => {
       if (invoice.isPaid === "Past Due") {
