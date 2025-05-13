@@ -280,7 +280,6 @@ export const EditInvoice = () => {
     try {
       // Process all sessions
       for (const session of sessions) {
-        // console.log("Processing session", session);
         
         // Handle comments for each session
         if (session.comments && session.comments.length > 0) {
@@ -303,8 +302,7 @@ export const EditInvoice = () => {
               commentData.booking_id = null;
               commentData.adjustment_type = "total";
               commentData.adjustment_value = session.rate;
-              // console.log("commentData no booking id", commentData);
-            }
+            } 
             
             
             try {
@@ -315,7 +313,7 @@ export const EditInvoice = () => {
               );
 
               if (existingComment) {
-                // Update existing commentz
+                // Update existing comment
                 const existingCommentResponse = await backend.put(`/comments/${existingComment.id}`, commentData);
                 // console.log("existingCommentResponse", existingCommentResponse);
               } else {
@@ -355,7 +353,7 @@ export const EditInvoice = () => {
 
             
             try {
-        //       // Check if this adjustment already exists
+              // Check if this adjustment already exists
               const existingAdjustment = comments.find(c => 
                 c.bookingId == adjustmentData.booking_id && 
                 c.adjustmentType == adjustmentData.adjustment_type &&
@@ -364,13 +362,11 @@ export const EditInvoice = () => {
               
               // ! TODO If you change an adjustment value, it will keep the old one and create a new one with the change
               if (existingAdjustment) {
-        //         // Update existing adjustment
+                // Update existing adjustment
                 const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
-                // console.log("Existing adjustmentData", adjustmentData);
                 // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
               } else {
                 // Create new adjustment
-                // console.log("New adjustmentData", adjustmentData);
                 const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
                 // console.log("newAdjustmentResponse", newAdjustmentResponse);
               }
@@ -387,7 +383,7 @@ export const EditInvoice = () => {
         for (const summaryItem of summary) {
           if (summaryItem.adjustmentValues && summaryItem.adjustmentValues.length > 0) {
             for (const adjustmentValue of summaryItem.adjustmentValues) {
-              // console.log("summaryItem", summaryItem);
+
               // Parse the adjustment value
               const isPercent = adjustmentValue.includes('%');
               const isNegative = adjustmentValue.startsWith('-');

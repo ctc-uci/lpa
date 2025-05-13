@@ -668,7 +668,6 @@ const StatementComments = ({
                 {/* //  TODO Should the row's date be the latest comment date or the initial comment date? */}
                 {sessions && sessions.length > 0 ? (
                   sessions.map((session, index) => {
-                    // console.log("session map", session);
                     if (String(session.id).includes("custom")) {
                       return (
                         <React.Fragment key={session.id || index}>
