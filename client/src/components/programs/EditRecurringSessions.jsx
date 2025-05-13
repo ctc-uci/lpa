@@ -219,7 +219,7 @@ console.log(type,index, field, value);
 
   const generateRecurringSessions = (recurringSession, startDate, endDate) => {
     const sessions = [];
-    const currentTimezoneDate = new Date(startDate.replace(/-/g, '\/').replace(/T.+/, ''));
+    const currentTimezoneDate = new Date(startDate.replace(/-/g, '/').replace(/T.+/, ''));
     const currentDate = new Date(startDate);
     const endDateObj = new Date(endDate);
     const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
