@@ -40,7 +40,7 @@ import { AiOutlinePlus } from 'react-icons/ai';
 
 import Navbar from "../navbar/Navbar";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
-import { ArchiveSessionIcon } from "../../assets/ArchiveSessionIcon";
+import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { IoCloseOutline } from "react-icons/io5";
 import { MdFeaturedPlayList } from "../../assets/MdFeaturedPlayList";
@@ -58,8 +58,6 @@ import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
 
 
-// TODO: does it also handle edit session in recurring sessions page?
-// lead artists and payees?
 export const EditRecurringSessions = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
@@ -77,8 +75,6 @@ export const EditRecurringSessions = () => {
   const { isOpen: isDeleteRowModalOpen,
           onOpen: onDeleteRowModalOpen,
           onClose: onDeleteRowModalClose } = useDisclosure();
-
-  const [deleteIds, setDeleteIds] = useState([]);
 
   // Function to format date
   // to "Mon. 01.01.2023"
@@ -897,20 +893,43 @@ console.log(type,index, field, value);
                         minHeight="24px"
                         borderRadius={6}
                       />
-                      <MenuList style={{minWidth:"139px", padding:"4px"}}>
-                        <MenuItem display="flex"
-                            padding="6px 8px"
-                            alignItems="center"
-                            gap="8px" width="131px" height="32px"
-                            onClick={() => {handleArchiveSession(session.id); setIsChanged(true);}}>
-                          <Icon as={ArchiveSessionIcon} />
-                          <Text color="#2D3748" fontSize="14px">{session.archived ? "Unarchive" : "Archive"}</Text>
+                     <MenuList padding="4px" minWidth="139px">
+                        <MenuItem
+                          onClick={() => {
+                            handleArchiveSession(session.id);
+                            setIsChanged(true);
+                            setIsArchived(false);
+                            setArchived(false);
+                          }}
+                          display="flex"
+                          padding="6px 8px"
+                          alignItems="center"
+                          gap="8px"
+                          width="131px"
+                          height="32px"
+                          variant="ghost"
+                        >
+                          <Icon as={ReactivateIcon} boxSize="4" />
+                          <Text color="#2D3748" fontSize="14px">
+                            {session.archived ? "Unarchive" : "Archive"}
+                          </Text>
                         </MenuItem>
-                        <MenuItem  display="flex"
-                            padding="6px 8px"
-                            alignItems="center"
-                            gap="8px" width="131px" height="32px" onClick={() => {handleDeleteSession(session.id); setIsChanged(true);}}>
-                          <Icon as={DeleteIconRed} />
+
+                        <MenuItem
+                          onClick={() => {
+                            modalOnOpen();
+                            handleDeleteSession(session.id);
+                            setIsChanged(true);
+                          }}
+                          display="flex"
+                          padding="6px 8px"
+                          alignItems="center"
+                          gap="8px"
+                          width="131px"
+                          height="32px"
+                          variant="ghost"
+                        >
+                          <Icon as={DeleteIconRed} boxSize="4" />
                           <Text color="#90080F" fontSize="14px">Delete</Text>
                         </MenuItem>
                       </MenuList>
