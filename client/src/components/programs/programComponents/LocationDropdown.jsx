@@ -1,30 +1,49 @@
-import { useState } from 'react';
+import { useEffect } from "react";
 
 import {
   Box,
   Popover,
-  PopoverTrigger,
-  PopoverContent,
   PopoverBody,
+  PopoverContent,
+  PopoverTrigger,
   Text,
   VStack,
-} from "@chakra-ui/react"
+} from "@chakra-ui/react";
 
-import {DollarIcon} from '../../../assets/DollarIcon';
-import {LocationIcon} from '../../../assets/LocationIcon';
-import {ArrowDropdown} from '../../../assets/ArrowDropdown';
+import { ArrowDropdown } from "../../../assets/ArrowDropdown";
+import { DollarIcon } from "../../../assets/DollarIcon";
+import { LocationPinIcon } from "../../../assets/LocationPinIcon";
 
-export const LocationDropdown = ( { locations, locationRate, selectedLocationId, setSelectedLocation, setSelectedLocationId, setRoomDescription, setLocationRate }) => {
-  const [selectedLocationName, setSelectedLocationName] = useState("Room");
+const formatNumericString = (numericString) => {
+  return !isNaN(numericString)
+    ? parseFloat(numericString).toFixed(2)
+    : numericString;
+};
+
+export const LocationDropdown = ({
+  locations,
+  locationRate,
+  selectedLocation,
+  selectedLocationId,
+  setSelectedLocation,
+  setSelectedLocationId,
+  setRoomDescription,
+  setLocationRate,
+}) => {
+  useEffect(() => {
+    if (selectedLocation.length <= 0) {
+      setSelectedLocation("Room");
+    }
+  }, []);
 
   return (
     <div id="location">
-        <LocationIcon />
-        {locations && locations.length > 0 ? (
-        <Popover placement="bottom-start" matchWidth>
+      <LocationPinIcon size="20px" />
+      {locations && locations.length > 0 ? (
+        <Popover placement="bottom-start">
           <PopoverTrigger>
             <Box
-              width="200px"
+              width="350px"
               height="40px"
               backgroundColor="white"
               border="1px solid #E2E8F0"
@@ -35,20 +54,28 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
               justifyContent="space-between"
               padding="10px"
               fontFamily="Inter"
-              fontSize="16px"
-              color={selectedLocationName==="Room" ? "#CBD5E0" : "#2D3748"}
+              fontSize="14px"
+              color={selectedLocation === "Room" ? "#CBD5E0" : "#2D3748"}
               _hover={{ backgroundColor: "#EDF2F7" }}
               overflow="hidden"
               whiteSpace="nowrap"
               textOverflow="ellipsis"
             >
-              {selectedLocationName}
-            <ArrowDropdown />
+              {selectedLocation}
+              <ArrowDropdown />
             </Box>
           </PopoverTrigger>
-          <PopoverContent width="200px" boxShadow="none" outline="none" background="white">
+          <PopoverContent
+            width="250px!important"
+            boxShadow="none"
+            outline="none"
+            background="white"
+          >
             <PopoverBody>
-              <VStack align="start" spacing={2}>
+              <VStack
+                align="start"
+                spacing={2}
+              >
                 {locations.map((location) => (
                   <Box
                     key={location.id}
@@ -56,17 +83,23 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
                     fontSize="14px"
                     borderRadius="4px"
                     cursor="pointer"
-                    backgroundColor={selectedLocationId === location.id ? "#EDF2F7" : "white"}
+                    backgroundColor={
+                      selectedLocationId === location.id ? "#EDF2F7" : "white"
+                    }
                     _hover={{ backgroundColor: "#EDF2F7" }}
                     onClick={() => {
-                      setSelectedLocationName(location.name);
                       setSelectedLocation(location.name);
                       setSelectedLocationId(location.id);
                       setRoomDescription(location.description);
-                      setLocationRate(location.rate);
+                      setLocationRate(formatNumericString(location.rate));
                     }}
                   >
-                    <Text margin="10px">{location.name}</Text>
+                    <Text
+                      margin="10px"
+                      fontSize={"14px"}
+                    >
+                      {location.name}
+                    </Text>
                   </Box>
                 ))}
               </VStack>
@@ -79,7 +112,12 @@ export const LocationDropdown = ( { locations, locationRate, selectedLocationId,
 
       <div id="locationRate">
         <DollarIcon />
-        <p>{locationRate} / hour</p>
+        <Text
+          fontFamily={"Inter"}
+          fontSize={"16px"}
+        >
+          {formatNumericString(locationRate)} / hour
+        </Text>
       </div>
     </div>
   );

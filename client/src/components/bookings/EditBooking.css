@@ -11,14 +11,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   width:auto;
 }
 
-h1 {
-  font-size: 150%;
-  text-align: left;
-  vertical-align: top;
-  line-height: 1;
-  color: #474849;
-}
-
 Icon * {
   color: #767778!important;
 }
@@ -40,22 +32,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: row;
   gap: 2%;
-  border-radius: 15px;
-  border: 1px solid var(--Primary-5, #4441C8);
   background: #EDEDFD;
   align-items: center;
-  width: 23rem;
-  padding: .5rem;
-  margin-bottom: 1rem;
+  width: 18rem;
+  padding: .5rem 1rem;
+  margin-bottom: 1.5rem;
 }
 
 #info > p {
-  color: var(--Primary-5, #4441C8);
+  color: var(--Primary-5, #2D3748);
   font-family: Inter;
   font-size: 16px;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 20px;
+  margin-left: .5rem;
 }
 
 #body {
@@ -81,7 +72,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 #leftCancel {
-  margin-top: 1%;
+  margin-top: 1rem!important;
 }
 
 #programsBody {
@@ -105,17 +96,23 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   justify-content: space-between;
   width: 90%;
   font-size: 170%;
-  margin-bottom: 5%;
+  margin-bottom: 2rem;
+  color: var(--Secondary-8, #2D3748);
+  font-family: Inter;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.11px;
 }
 
-
-
 #save {
+  background-color: var(--indigo, #4441C8);
   color: white;
   justify-content: center;
   align-items: center;
   border-top-right-radius: 5px;
-  border-radius: 30px;
+  border-radius: 6px;
 }
 
 #savecancel {
@@ -137,7 +134,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 #dateTimeDiv, #instructorContainer, #payeeContainer {
-  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: row;
@@ -187,7 +183,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 3%;
 }
 
-#payeeEmails, #cancelBody {
+#cancelBody {
   display: flex!important;
   flex-direction: row!important;
   gap: 1rem;
@@ -233,7 +229,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   justify-content: center;
 }
 
+.vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+#bookingDate {
+  align-items: center;
+}
+
+#instructor > span, #payee > span, #emails > span, #bookingDate > span {
+  color: var(--Secondary-8, #2D3748);
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: normal;
+  letter-spacing: 0.07px;
+  margin-left: 1rem;
+}
+
 #instructors, #payees {
+  font-family: "Inter";
   display: flex;
   flex-direction: row;
   border: 1px lightgrey solid;
@@ -285,19 +302,24 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 1rem;
   align-items: center;
   font-size: 1.2rem;
+  width: 75rem;
 }
 
 #locationRate {
   margin-left: 3rem;
 }
 
-#roomDescription > h3, #information > h3 {
-  font-size: 1.5rem;
-  color: #474849;
+#roomDescription > h3, #information > h3, #sessionInformation > h3 {
+  font-size: 16px;
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.08px;
   margin-bottom: .5rem;
 }
 
-#roomDescription > p, #information > Textarea {
+#roomDescription > p, #information > p, #sessionInformation > Textarea {
   color: #474849;
 }
 
@@ -362,12 +384,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 #deactivateDeadlineText {
   text-align: left;
   margin: .5rem;
-}
-
-#deactivateConfirm {
-  border-radius: 30px;
-  background: var(--deep-red, #90080F);
-  margin: 0;
 }
 
 .horizontal {

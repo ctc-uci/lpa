@@ -11,7 +11,7 @@ export const RoomInformation = ({ roomDescription }) => {
             {roomDescription !== "N/A" ? (
               <Text color="#2D3748">{roomDescription}</Text>
             ) : (
-              <Text color="#718096">Select room to populate Information.</Text>
+              <Text color="#718096!important">Select room to populate Information.</Text>
             )}
         </div>
     )

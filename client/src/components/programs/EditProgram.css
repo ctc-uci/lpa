@@ -56,11 +56,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
+  width: 100%!important;
 }
 
 #programsBody {
-  width: 90%;
-  margin: 5% 2.5%;
+  width: 90%!important;
+  margin: 3rem 2.5rem!important;
   display: flex;
   flex-direction: row;
 }
@@ -150,7 +151,13 @@ button#save {
   flex-direction: row!important;
   gap: 1rem;
   align-items: center;
-  font-size: 1.2rem;
+  color: var(--Secondary-8, #2D3748);
+  font-family: Inter;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: 0.07px;
 }
 
 #instructorTags, #payeeTags, #emailTags {
@@ -233,6 +240,11 @@ button#save {
   overflow: hidden;
 }
 
+.inputElement {
+  border: 1px solid var(--Secondary-3, #E2E8F0)!important;
+  border-radius: 4px!important;
+}
+
 #instructorInput:focus, #payeeInput:focus, #emailInput:focus {
   outline: none;
   box-shadow: none;
@@ -269,6 +281,7 @@ button#save {
   gap: 1rem;
   align-items: center;
   font-size: 1.2rem;
+  width:100%!important;
 }
 
 #locationRate {
@@ -281,9 +294,9 @@ button#save {
 }
 
 #eventInfoBody #roomDescription > h3,
-#eventInfoBody #information > h3 {
-  margin-bottom: 24px;
-  font-size: 1.5rem;
+#eventInfoBody #information > h3,
+#eventInfoBody #sessionInformation > h3 {
+  margin-bottom: 16px;
   color: #474849;
   font-weight: 700;
   line-height: normal;
@@ -298,3 +311,5 @@ button#save {
 #cancelLink {
   text-decoration: none;
 }
+
+

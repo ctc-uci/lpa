@@ -68,12 +68,13 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
   return (
     <HStack gap="12px" id="instructorBody">
       <Box as="img" src={BsPaletteFill} boxSize="20px" />
-      <div id="instructorContainer">
-        <div id="instructors">
+      <div id="instructorContainer" >
+        <div id="instructors" className="inputElement">
           <div id="instructorSelection">
             <Box>
               <div id="instructorInputContainer">
                 <Input
+                  autoComplete="off"
                     placeholder="Lead Artist(s)"
                     onChange={(e) => {searchInstructors(e.target.value)}}
                     onClick={() => {searchInstructors(instructorSearchTerm)}}
@@ -93,9 +94,6 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                         if (instructor && !selectedInstructors.some(instr => instr.id === instructor.id)) {
                           setSelectedInstructors((prevItems) => [...prevItems, instructor]);
                         }
-                        setInstructorSearchTerm("");
-                        setSearchedInstructors([]);
-                        getInstructorResults(")")
                       }
                     }}
                     disabled={
@@ -157,8 +155,8 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                         _hover={{ color: "#4441C8" }}
                         cursor="pointer"
                         onClick={() => {
-                            setSelectedInstructors(prevItems =>
-                            prevItems.filter(item => item.id !== instructor.id));
+                          setSelectedInstructors(prevItems =>
+                          prevItems.filter(item => item.id !== instructor.id));
                         }}
                     >
                         <CloseFilledIcon color="currentColor"/>
