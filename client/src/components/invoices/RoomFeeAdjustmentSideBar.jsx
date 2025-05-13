@@ -106,11 +106,11 @@ const RoomFeeAdjustmentSideBar = ({
       const currentValue = newSession.adjustmentValues[index];
       const sign = currentValue.trim().startsWith("-") ? "-" : "+";
       const numericValue = Math.abs(parseFloat(newValue)) || 0;
-      
-      newSession.adjustmentValues[index] = type === "$" 
+
+      newSession.adjustmentValues[index] = type === "$"
         ? `${sign}$${numericValue}`
         : `${sign}${numericValue}%`;
-      
+
       return newSession;
     });
   };
@@ -229,8 +229,8 @@ const RoomFeeAdjustmentSideBar = ({
 
                       <IconButton
                         aria-label="Plus sign"
-                        icon={val.startsWith("+") ? 
-                          <PlusFilledIcon color="#4441C8" size="20" /> : 
+                        icon={val.startsWith("+") ?
+                          <PlusFilledIcon color="#4441C8" size="20" /> :
                           <PlusOutlineIcon />
                         }
                         _hover="none"
@@ -340,7 +340,7 @@ const SummaryFeeAdjustmentSideBar = ({
     if (session && originalRate.current === null) {
       const baseRate = Number(session.rate);
       const existingAdjustments = summary?.adjustmentValues || [];
-      
+
       let originalValue = baseRate;
       existingAdjustments.forEach((val) => {
         const isNegative = val.startsWith("-");
@@ -372,7 +372,7 @@ const SummaryFeeAdjustmentSideBar = ({
 
   const calculateTempRate = () => {
     if (originalRate.current === null) return 0;
-    
+
     let newRate = originalRate.current;
 
     if (tempSummary?.adjustmentValues) {
@@ -395,7 +395,7 @@ const SummaryFeeAdjustmentSideBar = ({
         }
       });
     }
-
+    console.log("Summary:", summary)
     return newRate;
   };
 
@@ -542,7 +542,7 @@ const SummaryFeeAdjustmentSideBar = ({
                         onClick={() => handleNegativeClick(index)}
                       />
 
-                      {val.includes("$") ? ( 
+                      {val.includes("$") ? (
                         <>
                           <Text>$</Text>
                           <Input
@@ -559,7 +559,7 @@ const SummaryFeeAdjustmentSideBar = ({
                             width="80px"
                           />
                         </>
-                      ) : ( 
+                      ) : (
                         <>
                           <Input
                             value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
@@ -576,8 +576,8 @@ const SummaryFeeAdjustmentSideBar = ({
                           />
 
                           <Text>%</Text>
-                        </> 
-                      )} 
+                        </>
+                      )}
                       <IconButton
                         aria-label="Plus sign"
                         icon={
@@ -595,7 +595,7 @@ const SummaryFeeAdjustmentSideBar = ({
                         variant="ghost"
                         size="xs"
                         onClick={() => handlePositiveClick(index)}
-                      /> 
+                      />
                     </Flex>
                     <IconButton
                       aria-label="Remove adjustment"
@@ -612,7 +612,7 @@ const SummaryFeeAdjustmentSideBar = ({
                     />
                   </HStack>
                 </Box>
-              ))} 
+              ))}
             </Box>
 
             <Box
