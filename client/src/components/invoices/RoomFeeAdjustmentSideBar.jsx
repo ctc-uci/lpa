@@ -395,7 +395,6 @@ const SummaryFeeAdjustmentSideBar = ({
         }
       });
     }
-    console.log("Summary:", summary)
     return newRate;
   };
 

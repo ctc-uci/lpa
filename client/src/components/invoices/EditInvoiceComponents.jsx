@@ -55,6 +55,7 @@ import logo from "../../assets/logo/logo.png";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
 import { RoomFeeAdjustmentSideBar, SummaryFeeAdjustmentSideBar } from "./RoomFeeAdjustmentSideBar";
+import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -265,7 +266,6 @@ const EditInvoiceDetails = ({
 };
 
 // TODO
-// ! - POST Functionality
 // ! - Fix Current Statement Total in EditInvoice being different that SavedInvoice
 // ! - Save Edits to Invoice alert modal
 // ! - Fix summary room fee changing session rate -> needs to be passed into sessions with the summary adjustment values -> should be local state
@@ -287,6 +287,8 @@ const StatementComments = ({
   const [editCustomText, setEditCustomText] = useState("");
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
+
+  // console.log("sessions", sessions);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -354,6 +356,12 @@ const StatementComments = ({
     if (!sessions || sessions.length === 0) return "0.00";
 
     const totalSum = sessions.reduce((acc, session) => {
+      // For total adjustment sessions, use the total value directly
+      if (session.id && session.id.toString().startsWith('total-')) {
+        return acc + parseFloat(session.total || 0);
+      }
+      
+      // For regular sessions, calculate as before
       const total = parseFloat(
         calculateTotalBookingRow(
           session.startTime,
@@ -499,7 +507,9 @@ const StatementComments = ({
       datetime: new Date().toISOString().split('T')[0],
       comments: [editCustomText],
       rate: editCustomAmount,
+      adjustmentType: "total",
       // Keeping the start time and end time to allow calculation of the subtotal
+      userId: session.userId,
       startTime: "00:00",
       endTime: "01:00",
       adjustmentValues: [],
@@ -665,10 +675,47 @@ const StatementComments = ({
               </Thead>
 
               <Tbody color="#2D3748">
-                {/* //  TODO Should the row's date be the latest comment date or the initial comment date? */}
                 {sessions && sessions.length > 0 ? (
                   sessions.map((session, index) => {
-                    if (String(session.id).includes("custom")) {
+                    // Check if this is a total adjustment session
+                    if (session.id && session.id.toString().startsWith('total-')) {
+                      return (
+                        <React.Fragment key={session.id || index}>
+                            <Tr ref={editRowRef}>
+                              <Td colSpan={6} py={2}>
+                                <Flex gap={4} alignItems="flex-end">
+                                  <Text
+                                    type="date"
+                                    size="sm"
+                                    width="fit-content"
+                                    py="6"
+                                    rounded="md"
+                                    textAlign="center"
+                                  >{format(new Date(session.date), "EEE. M/d/yy")}</Text>
+                                  <Text
+                                    size="sm"
+                                    flex={1}
+                                    py="6"
+                                    rounded="md"
+                                    border="none"
+                                  >{session.comments[0]}</Text>
+                                  <HStack alignItems="center" gap="0">
+                                    <Text>$</Text>
+                                    <Text
+                                      value={editCustomAmount}
+                                      width="9ch"
+                                      py="6"
+                                      rounded="md"
+                                      textAlign="center"
+                                    >{Number(session.adjustmentValues[0]).toFixed(2)}</Text>
+                                  </HStack>
+                                </Flex>
+                              </Td>
+                            </Tr>
+                        </React.Fragment>
+                      );
+                    } else if (String(session.id).includes("custom")) {
+                      // Handle existing custom rows
                       return (
                         <React.Fragment key={session.id || index}>
                           {editingCustomRow === session.id ? (
@@ -723,8 +770,10 @@ const StatementComments = ({
                             </Tr>
                           )}
                         </React.Fragment>
-                      )
+                      );
                     }
+                    
+                    // Handle regular session rows
                     return (
                       <React.Fragment key={session.id || index}>
                         <Tr
@@ -1023,7 +1072,7 @@ const StatementComments = ({
                           </Tr>
                         )}
                       </React.Fragment>
-                    )
+                    );
                   })
                 ) : (
                   <Tr py="4">
@@ -1268,7 +1317,7 @@ const InvoiceSummary = ({
               {/* Room Fee Body Row */}
 
               {/* Custom rows don't have room names, so that's why we filter them out to avoid showing custom rows in the summary */}
-              {sessions?.filter((session) => session.name.length > 0).map((session, key) => (
+              {sessions?.filter((session) => session.name?.length > 0).map((session, key) => (
                 <Tr key={key}>
                   <Td
                     pl="16"

@@ -54,6 +54,7 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    // First, get regular session comments
     const query = `SELECT comments.*, bookings.*, rooms.*
                 FROM comments
                 LEFT JOIN bookings ON comments.booking_id = bookings.id
@@ -97,7 +98,42 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       delete groupedComments[bookingId].comment;
     });
 
-    res.status(200).json(Object.values(groupedComments));
+    // Now, get total adjustment comments and convert them to custom session objects
+    const totalQuery = `SELECT comments.*
+                FROM comments
+                WHERE comments.invoice_id = $1 
+                AND comments.adjustment_type = 'total'
+                ORDER BY comments.datetime`;
+    
+    const totalData = await db.query(totalQuery, [id]);
+
+    console.log("totalData", totalData);
+    const totalComments = keysToCamel(totalData);
+    
+    // Convert each total comment to a session-like object
+    const totalSessions = totalComments.map(comment => {
+      return {
+        id: `total-${comment.id}`,
+        bookingId: null,
+        datetime: comment.datetime,
+        date: comment.datetime,
+        startTime: "00:00",
+        endTime: "01:00",
+        comments: comment.comment ? [comment.comment] : [],
+        adjustmentValues: [comment.adjustmentValue],
+        type: comment.comment || "Additional Fee",
+        rate: comment.adjustmentValue,
+        userId: comment.userId
+      };
+    });
+
+    // Combine regular sessions with total adjustment sessions
+    const allSessions = [...Object.values(groupedComments), ...totalSessions];
+
+    // Sort by date
+    allSessions.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+    res.status(200).json(allSessions);
   } catch (err) {
     res.status(500).send(err.message);
   }

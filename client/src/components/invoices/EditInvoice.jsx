@@ -285,7 +285,7 @@ export const EditInvoice = () => {
         if (session.comments && session.comments.length > 0) {
           for (let i = 0; i < session.comments.length; i++) {
             const commentText = session.comments[i];
-            
+
             // Prepare comment data
             const commentData = {
               user_id: session.userId, // Will be set by the server if null
@@ -302,11 +302,39 @@ export const EditInvoice = () => {
               commentData.booking_id = null;
               commentData.adjustment_type = "total";
               commentData.adjustment_value = session.rate;
+              
+              // For custom rows, always create a new comment
+              try {
+                await backend.post(`/comments`, commentData);
+              } catch (error) {
+                console.error(`Error saving custom row:`, error);
+                throw error;
+              }
+              continue; // Skip the regular comment handling for custom rows
             } 
-            
+            // If this is a total adjustment session from the server
+            else if (String(session.id).includes("total-")) {
+              const originalCommentId = session.id.split("-")[1];
+              
+              // Update the existing total adjustment
+              try {
+                await backend.put(`/comments/${originalCommentId}`, {
+                  comment: commentText,
+                  adjustment_value: session.rate || session.total,
+                  datetime: session.datetime,
+                  adjustment_type: "total" // Ensure we keep it as total
+                });
+              } catch (error) {
+                console.error(`Error updating total adjustment:`, error);
+                throw error;
+              }
+              
+              // Skip the rest of this iteration since we've handled this comment
+              continue;
+            }
             
             try {
-              // Check if this comment already exists in the original comments
+              // For regular sessions, check if this comment already exists
               const existingComment = comments.find(c => 
                 c.bookingId == commentData.booking_id && 
                 c.comment == commentData.comment
@@ -314,17 +342,48 @@ export const EditInvoice = () => {
 
               if (existingComment) {
                 // Update existing comment
-                const existingCommentResponse = await backend.put(`/comments/${existingComment.id}`, commentData);
-                // console.log("existingCommentResponse", existingCommentResponse);
+                await backend.put(`/comments/${existingComment.id}`, commentData);
               } else {
                 // Create new comment
-                const newCommentResponse = await backend.post(`/comments`, commentData);
-                // console.log("newCommentResponse", newCommentResponse);
+                await backend.post(`/comments`, commentData);
               }
             } catch (error) {
               console.error(`Error saving comment:`, error);
               throw error;
             }
+          }
+        } else if (String(session.id).includes("custom")) {
+          // Handle custom rows that might not have comments array
+          const commentData = {
+            user_id: session.userId,
+            booking_id: null,
+            invoice_id: id,
+            datetime: session.datetime,
+            comment: session.type || "Custom Fee",
+            adjustment_type: "total",
+            adjustment_value: session.rate
+          };
+          
+          try {
+            await backend.post(`/comments`, commentData);
+          } catch (error) {
+            console.error(`Error saving custom row without comments:`, error);
+            throw error;
+          }
+        } else if (String(session.id).includes("total-")) {
+          // Handle total adjustment sessions that might not have comments array
+          const originalCommentId = session.id.split("-")[1];
+          
+          try {
+            await backend.put(`/comments/${originalCommentId}`, {
+              comment: session.type || "Additional Fee",
+              adjustment_value: session.rate || session.total,
+              datetime: session.datetime,
+              adjustment_type: "total"
+            });
+          } catch (error) {
+            console.error(`Error updating total adjustment without comments:`, error);
+            throw error;
           }
         }
         
@@ -363,10 +422,12 @@ export const EditInvoice = () => {
               // ! TODO If you change an adjustment value, it will keep the old one and create a new one with the change
               if (existingAdjustment) {
                 // Update existing adjustment
+                // console.log("existingAdjustmentData", existingAdjustment);
                 const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
                 // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
               } else {
                 // Create new adjustment
+                // console.log("newAdjustmentData", adjustmentData);
                 const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
                 // console.log("newAdjustmentResponse", newAdjustmentResponse);
               }
@@ -414,12 +475,14 @@ export const EditInvoice = () => {
                 
                 if (existingAdjustment) {
                   // Update existing adjustment
+                  // console.log("existingSummaryAdjustment", existingAdjustment);
                   const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
-                  // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
+                  console.log("existingAdjustmentResponse", existingAdjustmentResponse);
                 } else {
                   // Create new adjustment
+                  // console.log("newSummaryAdjustment", adjustmentData);
                   const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
-                  // console.log("newAdjustmentResponse", newAdjustmentResponse);
+                  console.log("newAdjustmentResponse", newAdjustmentResponse);
                 }
               } catch (error) {
                 console.error(`Error saving summary adjustment:`, error);
