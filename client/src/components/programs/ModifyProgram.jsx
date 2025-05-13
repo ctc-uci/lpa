@@ -1,9 +1,9 @@
 import React from "react";
 
 import { EditProgram } from "./EditProgram";
-import { AddProgram } from "./AddProgram";
+import { NewProgram } from "./NewProgram";
 
 export const ModifyProgram = ({ load = false }) => {
   console.log("LOAD:", load)
-  return load ? <EditProgram /> : <AddProgram />;
+  return load ? <EditProgram /> : <NewProgram />;
 };

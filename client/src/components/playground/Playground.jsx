@@ -55,7 +55,8 @@ export const Playground = () => {
       if (search !== "") {
         const payeeResponse = await backend.get("/clients/search", {
           params: {
-            searchTerm: search
+            searchTerm: search,
+            columns: ["name"]
           }
         });
         filterSelectedPayeesFromSearch(payeeResponse.data);
@@ -73,7 +74,8 @@ export const Playground = () => {
       if (search !== "") {
         const instructorResponse = await backend.get("/clients/search", {
           params: {
-            searchTerm: search
+            searchTerm: search,
+            columns: ["name"]
           }
         });
         filterSelectedInstructorsFromSearch(instructorResponse.data);

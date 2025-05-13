@@ -59,10 +59,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 100%!important;
 }
 
-#leftCancel {
-  margin-top: 1rem!important;
-}
-
 #programsBody {
   width: 90%!important;
   margin: 3rem 2.5rem!important;
@@ -73,9 +69,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 #eventInfoBody {
   flex-direction: column;
   flex: 1;
-  margin-left: 2.5%;
-  margin-right: 2.5%;
-  width: 90vw!important;
+  margin-left: 16px;
+  margin-right: 26px;
 }
 
 
@@ -83,19 +78,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  width: 90%;
+  width: 100%;
   font-size: 170%;
   margin-bottom: 5%;
+  height: 42px;
 }
 
-button#saveProgram {
-  background-color: var(--indigo, #4E4AE7);
+button#save {
   color: white;
   justify-content: center;
   align-items: center;
-  border-radius: 6px!important;
+  border-radius: 6px;
+  width: 115px;
+  height: 40px;
+  font-size: 14px;
 }
-
 
 #select {
   display: none;
@@ -149,7 +146,7 @@ button#saveProgram {
   gap: 3%;
 }
 
-#payeeEmails, #cancelBody {
+#cancelBody {
   display: flex!important;
   flex-direction: row!important;
   gap: 1rem;
@@ -163,23 +160,26 @@ button#saveProgram {
   letter-spacing: 0.07px;
 }
 
-#instructorTags, #payeeTags {
+#instructorTags, #payeeTags, #emailTags {
   height: 2rem;
   width: 73%;
   position: absolute;
   left: 0;
   top: 0;
-  margin: 0 0 3% 265px!important;
+  margin: 0 0 3% 216px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
 }
 
-.instructorTag, .payeeTag {
+#emailTags {
+  margin: 0 0 3% 238px;
+}
+
+.instructorTag, .payeeTag, .emailTag {
   height: 2rem;
-  border-radius: 30px;
-  border: 1px solid var(--Secondary-3, #E2E8F0)!important;
-  background: var(--white, #FFF);
+  border: 1px #E2E8F0 solid;
+  border-radius: 20px;
   margin: .5% 3% 0 0;
   display: flex;
   flex-direction: row;
@@ -187,7 +187,7 @@ button#saveProgram {
   padding: 1% 1%;
 }
 
-#instructorTags > div *, #payeeTags > div * {
+#instructorTags > div *, #payeeTags > div *, #emailTags > div * {
   background-color: transparent;
 }
 
@@ -202,25 +202,29 @@ button#saveProgram {
   justify-content: center;
 }
 
-#instructors, #payees {
+#instructors, #payees, #emails {
   display: flex;
   flex-direction: row;
-  border: 1px lightgrey solid;
+  border: 1px #E2E8F0 solid;
   border-radius: 5px;
-  width: 250px!important;
+  width: 200px;
   background: #F6F6F6;
 }
 
-#instructorSelection, #payeeSelection {
+#emails {
+  width: 222px;
+}
+
+#instructorSelection, #payeeSelection, #emailSelection {
   width: 100%;
 }
 
-#instructorSelection > Box, #payeeSelection > Box{
+#instructorSelection > Box, #payeeSelection > Box, #emailSelection > Box{
   position: relative!important;
   width: 100%!important;
 }
 
-#instructorInputContainer, #payeeInputContainer {
+#instructorInputContainer, #payeeInputContainer, #emailInputContainer {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -231,7 +235,7 @@ button#saveProgram {
 
 }
 
-#instructorInput, #payeeInput {
+#instructorInput, #payeeInput, #emailInput {
   border: none!important;
   overflow: hidden;
 }
@@ -241,19 +245,19 @@ button#saveProgram {
   border-radius: 4px!important;
 }
 
-#instructorInput:focus, #payeeInput:focus {
+#instructorInput:focus, #payeeInput:focus, #emailInput:focus {
   outline: none;
   box-shadow: none;
 }
 
 #instructorContainer #instructorDropdown,
-#payeeContainer #payeeDropdown {
+#payeeContainer #payeeDropdown,
+#emailContainer #emailDropdown {
   position: absolute;
   background-color: #D9D9D9!important;
   margin-top: 4px;
-  border-top: #E2E8F0;
-  border-width: 1px;
-  border-radius: 4px;
+  border: 1px #E2E8F0 solid;
+  border-radius: 4px 4px 4px 4px;
   box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
   z-index: 10;
   max-height: 200px;
@@ -261,7 +265,7 @@ button#saveProgram {
 }
 
 
-#dateTimeDiv, #instructorContainer, #payeeContainer {
+#dateTimeDiv, #instructorContainer, #payeeContainer, #emailContainer {
   width: 100%;
   height: 100%;
   display: flex;
@@ -282,6 +286,11 @@ button#saveProgram {
 
 #locationRate {
   margin-left: 3rem;
+}
+
+#information > Textarea{
+  background-color: transparent;
+  border: 1px #E2E8F0 solid;
 }
 
 #eventInfoBody #roomDescription > h3,

@@ -68,7 +68,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  width: 50rem;
+  width: 100%;
 }
 
 #leftCancel {
@@ -378,7 +378,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 18px;
   font-style: normal;
   font-weight: 400;
-  line-height: 22px; 
+  line-height: 22px;
 }
 
 #deactivateDeadlineText {

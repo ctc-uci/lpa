@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React from "react";
 
-import { PDFViewer } from "@react-pdf/renderer";
 import { CookiesProvider } from "react-cookie";
 import {
   Navigate,
@@ -13,6 +12,8 @@ import { Admin } from "./components/admin/Admin";
 import { EditBooking } from "./components/bookings/EditBooking";
 import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
+import { EditSingleSession } from "./components/programs/EditSingleSession";
+import { EditRecurringSessions } from "./components/programs/EditRecurringSessions";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
 import { Home } from "./components/home/Home";
@@ -22,7 +23,6 @@ import { SavedEdit } from "./components/invoices/SavedEditsInvoice";
 import { SingleInvoice } from "./components/invoices/SingleInvoice";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
-import PDFButton from "./components/PDFButton";
 import { Playground } from "./components/playground/Playground";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
 import { ModifyProgram } from "./components/programs/ModifyProgram";
@@ -37,7 +37,7 @@ import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
-import { PDFButtonInvoice, TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
+import { TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
 
 const App = () => {
   return (
@@ -176,10 +176,28 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/addprogram"
+                  path="/programs/newprogram"
                   element={
                     <ProtectedRoute
                       element={<ModifyProgram load={false} />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/programs/edit/sessions/:id"
+                  element={
+                    <ProtectedRoute
+                      element={<EditRecurringSessions />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/programs/edit/session/:id"
+                  element={
+                    <ProtectedRoute
+                      element={<EditSingleSession />}
                       allowedRoles={["admin"]}
                     />
                   }

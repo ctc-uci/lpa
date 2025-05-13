@@ -1,7 +1,7 @@
 :root {
   --white: #fff;
   --border-color: #d2d2d2;
-  --hover-bg: #f0f1f4;
+  --hover-bg: #EDF2F7;
   --text-color: var(--Secondary-8, #2D3748);
   --font-family: "Inter", sans-serif;
   --font-size: 14px;
@@ -12,15 +12,16 @@
 }
 
 .chakra-menu__menuitem {
-  border-radius: 15px !important;
+  border-radius: 4px !important;
   transition:
     background 0s ease,
     border-radius 0s ease !important;
 }
 .chakra-menu__menuitem:hover,
-.chakra-menu__menuitem:focus {
+.chakra-menu__menuitem:focus,
+.chakra-menu__menuitem:active {
   background: var(--hover-bg) !important;
-  border-radius: 15px !important;
+  border-radius: 4px !important;
 }
 
 /* General icon/text style */
@@ -105,14 +106,11 @@
   padding: 12px 8px;
   border-radius: 15px;
 }
-.date-sorting-popup .sort-menu-item:hover {
-  background: var(--hover-bg);
-}
 
 /* Override Chakra UI's internal styles */
-.chakra-menu__menu-list {
+/* .chakra-menu__menu-list {
   --menu-list-width: auto !important;
-}
+} */
 
 /* Target Chakra's internal width control specifically for program sorting popup */
 div[role="menu"].program-sorting-popup {

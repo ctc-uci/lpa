@@ -6,7 +6,7 @@ import {
 export const TitleInformation = ( {eventName, setEventName} ) => {
   return (
         <Input
-            defaultValue={eventName}
+            value={eventName}
             onChange={(e) => setEventName(e.target.value)}
             width="100%"
             height="50px"
@@ -14,7 +14,9 @@ export const TitleInformation = ( {eventName, setEventName} ) => {
             borderLeftColor="transparent"
             borderTopColor="transparent"
             borderRadius="0"
-            sx={{ borderBottomWidth: "3px", borderBottomColor:"gray", padding: "3px", fontSize: "22px", fontWeight: "bold" }}
+            fontSize="22px"
+            pb="8px"
+            sx={{ borderBottomWidth: "2px", borderBottomColor:"#718096", padding: "3px", fontWeight: "700" }}
         />
   )
 }

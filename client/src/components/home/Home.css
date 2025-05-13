@@ -223,8 +223,61 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
-  border-radius: 0px 5px 5px 0px;
-  background: #edf2f7;
+  border-radius: 0px 15px 15px 0px;
+  background: var(--medium-light-grey);
+}
+
+/* ========================= */
+/* Menu & Actions CSS        */
+/* ========================= */
+
+.actions-container {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: transparent;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.actions-container:hover,
+.actions-container:focus-within {
+  background: transparent !important;
+}
+
+.menu-list-custom {
+  border-radius: 15px !important;
+  border: 1px solid var(--medium-light-grey, #d2d2d2) !important;
+  background: var(--light-grey, #f6f6f6) !important;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
+  padding: 8px !important;
+}
+
+.menu-list-custom .chakra-menu__menuitem {
+  background: var(--hover-bg) !important;
+  display: flex !important;
+  padding: 8px 12px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 10px !important;
+  font-family: var(--font-inter) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+.menu-list-custom .chakra-menu__menuitem:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.menu-item--edit {
+  color: var(--medium-grey, #767778) !important;
+}
+
+.menu-item--delete {
+  color: var(--deep-red, #90080f) !important;
 }
 
 /* ========================= */

@@ -5,41 +5,68 @@ import {
   Icon,
   Input,
   Tag,
-} from "@chakra-ui/react"
+} from "@chakra-ui/react";
+import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 
 import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
 import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import BsPaletteFill from "../../../assets/icons/BsPaletteFill.svg";
 
-export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, getInstructorResults, setInstructorSearchTerm} ) => {
+export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, setInstructorSearchTerm} ) => {
+  const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   useEffect(() => {
+    getInstructorResults(instructorSearchTerm);
+  }, [selectedInstructors, instructorSearchTerm]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest("#instructorContainer") && !event.target.closest(".instructorTag")) {
-        console.log("classlist: ", event.target.classList);
+      const container = document.getElementById("instructorBody");
+      const path = event.composedPath && event.composedPath();
+
+      if (container && path && !path.includes(container)) {
         setDropdownVisible(false);
       }
-    }
+        }
 
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
+      document.addEventListener("click", handleClickOutside);
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
     }
   }, []);
 
-  const search = (searchTerm) => {
-    setInstructorSearchTerm(searchTerm);
-    getInstructorResults(searchTerm);
+  const searchInstructors = (query) => {
+    getInstructorResults(query);
+    setInstructorSearchTerm(query);
     setDropdownVisible(true);
   };
 
-  useEffect(() => {
-    search(instructorSearchTerm);
-  }, [selectedInstructors, instructorSearchTerm]);
+  const getInstructorResults = async (search) => {
+    try {
+      const instructorResponse = await backend.get("/clients/search", {
+        params: {
+          searchTerm: search,
+          columns: ["name"]
+        }
+      });
+      filterSelectedInstructorsFromSearch(instructorResponse.data);
+    } catch (error) {
+      console.error("Error getting instructors:", error);
+    }
+  };
+
+  const filterSelectedInstructorsFromSearch = (instructorData) => {
+    const filteredInstructors =  instructorData.filter(
+      instructor => !selectedInstructors.some(
+        selected => selected.id === instructor.id
+      )
+    );
+    setSearchedInstructors(filteredInstructors);
+  };
 
   return (
-    <HStack gap="12px">
+    <HStack gap="12px" id="instructorBody">
       <Box as="img" src={BsPaletteFill} boxSize="20px" />
       <div id="instructorContainer" >
         <div id="instructors" className="inputElement">
@@ -49,15 +76,11 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                 <Input
                   autoComplete="off"
                     placeholder="Lead Artist(s)"
-                    _placeholder={{ color: '#CBD5E0' }}
-                    onChange={(e) => {
-                      search(e.target.value);
-                    }}
-                    onClick={(e) => {
-                      search(e.target.value);
-                    }}
-                    value={instructorSearchTerm} id="instructorInput"
-                    autocomplete="off"
+                    onChange={(e) => {searchInstructors(e.target.value)}}
+                    onClick={() => {searchInstructors(instructorSearchTerm)}}
+                    value={instructorSearchTerm}
+                    id="instructorInput"
+                    autoComplete="off"
                     />
                   <Box
                     as="button"
@@ -93,22 +116,13 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                   </Box>
                 </div>
 
-                {dropdownVisible && searchedInstructors.length > 0 && instructorSearchTerm.length > 0 && (
+                {dropdownVisible && searchedInstructors.length > 0 && (
                   <Box id="instructorDropdown" w="100%" maxW="195px">
                     {searchedInstructors.map((instructor) => (
                       <Box
                         key={instructor.id}
                         onClick={() => {
-                          const alreadySelected = selectedInstructors.find(
-                            (instr) => instr.id.toString() === instructor.id
-                          );
-                          if (instructor && !alreadySelected) {
-                            setSelectedInstructors((prevItems) => [...prevItems, instructor]);
-                            const filteredInstructors = searchedInstructors.filter(
-                              (instr) => instructor.id !== instr.id.toString()
-                            );
-                            setSearchedInstructors(filteredInstructors);
-                          }
+                          setSelectedInstructors((prevItems) => [...prevItems, instructor]);
                         }}
                           style={{
                             padding: "10px",

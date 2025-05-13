@@ -2,45 +2,85 @@ import { useEffect, useState } from "react";
 
 import "./Program.css";
 
+import { ChevronLeftIcon} from "@chakra-ui/icons";
 import { FileTextIcon } from "lucide-react";
 import { Box, Flex, IconButton, Text, Icon } from "@chakra-ui/react";
 
 
-import { useParams } from "react-router";
+import { useParams, useLocation } from "react-router";
 
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
-import { ChevronLeftIcon } from "@chakra-ui/icons";
 
 export const Program = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const [program, setProgram] = useState(null);
-  const [programName, setProgramName] = useState("");
   const [sessions, setSessions] = useState(null);
   const [roomIds, setRoomIds] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
-  const [nextBookingInfo, setNextBookingInfo] = useState({
-    nextSession: {},
-    nextRoom: {},
-    assignments: {},
-    instructors: [],
-    payees: [],
-  });
+  const [nextBookingInfo, setNextBookingInfo] = useState(null);
   const [isArchived, setIsArchived] = useState(false);
+  const [ assignments, setAssignments ] = useState(false);
+  const [ instructors, setInstructors ] = useState([]);
+  const [ payees, setPayees ] = useState([]);
+  const [infoLoaded, setInfoLoaded] = useState({
+    program: false,
+    assignments: false,
+    bookings: false,
+  });
+  const location = useLocation();
 
   const getProgram = async () => {
     try {
       const programResponse = await backend.get(`/events/${id}`);
       const programData = programResponse.data;
       setProgram(programData); // programData should have what Events table in DB model contains
-      setProgramName(programData[0].name);
       setIsArchived(programData[0].archived);
     } catch {
       console.log("From getProgram: ", error);
     }
+    finally {
+      setInfoLoaded(prev => ({
+        ...prev,
+        program: true,
+      }));
+
+    }
+  };
+
+  const getAssignments = async () => {
+      const assignmentsResponse = await backend.get(
+        `/assignments/event/${id}`
+      );
+
+      const newInstructors = [];
+      const newPayees = [];
+
+      for (const assignment of assignmentsResponse.data) {
+        try {
+          const clientResponse = await backend.get(
+            `/clients/${assignment.clientId}`
+          );
+          const assignmentWithClient = {
+            ...assignment,
+            clientName: clientResponse.data.name,
+            clientEmail: clientResponse.data.email,
+          };
+
+          if (assignment.role === "instructor") {
+            newInstructors.push(assignmentWithClient);
+          } else if (assignment.role === "payee") {
+            newPayees.push(assignmentWithClient);
+          }
+        } catch (clientError) {
+          console.error(`Failed to fetch client ${assignment.clientId} for assignment`, assignment, clientError);
+        }
+      }
+      setInstructors(newInstructors);
+      setPayees(newPayees);
   };
 
   const getNextBookingInfo = async () => {
@@ -65,31 +105,9 @@ export const Program = () => {
         `/rooms/${nextBooking.nextSession.roomId}`
       );
       nextBooking.nextRoom = roomResponse.data[0];
-
-      const assignmentsResponse = await backend.get(
-        `/assignments/event/${program[0].id}`
-      );
-
-      nextBooking.assignments = assignmentsResponse.data;
-      console.log("nextbooking assignments: ", nextBooking.assignments);
-
-      for (const assignment of assignmentsResponse.data) {
-        const clientResponse = await backend.get(
-          `/clients/${assignment.clientId}`
-        );
-        const assignmentWithClient = {
-          ...assignment,
-          clientName: clientResponse.data.name,
-          clientEmail: clientResponse.data.email,
-        };
-
-        if (assignment.role === "instructor") {
-          nextBooking.instructors.push(assignmentWithClient);
-        } else if (assignment.role === "payee") {
-          nextBooking.payees.push(assignmentWithClient);
-        }
-      }
-
+      nextBooking.assignments = assignments;
+      nextBooking.instructors = instructors;
+      nextBooking.payees = payees;
       setNextBookingInfo(nextBooking);
     } catch (error) {
       console.log("From getNextBookingInfo: ", error);
@@ -101,18 +119,23 @@ export const Program = () => {
       const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
 
-      sessionsData.sort((a, b) => new Date(a.date) - new Date(b.date));
-      console.log("programData", sessionsData);
-      setSessions(sessionsData);
+      // Only get activeSessions
+      const activeSessions = sessionsData.filter(session => session.archived === false);
+      setSessions(activeSessions);
 
-      // Get set of room ids
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),
       ];
       setRoomIds(uniqueRoomIds);
-
     } catch (error) {
       console.log("From getSessions: ", error);
+    }
+    finally {
+      setInfoLoaded(prev => ({
+        ...prev,
+        bookings: true,
+      }));
+
     }
   };
 
@@ -130,11 +153,25 @@ export const Program = () => {
       console.log("From getRoomNames: ", error);
     }
   };
+useEffect(() => {
+  const getData = async () => {
+    await getProgram().then(() => {
+      console.log("Program data refreshed");
+      setInfoLoaded((prev) => ({ ...prev, program: true }));
+    });
 
-  useEffect(() => {
-    getProgram();
-    getSessions();
-  }, [id]);
+    await getSessions().then(() => {
+      console.log("Sessions data refreshed");
+      setInfoLoaded((prev) => ({ ...prev, bookings: true }));
+    });
+
+    await getAssignments().then(() => {
+      console.log("Assignments data refreshed: ", instructors);
+      setInfoLoaded((prev) => ({ ...prev, assignments: true }));
+    });
+  }
+  getData();
+}, [id, location.key]);
 
   useEffect(() => {
     if (roomIds) {
@@ -143,32 +180,61 @@ export const Program = () => {
   }, [roomIds]);
 
   useEffect(() => {
-    if (program && sessions) {
-      getNextBookingInfo();
-    }
-  }, [program, sessions]);
+  if (program && sessions && instructors.length > 0) {
+    getNextBookingInfo();
+  }
+}, [program, sessions, instructors, payees]);
 
   return (
     <Navbar>
-      <Box style={{width: "100%", padding: "26px 26px "}}>
-          <ProgramSummary
-            program={program}
-            sessions={sessions}
-            bookingInfo={nextBookingInfo}
-            isArchived={isArchived}
-            setIsArchived={setIsArchived}
-            eventId={id}
+      <Box style={{ width: "100%", padding: "20px 20px 20px 20px" }}>
+        <Flex
+          align="center"
+          gap={2}
+        >
+          <Icon
+            as={FileTextIcon}
+            boxSize={6}
+            color="gray.600"
           />
-          <Sessions
-            programName={programName}
-            sessions={sessions}
-            rooms={roomNames}
-            instructors={nextBookingInfo.instructors}
-            payees={nextBookingInfo.payees}
-            isArchived={isArchived}
-            setIsArchived={setIsArchived}
-            eventId={id}
-          />
+          <Text
+            fontFamily="Inter"
+            fontSize="24px"
+            fontStyle="normal"
+            fontWeight="700"
+            lineHeight="normal"
+          >
+            Summary
+          </Text>
+        </Flex>
+        {isArchived ? (
+          <div id="infoRed">
+            <InfoIconRed id="infoIcon" />
+            <p>You are viewing an archived program</p>
+          </div>
+        ) : (
+          <div></div>
+        )}
+        { Object.values(infoLoaded).every(Boolean) && <ProgramSummary
+          program={program}
+          bookingInfo={nextBookingInfo}
+          isArchived={isArchived}
+          setIsArchived={setIsArchived}
+          eventId={id}
+          sessions={sessions}
+          instructors={instructors}
+          payees={payees}
+        /> }
+        { Object.values(infoLoaded).every(Boolean) && <Sessions
+          sessions={sessions}
+          rooms={roomNames}
+          isArchived={isArchived}
+          setIsArchived={setIsArchived}
+          eventId={id}
+          refreshSessions={getSessions}
+          instructors={instructors}
+          payees={payees}
+        /> }
       </Box>
     </Navbar>
   );

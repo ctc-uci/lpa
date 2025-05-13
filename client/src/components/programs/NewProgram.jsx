@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react";
-import './EditProgram.css';
-
 import {
   Button,
   Icon,
@@ -8,25 +5,25 @@ import {
   Flex,
 } from "@chakra-ui/react";
 
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import './EditProgram.css';
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { IoCloseOutline } from "react-icons/io5";
-import { useParams } from "react-router";
 import Navbar from "../navbar/Navbar";
 import React from 'react';
 
 import { SessionsRightIcon } from "../../assets/SessionsRightIcon";
 import { TitleInformation } from "./programComponents/TitleInformation";
 import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
-import { PayeesDropdown } from "./programComponents/PayeesDropdown";
-import { ProgramInformation } from "./programComponents/ProgramInformation";
+import { PayeesDropdown } from "./programComponents/PayeesDropdown"
+import { ProgramInformation } from "./programComponents/ProgramInformation"
 import { EmailDropdown } from "./programComponents/EmailDropdown";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 
-export const EditProgram = () => {
+export const NewProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
-  const {id} = useParams();
   const [eventName, setEventName] = useState("");
   const [eventArchived, setEventArchived] = useState(false);
   const [searchedInstructors, setSearchedInstructors] = useState([]);
@@ -39,109 +36,39 @@ export const EditProgram = () => {
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
-  const [initialState, setInitialState] = useState(null);
-  const [infoLoaded, setInfoLoaded] = useState({
-      event: false,
-      assignments: false,
-    });
   const {
     isOpen: isUnsavedModalOpen,
     onOpen: onUnsavedModalOpen,
     onClose: onUnsavedModalClose,
   } = useDisclosure();
 
-  useEffect(() => {
-    const getInitialEventData = async (eventResponse) => {
-
-      setEventName(eventResponse.data[0].name);
-      setGeneralInformation(eventResponse.data[0].description);
-      setEventArchived(eventResponse.data[0].archived);
-    }
-
-    const getInitialAssignmentsData = async (eventClientResponse) => {
-      const instructors = eventClientResponse.data
-      .filter(client => client.role === "instructor")
-      .map(client => ({
-        id: client.clientId,
-        name: client.clientName,
-        email: client.clientEmail
-      }));
-
-    const payees = eventClientResponse.data
-      .filter(client => client.role === "payee")
-      .map(client => ({
-        id: client.clientId,
-        name: client.clientName,
-        email: client.clientEmail
-      }));
-      setSelectedInstructors(instructors);
-      setSelectedPayees(payees);
-      setSelectedEmails(payees);
-    }
-
-    const loadInitialData = async () => {
-      const eventResponse = await backend.get(`/events/${id}`);
-      const eventClientResponse = await backend.get('/assignments/event/' + id);
-
-      await getInitialEventData(eventResponse).then(() => {
-        setInfoLoaded((prev) => ({ ...prev, event: true }));
-      });
-      await getInitialAssignmentsData(eventClientResponse).then(() => {
-        setInfoLoaded((prev) => ({ ...prev, assignments: true }));
-      });
-          };
-
-    loadInitialData();
-  }, [backend, id]);
-
-  useEffect(() => {
-    if (initialState === null && Object.values(infoLoaded).every(Boolean)) {
-      setInitialState(JSON.stringify({
-        eventName,
-        generalInformation,
-        selectedInstructors,
-        selectedPayees,
-        selectedEmails,
-      }));
-    }
-  }, [eventName, generalInformation, infoLoaded, initialState, selectedEmails, selectedInstructors, selectedPayees]);
-
-  const exit = () => {
-    const currentState = JSON.stringify({
-      eventName,
-      generalInformation,
-      selectedInstructors,
-      selectedPayees,
-      selectedEmails,
-    });
-    if (initialState !== currentState) {
-      onUnsavedModalOpen();
+  const exit = (newEventId = "") => {
+    if (isUnsavedValid()) {
+      onUnsavedModalOpen(true);
       return;
     }
-    else {
-      navigate('/programs/' + id);
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+        navigate("/dashboard");
     }
+  };
+
+  const saveAndExit = (newEventId = "") => {
+    navigate('/programs/edit/sessions/' + newEventId);
   };
 
   const noSave = () => {
-    navigate('/programs/' + id);
+    navigate('/programs');
   }
 
   const isUnsavedValid = () => {
-    const currentState = JSON.stringify({
-      eventName,
-      generalInformation,
-      selectedInstructors,
-      selectedPayees,
-      selectedEmails,
-    });
     return (
-      (( eventName.trim() !== "" ||
+      eventName.trim() !== "" ||
       selectedInstructors.length > 0 ||
-      selectedPayees.length > 0 )) &&
-      initialState !== currentState
+      selectedPayees.length > 0
     );
-  };
+  }
 
   const isFormValid = () => {
     return (
@@ -151,40 +78,27 @@ export const EditProgram = () => {
     );
   };
 
-  const deleteAllAssignments = async () => {
-    try {
-      await backend.delete('/assignments/event/' + id);
-    } catch (error) {
-      if (error.response?.status === 404) {
-          console.log(`No assignments found for event ${id}`);
-          return;
-        }
-      else {
-        console.error("Error deleting event bookings", error);
-      }
-    }
-  };
-
   const saveEvent = async () => {
     try {
-      console.log("Newly added event name:", eventName);
+      console.log("Newly added name:", eventName);
       console.log("Newly added Description:", generalInformation);
-      console.log("Newly added Selected Instructors:", selectedInstructors);
-      console.log("Newly added Selected Payees:", selectedPayees);
+      console.log("Newly added Instructors:", selectedInstructors);
+      console.log("Newly added Payees:", selectedPayees);
 
-      await backend.put('/events/' + id, {
+      const response = await backend.post('/events/', {
           name: eventName,
           description: generalInformation,
           archived: eventArchived
       });
 
-      await deleteAllAssignments();
-      console.log("Selected instructors: ", selectedInstructors)
-      console.log("Selected payees: ", selectedPayees)
+      const newEventId = response.data.id;
+
       console.log("Assigning instructors...");
+      console.log("Instructor object:", selectedInstructors);
       for (const instructor of selectedInstructors) {
+        console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
-            eventId: id,
+            eventId: newEventId,
             clientId: instructor.id,
             role: "instructor"
         });
@@ -192,32 +106,22 @@ export const EditProgram = () => {
 
       for (const payee of selectedPayees) {
         await backend.post("/assignments", {
-            eventId: id,
+            eventId: newEventId,
             clientId: payee.id,
             role: "payee"
         });
       }
       console.log("Save complete, navigating away...");
+      saveAndExit(newEventId);
 
     } catch (error) {
-        console.error("Error updating sessions", error);
+        console.error("Error getting instructors:", error);
     }
   };
 
-  const saveEventUnsaved = async () => {
-    await saveEvent();
-    navigate('/programs/' + id);
-  };
-
-  const saveEventToSessions = async () => {
-    await saveEvent();
-    navigate('/programs/edit/sessions/' + id);
-  };
-
-
   return (
     <Navbar>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEventUnsaved} isFormValid={isUnsavedValid}/>
+      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isFormValid={isUnsavedValid()}/>
       <div id="body">
         <div id="programsBody">
           <Flex style={{width: "48px",
@@ -242,6 +146,7 @@ export const EditProgram = () => {
               />
             </div>
             <div id="innerBody">
+
               <ArtistsDropdown
                 instructorSearchTerm={instructorSearchTerm}
                 searchedInstructors={searchedInstructors}
@@ -277,16 +182,16 @@ export const EditProgram = () => {
               />
             </div>
           </div>
-          <div id="saveCancel">
+          <div id = "saveCancel">
             <Button
               id="save"
-              onClick={saveEventToSessions}
+              onClick={saveEvent}
               isDisabled={!isFormValid()}
               backgroundColor={"#4441C8"}
-              _hover={{ bgColor: "#312E8A" }}
+              _hover={{ bgColor: "#312E8A"}}
               rightIcon={<SessionsRightIcon/>}
             >
-              Session
+              Sessions
             </Button>
           </div>
         </div>
