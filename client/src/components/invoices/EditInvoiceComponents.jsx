@@ -805,7 +805,6 @@ const StatementComments = ({
                             </Flex>
                           </Td>
 
-                          {/* Room fee */}
                           <Td
                             py={compactView ? 0 : 4}
                             fontSize={compactView ? "6.38" : "sm"}
@@ -813,28 +812,6 @@ const StatementComments = ({
                               session.comments.length > 0 ? "none" : undefined
                             }
                           >
-                            {session.adjustmentValues.length === 0 ? (
-                              "None"
-                            ) : (
-                              <Box display="inline-block">
-                                <Tooltip
-                                  label={session.adjustmentValues.join(", ")}
-                                  placement="top"
-                                  bg="gray"
-                                  w="auto"
-                                >
-                                  <Text>
-                                    {session.adjustmentValues
-                                      .slice(0, 3)
-                                      .join(", ")}
-                                    {session.adjustmentValues.length > 3
-                                      ? ", ..."
-                                      : ""}
-                                  </Text>
-                                </Tooltip>
-                              </Box>
-                            )}
-
                             {/* Adjust Button  */}
                             <Button
                               leftIcon={<PencilIcon color="black" />}
@@ -859,6 +836,29 @@ const StatementComments = ({
                               Adjust
                             </Button>
 
+                            {/* Room fee adjustments from sidebar */}
+                            {session.adjustmentValues.length === 0 ? (
+                              "None"
+                            ) : (
+                              <Box display="inline-block" marginLeft="10px">
+                                <Tooltip
+                                  label={session.adjustmentValues.join(", ")}
+                                  placement="top"
+                                  bg="gray"
+                                  w="auto"
+                                >
+                                  <Text>
+                                    {session.adjustmentValues
+                                      .slice(0, 3)
+                                      .join(", ")}
+                                    {session.adjustmentValues.length > 3
+                                      ? ", ..."
+                                      : ""}
+                                  </Text>
+                                </Tooltip>
+                              </Box>
+                            )}
+
                             {/* Adjust Sidebar */}
                             <RoomFeeAdjustmentSideBar
                               isOpen={activeRowId === session.id}
@@ -876,7 +876,6 @@ const StatementComments = ({
                               )}
                             />
                           </Td>
-
 
 
                           {/* Adjustment type */}
@@ -1266,16 +1265,6 @@ const InvoiceSummary = ({
                     Adjust
                   </Button>
                 </Td>
-
-                <SummaryFeeAdjustmentSideBar
-                  isOpen={isOpen}
-                  onClose={onClose}
-                  summary={summary[0]}
-                  setSummary={setSummary}
-                  sessionIndex={0}
-                  subtotal={subtotal}
-                  session={sessions[0]}
-                />
               </Tr>
               {/* Room Fee Body Row */}
 
@@ -1412,6 +1401,15 @@ const InvoiceSummary = ({
               </Tr>
             </Tbody>
           </Table>
+          <SummaryFeeAdjustmentSideBar
+            isOpen={isOpen}
+            onClose={onClose}
+            summary={summary[0]}
+            setSummary={setSummary}
+            sessionIndex={0}
+            subtotal={subtotal}
+            session={sessions[0]}
+          />
         </Box>
       </Flex>
     </Flex>
