@@ -980,7 +980,7 @@ export const Sessions = ({
   const [sortKey, setSortKey] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
-    []
+    []  
   );
   const [filteredSessions, setFilteredSessions] = useState([]);
 

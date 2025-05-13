@@ -10,11 +10,13 @@ import Navbar from "../navbar/Navbar";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
+import { NotificationFilter } from "./NotificationFIlterModal";
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
 
   const [notifications, setNotifications] = useState([]);
+  const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [filterType, setFilterType] = useState({
     type: "all",
     startDate: null,
@@ -75,6 +77,40 @@ export const Notifications = () => {
     }
   };
 
+  // Function to apply filters
+  const handleApplyFilter = (currentFilters = filterType, dataToFilter = notifications) => {
+    // Apply filters based on provided filters or current filterType
+    let filtered = dataToFilter;
+    
+    if (currentFilters.type !== "all") {
+      filtered = filtered.filter(notification => notification.payStatus === currentFilters.type);
+    }
+    
+    if (currentFilters.startDate) {
+      filtered = filtered.filter(notification => 
+        new Date(notification.endDate) >= new Date(currentFilters.startDate)
+      );
+    }
+    
+    if (currentFilters.endDate) {
+      filtered = filtered.filter(notification => 
+        new Date(notification.endDate) <= new Date(currentFilters.endDate)
+      );
+    }
+    
+    setFilteredNotifications(filtered);
+  };
+
+  // Function to clear filters
+  const handleClearFilter = () => {
+    setFilterType({
+      type: "all",
+      startDate: null,
+      endDate: null,
+    });
+    setFilteredNotifications(notifications);
+  };
+
   useEffect(() => {
     const fetchNotifs = async () => {
       try {
@@ -82,6 +118,7 @@ export const Notifications = () => {
         let endpoints = [];
   
         // Only modify the endpoint if we're filtering by type AND it's not "all"
+        // Notice we're still using the backend endpoint filters for efficiency
         if (filterType.type === "all") {
           endpoints = [
             `/invoices/overdue`,
@@ -150,14 +187,16 @@ export const Notifications = () => {
           })
         );
   
-        setNotifications(enrichedInvoices); // attaches additional info onto invoices
+        setNotifications(enrichedInvoices);
+        
+        // Apply any existing filters to the new data
+        handleApplyFilter(filterType, enrichedInvoices);
       } catch (err) {
         console.error("Failed to fetch invoices", err);
       }
     };
     fetchNotifs();
-  }, [filterType, backend]);
-
+  }, [backend]);
 
   return (
     <Navbar currentPage="notifications">
@@ -190,9 +229,11 @@ export const Notifications = () => {
             <FilterButton
               setFilterType={setFilterType}
               currentFilter={filterType}
+              onApply={handleApplyFilter}
+              onClear={handleClearFilter}
             />
           </Flex>
-          <NotificationsComponents notifications={notifications} />
+          <NotificationsComponents notifications={filteredNotifications} />
         </Flex>
       </Box>
     </Navbar>

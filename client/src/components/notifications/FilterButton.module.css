@@ -1,142 +1,105 @@
 /* FilterButton.module.css */
 .modalContent {
-    display: inline-flex;
-    padding: 16px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    border-radius: 15px;
-    border: 1px solid var(--medium-light-grey, #D2D2D2);
-    background: var(--white, #FFF);
-    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-    width: 100px;
+  display: inline-flex;
+  padding: 16px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  border-radius: 12px;
+  border: 1px solid #E8E8E8;
+  background: #FFF;
+  box-shadow: 0px 0px 12px 0px rgba(100, 128, 145, 0.1);
+  width: auto;
 }
 
-.dateRangeHeader {
-  color: var(--medium-grey, #767778);
+.modalBody {
+padding: 0;
+}
+
+.typeHeader {
+  color: #767778;
   font-family: "Inter", sans-serif;
   font-size: 18px;
   font-style: normal;
   font-weight: 600;
   line-height: normal;
   margin-bottom: 16px;
-
-}
-
-.modalBody {
-  padding: 0;
-}
-
-.dateInputContainer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  width: 280px;
-}
-
-.dateInput {
-  display: flex;
-  justify-content: space-between; /* Changed to space-between to position text and icon */
-  align-items: center;
-  gap: 10px;
-  border-radius: 5px;
-  border: 1px solid var(--medium-light-grey, #d2d2d2);
-  background-color: #F6F6F6;
-  padding: 8px;
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  color: #767778;
-  width: 110px;
-  cursor: pointer;
-  position: relative; /* Added for proper icon positioning */
-}
-
-/* Style the calendar icon */
-.dateInput::-webkit-calendar-picker-indicator {
-  position: static; /* Changed from absolute to static */
-  width: 16px; /* Set specific width */
-  height: 16px; /* Set specific height */
-  cursor: pointer;
-  opacity: 0.5; /* Make it slightly transparent */
-  margin: 0;
-  padding: 0;
-}
-
-.dateInput::-webkit-calendar-picker-indicator:hover {
-  opacity: 1; /* Full opacity on hover */
-}
-.dateInput::-webkit-datetime-edit-text,
-.dateInput::-webkit-datetime-edit-month-field,
-.dateInput::-webkit-datetime-edit-day-field,
-.dateInput::-webkit-datetime-edit-year-field {
-  color: #767778;
-}
-
-/* When no date is selected (placeholder state) */
-.dateInput:invalid {
-  color: #767778;
-}
-
-
-.dateInput::placeholder{
-    color: var(--medium-grey, #767778);
-    font-family: "Inter", sans-serif;
-    font-size: 13px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 20px; 
-}
-
-.toText {
-    color: var(--medium-grey, #767778);
-    font-family: "Inter", sans-serif;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
-}
-
-.typeHeader {
-    color: var(--medium-grey, #767778);
-    font-family: "Inter", sans-serif;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: normal;
-    margin-bottom: 16px;
 }
 
 .filterButtonGroup {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .filterButton {
-  border: 1px solid #d2d2d2 !important;
-  border-radius: 15px !important;
-  padding: 0px 15px !important;
-  background: white !important;
-  color: #767778 !important;
-  transition: all 0.2s !important;
-  color: var(--medium-grey, #767778);
-  font-family: "Inter", sans-serif;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: normal;
+/* border: 1px solid #E4E4ED !important; */
+border-radius: 20px !important;
+padding: 8px 20px !important;
+background: #F9F9FC !important;
+color: #383E4A !important;
+transition: all 0.2s !important;
+font-family: "Inter", sans-serif;
+font-size: 15px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
+height: 36px;
 }
 
 .filterButton:hover {
-  background: #f5f5f5 !important;
+background: #edf1f8 !important;
 }
 
 .filterButton.active {
-    color: var(--indigo, #4E4AE7) !important;
-    border-radius: 30px !important;
-    border: 1px solid var(--indigo, #4E4AE7) !important;
-    background: var(--light-indigo, #EDEDFD) !important;
+  color: #5951F3 !important;
+  border-radius: 50px !important;
+  border: 1px solid #3F37D1 !important;
+  background: #edf1f7 !important;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.clearButton {
+  background: transparent !important;
+  color: #767778 !important;
+  border: none !important;
+  padding: 8px 20px !important;
+  border-radius: 6px !important;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: normal;
+  height: 40px;
+  transition: all 0.2s !important;
+}
+
+.clearButton:hover {
+  background: #F9F9FC !important;
+}
+
+.applyButton {
+  background: #6966d2 !important;
+  color: white !important;
+  border: none !important;
+  /* padding: 8px 28px !important; */
+  border-radius: 6px !important;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: normal;
+  height: 40px;
+  transition: all 0.2s !important;
+  letter-spacing: "0.5%";
+}
+
+.applyButton:hover {
+  background: #3F37D1 !important;
 }
