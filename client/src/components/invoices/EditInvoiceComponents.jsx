@@ -1265,16 +1265,6 @@ const InvoiceSummary = ({
                     Adjust
                   </Button>
                 </Td>
-
-                <SummaryFeeAdjustmentSideBar
-                  isOpen={isOpen}
-                  onClose={onClose}
-                  summary={summary[0]}
-                  setSummary={setSummary}
-                  sessionIndex={0}
-                  subtotal={subtotal}
-                  session={sessions[0]}
-                />
               </Tr>
               {/* Room Fee Body Row */}
 
@@ -1411,6 +1401,15 @@ const InvoiceSummary = ({
               </Tr>
             </Tbody>
           </Table>
+          <SummaryFeeAdjustmentSideBar
+            isOpen={isOpen}
+            onClose={onClose}
+            summary={summary[0]}
+            setSummary={setSummary}
+            sessionIndex={0}
+            subtotal={subtotal}
+            session={sessions[0]}
+          />
         </Box>
       </Flex>
     </Flex>
