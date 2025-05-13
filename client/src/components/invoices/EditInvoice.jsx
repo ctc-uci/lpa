@@ -278,73 +278,163 @@ export const EditInvoice = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Process all sessions
       for (const session of sessions) {
-        // console.log("session", session)
+        // console.log("Processing session", session);
+        
+        // Handle comments for each session
+        if (session.comments && session.comments.length > 0) {
+          for (let i = 0; i < session.comments.length; i++) {
+            const commentText = session.comments[i];
+            
+            // Prepare comment data
+            const commentData = {
+              user_id: session.userId, // Will be set by the server if null
+              booking_id: session.bookingId || null,
+              invoice_id: id,
+              datetime: session.datetime,
+              comment: commentText,
+              adjustment_type: "none",
+              adjustment_value: 0,
+            };
+            
+            // If this is a custom row (doesn't have a real booking_id)
+            if (String(session.id).includes("custom")) {
+              commentData.booking_id = null;
+              commentData.adjustment_type = "total";
+              commentData.adjustment_value = session.rate;
+              // console.log("commentData no booking id", commentData);
+            }
+            
+            
+            try {
+              // Check if this comment already exists in the original comments
+              const existingComment = comments.find(c => 
+                c.bookingId == commentData.booking_id && 
+                c.comment == commentData.comment
+              );
 
-        // const roomData = {
-        //   id: session.roomId,
-        //   name: session.name,
-        //   description: session.description,
-        //   rate: session.rate,
-        // };
-
-        // console.log("roomData", roomData)
-
-        // const roomResponse = await backend.put(`/rooms/${session.roomId}`, roomData);
-
-        // console.log("roomResponse", roomResponse)
-        // for (const adjustment of session.adjustmentValues) {
-        //   console.log("adjustment", adjustment)
-        // }
-
-        for (const comment of session.comments) {
-          console.log("comment", comment)
-
-          const commentData = {
-            id: session.id,
-            comment: comment.comment,
-            datetime: comment.datetime,
-          };
-          console.log("commentData", commentData)
+              if (existingComment) {
+                // Update existing commentz
+                const existingCommentResponse = await backend.put(`/comments/${existingComment.id}`, commentData);
+                // console.log("existingCommentResponse", existingCommentResponse);
+              } else {
+                // Create new comment
+                const newCommentResponse = await backend.post(`/comments`, commentData);
+                // console.log("newCommentResponse", newCommentResponse);
+              }
+            } catch (error) {
+              console.error(`Error saving comment:`, error);
+              throw error;
+            }
+          }
         }
+        
+        // Handle adjustments for each session
+        if (session.adjustmentValues && session.adjustmentValues.length > 0) {
+          for (const adjustmentValue of session.adjustmentValues) {
+            // Parse the adjustment value
+            const isPercent = adjustmentValue.includes('%');
+            const isNegative = adjustmentValue.startsWith('-');
+            const numericValue = parseFloat(adjustmentValue.replace(/[+$%-]/g, ""));
+            
+            if (isNaN(numericValue)) continue;
+            
+            const adjustmentType = isPercent ? 'rate_percent' : 'rate_flat';
+            const adjustmentNumericValue = isNegative ? -numericValue : numericValue;
+            
+            const adjustmentData = {
+              user_id: session.userId,
+              booking_id: session.bookingId || null,
+              invoice_id: id,
+              datetime: session.datetime,
+              comment: "",
+              adjustment_type: adjustmentType,
+              adjustment_value: adjustmentNumericValue,
+            };
 
-
+            
+            try {
+        //       // Check if this adjustment already exists
+              const existingAdjustment = comments.find(c => 
+                c.bookingId == adjustmentData.booking_id && 
+                c.adjustmentType == adjustmentData.adjustment_type &&
+                c.adjustmentValue == adjustmentData.adjustment_value
+              );
+              
+              // ! TODO If you change an adjustment value, it will keep the old one and create a new one with the change
+              if (existingAdjustment) {
+        //         // Update existing adjustment
+                const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
+                // console.log("Existing adjustmentData", adjustmentData);
+                // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
+              } else {
+                // Create new adjustment
+                // console.log("New adjustmentData", adjustmentData);
+                const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
+                // console.log("newAdjustmentResponse", newAdjustmentResponse);
+              }
+            } catch (error) {
+              console.error(`Error saving adjustment:`, error);
+              throw error;
+            }
+          }
+        }
+      }
+      
+      // Process summary adjustments
+      if (summary && summary.length > 0) {
+        for (const summaryItem of summary) {
+          if (summaryItem.adjustmentValues && summaryItem.adjustmentValues.length > 0) {
+            for (const adjustmentValue of summaryItem.adjustmentValues) {
+              // console.log("summaryItem", summaryItem);
+              // Parse the adjustment value
+              const isPercent = adjustmentValue.includes('%');
+              const isNegative = adjustmentValue.startsWith('-');
+              const numericValue = parseFloat(adjustmentValue.replace(/[+$%-]/g, ""));
+              
+              if (isNaN(numericValue)) continue;
+              
+              const adjustmentType = isPercent ? 'rate_percent' : 'rate_flat';
+              const adjustmentNumericValue = isNegative ? -numericValue : numericValue;
+              
+              const adjustmentData = {
+                user_id: summaryItem.userId,
+                booking_id: null, // Summary adjustments don't have booking_id
+                invoice_id: id,
+                datetime: new Date().toISOString(),
+                comment: "",
+                adjustment_type: adjustmentType,
+                adjustment_value: adjustmentNumericValue,
+              };
+              
+              try {
+                // Check if this summary adjustment already exists
+                const existingAdjustment = comments.find(c => 
+                  c.bookingId === null && 
+                  c.adjustmentType == adjustmentData.adjustment_type &&
+                  c.adjustmentValue == adjustmentData.adjustment_value
+                );
+                
+                if (existingAdjustment) {
+                  // Update existing adjustment
+                  const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
+                  // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
+                } else {
+                  // Create new adjustment
+                  const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
+                  // console.log("newAdjustmentResponse", newAdjustmentResponse);
+                }
+              } catch (error) {
+                console.error(`Error saving summary adjustment:`, error);
+                throw error;
+              }
+            }
+          }
+        }
       }
 
-
-
-      //   try {
-      //     if (comment.id) {
-      //       // Update existing comment
-      //       const response = await backend.put(
-      //         `/comments/${comment.id}`,
-      //         commentData
-      //       );
-      //       console.log("Updated comment:", response.data);
-      //     } else {
-      //       // Create new comment
-      //       const response = await backend.post(`/comments`, commentData);
-      //       console.log("Created new comment:", response.data);
-      //     }
-      //   } catch (error) {
-      //     console.error(`Error saving comment ${comment.id}:`, error);
-
-      //     if (error.response && error.response.status === 400) {
-      //       try {
-      //         const altResponse = await backend.post(
-      //           `/comments/update/${comment.id}`,
-      //           commentData
-      //         );
-      //       } catch (altError) {
-      //         console.error("Alternative update failed:", altError);
-      //         throw altError;
-      //       }
-      //     } else {
-      //       throw error;
-      //     }
-      //   }
-      // }
-
+      // Navigate to the saved edits page
       // navigate(`/invoices/savededits/${id}`);
     } catch (error) {
       console.error("Error saving invoice:", error);

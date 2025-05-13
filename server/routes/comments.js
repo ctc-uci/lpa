@@ -45,8 +45,8 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
 });
 
 const formatAdjustmentFee = (adjustmentType, val) => {
-  if (adjustmentType === "rate_percent")  return val > 0 ? `+${val}%` : `-${val}%`;
-  if (adjustmentType === "rate_flat") return val > 0 ? `+$${val}` : `-$${val}`;
+  if (adjustmentType === "rate_percent")  return val > 0 ? `+${val}%` : `-${Math.abs(val)}%`;
+  if (adjustmentType === "rate_flat") return val > 0 ? `+$${val}` : `-$${Math.abs(val)}`;
   return null;
 };
 
@@ -63,15 +63,15 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
                 ORDER BY comments.id`;
     const queryParams = [id];
 
-
-
     const data = await db.query(query, queryParams);
     const comments = keysToCamel(data);
     const groupedComments = {};
 
     comments.forEach((comment) => {
       const bookingId = comment.bookingId;
-      const formattedValue = formatAdjustmentFee(comment.adjustmentType, comment.adjustmentValue);
+      // Only format and use adjustment value if type is not "none"
+      const formattedValue = comment.adjustmentType !== "none" ? 
+        formatAdjustmentFee(comment.adjustmentType, comment.adjustmentValue) : null;
 
       if (!groupedComments[bookingId]) {
         groupedComments[bookingId] = {
@@ -85,7 +85,7 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
           groupedComments[bookingId].comments.push(comment.comment);
         }
 
-        // Add adjustment value if not already included
+        // Add adjustment value if not already included and not type "none"
         if (formattedValue && !groupedComments[bookingId].adjustmentValues.includes(formattedValue)) {
           groupedComments[bookingId].adjustmentValues.push(formattedValue);
         }
@@ -97,7 +97,6 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       delete groupedComments[bookingId].comment;
     });
 
-    console.log("groupedComments", Object.values(groupedComments));
     res.status(200).json(Object.values(groupedComments));
   } catch (err) {
     res.status(500).send(err.message);

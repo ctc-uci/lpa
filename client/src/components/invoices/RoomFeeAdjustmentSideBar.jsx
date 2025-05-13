@@ -419,6 +419,21 @@ const SummaryFeeAdjustmentSideBar = ({
     });
   };
 
+  const handleValueChange = (index, newValue, type) => {
+    setTempSummary(prev => {
+      const newSummary = {...prev};
+      const currentValue = newSummary.adjustmentValues[index];
+      const sign = currentValue.trim().startsWith("-") ? "-" : "+";
+      const numericValue = Math.abs(parseFloat(newValue)) || 0;
+      
+      newSummary.adjustmentValues[index] = type === "$" 
+        ? `${sign}$${numericValue}`
+        : `${sign}${numericValue}%`;
+      
+      return newSummary;
+    });
+  };
+
   const handleClearAll = () => {
     setTempSummary(prev => ({
       ...prev,
@@ -478,16 +493,11 @@ const SummaryFeeAdjustmentSideBar = ({
 
               <AdjustmentTypeSelector
                 onSelect={(type, index) => {
-                  setSummary((prevSummary) => {
-                    const newSummary = [...prevSummary];
+                  setTempSummary(prevSummary => ({
+                    ...prevSummary,
+                    adjustmentValues: [...prevSummary.adjustmentValues, type === "percent" ? "-0%" : "-$0"]
+                  }));
 
-                    if (type === "percent")
-                      newSummary[index].adjustmentValues.push("-0%");
-                    else if (type === "dollar")
-                      newSummary[index].adjustmentValues.push("-$0");
-
-                    return newSummary;
-                  });
                 }}
                 sessionIndex={sessionIndex}
               />
@@ -546,15 +556,8 @@ const SummaryFeeAdjustmentSideBar = ({
                         <>
                           <Text>$</Text>
                           <Input
-                            value={parseFloat(val.replace(/[+$%]/g, ""))}
-                            onChange={(e) => {
-                              setTempSummary((prev) => ({
-                                ...prev,
-                                adjustmentValues: prev.adjustmentValues.map((v, i) =>
-                                  i === index ? e.target.value : v
-                                )
-                              }));
-                            }}
+                            value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
+                            onChange={(e) => handleValueChange(index, e.target.value, "$")}
                             size="sm"
                             width="80px"
                           />
@@ -563,18 +566,10 @@ const SummaryFeeAdjustmentSideBar = ({
                         <>
                           <Input
                             value={parseFloat(val.replace(/[+$%]/g, "")) || 0}
-                            onChange={(e) => {
-                              setTempSummary((prev) => ({
-                                ...prev,
-                                adjustmentValues: prev.adjustmentValues.map((v, i) =>
-                                  i === index ? e.target.value : v
-                                )
-                              }));
-                            }}
+                            onChange={(e) => handleValueChange(index, e.target.value, "%")}
                             size="sm"
                             width="80px"
                           />
-
                           <Text>%</Text>
                         </> 
                       )} 
