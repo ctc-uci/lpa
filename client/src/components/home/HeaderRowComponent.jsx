@@ -24,7 +24,7 @@ export const HeaderRowComponent = () => {
       </div>
 
       <div className="header-right">
-        <div
+        {/* <div
           className="archive"
           onClick={() => {
             navigate('/programs/archived');
@@ -36,7 +36,7 @@ export const HeaderRowComponent = () => {
             className="archive-icon"
           />
           <span className="archive-text">Archived</span>
-        </div>
+        </div> */}
 
         <div
           className="new-program"

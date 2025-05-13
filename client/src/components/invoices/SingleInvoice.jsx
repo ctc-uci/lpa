@@ -5,6 +5,11 @@ import {
   Flex,
   IconButton,
   useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
 } from "@chakra-ui/react";
 
 import { FaAngleLeft } from "react-icons/fa6";

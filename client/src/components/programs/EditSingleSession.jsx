@@ -4,24 +4,24 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
-import { 
-  Box, 
-  Flex, 
-  Button, 
-  Text, 
-  Card, 
-  CardBody, 
-  Icon, 
-  Heading, 
-  TableContainer, 
-  Table, 
-  Td, 
-  Th, 
-  Tr, 
+import {
+  Box,
+  Flex,
+  Button,
+  Text,
+  Card,
+  CardBody,
+  Icon,
+  Heading,
+  TableContainer,
+  Table,
+  Td,
+  Th,
+  Tr,
   Thead,
-  Input, 
+  Input,
   Select,
-  useDisclosure, 
+  useDisclosure,
   Tbody} from "@chakra-ui/react";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { EllipsisIcon } from "lucide-react";
@@ -35,7 +35,7 @@ import {
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
 
-import DateSortingModal from "../filters/DateFilter";
+import DateSortingModal from "../sorting/DateFilter";
 import { SaveSessionModal } from "../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 
@@ -46,11 +46,11 @@ export const EditSingleSession = () => {
   const navigate = useNavigate();
 
   const { isOpen: isSaveSessionModalOpen,
-          onOpen: onSaveSessionModalOpen, 
+          onOpen: onSaveSessionModalOpen,
           onClose: onSaveSessionModalClose } = useDisclosure();
 
   const { isOpen: isUnsavedSessionModalOpen,
-          onOpen: onUnsavedSessionModalOpen, 
+          onOpen: onUnsavedSessionModalOpen,
           onClose: onUnsavedSessionModalClose } = useDisclosure();
 
   // Function to update sorting
@@ -63,7 +63,7 @@ export const EditSingleSession = () => {
     if (!isoString) return "";
     return isoString.split("T")[0];
   };
-  
+
   const normalizeTime = (timeString) => {
     if (!timeString) return "";
     const parts = timeString.split(":");
@@ -155,27 +155,27 @@ export const EditSingleSession = () => {
       console.error("Error fetching all rooms:", error);
     }
   };
-  
+
   const fetchAllInfo = async () => {
     try {
       // Fetch single session
       const singleSessionResponse = await backend.get(`/bookings/${id}`);
       const singleSessionData = singleSessionResponse.data;
       console.log("Single session:", singleSessionData);
-  
+
       setDate(normalizeDate(singleSessionData[0].date));
       setStartTime(normalizeTime(singleSessionData[0].startTime));
       setEndTime(normalizeTime(singleSessionData[0].endTime));
       setRoom(singleSessionData[0].roomId);
       setEventId(singleSessionData[0].eventId);
-  
+
       // Fetch all sessions
       try {
         const allSessionsResponse = await backend.get(`/bookings/byEvent/${singleSessionData[0].eventId}`);
         const allSessionsData = allSessionsResponse.data;
         console.log("All sessions:", allSessionsData);
         setAllSessions(allSessionsData);
-  
+
         // Fetch program name
         try {
           const programResponse = await backend.get(`/events/${singleSessionData[0].eventId}`);
@@ -192,7 +192,7 @@ export const EditSingleSession = () => {
       console.error("Error fetching single session:", singleSessionError);
     }
   };
-  
+
   // Call the functions
   useEffect(() => {
     fetchAllRooms();
@@ -242,7 +242,7 @@ export const EditSingleSession = () => {
             gap="15px"
           >
             <Text>On</Text>
-          
+
             <Input
               type="date"
               value={date}
@@ -250,7 +250,7 @@ export const EditSingleSession = () => {
               onChange={(e) => {
                 const newDate = e.target.value;
                 setDate(newDate);
-                updateSingleSessionField("date", new Date(newDate).toISOString()); 
+                updateSingleSessionField("date", new Date(newDate).toISOString());
               }}
             />
 
@@ -557,19 +557,19 @@ export const EditSingleSession = () => {
         {singleSessionComponent}
         {previewSession}
 
-        <SaveSessionModal 
-          isOpen={isSaveSessionModalOpen} 
+        <SaveSessionModal
+          isOpen={isSaveSessionModalOpen}
           onClose={onSaveSessionModalClose}
           noSave={onSaveSessionModalClose}
           save={handleGoBack}
-          programName={programName} 
+          programName={programName}
         />
 
         {isChanged && <UnsavedChangesModal
           isOpen={isUnsavedSessionModalOpen}
           onClose={onUnsavedSessionModalClose}
           noSave={() => {
-            onUnsavedSessionModalClose(); 
+            onUnsavedSessionModalClose();
             navigate(`/programs/${eventId}`);}}
           save={handleGoBack}
         />}

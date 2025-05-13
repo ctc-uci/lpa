@@ -52,7 +52,7 @@ import {
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
 
-import DateSortingModal from "../filters/DateFilter";
+import DateSortingModal from "../sorting/DateFilter";
 import { SaveSessionModal } from "../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
