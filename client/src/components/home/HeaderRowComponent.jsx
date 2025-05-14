@@ -1,7 +1,5 @@
-import { Box, Image, Text } from "@chakra-ui/react";
-
 import { useNavigate } from "react-router-dom";
-
+import { Box, Flex } from "@chakra-ui/react";
 import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
 import plusSvg from "../../assets/icons/plus.svg";
 
@@ -9,7 +7,7 @@ export const HeaderRowComponent = () => {
   const navigate = useNavigate();
 
   return (
-    <Box className="header-row">
+    <Flex className="header-row">
       <Box
         className="google-calendar"
         onClick={() => {
@@ -21,22 +19,21 @@ export const HeaderRowComponent = () => {
           alt="Google Calendar"
           className="google-calendar-icon"
         />
-        <Text className="google-calendar-text">Google Calendar</Text>
+        <span className="google-calendar-text">Google Calendar</span>
       </Box>
 
-      <Box className="header-right">
-        <Box
-          className="new-program"
-          onClick={() => navigate("/programs/newprogram")}
-        >
-          <Image
-            src={plusSvg}
-            alt="New Program"
-            className="new-program-icon"
-          />
-          <Text className="new-program-text">New Program</Text>
-        </Box>
+      <Box
+        className="new-program"
+        onClick={() => navigate("/programs/newprogram")}
+      >
+        <img
+          src={plusSvg}
+          alt="New Program"
+          className="new-program-icon"
+        />
+        <span className="new-program-text">New Program</span>
       </Box>
-    </Box>
+    </Flex>
+
   );
 };
