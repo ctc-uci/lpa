@@ -1,5 +1,3 @@
-import { Box, Image, Text } from "@chakra-ui/react";
-
 import { useNavigate } from "react-router-dom";
 import { Box, Flex } from "@chakra-ui/react";
 import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
