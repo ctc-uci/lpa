@@ -816,12 +816,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const handleRowClick = useCallback(
-    (id) => {
-      navigate(`/invoices/${id}`);
-    },
-    [navigate]
-  );
+  const handleEditInvoice = (id) => {
+    navigate(`/invoices/edit/${id}`);
+  }
+
+  const handleRowClick = (id) => {
+    navigate(`/invoices/${id}`);
+  }
   
   useEffect(() => {
     filteredInvoices.forEach((invoice, index) => {
@@ -1034,7 +1035,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
 
                 return (
-                    <Tr key={index}>
+                    <Tr key={index} onClick = {() => handleRowClick(invoice.id)}> 
                       <Td
                         style={{
                           color: isPaidColor(invoice),
@@ -1088,15 +1089,39 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                         </Flex>
                       </Td>
                       <Td>
-                        <IconButton
-                          icon={<FiMoreHorizontal />}
-                          size="sm"
-                          bg="#EDF2F7"
-                          color="#000000"
-                          borderRadius="md"
-                        />
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            size="sm"
+                            bg="#EDF2F7"
+                            color="#000000"
+                            borderRadius="md"
+                            icon={<FiMoreHorizontal />}
+                            onClick ={(e) => {
+                              e.stopPropagation();
+                            }
+                            }
+                          />
+                          <MenuList>
+                            <MenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditInvoice(invoice.id);
+                              }}
+                            >
+                              <Box
+                                display="flex"
+                                padding = "6px 8px"
+                                alignItems="center"
+                                gap="10px"
+                              >
+                                <Icon as={editBlackIcon} />
+                                <Text font-family="Inter" font-size="14px" font-weight="400" line-height="normal"  letter-spacing="0.07px" color="#2D3748">Edit Invoice</Text>
+                              </Box>
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
                       </Td>
-
                     </Tr>
                 );
               })}

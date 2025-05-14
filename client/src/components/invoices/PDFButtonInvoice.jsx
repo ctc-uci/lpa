@@ -164,7 +164,8 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
     <Box>
         <IconButton
         icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           if (hasUnsavedChanges) {
             console.log("has unsaved changes");
             handleOtherButtonClick(() => {

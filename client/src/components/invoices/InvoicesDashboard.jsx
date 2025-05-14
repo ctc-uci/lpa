@@ -70,6 +70,26 @@ const InvoicesDashboard = () => {
     return "Past Due";
   };
 
+  const filterInvoices = (invoices, query) => {
+    if (!query) return invoices;
+
+    return invoices.filter((invoice) => {
+      console.log(invoice)
+      const invoiceName = invoice.name?.toLowerCase() || "";
+      const invoiceEventName = invoice.eventName?.toLowerCase() || "";
+      const invoicePayer = Array.isArray(invoice.payers)
+        ? invoice.payers
+            .filter((payer) => typeof payer === "string")
+            .map((payer) => payer.toLowerCase())
+            .join(", ")
+        : "";
+      return (
+        invoiceName.includes(query.toLowerCase()) ||
+        invoiceEventName.includes(query.toLowerCase()) ||
+        invoicePayer.includes(query.toLowerCase())
+      );
+    });
+  }
 
   useEffect(() => {
     const fetchInvoicesData = async () => {
@@ -161,8 +181,7 @@ const InvoicesDashboard = () => {
               <SearchIcon color='#767778'/>
             </InputRightElement>
             <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => setFilteredInvoices(filterInvoices(invoices, e.target.value))}
               icon={SearchIcon} borderColor='gray.100'
               bgColor="#F7FAFC"
               borderRadius='6px 0px 0px 6px'
