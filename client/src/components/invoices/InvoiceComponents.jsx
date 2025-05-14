@@ -15,6 +15,7 @@ import {
   Button,
   Flex,
   Grid,
+  Heading,
   HStack,
   Icon,
   IconButton,
@@ -645,7 +646,7 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                           borderRadius={6}
                           backgroundColor="#EDF2F7"
                           icon={<Icon as={sessionsEllipsis} />}
-                          
+
                         />
                         <MenuList>
                           <MenuItem
@@ -816,36 +817,79 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const navigate = useNavigate();
   const toast = useToast();
 
+
   const handleRowClick = useCallback(
     (id) => {
       navigate(`/invoices/${id}`);
     },
     [navigate]
   );
-  
+
   useEffect(() => {
-    filteredInvoices.forEach((invoice, index) => {
-      if (invoice.isPaid === "Past Due") {
-        const programTitle = invoice.eventName.split(" ").slice(0, 3).join(" ");
-        const date = new Date(invoice.endDate);
-        const month = date.toLocaleString("default", { month: "long" });
-        const year = date.getFullYear();
-        const description = `${programTitle}, ${month} ${year} Invoice`;
-  
-        setTimeout(() => {
-          toast({
-            title: "Invoice Past Due",
-            description: description,
-            status: "error",
-            duration: 1000,
-            isClosable: true,
-            position: "bottom-right",
-          });
-        }, index * 500);
-      }
-    });
+    if (window.__hasShownToast || filteredInvoices.length === 0) return;
+    const pastDueInvoices = filteredInvoices.filter(invoice => invoice.isPaid === "Past Due");
+    const pastDueCount = pastDueInvoices.length;
+
+    if (pastDueCount > 0) {
+      const programTitle = pastDueInvoices[0].eventName.split(" ").slice(0, 3).join(" ");
+      const date = new Date(pastDueInvoices[0].endDate);
+      const month = date.toLocaleString("default", { month: "long" });
+      const year = date.getFullYear();
+      const description = pastDueCount === 1
+        ? `${programTitle}_${month} ${year}`
+        : `You have ${pastDueCount} past due invoices`;
+      console.log("showing toast!")
+      toast({
+        title: pastDueCount === 1 ? "Invoice Past Due" : `${pastDueCount} Invoices Past Due`,
+        description: description,
+        variant: "left-accent",
+        status: "error",
+        duration: 5000009000,
+        isClosable: false,
+        position: "bottom-right",
+        render: () => (
+          <Flex
+            bg="#FED7D7"
+            borderLeft="4px solid #E53E3E"
+            borderRadius="6px"
+            boxShadow="md"
+            p={4}
+            align="center"
+            justify="space-between"
+            w="400px"
+          >
+            <Flex align="center">
+              <Icon as={CheckCircleIcon} color="#E53E3E" boxSize={5} mr={3} />
+              <Box>
+                <Heading size="sm" color="gray.800">Invoice Past Due</Heading>
+                <Text fontSize="sm" color="gray.700">{description}</Text>
+              </Box>
+            </Flex>
+            <Box border="#E53E3E" borderWidth="5px"></Box>
+            <Flex align="center" px={4} bg="#FED7D7">
+              <Button
+                size="sm"
+                variant="link"
+                color="#E53E3E"
+                fontWeight="bold"
+                onClick={() => {
+                  if (pastDueCount === 1) {
+                    navigate(`/invoices/${pastDueInvoices[0].id}`);
+                  } else {
+                    navigate('/notifications');
+                  }
+                }}
+              >
+                View
+              </Button>
+            </Flex>
+          </Flex>
+        ),
+      });
+      window.__hasShownToast = true;
+    }
   }, [filteredInvoices, toast]);
-  
+
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);

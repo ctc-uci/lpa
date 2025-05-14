@@ -162,7 +162,8 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
       title: 'Invoice Downloaded',
       description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
       status: 'success',
-      duration: 9000,
+      duration: 6000,
+      position: "bottom-right",
       variant: 'left-accent',
       isClosable: false,
     });
