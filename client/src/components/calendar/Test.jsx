@@ -37,7 +37,7 @@ export const Test = () => {
 
   const [bookingsBatch, setBookingsBatch] = useState([]);
 
-  // generates reoccuring sessions (using hardcoded values)
+  // generates reoccuring sessions
   const generateRecurringSessions = (recurringSession, startDate, endDate) => {
     const sessions = [];
     const currentTimezoneDate = new Date(startDate.replace(/-/g, '/').replace(/T.+/, ''));
@@ -68,7 +68,14 @@ export const Test = () => {
     return sessions;
   };
 
-  // generates new bookings (this would be replaced with what the user actually inputs)
+  /**
+   * Generates new bookings
+   *
+   *
+   * This uses generateRecurringSessions attaches a name to each session
+   * In the real implementation, this would be replaced with the non-hardcoded generateRecurringSessions call
+   * and namedSessions would pass in programName instead of "fake session"
+   */
   const fetchNewBookings = async () => {
     const recurringSession = {
       weekday: 'Wednesday',
@@ -78,17 +85,24 @@ export const Test = () => {
     };
 
     const startDate = '2025-05-14';
-    const endDate = '2025-06-14';
+    const endDate = '2025-05-28';
 
     const sessions = generateRecurringSessions(recurringSession, startDate, endDate);
-    console.log(sessions);
-    setBookingsBatch(sessions);
+    const namedSessions = sessions.map(session => ({ ...session, name: 'fake session' }));
+    console.log(namedSessions);
+    setBookingsBatch(namedSessions);
   };
 
-  // fetches all the existing bookings
+  /**
+   * fetches all the existing bookings (that are in the future)
+   */
   const fetchOldBookings = async () => {
     try {
-      const response = await backend.get("/bookings/bookingEventNames");
+      const response = await backend.get("/bookings/bookingEventNames", {
+        params: {
+          start: new Date().toISOString()
+        }
+      });
       setBookingsBatch(response.data);
       console.log(response.data);
     } catch (error) {
@@ -133,6 +147,11 @@ export const Test = () => {
    */
   useEffect(() => {
     if (!isSignedIn) return;
+    loadEvents();
+  }, [isSignedIn]);
+
+
+  const loadEvents = () => {
     gapi.client.calendar.events
       .list({
         calendarId: CALENDAR_ID,
@@ -141,17 +160,17 @@ export const Test = () => {
         singleEvents: true,
         orderBy: "startTime",
       })
-      .then(({ result }) => setEvents(result.items || []))
-      .catch((err) => {
+      .then(res => setEvents(res.result.items || []))
+      .catch(err =>
         toast({
           title: "Could not load events",
           description: err.result?.error?.message || err.message,
           status: "error",
           duration: 5000,
           isClosable: true,
-        });
-      });
-  }, [isSignedIn, toast]);
+        })
+      );
+  };
 
   /**
    * Handle the sign-in process with Google OAuth2.
@@ -195,7 +214,7 @@ export const Test = () => {
         title: "Missing fields",
         description: "Please fill in all event details",
         status: "warning",
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
       return;
@@ -226,90 +245,68 @@ export const Test = () => {
 
 
 
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   /**
-   * Adds all the previous bookings to the GCal
+   * Adds all the bookings to the GCal
    *
    * @returns {void}
    */
-  const addOldBookings = async () => {
-    await fetchOldBookings();
+  const batchInsertBookings = async (mode = "new") => {
+    // get bookings
+    if (mode === "old") await fetchOldBookings();
+    else await fetchNewBookings();
 
-    for (const booking of bookingsBatch) {
+    // make a new batch
+    const batch = gapi.client.newBatch();
 
-      // get values
+    bookingsBatch.forEach((booking, index) => {
+      // get time values
       const date = booking.date.split("T")[0];
       const start = booking.startTime.split('+')[0].trim();
       const end = booking.endTime.split('+')[0].trim();
-      const startDateTime = new Date(`${date}T${start}`);
-      const endDateTime = new Date(`${date}T${end}`);
+      const startDateTime = new Date(`${date}T${start}`).toISOString();
+      const endDateTime = new Date(`${date}T${end}`).toISOString();
 
-      // skip if time is invalid
-      if (isNaN(startDateTime) || isNaN(endDateTime)) {
-        console.error("Invalid date:", booking);
-        continue;
-      }
-
+      // create resource
       const resource = {
         summary: booking.name,
         start: {
-          dateTime: startDateTime.toISOString(),
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          dateTime: startDateTime,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
         },
         end: {
-          dateTime: endDateTime.toISOString(),
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
+          dateTime: endDateTime,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        }
       };
 
-      await addEvent(CALENDAR_ID, resource);
+      // add to batch
+      batch.add(gapi.client.calendar.events.insert({ calendarId: CALENDAR_ID, resource }), { id: `req${index}` });
+    });
 
-      // sleep 500 ms between requests to avoid timeouts
-      await sleep(500);
-    }
-
-  };
-
-  const addNewBookings = async () => {
-    await fetchNewBookings();
-
-    for (const booking of bookingsBatch) {
-
-      // get values
-      const date = booking.date.split("T")[0];
-      const start = booking.startTime.split('+')[0].trim();
-      const end = booking.endTime.split('+')[0].trim();
-      const startDateTime = new Date(`${date}T${start}`);
-      const endDateTime = new Date(`${date}T${end}`);
-
-      // skip if time is invalid
-      if (isNaN(startDateTime) || isNaN(endDateTime)) {
-        console.error("Invalid date:", booking);
-        continue;
+    batch.execute(responseMap => {
+      const total = bookingsBatch.length;
+      const successCount = Object.values(responseMap).filter(r => !r.error).length;
+      const failCount = total - successCount;
+      if (failCount) {
+        toast({
+          title: "Batch Upload Completed with Errors",
+          description: `${successCount}/${total} added, ${failCount} failed.`,
+          status: "warning",
+          duration: 5000,
+          isClosable: true });
+      } else {
+        toast({
+          title: "Batch Upload Successful",
+          description: `${total} events added.`,
+          status: "success",
+          duration: 5000,
+          isClosable: true });
       }
-
-      const resource = {
-        summary: booking.name,
-        start: {
-          dateTime: startDateTime.toISOString(),
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-        end: {
-          dateTime: endDateTime.toISOString(),
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-      };
-
-      await addEvent(CALENDAR_ID, resource);
-
-      // sleep 500 ms between requests to avoid timeouts
-      await sleep(500);
-    }
-
+      loadEvents();
+    });
 
   };
-
 
   /**
    * Adds a new event to the user's Google Calendar.
@@ -344,7 +341,7 @@ export const Test = () => {
             title: "Event Created",
             description: "Your event has been successfully created.",
             status: "success",
-            duration: 3000,
+            duration: 5000,
             isClosable: true,
           });
           setEvents((prev) => [...prev, createdEvent]);
@@ -401,7 +398,7 @@ export const Test = () => {
             title: "Event Updated",
             description: "The event was successfully updated.",
             status: "success",
-            duration: 3000,
+            duration: 5000,
             isClosable: true,
           });
           setEditingEventId(null);
@@ -424,7 +421,7 @@ export const Test = () => {
       .delete({ calendarId: CALENDAR_ID, eventId })
       .then(() => {
         setEvents((prev) => prev.filter((e) => e.id !== eventId));
-        toast({ title: "Event Deleted", status: "info", duration: 3000 });
+        toast({ title: "Event Deleted", status: "info", duration: 5000 });
       });
   };
 
@@ -454,13 +451,13 @@ export const Test = () => {
             </Button>
 
             <Button
-              onClick={addOldBookings}
+              onClick={() => batchInsertBookings("old")}
             >
               Add Old Bookings
             </Button>
 
             <Button
-              onClick={addNewBookings}
+              onClick={() => batchInsertBookings("new")}
             >
               Add New (Fake) Bookings
             </Button>
