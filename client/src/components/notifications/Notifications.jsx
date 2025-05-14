@@ -15,6 +15,7 @@ import { NotificationFilter } from "./NotificationFIlterModal";
 export const Notifications = () => {
   const { backend } = useBackendContext();
 
+  const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [filterType, setFilterType] = useState({
@@ -114,6 +115,7 @@ export const Notifications = () => {
   useEffect(() => {
     const fetchNotifs = async () => {
       try {
+        setLoading(true);
         const today = new Date();
         let endpoints = [];
   
@@ -188,10 +190,11 @@ export const Notifications = () => {
         );
   
         setNotifications(enrichedInvoices);
-        
+        setLoading(false);
         // Apply any existing filters to the new data
         handleApplyFilter(filterType, enrichedInvoices);
       } catch (err) {
+        setLoading(false);
         console.error("Failed to fetch invoices", err);
       }
     };
@@ -233,7 +236,7 @@ export const Notifications = () => {
               onClear={handleClearFilter}
             />
           </Flex>
-          <NotificationsComponents notifications={filteredNotifications} />
+          <NotificationsComponents notifications={filteredNotifications} loadingNotifications={loading} />
         </Flex>
       </Box>
     </Navbar>

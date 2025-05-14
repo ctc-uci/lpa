@@ -25,7 +25,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import { InfoTooltip } from "./InfoTooltip";
 
-const NotificationsComponents = ({ notifications }) => {
+const NotificationsComponents = ({ notifications, loadingNotifications }) => {
   const navigator = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -290,7 +290,19 @@ const NotificationsComponents = ({ notifications }) => {
           </Thead>
 
           <Tbody>
-            {currentNotifications.length > 0 ? (
+            {loadingNotifications ? (
+              <Tr>
+                <Td colSpan={3}>
+                  <Flex
+                    justify="center"
+                    align="center"
+                    p={6}
+                  >
+                    <Text color="gray.500">Loading...</Text>
+                  </Flex>
+                </Td>
+              </Tr>
+            ) : currentNotifications.length > 0 ? (
               currentNotifications.map((item, index) => (
                 <Tr key={index}>
                   <Td paddingLeft="0px">{getNotifType(item.payStatus)}</Td>
