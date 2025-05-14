@@ -11,7 +11,8 @@ import {
     Tr,
     Th,
     Td,
-    TableContainer
+    TableContainer,
+    Button
   } from "@chakra-ui/react";
 
 import Navbar from "../navbar/Navbar";
@@ -24,6 +25,7 @@ import { FilterContainer } from '../filters/FilterContainer';
 import { Filter } from 'lucide-react';
 import {ProgramFilter} from '../filters/ProgramsFilter';
 import { SessionFilter } from '../filters/SessionsFilter';
+import { AddClient } from "../clientsearch/AddClient";
 
 
 export const Playground = () => {
@@ -37,7 +39,7 @@ export const Playground = () => {
   // const [filtered, setFiltered] = useState([]);
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [sessions, setSessions] = useState([]);
-
+  const [showAddClient, setShowAddClient] = useState(false);
 
   const [room, setRoom] = useState("all");
   const { backend } = useBackendContext();
@@ -123,12 +125,17 @@ export const Playground = () => {
 
   return (
     <Navbar>
-    <VStack
-      spacing={8}
-      width={"100%"}
-    >
-        <Test></Test>
-    </VStack>
+      <VStack spacing={8} width={"100%"}>
+        <Test />
+        <Button onClick={() => setShowAddClient(true)}>
+          Add Client
+        </Button>
+        <AddClient 
+          isOpen={showAddClient} 
+          onClose={() => setShowAddClient(false)} 
+          type="Payer"
+        />
+      </VStack>
     </Navbar>
   );
 };
