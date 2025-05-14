@@ -44,14 +44,37 @@ export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
         aria-label="Options"
         icon={<ActionsIcon />}
         variant="ghost"
-        className="actions-container"
+        className="ellipsis-action-button"
       />
-      <MenuList className="menu-list-custom">
+      <MenuList 
+        style={{
+          display: "flex",
+          padding: "4px",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "10px",
+          borderRadius: "6px",
+          border: "1px solid var(--Secondary-3, #E2E8F0)",
+          background: "#FFF",
+          boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
+          width: "139px",
+          minWidth: "139px",
+          maxWidth: "139px"
+        }}
+      >
         <MenuItem
           onClick={(e) => handleEdit(id, e)}
-          className="menu-item menu-item--edit"
+          style={{
+            display: "flex",
+            width: "131px",
+            padding: "6px 8px",
+            alignItems: "center",
+            gap: "10px",
+            borderRadius: "4px",
+            background: "#FFF"
+          }}
         >
-          <EditPencilIcon style={{ marginRight: "6px" }} />
+          <EditPencilIcon style={{ marginRight: "0" }} />
           <Text
             color="#2D3748"
             fontWeight={"400"}
@@ -61,9 +84,17 @@ export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
         </MenuItem>
         <MenuItem
           onClick={() => handleDeactivate(id)}
-          color="#90080F!important"
+          style={{
+            display: "flex",
+            width: "131px",
+            padding: "6px 8px",
+            alignItems: "center",
+            gap: "10px",
+            borderRadius: "4px",
+            background: "#FFF"
+          }}
         >
-          <CancelXIcon style={{ marginRight: "6px" }} />
+          <CancelXIcon style={{ marginRight: "0" }} />
           <Text
             fontWeight={"400"}
             color={"#90080F"}

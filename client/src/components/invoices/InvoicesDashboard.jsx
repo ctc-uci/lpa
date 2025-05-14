@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
 import AlertIcon from "../../assets/alertIcon.svg"
 import { InvoiceFilter } from "../filters/InvoicesFilter";
+import { SearchBar } from "../searchBar/SearchBar";
 
 
 const InvoicesDashboard = () => {
@@ -149,6 +150,24 @@ const InvoicesDashboard = () => {
     getUnpaidInvoices();
   }, [invoices]);
 
+  const handleSearch = (value) => {
+    setQuery(value);
+    if (value === '') {
+      setFilteredInvoices(invoices);
+      return;
+    }
+    
+    const searchValue = value.toLowerCase();
+    const filtered = invoices.filter(invoice => {
+      return (
+        (invoice.eventName && invoice.eventName.toLowerCase().includes(searchValue)) ||
+        (invoice.payers && invoice.payers.some(payer => payer && payer.toLowerCase().includes(searchValue)))
+      );
+    });
+    
+    setFilteredInvoices(filtered);
+  };
+
   return(
     <Navbar>
       <Flex w='95%' m='50px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px"> 
@@ -156,20 +175,10 @@ const InvoicesDashboard = () => {
           {/* <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} /> */}
           <InvoiceFilter invoices={invoices} setFilteredInvoices={setFilteredInvoices}/>
 
-          <InputGroup w='400px' borderColor='transparent' >
-            <InputRightElement pointerEvents='none' bgColor="#EDF2F7" borderRadius='0px 6px 6px 0px'>
-              <SearchIcon color='#767778'/>
-            </InputRightElement>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              icon={SearchIcon} borderColor='gray.100'
-              bgColor="#F7FAFC"
-              borderRadius='6px 0px 0px 6px'
-              placeholder="Search..."
-              textColor="#718096"
-            />
-          </InputGroup>
+          <SearchBar
+            handleSearch={handleSearch}
+            searchQuery={query}
+          />
         </Flex>
         <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
         

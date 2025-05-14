@@ -640,20 +640,39 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                       <Menu>
                         <MenuButton
                           as={IconButton}
-                          minWidth="24px"
-                          height="24px"
-                          borderRadius={6}
-                          backgroundColor="#EDF2F7"
+                          className="ellipsis-action-button"
                           icon={<Icon as={sessionsEllipsis} />}
-                          
                         />
-                        <MenuList>
+                        <MenuList
+                          style={{
+                            display: "flex",
+                            padding: "4px",
+                            flexDirection: "column",
+                            alignItems: "flex-start",
+                            gap: "10px",
+                            borderRadius: "6px",
+                            border: "1px solid var(--Secondary-3, #E2E8F0)",
+                            background: "#FFF",
+                            boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
+                            width: "139px",
+                            minWidth: "139px",
+                            maxWidth: "139px"
+                          }}
+                        >
                           <MenuItem
                             onClick={() => handleEditComment(comment.id)}
+                            style={{
+                              display: "flex",
+                              width: "131px",
+                              padding: "6px 8px",
+                              alignItems: "center",
+                              gap: "10px",
+                              borderRadius: "4px",
+                              background: "#FFF"
+                            }}
                           >
                             <Box
                               display="flex"
-                              padding="12px 16px"
                               alignItems="center"
                               gap="8px"
                             >
@@ -661,10 +680,20 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                               <Text color="#2D3748">Edit</Text>
                             </Box>
                           </MenuItem>
-                          <MenuItem onClick={() => handleShowDelete(comment)}>
+                          <MenuItem 
+                            onClick={() => handleShowDelete(comment)}
+                            style={{
+                              display: "flex",
+                              width: "131px",
+                              padding: "6px 8px",
+                              alignItems: "center",
+                              gap: "10px",
+                              borderRadius: "4px",
+                              background: "#FFF"
+                            }}
+                          >
                             <Box
                               display="flex"
-                              padding="12px 16px"
                               alignItems="center"
                               gap="8px"
                             >
@@ -790,10 +819,7 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                   <Menu>
                     <MenuButton
                       as={IconButton}
-                      minWidth="24px"
-                      height="24px"
-                      borderRadius={6}
-                      backgroundColor="#EDF2F7"
+                      className="ellipsis-action-button"
                       icon={<Icon as={sessionsEllipsis} />}
                     />
                   </Menu>
@@ -1090,10 +1116,8 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       <Td>
                         <IconButton
                           icon={<FiMoreHorizontal />}
-                          size="sm"
-                          bg="#EDF2F7"
+                          className="ellipsis-action-button"
                           color="#000000"
-                          borderRadius="md"
                         />
                       </Td>
 
