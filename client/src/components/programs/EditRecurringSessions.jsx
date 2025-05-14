@@ -776,7 +776,7 @@ const formatDate = (isoString) => {
                         alignItems="flex-start"
                         gap="2px"
                       >
-                        <DateSortingModal sortOrder={sortOrder} setSortOrder={setSortOrder} />
+                        <DateSortingModal onSortChange={setSortOrder} />
                       </Box>
                     </Box>
                   </Th>
