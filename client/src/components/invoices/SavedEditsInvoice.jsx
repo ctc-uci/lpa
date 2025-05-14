@@ -26,6 +26,7 @@ import { PencilIcon } from "../../assets/EditInvoiceIcons.jsx";
 
 const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
 
   const getGeneratedDate = () => {
     if (comments.length > 0) {
@@ -70,10 +71,8 @@ const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments
         <HStack>
           
           {/* Edit Icon looks different from Figma HiFi, so lmk if yall want me to make another edit icon or just reuse the icon we already have */}
-            <Button leftIcon={<PencilIcon color="black"/>}>
-              <ChakraLink as={Link} to={`/invoices/edit/${id}`}> 
+            <Button leftIcon={<PencilIcon color="black"/>} onClick={() => navigate(`/invoices/edit/${id}`)}>
                 Edit
-              </ChakraLink>
               </Button>
           <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees} pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`} invoice={invoice}/>
         </HStack>

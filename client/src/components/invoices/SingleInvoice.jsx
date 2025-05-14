@@ -95,41 +95,41 @@ export const SingleInvoice = () => {
         const currentInvoice = currentInvoiceResponse.data[0];
 
         // get invoice total
-        // const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
-        // const total = invoiceTotalResponse.data.total;
-        // setTotal(total);
-        // setSubtotal(total);
+        const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
+        const total = invoiceTotalResponse.data.total;
+        setTotal(total);
+        setSubtotal(total);
 
         // calculate sum of unpaid/remaining invoices
-        // const unpaidInvoicesResponse = await backend.get(
-        //   "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
-        // );
-        // const unpaidTotals = await Promise.all(
-        //   unpaidInvoicesResponse.data.map((invoice) =>
-        //     backend.get(`/invoices/total/${invoice.id}`)
-        //   )
-        // );
-        // const partiallyPaidTotals = await Promise.all(
-        //   unpaidInvoicesResponse.data.map((invoice) =>
-        //     backend.get(`/invoices/paid/${invoice.id}`)
-        //   )
-        // );
-        // const unpaidTotal = unpaidTotals.reduce(
-        //   (sum, res) => sum + res.data.total,
-        //   0
-        // );
-        // const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-        //   (sum, res) => {
-        //     const paidAmount = res.data.paid || 0;
-        //     return sum + paidAmount;
-        //   },
-        //   0
-        // );
+        const unpaidInvoicesResponse = await backend.get(
+          "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
+        );
+        const unpaidTotals = await Promise.all(
+          unpaidInvoicesResponse.data.map((invoice) =>
+            backend.get(`/invoices/total/${invoice.id}`)
+          )
+        );
+        const partiallyPaidTotals = await Promise.all(
+          unpaidInvoicesResponse.data.map((invoice) =>
+            backend.get(`/invoices/paid/${invoice.id}`)
+          )
+        );
+        const unpaidTotal = unpaidTotals.reduce(
+          (sum, res) => sum + res.data.total,
+          0
+        );
+        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+          (sum, res) => {
+            const paidAmount = res.data.paid || 0;
+            return sum + paidAmount;
+          },
+          0
+        );
 
-        // const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
-        // setRemainingBalance(remainingBalance);
-        // setPastDue(remainingBalance);
+        setRemainingBalance(remainingBalance);
+        setPastDue(remainingBalance);
 
         // get program name
         const programNameResponse = await backend.get(
@@ -241,7 +241,6 @@ export const SingleInvoice = () => {
   };
 
 
-  // console.log("pastDue", pastDue);
 
   return (
     <Navbar onNavbarClick={handleNavbarClick}>
