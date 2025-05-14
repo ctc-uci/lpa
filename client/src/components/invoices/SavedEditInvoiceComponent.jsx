@@ -494,9 +494,6 @@ const SavedStatementComments = ({
 const SavedInvoiceSummary = ({
   sessions = [],
   setSessions,
-  comments = [],
-  rooms = [],
-  setRooms,
   subtotal = 0.0,
   pastDue,
   summary = [],
@@ -753,7 +750,7 @@ const SavedInvoiceSummary = ({
                   py={compactView ? 0 : 4}
                   fontSize={compactView ? "6.38px" : "sm"}
                 >
-                  $ {pastDue.toFixed(2)}
+                  $ {pastDue?.toFixed(2)}
                 </Td>
               </Tr>
 

@@ -149,8 +149,12 @@ export const SingleInvoice = () => {
           endDate: currentInvoice.endDate,
         });
         // get comments
+        // const commentsResponse = await backend.get(
+        //   "/comments/paidInvoices/" + id
+        // );
+
         const commentsResponse = await backend.get(
-          "/comments/paidInvoices/" + id
+          "/comments/invoice/" + id
         );
         setComments(commentsResponse.data);
 
@@ -236,7 +240,8 @@ export const SingleInvoice = () => {
     }
   };
 
-  console.log("comments before", comments);
+
+  // console.log("pastDue", pastDue);
 
   return (
     <Navbar onNavbarClick={handleNavbarClick}>

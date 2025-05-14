@@ -10,7 +10,13 @@ import {
   Text,
   useToast,
   VStack,
-  useDisclosure
+  useDisclosure,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay
 } from "@chakra-ui/react";
 
 import { useNavigate, useParams } from "react-router-dom";
@@ -121,6 +127,9 @@ export const EditInvoice = () => {
 
   const [sessions, setSessions] = useState([]);
   const [summary, setSummary] = useState([]);
+
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const cancelRef = React.useRef();
 
   useEffect(() => {
     if (id) {
@@ -272,7 +281,16 @@ export const EditInvoice = () => {
   }, [comments, backend]);
 
   const handleBack = () => {
-    navigate(`/invoices/${id}`);
+    setIsAlertOpen(true);
+  };
+  
+  const handleCancelBack = () => {
+    setIsAlertOpen(false);
+  };
+  
+  const handleSaveAndBack = async () => {
+    setIsAlertOpen(false);
+    await handleSave();
   };
 
   const handleSave = async () => {
@@ -413,7 +431,7 @@ export const EditInvoice = () => {
       }
 
       // Navigate to the saved edits page
-      // navigate(`/invoices/savededits/${id}`);
+      navigate(`/invoices/savededits/${id}`);
     } catch (error) {
       console.error("Error saving invoice:", error);
     } finally {
@@ -452,6 +470,35 @@ export const EditInvoice = () => {
           invoice={invoice}
           programName={programName}
         />
+        
+        {/* Alert Dialog */}
+        <AlertDialog
+          isOpen={isAlertOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={handleCancelBack}
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                Unsaved Changes
+              </AlertDialogHeader>
+
+              <AlertDialogBody>
+                You have unsaved changes. Would you like to save before leaving?
+              </AlertDialogBody>
+
+              <AlertDialogFooter>
+                <Button ref={cancelRef} onClick={handleCancelBack} ml={3}>
+                  Don't Save
+                </Button>
+                <Button colorScheme="blue" onClick={handleSaveAndBack} ml={3}>
+                  Save
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
+        
         <Image
           w="80%"
           position="relative"
