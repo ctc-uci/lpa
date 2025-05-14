@@ -43,6 +43,7 @@ const RoomFeeAdjustmentSideBar = ({
   setSessions,
   sessionIndex,
   subtotal = 0.0,
+  sessions = [],
 }) => {
   const { backend } = useBackendContext();
   const [tempSession, setTempSession] = useState(session || {});
@@ -174,8 +175,13 @@ const RoomFeeAdjustmentSideBar = ({
       newSessions[sessionIndex] = tempSession;
       return newSessions;
     });
+
     onClose();
   };
+
+  // useEffect(() => {
+  //   console.log("sessions", sessions);
+  // }, [sessions]);
 
   // console.log("tempSession", tempSession)
 

@@ -77,6 +77,7 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
 };
 
 const EditInvoiceTitle = ({ comments, invoice, compactView }) => {
+
   return (
     <Flex
       justifyContent="space-between"
@@ -317,9 +318,23 @@ const StatementComments = ({
     }
   }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount]);
 
+  useEffect(() => {
+    // Recalculate subtotal whenever sessions change
+    if (sessions && sessions.length > 0) {
+      const newSubtotal = calculateSubtotal(sessions);
+      setSubtotal(newSubtotal);
+      
+      // Debug log to see the current state of sessions
+      // console.log("Sessions updated, new state:", JSON.parse(JSON.stringify(sessions)));
+    }
+  }, [sessions]);
+
   const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
     if (!startTime || !endTime || !rate) return "0.00";
 
+    // Make sure we're working with the latest adjustment values
+    const currentAdjustmentValues = Array.isArray(adjustmentValues) ? [...adjustmentValues] : [];
+    
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
       return hours * 60 + minutes;
@@ -332,32 +347,46 @@ const StatementComments = ({
 
     const baseRate = Number(rate);
 
-    const adjustedRate = adjustmentValues.reduce((currentRate, val) => {
-      const numericPart = Math.abs(Number(val));
-      if (isNaN(numericPart)) return currentRate;
+    const adjustedRate = currentAdjustmentValues.reduce((currentRate, adj) => {
+      if (!adj || !adj.type || adj.value === undefined) return currentRate;
+      
+      const numericValue = Number(adj.value);
+      if (isNaN(numericValue)) return currentRate;
+      
+      const numericPart = Math.abs(numericValue);
+      let adjustmentAmount = 0;
 
-      const adjustmentAmount = val.type === "rate_flat"
-        ? numericPart
-        : val.type === "rate_percent"
-          ? (numericPart / 100) * currentRate
-          : 0;
+      if (adj.type === "rate_flat") {
+        adjustmentAmount = numericPart;
+      } else if (adj.type === "rate_percent") {
+        adjustmentAmount = (numericPart / 100) * currentRate;
+      } else if (adj.type === "total") {
+        // For total adjustments, we'll handle them separately
+        return currentRate;
+      }
 
-      return val < 0 ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
+      return numericValue < 0 ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
     }, baseRate);
 
     const total = adjustedRate * durationInHours;
-    return total.toFixed(2);
+    
+    // Add any "total" type adjustments
+    const totalAdjustments = currentAdjustmentValues
+      .filter(adj => adj && adj.type === "total")
+      .reduce((sum, adj) => sum + Number(adj.value || 0), 0);
+    
+    const finalTotal = total + totalAdjustments;
+    
+    return finalTotal.toFixed(2);
   };
 
   const calculateSubtotal = (sessions) => {
     if (!sessions || sessions.length === 0) return "0.00";
 
     const totalSum = sessions.reduce((acc, session) => {
-      // For total adjustment sessions, use the total value directly
-      // ! TODO - Fix this for total adjustment sessions
-      // if (session.id && session.id.toString().startsWith('total-')) {
-      //   return acc + parseFloat(session.total || 0);
-      // }
+      if (session.adjustmentValues[0].type === "total") {
+        return acc + parseFloat(session.adjustmentValues[0].value || 0);
+      }
       
       // For regular sessions, calculate as before
       const total = parseFloat(
@@ -365,14 +394,16 @@ const StatementComments = ({
           session.startTime,
           session.endTime,
           session.rate,
-          session.adjustmentValues.map(adj => adj.value)
+          session.adjustmentValues
         )
       );
+      // console.log("total", total);
       return acc + total;
     }, 0);
 
     const total = totalSum.toFixed(2);
     setSubtotal(total);
+    console.log("total", total);
     return total;
   };
 
@@ -505,14 +536,17 @@ const StatementComments = ({
     const newSession = {
       // TODO Can change id to be more like other sessions, just need to find max of all other ids and increment
       datetime: new Date().toISOString().split('T')[0],
-      comments: [editCustomText],
-      rate: editCustomAmount,
-      adjustmentType: "total",
+      comments: [],
+      rate: 0,
       // Keeping the start time and end time to allow calculation of the subtotal
       userId: session.userId,
       startTime: "00:00",
       endTime: "01:00",
-      adjustmentValues: [],
+      adjustmentValues: [{
+        id: 0,
+        type: "total",
+        value: 0
+      }],
       invoiceId: session.invoiceId,
       bookingId: session.bookingId,
       name: "",
@@ -531,37 +565,61 @@ const StatementComments = ({
     date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
     setEditCustomDate(date.toISOString().split('T')[0]);
     setEditCustomText(session.comments[0]);
-    setEditCustomAmount(session.rate.toString());
+    setEditCustomAmount(session.adjustmentValues[0].value.toString());
   };
+  
 
   const handleSaveCustomRow = (sessionIndex) => {
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
-    setSessions(prevSessions => prevSessions.map((session, index) => {
-      if (index === sessionIndex) {
-        const date = new Date(editCustomDate);
-        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+    setSessions(prevSessions => {
+      // Find the highest existing comment ID to generate a new unique ID
+      let highestId = 0;
+      prevSessions.forEach(session => {
+        if (session.adjustmentValues) {
+          session.adjustmentValues.forEach(adj => {
+            if (adj.id && typeof adj.id === 'number' && adj.id > highestId) {
+              highestId = adj.id;
+            }
+          });
+        }
+        if (session.commentId && typeof session.commentId === 'number' && session.commentId > highestId) {
+          highestId = session.commentId;
+        }
+      });
+      
+      // Generate new ID by incrementing the highest found ID
+      const newId = highestId + 1;
+      
+      // Update the sessions array
+      return prevSessions.map((session, index) => {
+        if (index === sessionIndex) {
+          const date = new Date(editCustomDate);
+          date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
 
-        return {
-          ...session,
-          datetime: date,
-          startTime: "00:00",
-          endTime: "01:00",
-          bookingId: session.bookingId,
-          comments: [editCustomText],
-          rate: parseFloat(editCustomAmount)
-        };
-      }
-      return session;
-    }));
+          return {
+            ...session,
+            datetime: date,
+            startTime: "00:00",
+            endTime: "01:00",
+            bookingId: session.bookingId,
+            comments: [editCustomText],
+            adjustmentValues: [{
+              id: newId,
+              type: "total",
+              value: parseFloat(editCustomAmount)
+            }]
+          };
+        }
+        return session;
+      });
+    });
+    
     setEditingCustomRow(null);
   };
 
   // console.log("sessions", sessions)
 
-  if(1===2) return (<>
-    <Text>Hello</Text>
-  </>)
 
   return (
     <Flex
@@ -743,63 +801,6 @@ const StatementComments = ({
                           )}
                         </React.Fragment>
                       );
-                    } else if (String(session.id || "").includes("custom")) {
-                      // Handle existing custom rows
-                      return (
-                        <React.Fragment key={session.id || index}>
-                          {editingCustomRow === session.id ? (
-                            <Tr ref={editRowRef}>
-                              <Td colSpan={6} py={2}>
-                                <Flex gap={4} alignItems="flex-end">
-                                  <Input
-                                    type="date"
-                                    value={editCustomDate}
-                                    onChange={(e) => setEditCustomDate(e.target.value)}
-                                    size="sm"
-                                    width="fit-content"
-                                    py="6"
-                                    rounded="md"
-                                    textAlign="center"
-                                  />
-                                  <Input
-                                    placeholder="Description"
-                                    value={editCustomText}
-                                    onChange={(e) => setEditCustomText(e.target.value)}
-                                    size="sm"
-                                    flex={1}
-                                    py="6"
-                                    rounded="md"
-                                    border="none"
-                                  />
-                                  <InputGroup size="sm" width="fit-content" alignItems="center">
-                                    <Text>$</Text>
-                                    <Input
-                                      type="number"
-                                      value={editCustomAmount}
-                                      onChange={(e) => setEditCustomAmount(e.target.value)}
-                                      width="9ch"
-                                      py="6"
-                                      rounded="md"
-                                      textAlign="center"
-                                    />
-                                  </InputGroup>
-                                </Flex>
-                              </Td>
-                            </Tr>
-                          ) : (
-                            <Tr
-                              position="relative"
-                              cursor="pointer"
-                              onClick={() => handleEditCustomRow(session, index)}
-                              _hover={{ bg: "gray.50" }}
-                            >
-                              <Td py="6">{format(new Date(session.datetime), "EEE. M/d/yy")}</Td>
-                              <Td colSpan={4}>{session.comments[0]}</Td>
-                              <Td textAlign="right">$ {Number(session.rate).toFixed(2)}</Td>
-                            </Tr>
-                          )}
-                        </React.Fragment>
-                      );
                     }
                     
                     // For regular sessions, use the existing code
@@ -950,13 +951,14 @@ const StatementComments = ({
                               invoice={invoice[0]}
                               userId={userId}
                               session={session}
+                              sessions={sessions} 
                               setSessions={setSessions}
                               sessionIndex={index}
                               subtotal={calculateTotalBookingRow(
                                 session.startTime,
                                 session.endTime,
                                 session.rate,
-                                session.adjustmentValues.map(adj => adj.value)
+                                session.adjustmentValues
                               )}
                             />
                           </Td>
@@ -999,7 +1001,7 @@ const StatementComments = ({
                                   session.startTime,
                                   session.endTime,
                                   session.rate,
-                                  session.adjustmentValues.map(adj => adj.value)
+                                  session.adjustmentValues
                                 )}
                               </Text>
                             </Flex>
@@ -1168,17 +1170,13 @@ const InvoiceSummary = ({
     if (!rate) return "0.00";
 
     const baseRate = Number(rate);
-    console.log("baseRate", baseRate)
     if (isNaN(baseRate)) return "0.00";
 
     const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
-      console.log("acc", acc)
-      console.log("val", val)
-
 
       if (isNaN(val.value)) return acc;
 
-      if (val.type === "percent") {
+      if (val.type === "rate_percent") {
         const factor = 1 + (val.value / 100);
         return acc * factor;
       } else {

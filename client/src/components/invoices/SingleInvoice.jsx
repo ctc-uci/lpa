@@ -154,6 +154,8 @@ export const SingleInvoice = () => {
         );
         setComments(commentsResponse.data);
 
+        console.log("commentsResponse", commentsResponse);
+
         // get emails
         const emailsResponse = await backend.get(
           "/invoices/historicInvoices/" + id
@@ -233,6 +235,8 @@ export const SingleInvoice = () => {
       navigate(path);
     }
   };
+
+  console.log("comments before", comments);
 
   return (
     <Navbar onNavbarClick={handleNavbarClick}>

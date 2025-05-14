@@ -30,6 +30,10 @@ const InvoiceView = ({
   compactView = false,
 }) => {
 
+  useEffect(() => {
+    console.log("comments check", comments);
+  }, [comments]);
+
   return (
     <Flex
       direction="column"
