@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 
 import "./Program.css";
 
-import { ChevronLeftIcon} from "@chakra-ui/icons";
-import { Box } from "@chakra-ui/react";
-import { useParams, useLocation } from "react-router";
+import { Box, Flex, Icon, Text } from "@chakra-ui/react";
+
+import { FileTextIcon } from "lucide-react";
+import { useLocation, useParams } from "react-router";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
@@ -18,9 +20,9 @@ export const Program = () => {
   const [roomNames, setRoomNames] = useState(null);
   const [nextBookingInfo, setNextBookingInfo] = useState(null);
   const [isArchived, setIsArchived] = useState(false);
-  const [ assignments, setAssignments ] = useState(false);
-  const [ instructors, setInstructors ] = useState([]);
-  const [ payees, setPayees ] = useState([]);
+  const [assignments, setAssignments] = useState(false);
+  const [instructors, setInstructors] = useState([]);
+  const [payees, setPayees] = useState([]);
   const [infoLoaded, setInfoLoaded] = useState({
     program: false,
     assignments: false,
@@ -36,46 +38,46 @@ export const Program = () => {
       setIsArchived(programData[0].archived);
     } catch {
       console.log("From getProgram: ", error);
-    }
-    finally {
-      setInfoLoaded(prev => ({
+    } finally {
+      setInfoLoaded((prev) => ({
         ...prev,
         program: true,
       }));
-
     }
   };
 
   const getAssignments = async () => {
-      const assignmentsResponse = await backend.get(
-        `/assignments/event/${id}`
-      );
+    const assignmentsResponse = await backend.get(`/assignments/event/${id}`);
 
-      const newInstructors = [];
-      const newPayees = [];
+    const newInstructors = [];
+    const newPayees = [];
 
-      for (const assignment of assignmentsResponse.data) {
-        try {
-          const clientResponse = await backend.get(
-            `/clients/${assignment.clientId}`
-          );
-          const assignmentWithClient = {
-            ...assignment,
-            clientName: clientResponse.data.name,
-            clientEmail: clientResponse.data.email,
-          };
+    for (const assignment of assignmentsResponse.data) {
+      try {
+        const clientResponse = await backend.get(
+          `/clients/${assignment.clientId}`
+        );
+        const assignmentWithClient = {
+          ...assignment,
+          clientName: clientResponse.data.name,
+          clientEmail: clientResponse.data.email,
+        };
 
-          if (assignment.role === "instructor") {
-            newInstructors.push(assignmentWithClient);
-          } else if (assignment.role === "payee") {
-            newPayees.push(assignmentWithClient);
-          }
-        } catch (clientError) {
-          console.error(`Failed to fetch client ${assignment.clientId} for assignment`, assignment, clientError);
+        if (assignment.role === "instructor") {
+          newInstructors.push(assignmentWithClient);
+        } else if (assignment.role === "payee") {
+          newPayees.push(assignmentWithClient);
         }
+      } catch (clientError) {
+        console.error(
+          `Failed to fetch client ${assignment.clientId} for assignment`,
+          assignment,
+          clientError
+        );
       }
-      setInstructors(newInstructors);
-      setPayees(newPayees);
+    }
+    setInstructors(newInstructors);
+    setPayees(newPayees);
   };
 
   const getNextBookingInfo = async () => {
@@ -115,7 +117,9 @@ export const Program = () => {
       const sessionsData = sessionsResponse.data;
 
       // Only get activeSessions
-      const activeSessions = sessionsData.filter(session => session.archived === false);
+      const activeSessions = sessionsData.filter(
+        (session) => session.archived === false
+      );
       setSessions(activeSessions);
 
       const uniqueRoomIds = [
@@ -124,16 +128,13 @@ export const Program = () => {
       setRoomIds(uniqueRoomIds);
     } catch (error) {
       console.log("From getSessions: ", error);
-    }
-    finally {
-      setInfoLoaded(prev => ({
+    } finally {
+      setInfoLoaded((prev) => ({
         ...prev,
         bookings: true,
       }));
-
     }
   };
-
 
   // Use set of room ids to create map of room id to name, pass map into sessions component
   const getRoomNames = async () => {
@@ -149,25 +150,25 @@ export const Program = () => {
       console.log("From getRoomNames: ", error);
     }
   };
-useEffect(() => {
-  const getData = async () => {
-    await getProgram().then(() => {
-      console.log("Program data refreshed");
-      setInfoLoaded((prev) => ({ ...prev, program: true }));
-    });
+  useEffect(() => {
+    const getData = async () => {
+      await getProgram().then(() => {
+        console.log("Program data refreshed");
+        setInfoLoaded((prev) => ({ ...prev, program: true }));
+      });
 
-    await getSessions().then(() => {
-      console.log("Sessions data refreshed");
-      setInfoLoaded((prev) => ({ ...prev, bookings: true }));
-    });
+      await getSessions().then(() => {
+        console.log("Sessions data refreshed");
+        setInfoLoaded((prev) => ({ ...prev, bookings: true }));
+      });
 
-    await getAssignments().then(() => {
-      console.log("Assignments data refreshed: ", instructors);
-      setInfoLoaded((prev) => ({ ...prev, assignments: true }));
-    });
-  }
-  getData();
-}, [id, location.key]);
+      await getAssignments().then(() => {
+        console.log("Assignments data refreshed: ", instructors);
+        setInfoLoaded((prev) => ({ ...prev, assignments: true }));
+      });
+    };
+    getData();
+  }, [id, location.key]);
 
   useEffect(() => {
     if (roomIds) {
@@ -176,10 +177,10 @@ useEffect(() => {
   }, [roomIds]);
 
   useEffect(() => {
-  if (program && sessions && instructors.length > 0) {
-    getNextBookingInfo();
-  }
-}, [program, sessions, instructors, payees]);
+    if (program && sessions && instructors.length > 0) {
+      getNextBookingInfo();
+    }
+  }, [program, sessions, instructors, payees]);
 
   return (
     <Navbar>
@@ -211,26 +212,30 @@ useEffect(() => {
         ) : (
           <div></div>
         )}
-        { Object.values(infoLoaded).every(Boolean) && <ProgramSummary
-          program={program}
-          bookingInfo={nextBookingInfo}
-          isArchived={isArchived}
-          setIsArchived={setIsArchived}
-          eventId={id}
-          sessions={sessions}
-          instructors={instructors}
-          payees={payees}
-        /> }
-        { Object.values(infoLoaded).every(Boolean) && <Sessions
-          sessions={sessions}
-          rooms={roomNames}
-          isArchived={isArchived}
-          setIsArchived={setIsArchived}
-          eventId={id}
-          refreshSessions={getSessions}
-          instructors={instructors}
-          payees={payees}
-        /> }
+        {Object.values(infoLoaded).every(Boolean) && (
+          <ProgramSummary
+            program={program}
+            bookingInfo={nextBookingInfo}
+            isArchived={isArchived}
+            setIsArchived={setIsArchived}
+            eventId={id}
+            sessions={sessions}
+            instructors={instructors}
+            payees={payees}
+          />
+        )}
+        {Object.values(infoLoaded).every(Boolean) && (
+          <Sessions
+            sessions={sessions}
+            rooms={roomNames}
+            isArchived={isArchived}
+            setIsArchived={setIsArchived}
+            eventId={id}
+            refreshSessions={getSessions}
+            instructors={instructors}
+            payees={payees}
+          />
+        )}
       </Box>
     </Navbar>
   );
