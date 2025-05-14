@@ -1118,12 +1118,6 @@ export const Sessions = ({
     }
   }, [sessions]);
 
-  // Function to update sorting
-  const handleSortChange = ( order) => {
-    // setSortKey(key);
-    setSortOrder(order);
-  };
-
   const formatDate = (isoString) => {
     const date = new Date(isoString);
 

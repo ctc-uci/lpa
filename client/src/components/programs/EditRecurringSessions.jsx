@@ -390,6 +390,13 @@ const formatDate = (isoString) => {
     return allSessions.length !== 0 && isChanged === true;
   };
 
+  useEffect(() => {
+    newSessions.recurring.forEach((session, index) => {
+     handleChangeSessionField('recurring', index, 'weekday', session.weekday);
+
+    });
+  }, [startDate, endDate]);
+
   const addRecurring = (
     <>
         <Flex align="center" mb="20px" gap="10px">
@@ -398,7 +405,7 @@ const formatDate = (isoString) => {
             <Input
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => { setStartDate(e.target.value);}}
               width="137px"
               color={startDate ? "#2D3748" : "#CBD5E0"}
             />
@@ -406,7 +413,7 @@ const formatDate = (isoString) => {
             <Input
               type="date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => { setEndDate(e.target.value); }}
               width="137px"
               color={endDate ? "#2D3748" : "#CBD5E0"}
             />
