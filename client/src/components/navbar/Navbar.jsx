@@ -27,23 +27,23 @@ const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
     };
 
     fetchCount();
-    
+
     // Set up a refresh interval (e.g., every 60 seconds)
     const intervalId = setInterval(fetchCount, 60000);
-    
+
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
   }, []); // Empty dependency array so it only runs on mount
 
   const menuItems = [
-    { 
-      name: "Programs", 
-      path: "/programs", 
+    {
+      name: "Programs",
+      path: "/programs",
       icon: <NavCalendarIcon />,
     },
-    { 
-      name: "Invoices", 
-      path: "/invoices", 
+    {
+      name: "Invoices",
+      path: "/invoices",
       icon: <DocumentIcon />,
     },
     {

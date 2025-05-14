@@ -1,8 +1,9 @@
-import archiveSvg from "../../assets/icons/archive.svg";
-import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
-import plusSvg from "../../assets/icons/plus.svg";
+import { Box, Image, Text } from "@chakra-ui/react";
+
 import { useNavigate } from "react-router-dom";
 import { Box, Flex } from "@chakra-ui/react";
+import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
+import plusSvg from "../../assets/icons/plus.svg";
 
 export const HeaderRowComponent = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export const HeaderRowComponent = () => {
           // handle google calendar logic
         }}
       >
-        <img
+        <Image
           src={googleCalendarSvg}
           alt="Google Calendar"
           className="google-calendar-icon"
@@ -35,5 +36,6 @@ export const HeaderRowComponent = () => {
         <span className="new-program-text">New Program</span>
       </Box>
     </Flex>
+
   );
 };

@@ -38,11 +38,11 @@ import { ProgramArchiveIcon } from "../../assets/ProgramArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
-import DateSortingModal from "../sorting/DateFilter";
-import ProgramSortingModal from "../sorting/ProgramFilter";
 import { ProgramFilter } from "../filters/ProgramsFilter";
 import { PaginationComponent } from "../PaginationComponent";
 import { SearchBar } from "../searchBar/SearchBar";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusTooltip from "./StatusIcon";
 
 import "./Home.css";
@@ -555,7 +555,7 @@ export const ProgramsTable = () => {
     };
   }, []);
   return (
-    <>
+    <Box>
       <CancelProgram
         id={programToDelete}
         setPrograms={setPrograms}
@@ -564,7 +564,7 @@ export const ProgramsTable = () => {
         onClose={onClose}
         type={"Program"}
       />
-      <Box className="programs-table">
+      <Box className="programs-table" >
         <Flex className="programs-table__filter-row">
           <div className="archive">
             <Icon
@@ -592,6 +592,7 @@ export const ProgramsTable = () => {
             searchQuery={searchTerm}
           />
         </Flex>
+
         <TableContainer
           className="programs-table__container"
           width="100%"
@@ -643,6 +644,6 @@ export const ProgramsTable = () => {
         goToPreviousPage={goToPreviousPage}
         currentPage={currentPage}
       />
-    </>
+    </Box>
   );
 };
