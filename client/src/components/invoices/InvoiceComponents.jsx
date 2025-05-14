@@ -844,7 +844,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         description: description,
         variant: "left-accent",
         status: "error",
-        duration: 5000009000,
+        duration: 5000,
         isClosable: false,
         position: "bottom-right",
         render: () => (
