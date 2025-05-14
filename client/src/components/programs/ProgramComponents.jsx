@@ -1119,8 +1119,8 @@ export const Sessions = ({
   }, [sessions]);
 
   // Function to update sorting
-  const handleSortChange = (key, order) => {
-    setSortKey(key);
+  const handleSortChange = ( order) => {
+    // setSortKey(key);
     setSortOrder(order);
   };
 
@@ -1783,7 +1783,7 @@ export const Sessions = ({
                           alignItems="flex-start"
                           gap="2px"
                         >
-                          <DateSortingModal onSortChange={handleSortChange} />
+                          <DateSortingModal onSortChange={setSortOrder} />
                         </Box>
                       </Box>
                     </Th>
@@ -1874,7 +1874,8 @@ export const Sessions = ({
                 </Thead>
                 <Tbody>
                   {filteredSessions.length > 0 ? (
-                    filteredSessions.map((session) => (
+                    filteredSessions.sort((a, b) => { return sortOrder === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date) })
+                    .map((session) => (
                       <Tr key={session.id}>
                         {isSelected && (
                           <Td width="50px">
