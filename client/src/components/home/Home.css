@@ -256,7 +256,7 @@
 }
 
 .menu-list-custom .chakra-menu__menuitem {
-  background: var(--hover-bg) !important;
+  background: transparent !important;
   display: flex !important;
   padding: 8px 12px !important;
   align-items: center !important;

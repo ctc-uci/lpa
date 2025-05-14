@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import "./CancelProgramComponent.css";
 
-import { ChevronDownIcon, DeleteIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+import { DeleteIconRed } from "../../assets/DeleteIconRed";
 import {
   Alert,
   AlertDescription,
@@ -35,11 +36,13 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 export const CancelProgram = ({
   id,
+  sessionId,
   setPrograms,
   onOpen,
   isOpen,
   onClose,
   type,
+  handleArchiveSession,
 }) => {
   const [selectedAction, setSelectedAction] = useState("Archive");
   const [selectedIcon, setSelectedIcon] = useState(<CancelArchiveIcon />);
@@ -94,12 +97,12 @@ export const CancelProgram = ({
 
   const handleBookingArchive = useCallback(async () => {
     try {
-      await backend.put(`/bookings/${id}`, {
+      await backend.put(`/bookings/${sessionId}`, {
         archived: true,
       });
-      if (setPrograms) {
-        setPrograms((prev) => prev.filter((p) => p.id !== id));
-      }
+      // if (setPrograms) {
+      //   setPrograms((prev) => prev.filter((p) => p.id !== sessionId));
+      // }
       onClose();
       toast({
         title: "Booking archived",
@@ -116,7 +119,7 @@ export const CancelProgram = ({
         isClosable: true,
       });
     }
-  }, [backend, id, onClose, toast, cancelReason]);
+  }, [backend, sessionId, onClose, toast, cancelReason]);
 
   const handleProgramDelete = useCallback(async () => {
     try {
@@ -153,10 +156,10 @@ export const CancelProgram = ({
 
   const handleBookingDelete = useCallback(async () => {
     try {
-      const response = await backend.delete(`/bookings/${id}`);
+      const response = await backend.delete(`/bookings/${sessionId}`);
       if (response.data.result === "success") {
         if (setPrograms) {
-          setPrograms((prev) => prev.filter((p) => p.id !== id));
+          setPrograms((prev) => prev.filter((p) => p.id !== sessionId));
         }
         toast({
           title: "Booking deleted",
@@ -182,19 +185,20 @@ export const CancelProgram = ({
       });
     }
     onClose();
-  }, [backend, id, onClose, toast]);
+  }, [backend, sessionId, onClose, toast]);
 
   const handleConfirm = useCallback(async () => {
     if (selectedAction === "Archive") {
       if (type === "Program") {
         await handleProgramArchive();
-      } else if (type === "Booking") {
-        await handleBookingArchive();
+      } else if (type === "Booking" || type === "Session") {
+        await handleArchiveSession(sessionId);
+        onClose();
       }
     } else if (selectedAction === "Delete") {
       if (type === "Program") {
         await handleProgramDelete();
-      } else if (type === "Booking") {
+      } else if (type === "Booking" || type === "Session") {
         await handleBookingDelete();
       }
     }
@@ -261,16 +265,18 @@ export const CancelProgram = ({
                   onClick={() => handleSelect("Archive", <CancelArchiveIcon />)}
                   className="menu-item"
                   fontSize={"14px"}
+                  style={{backgroundColor:"transparent"}}
                 >
                   <CancelArchiveIcon />
                   Archive
                 </MenuItem>
                 <MenuItem
                   fontSize={"14px"}
-                  onClick={() => handleSelect("Delete", <DeleteIcon />)}
+                  onClick={() => handleSelect("Delete", <DeleteIconRed />)}
                   className="menu-item"
+                  color="#90080F"
                 >
-                  <DeleteIcon />
+                  <DeleteIconRed />
                   Delete
                 </MenuItem>
               </MenuList>

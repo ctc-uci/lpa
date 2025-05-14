@@ -51,7 +51,8 @@ import {
   sessionsClock,
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
-
+import { DeleteSessionConfirmationModal } from "../popups/DeleteSessionConfirmationModal";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import DateSortingModal from "../sorting/DateFilter";
 import { SaveSessionModal } from "../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
@@ -63,6 +64,8 @@ export const EditRecurringSessions = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const [ sortOrder, setSortOrder ] = useState("asc");
+  const [ deleteSessionDate, setDeleteSessionDate ] = useState("");
+  const [ deleteSessionId, setDeleteSessionId ] = useState("");
 
   const { isOpen: isSaveSessionModalOpen,
           onOpen: onSaveSessionModalOpen,
@@ -71,6 +74,14 @@ export const EditRecurringSessions = () => {
   const { isOpen: isUnsavedSessionModalOpen,
           onOpen: onUnsavedSessionModalOpen,
           onClose: onUnsavedSessionModalClose } = useDisclosure();
+
+  const { isOpen: isCancelProgramModalOpen,
+          onOpen: onCancelProgramModalOpen,
+          onClose: onCancelProgramModalClose } = useDisclosure();
+
+  const { isOpen: isDeleteSessionModalOpen,
+          onOpen: onDeleteSessionModalOpen,
+          onClose: onDeleteSessionClose } = useDisclosure();
 
   const { isOpen: isDeleteRowModalOpen,
           onOpen: onDeleteRowModalOpen,
@@ -166,7 +177,6 @@ const formatDate = (isoString) => {
         i === index ? { ...session, [field]: value } : session
       )
     }));
-console.log(type,index, field, value);
     setAllSessions(prev => {
       let updatedSessions = [...prev];
 
@@ -175,14 +185,12 @@ console.log(type,index, field, value);
 
         // Remove all sessions with this recurringId
         updatedSessions = updatedSessions.filter(s => s.recurringId !== recurringSession.id);
-        console.log("updatedSessions: ", updatedSessions);
-        console.log("recurringSession: ", recurringSession);
+
 
         if (Object.values(recurringSession).every(val => val !== "")) {
           const generatedSessions = generateRecurringSessions( {
             ...recurringSession
           }, startDate, endDate);
-          console.log("generatedSessions: ", generatedSessions)
           updatedSessions = [
             ...updatedSessions,
             ...generatedSessions.map(s => ({
@@ -201,8 +209,6 @@ console.log(type,index, field, value);
           (s.date === singleSession.date && s.startTime === singleSession.startTime)
         );
 
-        console.log("existingIndex: ", existingIndex, singleSession.id);
-
         if (existingIndex !== -1) {
           updatedSessions[existingIndex] = { ...updatedSessions[existingIndex], ...singleSession, isNew: true };
         } else if (Object.values(singleSession).every(val => val !== "")) {
@@ -213,8 +219,6 @@ console.log(type,index, field, value);
       setIsChanged(true);
       return updatedSessions;
     });
-
-    console.log("Updated sessions:", allSessions);
   };
 
   const generateRecurringSessions = (recurringSession, startDate, endDate) => {
@@ -277,8 +281,6 @@ console.log(type,index, field, value);
       recurring: []
     });
     // Reset any other relevant state
-    handleAddSingleRow();
-    handleAddRecurringRow();
     setIsChanged(true);
   };
 
@@ -322,7 +324,6 @@ console.log(type,index, field, value);
   const saveChanges = async () => {
     try {
       await backend.delete('bookings/event/' + id);
-      console.log("allSessions: ",allSessions);
 
       // Handle new sessions
       await Promise.all(allSessions.map(s =>
@@ -831,7 +832,7 @@ console.log(type,index, field, value);
                 <Tr
                   key={session.id}
                   textColor={session.archived === true ? "#A0AEC0" : "#2D3748"}
-                  backgroundColor={session.isNew || session.isUpdated ? "#F8F8FF" : "white"}
+                  backgroundColor={session.isNew ? "#F8F8FF" : "white"}
                 >
                   <Td>
                     <Box
@@ -896,29 +897,14 @@ console.log(type,index, field, value);
                      <MenuList padding="4px" minWidth="139px">
                         <MenuItem
                           onClick={() => {
-                            handleArchiveSession(session.id);
-                            setIsChanged(true);
-                            setIsArchived(false);
-                            setArchived(false);
-                          }}
-                          display="flex"
-                          padding="6px 8px"
-                          alignItems="center"
-                          gap="8px"
-                          width="131px"
-                          height="32px"
-                          variant="ghost"
-                        >
-                          <Icon as={ReactivateIcon} boxSize="4" />
-                          <Text color="#2D3748" fontSize="14px">
-                            {session.archived ? "Unarchive" : "Archive"}
-                          </Text>
-                        </MenuItem>
-
-                        <MenuItem
-                          onClick={() => {
-                            modalOnOpen();
-                            handleDeleteSession(session.id);
+                            setDeleteSessionDate(formatDate(session.date).split(" ")[1]);
+                            setDeleteSessionId(session.id);
+                            if (session.isNew) {
+                              onDeleteSessionModalOpen();
+                            }
+                            else {
+                              onCancelProgramModalOpen();
+                            }
                             setIsChanged(true);
                           }}
                           display="flex"
@@ -930,7 +916,7 @@ console.log(type,index, field, value);
                           variant="ghost"
                         >
                           <Icon as={DeleteIconRed} boxSize="4" />
-                          <Text color="#90080F" fontSize="14px">Delete</Text>
+                          <Text color="#90080F" fontSize="14px">Cancel</Text>
                         </MenuItem>
                       </MenuList>
                     </Menu>
@@ -947,6 +933,24 @@ console.log(type,index, field, value);
 
   return (
     <Navbar>
+      <CancelProgram
+        id={id}
+        sessionId={deleteSessionId}
+        setPrograms={setAllSessions} // deletes from sessions instead of programs
+        onOpen={onCancelProgramModalOpen}
+        isOpen={isCancelProgramModalOpen}
+        onClose={onCancelProgramModalClose}
+        handleArchiveSession={handleArchiveSession}
+        type={"Session"}
+      />
+      <DeleteSessionConfirmationModal
+        setPrograms={setAllSessions}
+        isOpen={isDeleteSessionModalOpen}
+        onClose={onDeleteSessionClose}
+        date={deleteSessionDate}
+        id={deleteSessionId}
+        programs={allSessions}
+      />
       <Box style={{ width: "100%", padding: "20px 20px 20px 20px" }}>
         <Flex
           align="center"
@@ -1021,7 +1025,7 @@ console.log(type,index, field, value);
           onClose={onUnsavedSessionModalClose}
           noSave={() => {
             onUnsavedSessionModalClose();
-            navigate(`/programs/${id}`);}}
+            navigate(`/programs/edit/${id}`);}}
           save={handleGoBack}
           isFormValid={isFormValid()}
         />}
