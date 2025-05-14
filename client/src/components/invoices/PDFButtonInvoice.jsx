@@ -1,7 +1,7 @@
 import React, { useEffect, useState} from "react";
 
 import { DownloadIcon } from "@chakra-ui/icons";
-import { Box, Flex, IconButton, Spinner } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner, useToast } from "@chakra-ui/react";
 
 import {
   PDFViewer,
@@ -39,6 +39,9 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
+  const [programName, setProgramName] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState("");
+  const downloadToast = useToast();
 
 
   const fetchInvoiceData = async (invoice, backend, id) => {
@@ -133,9 +136,10 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
       const month = latestDate.toLocaleString("default", { month: "long" });
 
       const year = latestDate.getFullYear();
-
+      setInvoiceDate(`${month} ${year}`)
       return `${month}  ${year}`;
     } else {
+      setInvoiceDate("No Date Found");
       return "No Date Found";
     }
   };
@@ -143,16 +147,25 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   const handleDownload = async () => {
   try {
     setLoading(true);
-
     const invoiceResponse = await backend.get(`/invoices/${id}`);
     const invoice = invoiceResponse.data;
     const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
+    setProgramName(invoiceData.programName)
+
 
     const blob = await pdf(
       <InvoicePDFDocument invoice={invoice} {...invoiceData} />
     ).toBlob();
 
-    saveAs(blob, `${invoiceData.programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`);
+    saveAs(blob, `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`);
+    downloadToast({
+      title: 'Invoice Downloaded',
+      description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
+      status: 'success',
+      duration: 9000,
+      variant: 'left-accent',
+      isClosable: false,
+    });
   } catch (err) {
     console.error("Error generating PDF:", err);
   } finally {
@@ -175,6 +188,8 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
             handleDownload();
             console.log("no unsaved changes");
           }
+          console.log("prog", programName)
+          console.log("invoice", invoiceDate)
         }
       }
         backgroundColor="transparent"
