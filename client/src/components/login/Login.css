@@ -400,3 +400,21 @@
   background: var(--Primary-5-Default, #4441c8);
   color: #fff;
 }
+
+/* Remove blue autofill background */
+.signup-container input:-webkit-autofill,
+.signup-container input:-webkit-autofill:hover, 
+.signup-container input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: inherit !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Force specific browsers to respect our styling */
+.signup-container input:autofill,
+.signup-container input:autofill:hover,
+.signup-container input:autofill:focus {
+  box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: inherit !important;
+  caret-color: inherit !important;
+}
