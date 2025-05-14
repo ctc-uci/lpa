@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { AddIcon, ChevronDownIcon, CloseIcon } from "@chakra-ui/icons";
+import { AddIcon, ChevronDownIcon, CloseIcon, InfoOutlineIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -268,7 +268,6 @@ const EditInvoiceDetails = ({
 
 // TODO
 // !- Handle Deletion of comments, custom rows, an adjustment fees -> move all deleted items into its own array and then pass into backend and delete
-// !- New Tooltip in edit invoices
 const StatementComments = ({
   invoice,
   compactView = false,
@@ -1317,7 +1316,7 @@ const InvoiceSummary = ({
                 >
                   Room Fee
                 </Td>
-                <Td borderBottom="none">
+                <Td borderBottom="none" >
                   <Button
                     // onClose={() => setActiveRowId(null)}
                     leftIcon={<PencilIcon color="black" />}
@@ -1327,21 +1326,13 @@ const InvoiceSummary = ({
                     py="2"
                     fontSize="small"
                     height="32px"
-                    // opacity={
-                    //   activeRowId === null ||
-                    //   activeRowId === session.id
-                    //     ? 1
-                    //     : 0.3
-                    // }
-                    // onClick={() => setActiveRowId(session.id)}
-                    // isDisabled={
-                    //   activeRowId !== null &&
-                    //   activeRowId !== session.id
-                    // }
                     onClick={onOpen}
                   >
                     Adjust
                   </Button>
+                  <Tooltip label="Room fee adjustments in Summary will be apply to all Sessions." placement="top" bg="gray">
+                    <InfoOutlineIcon ml={2}/>
+                  </Tooltip>
                 </Td>
               </Tr>
               {/* Room Fee Body Row */}
