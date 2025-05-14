@@ -289,8 +289,8 @@
 
 /* Style the checked state */
 .keep-signed-in-checkbox:checked {
-  background-color: #4299E1; /* Or whatever color you prefer */
-  border-color: #4299E1;
+  background-color: var(--Primary-5-Default, #4441C8); /* Update to primary purple */
+  border-color: var(--Primary-5-Default, #4441C8);
   position: relative;
 }
 
@@ -396,9 +396,14 @@
   color: var(--Secondary-8);
 }
 
-.signup-container .submit-button:hover {
+.signup-container .submit-button:hover:not(:disabled) {
+  background: var(--Primary-7, #312E8A);
+}
+
+.signup-container .submit-button:disabled {
   background: var(--Primary-5-Default, #4441c8);
-  color: #fff;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Remove blue autofill background */

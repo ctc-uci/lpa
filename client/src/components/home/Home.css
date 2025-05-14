@@ -192,37 +192,37 @@
 /* Column width specifications with proper gaps */
 .programs-table__table th:first-child,
 .programs-table__table td:first-child {
-  width: 363px !important;
+  width: 325px !important;
 }
 
 .programs-table__table th:nth-child(2),
 .programs-table__table td:nth-child(2) {
-  width: 48px !important;
+  width: 52px !important;
 }
 
 .programs-table__table th:nth-child(3),
 .programs-table__table td:nth-child(3) {
-  width: 170px !important;
+  width: 180px !important;
 }
 
 .programs-table__table th:nth-child(4),
 .programs-table__table td:nth-child(4) {
-  width: 135px !important;
+  width: 145px !important;
 }
 
 .programs-table__table th:nth-child(5),
 .programs-table__table td:nth-child(5) {
-  width: 76px !important;
+  width: 85px !important;
 }
 
 .programs-table__table th:nth-child(6),
 .programs-table__table td:nth-child(6) {
-  width: 129px !important;
+  width: 138px !important;
 }
 
 .programs-table__table th:nth-child(7),
 .programs-table__table td:nth-child(7) {
-  width: 129px !important;
+  width: 138px !important;
 }
 
 .programs-table__table th:last-child,
@@ -552,5 +552,25 @@
   min-height: 16px !important;
   width: 16px !important;
   height: 16px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Clock, location, artist, and payer icons size */
+.programs-table__table th:nth-child(4) img,
+.programs-table__table th:nth-child(4) svg,
+.programs-table__table th:nth-child(4) .chakra-icon,
+.programs-table__table th:nth-child(5) img,
+.programs-table__table th:nth-child(5) svg,
+.programs-table__table th:nth-child(5) .chakra-icon,
+.programs-table__table th:nth-child(6) img,
+.programs-table__table th:nth-child(6) svg,
+.programs-table__table th:nth-child(6) .chakra-icon,
+.programs-table__table th:nth-child(7) img,
+.programs-table__table th:nth-child(7) svg,
+.programs-table__table th:nth-child(7) .chakra-icon {
+  min-width: 20px !important;
+  min-height: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
   flex-shrink: 0 !important;
 }
