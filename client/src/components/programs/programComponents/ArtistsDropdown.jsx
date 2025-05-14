@@ -74,13 +74,12 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
             <Box>
               <div id="instructorInputContainer">
                 <Input
-                  autoComplete="off"
-                    placeholder="Lead Artist(s)"
+                    autoComplete="off"
+                      placeholder="Lead Artist(s)"
                     onChange={(e) => {searchInstructors(e.target.value)}}
                     onClick={() => {searchInstructors(instructorSearchTerm)}}
                     value={instructorSearchTerm}
                     id="instructorInput"
-                    autoComplete="off"
                     />
                   <Box
                     as="button"
