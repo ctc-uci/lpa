@@ -12,7 +12,7 @@
 }
 
 .actions-container:hover {
-  background: transparent !important;
+  background: var(--Secondary-2-Default, #EDF2F7) !important;
 }
 
 .cancelModalHeader, .cancelModalText, .cancelModalCancelReason, .cancelActionsContainer {

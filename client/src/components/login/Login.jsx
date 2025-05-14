@@ -113,7 +113,7 @@ export const Login = () => {
       switch (errorCode) {
         case "auth/wrong-password":
         case "auth/invalid-credential":
-          setCredentialsError("Invalid email and password. Please try again or create an account.");
+          setCredentialsError("Invalid email or password. Please try again or create an account.");
           setEmailError("Please enter a valid email address.");
           setPasswordError("Please enter a valid password.");
           break;
@@ -322,8 +322,7 @@ export const Login = () => {
             {(permissionError || credentialsError) && (
               <Box
                 bg="#FFF5F5"
-                border="1px solid"
-                borderColor="red.400"
+                border="none"
                 color="red.800"
                 px={10}
                 py={3}

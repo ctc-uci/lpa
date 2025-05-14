@@ -634,20 +634,25 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                       <Menu>
                         <MenuButton
                           as={IconButton}
-                          minWidth="24px"
-                          height="24px"
-                          borderRadius={6}
-                          backgroundColor="#EDF2F7"
+                          className="ellipsis-action-button"
                           icon={<Icon as={sessionsEllipsis} />}
 
                         />
                         <MenuList>
                           <MenuItem
                             onClick={() => handleEditComment(comment.id)}
+                            style={{
+                              display: "flex",
+                              width: "131px",
+                              padding: "6px 8px",
+                              alignItems: "center",
+                              gap: "10px",
+                              borderRadius: "4px",
+                              background: "#FFF"
+                            }}
                           >
                             <Box
                               display="flex"
-                              padding="12px 16px"
                               alignItems="center"
                               gap="8px"
                             >
@@ -655,10 +660,20 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                               <Text color="#2D3748">Edit</Text>
                             </Box>
                           </MenuItem>
-                          <MenuItem onClick={() => handleShowDelete(comment)}>
+                          <MenuItem
+                            onClick={() => handleShowDelete(comment)}
+                            style={{
+                              display: "flex",
+                              width: "131px",
+                              padding: "6px 8px",
+                              alignItems: "center",
+                              gap: "10px",
+                              borderRadius: "4px",
+                              background: "#FFF"
+                            }}
+                          >
                             <Box
                               display="flex"
-                              padding="12px 16px"
                               alignItems="center"
                               gap="8px"
                             >
@@ -784,10 +799,7 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
                   <Menu>
                     <MenuButton
                       as={IconButton}
-                      minWidth="24px"
-                      height="24px"
-                      borderRadius={6}
-                      backgroundColor="#EDF2F7"
+                      className="ellipsis-action-button"
                       icon={<Icon as={sessionsEllipsis} />}
                     />
                   </Menu>
@@ -1036,6 +1048,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       <Td>
                         <Menu>
                           <MenuButton
+                          className="ellipsis-action-button"
                             as={IconButton}
                             size="sm"
                             bg="#EDF2F7"

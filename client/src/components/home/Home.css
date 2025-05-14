@@ -263,28 +263,36 @@
 }
 
 .menu-list-custom {
-  border-radius: 15px !important;
-  border: 1px solid var(--medium-light-grey, #d2d2d2) !important;
-  background: var(--light-grey, #f6f6f6) !important;
-  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
-  padding: 8px !important;
+  display: flex;
+  padding: 4px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--Secondary-3, #E2E8F0);
+  background: #FFF;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  width: 139px !important;
+  min-width: 139px !important;
+  max-width: 139px !important;
 }
 
 .menu-list-custom .chakra-menu__menuitem {
-  background: var(--hover-bg) !important;
-  display: flex !important;
-  padding: 8px 12px !important;
-  align-items: center !important;
-  gap: 8px !important;
-  border-radius: 10px !important;
+  display: flex;
+  width: 131px;
+  padding: 6px 8px;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+  background: #FFF;
   font-family: var(--font-inter) !important;
   font-size: 16px !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
   cursor: pointer !important;
 }
 
 .menu-list-custom .chakra-menu__menuitem:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
+  background-color: #F7FAFC !important;
 }
 
 .menu-item--edit {
@@ -337,4 +345,24 @@
   color: var(--medium-grey, #767778);
   line-height: 20px;
   text-transform: none;
+}
+
+/* Ellipsis Action Button */
+.ellipsis-action-button {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 4px !important;
+  border-radius: 6px !important;
+  background: var(--Secondary-2-Default, #EDF2F7) !important;
+  min-width: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+  transition: background-color 0.2s ease-in-out !important;
+}
+
+.ellipsis-action-button:hover {
+  background: #E2E8F0 !important;
+  cursor: pointer !important;
 }

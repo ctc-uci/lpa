@@ -20,6 +20,8 @@ import { InvoiceFilter } from "../filters/InvoicesFilter";
 import Navbar from "../navbar/Navbar";
 import { PaginationComponent } from "../PaginationComponent";
 import { InvoicesFilter, InvoicesTable } from "./InvoiceComponents";
+import { SearchBar } from "../searchBar/SearchBar";
+
 
 const InvoicesDashboard = () => {
   const toast = useToast();
@@ -253,6 +255,24 @@ const InvoicesDashboard = () => {
     fetchInvoicesData();
   }, [backend, navigate, toast]); // Include dependencies the function uses
 
+  const handleSearch = (value) => {
+    setQuery(value);
+    if (value === '') {
+      setFilteredInvoices(invoices);
+      return;
+    }
+
+    const searchValue = value.toLowerCase();
+    const filtered = invoices.filter(invoice => {
+      return (
+        (invoice.eventName && invoice.eventName.toLowerCase().includes(searchValue)) ||
+        (invoice.payers && invoice.payers.some(payer => payer && payer.toLowerCase().includes(searchValue)))
+      );
+    });
+
+    setFilteredInvoices(filtered);
+  };
+
   return (
     <Navbar>
         <Flex
@@ -275,45 +295,29 @@ const InvoicesDashboard = () => {
                 setFilteredInvoices(results);
               }}
             />
+            <SearchBar
+            handleSearch={handleSearch}
+            searchQuery={query}
+            />
 
-            <InputGroup
-              w="400px"
-              borderColor="transparent"
-            >
-              <InputRightElement
-                pointerEvents="none"
-                bgColor="#EDF2F7"
-                borderRadius="0px 6px 6px 0px"
-              >
-                <SearchIcon color="#767778" />
-              </InputRightElement>
-              <Input
-                onChange={(e) =>
-                  setFilteredInvoices(filterInvoices(invoices, e.target.value))
-                }
-                icon={SearchIcon}
-                borderColor="gray.100"
-                bgColor="#F7FAFC"
-                borderRadius="6px 0px 0px 6px"
-                placeholder="Search..."
-                textColor="#718096"
-              />
-            </InputGroup>
-          </Flex>
-          <InvoicesTable
-            filteredInvoices={currentPageInvoices}
-            isPaidColor={isPaidColor}
-            seasonColor={seasonColor}
-          />
+          {/* <InputGroup w='400px' borderColor='transparent' >
+            <InputRightElement pointerEvents='none' bgColor="#EDF2F7" borderRadius='0px 6px 6px 0px'>
+              <SearchIcon color='#767778'/>
+            </InputRightElement>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              icon={SearchIcon} borderColor='gray.100'
+              bgColor="#F7FAFC"
+              borderRadius='6px 0px 0px 6px'
+              placeholder="Search..."
+              textColor="#718096"
+            />
+          </InputGroup> */}
         </Flex>
-        <Flex marginRight={"30px"}>
-          <PaginationComponent
-            totalPages={totalPages}
-            goToNextPage={goToNextPage}
-            goToPreviousPage={goToPreviousPage}
-            currentPage={currentPage}
-          />
-        </Flex>
+        <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
+
+      </Flex>
     </Navbar>
   );
 };
