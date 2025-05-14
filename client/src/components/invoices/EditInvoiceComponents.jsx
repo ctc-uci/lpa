@@ -269,7 +269,6 @@ const EditInvoiceDetails = ({
 // TODO
 // !- Handle Deletion of comments, custom rows, an adjustment fees -> move all deleted items into its own array and then pass into backend and delete
 // !- New Tooltip in edit invoices
-// !- Fix hifi of save edits modal
 const StatementComments = ({
   invoice,
   compactView = false,

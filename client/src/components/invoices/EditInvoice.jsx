@@ -480,16 +480,16 @@ export const EditInvoice = () => {
           <AlertDialogOverlay>
             <AlertDialogContent>
               <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Unsaved Changes
+                Saved edits to invoice?
               </AlertDialogHeader>
 
               <AlertDialogBody>
-                You have unsaved changes. Would you like to save before leaving?
+                Changes made to this invoice will be saved. Please email Payer(s) and Lead Artist(s) this updated PDF.
               </AlertDialogBody>
 
               <AlertDialogFooter>
                 <Button ref={cancelRef} onClick={handleCancelBack} ml={3}>
-                  Don't Save
+                  Cancel
                 </Button>
                 <Button bg="#4441C8" color="white" onClick={handleSaveAndBack} ml={3}>
                   Save
