@@ -69,6 +69,7 @@ export const AddClient = ({ isOpen, onClose, type }) => {
                 <Box height="3px"></Box>
                 <Input
                   marginLeft="15px"
+                  width="fill"
                   placeholder="email@address.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
