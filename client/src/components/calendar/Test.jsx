@@ -35,7 +35,7 @@ export const Test = () => {
   const [newEvent, setNewEvent] = useState({ summary: "", start: "", end: "" }); // current event being edited
   const [editingEventId, setEditingEventId] = useState(null); // id of the current event being edited (null if new event)
 
-  const [bookingsBatch, setBookingsBatch] = useState([]);
+  const [bookingsBatch, setBookingsBatch] = useState([]); // current batch to be added to the gcal (either the old, exisitng booksing or new, generated bookings)
 
   // generates reoccuring sessions
   const generateRecurringSessions = (recurringSession, startDate, endDate) => {
@@ -72,7 +72,7 @@ export const Test = () => {
    * Generates new bookings
    *
    *
-   * This uses generateRecurringSessions attaches a name to each session
+   * This uses generateRecurringSessions and attaches a name to each session
    * In the real implementation, this would be replaced with the non-hardcoded generateRecurringSessions call
    * and namedSessions would pass in programName instead of "fake session"
    */
@@ -137,13 +137,8 @@ export const Test = () => {
   }, []);
 
   /**
-   * Fetch and list all events when the user is signed in.
-   *
    * This effect runs whenever the sign-in status (`isSignedIn`) changes.
    * If the user is signed in, it queries the Google Calendar API to fetch upcoming events
-   * The events are then stored in the `events` state
-   *
-   * If the API call fails, an error toast is shown to the user with the error message.
    */
   useEffect(() => {
     if (!isSignedIn) return;
@@ -151,6 +146,12 @@ export const Test = () => {
   }, [isSignedIn]);
 
 
+  /**
+   * Fetch and list all events when the user is signed in.
+   * The events are then stored in the `events` state
+   *
+   * If the API call fails, an error toast is shown to the user with the error message.
+   */
   const loadEvents = () => {
     gapi.client.calendar.events
       .list({
@@ -198,53 +199,6 @@ export const Test = () => {
       .getAuthInstance()
       ?.signOut()
       .then(() => setIsSignedIn(false));
-
-  /**
-   * Handle saving the event (create or update).
-   *
-   * If an existing event is being edited, the event is updated.
-   * If a new event is being created, it is added to Google Calendar.
-   *
-   * Checks that all required fields (summary, start, end) are filled before proceeding.
-   * @returns {void}
-   */
-  const handleSaveEvent = () => {
-    if (!newEvent.summary || !newEvent.start || !newEvent.end) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in all event details",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    // Build the event resource object
-    const resource = {
-      summary: newEvent.summary,
-      start: {
-        dateTime: new Date(newEvent.start).toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      end: {
-        dateTime: new Date(newEvent.end).toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      // Add other optional fields as needed (e.g. attendees, reminders)
-    };
-
-    // If editing, update the event; otherwise, create a new one
-    if (editingEventId) {
-      console.log("CORRECT: ", newEvent.start)
-      updateEvent(editingEventId, resource);
-    } else {
-      addEvent(CALENDAR_ID, resource);
-    }
-  };
-
-
-
 
   /**
    * Adds all the bookings to the GCal
@@ -305,8 +259,51 @@ export const Test = () => {
       }
       loadEvents();
     });
-
   };
+
+    /**
+   * Handle saving the event (create or update).
+   *
+   * If an existing event is being edited, the event is updated.
+   * If a new event is being created, it is added to Google Calendar.
+   *
+   * Checks that all required fields (summary, start, end) are filled before proceeding.
+   * @returns {void}
+   */
+    const handleSaveEvent = () => {
+      if (!newEvent.summary || !newEvent.start || !newEvent.end) {
+        toast({
+          title: "Missing fields",
+          description: "Please fill in all event details",
+          status: "warning",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Build the event resource object
+      const resource = {
+        summary: newEvent.summary,
+        start: {
+          dateTime: new Date(newEvent.start).toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: new Date(newEvent.end).toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        // Add other optional fields as needed (e.g. attendees, reminders)
+      };
+
+      // If editing, update the event; otherwise, create a new one
+      if (editingEventId) {
+        console.log("CORRECT: ", newEvent.start)
+        updateEvent(editingEventId, resource);
+      } else {
+        createEvent(CALENDAR_ID, resource);
+      }
+    };
 
   /**
    * Adds a new event to the user's Google Calendar.
@@ -327,7 +324,7 @@ export const Test = () => {
    *     }
    * @returns {void}
    */
-  const addEvent = (calendarID, event) => {
+  const createEvent = (calendarID, event) => {
     gapi.client.calendar.events
       .insert({
         calendarId: calendarID,
