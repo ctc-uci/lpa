@@ -35,23 +35,66 @@ export const Test = () => {
   const [newEvent, setNewEvent] = useState({ summary: "", start: "", end: "" }); // current event being edited
   const [editingEventId, setEditingEventId] = useState(null); // id of the current event being edited (null if new event)
 
-  const [oldBookings, setOldBookings] = useState(null);
+  const [bookingsBatch, setBookingsBatch] = useState([]);
 
+  // generates reoccuring sessions (using hardcoded values)
+  const generateRecurringSessions = (recurringSession, startDate, endDate) => {
+    const sessions = [];
+    const currentTimezoneDate = new Date(startDate.replace(/-/g, '/').replace(/T.+/, ''));
+    const currentDate = new Date(startDate);
+    const endDateObj = new Date(endDate);
+    const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const weekdayIndex = weekdays.indexOf(recurringSession.weekday.toLowerCase());
+    const startDayOfWeek = currentTimezoneDate.getDay() ;
+    const daysUntilFirst = (weekdayIndex - startDayOfWeek + 7) % 7;
 
+    if (daysUntilFirst > 0) {
+      currentDate.setDate(currentDate.getDate() + daysUntilFirst );
+    }
+
+    while (currentDate <= endDateObj) {
+        sessions.push({
+            date: currentDate.toISOString(),
+            startTime: recurringSession.startTime,
+            endTime: recurringSession.endTime,
+            roomId: recurringSession.roomId,
+            eventId: 383,
+            archived: false,
+        });
+
+        currentDate.setDate(currentDate.getDate() + 7);
+    }
+
+    return sessions;
+  };
+
+  // generates new bookings (this would be replaced with what the user actually inputs)
+  const fetchNewBookings = async () => {
+    const recurringSession = {
+      weekday: 'Wednesday',
+      startTime: '10:00',
+      endTime: '11:00',
+      roomId: 3
+    };
+
+    const startDate = '2025-05-14';
+    const endDate = '2025-06-14';
+
+    const sessions = generateRecurringSessions(recurringSession, startDate, endDate);
+    console.log(sessions);
+    setBookingsBatch(sessions);
+  };
+
+  // fetches all the existing bookings
   const fetchOldBookings = async () => {
     try {
       const response = await backend.get("/bookings/bookingEventNames");
-      setOldBookings(response.data);
+      setBookingsBatch(response.data);
       console.log(response.data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
     }
   };
-
-
-
-
-
 
   /**
    * Initialize the Google API client
@@ -185,45 +228,86 @@ export const Test = () => {
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+  /**
+   * Adds all the previous bookings to the GCal
+   *
+   * @returns {void}
+   */
   const addOldBookings = async () => {
-    await fetchOldBookings(); // In case this is async
+    await fetchOldBookings();
 
-    for (const oldBooking of oldBookings) {
-      if (oldBooking.id > 1850) {
+    for (const booking of bookingsBatch) {
 
-        console.log(oldBooking)
-        // get values
-        const date = oldBooking.date.split("T")[0];
-        const start = oldBooking.startTime.split('+')[0].trim();
-        const end = oldBooking.endTime.split('+')[0].trim();
+      // get values
+      const date = booking.date.split("T")[0];
+      const start = booking.startTime.split('+')[0].trim();
+      const end = booking.endTime.split('+')[0].trim();
+      const startDateTime = new Date(`${date}T${start}`);
+      const endDateTime = new Date(`${date}T${end}`);
 
-
-        const startDateTime = new Date(`${date}T${start}`);
-        const endDateTime = new Date(`${date}T${end}`);
-
-        // skip if time is invalid
-        if (isNaN(startDateTime) || isNaN(endDateTime)) {
-          console.error("Invalid date:", oldBooking);
-          continue;
-        }
-
-        const resource = {
-          summary: oldBooking.name,
-          start: {
-            dateTime: startDateTime.toISOString(),
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-          end: {
-            dateTime: endDateTime.toISOString(),
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        };
-
-        await addEvent(CALENDAR_ID, resource);
-        // delay 500 ms between requests
-        await sleep(500);
+      // skip if time is invalid
+      if (isNaN(startDateTime) || isNaN(endDateTime)) {
+        console.error("Invalid date:", booking);
+        continue;
       }
+
+      const resource = {
+        summary: booking.name,
+        start: {
+          dateTime: startDateTime.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: endDateTime.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      };
+
+      await addEvent(CALENDAR_ID, resource);
+
+      // sleep 500 ms between requests to avoid timeouts
+      await sleep(500);
     }
+
+  };
+
+  const addNewBookings = async () => {
+    await fetchNewBookings();
+
+    for (const booking of bookingsBatch) {
+
+      // get values
+      const date = booking.date.split("T")[0];
+      const start = booking.startTime.split('+')[0].trim();
+      const end = booking.endTime.split('+')[0].trim();
+      const startDateTime = new Date(`${date}T${start}`);
+      const endDateTime = new Date(`${date}T${end}`);
+
+      // skip if time is invalid
+      if (isNaN(startDateTime) || isNaN(endDateTime)) {
+        console.error("Invalid date:", booking);
+        continue;
+      }
+
+      const resource = {
+        summary: booking.name,
+        start: {
+          dateTime: startDateTime.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: endDateTime.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      };
+
+      await addEvent(CALENDAR_ID, resource);
+
+      // sleep 500 ms between requests to avoid timeouts
+      await sleep(500);
+    }
+
+
   };
 
 
@@ -373,6 +457,12 @@ export const Test = () => {
               onClick={addOldBookings}
             >
               Add Old Bookings
+            </Button>
+
+            <Button
+              onClick={addNewBookings}
+            >
+              Add New (Fake) Bookings
             </Button>
 
           </>
