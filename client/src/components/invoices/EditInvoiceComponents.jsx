@@ -267,9 +267,8 @@ const EditInvoiceDetails = ({
 };
 
 // TODO
-// ! - Fix Current Statement Total in EditInvoice being different that SavedInvoice
-// ! - Save Edits to Invoice alert modal
-// ! - Fix summary room fee changing session rate -> needs to be passed into sessions with the summary adjustment values -> should be local state
+// !- Handle Deletion of comments, custom rows, an adjustment fees
+// !- New Tooltip in edit invoices
 const StatementComments = ({
   invoice,
   compactView = false,

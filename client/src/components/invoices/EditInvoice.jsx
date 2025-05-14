@@ -491,7 +491,7 @@ export const EditInvoice = () => {
                 <Button ref={cancelRef} onClick={handleCancelBack} ml={3}>
                   Don't Save
                 </Button>
-                <Button colorScheme="blue" onClick={handleSaveAndBack} ml={3}>
+                <Button bg="#4441C8" color="white" onClick={handleSaveAndBack} ml={3}>
                   Save
                 </Button>
               </AlertDialogFooter>
