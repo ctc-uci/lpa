@@ -14,7 +14,7 @@ export const HeaderRowComponent = () => {
           // handle google calendar logic
         }}
       >
-        <Image
+        <image
           src={googleCalendarSvg}
           alt="Google Calendar"
           className="google-calendar-icon"
