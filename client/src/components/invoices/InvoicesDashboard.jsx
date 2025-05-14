@@ -143,50 +143,26 @@ const InvoicesDashboard = () => {
     return "Past Due";
   };
 
-  useEffect(() => {
-  const handler = setTimeout(() => {
-    setDebouncedQuery(query);
-  }, 300); // 300ms delay
+  const filterInvoices = (invoices, query) => {
+    if (!query) return invoices;
 
-  return () => {
-    clearTimeout(handler);
-  };
-}, [query]);
-
-  useEffect(() => {
-    if (!debouncedQuery.trim()) {
-      setFilteredInvoices(filterComponentResults);
-      return;
-    }
-
-    const searchResults = filteredInvoices.filter((invoice) => {
-      const searchLower = debouncedQuery.toLowerCase();
-
-      if (invoice.eventName.toLowerCase().includes(searchLower)) {
-        return true;
-      }
-
-      if (invoice.payers && Array.isArray(invoice.payers)) {
-        for (const payer of invoice.payers) {
-          if (payer.toLowerCase().includes(searchLower)) {
-            return true;
-          }
-        }
-      }
-
-      if (invoice.isPaid.toLowerCase().includes(searchLower)) {
-        return true;
-      }
-
-      if (invoice.season.toLowerCase().includes(searchLower)) {
-        return true;
-      }
-
-      return false;
+    return invoices.filter((invoice) => {
+      console.log(invoice)
+      const invoiceName = invoice.name?.toLowerCase() || "";
+      const invoiceEventName = invoice.eventName?.toLowerCase() || "";
+      const invoicePayer = Array.isArray(invoice.payers)
+        ? invoice.payers
+            .filter((payer) => typeof payer === "string")
+            .map((payer) => payer.toLowerCase())
+            .join(", ")
+        : "";
+      return (
+        invoiceName.includes(query.toLowerCase()) ||
+        invoiceEventName.includes(query.toLowerCase()) ||
+        invoicePayer.includes(query.toLowerCase())
+      );
     });
-
-    setFilteredInvoices(searchResults);
-  }, [debouncedQuery, filterComponentResults]);
+  }
 
   useEffect(() => {
   const fetchInvoicesData = async () => {
@@ -208,17 +184,17 @@ const InvoicesDashboard = () => {
 
         return acc;
       }, {});
-      
+
       const invoices = Object.values(groupedInvoices).map((invoice) => ({
         ...invoice,
         season: getSeason(invoice),
         isPaid: isPaid(invoice),
       }));
-      
+
       setInvoices(invoices);
       setFilteredInvoices(invoices);
       setFilterComponentResults(invoices);
-      
+
       // Handle toast notifications here, after data is loaded
       if (!hasShownToast.current) {
         const pastDueInvoices = invoices.filter(
@@ -273,11 +249,11 @@ const InvoicesDashboard = () => {
       console.log(err);
     }
   };
-  
+
   fetchInvoicesData();
 }, [backend, navigate, toast]); // Include dependencies the function uses
 
-  
+
 
   return (
     <Navbar>
@@ -314,10 +290,9 @@ const InvoicesDashboard = () => {
               <SearchIcon color="#767778" />
             </InputRightElement>
             <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => setFilteredInvoices(filterInvoices(invoices, e.target.value))}
               icon={SearchIcon}
-              borderColor="gray.100"
+              borderColor='gray.100'
               bgColor="#F7FAFC"
               borderRadius="6px 0px 0px 6px"
               placeholder="Search..."
