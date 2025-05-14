@@ -532,8 +532,8 @@ export const EditInvoice = () => {
             />
             <InvoiceSummary
               pastDue={pastDue}
-              subtotal={subtotal}
-              setSubtotal={setSubtotalValue}
+              subtotal={editedSubtotal}
+              setSubtotal={setEditedSubtotal}
               comments={editedComments}
               onCommentsChange={handleCommentUpdate}
               onSubtotalChange={handleSubtotalUpdate}

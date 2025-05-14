@@ -267,8 +267,9 @@ const EditInvoiceDetails = ({
 };
 
 // TODO
-// !- Handle Deletion of comments, custom rows, an adjustment fees
+// !- Handle Deletion of comments, custom rows, an adjustment fees -> move all deleted items into its own array and then pass into backend and delete
 // !- New Tooltip in edit invoices
+// !- Fix hifi of save edits modal
 const StatementComments = ({
   invoice,
   compactView = false,
@@ -322,9 +323,7 @@ const StatementComments = ({
     if (sessions && sessions.length > 0) {
       const newSubtotal = calculateSubtotal(sessions);
       setSubtotal(newSubtotal);
-      
-      // Debug log to see the current state of sessions
-      // console.log("Sessions updated, new state:", JSON.parse(JSON.stringify(sessions)));
+      console.log("newSubtotal", newSubtotal);
     }
   }, [sessions]);
 
@@ -1463,7 +1462,7 @@ const InvoiceSummary = ({
                   py={compactView ? 0 : 4}
                   fontSize={compactView ? "6.38px" : "sm"}
                 >
-                  {`$ ${subtotal.toFixed(2)}`}
+                  {`$ ${Number(subtotal).toFixed(2)}`}
                 </Td>
               </Tr>
 
