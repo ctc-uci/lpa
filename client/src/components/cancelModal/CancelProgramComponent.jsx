@@ -4,21 +4,15 @@ import "./CancelProgramComponent.css";
 
 import { ChevronDownIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Box,
   Button,
-  Checkbox,
   Flex,
-  Icon,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
   Modal,
   ModalBody,
-  ModalCloseButton,
   ModalContent,
   ModalFooter,
   ModalHeader,
@@ -27,8 +21,6 @@ import {
   Textarea,
   useToast,
 } from "@chakra-ui/react";
-
-import { Info } from "lucide-react";
 
 import { CancelArchiveIcon } from "../../assets/CancelArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -53,7 +45,10 @@ export const CancelProgram = ({
     const fetchData = async () => {
       const request = await backend.get(`events/${id}`);
       setEventDescription(request.data[0].description);
-      console.log("event description: ", request.data[0].description);
+      if (request.data[0].description) {
+        setEventDescription(request.data[0].description);
+        console.log("event description: ", request.data[0].description);
+      }
     };
     fetchData();
   }, [backend, id]);

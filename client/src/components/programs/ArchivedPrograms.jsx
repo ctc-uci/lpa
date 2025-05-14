@@ -6,8 +6,6 @@ import "./ArchivedPrograms.css";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
-  Alert,
-  AlertTitle,
   Box,
   Button,
   Card,
@@ -15,24 +13,10 @@ import {
   Flex,
   FormControl,
   Icon,
-  IconButton,
   Input,
-  InputGroup,
-  InputRightElement,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   Popover,
   PopoverBody,
   PopoverContent,
-  PopoverTrigger,
   Portal,
   Table,
   TableContainer,
@@ -41,38 +25,26 @@ import {
   Text,
   Th,
   Thead,
-  Tooltip,
   Tr,
   useDisclosure,
-  useToast,
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
-
-import { Info } from "lucide-react";
 
 import {
   archiveBox,
   archiveCalendar,
   archiveClock,
-  archiveMagnifyingGlass,
   archiveMapPin,
   archivePaintPalette,
   archivePerson,
   BackIcon,
-  deleteIcon,
-  duplicateIcon,
-  filterButton,
   filterDateCalendar,
-  reactivateIcon,
-  sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
-  TooltipIcon,
 } from "../../assets/icons/ProgramIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
-import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { ArchivedFilter } from "../filters/ArchivedFilter";
 import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
@@ -310,42 +282,9 @@ export const ArchivedPrograms = () => {
     [navigate]
   );
 
-  const filterSessions = () => {
-    return archivedSessions.filter((program) => {
-      const sessionDate = new Date(program.sessionDate);
-      const sessionStartTime = program.sessionStart;
-      const sessionEndTime = program.sessionEnd;
-
-      const isDateInRange =
-        (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
-        (!dateRange.end || sessionDate <= new Date(dateRange.end));
-      const isTimeInRange =
-        (!timeRange.start || timeRange.start <= sessionStartTime) &&
-        (!timeRange.end || sessionEndTime <= timeRange.end);
-      const searchLower = searchQuery.toLowerCase();
-      const isRoomMatch =
-        selectedRoom === "All" || program.room === selectedRoom;
-      const matchesSearch =
-        program.programName.toLowerCase().includes(searchLower) ||
-        program.room.toLowerCase().includes(searchLower) ||
-        (program.instructors &&
-          program.instructors.some((instructor) =>
-            instructor.clientName.toLowerCase().includes(searchLower)
-          )) ||
-        (program.payees &&
-          program.payees.some((payee) =>
-            payee.clientName.toLowerCase().includes(searchLower)
-          )) ||
-        program.sessionDate.includes(searchQuery) ||
-        program.sessionStart.includes(searchQuery) ||
-        program.sessionEnd.includes(searchQuery);
-      return isDateInRange && isTimeInRange && isRoomMatch && matchesSearch;
-    });
-  };
 
   const sortedArchivedSessions = useMemo(() => {
     // Filtered should be the results of the archivedfilter update
-    // const filtered = filterSessions();
     const filtered = filteredArchived;
     console.log(
       "Filtered session dates:",

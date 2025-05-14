@@ -100,11 +100,37 @@ import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
 import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
+
+import "./Program.css";
+
+import {
+  Document,
+  Page,
+  PDFDownloadLink,
+  Text as PDFText,
+  View as PDFView,
+  StyleSheet,
+} from "@react-pdf/renderer";
+import { EllipsisIcon, Info, UserIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../sorting/DateFilter";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
+
+const ClockIcon = React.memo(() => (
+  <img
+    src={clockSvg}
+    alt="Clock"
+  />
+));
+
+const truncateNames = (name, maxLength = 30) => {
+  if (!name) return "N/A";
+  return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+};
 
 export const ProgramSummary = ({
   program,

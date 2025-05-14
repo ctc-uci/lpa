@@ -290,6 +290,7 @@ export const SingleInvoice = () => {
                     handleSaveChanges();
                   }}
                   backgroundColor="#4441C8"
+                  _hover={{ backgroundColor: "#312E8A" }}
                   color="#FFFFFF"
                   fontSize="14px"
                   fontWeight="500"

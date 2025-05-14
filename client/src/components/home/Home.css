@@ -52,6 +52,10 @@
   cursor: pointer;
 }
 
+.google-calendar:hover {
+  background: #e2e8f0;
+}
+
 .google-calendar-icon {
   width: 20px;
   height: 20px;
@@ -78,6 +82,13 @@
   border-radius: 6px !important;
 }
 
+.archive:hover {
+  background: #e2e8f0;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
 .archive-icon {
   width: 20px;
   height: 20px;
@@ -99,6 +110,10 @@
   border-radius: 6px;
   background: #4441c8;
   cursor: pointer;
+}
+
+.new-program:hover {
+  background: #3b36b5;
 }
 
 .new-program-icon {

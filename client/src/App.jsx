@@ -97,10 +97,12 @@ const App = () => {
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
                 />
+
                 <Route
                   path="/playground"
                   element={<Playground />}
                 />
+
 
                 {/* ADMIN ONLY oh my goodness! */}
                 <Route
@@ -244,15 +246,6 @@ const App = () => {
                     <ProtectedRoute
                       element={<ArchivedPrograms />}
                       allowedRoles={["admin"]}
-                    />
-                  }
-                />
-
-                <Route
-                  path="/pdftest"
-                  element={
-                    <ProtectedRoute
-                      element={<TestPDFViewer />}
                     />
                   }
                 />

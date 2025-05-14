@@ -3,13 +3,8 @@ import { useEffect, useState } from "react";
 import "./Program.css";
 
 import { ChevronLeftIcon} from "@chakra-ui/icons";
-import { FileTextIcon } from "lucide-react";
-import { Box, Flex, IconButton, Text, Icon } from "@chakra-ui/react";
-
-
+import { Box } from "@chakra-ui/react";
 import { useParams, useLocation } from "react-router";
-
-import { InfoIconRed } from "../../assets/InfoIconRed";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
@@ -138,6 +133,7 @@ export const Program = () => {
 
     }
   };
+
 
   // Use set of room ids to create map of room id to name, pass map into sessions component
   const getRoomNames = async () => {

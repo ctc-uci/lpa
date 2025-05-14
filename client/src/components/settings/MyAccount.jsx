@@ -410,6 +410,7 @@ export const MyAccount = () => {
                                         gap="4px"
                                         borderRadius="5.368px"
                                         background="#4441C8"
+                                        _hover={{backgroundColor: '#312E8A'}}
                                         marginLeft="auto"
                                         onClick={() => setIsEditing(true)}
                                     >
