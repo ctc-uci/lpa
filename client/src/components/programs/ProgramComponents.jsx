@@ -72,7 +72,6 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import {
-  EllipsisIcon,
   Info,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -89,11 +88,11 @@ import {
   filterDateCalendar,
   sessionsCalendar,
   sessionsClock,
-  sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
+import { EllipsisIcon } from "../../assets/EllipsisIcon";
 import { LocationPin } from "../../assets/LocationPin";
 import { PersonIcon } from "../../assets/PersonIcon";
 import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
@@ -1867,8 +1866,8 @@ export const Sessions = ({
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filteredSessions.length > 0 ? (
-                    filteredSessions.sort((a, b) => { return sortOrder === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date) })
+                  {currentPageSessions.length > 0 ? (
+                    currentPageSessions.sort((a, b) => { return sortOrder === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date) })
                     .map((session) => (
                       <Tr key={session.id}>
                         {isSelected && (
@@ -1979,7 +1978,7 @@ export const Sessions = ({
                               height="24px"
                               borderRadius={6}
                               backgroundColor="#EDF2F7"
-                              icon={<Icon as={sessionsEllipsis} />}
+                              icon={<Icon as={EllipsisIcon} />}
                             />
                             <MenuList
                                 style={{minWidth:"139px", padding:"4px"}}>
