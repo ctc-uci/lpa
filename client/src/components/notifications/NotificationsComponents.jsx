@@ -10,6 +10,7 @@ import { InfoTooltip } from "./InfoTooltip";
 
 const NotificationsComponents = ({ 
   notifications, 
+  loadingNotifications, 
   currentPage, 
   itemsPerPage,
   sortKey, 
@@ -224,58 +225,57 @@ const NotificationsComponents = ({
             </Th>
           </Tr>
         </Thead>
-
-        <Tbody>
-          {currentNotifications.length > 0 ? (
-            currentNotifications.map((item, index) => (
-              <Tr key={index}>
-                <Td 
-                    paddingLeft="0px"
-                    width="10%"
-                    minWidth="100px"
-                >
-                    {getNotifType(item.payStatus)}
-                    </Td>
-                <Td 
-                    paddingLeft="24px"
-                    width="800%"
-                >
-                  {paymentText(
-                    item.eventName,
-                    item.description,
-                    item.id
-                  )}
-                </Td>
-                <Td
-                    width="10%"
-                    minWidth="100px"
-                >
-                  <Text
-                    fontSize="sm"
-                    color="#2D3748"
-                    letterSpacing="0.07px"
+          <Tbody>
+            {loadingNotifications ? (
+              <Tr>
+                <Td colSpan={3}>
+                  <Flex
+                    justify="center"
+                    align="center"
+                    p={6}
                   >
-                    {item.dueTime}
-                  </Text>
+                    <Text color="gray.500">Loading...</Text>
+                  </Flex>
                 </Td>
               </Tr>
-            ))
-          ) : (
-            <Tr>
-              <Td colSpan={3}>
-                <Flex
-                  justify="center"
-                  align="center"
-                  p={6}
-                >
-                  <Text color="gray.500">No notifications to display</Text>
-                </Flex>
-              </Td>
-            </Tr>
-          )}
-        </Tbody>
-      </Table>
-    </TableContainer>
+            ) : currentNotifications.length > 0 ? (
+              currentNotifications.map((item, index) => (
+                <Tr key={index}>
+                  <Td paddingLeft="0px">{getNotifType(item.payStatus)}</Td>
+                  <Td paddingLeft="24px">
+                    {paymentText(
+                      item.eventName,
+                      item.description,
+                      item.id
+                    )}
+                  </Td>
+                  <Td>
+                    <Text
+                      fontSize="sm"
+                      color="#2D3748"
+                      letterSpacing="0.07px"
+                    >
+                      {item.dueTime}
+                    </Text>
+                  </Td>
+                </Tr>
+              ))
+            ) : (
+              <Tr>
+                <Td colSpan={3}>
+                  <Flex
+                    justify="center"
+                    align="center"
+                    p={6}
+                  >
+                    <Text color="gray.500">No notifications to display</Text>
+                  </Flex>
+                </Td>
+              </Tr>
+            )}
+          </Tbody>
+        </Table>
+      </TableContainer>
   );
 };
 

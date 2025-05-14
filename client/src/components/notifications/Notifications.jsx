@@ -12,11 +12,11 @@ import { PaginationComponent } from "../PaginationComponent";
 import { FilterButton } from "./FilterButton";
 import styles from "./Notifications.module.css";
 import NotificationsComponents from "./NotificationsComponents";
-import { NotificationFilter } from "./NotificationFIlterModal";
 
 export const Notifications = () => {
   const { backend } = useBackendContext();
 
+  const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [filterType, setFilterType] = useState({
@@ -171,6 +171,7 @@ export const Notifications = () => {
   useEffect(() => {
     const fetchNotifs = async () => {
       try {
+        setLoading(true);
         const today = new Date();
         let endpoints = [];
 
@@ -244,9 +245,13 @@ export const Notifications = () => {
             }
           })
         );
-
-        setNotifications(enrichedInvoices); // attaches additional info onto invoices
+  
+        setNotifications(enrichedInvoices);
+        setLoading(false);
+        // Apply any existing filters to the new data
+        handleApplyFilter(filterType, enrichedInvoices);
       } catch (err) {
+        setLoading(false);
         console.error("Failed to fetch invoices", err);
       }
     };
@@ -293,6 +298,7 @@ export const Notifications = () => {
           >
             <NotificationsComponents
               notifications={notifications}
+              loadingNotifications={loading}
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
               sortKey={sortKey}
