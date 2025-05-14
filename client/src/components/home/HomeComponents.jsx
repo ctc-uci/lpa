@@ -125,31 +125,35 @@ const TableRow = React.memo(
         cursor="pointer"
         className={rowClass}
       >
-        <Td
-          style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}
-        >
-          {truncateNames(program.name)}
-        </Td>
-        <Td
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {program.status?.toLowerCase() === "active" ? (
-            <ActiveStatusIcon />
-          ) : program.status?.toLowerCase() === "past" ? (
-            <PastStatusIcon />
-          ) : (
-            <NoneStatusIcon />
-          )}
-        </Td>
-        <Td>{program.upcomingDate}</Td>
-        <Td>{program.upcomingTime}</Td>
         <Td>
-          <Box maxWidth="5rem">{truncateNames(program.room, true)}</Box>
+          <Box paddingLeft="8px">
+            {truncateNames(program.name)}
+          </Box>
         </Td>
+        <Td>
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            height="100%"
+            width="100%"
+          >
+            {program.status?.toLowerCase() === "active" ? (
+              <ActiveStatusIcon />
+            ) : program.status?.toLowerCase() === "past" ? (
+              <PastStatusIcon />
+            ) : (
+              <NoneStatusIcon />
+            )}
+          </Box>
+        </Td>
+        <Td>
+          <Box paddingLeft="8px">
+            {program.upcomingDate}
+          </Box>
+        </Td>
+        <Td>{program.upcomingTime}</Td>
+        <Td>{truncateNames(program.room, true)}</Td>
         <Td>
           <Box className="programs-ellipsis-box">
             {truncateNames(program.instructor)}
@@ -161,7 +165,6 @@ const TableRow = React.memo(
           </Box>
         </Td>
         <Td
-          borderRightRadius="12px"
           onClick={(e) => e.stopPropagation()}
         >
           <EditCancelPopup
@@ -178,12 +181,12 @@ const TableRow = React.memo(
 const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
   <Thead>
     <Tr>
-      <Th
-        style={{ width: "20rem", maxWidth: "20rem", boxSizing: "border-box" }}
-      >
+      <Th>
         <HStack
-          spacing={2}
-          alignItems="center"
+          width="100%"
+          justifyContent="space-between"
+          paddingLeft="8px"
+          paddingRight="8px"
         >
           <Text className="table-header-text">PROGRAM</Text>
           <ProgramSortingModal
@@ -193,57 +196,46 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
         </HStack>
       </Th>
       <Th>
-        {/* <StatusTooltip /> */}
-        <Text className="table-header-text">STATUS</Text>
+        <Box textAlign="center">
+          <Text className="table-header-text">STATUS</Text>
+        </Box>
       </Th>
       <Th>
         <Flex
-          align="center"
-          gap="8px"
-          whiteSpace="nowrap"
+          width="100%"
+          paddingLeft="8px"
+          paddingRight="8px"
+          alignItems="center"
         >
-          <Box>
-            <Icon as={archiveCalendar} />
-          </Box>
-          <Box>
+          <Icon as={archiveCalendar} />
+          <Box ml="4px">
             <Text className="table-header-text">DATE</Text>
           </Box>
-          <Box flexShrink={0}>
+          <Box ml="4px" marginLeft="auto">
             <DateSortingModal onSortChange={handleSortChange} />
           </Box>
         </Flex>
       </Th>
-      <Th justifyContent="center">
-        <HStack>
+      <Th>
+        <HStack spacing="12px">
           <ClockIcon />
           <Text className="table-header-text">UPCOMING TIME</Text>
         </HStack>
       </Th>
-      <Th justifyContent="center">
-        <HStack>
+      <Th>
+        <HStack spacing="12px">
           <LocationPinIcon />
-          <Text
-            ml={-1}
-            className="table-header-text"
-          >
-            ROOM
-          </Text>
+          <Text className="table-header-text">ROOM</Text>
         </HStack>
       </Th>
-      <Th
-        justifyContent="center"
-        maxWidth="8rem"
-      >
-        <HStack>
+      <Th>
+        <HStack spacing="12px">
           <PaintPaletteIcons />
           <Text className="table-header-text">LEAD ARTIST(S)</Text>
         </HStack>
       </Th>
-      <Th
-        justifyContent="center"
-        maxWidth="10rem"
-      >
-        <HStack>
+      <Th>
+        <HStack spacing="12px">
           <PersonIcon />
           <Text className="table-header-text">PAYER(S)</Text>
         </HStack>
@@ -276,7 +268,6 @@ export const ProgramsTable = () => {
   const { backend } = useBackendContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
-  const toast = useToast();
   // const [selectedAction, setSelectedAction] = useState("Archive");
   // const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
 
@@ -604,6 +595,7 @@ export const ProgramsTable = () => {
         <TableContainer
           className="programs-table__container"
           width="100%"
+          padding="0"
         >
           <Table
             variant="simple"

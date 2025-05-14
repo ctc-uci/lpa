@@ -80,8 +80,8 @@ const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
         paddingBottom="26px"
         paddingLeft="26px"
         paddingRight="8px"
-        minWidth="209px"
-        width="auto"
+        minWidth="188px"
+        width="188px"
         h="260px"
         flexShrink={0}
       >
