@@ -1,12 +1,4 @@
 import { React, useEffect, useState } from "react";
-import { CancelIcon } from "../../assets/CancelIcon";
-import { ClockFilled } from "../../assets/ClockFilled";
-import { CustomOption } from "../../assets/CustomOption";
-import { InfoIconRed } from "../../assets/InfoIconRed";
-import { SessionFilter } from "../filters/SessionsFilter";
-import { CancelSessionModal } from "./CancelSessionModal";
-
-import "./Program.css";
 
 import {
   CalendarIcon,
@@ -63,22 +55,11 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 
-import {
-  Document,
-  Page,
-  PDFDownloadLink,
-  Text as PDFText,
-  View as PDFView,
-  StyleSheet,
-} from "@react-pdf/renderer";
-import {
-  EllipsisIcon,
-  Info,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
+import { CancelIcon } from "../../assets/CancelIcon";
+import { ClockFilled } from "../../assets/ClockFilled";
+import { CustomOption } from "../../assets/CustomOption";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
 import { DollarBill } from "../../assets/DollarBill";
 import { DuplicateIcon } from "../../assets/DuplicateIcon";
@@ -94,12 +75,15 @@ import {
   sessionsFilterMapPin,
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
+import { InfoIconRed } from "../../assets/InfoIconRed";
 import { LocationPin } from "../../assets/LocationPin";
 import { PersonIcon } from "../../assets/PersonIcon";
 import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
 import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
+import { SessionFilter } from "../filters/SessionsFilter";
+import { CancelSessionModal } from "./CancelSessionModal";
 
 import "./Program.css";
 
@@ -115,17 +99,11 @@ import { EllipsisIcon, Info, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import DateSortingModal from "../sorting/DateFilter";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
+import DateSortingModal from "../sorting/DateFilter";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
-const ClockIcon = React.memo(() => (
-  <img
-    src={clockSvg}
-    alt="Clock"
-  />
-));
 
 const truncateNames = (name, maxLength = 30) => {
   if (!name) return "N/A";
@@ -921,7 +899,7 @@ export const Sessions = ({
   eventId,
   refreshSessions,
   instructors,
-  payees
+  payees,
 }) => {
   const navigate = useNavigate();
   const { backend } = useBackendContext();
@@ -930,7 +908,11 @@ export const Sessions = ({
     onOpen: openCancelModal,
     onClose: closeCancelModal,
   } = useDisclosure();
-  const { isOpen: deleteModalIsOpen, onOpen: deleteModalOnOpen, onClose: deleteModalOnClose } = useDisclosure();
+  const {
+    isOpen: deleteModalIsOpen,
+    onOpen: deleteModalOnOpen,
+    onClose: deleteModalOnClose,
+  } = useDisclosure();
 
   const handleConfirmCancel = async (action, reason, waivedFees) => {
     // Create an array of session IDs
@@ -1029,7 +1011,7 @@ export const Sessions = ({
   const [selectMenuOpen, setSelectMenuOpen] = useState(false);
   const [selectOption, setSelectOption] = useState("Select");
   const [selectedSessions, setSelectedSessions] = useState([]);
-  const [selectedSingleSession, setSelectedSingleSession ] = useState(null);
+  const [selectedSingleSession, setSelectedSingleSession] = useState(null);
 
   const handleSessionSelection = (sessionId) => {
     setSelectedSessions((prev) => {
@@ -1196,7 +1178,7 @@ export const Sessions = ({
   };
 
   const deleteSingleSession = async () => {
-    await backend.delete('/bookings/' + selectedSingleSession);
+    await backend.delete("/bookings/" + selectedSingleSession);
     refreshSessions();
   };
 
@@ -1205,7 +1187,11 @@ export const Sessions = ({
       marginBottom="50px"
       width="100%"
     >
-      <DeleteRowModal isOpen={deleteModalIsOpen} onClose={deleteModalOnClose} onDelete={deleteSingleSession}/>
+      <DeleteRowModal
+        isOpen={deleteModalIsOpen}
+        onClose={deleteModalOnClose}
+        onDelete={deleteSingleSession}
+      />
       <Flex
         align="center"
         mb="15px"
@@ -1397,7 +1383,6 @@ export const Sessions = ({
                       : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
                   </button>
                 )}
-
 
                 <Popover onClose={onClose}>
                   <PopoverTrigger>
@@ -1601,10 +1586,14 @@ export const Sessions = ({
                                     height="20%"
                                     onClick={() => setStatus("Active")}
                                     backgroundColor={
-                                      status === "Active" ? "#EDEDFD" : "#F6F6F6"
+                                      status === "Active"
+                                        ? "#EDEDFD"
+                                        : "#F6F6F6"
                                     }
                                     borderColor={
-                                      status === "Active" ? "#4E4AE7" : "#767778"
+                                      status === "Active"
+                                        ? "#4E4AE7"
+                                        : "#767778"
                                     }
                                   >
                                     <Box
@@ -1734,9 +1723,7 @@ export const Sessions = ({
                 </Popover>
               </Flex>
 
-              <Flex
-                alignItems="flex-end"
-              >
+              <Flex alignItems="flex-end">
                 <Button
                   style={{
                     display: "flex",
@@ -1757,7 +1744,9 @@ export const Sessions = ({
                     lineHeight: "normal",
                     letterSpacing: "0.07px",
                   }}
-                  onClick={() => { navigate(`/programs/edit/sessions/${eventId}`) }}
+                  onClick={() => {
+                    navigate(`/programs/edit/sessions/${eventId}`);
+                  }}
                   data-select-menu="true"
                 >
                   Revise Session(s)
@@ -1986,7 +1975,9 @@ export const Sessions = ({
                             alignItems="center"
                           >
                             {instructors?.length > 0
-                              ? instructors.map((instructor) => instructor.clientName).join(", ")
+                              ? instructors
+                                  .map((instructor) => instructor.clientName)
+                                  .join(", ")
                               : "N/A"}
                           </Box>
                         </Td>
@@ -1998,12 +1989,14 @@ export const Sessions = ({
                             alignItems="center"
                           >
                             {payees?.length > 0
-                              ? payees.map((payee) => payee.clientName).join(", ")
+                              ? payees
+                                  .map((payee) => payee.clientName)
+                                  .join(", ")
                               : "N/A"}
                           </Box>
                         </Td>
                         <Td>
-                          <Menu >
+                          <Menu>
                             <MenuButton
                               as={IconButton}
                               minWidth="24px"
@@ -2013,27 +2006,48 @@ export const Sessions = ({
                               icon={<Icon as={sessionsEllipsis} />}
                             />
                             <MenuList
-                                style={{minWidth:"139px", padding:"4px"}}>
+                              style={{ minWidth: "139px", padding: "4px" }}
+                            >
                               <MenuItem
                                 width="131px"
                                 height="32px"
                                 display="flex"
-                                  padding="6px 8px"
-                                  alignItems="center"
-                                  gap="8px"
-                                onClick={() => navigate(`/programs/edit/session/${session.id}`)}
+                                padding="6px 8px"
+                                alignItems="center"
+                                gap="8px"
+                                onClick={() =>
+                                  navigate(
+                                    `/programs/edit/session/${session.id}`
+                                  )
+                                }
                               >
-                                  <Icon as={EditIcon} />
-                                  <Text color="#2D3748" fontSize="14px">Edit</Text>
-
+                                <Icon as={EditIcon} />
+                                <Text
+                                  color="#2D3748"
+                                  fontSize="14px"
+                                >
+                                  Edit
+                                </Text>
                               </MenuItem>
-                              <MenuItem  display="flex"
-                                  padding="6px 8px"
-                                  alignItems="center"
-                                  gap="8px" width="131px" height="32px" onClick={() => { setSelectedSingleSession(session.id); deleteModalOnOpen(); }}>
-
-                                  <Icon as={CancelIcon} />
-                                  <Text color="#90080F" fontSize="14px">Cancel</Text>
+                              <MenuItem
+                                display="flex"
+                                padding="6px 8px"
+                                alignItems="center"
+                                gap="8px"
+                                width="131px"
+                                height="32px"
+                                onClick={() => {
+                                  setSelectedSingleSession(session.id);
+                                  deleteModalOnOpen();
+                                }}
+                              >
+                                <Icon as={CancelIcon} />
+                                <Text
+                                  color="#90080F"
+                                  fontSize="14px"
+                                >
+                                  Cancel
+                                </Text>
                               </MenuItem>
                             </MenuList>
                           </Menu>

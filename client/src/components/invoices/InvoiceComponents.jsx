@@ -1,14 +1,6 @@
-import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 
-import {
-  CalendarIcon,
-  CheckCircleIcon,
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DeleteIcon,
-} from "@chakra-ui/icons";
+import { CalendarIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -55,10 +47,9 @@ import { FiMoreHorizontal } from "react-icons/fi";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 
-import redCancelIcon from "../../assets/redCancelIcon";
-import editBlackIcon from "../../assets/editBlackIcon";
 import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
 import { DollarIcon } from "../../assets/DollarIcon";
+import editBlackIcon from "../../assets/editBlackIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import filterIcon from "../../assets/filter.svg";
 import {
@@ -66,13 +57,15 @@ import {
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
 import personIcon from "../../assets/person.svg";
+import redCancelIcon from "../../assets/redCancelIcon";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { PaginationComponent } from "../PaginationComponent";
 import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusSortingModal from "../sorting/StatusFilter";
-import { PaginationComponent } from "../PaginationComponent";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
