@@ -38,6 +38,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
 import { TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
+import{ RoomsSettings } from "./components/settings/SettingsRooms";
 
 const App = () => {
   return (
@@ -218,6 +219,15 @@ const App = () => {
                   element={
                     <ProtectedRoute
                       element={<MyAccount />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings/rooms"
+                  element={
+                    <ProtectedRoute
+                      element={<RoomsSettings/>}
                       allowedRoles={["admin"]}
                     />
                   }
