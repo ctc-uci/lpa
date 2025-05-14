@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import {
   CalendarIcon,
@@ -824,6 +824,14 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     },
     [navigate]
   );
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname === "/invoices") {
+      window.__hasShownToast = false; // 🔁 Reset when user visits invoices page
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (window.__hasShownToast || filteredInvoices.length === 0) return;
