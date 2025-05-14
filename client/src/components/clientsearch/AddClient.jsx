@@ -1,32 +1,83 @@
 import { Box, Flex, Stack, Input, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, useDisclosure, Icon } from "@chakra-ui/react";
 import { PersonIcon } from "../../assets/AdminSettingsIcons";
 import { EmailIcon } from "../../assets/EmailIcon";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import React, { useState } from 'react';
 
 
 export const AddClient = ({ isOpen, onClose, type }) => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const { backend } = useBackendContext();
+
+  const addClient = async () => {
+    try {
+      const name = `${firstName.trim()} ${lastName.trim()}`.trim();
+
+      const res = await backend.post("/clients", {
+        name: name,
+        email: email.trim(),
+      });
+      console.log("Client added:", res.data);
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      onClose();
+    } catch (err) {
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      console.error("Error adding client:", err.message);
+    }
+  };
+
+  const handleCancel = () => {
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    onClose();
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Add New {type}</ModalHeader>
+        <ModalHeader>Add {type}</ModalHeader>
         <ModalBody pb={6}>
           <Stack>
             <Flex>
               <Stack>
-                  <PersonIcon width="50" height="50" />
-                <EmailIcon width="30" height="30" />
+                  <Box height="2px" />
+                  <PersonIcon width="20px" height="20px" />
+                  <Box height="20px"></Box>
+                  <EmailIcon width="20px" height="20px" />
               </Stack>
               <Stack>
-                <Flex gap={2}>
-                  <Input placeholder="First" />
-                  <Input placeholder="Last" />
+                <Flex gap={2} marginLeft="15px">
+                  <Input
+                    placeholder="First"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Last"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
                 </Flex>
-                <Input placeholder="email@address.com" />
+                <Box height="3px"></Box>
+                <Input
+                  marginLeft="15px"
+                  placeholder="email@address.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </Stack>
             </Flex>
             <Flex justifyContent="flex-end" gap={2}>
-              <Button>Cancel</Button>
-              <Button onClick={onClose}>Save</Button>
+              <Button onClick={handleCancel}>Cancel</Button>
+              <Button onClick={addClient} bgColor="#4441C8" color="white">Save</Button>
             </Flex>
           </Stack>
         </ModalBody>
