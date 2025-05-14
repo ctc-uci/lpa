@@ -521,6 +521,7 @@ export const EditRecurringSessions = () => {
             {recurringFrequency.charAt(0).toUpperCase() +
               recurringFrequency.slice(1)}
           </MenuButton>
+
           <MenuList
             minWidth="200px"
             padding="4px"
@@ -559,6 +560,7 @@ export const EditRecurringSessions = () => {
             gap="10px"
           >
             <Text>Every</Text>
+
             <Menu autoSelect={false}>
               <MenuButton
                 as={Button}
@@ -587,8 +589,8 @@ export const EditRecurringSessions = () => {
               >
                 {session.weekday || "Weekday"}
               </MenuButton>
+
               <MenuList
-                minWidth="200px"
                 padding="4px"
                 borderRadius="4px"
                 overflow="hidden"
@@ -620,12 +622,15 @@ export const EditRecurringSessions = () => {
                 ))}
               </MenuList>
             </Menu>
+
             <Text>from</Text>
             <Input
-              width="96px"
               type="time"
-              value={session.startTime || "00:00"}
-              color={session.startTime ? "#2D3748" : "#CBD5E0"}
+              value={session.startTime}
+              sx={{
+                width: "fit-content",
+                color: session.startTime ? "#2D3748" : "#CBD5E0",
+              }}
               onChange={(e) =>
                 handleChangeSessionField(
                   "recurring",
@@ -637,10 +642,12 @@ export const EditRecurringSessions = () => {
             />
             <Text>to</Text>
             <Input
-              width="96px"
               type="time"
-              value={session.endTime || "00:00"}
-              color={session.endTime ? "#2D3748" : "#CBD5E0"}
+              value={session.endTime}
+              sx={{
+                width: "fit-content",
+                color: session.endTime ? "#2D3748" : "#CBD5E0",
+              }}
               onChange={(e) =>
                 handleChangeSessionField(
                   "recurring",
@@ -660,7 +667,7 @@ export const EditRecurringSessions = () => {
                 borderRadius="4px"
                 fontWeight="400"
                 fontSize="14px"
-                width="200px"
+                width="fit-content"
                 display="flex"
                 alignItems="center"
                 padding="0px 16px"
