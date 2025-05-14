@@ -4,6 +4,7 @@ import { SearchIcon } from "@chakra-ui/icons";
 import {
   Flex,
   Heading,
+  Box,
   Image,
   Input,
   InputGroup,
@@ -19,9 +20,8 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoiceFilter } from "../filters/InvoicesFilter";
 import Navbar from "../navbar/Navbar";
 import { PaginationComponent } from "../PaginationComponent";
-import { InvoicesFilter, InvoicesTable } from "./InvoiceComponents";
 import { SearchBar } from "../searchBar/SearchBar";
-
+import { InvoicesFilter, InvoicesTable } from "./InvoiceComponents";
 
 const InvoicesDashboard = () => {
   const toast = useToast();
@@ -32,7 +32,6 @@ const InvoicesDashboard = () => {
   const hasShownToast = useRef(false);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [filterComponentResults, setFilterComponentResults] = useState([]);
-  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -257,16 +256,20 @@ const InvoicesDashboard = () => {
 
   const handleSearch = (value) => {
     setQuery(value);
-    if (value === '') {
+    if (value === "") {
       setFilteredInvoices(invoices);
       return;
     }
 
     const searchValue = value.toLowerCase();
-    const filtered = invoices.filter(invoice => {
+    const filtered = invoices.filter((invoice) => {
       return (
-        (invoice.eventName && invoice.eventName.toLowerCase().includes(searchValue)) ||
-        (invoice.payers && invoice.payers.some(payer => payer && payer.toLowerCase().includes(searchValue)))
+        (invoice.eventName &&
+          invoice.eventName.toLowerCase().includes(searchValue)) ||
+        (invoice.payers &&
+          invoice.payers.some(
+            (payer) => payer && payer.toLowerCase().includes(searchValue)
+          ))
       );
     });
 
@@ -275,8 +278,8 @@ const InvoicesDashboard = () => {
 
   return (
     <Navbar>
+      <Box>
         <Flex
-          w="80%"
           m="50px 30px 20px 30px"
           flexDirection="column"
           padding="20px"
@@ -287,7 +290,6 @@ const InvoicesDashboard = () => {
             justifyContent="space-between"
             mb="40px"
           >
-            {/* <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} /> */}
             <InvoiceFilter
               invoices={invoices}
               setFilteredInvoices={(results) => {
@@ -296,28 +298,25 @@ const InvoicesDashboard = () => {
               }}
             />
             <SearchBar
-            handleSearch={handleSearch}
-            searchQuery={query}
+              handleSearch={handleSearch}
+              searchQuery={query}
             />
-
-          {/* <InputGroup w='400px' borderColor='transparent' >
-            <InputRightElement pointerEvents='none' bgColor="#EDF2F7" borderRadius='0px 6px 6px 0px'>
-              <SearchIcon color='#767778'/>
-            </InputRightElement>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              icon={SearchIcon} borderColor='gray.100'
-              bgColor="#F7FAFC"
-              borderRadius='6px 0px 0px 6px'
-              placeholder="Search..."
-              textColor="#718096"
-            />
-          </InputGroup> */}
+          </Flex>
+          <InvoicesTable
+            filteredInvoices={filteredInvoices}
+            isPaidColor={isPaidColor}
+            seasonColor={seasonColor}
+          />
         </Flex>
-        <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
-
-      </Flex>
+        {/* <Flex> */}
+        <PaginationComponent
+          totalPages={totalPages}
+          goToNextPage={goToNextPage}
+          goToPreviousPage={goToPreviousPage}
+          currentPage={currentPage}
+        />
+        {/* </Flex> */}
+      </Box>
     </Navbar>
   );
 };

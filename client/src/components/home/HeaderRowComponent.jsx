@@ -1,55 +1,42 @@
-import archiveSvg from "../../assets/icons/archive.svg";
-import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
-import plusSvg from "../../assets/icons/plus.svg";
+import { Box, Image, Text } from "@chakra-ui/react";
+
 import { useNavigate } from "react-router-dom";
 
+import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
+import plusSvg from "../../assets/icons/plus.svg";
 
 export const HeaderRowComponent = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="header-row">
-      <div
+    <Box className="header-row">
+      <Box
         className="google-calendar"
         onClick={() => {
           // handle google calendar logic
         }}
       >
-        <img
+        <Image
           src={googleCalendarSvg}
           alt="Google Calendar"
           className="google-calendar-icon"
         />
-        <span className="google-calendar-text">Google Calendar</span>
-      </div>
+        <Text className="google-calendar-text">Google Calendar</Text>
+      </Box>
 
-      <div className="header-right">
-        {/* <div
-          className="archive"
-          onClick={() => {
-            navigate('/programs/archived');
-          }}
-        >
-          <img
-            src={archiveSvg}
-            alt="Archived"
-            className="archive-icon"
-          />
-          <span className="archive-text">Archived</span>
-        </div> */}
-
-        <div
+      <Box className="header-right">
+        <Box
           className="new-program"
           onClick={() => navigate("/programs/newprogram")}
         >
-          <img
+          <Image
             src={plusSvg}
             alt="New Program"
             className="new-program-icon"
           />
-          <span className="new-program-text">New Program</span>
-        </div>
-      </div>
-    </div>
+          <Text className="new-program-text">New Program</Text>
+        </Box>
+      </Box>
+    </Box>
   );
 };

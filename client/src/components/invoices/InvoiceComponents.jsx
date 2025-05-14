@@ -1,4 +1,12 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { CalendarIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import {
@@ -65,7 +73,6 @@ import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusSortingModal from "../sorting/StatusFilter";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
-
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -271,547 +278,563 @@ const InvoiceStats = ({
   );
 };
 
-const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, setHasUnsavedChanges, handleOtherButtonClick }, ref) => {
-  const { id } = useParams();
-  const { backend } = useBackendContext();
-  const [commentsPerPage, setCommentsPerPage] = useState(3);
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  const [adjustValue, setAdjustValue] = useState("--.--");
-  const [showInputRow, setShowInputRow] = useState(false);
-  const [showEditRow, setShowEditRow] = useState(false);
-  const [valueEntered, setValueEntered] = useState(false);
-  const { isOpen: isOpen, onOpen: onOpen, onClose: onClose } = useDisclosure();
-  const [selectedComment, setSelectedComment] = useState(null);
-  const [editID, setEditID] = useState(null);
-  const [deleteID, setDeleteID] = useState(null);
+const InvoicePayments = forwardRef(
+  (
+    {
+      comments,
+      setComments,
+      hasUnsavedChanges,
+      setHasUnsavedChanges,
+      handleOtherButtonClick,
+    },
+    ref
+  ) => {
+    const { id } = useParams();
+    const { backend } = useBackendContext();
+    const [commentsPerPage, setCommentsPerPage] = useState(3);
+    const [currentPageNumber, setCurrentPageNumber] = useState(1);
+    const [adjustValue, setAdjustValue] = useState("--.--");
+    const [showInputRow, setShowInputRow] = useState(false);
+    const [showEditRow, setShowEditRow] = useState(false);
+    const [valueEntered, setValueEntered] = useState(false);
+    const {
+      isOpen: isOpen,
+      onOpen: onOpen,
+      onClose: onClose,
+    } = useDisclosure();
+    const [selectedComment, setSelectedComment] = useState(null);
+    const [editID, setEditID] = useState(null);
+    const [deleteID, setDeleteID] = useState(null);
 
-  const { currentUser } = useAuthContext();
-  const [uid, setUid] = useState(null);
-  const [programName, setProgramName] = useState("");
-  const [invoiceMonth, setInvoiceMonth] = useState("");
-  const [invoiceYear, setInvoiceYear] = useState("");
-  const toast = useToast();
+    const { currentUser } = useAuthContext();
+    const [uid, setUid] = useState(null);
+    const [programName, setProgramName] = useState("");
+    const [invoiceMonth, setInvoiceMonth] = useState("");
+    const [invoiceYear, setInvoiceYear] = useState("");
+    const toast = useToast();
 
-  useEffect(() => {
-    const fetchUid = async () => {
-      console.log("In fetchUid");
-      console.log("In fetchUid", currentUser.email);
+    useEffect(() => {
+      const fetchUid = async () => {
+        console.log("In fetchUid");
+        console.log("In fetchUid", currentUser.email);
+        try {
+          const uidResponse = await backend.get(
+            "/users/email/" + currentUser.email
+          );
+          setUid(uidResponse.data?.id || null);
+        } catch (err) {
+          console.error("Error fetching UID:", err);
+        }
+      };
+      fetchUid();
+    }, [backend, currentUser]);
+
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
+          const currentInvoice = currentInvoiceResponse.data[0];
+          const date = new Date(currentInvoice.startDate);
+          setInvoiceMonth(date.toLocaleString("default", { month: "long" }));
+          setInvoiceYear(date.getFullYear());
+          const programNameResponse = await backend.get(
+            "/events/" + currentInvoice.eventId
+          );
+          setProgramName(
+            programNameResponse.data[0].name.split(" ").slice(0, 3).join(" ")
+          );
+        } catch (err) {
+          console.error("Error fetching bookings:", err);
+        }
+      };
+      fetchData();
+    }, [backend, id]);
+
+    useImperativeHandle(ref, () => ({
+      handleSaveComment: handleSaveComment,
+    }));
+
+    const currentPageComments = comments ?? [];
+
+    const handleDeleteComment = async () => {
       try {
-        const uidResponse = await backend.get(
-          "/users/email/" + currentUser.email
+        await backend.delete("/comments/" + deleteID);
+        const commentsResponse = await backend.get(
+          "/comments/paidInvoices/" + id
         );
-        setUid(uidResponse.data?.id || null);
-      } catch (err) {
-        console.error("Error fetching UID:", err);
+        setComments(commentsResponse.data);
+        onClose();
+      } catch (error) {
+        console.error("Error deleting:", error);
       }
     };
-    fetchUid();
-  }, [backend, currentUser]);
 
-  useEffect(() => {
-    const fetchData = async () => {
+    const handleShowDelete = (comment) => {
       try {
-        const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
-        const currentInvoice = currentInvoiceResponse.data[0];
-        const date = new Date(currentInvoice.startDate);
-        setInvoiceMonth(date.toLocaleString("default", { month: "long" }));
-        setInvoiceYear(date.getFullYear());
-        const programNameResponse = await backend.get(
-          "/events/" + currentInvoice.eventId
-        );
-        setProgramName(
-          programNameResponse.data[0].name.split(" ").slice(0, 3).join(" ")
-        );
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-      }
-    };
-    fetchData();
-  }, [backend, id]);
-
-  useImperativeHandle(ref, () => ({
-    handleSaveComment: handleSaveComment,
-  }));
-
-
-  const currentPageComments = comments ?? [];
-
-  const handleDeleteComment = async () => {
-    try {
-      await backend.delete("/comments/" + deleteID);
-      const commentsResponse = await backend.get(
-        "/comments/paidInvoices/" + id
-      );
-      setComments(commentsResponse.data);
-      onClose();
-    } catch (error) {
-      console.error("Error deleting:", error);
-    }
-  };
-
-  const handleShowDelete = (comment) => {
-    try {
-      if (hasUnsavedChanges) {
-        handleButtonWhileUnsaved(() => {
-          setSelectedComment(comment);
-          setDeleteID(comment.id);
-          onOpen();
-      });
-        } else {
+        if (hasUnsavedChanges) {
+          handleButtonWhileUnsaved(() => {
             setSelectedComment(comment);
             setDeleteID(comment.id);
             onOpen();
+          });
+        } else {
+          setSelectedComment(comment);
+          setDeleteID(comment.id);
+          onOpen();
         }
-    } catch (error) {
-      console.error("Error showing modal:", error);
-    }
-  };
+      } catch (error) {
+        console.error("Error showing modal:", error);
+      }
+    };
 
-  const handleEditComment = (edit) => {
-    try {
-      if (hasUnsavedChanges) {
-        handleButtonWhileUnsaved(() => {
+    const handleEditComment = (edit) => {
+      try {
+        if (hasUnsavedChanges) {
+          handleButtonWhileUnsaved(() => {
+            setEditID(edit);
+            setShowEditRow(true);
+            setHasUnsavedChanges(true);
+          });
+        } else {
           setEditID(edit);
           setShowEditRow(true);
           setHasUnsavedChanges(true);
-        });
-      } else {
-        setEditID(edit);
-        setShowEditRow(true);
-        setHasUnsavedChanges(true);
+        }
+      } catch (error) {
+        console.error("Error editing:", error);
       }
-    } catch (error) {
-      console.error("Error editing:", error);
-    }
-  };
+    };
 
-  const handleSaveComment = async () => {
-    try {
-      const commentsData = {
-        user_id: uid,
-        invoice_id: id,
-        booking_id: null,
-        datetime: new Date().toISOString(),
-        comment: "",
-        adjustment_type: "paid",
-        adjustment_value: Number(adjustValue),
-      };
+    const handleSaveComment = async () => {
+      try {
+        const commentsData = {
+          user_id: uid,
+          invoice_id: id,
+          booking_id: null,
+          datetime: new Date().toISOString(),
+          comment: "",
+          adjustment_type: "paid",
+          adjustment_value: Number(adjustValue),
+        };
 
-      if (showEditRow) {
-        await backend.put("/comments/" + editID, commentsData);
-        toast({
-          position: "bottom-right",
-          duration: 3000,
-          status: "success",
-          render: () => (
-            <HStack
-              bg="green.100"
-              p={4}
-              borderRadius="md"
-              boxShadow="md"
-              borderLeft="6px solid"
-              borderColor="green.500"
-              spacing={3}
-              align="center"
-            >
-              <Icon
-                as={CheckCircleIcon}
-                color="green.600"
-                boxSize={5}
-              />
-              <VStack
-                align="left"
-                spacing={0}
+        if (showEditRow) {
+          await backend.put("/comments/" + editID, commentsData);
+          toast({
+            position: "bottom-right",
+            duration: 3000,
+            status: "success",
+            render: () => (
+              <HStack
+                bg="green.100"
+                p={4}
+                borderRadius="md"
+                boxShadow="md"
+                borderLeft="6px solid"
+                borderColor="green.500"
+                spacing={3}
+                align="center"
               >
-                <Text
-                  color="#2D3748"
-                  fontFamily="Inter"
-                  fontSize="16px"
-                  fontStyle="normal"
-                  fontWeight={700}
-                  lineHeight="normal"
-                  letterSpacing="0.08px"
+                <Icon
+                  as={CheckCircleIcon}
+                  color="green.600"
+                  boxSize={5}
+                />
+                <VStack
+                  align="left"
+                  spacing={0}
                 >
-                  Payment Saved
-                </Text>
-                {invoiceMonth && invoiceYear && (
-                  <Text fontSize="sm">
-                    {programName}_{invoiceMonth} {invoiceYear}
+                  <Text
+                    color="#2D3748"
+                    fontFamily="Inter"
+                    fontSize="16px"
+                    fontStyle="normal"
+                    fontWeight={700}
+                    lineHeight="normal"
+                    letterSpacing="0.08px"
+                  >
+                    Payment Saved
                   </Text>
-                )}
-              </VStack>
-            </HStack>
-          ),
-        });
-      } else {
-        await backend.post("/comments/", commentsData);
-        toast({
-          position: "bottom-right",
-          duration: 3000,
-          status: "success",
-          render: () => (
-            <HStack
-              bg="green.100"
-              p={4}
-              borderRadius="md"
-              boxShadow="md"
-              borderLeft="6px solid"
-              borderColor="green.500"
-              spacing={3}
-              align="center"
-            >
-              <Icon
-                as={CheckCircleIcon}
-                color="green.600"
-                boxSize={5}
-              />
-              <VStack
-                align="left"
-                spacing={0}
+                  {invoiceMonth && invoiceYear && (
+                    <Text fontSize="sm">
+                      {programName}_{invoiceMonth} {invoiceYear}
+                    </Text>
+                  )}
+                </VStack>
+              </HStack>
+            ),
+          });
+        } else {
+          await backend.post("/comments/", commentsData);
+          toast({
+            position: "bottom-right",
+            duration: 3000,
+            status: "success",
+            render: () => (
+              <HStack
+                bg="green.100"
+                p={4}
+                borderRadius="md"
+                boxShadow="md"
+                borderLeft="6px solid"
+                borderColor="green.500"
+                spacing={3}
+                align="center"
               >
-                <Text
-                  color="#2D3748"
-                  fontFamily="Inter"
-                  fontSize="16px"
-                  fontStyle="normal"
-                  fontWeight={700}
-                  lineHeight="normal"
-                  letterSpacing="0.08px"
+                <Icon
+                  as={CheckCircleIcon}
+                  color="green.600"
+                  boxSize={5}
+                />
+                <VStack
+                  align="left"
+                  spacing={0}
                 >
-                  New Payment Added
-                </Text>
-                {invoiceMonth && invoiceYear && (
-                  <Text fontSize="sm">
-                    {programName}_{invoiceMonth} {invoiceYear}
+                  <Text
+                    color="#2D3748"
+                    fontFamily="Inter"
+                    fontSize="16px"
+                    fontStyle="normal"
+                    fontWeight={700}
+                    lineHeight="normal"
+                    letterSpacing="0.08px"
+                  >
+                    New Payment Added
                   </Text>
-                )}
-              </VStack>
-            </HStack>
-          ),
-        });
+                  {invoiceMonth && invoiceYear && (
+                    <Text fontSize="sm">
+                      {programName}_{invoiceMonth} {invoiceYear}
+                    </Text>
+                  )}
+                </VStack>
+              </HStack>
+            ),
+          });
+        }
+        const commentsResponse = await backend.get(
+          "/comments/paidInvoices/" + id
+        );
+        setComments(commentsResponse.data);
+        setShowEditRow(false);
+        setShowInputRow(false);
+        setHasUnsavedChanges(false);
+        setAdjustValue("--.--");
+      } catch (error) {
+        console.error("Error saving:", error);
       }
-      const commentsResponse = await backend.get(
-        "/comments/paidInvoices/" + id
-      );
-      setComments(commentsResponse.data);
-      setShowEditRow(false);
-      setShowInputRow(false);
-      setHasUnsavedChanges(false);
-      setAdjustValue("--.--");
-    } catch (error) {
-      console.error("Error saving:", error);
-    }
-  };
+    };
 
-  const handleAddComment = async () => {
-    setShowInputRow(true);
-    setHasUnsavedChanges(true);
-  };
+    const handleAddComment = async () => {
+      setShowInputRow(true);
+      setHasUnsavedChanges(true);
+    };
 
-  const handleButtonWhileUnsaved = (onContinue) => {
-      handleOtherButtonClick(onContinue)
-  }
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/,/g, ".");
-  };
+    const handleButtonWhileUnsaved = (onContinue) => {
+      handleOtherButtonClick(onContinue);
+    };
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date
+        .toLocaleDateString("en-US", {
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        })
+        .replace(/,/g, ".");
+    };
 
-  return (
-    <Flex
-      direction="column"
-      w="100%"
-    >
+    return (
       <Flex
-        direction="row"
-        width="100%"
-        justifyContent="space-between"
-        marginBottom="12px"
-        marginTop="26px"
+        direction="column"
+        w="100%"
       >
-        <Text
-          fontWeight="700"
-          fontSize="16px"
-          color="#474849"
+        <Flex
+          direction="row"
+          width="100%"
+          justifyContent="space-between"
+          marginBottom="12px"
+          marginTop="26px"
+        >
+          <Text
+            fontWeight="700"
+            fontSize="16px"
+            color="#474849"
+            mb={3}
+          >
+            Payments
+          </Text>
+          {!showInputRow && !showEditRow ? (
+            <Button
+              onClick={handleAddComment}
+              leftIcon={<DarkPlusIcon />}
+              fontSize={"14px"}
+              fontWeight={"700"}
+              height={"40px"}
+              padding={"0px 16px"}
+            >
+              Add
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSaveComment}
+              disabled={!valueEntered}
+            >
+              Save
+            </Button>
+          )}
+        </Flex>
+
+        <Flex
+          borderRadius={15}
+          borderWidth=".07em"
+          borderColor="#E2E8F0"
+          padding="20px"
           mb={3}
         >
-          Payments
-        </Text>
-        {!showInputRow && !showEditRow ? (
-          <Button
-            onClick={handleAddComment}
-            leftIcon={<DarkPlusIcon />}
-            fontSize={"14px"}
-            fontWeight={"700"}
-            height={"40px"}
-            padding={"0px 16px"}
-          >
-            Add
-          </Button>
-        ) : (
-          <Button
-            onClick={handleSaveComment}
-            disabled={!valueEntered}
-          >
-            Save
-          </Button>
-        )}
-      </Flex>
-
-      <Flex
-        borderRadius={15}
-        borderWidth=".07em"
-        borderColor="#E2E8F0"
-        padding="20px"
-        mb={3}
-      >
-        <Table color="#EDF2F7">
-          <Tbody
-            color="#2D3748"
-            width="100%"
-          >
-            {comments && comments.length > 0 ? (
-              [...currentPageComments]
-                .sort((a, b) => a.id - b.id)
-                .map((comment) => (
-                  <Tr
-                    alignItems="center"
-                    alignSelf="stretch"
-                    gap="12px"
-                    key={comment.id}
-                  >
-                    <Td
-                      fontSize="14px"
-                      paddingInlineStart="8px"
-                      paddingInlineEnd="8px"
-                    >
-                      {format(new Date(comment.datetime), "EEE. M/d/yy")}
-                    </Td>
-                    <Td
-                      fontSize="14px"
-                      color="#0C824D"
-                      fontWeight="700"
-                      paddingInlineStart="8px"
-                      paddingInlineEnd="8px"
-                    >
-                      {showEditRow && comment.id === editID ? (
-                        <Flex alignItems="center">
-                          <Text
-                            color="#0C824D"
-                            fontWeight="bold"
-                          >
-                            $
-                          </Text>
-                          <Input
-                            type="number"
-                            placeholder="__.__"
-                            value={adjustValue}
-                            w="60px"
-                            color="#0C824D"
-                            fontWeight="700"
-                            fontSize="14px"
-                            variant="unstyled"
-                            onChange={(e) => setAdjustValue(e.target.value)}
-                          />
-                        </Flex>
-                      ) : comment.adjustmentValue ? (
-                        `$${Number(comment.adjustmentValue).toFixed(0)}`
-                      ) : (
-                        "N/A"
-                      )}
-                    </Td>
-                    <Td
-                      textAlign="right"
-                      width="1%"
-                      paddingInlineStart="4px"
-                      paddingInlineEnd="4px"
-                    >
-                      <Menu>
-                        <MenuButton
-                          as={IconButton}
-                          className="ellipsis-action-button"
-                          icon={<Icon as={sessionsEllipsis} />}
-
-                        />
-                        <MenuList>
-                          <MenuItem
-                            onClick={() => handleEditComment(comment.id)}
-                            style={{
-                              display: "flex",
-                              width: "131px",
-                              padding: "6px 8px",
-                              alignItems: "center",
-                              gap: "10px",
-                              borderRadius: "4px",
-                              background: "#FFF"
-                            }}
-                          >
-                            <Box
-                              display="flex"
-                              alignItems="center"
-                              gap="8px"
-                            >
-                              <Icon as={editBlackIcon} />
-                              <Text color="#2D3748">Edit</Text>
-                            </Box>
-                          </MenuItem>
-                          <MenuItem
-                            onClick={() => handleShowDelete(comment)}
-                            style={{
-                              display: "flex",
-                              width: "131px",
-                              padding: "6px 8px",
-                              alignItems: "center",
-                              gap: "10px",
-                              borderRadius: "4px",
-                              background: "#FFF"
-                            }}
-                          >
-                            <Box
-                              display="flex"
-                              alignItems="center"
-                              gap="8px"
-                            >
-                              <Icon as={redCancelIcon} />
-                              <Text color="#90080F">Cancel</Text>
-                            </Box>
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Td>
-                  </Tr>
-                ))
-            ) : (
-              <Tr>
-                <Td colSpan={3}>No comments available.</Td>
-              </Tr>
-            )}
-
-            <Modal
-              isOpen={isOpen}
-              onClose={onClose}
+          <Table color="#EDF2F7">
+            <Tbody
+              color="#2D3748"
+              width="100%"
             >
-              <ModalOverlay />
-              <ModalContent>
-                <ModalHeader
-                  color={"var(--Secondary-7, #4A5568)"}
-                  fontFamily={"Inter"}
-                  fontSize={"16px"}
-                  fontWeight={"700"}
-                  mt={"10px"}
-                >
-                  Delete Payment for{" "}
-                  {selectedComment ? formatDate(selectedComment.datetime) : ""}?
-                </ModalHeader>
-                <ModalCloseButton />
-                <ModalBody>
-                  <Text fontFamily={"Inter"}>
-                    This payment will be permanently deleted.
-                  </Text>
-                </ModalBody>
+              {comments && comments.length > 0 ? (
+                [...currentPageComments]
+                  .sort((a, b) => a.id - b.id)
+                  .map((comment) => (
+                    <Tr
+                      alignItems="center"
+                      alignSelf="stretch"
+                      gap="12px"
+                      key={comment.id}
+                    >
+                      <Td
+                        fontSize="14px"
+                        paddingInlineStart="8px"
+                        paddingInlineEnd="8px"
+                      >
+                        {format(new Date(comment.datetime), "EEE. M/d/yy")}
+                      </Td>
+                      <Td
+                        fontSize="14px"
+                        color="#0C824D"
+                        fontWeight="700"
+                        paddingInlineStart="8px"
+                        paddingInlineEnd="8px"
+                      >
+                        {showEditRow && comment.id === editID ? (
+                          <Flex alignItems="center">
+                            <Text
+                              color="#0C824D"
+                              fontWeight="bold"
+                            >
+                              $
+                            </Text>
+                            <Input
+                              type="number"
+                              placeholder="__.__"
+                              value={adjustValue}
+                              w="60px"
+                              color="#0C824D"
+                              fontWeight="700"
+                              fontSize="14px"
+                              variant="unstyled"
+                              onChange={(e) => setAdjustValue(e.target.value)}
+                            />
+                          </Flex>
+                        ) : comment.adjustmentValue ? (
+                          `$${Number(comment.adjustmentValue).toFixed(0)}`
+                        ) : (
+                          "N/A"
+                        )}
+                      </Td>
+                      <Td
+                        textAlign="right"
+                        width="1%"
+                        paddingInlineStart="4px"
+                        paddingInlineEnd="4px"
+                      >
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            className="ellipsis-action-button"
+                            icon={<Icon as={sessionsEllipsis} />}
+                          />
+                          <MenuList>
+                            <MenuItem
+                              onClick={() => handleEditComment(comment.id)}
+                              style={{
+                                display: "flex",
+                                width: "131px",
+                                padding: "6px 8px",
+                                alignItems: "center",
+                                gap: "10px",
+                                borderRadius: "4px",
+                                background: "#FFF",
+                              }}
+                            >
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="8px"
+                              >
+                                <Icon as={editBlackIcon} />
+                                <Text color="#2D3748">Edit</Text>
+                              </Box>
+                            </MenuItem>
+                            <MenuItem
+                              onClick={() => handleShowDelete(comment)}
+                              style={{
+                                display: "flex",
+                                width: "131px",
+                                padding: "6px 8px",
+                                alignItems: "center",
+                                gap: "10px",
+                                borderRadius: "4px",
+                                background: "#FFF",
+                              }}
+                            >
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                gap="8px"
+                              >
+                                <Icon as={redCancelIcon} />
+                                <Text color="#90080F">Cancel</Text>
+                              </Box>
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
+                      </Td>
+                    </Tr>
+                  ))
+              ) : (
+                <Tr>
+                  <Td colSpan={3}>No comments available.</Td>
+                </Tr>
+              )}
 
-                <ModalFooter
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                  }}
-                >
-                  <Button
-                    variant="ghost"
-                    onClick={onClose}
+              <Modal
+                isOpen={isOpen}
+                onClose={onClose}
+              >
+                <ModalOverlay />
+                <ModalContent>
+                  <ModalHeader
+                    color={"var(--Secondary-7, #4A5568)"}
                     fontFamily={"Inter"}
-                    backgroundColor={"#EDF2F7"}
-                    fontSize={"14px"}
-                    fontWeight={"500"}
+                    fontSize={"16px"}
+                    fontWeight={"700"}
+                    mt={"10px"}
                   >
-                    Exit
-                  </Button>
-                  <Button
-                    mr={3}
-                    ml={"12px"}
-                    _hover={{ backgroundColor: "#71060C"}}
-                    backgroundColor={"#90080F"}
-                    fontFamily={"Inter"}
-                    fontSize={"14px"}
-                    fontWeight={"500"}
-                    borderRadius={"6px"}
-                    color={"white"}
-                    onClick={() => {
-                      handleDeleteComment();
+                    Delete Payment for{" "}
+                    {selectedComment
+                      ? formatDate(selectedComment.datetime)
+                      : ""}
+                    ?
+                  </ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    <Text fontFamily={"Inter"}>
+                      This payment will be permanently deleted.
+                    </Text>
+                  </ModalBody>
+
+                  <ModalFooter
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
                     }}
                   >
-                    Confirm
-                  </Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
-            {showInputRow && (
-              <Tr
-                alignItems="center"
-                alignSelf="stretch"
-                gap="12px"
-              >
-                <Td
-                  fontSize="14px"
-                  paddingInlineStart="8px"
-                  paddingInlineEnd="8px"
-                >
-                  {format(new Date(), "EEE. M/d/yy")}
-                </Td>
-                <Td
-                  fontSize="14px"
-                  color="#0C824D"
-                  fontWeight="700"
-                  paddingInlineStart="8px"
-                  paddingInlineEnd="8px"
-                >
-                  <Flex alignItems="center">
-                    <Text
-                      color="#0C824D"
-                      fontWeight="bold"
+                    <Button
+                      variant="ghost"
+                      onClick={onClose}
+                      fontFamily={"Inter"}
+                      backgroundColor={"#EDF2F7"}
+                      fontSize={"14px"}
+                      fontWeight={"500"}
                     >
-                      $
-                    </Text>
-                    <Input
-                      type="number"
-                      placeholder="__.__"
-                      value={adjustValue}
-                      w="60px"
-                      fontSize="14px"
-                      color="#0C824D"
-                      fontWeight="400"
-                      variant="unstyled"
-                      onChange={(e) => setAdjustValue(e.target.value)}
-                    ></Input>
-                  </Flex>
-                </Td>
-                <Td
-                  textAlign="right"
-                  width="1%"
-                  paddingInlineStart="4px"
-                  paddingInlineEnd="4px"
+                      Exit
+                    </Button>
+                    <Button
+                      mr={3}
+                      ml={"12px"}
+                      _hover={{ backgroundColor: "#71060C" }}
+                      backgroundColor={"#90080F"}
+                      fontFamily={"Inter"}
+                      fontSize={"14px"}
+                      fontWeight={"500"}
+                      borderRadius={"6px"}
+                      color={"white"}
+                      onClick={() => {
+                        handleDeleteComment();
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+              {showInputRow && (
+                <Tr
+                  alignItems="center"
+                  alignSelf="stretch"
+                  gap="12px"
                 >
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      className="ellipsis-action-button"
-                      icon={<Icon as={sessionsEllipsis} />}
-                    />
-                  </Menu>
-                </Td>
-              </Tr>
-            )}
-          </Tbody>
-        </Table>
+                  <Td
+                    fontSize="14px"
+                    paddingInlineStart="8px"
+                    paddingInlineEnd="8px"
+                  >
+                    {format(new Date(), "EEE. M/d/yy")}
+                  </Td>
+                  <Td
+                    fontSize="14px"
+                    color="#0C824D"
+                    fontWeight="700"
+                    paddingInlineStart="8px"
+                    paddingInlineEnd="8px"
+                  >
+                    <Flex alignItems="center">
+                      <Text
+                        color="#0C824D"
+                        fontWeight="bold"
+                      >
+                        $
+                      </Text>
+                      <Input
+                        type="number"
+                        placeholder="__.__"
+                        value={adjustValue}
+                        w="60px"
+                        fontSize="14px"
+                        color="#0C824D"
+                        fontWeight="400"
+                        variant="unstyled"
+                        onChange={(e) => setAdjustValue(e.target.value)}
+                      ></Input>
+                    </Flex>
+                  </Td>
+                  <Td
+                    textAlign="right"
+                    width="1%"
+                    paddingInlineStart="4px"
+                    paddingInlineEnd="4px"
+                  >
+                    <Menu>
+                      <MenuButton
+                        as={IconButton}
+                        className="ellipsis-action-button"
+                        icon={<Icon as={sessionsEllipsis} />}
+                      />
+                    </Menu>
+                  </Td>
+                </Tr>
+              )}
+            </Tbody>
+          </Table>
+        </Flex>
       </Flex>
-    </Flex>
-  );
-});
+    );
+  }
+);
 
 function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const [sortKey, setSortKey] = useState("title");
@@ -849,7 +872,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       }
     });
   }, [filteredInvoices, toast]);
-
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
@@ -909,14 +931,14 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 
   return (
     <>
-      <Box position="relative">
+      <Box>
         <TableContainer>
           <Table>
             <Thead>
               <Tr>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
                 >
                   <HStack
                     spacing={2}
@@ -928,13 +950,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
                 >
                   INVOICE SENT
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
                 >
                   <HStack
                     spacing={2}
@@ -947,7 +969,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
                 >
                   <Flex align="center">
                     <FaUser style={{ marginRight: "8px" }} />
@@ -956,7 +978,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
                 >
                   <HStack
                     spacing={2}
@@ -970,13 +992,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
                 >
                   SEASON
                 </Th>
                 <Th
                   textTransform="none"
-                  fontSize="md"
+                  fontSize="12px"
                 >
                   DOWNLOADS
                 </Th>
@@ -992,95 +1014,106 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
 
                 return (
-                    <Tr key={index} onClick = {() => handleRowClick(invoice.id)}>
-                      <Td
-                        style={{
-                          color: isPaidColor(invoice),
-                          fontWeight:
-                            invoice.isPaid === "Past Due" ? "bold" : "normal",
-                        }}
+                  <Tr
+                    key={index}
+                    onClick={() => handleRowClick(invoice.id)}
+                  >
+                    <Td
+                      style={{
+                        color: isPaidColor(invoice),
+                        fontWeight:
+                          invoice.isPaid === "Past Due" ? "bold" : "normal",
+                      }}
+                    >
+                      {invoice.isPaid}
+                    </Td>
+                    <Td>
+                      <Flex
+                        justifyContent="center"
+                        align="center"
+                        w="60%"
                       >
-                        {invoice.isPaid}
-                      </Td>
-                      <Td>
-                        <Flex
-                          justifyContent="center"
-                          align="center"
-                          w="60%"
-                        >
-                          {invoice.isSent ? (
-                            <Icon
-                              as={FaCircle}
-                              color="#0C824D"
-                              boxSize={4}
-                            />
-                          ) : (
-                            <Icon
-                              as={FaCircle}
-                              color="#EA4335"
-                              boxSize={4}
-                            />
-                          )}
-                        </Flex>
-                      </Td>
-                      <Td>{invoice.eventName}</Td>
-                      <Td>
-                        {validPayers.length > 1
-                          ? `${validPayers[0].trim()},...`
-                          : validPayers.length === 1
-                            ? validPayers[0].trim()
-                            : "N/A"}
-                      </Td>
-                      <Td>{formatDate(invoice.endDate)}</Td>
-                      <Td>
-                        <Tag
-                          bg={tagBgColor}
-                          color={tagTextColor}
-                        >
-                          {invoice.season}
-                        </Tag>
-                      </Td>
-                      <Td>
-                        <Flex ml="18px">
-                          <PDFButtonInvoice id={invoice.id} />
-                        </Flex>
-                      </Td>
-                      <Td>
-                        <Menu>
-                          <MenuButton
-                          className="ellipsis-action-button"
-                            as={IconButton}
-                            size="sm"
-                            bg="#EDF2F7"
-                            color="#000000"
-                            borderRadius="md"
-                            icon={<FiMoreHorizontal />}
-                            onClick ={(e) => {
-                              e.stopPropagation();
-                            }
-                            }
+                        {invoice.isSent ? (
+                          <Icon
+                            as={FaCircle}
+                            color="#0C824D"
+                            boxSize={4}
                           />
-                          <MenuList>
-                            <MenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditInvoice(invoice.id);
-                              }}
+                        ) : (
+                          <Icon
+                            as={FaCircle}
+                            color="#EA4335"
+                            boxSize={4}
+                          />
+                        )}
+                      </Flex>
+                    </Td>
+                    <Td>{invoice.eventName}</Td>
+                    <Td>
+                      {validPayers.length > 1
+                        ? `${validPayers[0].trim()},...`
+                        : validPayers.length === 1
+                          ? validPayers[0].trim()
+                          : "N/A"}
+                    </Td>
+                    <Td>{formatDate(invoice.endDate)}</Td>
+                    <Td>
+                      <Tag
+                        bg={tagBgColor}
+                        color={tagTextColor}
+                      >
+                        {invoice.season}
+                      </Tag>
+                    </Td>
+                    <Td>
+                      <Flex ml="18px">
+                        <PDFButtonInvoice id={invoice.id} />
+                      </Flex>
+                    </Td>
+                    <Td>
+                      <Menu>
+                        <MenuButton
+                          className="ellipsis-action-button"
+                          as={IconButton}
+                          size="sm"
+                          bg="#EDF2F7"
+                          color="#000000"
+                          borderRadius="md"
+                          icon={<FiMoreHorizontal />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        />
+                        <MenuList>
+                          <MenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditInvoice(invoice.id);
+                            }}
+                          >
+                            <Box
+                              display="flex"
+                              padding="6px 8px"
+                              alignItems="center"
+                              gap="10px"
                             >
-                              <Box
-                                display="flex"
-                                padding = "6px 8px"
-                                alignItems="center"
-                                gap="10px"
+                              <Icon as={editBlackIcon} />
+                              <Text
+                                font-family="Inter"
+                                font-size="14px"
+                                font-weight="400"
+                                line-height="normal"
+                                letter-spacing="0.07px"
+                                color="#2D3748"
                               >
-                                <Icon as={editBlackIcon} />
-                                <Text font-family="Inter" font-size="14px" font-weight="400" line-height="normal"  letter-spacing="0.07px" color="#2D3748">Edit Invoice</Text>
-                              </Box>
-                            </MenuItem>
-                          </MenuList>
-                        </Menu>
-                      </Td>
-                    </Tr>
+                                Edit Invoice
+                              </Text>
+                            </Box>
+                          </MenuItem>
+                        </MenuList>
+                      </Menu>
+                    </Td>
+                  </Tr>
                 );
               })}
               {currentInvoices.length === 0 && (
