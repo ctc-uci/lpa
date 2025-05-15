@@ -104,7 +104,6 @@ import DateSortingModal from "../sorting/DateFilter";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
-
 const truncateNames = (name, maxLength = 30) => {
   if (!name) return "N/A";
   return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
@@ -429,8 +428,8 @@ export const ProgramSummary = ({
                   <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
                     Invoice
                   </PDFButton>
+
                   <Popover
-                    id="popTrigger"
                     placement="bottom-start"
                     isOpen={popoverIsOpen}
                     onOpen={popoverOnOpen}
@@ -438,125 +437,72 @@ export const ProgramSummary = ({
                   >
                     {({ isOpen, onClose }) => (
                       <>
-                        <PopoverTrigger asChild>
-                          <Icon
-                            boxSize="7"
-                            className="ellipsis-action-button"
-                          >
-                            <EllipsisIcon />
-                          </Icon>
+                        <PopoverTrigger>
+                          <IconButton icon={<EllipsisIcon />} />
                         </PopoverTrigger>
-                        <PopoverContent
-                          style={{
-                            display: "flex",
-                            padding: "4px",
-                            flexDirection: "column",
-                            alignItems: "flex-start",
-                            gap: "10px",
-                            borderRadius: "6px",
-                            border: "1px solid var(--Secondary-3, #E2E8F0)",
-                            background: "#FFF",
-                            boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
-                            width: "139px",
-                            minWidth: "139px",
-                            maxWidth: "139px"
-                          }}
-                        >
-                          <PopoverBody padding="0">
+
+                        <PopoverContent sx={{ width: "fit-content" }}>
+                          <PopoverBody>
                             {!isArchived ? (
-                              <div>
-                                <div
-                                  id="popoverChoice"
-                                  color="#767778"
-                                  style={{
-                                    display: "flex",
-                                    width: "131px",
-                                    padding: "6px 8px",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    borderRadius: "4px",
-                                    background: "#FFF"
-                                  }}
+                              <Box>
+                                <Button
+                                  variant="ghost"
+                                  w="full"
+                                  justifyContent="flex-start"
+                                  leftIcon={<EditIcon />}
+                                  onClick={toEditProgram}
                                 >
-                                  <EditIcon />
-                                  <p onClick={toEditProgram}>Edit</p>
-                                </div>
-                                <div
-                                  id="cancelBody"
+                                  Edit
+                                </Button>
+
+                                <Button
+                                  variant="ghost"
+                                  w="full"
+                                  justifyContent="flex-start"
+                                  leftIcon={<CancelIcon />}
                                   onClick={() => {
                                     onClose();
                                     setIsArchived(true);
                                     setArchived(true);
                                   }}
-                                  style={{
-                                    display: "flex",
-                                    width: "131px",
-                                    padding: "6px 8px",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    borderRadius: "4px",
-                                    background: "#FFF"
-                                  }}
                                 >
-                                  <Icon fontSize="1xl">
-                                    <CancelIcon id="cancelIcon" />
-                                  </Icon>
-                                  <p>Deactivate</p>
-                                </div>
-                              </div>
+                                  Deactivate
+                                </Button>
+                              </Box>
                             ) : (
                               <div>
                                 <Button
-                                  id="popoverChoice"
+                                  variant="ghost"
+                                  w="full"
+                                  justifyContent="flex-start"
+                                  leftIcon={<DuplicateIcon />}
                                   onClick={duplicateProgram}
-                                  style={{
-                                    display: "flex",
-                                    width: "131px",
-                                    padding: "6px 8px",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    borderRadius: "4px",
-                                    background: "#FFF"
-                                  }}
                                 >
-                                  <DuplicateIcon />
-                                  <p>Duplicate</p>
+                                  Duplicate
                                 </Button>
+
                                 <Button
-                                  id="popoverChoice"
+                                  variant="ghost"
+                                  w="full"
+                                  justifyContent="flex-start"
+                                  leftIcon={<ReactivateIcon />}
                                   onClick={() => {
                                     onClose();
                                     setIsArchived(false);
                                     setArchived(false);
                                   }}
-                                  style={{
-                                    display: "flex",
-                                    width: "131px",
-                                    padding: "6px 8px",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    borderRadius: "4px",
-                                    background: "#FFF"
-                                  }}
                                 >
-                                  <ReactivateIcon />
-                                  <p>Reactivate</p>
+                                  Reactivate
                                 </Button>
+
                                 <Button
-                                  id="deleteBody"
+                                  variant="ghost"
+                                  w="full"
+                                  justifyContent="flex-start"
+                                  leftIcon={<DeleteIconRed />}
                                   onClick={modalOnOpen}
-                                  style={{
-                                    display: "flex",
-                                    width: "131px",
-                                    padding: "6px 8px",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    borderRadius: "4px",
-                                    background: "#FFF"
-                                  }}
                                 >
-                                  <DeleteIconRed />
-                                  <p>Delete</p>
+                                  Delete
                                 </Button>
                               </div>
                             )}
@@ -2061,20 +2007,22 @@ export const Sessions = ({
                               icon={<Icon as={sessionsEllipsis} />}
                             />
                             <MenuList
-                                style={{
-                                  display: "flex",
-                                  padding: "4px",
-                                  flexDirection: "column",
-                                  alignItems: "flex-start",
-                                  gap: "10px",
-                                  borderRadius: "6px",
-                                  border: "1px solid var(--Secondary-3, #E2E8F0)",
-                                  background: "#FFF",
-                                  boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
-                                  width: "139px",
-                                  minWidth: "139px",
-                                  maxWidth: "139px"
-                                }}>
+                              style={{
+                                display: "flex",
+                                padding: "4px",
+                                flexDirection: "column",
+                                alignItems: "flex-start",
+                                gap: "10px",
+                                borderRadius: "6px",
+                                border: "1px solid var(--Secondary-3, #E2E8F0)",
+                                background: "#FFF",
+                                boxShadow:
+                                  "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
+                                width: "139px",
+                                minWidth: "139px",
+                                maxWidth: "139px",
+                              }}
+                            >
                               <MenuItem
                                 style={{
                                   display: "flex",
@@ -2083,9 +2031,13 @@ export const Sessions = ({
                                   alignItems: "center",
                                   gap: "10px",
                                   borderRadius: "4px",
-                                  background: "#FFF"
+                                  background: "#FFF",
                                 }}
-                                onClick={() => navigate(`/programs/edit/session/${session.id}`)}
+                                onClick={() =>
+                                  navigate(
+                                    `/programs/edit/session/${session.id}`
+                                  )
+                                }
                               >
                                 <Icon as={EditIcon} />
                                 <Text
@@ -2103,12 +2055,20 @@ export const Sessions = ({
                                   alignItems: "center",
                                   gap: "10px",
                                   borderRadius: "4px",
-                                  background: "#FFF"
+                                  background: "#FFF",
                                 }}
-                                onClick={() => { setSelectedSingleSession(session.id); deleteModalOnOpen(); }}>
-
-                                  <Icon as={CancelIcon} />
-                                  <Text color="#90080F" fontSize="14px">Cancel</Text>
+                                onClick={() => {
+                                  setSelectedSingleSession(session.id);
+                                  deleteModalOnOpen();
+                                }}
+                              >
+                                <Icon as={CancelIcon} />
+                                <Text
+                                  color="#90080F"
+                                  fontSize="14px"
+                                >
+                                  Cancel
+                                </Text>
                               </MenuItem>
                             </MenuList>
                           </Menu>

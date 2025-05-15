@@ -39,19 +39,23 @@ import { TbRepeat } from "react-icons/tb";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 
-import { CalendarIcon } from "../../assets/CalendarIcon";
-import { DeleteIconRed } from "../../assets/DeleteIconRed";
-import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
-import { sessionsClock, sessionsMapPin } from "../../assets/icons/ProgramIcons";
-import { MdFeaturedPlayList } from "../../assets/MdFeaturedPlayList";
-import { ReactivateIcon } from "../../assets/ReactivateIcon";
-import { SessionsBookmark } from "../../assets/SessionsBookmark";
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import Navbar from "../navbar/Navbar";
-import { DeleteRowModal } from "../popups/DeleteRowModal";
-import { SaveSessionModal } from "../popups/SaveSessionModal";
-import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
-import DateSortingModal from "../sorting/DateFilter";
+import { CalendarIcon } from "../../../assets/CalendarIcon";
+import { DeleteIconRed } from "../../../assets/DeleteIconRed";
+import { FilledOutCalendar } from "../../../assets/FilledOutCalendar";
+import {
+  sessionsClock,
+  sessionsMapPin,
+} from "../../../assets/icons/ProgramIcons";
+import { MdFeaturedPlayList } from "../../../assets/MdFeaturedPlayList";
+import { ReactivateIcon } from "../../../assets/ReactivateIcon";
+import { SessionsBookmark } from "../../../assets/SessionsBookmark";
+import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
+import Navbar from "../../navbar/Navbar";
+import { DeleteRowModal } from "../../popups/DeleteRowModal";
+import { SaveSessionModal } from "../../popups/SaveSessionModal";
+import { UnsavedChangesModal } from "../../popups/UnsavedChangesModal";
+import DateSortingModal from "../../sorting/DateFilter";
+import { RecurringSessionRow } from "./RecurringSessionRow";
 
 export const EditRecurringSessions = () => {
   const { id } = useParams();
@@ -551,183 +555,16 @@ export const EditRecurringSessions = () => {
       </Flex>
 
       {newSessions.recurring.map((session, index) => (
-        <Box
-          key={index}
-          mb={4}
-        >
-          <Flex
-            align="center"
-            gap="10px"
-          >
-            <Text>Every</Text>
-
-            <Menu autoSelect={false}>
-              <MenuButton
-                as={Button}
-                rightIcon={<ChevronDownIcon />}
-                background="transparent"
-                border="1px solid #E2E8F0"
-                borderRadius="4px"
-                fontWeight="400"
-                fontSize="14px"
-                width="200px"
-                display="flex"
-                alignItems="center"
-                padding="0px 16px"
-                justifyContent="flex-start"
-                gap="4px"
-                textAlign="left"
-                color={session.weekday ? "#2D3748" : "#CBD5E0"}
-                _hover={{
-                  bgColor: "#EDF2F7",
-                  borderRadius: "4px",
-                }}
-                _active={{
-                  bgColor: "#EDF2F7",
-                  borderRadius: "4px",
-                }}
-              >
-                {session.weekday || "Weekday"}
-              </MenuButton>
-
-              <MenuList
-                padding="4px"
-                borderRadius="4px"
-                overflow="hidden"
-              >
-                {[
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                  "Saturday",
-                  "Sunday",
-                ].map((day) => (
-                  <MenuItem
-                    key={day}
-                    onClick={() => {
-                      handleChangeSessionField(
-                        "recurring",
-                        index,
-                        "weekday",
-                        day
-                      );
-                      setIsChanged(true);
-                    }}
-                    bg={session.weekday === day ? "#EDF2F7" : "transparent"}
-                  >
-                    {day}
-                  </MenuItem>
-                ))}
-              </MenuList>
-            </Menu>
-
-            <Text>from</Text>
-            <Input
-              type="time"
-              value={session.startTime}
-              sx={{
-                width: "fit-content",
-                color: session.startTime ? "#2D3748" : "#CBD5E0",
-              }}
-              onChange={(e) =>
-                handleChangeSessionField(
-                  "recurring",
-                  index,
-                  "startTime",
-                  e.target.value
-                )
-              }
-            />
-            <Text>to</Text>
-            <Input
-              type="time"
-              value={session.endTime}
-              sx={{
-                width: "fit-content",
-                color: session.endTime ? "#2D3748" : "#CBD5E0",
-              }}
-              onChange={(e) =>
-                handleChangeSessionField(
-                  "recurring",
-                  index,
-                  "endTime",
-                  e.target.value
-                )
-              }
-            />
-            <Text>in</Text>
-            <Menu autoSelect={false}>
-              <MenuButton
-                as={Button}
-                rightIcon={<ChevronDownIcon />}
-                background="transparent"
-                border="1px solid #E2E8F0"
-                borderRadius="4px"
-                fontWeight="400"
-                fontSize="14px"
-                width="fit-content"
-                display="flex"
-                alignItems="center"
-                padding="0px 16px"
-                justifyContent="flex-start"
-                gap="4px"
-                textAlign="left"
-                color={session.roomId ? "#2D3748" : "#CBD5E0"}
-                _hover={{
-                  bgColor: "#EDF2F7",
-                  borderRadius: "4px",
-                }}
-                _active={{
-                  bgColor: "#EDF2F7",
-                  borderRadius: "4px",
-                }}
-              >
-                {session.roomId
-                  ? allRooms.find((room) => room.id === session.roomId)?.name
-                  : "Room"}
-              </MenuButton>
-              <MenuList
-                minWidth="200px"
-                padding="4px"
-                borderRadius="4px"
-                overflow="hidden"
-              >
-                {allRooms.map((room) => (
-                  <MenuItem
-                    key={room.id}
-                    value={room.id}
-                    onClick={() =>
-                      handleChangeSessionField(
-                        "recurring",
-                        index,
-                        "roomId",
-                        room.id
-                      )
-                    }
-                    bg={session.roomId === room.id ? "#EDF2F7" : "transparent"}
-                  >
-                    {room.name}
-                  </MenuItem>
-                ))}
-              </MenuList>
-            </Menu>
-            <Icon
-              as={IoCloseOutline}
-              boxSize="6"
-              color="#2D3748"
-              cursor="pointer"
-              onClick={() => {
-                onDeleteRowModalOpen();
-                setRowToDelete({
-                  type: isRecurring ? "recurring" : "single",
-                  index,
-                });
-              }}
-            />
-          </Flex>
-        </Box>
+        <RecurringSessionRow
+          key={session.id}
+          session={session}
+          index={index}
+          allRooms={allRooms}
+          handleChangeSessionField={handleChangeSessionField}
+          onDeleteRowModalOpen={onDeleteRowModalOpen}
+          setRowToDelete={setRowToDelete}
+          isRecurring={isRecurring}
+        />
       ))}
       <Button
         onClick={handleAddRecurringRow}
