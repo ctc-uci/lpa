@@ -289,11 +289,6 @@ const StatementComments = ({
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
 
-
-  useEffect(() => {
-    console.log("sessions", sessions);
-  }, [sessions]);
-
   useEffect(() => {
     const fetchUserId = async () => {
       const currentFirebaseUser = await getCurrentUser();

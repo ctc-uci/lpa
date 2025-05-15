@@ -131,6 +131,7 @@ export const EditInvoice = () => {
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = React.useRef();
+  
 
   useEffect(() => {
     if (id) {
@@ -347,11 +348,11 @@ export const EditInvoice = () => {
               
               if (existingComment) {
                 // Update existing comment
-                // console.log("existingComment", existingComment);
+                console.log("existingComment", existingComment);
                 await backend.put(`/comments/${existingComment.id}`, commentData);
               } else {
                 // Create new comment
-                // console.log("newComment", commentData);
+                console.log("newComment", commentData);
                 await backend.post(`/comments`, commentData);
               }
             } catch (error) {
@@ -362,7 +363,7 @@ export const EditInvoice = () => {
         } 
         
         // Handle adjustments for each session
-        if (session.adjustmentValues && session.adjustmentValues.length > 0) {
+        if (session.adjustmentValues && session.adjustmentValues.length > 0 && session.adjustmentValues[0]?.type !== "none") {
           for (const adjustmentValue of session.adjustmentValues) {
             // Skip invalid adjustment values
             if (isNaN(adjustmentValue.value) || adjustmentValue.value === undefined) continue;
@@ -372,10 +373,12 @@ export const EditInvoice = () => {
               booking_id: session.bookingId || null,
               invoice_id: id,
               datetime: session.datetime,
-              comment: "",
+              comment: session?.comments && session?.comments.length > 0 ? session?.comments[0]?.comment : "",
               adjustment_type: adjustmentValue.type,
               adjustment_value: adjustmentValue.value,
             };
+
+            
 
             try {
               // Check if this adjustment already exists
@@ -385,12 +388,12 @@ export const EditInvoice = () => {
               
               if (existingAdjustment) {
                 // Update existing adjustment
-                // console.log("existingAdjustmentData", existingAdjustment);
+                console.log("existingAdjustmentData", existingAdjustment);
                 const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
                 // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
               } else {
                 // Create new adjustment
-                // console.log("newAdjustmentData", adjustmentData);
+                console.log("newAdjustmentData", adjustmentData);
                 const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
                 // console.log("newAdjustmentResponse", newAdjustmentResponse);
               }
@@ -428,12 +431,12 @@ export const EditInvoice = () => {
                 
                 if (existingAdjustment) {
                   // Update existing adjustment
-                  // console.log("Summary existingAdjustment", existingAdjustment);
+                  console.log("Summary existingAdjustment", existingAdjustment);
                   const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
                   // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
                 } else {
                   // Create new adjustment
-                  // console.log("Summary newAdjustment", adjustmentData);
+                  console.log("Summary newAdjustment", adjustmentData);
                   const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
                   // console.log("newAdjustmentResponse", newAdjustmentResponse);
                 }
@@ -446,8 +449,7 @@ export const EditInvoice = () => {
         }
       }
 
-      // Navigate to the saved edits page
-      navigate(`/invoices/savededits/${id}`);
+      // navigate(`/invoices/savededits/${id}`);
     } catch (error) {
       console.error("Error saving invoice:", error);
     } finally {
