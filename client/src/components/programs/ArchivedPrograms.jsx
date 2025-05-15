@@ -46,10 +46,10 @@ import {
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { ArchivedFilter } from "../filters/ArchivedFilter";
-import DateSortingModal from "../sorting/DateFilter";
-import ProgramSortingModal from "../sorting/ProgramFilter";
 import Navbar from "../navbar/Navbar";
 import { SearchBar } from "../searchBar/SearchBar";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -282,7 +282,6 @@ export const ArchivedPrograms = () => {
     [navigate]
   );
 
-
   const sortedArchivedSessions = useMemo(() => {
     // Filtered should be the results of the archivedfilter update
     const filtered = filteredArchived;
@@ -413,268 +412,30 @@ export const ArchivedPrograms = () => {
                   gap="1.25rem"
                   alignItems="center"
                 >
-                  <Button
-                    id="programButton"
-                    display="flex"
-                    gap="0.25rem"
-                    onClick={() => {
-                      navigate("/programs");
-                    }}
-                  >
-                    <BackIcon />
-                    <Text
-                      fontSize="sm"
-                      color="#2D3748"
+                  <Flex gap={"4"}>
+                    <Button
+                      id="programButton"
+                      display="flex"
+                      gap="0.25rem"
+                      onClick={() => {
+                        navigate("/programs");
+                      }}
                     >
-                      Programs
-                    </Text>
-                  </Button>
-                  <Popover>
-                    {/* <PopoverTrigger>
-                      <Button
-                        backgroundColor="#EDF2F7"
-                        midWidth="auto"
-                        borderRadius="6px"
+                      <BackIcon />
+                      <Text
+                        fontSize="sm"
+                        color="#2D3748"
                       >
-                        <Box
-                          display="flex"
-                          flexDirection="row"
-                          alignItems="center"
-                          gap="5px"
-                        >
-                          <Icon as={filterButton} />
-                          <Text
-                            fontSize="sm"
-                            color="#2D3748"
-                          >
-                            Filters
-                          </Text>
-                        </Box>
-                      </Button>
-                    </PopoverTrigger> */}
-                    <Portal>
-                      <PopoverContent>
-                        <Box margin="16px">
-                          <PopoverBody>
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              alignItems="flex-start"
-                              gap="24px"
-                              alignSelf="stretch"
-                            >
-                              <FormControl id="date">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={filterDateCalendar} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Date
-                                    </Text>
-                                  </Box>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Input
-                                      size="sm"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="35%"
-                                      height="20%"
-                                      type="date"
-                                      placeholder="MM/DD/YYYY"
-                                      onChange={(e) =>
-                                        handleDateChange(
-                                          "start",
-                                          e.target.value
-                                        )
-                                      }
-                                    />
-                                    <Text> to </Text>
-                                    <Input
-                                      size="sm"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="35%"
-                                      height="20%"
-                                      type="date"
-                                      placeholder="MM/DD/YYYY"
-                                      onChange={(e) =>
-                                        handleDateChange("end", e.target.value)
-                                      }
-                                    />
-                                  </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="time">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={sessionsFilterClock} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Time
-                                    </Text>
-                                  </Box>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Input
-                                      size="xs"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="30%"
-                                      height="20%"
-                                      type="time"
-                                      placeholder="00:00 am"
-                                      onChange={(e) =>
-                                        handleTimeChange(
-                                          "start",
-                                          e.target.value
-                                        )
-                                      }
-                                    />
-                                    <Text> to </Text>
-                                    <Input
-                                      size="xs"
-                                      borderRadius="5px"
-                                      borderColor="#D2D2D2"
-                                      backgroundColor="#F6F6F6"
-                                      width="30%"
-                                      height="20%"
-                                      type="time"
-                                      placeholder="00:00 pm"
-                                      onChange={(e) =>
-                                        handleTimeChange("end", e.target.value)
-                                      }
-                                    />
-                                  </Box>
-                                </Box>
-                              </FormControl>
-                              <FormControl id="room">
-                                <Box
-                                  display="flex"
-                                  flexDirection="column"
-                                  justifyContent="center"
-                                  alignItems="flex-start"
-                                  gap="16px"
-                                  alignSelf="stretch"
-                                >
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap="5px"
-                                    alignSelf="stretch"
-                                  >
-                                    <Icon as={sessionsFilterMapPin} />
-                                    <Text
-                                      fontWeight="bold"
-                                      color="#767778"
-                                    >
-                                      Room
-                                    </Text>
-                                  </Box>
-                                  <Wrap spacing={2}>
-                                    <WrapItem>
-                                      <Button
-                                        borderRadius="30px"
-                                        borderWidth="1px"
-                                        width="auto"
-                                        height="20px"
-                                        onClick={() => setSelectedRoom("All")}
-                                        backgroundColor={
-                                          selectedRoom === "All"
-                                            ? "#EDEDFD"
-                                            : "#F6F6F6"
-                                        }
-                                        borderColor={
-                                          selectedRoom === "All"
-                                            ? "#4E4AE7"
-                                            : "#767778"
-                                        }
-                                      >
-                                        All
-                                      </Button>
-                                    </WrapItem>
-                                    {roomNames &&
-                                      Array.from(roomNames.values()).map(
-                                        (room, index) => (
-                                          <WrapItem>
-                                            <Button
-                                              key={index}
-                                              borderRadius="30px"
-                                              borderWidth="1px"
-                                              minWidth="auto"
-                                              height="20px"
-                                              onClick={() =>
-                                                setSelectedRoom(room)
-                                              }
-                                              backgroundColor={
-                                                selectedRoom === room
-                                                  ? "#EDEDFD"
-                                                  : "#F6F6F6"
-                                              }
-                                              borderColor={
-                                                selectedRoom === room
-                                                  ? "#4E4AE7"
-                                                  : "#767778"
-                                              }
-                                            >
-                                              {room}
-                                            </Button>
-                                          </WrapItem>
-                                        )
-                                      )}
-                                  </Wrap>
-                                </Box>
-                              </FormControl>
-                            </Box>
-                          </PopoverBody>
-                        </Box>
-                      </PopoverContent>
-                    </Portal>
-                  </Popover>
-                  <Flex marginRight="auto">
+                        Programs
+                      </Text>
+                    </Button>
                     <ArchivedFilter
                       archived={archivedSessions}
                       setArchivedPrograms={setFilteredArchived}
                       roomMap={roomNames}
                     />
                   </Flex>
+                  <Box flex="1" />
                   <SearchBar
                     handleSearch={handleSearch}
                     searchQuery={searchQuery}

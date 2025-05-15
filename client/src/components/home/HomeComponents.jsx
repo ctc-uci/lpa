@@ -268,8 +268,6 @@ export const ProgramsTable = () => {
   const { backend } = useBackendContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
-  // const [selectedAction, setSelectedAction] = useState("Archive");
-  // const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
 
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "No bookings";
@@ -529,7 +527,6 @@ export const ProgramsTable = () => {
     setSearchTerm(query);
   };
 
-  // console.log("filterprograms", filteredPrograms);
 
   useEffect(() => {
     const calculateRowsPerPage = () => {
@@ -585,7 +582,6 @@ export const ProgramsTable = () => {
             programs={programs}
             setFilteredPrograms={setFilteredPrograms}
           />
-          {/* <ProgramFiltersModal onApplyFilters={handleApplyFilters} /> */}
           <Box flex="1" />
           <SearchBar
             handleSearch={handleSearchChange}
