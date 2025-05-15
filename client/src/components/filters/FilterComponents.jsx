@@ -565,9 +565,7 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
     setSearchedInstructors(filteredClients);
   };
 
-  // Handle input focus
   const handleInputFocus = () => {
-    // Show all available clients when input is focused
     const availableClients = clientsList.filter(
       (client) =>
         !selectedInstructors.some((selected) => selected.id === client.id)
@@ -642,15 +640,12 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
               <Box
                 as="button"
                 onClick={() => {
-                  // If there's text in the input, find instructor by name
                   if (instructorSearchTerm.trim() !== "") {
-                    // Find the instructor from the searched list
                     const instructor = searchedInstructors.find(
                       (instr) =>
                         instr.name.toLowerCase() ===
                         instructorSearchTerm.toLowerCase()
                     );
-                    // If instructor exists and is not already selected, add it as a tag
                     if (
                       instructor &&
                       !selectedInstructors.some(
@@ -668,19 +663,18 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                       "Selected Instructors is now",
                       selectedInstructors
                     );
-                    setInstructorSearchTerm(""); // reset search
-                    // Don't reset searched instructors, just refresh them without selected ones
+                    setInstructorSearchTerm("");
                     const availableClients = clientsList.filter(
                       (client) =>
                         !selectedInstructors.some(
                           (selected) => selected.id === client.id
-                        ) && !(instructor && client.id === instructor.id) // also exclude the one we just added
+                        ) && !(instructor && client.id === instructor.id)
                     );
                     setSearchedInstructors(availableClients);
-                  }
-                  // If input is empty but an item is selected in dropdown, add that item
-                  else if (dropdownVisible && searchedInstructors.length > 0) {
-                    // Get the first instructor from the list
+                  } else if (
+                    dropdownVisible &&
+                    searchedInstructors.length > 0
+                  ) {
                     const instructor = searchedInstructors[0];
 
                     if (
@@ -699,7 +693,6 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                       ]);
                       handleLeadArtistChange(instructor);
 
-                      // Update available instructors without refreshing dropdown
                       const availableClients = searchedInstructors.filter(
                         (client) => client.id !== instructor.id
                       );
@@ -775,7 +768,6 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                   <Box
                     key={instructor.id}
                     onClick={() => {
-                      // Add the instructor immediately instead of just setting the search term
                       if (
                         !selectedInstructors.some(
                           (instr) => instr.id === instructor.id
@@ -787,7 +779,6 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                         ]);
                         handleLeadArtistChange(instructor);
 
-                        // Update available instructors
                         const availableClients = searchedInstructors.filter(
                           (client) => client.id !== instructor.id
                         );
@@ -825,12 +816,16 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
               selectedInstructors.map((instructor, ind) => (
                 <Badge
                   key={ind}
+                  bg="white"
+                  border="1px"
+                  borderColor="#E2E8F0"
                   colorScheme="gray"
-                  borderRadius="full"
+                  borderRadius="30px"
                   px={3}
                   py={1.5}
                   display="flex"
                   alignItems="center"
+                  fontWeight="semibold"
                 >
                   {instructor.name}
                   <Box
@@ -839,12 +834,10 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                     cursor="pointer"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Remove the instructor from the list
                       const newSelectedInstructors = selectedInstructors.filter(
                         (artist) => artist.id !== instructor.id
                       );
                       setSelectedInstructors(newSelectedInstructors);
-                      // Notify parent component of the change
                       if (type === "lead") {
                         onChange("instructor", newSelectedInstructors);
                       } else {
@@ -853,11 +846,12 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                     }}
                   >
                     <Icon
-                      fontSize="sm"
+                      fontSize="xxs"
                       color="#718096"
                       _hover={{ color: "#4441C8" }}
                       as={CloseFilledIcon}
                     />
+                    
                   </Box>
                 </Badge>
               ))}

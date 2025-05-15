@@ -1,6 +1,8 @@
 import { React, useEffect, useState } from "react";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { ArtistsDropdown } from "../programs/programComponents/ArtistsDropdown";
+import { PayeesDropdown } from "../programs/programComponents/PayeesDropdown";
 import {
   ClientsFilter,
   DateFilter,
@@ -40,6 +42,7 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
   const updateFilter = (type, value) => {
     console.log(`Updating filter: ${type} with value:`, value);
     setFilters((prev) => ({ ...prev, [type]: value }));
+
   };
 
   // Apply the filters to the programs page
@@ -139,6 +142,8 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       instructor: [],
     });
     setFilteredInvoices(invoices);
+    updateFilter("instructor",[])
+    updateFilter("payee",[])
   };
 
   useEffect(() => {
@@ -169,6 +174,7 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         value={filters.email}
         onChange={updateFilter}
       />
+      
       <ClientsFilter
         clientsList={clients}
         value={filters.instructor}
