@@ -290,10 +290,10 @@ const SavedStatementComments = ({
                     // Display as a custom row
                     return (
                       <Tr key={`custom-${session.id || "unknown"}-${index}`}>
-                        <Td py={compactView ? 0 : 4} fontSize={compactView ? "6.38" : "sm"} whiteSpace="nowrap">{format(new Date(session.datetime), "EEE. M/d/yy")}</Td>
+                        <Td py={compactView ? 0 : 6} fontSize={compactView ? "6.38" : "sm"} whiteSpace="nowrap">{format(new Date(session.datetime), "EEE. M/d/yy")}</Td>
                         <Td colSpan={4} fontSize={compactView ? "6.38" : "sm"}>
                           {session.comments && session.comments.length > 0 
-                            ? session.comments[0] 
+                            ? session.comments[0].comment
                             : "Custom adjustment"}
                         </Td>
                         <Td textAlign="right" fontSize={compactView ? "6.38" : "sm"}>
@@ -445,7 +445,7 @@ const SavedStatementComments = ({
                             borderBottom={isLast ? "1px solid" : "none"}
                             borderColor="gray.200"
                           >
-                            {line}
+                            {line.comment}
                           </Td>
                         </Tr>
                       );

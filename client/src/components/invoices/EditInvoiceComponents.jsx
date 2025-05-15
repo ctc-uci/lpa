@@ -246,7 +246,7 @@ const EditInvoiceDetails = ({
                     mr={2}
                     fontSize={compactView ? "8.509px" : "sm"}
                   >
-                    {instructor.name} - {instructor.email}
+                    {instructor?.name} - {instructor?.email}
                   </Text>
                 </HStack>
               ))
@@ -267,13 +267,15 @@ const EditInvoiceDetails = ({
 };
 
 // TODO
-// !- Handle Deletion of comments, custom rows, an adjustment fees -> move all deleted items into its own array and then pass into backend and delete
+// !- Handle Deletion of comments, custom rows, an adjustment fees -> move all deleted items into its own array and then pass into backend and delete -> refactor comments to have id and then use that to delete
 const StatementComments = ({
   invoice,
   compactView = false,
   sessions = [],
   setSessions,
-  setSubtotal
+  setSubtotal,
+  deletedIds,
+  setDeletedIds
 }) => {
   const { backend } = useBackendContext();
   const [activeRowId, setActiveRowId] = useState(null);
@@ -286,6 +288,11 @@ const StatementComments = ({
   const [editCustomText, setEditCustomText] = useState("");
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
+
+
+  useEffect(() => {
+    console.log("sessions", sessions);
+  }, [sessions]);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -321,15 +328,14 @@ const StatementComments = ({
     if (sessions && sessions.length > 0) {
       const newSubtotal = calculateSubtotal(sessions);
       setSubtotal(newSubtotal);
-      console.log("newSubtotal", newSubtotal);
     }
   }, [sessions]);
 
   const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
     if (!startTime || !endTime || !rate) return "0.00";
 
-    // Make sure we're working with the latest adjustment values
-    const currentAdjustmentValues = Array.isArray(adjustmentValues) ? [...adjustmentValues] : [];
+    // Make sure we're working with a valid array of adjustment values
+    const currentAdjustmentValues = Array.isArray(adjustmentValues) ? adjustmentValues.filter(adj => adj && adj.type) : [];
     
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
@@ -380,11 +386,26 @@ const StatementComments = ({
     if (!sessions || sessions.length === 0) return "0.00";
 
     const totalSum = sessions.reduce((acc, session) => {
-      if (session.adjustmentValues[0].type === "total") {
+      // Check if session has adjustmentValues and it's not empty
+      if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
+        // Calculate without adjustments
+        const total = parseFloat(
+          calculateTotalBookingRow(
+            session.startTime,
+            session.endTime,
+            session.rate,
+            []
+          )
+        );
+        return acc + total;
+      }
+      
+      // Check if the first adjustment is a total type
+      if (session.adjustmentValues[0] && session.adjustmentValues[0].type === "total") {
         return acc + parseFloat(session.adjustmentValues[0].value || 0);
       }
       
-      // For regular sessions, calculate as before
+      // For regular sessions with adjustments, calculate as before
       const total = parseFloat(
         calculateTotalBookingRow(
           session.startTime,
@@ -393,13 +414,11 @@ const StatementComments = ({
           session.adjustmentValues
         )
       );
-      // console.log("total", total);
       return acc + total;
     }, 0);
 
     const total = totalSum.toFixed(2);
-    setSubtotal(total);
-    console.log("total", total);
+    setSubtotal(Number(total));
     return total;
   };
 
@@ -459,7 +478,10 @@ const StatementComments = ({
           if (commentIndex !== null) {
             // Edit existing comment
             const newComments = [...comments];
-            newComments[commentIndex] = commentText;
+            newComments[commentIndex] = {
+              id: comments[commentIndex].id,
+              comment: commentText
+            };
             return {
               ...session,
               comments: newComments
@@ -468,7 +490,9 @@ const StatementComments = ({
             // Add new comment
             return {
               ...session,
-              comments: [...comments, commentText]
+              comments: [...comments, {
+                comment: commentText
+              }]
             };
           }
         }
@@ -493,7 +517,7 @@ const StatementComments = ({
 
   const handleEditComment = (index, commentIndex) => {
     const session = sessions[index];
-    setCommentText(session?.comments[commentIndex] || "");
+    setCommentText(session?.comments[commentIndex]?.comment || "");
     setActiveCommentId(`${index}-${commentIndex}`);
   };
 
@@ -526,20 +550,23 @@ const StatementComments = ({
         return session;
       });
     });
+
+    // If user created comment and immediately deletes it, no need to send to backend
+    if(sessions[sessionIndex].comments[commentIndex].id) {
+      setDeletedIds(prevDeletedIds => [...prevDeletedIds, sessions[sessionIndex].comments[commentIndex].id]);
+    }
   };
+
 
   const handleAddCustomRow = (session, index) => {
     const newSession = {
-      // TODO Can change id to be more like other sessions, just need to find max of all other ids and increment
       datetime: new Date().toISOString().split('T')[0],
       comments: [],
       rate: 0,
-      // Keeping the start time and end time to allow calculation of the subtotal
       userId: session.userId,
       startTime: "00:00",
       endTime: "01:00",
       adjustmentValues: [{
-        id: 0,
         type: "total",
         value: 0
       }],
@@ -560,7 +587,7 @@ const StatementComments = ({
     const date = new Date(session.datetime);
     date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
     setEditCustomDate(date.toISOString().split('T')[0]);
-    setEditCustomText(session.comments[0]);
+    setEditCustomText(session.comments[0]?.comment || "");
     setEditCustomAmount(session.adjustmentValues[0].value.toString());
   };
   
@@ -569,24 +596,6 @@ const StatementComments = ({
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
     setSessions(prevSessions => {
-      // Find the highest existing comment ID to generate a new unique ID
-      let highestId = 0;
-      prevSessions.forEach(session => {
-        if (session.adjustmentValues) {
-          session.adjustmentValues.forEach(adj => {
-            if (adj.id && typeof adj.id === 'number' && adj.id > highestId) {
-              highestId = adj.id;
-            }
-          });
-        }
-        if (session.commentId && typeof session.commentId === 'number' && session.commentId > highestId) {
-          highestId = session.commentId;
-        }
-      });
-      
-      // Generate new ID by incrementing the highest found ID
-      const newId = highestId + 1;
-      
       // Update the sessions array
       return prevSessions.map((session, index) => {
         if (index === sessionIndex) {
@@ -599,9 +608,8 @@ const StatementComments = ({
             startTime: "00:00",
             endTime: "01:00",
             bookingId: session.bookingId,
-            comments: [editCustomText],
+            comments: [{ comment: editCustomText }],
             adjustmentValues: [{
-              id: newId,
               type: "total",
               value: parseFloat(editCustomAmount)
             }]
@@ -614,10 +622,22 @@ const StatementComments = ({
     setEditingCustomRow(null);
   };
 
-  // console.log("sessions", sessions)
+  const handleDeleteCustomRow = (index) => {
+    setSessions(prevSessions => {
+      const newSessions = [...prevSessions];
+      newSessions.splice(index, 1);
+      return newSessions;
+    });
+
+    // If user created comment and immediately deletes it, no need to send to backend
+    if(sessions[index].adjustmentValues[0].id) {
+      setDeletedIds(prevDeletedIds => [...prevDeletedIds, sessions[index].adjustmentValues[0].id]);
+    }
+  };
 
 
   return (
+
     <Flex
       direction="column"
       minH="24"
@@ -787,12 +807,38 @@ const StatementComments = ({
                             <Tr
                               position="relative"
                               cursor="pointer"
-                              onClick={() => handleEditCustomRow(session, index)}
                               _hover={{ bg: "gray.50" }}
+                              role="group"
                             >
-                              <Td py="6">{format(new Date(session.datetime), "EEE. M/d/yy")}</Td>
-                              <Td colSpan={4}>{session.comments[0] || "Custom adjustment"}</Td>
-                              <Td textAlign="right">$ {Number(session.adjustmentValues[0].value || 0).toFixed(2)}</Td>
+                              <Td py="6" onClick={() => handleEditCustomRow(session, index)}>
+                                {format(new Date(session.datetime), "EEE. M/d/yy")}
+                              </Td>
+                              <Td colSpan={4} onClick={() => handleEditCustomRow(session, index)}>
+                                {session.comments[0]?.comment || "Custom adjustment"}
+                              </Td>
+                              <Td textAlign="right" position="relative">
+                                <Flex justifyContent="flex-end" alignItems="center">
+                                  <Text onClick={() => handleEditCustomRow(session, index)}>
+                                    $ {Number(session.adjustmentValues[0].value || 0).toFixed(2)}
+                                  </Text>
+                                  <IconButton
+                                    icon={<CloseIcon boxSize={3} />}
+                                    size="xs"
+                                    variant="ghost"
+                                    colorScheme="gray"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteCustomRow(index);
+                                    }}
+                                    opacity="0"
+                                    _groupHover={{ opacity: 1 }}
+                                    aria-label="Delete custom row"
+                                    ml={2}
+                                    minW="20px"
+                                    height="20px"
+                                  />
+                                </Flex>
+                              </Td>
                             </Tr>
                           )}
                         </React.Fragment>
@@ -956,6 +1002,8 @@ const StatementComments = ({
                                 session.rate,
                                 session.adjustmentValues
                               )}
+                              deletedIds={deletedIds}
+                              setDeletedIds={setDeletedIds}
                             />
                           </Td>
 
@@ -1054,7 +1102,7 @@ const StatementComments = ({
                                       py="4"
                                       borderRadius="8"
                                     >
-                                      {comment}
+                                      {comment.comment}
                                     </Box>
                                     <IconButton
                                       icon={<CloseIcon boxSize={3} />}
@@ -1158,6 +1206,8 @@ const InvoiceSummary = ({
   setSessions,
   summary = [],
   setSummary,
+  deletedIds,
+  setDeletedIds
 }) => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -1217,8 +1267,6 @@ const InvoiceSummary = ({
     setSessions(updatedSessions)
 
   }, [summary]);
-
-  // console.log("sessions", sessions)
 
   return (
     <Flex
@@ -1487,6 +1535,8 @@ const InvoiceSummary = ({
             sessionIndex={0}
             subtotal={subtotal}
             session={sessions[0]}
+            deletedIds={deletedIds}
+            setDeletedIds={setDeletedIds}
           />
         </Box>
       </Flex>

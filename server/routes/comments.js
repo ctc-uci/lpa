@@ -91,7 +91,10 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       if (!groupedComments[sessionKey]) {
         groupedComments[sessionKey] = {
           ...comment,
-          comments: comment.comment ? [comment.comment] : [],
+          comments: comment.comment ? [{
+            id: comment.commentId,
+            comment: comment.comment,
+          }] : [],
           adjustmentValues: []
         };
         
@@ -106,7 +109,10 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       } else {
         // Add comment if it's not empty
         if (comment.comment) {
-          groupedComments[sessionKey].comments.push(comment.comment);
+          groupedComments[sessionKey].comments.push({
+            id: comment.commentId,
+            comment: comment.comment,
+          });
         }
 
         // Add adjustment value if not already included and type is not "none"

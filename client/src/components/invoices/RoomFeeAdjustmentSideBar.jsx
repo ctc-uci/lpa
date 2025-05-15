@@ -44,6 +44,8 @@ const RoomFeeAdjustmentSideBar = ({
   sessionIndex,
   subtotal = 0.0,
   sessions = [],
+  deletedIds,
+  setDeletedIds
 }) => {
   const { backend } = useBackendContext();
   const [tempSession, setTempSession] = useState(session || {});
@@ -147,6 +149,9 @@ const RoomFeeAdjustmentSideBar = ({
       ...prev,
       adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index)
     }));
+    if (tempSession.adjustmentValues[index].id) {
+      setDeletedIds(prevDeletedIds => [...prevDeletedIds, tempSession.adjustmentValues[index].id]);
+    }
   };
 
   const handleClearAll = () => {
@@ -179,11 +184,6 @@ const RoomFeeAdjustmentSideBar = ({
     onClose();
   };
 
-  // useEffect(() => {
-  //   console.log("sessions", sessions);
-  // }, [sessions]);
-
-  // console.log("tempSession", tempSession)
 
   return (
     <>
@@ -366,7 +366,9 @@ const SummaryFeeAdjustmentSideBar = ({
   setSummary,
   sessionIndex,
   subtotal = 0.0,
-  session
+  session,
+  deletedIds,
+  setDeletedIds
 }) => {
   const { backend } = useBackendContext();
   const [tempSummary, setTempSummary] = useState(summary || {});
@@ -482,6 +484,9 @@ const SummaryFeeAdjustmentSideBar = ({
       ...prev,
       adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index)
     }));
+    if (tempSummary.adjustmentValues[index].id) {
+      setDeletedIds(prevDeletedIds => [...prevDeletedIds, tempSummary.adjustmentValues[index].id]);
+    }
   };
 
   const handleClearAll = () => {

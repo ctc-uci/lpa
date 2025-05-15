@@ -116,6 +116,7 @@ export const EditInvoice = () => {
   const [editedSubtotal, setEditedSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletedIds, setDeletedIds] = useState([]);
 
   const [editedFields, setEditedFields] = useState({
     comments: [],
@@ -237,11 +238,11 @@ export const EditInvoice = () => {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        // if (!comments || !Array.isArray(comments) || comments.length === 0) {
-        //   return;
-        // }
+        // Check if invoice and invoice.data exist and have elements
+        if (!invoice || !invoice.data || !Array.isArray(invoice.data) || invoice.data.length === 0) {
+          return;
+        }
 
-        // const commentWithBookingId = comments[0].bookingId;
         // Gets all bookings within the invoice start and end date
         const bookingResponse = await backend.get(
           `/bookings`, {
@@ -251,6 +252,7 @@ export const EditInvoice = () => {
             }
           }
         );
+        
         // Filter for only the bookings that match the event id
         const bookingsWithinDate = bookingResponse.data;
         const bookingsWithEventId = bookingsWithinDate.filter(booking => booking.eventId === invoice.data[0].eventId);
@@ -258,19 +260,21 @@ export const EditInvoice = () => {
         setBookingDetails(bookingsWithEventId);
 
         // Now fetch rooms for all those bookings
-        const roomPromises = bookingsWithEventId.map(booking =>
-          backend.get(`/rooms/${booking.roomId}`)
-        );
+        if (bookingsWithEventId.length > 0) {
+          const roomPromises = bookingsWithEventId.map(booking =>
+            backend.get(`/rooms/${booking.roomId}`)
+          );
 
-        // Wait for all the room requests to complete in parallel:
-        const roomResponses = await Promise.all(roomPromises);
+          // Wait for all the room requests to complete in parallel:
+          const roomResponses = await Promise.all(roomPromises);
 
-        // Extract just the room data from the responses:
-        const roomsArray = roomResponses.map(response => response.data[0]);
+          // Extract just the room data from the responses:
+          const roomsArray = roomResponses.map(response => 
+            response.data && response.data.length > 0 ? response.data[0] : null
+          ).filter(Boolean); // Filter out any null values
 
-
-
-        setRoom(roomsArray);
+          setRoom(roomsArray);
+        }
 
       } catch (error) {
         console.error("Error fetching booking details:", error);
@@ -278,7 +282,7 @@ export const EditInvoice = () => {
     };
 
     fetchBookingDetails();
-  }, [comments, backend]);
+  }, [invoice, backend]);
 
   const handleBack = () => {
     setIsAlertOpen(true);
@@ -296,14 +300,32 @@ export const EditInvoice = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // First, delete all comments that are in deletedIds
+      if (deletedIds && deletedIds.length > 0) {
+        // Process deletions in parallel
+        const deletionPromises = deletedIds.map(id => 
+          backend.delete(`/comments/${id}`)
+            .catch(error => {
+              console.error(`Error deleting comment with ID ${id}:`, error);
+              // Continue with other deletions even if one fails
+              return null;
+            })
+        );
+        
+        // Wait for all deletions to complete
+        await Promise.all(deletionPromises);
+        
+        // Clear the deletedIds array after successful deletion
+        setDeletedIds([]);
+      }
+      
       // Process all sessions
       for (const session of sessions) {
         
         // Handle comments for each session
-        if (session.comments && session.comments.length > 0 && session.adjustmentValues[0].type !== "total") {
+        if (session.comments && session.comments.length > 0 && session.adjustmentValues[0]?.type !== "total") {
           for (let i = 0; i < session.comments.length; i++) {
-            const commentText = session.comments[i];
-
+            const commentText = session.comments[i].comment;
 
             // Prepare comment data
             const commentData = {
@@ -315,8 +337,6 @@ export const EditInvoice = () => {
               adjustment_type: "none",
               adjustment_value: 0,
             };
-
-
             
             try {
               // For regular sessions, check if this comment already exists
@@ -344,11 +364,9 @@ export const EditInvoice = () => {
         // Handle adjustments for each session
         if (session.adjustmentValues && session.adjustmentValues.length > 0) {
           for (const adjustmentValue of session.adjustmentValues) {
-            // Parse the adjustment value
-
-            if (isNaN(adjustmentValue.value)) continue;
+            // Skip invalid adjustment values
+            if (isNaN(adjustmentValue.value) || adjustmentValue.value === undefined) continue;
             
-
             const adjustmentData = {
               user_id: session.userId,
               booking_id: session.bookingId || null,
@@ -359,14 +377,12 @@ export const EditInvoice = () => {
               adjustment_value: adjustmentValue.value,
             };
 
-
             try {
               // Check if this adjustment already exists
               const existingAdjustment = comments.find(c => 
                 c.id == adjustmentValue.id
               );
               
-              // ! TODO NEED TO HANDLE DELETION CASE
               if (existingAdjustment) {
                 // Update existing adjustment
                 // console.log("existingAdjustmentData", existingAdjustment);
@@ -389,9 +405,10 @@ export const EditInvoice = () => {
       // Process summary adjustments
       if (summary && summary.length > 0) {
         for (const summaryItem of summary) {
-          // console.log("summaryItem", summaryItem);
           if (summaryItem.adjustmentValues && summaryItem.adjustmentValues.length > 0) {
             for (const adjustmentValue of summaryItem.adjustmentValues) {
+              // Skip invalid adjustment values
+              if (isNaN(adjustmentValue.value) || adjustmentValue.value === undefined) continue;
               
               const adjustmentData = {
                 user_id: summaryItem.userId,
@@ -407,8 +424,7 @@ export const EditInvoice = () => {
                 // Check if this summary adjustment already exists
                 const existingAdjustment = comments.find(c => 
                   c.id === adjustmentValue.id
-                )
-                
+                );
                 
                 if (existingAdjustment) {
                   // Update existing adjustment
@@ -529,6 +545,8 @@ export const EditInvoice = () => {
               setSubtotal={setEditedSubtotal}
               sessions={sessions}
               setSessions={setSessions}
+              deletedIds={deletedIds}
+              setDeletedIds={setDeletedIds}
             />
             <InvoiceSummary
               pastDue={pastDue}
@@ -543,6 +561,8 @@ export const EditInvoice = () => {
               setSessions={setSessions}
               summary={summary}
               setSummary={setSummary}
+              deletedIds={deletedIds}
+              setDeletedIds={setDeletedIds}
             />
             <FooterDescription />
           </Box>
