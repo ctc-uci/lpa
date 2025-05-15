@@ -178,7 +178,7 @@ export const EditRecurringSessions = () => {
   const handleChangeSessionField = (type, index, field, value) => {
     setNewSessions((prev) => ({
       ...prev,
-      [type]: prev[type].map((session, i) =>
+      [type]: prev[type]?.map((session, i) =>
         i === index ? { ...session, [field]: value } : session
       ),
     }));
@@ -455,6 +455,13 @@ export const EditRecurringSessions = () => {
     return allSessions.length !== 0 && isChanged === true;
   };
 
+  const frequencyOptions = [
+    { value: "week", label: "Every Week" },
+    { value: "dayOfMonth", label: "Every Month (Same Day)" },
+    { value: "weekDayOccurrence", label: "Every Month (Same Weekday)" },
+    { value: "year", label: "Every Year" },
+  ];
+
   const addRecurring = (
     <>
       <Flex
@@ -513,7 +520,6 @@ export const EditRecurringSessions = () => {
             borderRadius="4px"
             fontWeight="400"
             fontSize="14px"
-            width="200px"
             display="flex"
             alignItems="center"
             padding="0px 16px"
@@ -521,20 +527,17 @@ export const EditRecurringSessions = () => {
             gap="4px"
             textAlign="left"
           >
-            Every{" "}
-            {recurringFrequency.charAt(0).toUpperCase() +
-              recurringFrequency.slice(1)}
+            {
+              frequencyOptions.find((opt) => opt.value === recurringFrequency)
+                ?.label
+            }
           </MenuButton>
 
           <MenuList
             minWidth="200px"
             padding="4px"
           >
-            {[
-              { value: "week", label: "Every Week" },
-              { value: "month", label: "Every Month" },
-              { value: "year", label: "Every Year" },
-            ].map((option) => (
+            {frequencyOptions.map((option) => (
               <MenuItem
                 key={option.value}
                 onClick={() => {
@@ -554,7 +557,7 @@ export const EditRecurringSessions = () => {
         </Menu>
       </Flex>
 
-      {newSessions.recurring.map((session, index) => (
+      {newSessions.recurring?.map((session, index) => (
         <RecurringSessionRow
           key={session.id}
           session={session}
@@ -564,6 +567,7 @@ export const EditRecurringSessions = () => {
           onDeleteRowModalOpen={onDeleteRowModalOpen}
           setRowToDelete={setRowToDelete}
           isRecurring={isRecurring}
+          recurringFrequency={recurringFrequency}
         />
       ))}
       <Button
