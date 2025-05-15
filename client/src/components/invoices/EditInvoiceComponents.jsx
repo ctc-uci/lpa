@@ -266,6 +266,8 @@ const EditInvoiceDetails = ({
   );
 };
 
+// TODO
+// !- Handle Deletion of comments, custom rows, an adjustment fees -> move all deleted items into its own array and then pass into backend and delete -> refactor comments to have id and then use that to delete
 const StatementComments = ({
   invoice,
   compactView = false,
@@ -286,6 +288,11 @@ const StatementComments = ({
   const [editCustomText, setEditCustomText] = useState("");
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
+
+
+  useEffect(() => {
+    console.log("sessions", sessions);
+  }, [sessions]);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -497,6 +504,7 @@ const StatementComments = ({
   };
 
   const handleAddComment = (index) => {
+
     if (activeCommentId === index) {
       saveComment(index);
     } else {
@@ -504,6 +512,8 @@ const StatementComments = ({
       setActiveCommentId(index);
     }
   };
+
+
 
   const handleEditComment = (index, commentIndex) => {
     const session = sessions[index];
@@ -547,6 +557,7 @@ const StatementComments = ({
     }
   };
 
+
   const handleAddCustomRow = (session, index) => {
     const newSession = {
       datetime: new Date().toISOString().split('T')[0],
@@ -562,38 +573,10 @@ const StatementComments = ({
       invoiceId: session.invoiceId,
       bookingId: session.bookingId,
       name: "",
-      parentSessionIndex: index
     };
 
-    // Find the position to insert the new custom row
-    let insertPosition = index + 1;
-    
-    // Look for all items associated with this session and find the last one
-    for (let i = 0; i < sessions.length; i++) {
-      if (sessions[i].parentSessionIndex === index && i >= insertPosition) {
-        insertPosition = i + 1;
-      }
-    }
-
-    // Create a new array with the custom row inserted at the right position
-    const updatedSessions = [
-      ...sessions.slice(0, insertPosition),
-      newSession,
-      ...sessions.slice(insertPosition)
-    ];
-
-    // Update parentSessionIndex for any custom rows that might have shifted
-    for (let i = insertPosition + 1; i < updatedSessions.length; i++) {
-      if (updatedSessions[i].parentSessionIndex !== undefined) {
-        // If the parent session is after the insertion point, increment its index
-        if (updatedSessions[i].parentSessionIndex >= insertPosition) {
-          updatedSessions[i].parentSessionIndex += 1;
-        }
-      }
-    }
-
-    setSessions(updatedSessions);
-    setEditingCustomRow(insertPosition); // Set to the index in the new array
+    setSessions(prev => [...prev, newSession]);
+    setEditingCustomRow(index);
     setEditCustomDate(newSession.datetime);
     setEditCustomText('');
     setEditCustomAmount('0');
@@ -652,7 +635,9 @@ const StatementComments = ({
     }
   };
 
+
   return (
+
     <Flex
       direction="column"
       minH="24"
