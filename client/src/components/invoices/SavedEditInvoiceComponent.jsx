@@ -86,7 +86,7 @@ const SavedStatementComments = ({
     
     const finalTotal = total + totalAdjustments;
     
-    // console.log("Calculated total:", finalTotal.toFixed(2));
+
     return finalTotal.toFixed(2);
   };
 
@@ -94,7 +94,7 @@ const SavedStatementComments = ({
     if (!sessions || sessions.length === 0) return "0.00";
 
     const totalSum = sessions.reduce((acc, session) => {
-      if (session.adjustmentValues[0].type === "total") {
+      if (session?.adjustmentValues[0]?.type === "total") {
         return acc + parseFloat(session.adjustmentValues[0].value || 0);
       }
       
@@ -520,26 +520,6 @@ const SavedInvoiceSummary = ({
 
     return Number(adjustedTotal).toFixed(2);
   };
-
-  // const calculateSubtotal = (sessions) => {
-  //   if (!sessions || sessions.length === 0) return "0.00";
-
-  //   const totalSum = sessions.reduce((acc, session) => {
-  //     const total = parseFloat(
-  //       calculateTotalBookingRow(
-  //         session.startTime,
-  //         session.endTime,
-  //         session.rate,
-  //         session.adjustmentValues
-  //       )
-  //     );
-  //     return acc + total;
-  //   }, 0);
-
-  //   const total = totalSum.toFixed(2);
-  //   // setSubtotal(total);
-  //   return total;
-  // };
 
   // Summary Sidebar total calculations
   const originalSessionRateRef = useRef(null);

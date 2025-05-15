@@ -266,8 +266,6 @@ const EditInvoiceDetails = ({
   );
 };
 
-// TODO
-// !- Handle Deletion of comments, custom rows, an adjustment fees -> move all deleted items into its own array and then pass into backend and delete -> refactor comments to have id and then use that to delete
 const StatementComments = ({
   invoice,
   compactView = false,
@@ -277,6 +275,7 @@ const StatementComments = ({
   deletedIds,
   setDeletedIds
 }) => {
+
   const { backend } = useBackendContext();
   const [activeRowId, setActiveRowId] = useState(null);
   const [userId, setUserId] = useState(null);
