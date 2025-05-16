@@ -1,6 +1,8 @@
 import { React, useEffect, useState } from "react";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { ArtistsDropdown } from "../programs/programComponents/ArtistsDropdown";
+import { PayeesDropdown } from "../programs/programComponents/PayeesDropdown";
 import {
   ClientsFilter,
   DateFilter,
@@ -13,6 +15,10 @@ import { FilterContainer } from "./FilterContainer";
 export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
   const { backend } = useBackendContext();
   const [clients, setClients] = useState([]);
+  const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
+  const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
+  const [selectedInstructors, setSelectedInstructors] = useState([]);
+  const [selectedPayees, setSelectedPayees] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +46,7 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
   const updateFilter = (type, value) => {
     console.log(`Updating filter: ${type} with value:`, value);
     setFilters((prev) => ({ ...prev, [type]: value }));
+
   };
 
   // Apply the filters to the programs page
@@ -139,6 +146,10 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       instructor: [],
     });
     setFilteredInvoices(invoices);
+    setInstructorSearchTerm("")
+    setPayeeSearchTerm("")
+    setSelectedInstructors([])
+    setSelectedPayees([])
   };
 
   useEffect(() => {
@@ -169,17 +180,26 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         value={filters.email}
         onChange={updateFilter}
       />
+      
       <ClientsFilter
         clientsList={clients}
         value={filters.instructor}
         onChange={updateFilter}
         type="lead"
+        instructorSearchTerm={instructorSearchTerm}
+        setInstructorSearchTerm={setInstructorSearchTerm}
+        selectedInstructors={selectedInstructors}
+        setSelectedInstructors={setSelectedInstructors}
       />
       <ClientsFilter
         clientsList={clients}
         value={filters.payee}
         onChange={updateFilter}
         type="payee"
+        instructorSearchTerm={payeeSearchTerm}
+        setInstructorSearchTerm={setPayeeSearchTerm}
+        selectedInstructors={selectedPayees}
+        setSelectedInstructors={setSelectedPayees}
       />
     </FilterContainer>
   );
