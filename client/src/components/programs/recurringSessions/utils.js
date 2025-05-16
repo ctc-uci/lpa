@@ -221,7 +221,7 @@ export const generateRecurringSessions = (
         "December",
       ];
       const targetMonth = months.indexOf(recurringSession.month);
-      const targetDay = recurringSession.dayOfMonth - 1;
+      const targetDay = recurringSession.dayOfMonth;
 
       // Set starting date to first occurrence of target month/day
       startingDate.setMonth(targetMonth);
