@@ -57,6 +57,12 @@ export const RecurringRowFrequencyWeek = ({
               key={day}
               onClick={() => {
                 handleChangeSessionField("recurring", index, "weekday", day);
+                handleChangeSessionField(
+                  "recurring",
+                  index,
+                  "frequency",
+                  "week"
+                );
               }}
               bg={session.weekday === day ? "#EDF2F7" : "transparent"}
             >

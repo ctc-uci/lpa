@@ -9,7 +9,6 @@ import {
   Flex,
   Heading,
   Icon,
-  IconButton,
   Input,
   Menu,
   MenuButton,
@@ -17,22 +16,14 @@ import {
   MenuList,
   Select,
   Tab,
-  Table,
-  TableContainer,
   TabList,
   TabPanel,
   TabPanels,
   Tabs,
-  Tbody,
-  Td,
   Text,
-  Th,
-  Thead,
-  Tr,
   useDisclosure,
 } from "@chakra-ui/react";
 
-import { EllipsisIcon } from "lucide-react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { IoCloseOutline } from "react-icons/io5";
 import { TbRepeat } from "react-icons/tb";
@@ -40,22 +31,15 @@ import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 
 import { CalendarIcon } from "../../../assets/CalendarIcon";
-import { DeleteIconRed } from "../../../assets/DeleteIconRed";
-import { FilledOutCalendar } from "../../../assets/FilledOutCalendar";
-import {
-  sessionsClock,
-  sessionsMapPin,
-} from "../../../assets/icons/ProgramIcons";
-import { MdFeaturedPlayList } from "../../../assets/MdFeaturedPlayList";
-import { ReactivateIcon } from "../../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../../assets/SessionsBookmark";
 import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 import Navbar from "../../navbar/Navbar";
 import { DeleteRowModal } from "../../popups/DeleteRowModal";
 import { SaveSessionModal } from "../../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../../popups/UnsavedChangesModal";
-import DateSortingModal from "../../sorting/DateFilter";
+import { PreviewSession } from "./PreviewSession";
 import { RecurringSessionRow } from "./RecurringSessionRow";
+import { generateRecurringSessions } from "./utils";
 
 export const EditRecurringSessions = () => {
   const { id } = useParams();
@@ -81,36 +65,6 @@ export const EditRecurringSessions = () => {
     onClose: onDeleteRowModalClose,
   } = useDisclosure();
 
-  // Function to format date
-  // to "Mon. 01.01.2023"
-  const formatDate = (isoString) => {
-    const localDateString = isoString.includes("T")
-      ? isoString
-      : `${isoString}T12:00:00`;
-    const date = new Date(localDateString);
-
-    const options = {
-      weekday: "short",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      timeZone: "UTC",
-    };
-
-    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
-    formattedDate = formattedDate.replace(",", ".");
-    return formattedDate;
-  };
-
-  // Function to format time
-  // to "12:00 a.m." or "12:00 p.m."
-  const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(":").map(Number);
-    const period = hours >= 12 ? "p.m." : "a.m.";
-    const formattedHours = hours % 12 || 12;
-    return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
-  };
-
   // States for general information
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -129,7 +83,6 @@ export const EditRecurringSessions = () => {
       {
         id: Date.now(), // Just a unique id
         frequency: recurringFrequency,
-        weekday: "",
         startTime: "",
         endTime: "",
         roomId: "",
@@ -182,7 +135,7 @@ export const EditRecurringSessions = () => {
         i === index ? { ...session, [field]: value } : session
       ),
     }));
-    console.log(type, index, field, value);
+
     setAllSessions((prev) => {
       let updatedSessions = [...prev];
 
@@ -191,6 +144,8 @@ export const EditRecurringSessions = () => {
           ...newSessions.recurring[index],
           [field]: value,
         };
+
+        console.log("updatedSessions: ", updatedSessions);
 
         // Remove all sessions with this recurringId
         updatedSessions = updatedSessions.filter(
@@ -201,13 +156,13 @@ export const EditRecurringSessions = () => {
 
         if (Object.values(recurringSession).every((val) => val !== "")) {
           const generatedSessions = generateRecurringSessions(
-            {
-              ...recurringSession,
-            },
+            recurringSession,
             startDate,
             endDate
           );
+
           console.log("generatedSessions: ", generatedSessions);
+
           updatedSessions = [
             ...updatedSessions,
             ...generatedSessions.map((s) => ({
@@ -254,48 +209,6 @@ export const EditRecurringSessions = () => {
     });
 
     console.log("Updated sessions:", allSessions);
-  };
-
-  const generateRecurringSessions = (recurringSession, startDate, endDate) => {
-    const sessions = [];
-    const currentTimezoneDate = new Date(
-      startDate.replace(/-/g, "/").replace(/T.+/, "")
-    );
-    const currentDate = new Date(startDate);
-    const endDateObj = new Date(endDate);
-    const weekdays = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const weekdayIndex = weekdays.indexOf(
-      recurringSession.weekday.toLowerCase()
-    );
-    const startDayOfWeek = currentTimezoneDate.getDay();
-    const daysUntilFirst = (weekdayIndex - startDayOfWeek + 7) % 7;
-
-    if (daysUntilFirst > 0) {
-      currentDate.setDate(currentDate.getDate() + daysUntilFirst);
-    }
-
-    while (currentDate <= endDateObj) {
-      sessions.push({
-        date: currentDate.toISOString(),
-        startTime: recurringSession.startTime,
-        endTime: recurringSession.endTime,
-        roomId: recurringSession.roomId,
-        eventId: id,
-        archived: false,
-      });
-
-      currentDate.setDate(currentDate.getDate() + 7);
-    }
-
-    return sessions;
   };
 
   const handleDeleteRow = (type, index) => {
@@ -457,8 +370,8 @@ export const EditRecurringSessions = () => {
 
   const frequencyOptions = [
     { value: "week", label: "Every Week" },
-    { value: "dayOfMonth", label: "Every Month (Same Day)" },
-    { value: "weekDayOccurrence", label: "Every Month (Same Weekday)" },
+    { value: "monthDate", label: "Every Month (Same Day)" },
+    { value: "monthWeekday", label: "Every Month (Same Weekday)" },
     { value: "year", label: "Every Year" },
   ];
 
@@ -543,6 +456,9 @@ export const EditRecurringSessions = () => {
                 onClick={() => {
                   setRecurringFrequency(option.value);
                   setIsChanged(true);
+                  setAllSessions((prevSessions) =>
+                    prevSessions.filter((session) => !session.isNew)
+                  );
                 }}
                 bg={
                   recurringFrequency === option.value
@@ -787,287 +703,6 @@ export const EditRecurringSessions = () => {
     </Box>
   );
 
-  const previewSession = (
-    <Box
-      minH="10vh"
-      width="100%"
-      minW="100%"
-      py={8}
-      paddingTop="1rem"
-    >
-      <Card
-        shadow="md"
-        border="1px"
-        borderColor="gray.300"
-        borderRadius="15px"
-      >
-        <CardBody
-          m={6}
-          display="flex"
-          flexDirection="column"
-          justifyContent="space-between"
-        >
-          <Box
-            display="flex"
-            alignItems="center"
-            padding="8px"
-            justifyContent="space-between"
-            gap="8px"
-          >
-            <Flex
-              align="center"
-              mb="15px"
-              gap="10px"
-            >
-              <MdFeaturedPlayList />
-              <Text
-                fontSize="24px"
-                fontWeight="700"
-                color="#2D3748"
-              >
-                {" "}
-                Preview{" "}
-              </Text>
-            </Flex>
-            <Button
-              backgroundColor="#4441C8"
-              onClick={onSaveSessionModalOpen}
-              isDisabled={allSessions.length === 0}
-            >
-              <Text color="#FFFFFF">Save Changes</Text>
-            </Button>
-          </Box>
-
-          <TableContainer>
-            <Table variant="unstyled">
-              <Thead
-                borderBottom="1px"
-                color="#D2D2D2"
-              >
-                <Tr>
-                  <Th>
-                    <Box
-                      display="flex"
-                      padding="8px"
-                      justifyContent="center"
-                      alignItems="center"
-                      gap="8px"
-                    >
-                      <FilledOutCalendar />
-                      <Text
-                        textTransform="none"
-                        color="#767778"
-                        fontSize="16px"
-                        fontStyle="normal"
-                      >
-                        DATE
-                      </Text>
-                      <Box
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="flex-start"
-                        gap="2px"
-                      >
-                        <DateSortingModal
-                          sortOrder={sortOrder}
-                          setSortOrder={setSortOrder}
-                        />
-                      </Box>
-                    </Box>
-                  </Th>
-                  <Th>
-                    <Box
-                      display="flex"
-                      padding="8px"
-                      justifyContent="center"
-                      alignItems="center"
-                      gap="8px"
-                    >
-                      <Icon as={sessionsClock} />
-                      <Text
-                        textTransform="none"
-                        color="#767778"
-                        fontSize="16px"
-                        fontStyle="normal"
-                      >
-                        UPCOMING TIME
-                      </Text>
-                    </Box>
-                  </Th>
-                  <Th>
-                    <Box
-                      display="flex"
-                      padding="8px"
-                      justifyContent="center"
-                      alignItems="center"
-                      gap="8px"
-                    >
-                      <Icon
-                        as={sessionsMapPin}
-                        boxSize={4}
-                        mr={1}
-                      />
-                      <Text
-                        textTransform="none"
-                        color="#767778"
-                        fontSize="16px"
-                        fontStyle="normal"
-                      >
-                        ROOM
-                      </Text>
-                    </Box>
-                  </Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {allSessions
-                  .filter((session) => !session.isDeleted)
-                  .sort((a, b) => {
-                    return sortOrder === "asc"
-                      ? new Date(a.date) - new Date(b.date)
-                      : new Date(b.date) - new Date(a.date);
-                  })
-                  .map((session) => (
-                    <Tr
-                      key={session.id}
-                      textColor={
-                        session.archived === true ? "#A0AEC0" : "#2D3748"
-                      }
-                      backgroundColor={
-                        session.isNew || session.isUpdated ? "#F8F8FF" : "white"
-                      }
-                    >
-                      <Td>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          alignItems="center"
-                        >
-                          <Text
-                            textTransform="none"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            {formatDate(session.date)}
-                          </Text>
-                        </Box>
-                      </Td>
-                      <Td>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          alignItems="center"
-                        >
-                          <Text
-                            textTransform="none"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            {formatTime(session.startTime)} -{" "}
-                            {formatTime(session.endTime)}
-                          </Text>
-                        </Box>
-                      </Td>
-                      <Td>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          alignItems="center"
-                        >
-                          <Text
-                            textTransform="none"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            {allRooms.find(
-                              (room) => room.id === Number(session.roomId)
-                            )?.name || "N/A"}
-                          </Text>
-                        </Box>
-                      </Td>
-                      <Td>
-                        <Menu>
-                          <MenuButton
-                            as={IconButton}
-                            boxSize="7"
-                            icon={<EllipsisIcon />}
-                            backgroundColor="#EDF2F7"
-                            color="#2D3748"
-                            textColor="#2D3748"
-                            cursor="pointer"
-                            minWidth="24px"
-                            minHeight="24px"
-                            borderRadius={6}
-                          />
-                          <MenuList
-                            padding="4px"
-                            minWidth="139px"
-                          >
-                            <MenuItem
-                              onClick={() => {
-                                handleArchiveSession(session.id);
-                                setIsChanged(true);
-                                setIsArchived(false);
-                                setArchived(false);
-                              }}
-                              display="flex"
-                              padding="6px 8px"
-                              alignItems="center"
-                              gap="8px"
-                              width="131px"
-                              height="32px"
-                              variant="ghost"
-                            >
-                              <Icon
-                                as={ReactivateIcon}
-                                boxSize="4"
-                              />
-                              <Text
-                                color="#2D3748"
-                                fontSize="14px"
-                              >
-                                {session.archived ? "Unarchive" : "Archive"}
-                              </Text>
-                            </MenuItem>
-
-                            <MenuItem
-                              onClick={() => {
-                                modalOnOpen();
-                                handleDeleteSession(session.id);
-                                setIsChanged(true);
-                              }}
-                              display="flex"
-                              padding="6px 8px"
-                              alignItems="center"
-                              gap="8px"
-                              width="131px"
-                              height="32px"
-                              variant="ghost"
-                            >
-                              <Icon
-                                as={DeleteIconRed}
-                                boxSize="4"
-                              />
-                              <Text
-                                color="#90080F"
-                                fontSize="14px"
-                              >
-                                Delete
-                              </Text>
-                            </MenuItem>
-                          </MenuList>
-                        </Menu>
-                      </Td>
-                    </Tr>
-                  ))}
-              </Tbody>
-            </Table>
-          </TableContainer>
-        </CardBody>
-      </Card>
-    </Box>
-  );
-
   return (
     <Navbar>
       <Box style={{ width: "100%", padding: "20px 20px 20px 20px" }}>
@@ -1118,7 +753,17 @@ export const EditRecurringSessions = () => {
         </Heading>
 
         {sessionsComponent}
-        {previewSession}
+
+        <PreviewSession
+          allSessions={allSessions}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          allRooms={allRooms}
+          onSaveSessionModalOpen={onSaveSessionModalOpen}
+          handleArchiveSession={handleArchiveSession}
+          handleDeleteSession={handleDeleteSession}
+          setIsChanged={setIsChanged}
+        />
 
         <DeleteRowModal
           isOpen={isDeleteRowModalOpen}

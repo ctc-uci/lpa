@@ -29,14 +29,20 @@ export const RecurringRowFrequencyMonthSameDayOfWeek = ({
     <HStack spacing="4">
       <Select
         value={session.weekDayOccurrence || ""}
-        onChange={(e) =>
+        onChange={(e) => {
           handleChangeSessionField(
             "recurring",
             index,
             "weekDayOccurrence",
             parseInt(e.target.value)
-          )
-        }
+          );
+          handleChangeSessionField(
+            "recurring",
+            index,
+            "frequency",
+            "monthWeekday"
+          );
+        }}
         placeholder="Select occurrence"
       >
         {weekDayOccurrences.map((occurrence) => (
@@ -51,14 +57,20 @@ export const RecurringRowFrequencyMonthSameDayOfWeek = ({
 
       <Select
         value={session.dayOfWeek || ""}
-        onChange={(e) =>
+        onChange={(e) => {
           handleChangeSessionField(
             "recurring",
             index,
             "dayOfWeek",
             parseInt(e.target.value)
-          )
-        }
+          );
+          handleChangeSessionField(
+            "recurring",
+            index,
+            "frequency",
+            "monthWeekday"
+          );
+        }}
         placeholder="Select day of week"
       >
         {daysOfWeek.map((day) => (

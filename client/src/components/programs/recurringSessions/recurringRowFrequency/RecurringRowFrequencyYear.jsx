@@ -32,6 +32,7 @@ export const RecurringRowFrequencyYear = ({
           const selectedMonth = months.find((m) => m.name === e.target.value);
           if (session.dayOfMonth > selectedMonth.days) {
             handleChangeSessionField("recurring", index, "dayOfMonth", 1);
+            handleChangeSessionField("recurring", index, "frequency", "year");
           }
         }}
         placeholder="Select month"
@@ -48,14 +49,15 @@ export const RecurringRowFrequencyYear = ({
 
       <Select
         value={session.dayOfMonth || ""}
-        onChange={(e) =>
+        onChange={(e) => {
           handleChangeSessionField(
             "recurring",
             index,
             "dayOfMonth",
             parseInt(e.target.value)
-          )
-        }
+          );
+          handleChangeSessionField("recurring", index, "frequency", "year");
+        }}
         placeholder="Select day"
         isDisabled={!session.month}
       >

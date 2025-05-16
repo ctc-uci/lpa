@@ -14,14 +14,20 @@ export const RecurringRowFrequencyMonthSameDay = ({
     <HStack spacing="4">
       <Select
         value={session.dayOfMonth || ""}
-        onChange={(e) =>
+        onChange={(e) => {
           handleChangeSessionField(
             "recurring",
             index,
             "dayOfMonth",
             parseInt(e.target.value)
-          )
-        }
+          );
+          handleChangeSessionField(
+            "recurring",
+            index,
+            "frequency",
+            "monthDate"
+          );
+        }}
         placeholder="Select day"
       >
         {daysInMonth.map((day) => (

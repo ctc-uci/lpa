@@ -9,7 +9,7 @@ export const RecurringRowFrequency = ({
   session,
   index,
   handleChangeSessionField,
-  recurrenceType, // "week", "year", "dayOfMonth", or "weekDayOccurrence"
+  recurrenceType, // "week", "year", "monthDate", or "monthWeekday"
 }) => {
   switch (recurrenceType) {
     case "week":
@@ -20,7 +20,7 @@ export const RecurringRowFrequency = ({
           handleChangeSessionField={handleChangeSessionField}
         />
       );
-    case "dayOfMonth":
+    case "monthDate":
       return (
         <RecurringRowFrequencyMonthSameDay
           session={session}
@@ -28,7 +28,7 @@ export const RecurringRowFrequency = ({
           handleChangeSessionField={handleChangeSessionField}
         />
       );
-    case "weekDayOccurrence":
+    case "monthWeekday":
       return (
         <RecurringRowFrequencyMonthSameDayOfWeek
           session={session}
