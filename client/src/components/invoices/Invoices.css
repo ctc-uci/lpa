@@ -7,7 +7,7 @@
   margin: 0;
   border: 1px solid var(--Secondary-3, #e2e8f0);
   border-radius: 15px;
-  padding: 16px 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -19,6 +19,7 @@
   height: 40px;
   width: 100%;
   margin: 0;
+  margin-bottom: 0px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,6 +30,7 @@
   width: 100%;
   margin: 0;
   padding: 0;
+  margin-top: -4px;
 }
 
 .invoices-table__table {
@@ -43,7 +45,7 @@
   padding: 0 !important;
   border-bottom: 1px solid var(--Secondary-3, #e2e8f0) !important;
   vertical-align: middle !important;
-  height: 56px !important;
+  height: 65px !important;
   color: var(--Secondary-6, #718096) !important;
   font-family: "Inter", sans-serif !important;
   font-size: 12px !important;
@@ -56,8 +58,12 @@
 .invoices-table__table th:nth-child(1),
 .invoices-table__table td:nth-child(1) {
   width: 92px !important;
-  padding-left: 8px !important;
+  padding-left: 0px !important;
   padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(1) > div {
+  padding-left: 8px !important; /* Match cell padding */
 }
 
 .invoices-table__table th:nth-child(2),
@@ -68,11 +74,20 @@
   padding-right: 8px !important;
 }
 
+.invoices-table__table th:nth-child(2) > div {
+  padding-left: 8px !important; /* Match cell padding */
+  text-align: center !important;
+}
+
 .invoices-table__table th:nth-child(3),
 .invoices-table__table td:nth-child(3) {
   width: 362px !important;
   padding-left: 8px !important;
   padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(3) > div {
+  padding-left: 8px !important; /* Match cell padding */
 }
 
 .invoices-table__table th:nth-child(4),
@@ -82,11 +97,19 @@
   padding-right: 8px !important;
 }
 
+.invoices-table__table th:nth-child(4) > div {
+  padding-left: 8px !important; /* Match cell padding */
+}
+
 .invoices-table__table th:nth-child(5),
 .invoices-table__table td:nth-child(5) {
   width: 180px !important;
   padding-left: 8px !important;
   padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(5) > div {
+  padding-left: 8px !important; /* Match cell padding */
 }
 
 .invoices-table__table th:nth-child(6),
@@ -95,18 +118,26 @@
   padding-right: 8px !important;
 }
 
+.invoices-table__table th:nth-child(6) > div {
+  padding-left: 8px !important; /* Match cell padding */
+}
+
 .invoices-table__table th:nth-child(7),
 .invoices-table__table td:nth-child(7) {
   width: 132px !important;
   padding-left: 8px !important;
-  padding-right: 8px !important;
+  padding-right: 0px !important;
+}
+
+.invoices-table__table th:nth-child(7) > div {
+  padding-left: 8px !important; /* Match cell padding */
 }
 
 /* Table row and cell styling */
 .invoices-table__table tr td {
   border-bottom: 1px solid var(--Secondary-3, #e2e8f0) !important;
   vertical-align: middle !important;
-  height: 56px !important;
+  height: 65px !important;
   padding: 0 !important;
 }
 
@@ -162,6 +193,7 @@
   font-weight: 400 !important;
   line-height: normal !important;
   letter-spacing: 0.07px !important;
+  padding-left: 8px !important;
 }
 
 .status-not-paid {
@@ -172,6 +204,7 @@
   font-weight: 400 !important;
   line-height: normal !important;
   letter-spacing: 0.07px !important;
+  padding-left: 8px !important;
 }
 
 .status-past-due {
@@ -182,6 +215,7 @@
   font-weight: 700 !important;
   line-height: normal !important;
   letter-spacing: 0.07px !important;
+  padding-left: 8px !important;
 }
 
 /* Filter Box & Search CSS */
