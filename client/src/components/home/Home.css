@@ -25,11 +25,12 @@
   display: flex;
   width: 100%;
   max-width: 1252px !important;
-  padding: 26px 26px 16px 26px;
+  padding: 26px 26px 16px 0;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0px;
+  gap: 0;
   flex-shrink: 0;
+  margin: 0;
 }
 
 .header-row {
@@ -146,7 +147,7 @@
 /* ========================= */
 
 .programs-table {
-  width: 1200px;
+  width: 100%;
   margin: 0;
   border: 1px solid var(--Secondary-3, #e2e8f0);
   border-radius: 15px;
@@ -156,7 +157,6 @@
   align-items: flex-start;
   gap: 16px;
   align-self: stretch;
-
 }
 
 .programs-table__filter-row {

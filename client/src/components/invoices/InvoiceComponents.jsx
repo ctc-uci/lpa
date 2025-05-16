@@ -73,6 +73,16 @@ import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusSortingModal from "../sorting/StatusFilter";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
+import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
+import { SessionsBookmark } from "../../assets/SessionsBookmark";
+import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { EditOnlyPopup } from "../cancelModal/EditOnlyPopup";
+import { CancelIcon } from "../../assets/CancelIcon";
+import { ClockFilled } from "../../assets/ClockFilled";
+import { CustomOption } from "../../assets/CustomOption";
+import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -929,78 +939,65 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   // Get current page data
   const currentInvoices = sortedPrograms;
 
+  const handleEdit = useCallback((id, e) => {
+    e.stopPropagation();
+    navigate(`/invoices/${id}`);
+  }, [navigate]);
+
   return (
     <>
-      <Box>
-        <TableContainer>
-          <Table>
+      <Box className="invoices-table__container" width="100%">
+        <TableContainer padding="0">
+          <Table className="invoices-table__table" width="100%">
             <Thead>
               <Tr>
-                <Th
-                  textTransform="none"
-                  fontSize="12px"
-                >
+                <Th>
                   <HStack
-                    spacing={2}
-                    alignItems="center"
+                    width="100%"
+                    justifyContent="space-between"
+                    gap="12px"
+                    paddingLeft="8px"
+                    paddingRight="8px"
                   >
                     <Text>STATUS</Text>
                     <StatusSortingModal onSortChange={handleSortChange} />
                   </HStack>
                 </Th>
-                <Th
-                  textTransform="none"
-                  fontSize="12px"
-                >
-                  INVOICE SENT
+                <Th textAlign="center" paddingLeft="8px" paddingRight="8px">
+                  <Text>INVOICE SENT</Text>
                 </Th>
-                <Th
-                  textTransform="none"
-                  fontSize="12px"
-                >
+                <Th>
                   <HStack
-                    spacing={2}
-                    alignItems="center"
+                    width="100%"
+                    justifyContent="space-between"
+                    gap="12px"
+                    paddingLeft="8px"
+                    paddingRight="8px"
                   >
                     <Text>PROGRAM</Text>
-                    <Spacer />
                     <ProgramSortingModal onSortChange={handleSortChange} />
                   </HStack>
                 </Th>
-                <Th
-                  textTransform="none"
-                  fontSize="12px"
-                >
-                  <Flex align="center">
-                    <FaUser style={{ marginRight: "8px" }} />
-                    <Text>PAYER(S)</Text>
-                  </Flex>
+                <Th paddingLeft="8px" paddingRight="8px">
+                  <Text>PAYER(S)</Text>
                 </Th>
-                <Th
-                  textTransform="none"
-                  fontSize="12px"
-                >
+                <Th>
                   <HStack
-                    spacing={2}
-                    alignItems="center"
+                    width="100%"
+                    justifyContent="space-between"
+                    gap="12px"
+                    paddingLeft="8px"
+                    paddingRight="8px"
                   >
-                    <Icon as={archiveCalendar} />
                     <Text>DEADLINE</Text>
-                    <Spacer />
                     <DateSortingModal onSortChange={handleSortChange} />
                   </HStack>
                 </Th>
-                <Th
-                  textTransform="none"
-                  fontSize="12px"
-                >
-                  SEASON
+                <Th paddingRight="8px">
+                  <Text>SEASON</Text>
                 </Th>
-                <Th
-                  textTransform="none"
-                  fontSize="12px"
-                >
-                  DOWNLOADS
+                <Th paddingLeft="8px" paddingRight="8px">
+                  <Text>DOWNLOADS</Text>
                 </Th>
               </Tr>
             </Thead>
@@ -1012,26 +1009,39 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     )
                   : [];
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
+                
+                let statusClass = '';
+                if (invoice.isPaid === "Paid") {
+                  statusClass = 'status-paid';
+                } else if (invoice.isPaid === "Not Paid") {
+                  statusClass = 'status-not-paid';
+                } else if (invoice.isPaid === "Past Due") {
+                  statusClass = 'status-past-due';
+                }
 
                 return (
                   <Tr
                     key={index}
-                    onClick={() => handleRowClick(invoice.id)}
+                    cursor="pointer"
+                    sx={{
+                      '& td:not(:first-child)': {
+                        color: '#474849',
+                        fontFamily: 'Inter',
+                        fontSize: '14px',
+                        fontStyle: 'normal',
+                        fontWeight: '400',
+                        lineHeight: 'normal',
+                        letterSpacing: '0.07px',
+                      }
+                    }}
                   >
-                    <Td
-                      style={{
-                        color: isPaidColor(invoice),
-                        fontWeight:
-                          invoice.isPaid === "Past Due" ? "bold" : "normal",
-                      }}
-                    >
-                      {invoice.isPaid}
+                    <Td onClick={() => handleRowClick(invoice.id)}>
+                      <Box className={statusClass}>{invoice.isPaid}</Box>
                     </Td>
-                    <Td>
+                    <Td onClick={() => handleRowClick(invoice.id)} textAlign="center">
                       <Flex
                         justifyContent="center"
                         align="center"
-                        w="60%"
                       >
                         {invoice.isSent ? (
                           <Icon
@@ -1048,16 +1058,16 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                         )}
                       </Flex>
                     </Td>
-                    <Td>{invoice.eventName}</Td>
-                    <Td>
+                    <Td onClick={() => handleRowClick(invoice.id)}>{invoice.eventName}</Td>
+                    <Td onClick={() => handleRowClick(invoice.id)}>
                       {validPayers.length > 1
                         ? `${validPayers[0].trim()},...`
                         : validPayers.length === 1
                           ? validPayers[0].trim()
                           : "N/A"}
                     </Td>
-                    <Td>{formatDate(invoice.endDate)}</Td>
-                    <Td>
+                    <Td onClick={() => handleRowClick(invoice.id)}>{formatDate(invoice.endDate)}</Td>
+                    <Td onClick={() => handleRowClick(invoice.id)}>
                       <Tag
                         bg={tagBgColor}
                         color={tagTextColor}
@@ -1066,52 +1076,15 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       </Tag>
                     </Td>
                     <Td>
-                      <Flex ml="18px">
-                        <PDFButtonInvoice id={invoice.id} />
-                      </Flex>
-                    </Td>
-                    <Td>
-                      <Menu>
-                        <MenuButton
-                          className="ellipsis-action-button"
-                          as={IconButton}
-                          size="sm"
-                          bg="#EDF2F7"
-                          color="#000000"
-                          borderRadius="md"
-                          icon={<FiMoreHorizontal />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
+                      <Flex justify="space-between" align="center">
+                        <Flex width="100%" justify="center" onClick={() => handleRowClick(invoice.id)}>
+                          <DownloadInvoiceIcon />
+                        </Flex>
+                        <EditOnlyPopup 
+                          handleEdit={handleEdit}
+                          id={invoice.id}
                         />
-                        <MenuList>
-                          <MenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditInvoice(invoice.id);
-                            }}
-                          >
-                            <Box
-                              display="flex"
-                              padding="6px 8px"
-                              alignItems="center"
-                              gap="10px"
-                            >
-                              <Icon as={editBlackIcon} />
-                              <Text
-                                font-family="Inter"
-                                font-size="14px"
-                                font-weight="400"
-                                line-height="normal"
-                                letter-spacing="0.07px"
-                                color="#2D3748"
-                              >
-                                Edit Invoice
-                              </Text>
-                            </Box>
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
+                      </Flex>
                     </Td>
                   </Tr>
                 );
