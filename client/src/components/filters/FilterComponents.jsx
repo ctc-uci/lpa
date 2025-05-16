@@ -509,10 +509,10 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
 };
 
 // Named ClientsFilter but works for both leadartist and payer: type="lead" || type="payee"
-export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
-  const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
+export const ClientsFilter = ({ clientsList, value, onChange, type, instructorSearchTerm, setInstructorSearchTerm, selectedInstructors, setSelectedInstructors }) => {
+  // const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
   const [searchedInstructors, setSearchedInstructors] = useState([]);
-  const [selectedInstructors, setSelectedInstructors] = useState(value || []);
+  // const [selectedInstructors, setSelectedInstructors] = useState(value || []);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   useEffect(() => {
@@ -773,18 +773,18 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                           (instr) => instr.id === instructor.id
                         )
                       ) {
-                        setSelectedInstructors((prevItems) => [
-                          ...prevItems,
-                          instructor,
-                        ]);
-                        handleLeadArtistChange(instructor);
+                        // setSelectedInstructors((prevItems) => [
+                        //   ...prevItems,
+                        //   instructor,
+                        // ]);
+                        // handleLeadArtistChange(instructor);
 
                         const availableClients = searchedInstructors.filter(
                           (client) => client.id !== instructor.id
                         );
-                        setSearchedInstructors(availableClients);
+                        // setSearchedInstructors(availableClients);
                       }
-                      setInstructorSearchTerm("");
+                      setInstructorSearchTerm(instructor.name);
                     }}
                     style={{
                       padding: "10px",

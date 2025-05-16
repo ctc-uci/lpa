@@ -15,6 +15,10 @@ import { FilterContainer } from "./FilterContainer";
 export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
   const { backend } = useBackendContext();
   const [clients, setClients] = useState([]);
+  const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
+  const [payeeSearchTerm, setPayeeSearchTerm] = useState("");
+  const [selectedInstructors, setSelectedInstructors] = useState([]);
+  const [selectedPayees, setSelectedPayees] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -142,8 +146,10 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       instructor: [],
     });
     setFilteredInvoices(invoices);
-    updateFilter("instructor",[])
-    updateFilter("payee",[])
+    setInstructorSearchTerm("")
+    setPayeeSearchTerm("")
+    setSelectedInstructors([])
+    setSelectedPayees([])
   };
 
   useEffect(() => {
@@ -180,12 +186,20 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         value={filters.instructor}
         onChange={updateFilter}
         type="lead"
+        instructorSearchTerm={instructorSearchTerm}
+        setInstructorSearchTerm={setInstructorSearchTerm}
+        selectedInstructors={selectedInstructors}
+        setSelectedInstructors={setSelectedInstructors}
       />
       <ClientsFilter
         clientsList={clients}
         value={filters.payee}
         onChange={updateFilter}
         type="payee"
+        instructorSearchTerm={payeeSearchTerm}
+        setInstructorSearchTerm={setPayeeSearchTerm}
+        selectedInstructors={selectedPayees}
+        setSelectedInstructors={setSelectedPayees}
       />
     </FilterContainer>
   );
