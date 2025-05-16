@@ -79,34 +79,41 @@
 .archive {
   margin-right: 24px;
   display: flex;
+  width: 114px;
   height: 40px;
   padding: 0px 16px;
   justify-content: center;
   align-items: center;
   gap: 4px;
-  border: none;
+  border-radius: 6px;
+  background: var(--Secondary-2-Default, #EDF2F7);
+  color: var(--Secondary-8, #2D3748);
   cursor: pointer;
-  background-color: #edf2f7;
-  border-radius: 6px !important;
 }
 
 .archive:hover {
-  background: #e2e8f0;
+  background: var(--Secondary-3, #E2E8F0);
   border: none;
   box-shadow: none;
   outline: none;
 }
 
 .archive-icon {
-  width: 20px;
-  height: 20px;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  display: inline-block !important;
 }
 
 .archive-text {
-  color: #2d3748;
-  font-family: var(--font-inter);
-  font-size: 16px;
-  font-weight: 600;
+  color: var(--Secondary-8, #2D3748);
+  font-family: Inter;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.07px;
 }
 
 .new-program {
@@ -151,7 +158,7 @@
   margin: 0;
   border: 1px solid var(--Secondary-3, #e2e8f0);
   border-radius: 15px;
-  padding: 16px 20px;
+  padding: 20px 20px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -166,7 +173,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 0px;
 }
 
 .programs-table__container {
@@ -242,6 +249,11 @@
   border-bottom: 1px solid var(--Secondary-3, #e2e8f0) !important;
   vertical-align: middle !important;
   height: 56px !important;
+  color: var(--Secondary-8, #2D3748) !important;
+}
+
+.programs-table__table tr td * {
+  color: var(--Secondary-8, #2D3748) !important;
 }
 
 /* Align program names with header */
