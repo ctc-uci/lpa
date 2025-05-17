@@ -1,7 +1,10 @@
 #programButton {
-  background-color: #EDF2F7!important;
-  min-width: auto!important;
-  border-radius: 6px!important;
+  border-radius: 6px;
+  background: var(--Secondary-2-Default, #EDF2F7);
+}
+
+#programButton:hover {
+  background: var(--Secondary-3, #E2E8F0);
 }
 
 .archiveHeaderText {
@@ -11,6 +14,8 @@
   font-style: normal;
   font-weight: 700;
   line-height: normal;
+  letter-spacing: 0.07px;
+  text-transform: none;
 }
 
 .columnContainer {
