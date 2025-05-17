@@ -73,13 +73,8 @@ export const ArchivedPrograms = () => {
 
   useEffect(() => {
     const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-
-      const availableHeight = viewportHeight * 0.48;
-
-      console.log(availableHeight / rowHeight);
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
+      // Use 10 rows per page for archives - slightly less than other pages
+      return 10;
     };
 
     setItemsPerPage(calculateRowsPerPage());

@@ -165,7 +165,7 @@ const NotificationsComponents = ({
   return (
     <TableContainer padding={"16px 16px 16px 0"}>
       <style>{customStyles}</style>
-      <Table>
+      <Table position="relative" zIndex={2} bg="white">
         <Thead>
           <Tr>
             <Th

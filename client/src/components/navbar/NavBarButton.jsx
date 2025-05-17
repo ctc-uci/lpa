@@ -10,25 +10,13 @@ const NavBarButton = ({ item, isActive, onNavigateAttempt }) => {
   const widthMap = {
     "Programs": 123,
     "Invoices": 114, 
-    "Notifications": 169,
+    "Notifications": 180,
     "Settings": 115
   };
 
   const handleNavigation = (event) => {
-    event.preventDefault(); // Prevent immediate navigation by RouterLink
-    onNavigateAttempt(item.path); // Call the handler in the parent
-  };
-  
-  // Get width based on hover or active state
-  const getButtonWidth = () => {
-    // Always use the full width when hovered or active to prevent layout shifts
-    if (isHovered || isActive) {
-      return `${widthMap[item.name]}px`;
-    }
-    
-    // When not hovered/active, we still use the SAME width but hide the text
-    // This prevents layout shifts when hovering
-    return `${widthMap[item.name]}px`;
+    event.preventDefault();
+    onNavigateAttempt(item.path);
   };
   
   return (
@@ -37,47 +25,44 @@ const NavBarButton = ({ item, isActive, onNavigateAttempt }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* <RouterLink to={item.path}> */}
-        <Box
+      <Box
+        as={RouterLink}
+        to={item.path}
+        onClick={handleNavigation}
+        className="nav-item-wrapper"
+        width="auto"
+        overflow="visible"
+        position="relative"
+      >
+        <Flex
+          alignItems="center"
+          justifyContent="flex-start"
+          className="navLink icon-container"
+          height="40px"
+          padding="0px 12px"
+          gap="8px"
+          borderRadius="6px"
           bg={isHovered && !isActive ? "#EDF2F7" : "none"}
-          as={RouterLink}
-          to={item.path}
-          onClick={handleNavigation}
-          borderRadius={isActive ? "none" : "6px"}
-          className="nav-item-wrapper"
-          width={getButtonWidth()}
-          transition="none" // Prevent width transitions
-          overflow="hidden"
-          position="relative" // Important for absolute positioning
+          width={isHovered || isActive ? `${widthMap[item.name]}px` : "40px"}
         >
-          <Flex
-            alignItems="center"
-            justifyContent="flex-start"
-            width="100%"
-            rounded="lg"
-            className="navLink icon-container"
-            height="40px"
-            ml={2}
+          <Icon
+            className="navIcon"
+            fontSize="xl"
+            color={isActive ? "#4441C8" : "#718096"}
+            fill={isActive ? "#4441C8" : "#718096"}
+            flexShrink={0}
           >
-            <Icon
-              className="navIcon"
-              fontSize="xl"
-              mr={2}
-              color={isActive ? "#4441C8" : "#718096"}
-              fill={isActive ? "#4441C8" : "#718096"}
-              flexShrink={0}
-            >
-              {item.name === "Programs" ? (
-                <CalendarSelected fill={isActive ? "#4441C8" : "#718096"}/>
-              ) : item.name === "Invoices" ? (
-                <InvoiceSelected fill={isActive ? "#4441C8" : "#718096"}/>
-              ) : (
-                React.cloneElement(item.icon, { size: "23px" })
-              )}
-            </Icon>
-            
-            {/* Show the non-hovered count badge only when not hovered/active AND when we have a count */}
-            {item.count !== null && item.count !== undefined && !isActive && !isHovered && (
+            {item.name === "Programs" ? (
+              <CalendarSelected fill={isActive ? "#4441C8" : "#718096"}/>
+            ) : item.name === "Invoices" ? (
+              <InvoiceSelected fill={isActive ? "#4441C8" : "#718096"}/>
+            ) : (
+              React.cloneElement(item.icon, { size: "23px" })
+            )}
+          </Icon>
+          
+          {/* Show the non-hovered count badge only when not hovered/active AND when we have a count */}
+                      {item.count !== null && item.count !== undefined && !isActive && !isHovered && (
               <Box
                 height="17px"
                 width="17px"
@@ -96,30 +81,31 @@ const NavBarButton = ({ item, isActive, onNavigateAttempt }) => {
                 alignItems="center"
                 justifyContent="center"
                 position="absolute"
-                left="30px" // Position it consistently
+                left="34px"
               >
                 {item.count}
               </Box>
             )}
-            
-            <Text
-              opacity={isHovered || isActive ? 1 : 0}
-              fontWeight="700"
-              color={isActive ? "#4441C8" : "#718096"}
-              fontFamily={"Inter, sans-serif"}
-              fontSize={"14px"}
-              overflow="hidden"
-              whiteSpace="nowrap"
-              transition="opacity 0.2s ease"
-              ml={0} // Keep margin consistent
-            >
-              {item.name}
-            </Text>
-            
-            {/* For hovered/active state with notification count */}
+          
+          <Text
+            opacity={isHovered || isActive ? 1 : 0}
+            fontWeight="700"
+            color={isActive ? "#4441C8" : "#718096"}
+            fontFamily="Inter"
+            fontSize="14px"
+            fontStyle="normal"
+            lineHeight="normal"
+            letterSpacing="0.07px"
+            overflow="visible"
+            whiteSpace="nowrap"
+          >
+            {item.name}
+          </Text>
+          
+                    {/* For hovered/active state with notification count */}
             {item.count !== null && item.count !== undefined && (isHovered || isActive) && (
               <Box
-                marginLeft="10px"
+                marginLeft="2px"
                 height="17px"
                 width="17px"
                 textAlign="center"
@@ -135,13 +121,13 @@ const NavBarButton = ({ item, isActive, onNavigateAttempt }) => {
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
+                flexShrink={0}
               >
                 {item.count}
               </Box>
             )}
-          </Flex>
-        </Box>
-      {/* </RouterLink> */}
+        </Flex>
+      </Box>
     </div>
   );
 };

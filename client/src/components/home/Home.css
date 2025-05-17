@@ -164,6 +164,9 @@
   align-items: flex-start;
   gap: 16px;
   align-self: stretch;
+  background-color: white;
+  position: relative;
+  z-index: 2;
 }
 
 .programs-table__filter-row {

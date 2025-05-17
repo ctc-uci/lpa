@@ -83,10 +83,8 @@ export const Notifications = () => {
   // Calculate responsive itemsPerPage
   useEffect(() => {
     const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 41;
-      const availableHeight = viewportHeight * 0.5;
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
+      // Always return 14 rows per page for notifications
+      return 14;
     };
 
     setItemsPerPage(calculateRowsPerPage());
@@ -279,6 +277,8 @@ export const Notifications = () => {
           border="1px solid var(--Secondary-3, #E2E8F0)"
           borderRadius="15px"
           background="var(--white, #FFF)"
+          position="relative"
+          zIndex="2"
         >
           <Flex
             justifyContent="space-between"

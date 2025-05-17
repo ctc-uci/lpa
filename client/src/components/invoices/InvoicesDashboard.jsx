@@ -75,10 +75,8 @@ const InvoicesDashboard = () => {
 
   useEffect(() => {
     const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-      const availableHeight = viewportHeight * 0.5;
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
+      // Always return 12 rows per page for invoices
+      return 12;
     };
 
     setItemsPerPage(calculateRowsPerPage());
