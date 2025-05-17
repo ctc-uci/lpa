@@ -127,12 +127,28 @@ export const FilterButton = ({ setFilterType, currentFilter, onApply, onClear })
       <PopoverTrigger>
         <Button
           leftIcon={<FilterButtonIcon />}
+          display="flex"
+          width="99px"
           height="40px"
-          backgroundColor="#F0F1F4"
-          color={hasActiveFilters || isOpen ? "#5951F3" : "#2D3748"}
-          border="1px solid"
-          borderColor={hasActiveFilters || isOpen ? "#5951F3" : "#E2E2E2"}
-          _hover={{ borderColor: "#6B46C1" }}
+          padding="0px 16px"
+          justifyContent="center"
+          alignItems="center"
+          gap="4px"
+          flexShrink="0"
+          borderRadius="6px"
+          background="var(--Secondary-2-Default, #EDF2F7)"
+          color={hasActiveFilters || isOpen ? "var(--Primary-5-Default, #4441C8)" : "var(--Secondary-8, #2D3748)"}
+          fontFamily="Inter"
+          fontSize="14px"
+          fontStyle="normal"
+          fontWeight="700"
+          lineHeight="normal"
+          letterSpacing="0.07px"
+          border={hasActiveFilters || isOpen ? "1px solid var(--Primary-5-Default, #4441C8)" : "none"}
+          _hover={{
+            borderRadius: "6px",
+            background: "var(--Secondary-3, #E2E8F0)"
+          }}
           _focus={{ boxShadow: "none" }}
         >
           Filters

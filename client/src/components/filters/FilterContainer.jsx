@@ -44,7 +44,32 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
       <Button
         onClick={onOpen}
         leftIcon={<Icon as={FilterIcon} />}
-        width="100px"
+        display="flex"
+        width="99px"
+        height="40px"
+        padding="0px 16px"
+        justifyContent="center"
+        alignItems="center"
+        gap="4px"
+        flexShrink="0"
+        borderRadius="6px"
+        background="var(--Secondary-2-Default, #EDF2F7)"
+        color="var(--Secondary-8, #2D3748)"
+        fontFamily="Inter"
+        fontSize="14px"
+        fontStyle="normal"
+        fontWeight="700"
+        lineHeight="normal"
+        letterSpacing="0.07px"
+        _hover={{
+          borderRadius: "6px",
+          background: "var(--Secondary-3, #E2E8F0)"
+        }}
+        _active={{
+          borderRadius: "6px",
+          border: "1px solid var(--Primary-5-Default, #4441C8)",
+          background: "var(--Secondary-2-Default, #EDF2F7)"
+        }}
       >
         Filters
       </Button>

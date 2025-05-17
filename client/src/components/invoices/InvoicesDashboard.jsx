@@ -23,6 +23,8 @@ import { PaginationComponent } from "../PaginationComponent";
 import { SearchBar } from "../searchBar/SearchBar";
 import { InvoicesFilter, InvoicesTable } from "./InvoiceComponents";
 
+import "./Invoices.css";
+
 const InvoicesDashboard = () => {
   const toast = useToast();
   const navigate = useNavigate();
@@ -73,10 +75,8 @@ const InvoicesDashboard = () => {
 
   useEffect(() => {
     const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-      const availableHeight = viewportHeight * 0.5;
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
+      // Always return 12 rows per page for invoices
+      return 12;
     };
 
     setItemsPerPage(calculateRowsPerPage());
@@ -278,18 +278,9 @@ const InvoicesDashboard = () => {
 
   return (
     <Navbar>
-      <Box>
-        <Flex
-          m="50px 30px 20px 30px"
-          flexDirection="column"
-          padding="20px"
-          border="1px solid var(--medium-light-grey)"
-          borderRadius="12px"
-        >
-          <Flex
-            justifyContent="space-between"
-            mb="40px"
-          >
+      <Box className="home-inner">
+        <Box className="invoices-table">
+          <Flex className="invoices-filter-row">
             <InvoiceFilter
               invoices={invoices}
               setFilteredInvoices={(results) => {
@@ -297,6 +288,7 @@ const InvoicesDashboard = () => {
                 setFilteredInvoices(results);
               }}
             />
+            <Box flex="1" />
             <SearchBar
               handleSearch={handleSearch}
               searchQuery={query}
@@ -307,15 +299,13 @@ const InvoicesDashboard = () => {
             isPaidColor={isPaidColor}
             seasonColor={seasonColor}
           />
-        </Flex>
-        {/* <Flex> */}
+        </Box>
         <PaginationComponent
           totalPages={totalPages}
           goToNextPage={goToNextPage}
           goToPreviousPage={goToPreviousPage}
           currentPage={currentPage}
         />
-        {/* </Flex> */}
       </Box>
     </Navbar>
   );

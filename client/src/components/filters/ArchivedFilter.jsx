@@ -6,6 +6,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
     const {backend} = useBackendContext();
     const [clients, setClients] = useState([]);
+    const [originalData] = useState(archived); // Store the original data to restore on reset
 
     useEffect(() => {
       const fetchData = async () => {
@@ -31,19 +32,17 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
     });
 
     const updateFilter = (type, value) => {
-      console.log(`Updating filter: ${type} with value:`, value);
       setFilters((prev) => ({ ...prev, [type]: value }));
     };
 
     // Apply the filters to the programs page
     const applyFilters = () => {
-      console.log("Applying filters:", filters);
-      console.log("Original archived:", archived);
-      let filtered = archived;
+      // Always start with the original full dataset
+      let filtered = [...archived]; 
 
       if (filters.room !== "all"){
         filtered = filtered.filter(program =>
-          program.room.toLowerCase() === filters.room.toLowerCase()
+          program.room && program.room.toLowerCase() === filters.room.toLowerCase()
         );
       }
 
@@ -65,10 +64,13 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
 
       if (filters.endDate) {
         filtered = filtered.filter(program => {
-          if (!program.date) return false;
+          if (!program.date && !program.sessionDate) return false;
+          
+          // Use sessionDate as fallback for date
+          const dateToUse = program.date || program.sessionDate;
           
           // Create date objects using year, month, day only to remove time component
-          const programDate = new Date(program.date);
+          const programDate = new Date(dateToUse);
           const endDate = new Date(filters.endDate);
           
           // Set both dates to midnight to compare date only
@@ -93,6 +95,8 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
       const compareTimeStrings = (time1, time2) => {
         // Helper to convert time string to minutes since midnight
         const timeToMinutes = (timeStr) => {
+          if (!timeStr) return 0; // Handle null/undefined times
+          
           let hours, minutes;
           
           // Check if timeStr is in 24-hour format (e.g., "21:00")
@@ -132,8 +136,8 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
       if (filters.startTime) {
         filtered = filtered.filter(session => {
           // Convert both times to comparable format and then compare
-          const sessionStartTime = session.startTime; // Assuming this is a string
-          console.log("Comparing session start:", sessionStartTime, "with filter:", filters.startTime);
+          const sessionStartTime = session.sessionStart; // Assuming this is a string
+          if (!sessionStartTime) return false;
           return compareTimeStrings(sessionStartTime, filters.startTime) >= 0;
         });
       }
@@ -141,8 +145,8 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
       if (filters.endTime) {
         filtered = filtered.filter(session => {
           // Convert both times to comparable format and then compare
-          const sessionEndTime = session.endTime; // Assuming this is a string
-          console.log("Comparing session end:", sessionEndTime, "with filter:", filters.endTime);
+          const sessionEndTime = session.sessionEnd; // Assuming this is a string
+          if (!sessionEndTime) return false;
           return compareTimeStrings(sessionEndTime, filters.endTime) <= 0;
         });
       }
@@ -150,35 +154,37 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
       // Filter for instructor
       if (filters.instructor.length > 0) {
         filtered = filtered.filter(program => {
-          if (program.instructors && Object.keys(program.instructors).length > 0) {
-            return Object.values(program.instructors).some(instructor =>
+          if (program.instructors && program.instructors.length > 0) {
+            return program.instructors.some(instructor =>
               filters.instructor.some(filterInstructor =>
+                instructor.clientName && filterInstructor.name && 
                 instructor.clientName.toLowerCase() === filterInstructor.name.toLowerCase()
               )
             );
           }
           return false;
-      });
-    }
+        });
+      }
+      
       // Filter for payee
-        if (filters.payee.length > 0) {
-          filtered = filtered.filter(program => {
-            if (program.payees && Object.keys(program.payees).length > 0) {
-              return Object.values(program.payees).some(payee =>
-                filters.payee.some(filterPayee =>
-                  payee.clientName.toLowerCase() === filterPayee.name.toLowerCase()
-                )
-              );
-            }
-            return false;
+      if (filters.payee.length > 0) {
+        filtered = filtered.filter(program => {
+          if (program.payees && program.payees.length > 0) {
+            return program.payees.some(payee =>
+              filters.payee.some(filterPayee =>
+                payee.clientName && filterPayee.name && 
+                payee.clientName.toLowerCase() === filterPayee.name.toLowerCase()
+              )
+            );
+          }
+          return false;
         });
       }
 
-      console.log("NEW FILTERED", filtered);
       setArchivedPrograms(filtered);
     };
 
-    const resetFilter = (type, value) => {
+    const resetFilter = () => {
       setFilters({
         days: [],
         startTime: null,
@@ -189,6 +195,7 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
         instructor: [],
         payee: [],
       });
+      // Reset to original data
       setArchivedPrograms(archived);
     }
 
