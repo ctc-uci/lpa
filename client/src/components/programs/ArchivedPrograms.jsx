@@ -388,6 +388,9 @@ export const ArchivedPrograms = () => {
           border="1px"
           borderColor="#E2E8F0"
           borderRadius="15px"
+          position="relative"
+          zIndex={3}
+          bg="white"
         >
           <CardBody margin="6px">
             <Flex
@@ -438,7 +441,7 @@ export const ArchivedPrograms = () => {
                 </Flex>
               </Box>
               <TableContainer>
-                <Table variant="unstyled">
+                <Table variant="unstyled" position="relative" zIndex={3} bg="white">
                   <Thead
                     borderBottom="1px"
                     color="#D2D2D2"

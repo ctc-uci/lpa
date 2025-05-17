@@ -948,7 +948,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     <>
       <Box className="invoices-table__container" width="100%">
         <TableContainer padding="0">
-          <Table className="invoices-table__table" width="100%">
+          <Table className="invoices-table__table" width="100%" position="relative" zIndex={3} bg="white">
             <Thead>
               <Tr>
                 <Th>

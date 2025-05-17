@@ -44,6 +44,7 @@ const NavBarButton = ({ item, isActive, onNavigateAttempt }) => {
           borderRadius="6px"
           bg={isHovered && !isActive ? "#EDF2F7" : "none"}
           width={isHovered || isActive ? `${widthMap[item.name]}px` : "40px"}
+          zIndex="-1"
         >
           <Icon
             className="navIcon"
