@@ -130,7 +130,7 @@ const NotificationsComponents = ({
 
   const paymentText = (eventName, description, invoiceId) => {
     const handleClick = () => {
-      navigator(`/invoices/edit/${invoiceId}`);
+      navigator(`/invoices/${invoiceId}`);
     };
 
     const textStyles = {
