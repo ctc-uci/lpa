@@ -40,12 +40,12 @@
 
 .td:first-child, .th:first-child {
   padding-left: 0!important;
-  display: flex;
-  justify-content: flex-start;
+  /* display: flex;
+  justify-content: flex-start; */
 }
 
 .td:last-child, .th:last-child {
   padding-right: 0!important;
-  display: flex;
-  justify-content: flex-end;
+  /* display: flex;
+  justify-content: flex-end; */
 }

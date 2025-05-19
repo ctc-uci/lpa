@@ -419,7 +419,7 @@ export const ArchivedPrograms = () => {
           background="white" 
           position="relative"
           zIndex={3}
-          minHeight="500px" // Add minimum height to prevent collapsing
+          // minHeight="500px" // Add minimum height to prevent collapsing (should it collapse?)
         >
           <Flex
             direction="column"
@@ -475,8 +475,8 @@ export const ArchivedPrograms = () => {
                 searchQuery={searchQuery}
               />
             </Flex>
-            <TableContainer width="100%"> {/* Ensure table container takes full width */}
-              <Table variant="unstyled" position="relative" zIndex={3} bg="white" width="100%"> {/* Ensure table takes full width */}
+            <TableContainer>
+              <Table variant="unstyled" position="relative" zIndex={3} bg="white">
                 <Thead
                   borderBottom="1px"
                   color="#D2D2D2"
@@ -585,10 +585,9 @@ export const ArchivedPrograms = () => {
                       <Td colSpan={7} textAlign="center" className="td">
                         <Box
                           justifyContent="center"
-                          py={6}
                           color="gray.500"
                           fontSize="md"
-                          width="300px"
+                          width="100%"
                           margin="auto"
                         >
                           <Text textAlign={"center"}>
@@ -671,11 +670,8 @@ export const ArchivedPrograms = () => {
                       >
                         <Box
                           justifyContent="center"
-                          py={6}
                           color="gray.500"
                           fontSize="md"
-                          width="300px"
-                          margin="auto"
                         >
                           <Text textAlign={"center"}>
                             {allArchivedSessions.length > 0 
