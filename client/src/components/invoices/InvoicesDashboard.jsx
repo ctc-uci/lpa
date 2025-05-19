@@ -196,56 +196,6 @@ const InvoicesDashboard = () => {
         setFilteredInvoices(invoices);
         setFilterComponentResults(invoices);
 
-        // Handle toast notifications here, after data is loaded
-        if (!hasShownToast.current) {
-          const pastDueInvoices = invoices.filter(
-            (invoice) => isPaid(invoice) === "Past Due"
-          );
-          const notifCounter = pastDueInvoices.length;
-
-          if (notifCounter > 0) {
-            hasShownToast.current = true; // Set ref to true to prevent multiple toasts
-            toast({
-              title: "Unpaid Invoices",
-              description:
-                notifCounter > 1
-                  ? `You have ${notifCounter} past due invoices`
-                  : `${pastDueInvoices[0].name} - ${pastDueInvoices[0].endDate.split("T")[0]}`,
-              status: "error",
-              duration: 9000,
-              position: "bottom-right",
-              isClosable: true,
-              render: () => (
-                <Flex
-                  p={3}
-                  bg="#FED7D7"
-                  borderTop="4px solid"
-                  borderTopColor="red.500"
-                  onClick={() => navigate("/notification")}
-                  padding="12px 16px"
-                  gap="12px"
-                  w="400px"
-                >
-                  <Image src={AlertIcon} />
-                  <Flex flexDirection="column">
-                    <Heading
-                      size="sm"
-                      align-self="stretch"
-                    >
-                      Unpaid Invoices
-                    </Heading>
-                    <Text align-self="stretch">
-                      {notifCounter > 1
-                        ? `You have ${notifCounter} past due invoices`
-                        : `${pastDueInvoices[0].name} -
-                    ${new Date(pastDueInvoices[0].endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}`}
-                    </Text>
-                  </Flex>
-                </Flex>
-              ),
-            });
-          }
-        }
       } catch (err) {
         console.log(err);
       }
