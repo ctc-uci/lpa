@@ -1,4 +1,4 @@
-import { Box, Flex, Stack, Input, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, useDisclosure, Icon } from "@chakra-ui/react";
+import { Box, Flex, Stack, Input, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, useDisclosure, Icon, Text } from "@chakra-ui/react";
 import { PersonIcon } from "../../assets/AdminSettingsIcons";
 import { EmailIcon } from "../../assets/EmailIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -9,6 +9,7 @@ export const AddClient = ({ isOpen, onClose, type }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const { backend } = useBackendContext();
 
   const addClient = async () => {
@@ -28,7 +29,14 @@ export const AddClient = ({ isOpen, onClose, type }) => {
       setFirstName("");
       setLastName("");
       setEmail("");
-      console.error("Error adding client:", err.message);
+      if (err.response.data) {
+        setError("An error occurred while adding the client.");
+        if (err.response.data.includes("unique_email")) {
+          setError("Error: Email already exists");
+        } else if (err.response.data.includes("name_unique")) {
+          setError("Error: Name already exists");
+        }
+      }
     }
   };
 
@@ -36,6 +44,7 @@ export const AddClient = ({ isOpen, onClose, type }) => {
     setFirstName("");
     setLastName("");
     setEmail("");
+    setError(null);
     onClose();
   };
 
@@ -74,6 +83,7 @@ export const AddClient = ({ isOpen, onClose, type }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+                {error && <Text color="red" marginLeft="15px" marginTop="5px">{error}</Text>}
               </Stack>
             </Flex>
             <Flex justifyContent="flex-end" gap={2}>
