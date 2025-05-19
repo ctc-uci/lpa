@@ -530,8 +530,10 @@ export const ProgramsTable = () => {
 
   useEffect(() => {
     const calculateRowsPerPage = () => {
-      // Always return 14 rows per page for programs
-      return 14;
+      const viewportHeight = window.innerHeight;
+      const rowHeight = 35;
+      const availableHeight = viewportHeight * 0.4;
+      return Math.max(5, Math.floor(availableHeight / rowHeight));
     };
 
     setItemsPerPage(calculateRowsPerPage());
