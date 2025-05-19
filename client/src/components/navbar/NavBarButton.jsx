@@ -10,7 +10,7 @@ const NavBarButton = ({ item, isActive, onNavigateAttempt }) => {
   const widthMap = {
     "Programs": 123,
     "Invoices": 114, 
-    "Notifications": 180,
+    "Notifications": 170,
     "Settings": 115
   };
 
