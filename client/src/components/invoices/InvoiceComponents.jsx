@@ -999,6 +999,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 <Th paddingLeft="8px" paddingRight="8px">
                   <Text>DOWNLOADS</Text>
                 </Th>
+                <Th>
+                  {/* Blank for edit button dropdown */}
+                </Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -1069,6 +1072,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     <Td onClick={() => handleRowClick(invoice.id)}>{formatDate(invoice.endDate)}</Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       <Tag
+                        size="md"
                         bg={tagBgColor}
                         color={tagTextColor}
                       >
@@ -1076,16 +1080,18 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       </Tag>
                     </Td>
                     <Td>
-                      <Flex justify="space-between" align="center">
-                        <Flex width="100%" justify="center">
-                          <PDFButtonInvoice id={invoice.id} />
-                        </Flex>
+                      <Flex width="100%" justify="center">
+                        <PDFButtonInvoice id={invoice.id} />
+                      </Flex>
+                    </Td>
+                    <td>
+                      <Flex width="100%" justify="center">
                         <EditOnlyPopup 
                           handleEdit={handleEdit}
                           id={invoice.id}
                         />
                       </Flex>
-                    </Td>
+                    </td>
                   </Tr>
                 );
               })}

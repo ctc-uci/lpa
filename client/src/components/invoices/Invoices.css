@@ -117,23 +117,21 @@
 
 .invoices-table__table th:nth-child(6),
 .invoices-table__table td:nth-child(6) {
-  width: 67px !important;
+  width: 90px !important;
+  padding-left: 8px !important;
   padding-right: 8px !important;
-}
-
-.invoices-table__table th:nth-child(6) > div {
-  padding-left: 8px !important; /* Match cell padding */
 }
 
 .invoices-table__table th:nth-child(7),
 .invoices-table__table td:nth-child(7) {
-  width: 132px !important;
+  width: 100px !important;
   padding-left: 8px !important;
-  padding-right: 0px !important;
+  padding-right: 8px !important;
 }
 
-.invoices-table__table th:nth-child(7) > div {
-  padding-left: 8px !important; /* Match cell padding */
+.invoices-table__table th:nth-child(8),
+.invoices-table__table td:nth-child(8) {
+  width: 40px !important;
 }
 
 /* Table row and cell styling */
