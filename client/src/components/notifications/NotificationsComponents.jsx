@@ -1,12 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { HStack, Flex, Icon, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
+import { HStack, Flex, Icon, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr, Box } from "@chakra-ui/react";
 
 import { CalendarIcon } from "./CalendarIcon";
 import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import { InfoTooltip } from "./InfoTooltip";
+
+// Add custom styles to enforce row height
+const customStyles = `
+  .notification-table-row {
+    height: 41px !important;
+    max-height: 41px !important;
+    min-height: 41px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .notification-table-row td {
+    height: 41px !important;
+    max-height: 41px !important;
+    min-height: 41px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .notification-table-row:last-child td {
+    border-bottom: none !important;
+  }
+`;
 
 const NotificationsComponents = ({ 
   notifications, 
@@ -96,6 +119,7 @@ const NotificationsComponents = ({
           fontWeight={fontWeight}
           lineHeight="normal"
           letterSpacing="0.07px"
+          paddingRight="8px"
         >
           {label}
         </Text>
@@ -106,7 +130,7 @@ const NotificationsComponents = ({
 
   const paymentText = (eventName, description, invoiceId) => {
     const handleClick = () => {
-      navigator(`/invoices/edit/${invoiceId}`);
+      navigator(`/invoices/${invoiceId}`);
     };
 
     const textStyles = {
@@ -139,35 +163,29 @@ const NotificationsComponents = ({
   };
 
   return (
-    <TableContainer padding={"16px"}>
-      <Table>
+    <TableContainer padding={"16px 16px 16px 0"}>
+      <style>{customStyles}</style>
+      <Table position="relative" zIndex={2} bg="white">
         <Thead>
           <Tr>
             <Th
               textTransform="none"
               fontSize="md"
               paddingBottom="24px"
-              paddingLeft="0px"
+              paddingLeft="8px"
               width="10%"
             >
-              <Flex
-                display="flex"
-                height="15px"
-                padding="8px"
-                justifyContent="space-between"
-                alignItems="center"
+              <Text
+                color="var(--Secondary-6, #718096)"
+                fontFamily="Inter"
+                fontSize="12px"
+                fontStyle="normal"
+                fontWeight="700"
+                lineHeight="normal"
+                paddingLeft="0px"
               >
-                <Text
-                  color="var(--Secondary-6, #718096)"
-                  fontFamily="Inter"
-                  fontSize="12px"
-                  fontStyle="normal"
-                  fontWeight="700"
-                  lineHeight="normal"
-                >
-                  STATUS
-                </Text>
-              </Flex>
+                STATUS
+              </Text>
             </Th>
             <Th
               textTransform="none"
@@ -240,8 +258,8 @@ const NotificationsComponents = ({
               </Tr>
             ) : currentNotifications.length > 0 ? (
               currentNotifications.map((item, index) => (
-                <Tr key={index}>
-                  <Td paddingLeft="0px">{getNotifType(item.payStatus)}</Td>
+                <Tr key={index} className="notification-table-row">
+                  <Td paddingLeft="8px">{getNotifType(item.payStatus)}</Td>
                   <Td paddingLeft="24px">
                     {paymentText(
                       item.eventName,

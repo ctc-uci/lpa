@@ -6,31 +6,25 @@
 }
 
 .navbar-container {
-  transition: width 0.3s ease;
   /* Ensure the navbar has a fixed width and doesn't resize */
   min-width: 188px;
-  width: 188px !important;
+  /* width: 188px !important; */
   flex-shrink: 0;
+  z-index: 0;
 }
 
 .navItem {
   margin: 8px 0;
   border-left: 3px solid transparent;
-  transition: all 0.2s ease;
   position: relative;
-  /* Prevent any layout shifts */
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
 .navLink {
-  transition: all 0.2s ease;
   width: 100%;
 }
 
 .navIcon {
   font-size: 20px;
-  transition: color 0.2s ease;
 }
 
 .navLink, .navIcon {

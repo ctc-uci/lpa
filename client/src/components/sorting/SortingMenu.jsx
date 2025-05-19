@@ -24,10 +24,25 @@ const SortingMenu = ({ options, onSortChange }) => {
           _active: { background: "transparent" },
           _focus: { background: "transparent" },
           marginLeft: "auto",
-          marginRight: "-16px",
+          marginRight: "-8px",
+          width: "16px",
+          height: "16px",
+          minWidth: "16px",
+          minHeight: "16px",
+          padding: "0"
         }}
       >
-        <img src={arrowsSvg} alt="Arrows" className="menu-button-icon" />
+        <img 
+          src={arrowsSvg} 
+          alt="Arrows" 
+          className="menu-button-icon" 
+          style={{ 
+            width: "16px", 
+            height: "16px", 
+            margin: "0",
+            padding: "0"
+          }} 
+        />
       </MenuButton>
       <MenuList className="program-sorting-popup">
         {options.map(({ label, value, order }) => (

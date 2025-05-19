@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -54,10 +54,12 @@ import ProgramSortingModal from "../sorting/ProgramFilter";
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
   const [program, setPrograms] = useState([]);
-  const [archived, setArchived] = useState([]);
+  // Complete dataset of archived programs
+  const [allArchivedSessions, setAllArchivedSessions] = useState([]);
+  // Filtered dataset (after applying filters)
+  const [filteredArchived, setFilteredArchived] = useState([]);
   const [uniqueRooms, setUniqueRooms] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
-  const [archivedSessions, setArchivedProgramSessions] = useState([]);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [selectedRoom, setSelectedRoom] = useState("All");
@@ -67,19 +69,16 @@ export const ArchivedPrograms = () => {
   const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const dataFetchedRef = useRef(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-
-      const availableHeight = viewportHeight * 0.48;
-
-      console.log(availableHeight / rowHeight);
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
+      // Use 10 rows per page for archives - slightly less than other pages
+      return 10;
     };
 
     setItemsPerPage(calculateRowsPerPage());
@@ -94,7 +93,6 @@ export const ArchivedPrograms = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-  const [filteredArchived, setFilteredArchived] = useState([]);
 
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -102,6 +100,9 @@ export const ArchivedPrograms = () => {
   };
 
   const getArchivedPrograms = async () => {
+    if (dataFetchedRef.current) return;
+    setLoading(true);
+    
     try {
       const programResponse = await backend.get(`events`);
       const programData = programResponse.data;
@@ -112,11 +113,12 @@ export const ArchivedPrograms = () => {
         (program) => program.archived === true
       );
 
-      setArchived(archivedSessions);
-
       await getArchivedProgramSessions(archivedSessions);
     } catch (error) {
       console.log("From getArchivedSessions: ", error);
+    } finally {
+      setLoading(false);
+      dataFetchedRef.current = true;
     }
   };
 
@@ -192,15 +194,12 @@ export const ArchivedPrograms = () => {
           instructors: thisAssignments.instructors,
           payees: thisAssignments.payees,
         };
-        // console.log("THIS SESSION", thisSession);
         info.push(thisSession);
       }
 
-      setArchivedProgramSessions(info);
+      setAllArchivedSessions(info);
       setFilteredArchived(info);
       setUniqueRooms([...allRoomIds]);
-      // console.log("here");
-      // console.log(archivedSessions);
     } catch (error) {
       console.log("From getArchivedProgramSessions: ", error);
     }
@@ -220,13 +219,10 @@ export const ArchivedPrograms = () => {
     }
   };
 
+  // Load data only once when component mounts
   useEffect(() => {
     getArchivedPrograms();
-  }, [archivedSessions]);
-
-  useEffect(() => {
-    // Runs whenever searchQuery, dateRange, or timeRange changes
-  }, [searchQuery, dateRange, timeRange]);
+  }, []);
 
   useEffect(() => {
     if (uniqueRooms) {
@@ -270,9 +266,37 @@ export const ArchivedPrograms = () => {
     setTimeRange((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Apply search on the current filtered results
   const handleSearch = (query) => {
-    // Sets query for filterSessions
     setSearchQuery(query);
+    
+    if (!query) {
+      // If query is empty, use the complete original dataset
+      setFilteredArchived(allArchivedSessions);
+      return;
+    }
+    
+    const lowerCaseQuery = query.toLowerCase();
+    const filtered = allArchivedSessions.filter(session => {
+      return (
+        // Search by program name
+        (session.programName && session.programName.toLowerCase().includes(lowerCaseQuery)) ||
+        // Search by room
+        (session.room && session.room.toLowerCase().includes(lowerCaseQuery)) ||
+        // Search by instructors
+        (session.instructors && session.instructors.some(instructor => 
+          instructor.clientName && instructor.clientName.toLowerCase().includes(lowerCaseQuery)
+        )) ||
+        // Search by payees
+        (session.payees && session.payees.some(payee => 
+          payee.clientName && payee.clientName.toLowerCase().includes(lowerCaseQuery)
+        ))
+      );
+    });
+    
+    setFilteredArchived(filtered);
+    // Reset to first page when searching
+    setCurrentPage(1);
   };
 
   const handleRowClick = useCallback(
@@ -283,12 +307,8 @@ export const ArchivedPrograms = () => {
   );
 
   const sortedArchivedSessions = useMemo(() => {
-    // Filtered should be the results of the archivedfilter update
+    // Use filtered data
     const filtered = filteredArchived;
-    console.log(
-      "Filtered session dates:",
-      filtered.map((s) => s.sessionDate)
-    );
 
     const sorted = [...filtered];
     if (sortKey === "title") {
@@ -306,23 +326,10 @@ export const ArchivedPrograms = () => {
         // If one is null, push it to the end.
         if (!dateA) return 1;
         if (!dateB) return -1;
-        console.log(
-          "Comparing:",
-          a.sessionDate,
-          "->",
-          dateA,
-          "vs",
-          b.sessionDate,
-          "->",
-          dateB
-        );
+        // Compare dates
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
     }
-    console.log(
-      "Sorted session dates:",
-      sorted.map((s) => s.sessionDate)
-    );
     return sorted;
   }, [filteredArchived, sortKey, sortOrder]);
 
@@ -361,10 +368,16 @@ export const ArchivedPrograms = () => {
     try {
       await deleteArchivedProgram(programId);
 
-      // Update local state
-      setArchivedProgramSessions((prevSessions) =>
+      // Update local state by removing the deleted program from all state variables
+      const updatedAllArchivedSessions = allArchivedSessions.filter(
+        (session) => session.programId !== programId
+      );
+      setAllArchivedSessions(updatedAllArchivedSessions);
+      
+      setFilteredArchived((prevSessions) =>
         prevSessions.filter((session) => session.programId !== programId)
       );
+      
       onClose();
     } catch (error) {
       console.log("Couldn't delete program", error);
@@ -378,268 +391,302 @@ export const ArchivedPrograms = () => {
           align="center"
           mb="24px"
         >
-          <Icon as={archiveBox} />
+          <Icon as={archiveBox} width="24px" height="24px" />
           <Text
             fontSize="24px"
-            fontWeight="semibold"
+            fontWeight="600"
+            fontFamily="Inter"
+            fontStyle="normal"
+            lineHeight="32px"
             color="#2D3748"
             ml="8px"
           >
             Archived
           </Text>
         </Flex>
-        <Card
-          shadow="none"
-          border="1px"
-          borderColor="#E2E8F0"
+        <Box 
+          className="programs-table"
+          width="100%"
+          margin="0"
+          border="1px solid var(--Secondary-3, #e2e8f0)"
           borderRadius="15px"
+          padding="20px"
+          display="flex"
+          flexDirection="column"
+          alignItems="flex-start"
+          gap="16px"
+          alignSelf="stretch"
+          background="white" 
+          position="relative"
+          zIndex={3}
+          // minHeight="500px" // Add minimum height to prevent collapsing (should it collapse?)
         >
-          <CardBody margin="6px">
-            <Flex
-              direction="column"
-              justify="space-between"
+          <Flex
+            direction="column"
+            justify="space-between"
+            width="100%" // Ensure flex container takes full width
+          >
+            <Flex 
+              className="programs-table__filter-row"
+              height="40px"
+              width="100%"
+              margin="0"
+              marginBottom="15px"
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
             >
-              <Box
-                display="flex"
-                justify-content="space-between"
-                align-items="flex-start"
-                align-self="stretch"
-                marginTop="5px"
-                marginBottom="15px"
-              >
-                <Flex
-                  marginRight="auto"
-                  gap="1.25rem"
-                  alignItems="center"
+              <Flex gap="16px" alignItems="center">
+                <Button
+                  id="programButton"
+                  display="flex"
+                  gap="0.25rem"
+                  onClick={() => {
+                    navigate("/programs");
+                  }}
+                  width="119px"
+                  height="40px"
+                  borderRadius="6px"
+                  background="#EDF2F7"
+                  _hover={{ background: "#E2E8F0" }}
                 >
-                  <Flex gap={"4"}>
-                    <Button
-                      id="programButton"
-                      display="flex"
-                      gap="0.25rem"
-                      onClick={() => {
-                        navigate("/programs");
-                      }}
-                    >
-                      <BackIcon />
-                      <Text
-                        fontSize="sm"
-                        color="#2D3748"
-                      >
-                        Programs
-                      </Text>
-                    </Button>
-                    <ArchivedFilter
-                      archived={archivedSessions}
-                      setArchivedPrograms={setFilteredArchived}
-                      roomMap={roomNames}
-                    />
-                  </Flex>
-                  <Box flex="1" />
-                  <SearchBar
-                    handleSearch={handleSearch}
-                    searchQuery={searchQuery}
-                  />
-                </Flex>
-              </Box>
-              <TableContainer>
-                <Table variant="unstyled">
-                  <Thead
-                    borderBottom="1px"
-                    color="#D2D2D2"
+                  <Icon as={BackIcon} width="16px" height="16px" />
+                  <Text
+                    color="#2D3748"
+                    fontFamily="Inter"
+                    fontSize="14px"
+                    fontStyle="normal"
+                    fontWeight="700"
+                    lineHeight="normal"
+                    letterSpacing="0.07px"
                   >
-                    <Tr>
-                      <Th
-                        className="th"
-                        minWidth="20rem"
+                    Programs
+                  </Text>
+                </Button>
+                <ArchivedFilter
+                  archived={allArchivedSessions}
+                  setArchivedPrograms={setFilteredArchived}
+                  roomMap={roomNames}
+                />
+              </Flex>
+              <Box flex="1" />
+              <SearchBar
+                handleSearch={handleSearch}
+                searchQuery={searchQuery}
+              />
+            </Flex>
+            <TableContainer>
+              <Table variant="unstyled" position="relative" zIndex={3} bg="white">
+                <Thead
+                  borderBottom="1px"
+                  color="#D2D2D2"
+                >
+                  <Tr>
+                    <Th
+                      className="th"
+                      minWidth="20rem"
+                    >
+                      <Box
+                        className="columnContainer"
+                        width="100%"
                       >
-                        <Box
-                          className="columnContainer"
-                          width="100%"
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
                         >
-                          <Text
-                            className="archiveHeaderText"
-                            textTransform="none"
-                          >
-                            PROGRAM
-                          </Text>
-                          <ProgramSortingModal
-                            onSortChange={handleSortChange}
-                          />
-                        </Box>
-                      </Th>
-                      <Th className="th">
-                        <Box
-                          className="columnContainer"
-                          justifyContent="space-between"
+                          PROGRAM
+                        </Text>
+                        <ProgramSortingModal
+                          onSortChange={handleSortChange}
+                        />
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      <Box
+                        className="columnContainer"
+                        justifyContent="space-between"
+                      >
+                        <Flex
+                          align="center"
+                          gap="8px"
                         >
-                          <Flex
-                            align="center"
-                            gap="8px"
-                          >
-                            <Box>
-                              <Icon as={archiveCalendar} />
-                            </Box>
-                            <Box>
-                              <Text
-                                className="archiveHeaderText"
-                                textTransform="none"
-                              >
-                                DATE
-                              </Text>
-                            </Box>
-                          </Flex>
                           <Box>
-                            <DateSortingModal onSortChange={handleSortChange} />
+                            <Icon as={archiveCalendar} width="16px" height="16px" />
                           </Box>
-                        </Box>
-                      </Th>
-                      <Th className="th">
-                        <Box className="columnContainer">
-                          <Icon as={archiveClock} />
-                          <Text
-                            className="archiveHeaderText"
-                            textTransform="none"
-                          >
-                            UPCOMING TIME
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th
-                        className="th"
-                        maxWidth="6rem"
-                      >
-                        <Box className="columnContainer">
-                          <Icon as={archiveMapPin} />
-                          <Text
-                            className="archiveHeaderText"
-                            textTransform="none"
-                          >
-                            ROOM
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th className="th">
-                        <Box className="columnContainer">
-                          <Icon as={archivePaintPalette} />
-                          <Text
-                            className="archiveHeaderText"
-                            textTransform="none"
-                          >
-                            LEAD ARTIST(S)
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th className="th">
-                        <Box className="columnContainer">
-                          <Icon as={archivePerson} />
-                          <Text
-                            className="archiveHeaderText"
-                            textTransform="none"
-                          >
-                            PAYER(S)
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th className="th">
-                        {/* Empty column for ellipsis button */}
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {sortedArchivedSessions.length > 0 ? (
-                      sortedArchivedSessions.map((programSession) => (
-                        <Tr
-                          key={programSession.programId}
-                          onClick={() =>
-                            handleRowClick(programSession.programId)
-                          }
-                          cursor="pointer"
-                        >
-                          <Td
-                            className="td"
-                            minWidth="20rem"
-                          >
-                            {programSession.programName}
-                          </Td>
-                          <Td className="td">
-                            {programSession.sessionDate !== "N/A"
-                              ? formatDate(programSession.sessionDate)
-                              : "N/A"}
-                          </Td>
-                          <Td className="td">
-                            {programSession.sessionStart !== "N/A"
-                              ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
-                              : "N/A"}
-                          </Td>
-                          <Td
-                            className="td"
-                            maxWidth="6rem"
-                          >
-                            {programSession.room !== "N/A"
-                              ? programSession.room
-                              : "N/A"}
-                          </Td>
-                          <Td className="td">
-                            {programSession.instructors &&
-                            programSession.instructors.length > 0
-                              ? programSession.instructors
-                                  .map((instructor) => instructor.clientName)
-                                  .join(", ")
-                              : "N/A"}
-                          </Td>
-                          <Td className="td">
-                            {programSession.payees &&
-                            programSession.payees.length > 0
-                              ? programSession.payees
-                                  .map((payee) => payee.clientName)
-                                  .join(", ")
-                              : "N/A"}
-                          </Td>
-                          <Td
-                            className="td"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <ArchivedDropdown
-                              programId={programSession.programId}
-                              programName={programSession.programName}
-                              setProgramToDelete={setProgramToDelete}
-                              onOpen={onOpen}
-                              setArchivedProgramSessions={
-                                setArchivedProgramSessions
-                              }
-                            />
-                          </Td>
-                        </Tr>
-                      ))
-                    ) : (
-                      <Tr>
-                        <Td
-                          colSpan={7}
-                          textAlign="center"
-                          className="td"
-                        >
-                          <Box
-                            justifyContent="center"
-                            py={6}
-                            color="gray.500"
-                            fontSize="md"
-                            width="300px"
-                            margin="auto"
-                          >
-                            <Text textAlign={"center"}>
-                              No archived program or session data to display.
+                          <Box>
+                            <Text
+                              className="archiveHeaderText"
+                              textTransform="none"
+                            >
+                              DATE
                             </Text>
                           </Box>
+                        </Flex>
+                        <Box>
+                          <DateSortingModal onSortChange={handleSortChange} />
+                        </Box>
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      <Box className="columnContainer">
+                        <Icon as={archiveClock} width="20px" height="20px" />
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
+                        >
+                          UPCOMING TIME
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th
+                      className="th"
+                      maxWidth="6rem"
+                    >
+                      <Box className="columnContainer">
+                        <Icon as={archiveMapPin} width="20px" height="20px" />
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
+                        >
+                          ROOM
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      <Box className="columnContainer">
+                        <Icon as={archivePaintPalette} width="20px" height="20px" />
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
+                        >
+                          LEAD ARTIST(S)
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      <Box className="columnContainer">
+                        <Icon as={archivePerson} width="20px" height="20px" />
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
+                        >
+                          PAYER(S)
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      {/* Empty column for ellipsis button */}
+                    </Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {loading ? (
+                    <Tr>
+                      <Td colSpan={7} textAlign="center" className="td">
+                        <Box
+                          justifyContent="center"
+                          color="gray.500"
+                          fontSize="md"
+                          width="100%"
+                          margin="auto"
+                        >
+                          <Text textAlign={"center"}>
+                            Loading archived programs...
+                          </Text>
+                        </Box>
+                      </Td>
+                    </Tr>
+                  ) : sortedArchivedSessions.length > 0 ? (
+                    currentPagePrograms.map((programSession) => (
+                      <Tr
+                        key={programSession.programId}
+                        onClick={() =>
+                          handleRowClick(programSession.programId)
+                        }
+                        cursor="pointer"
+                      >
+                        <Td
+                          className="td"
+                          minWidth="20rem"
+                        >
+                          {programSession.programName}
+                        </Td>
+                        <Td className="td">
+                          {programSession.sessionDate !== "N/A"
+                            ? formatDate(programSession.sessionDate)
+                            : "N/A"}
+                        </Td>
+                        <Td className="td">
+                          {programSession.sessionStart !== "N/A"
+                            ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
+                            : "N/A"}
+                        </Td>
+                        <Td
+                          className="td"
+                          maxWidth="6rem"
+                        >
+                          {programSession.room !== "N/A"
+                            ? programSession.room
+                            : "N/A"}
+                        </Td>
+                        <Td className="td">
+                          {programSession.instructors &&
+                          programSession.instructors.length > 0
+                            ? programSession.instructors
+                                .map((instructor) => instructor.clientName)
+                                .join(", ")
+                            : "N/A"}
+                        </Td>
+                        <Td className="td">
+                          {programSession.payees &&
+                          programSession.payees.length > 0
+                            ? programSession.payees
+                                .map((payee) => payee.clientName)
+                                .join(", ")
+                            : "N/A"}
+                        </Td>
+                        <Td
+                          className="td"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ArchivedDropdown
+                            programId={programSession.programId}
+                            programName={programSession.programName}
+                            setProgramToDelete={setProgramToDelete}
+                            onOpen={onOpen}
+                            setArchivedProgramSessions={
+                              setAllArchivedSessions
+                            }
+                          />
                         </Td>
                       </Tr>
-                    )}
-                  </Tbody>
-                </Table>
-              </TableContainer>
-            </Flex>
-          </CardBody>
-        </Card>
+                    ))
+                  ) : (
+                    <Tr>
+                      <Td
+                        colSpan={7}
+                        textAlign="center"
+                        className="td"
+                      >
+                        <Box
+                          justifyContent="center"
+                          color="gray.500"
+                          fontSize="md"
+                        >
+                          <Text textAlign={"center"}>
+                            {allArchivedSessions.length > 0 
+                              ? "No matching programs found. Try adjusting your search."
+                              : "No archived program or session data to display."}
+                          </Text>
+                        </Box>
+                      </Td>
+                    </Tr>
+                  )}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </Flex>
+        </Box>
         {/* <CancelProgram
           id={programToDelete}
           setPrograms={setPrograms}

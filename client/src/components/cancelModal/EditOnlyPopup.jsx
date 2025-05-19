@@ -10,7 +10,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import CancelIconRed from "../../assets/CancelIconRed";
 import { EditIcon } from "../../assets/EditIcon";
 import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
 import { FiMoreHorizontal } from "react-icons/fi";
@@ -22,14 +21,6 @@ const ActionsIcon = React.memo(() => (
   />
 ));
 
-const CancelXIcon = React.memo(() => (
-  <Icon
-    as={CancelIconRed}
-    alt="Cancel"
-    boxSize="20px"
-  />
-));
-
 const EditPencilIcon = React.memo(() => (
   <Icon
     as={EditIcon}
@@ -38,7 +29,7 @@ const EditPencilIcon = React.memo(() => (
   />
 ));
 
-export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
+export const EditOnlyPopup = ({ handleEdit, id }) => {
   return (
     <Menu>
       <MenuButton
@@ -84,27 +75,7 @@ export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
             Edit
           </Text>
         </MenuItem>
-        <MenuItem
-          onClick={() => handleDeactivate(id)}
-          style={{
-            display: "flex",
-            width: "131px",
-            padding: "6px 8px",
-            alignItems: "center",
-            gap: "10px",
-            borderRadius: "4px",
-            background: "#FFF"
-          }}
-        >
-          <CancelXIcon style={{ marginRight: "0" }} />
-          <Text
-            fontWeight={"400"}
-            color={"#90080F"}
-          >
-            Cancel
-          </Text>
-        </MenuItem>
       </MenuList>
     </Menu>
   );
-};
+}; 

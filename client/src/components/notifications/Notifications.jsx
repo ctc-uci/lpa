@@ -4,7 +4,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { Box, Button, Flex, Text } from "@chakra-ui/react";
 
 import { formatDistanceToNow } from "date-fns";
-import { AiFillMail } from "react-icons/ai";
+import { NotificationIcon } from "../../assets/NotificationIcon";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
@@ -83,10 +83,8 @@ export const Notifications = () => {
   // Calculate responsive itemsPerPage
   useEffect(() => {
     const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-      const availableHeight = viewportHeight * 0.5;
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
+      // Always return 14 rows per page for notifications
+      return 14;
     };
 
     setItemsPerPage(calculateRowsPerPage());
@@ -260,7 +258,7 @@ export const Notifications = () => {
 
   return (
     <Navbar currentPage="notifications">
-      <Box padding="26px">
+      <Box padding="26px 26px 26px 0">
         <Flex
           align="center"
           gap={5}
@@ -269,15 +267,18 @@ export const Notifications = () => {
           flex-shrink="0"
           mb="27px"
         >
-          <AiFillMail size={28} />
+          <NotificationIcon size={28} />
           <h1 className={styles.title}>Invoice Notifications</h1>
         </Flex>
         <Flex
           w="100%"
           flexDirection="column"
           padding="20px"
-          border="1px solid var(--medium-light-grey)"
-          borderRadius="12px"
+          border="1px solid var(--Secondary-3, #E2E8F0)"
+          borderRadius="15px"
+          background="var(--white, #FFF)"
+          position="relative"
+          zIndex="2"
         >
           <Flex
             justifyContent="space-between"

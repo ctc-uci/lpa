@@ -44,6 +44,7 @@ import { SearchBar } from "../searchBar/SearchBar";
 import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusTooltip from "./StatusIcon";
+import { ArchivesIcon } from "../../assets/icons/ArchivesIcon";
 
 import "./Home.css";
 
@@ -531,11 +532,8 @@ export const ProgramsTable = () => {
   useEffect(() => {
     const calculateRowsPerPage = () => {
       const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-
+      const rowHeight = 35;
       const availableHeight = viewportHeight * 0.4;
-
-      console.log(availableHeight / rowHeight);
       return Math.max(5, Math.floor(availableHeight / rowHeight));
     };
 
@@ -563,17 +561,15 @@ export const ProgramsTable = () => {
       />
       <Box className="programs-table" >
         <Flex className="programs-table__filter-row">
-          <div className="archive">
-            <Icon
-              as={ProgramArchiveIcon}
-              alt="Archives"
-              className="archive-icon"
-            />
+          <div 
+            className="archive"
+            onClick={() => {
+              navigate("/programs/archived");
+            }}
+          >
+            <ArchivesIcon />
             <span
               className="archive-text"
-              onClick={() => {
-                navigate("/programs/archived");
-              }}
             >
               Archives
             </span>
