@@ -1,12 +1,5 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useState, forwardRef, useImperativeHandle, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { CalendarIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import {
@@ -14,6 +7,7 @@ import {
   Button,
   Flex,
   Grid,
+  Heading,
   HStack,
   Icon,
   IconButton,
@@ -323,21 +317,19 @@ const InvoicePayments = forwardRef(
     const [invoiceYear, setInvoiceYear] = useState("");
     const toast = useToast();
 
-    useEffect(() => {
-      const fetchUid = async () => {
-        console.log("In fetchUid");
-        console.log("In fetchUid", currentUser.email);
-        try {
-          const uidResponse = await backend.get(
-            "/users/email/" + currentUser.email
-          );
-          setUid(uidResponse.data?.id || null);
-        } catch (err) {
-          console.error("Error fetching UID:", err);
-        }
-      };
-      fetchUid();
-    }, [backend, currentUser]);
+  useEffect(() => {
+    const fetchUid = async () => {
+      try {
+        const uidResponse = await backend.get(
+          "/users/email/" + currentUser.email
+        );
+        setUid(uidResponse.data?.id || null);
+      } catch (err) {
+        console.error("Error fetching UID:", err);
+      }
+    };
+    fetchUid();
+  }, [backend, currentUser]);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -853,6 +845,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   const navigate = useNavigate();
   const toast = useToast();
 
+
   const handleRowClick = useCallback(
     (id) => {
       navigate(`/invoices/${id}`);
@@ -860,28 +853,78 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     [navigate]
   );
 
-  useEffect(() => {
-    filteredInvoices.forEach((invoice, index) => {
-      if (invoice.isPaid === "Past Due") {
-        const programTitle = invoice.eventName.split(" ").slice(0, 3).join(" ");
-        const date = new Date(invoice.endDate);
-        const month = date.toLocaleString("default", { month: "long" });
-        const year = date.getFullYear();
-        const description = `${programTitle}, ${month} ${year} Invoice`;
+  const location = useLocation();
 
-        setTimeout(() => {
-          toast({
-            title: "Invoice Past Due",
-            description: description,
-            status: "error",
-            duration: 1000,
-            isClosable: true,
-            position: "bottom-right",
-          });
-        }, index * 500);
-      }
-    });
+  useEffect(() => {
+    if (location.pathname === "/invoices") {
+      window.__hasShownToast = false; // 🔁 Reset when user visits invoices page
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (window.__hasShownToast || filteredInvoices.length === 0) return;
+    const pastDueInvoices = filteredInvoices.filter(invoice => invoice.isPaid === "Past Due");
+    const pastDueCount = pastDueInvoices.length;
+
+    if (pastDueCount > 0) {
+      const programTitle = pastDueInvoices[0].eventName.split(" ").map(word => word.trim()).slice(0, 3).join(" ");
+      const date = new Date(pastDueInvoices[0].endDate);
+      const month = date.toLocaleString("default", { month: "long" });
+      const year = date.getFullYear();
+      const description = pastDueCount === 1
+        ? `${programTitle}_${month} ${year}`
+        : `You have ${pastDueCount} past due invoices`;
+      toast({
+        title: pastDueCount === 1 ? "Invoice Past Due" : `${pastDueCount} Invoices Past Due`,
+        description: description,
+        variant: "left-accent",
+        status: "error",
+        duration: 5000,
+        isClosable: false,
+        position: "bottom-right",
+        render: ({ title, description }) => (
+          <Flex
+            bg="#FED7D7"
+            borderLeft="4px solid #E53E3E"
+            borderRadius="6px"
+            boxShadow="md"
+            p={4}
+            align="center"
+            justify="space-between"
+            w="400px"
+          >
+            <Flex align="center">
+              <Icon as={CheckCircleIcon} color="#E53E3E" boxSize={5} mr={3} />
+              <Box>
+                <Heading size="sm" color="gray.800">{title}</Heading>
+                <Text fontSize="sm" color="gray.700">{description}</Text>
+              </Box>
+            </Flex>
+            <Box border="#E53E3E" borderWidth="5px"></Box>
+            <Flex align="center" px={4} bg="#FED7D7">
+              <Button
+                size="sm"
+                variant="link"
+                color="#E53E3E"
+                fontWeight="bold"
+                onClick={() => {
+                  if (pastDueCount === 1) {
+                    navigate(`/invoices/${pastDueInvoices[0].id}`);
+                  } else {
+                    navigate('/notifications');
+                  }
+                }}
+              >
+                View
+              </Button>
+            </Flex>
+          </Flex>
+        ),
+      });
+      window.__hasShownToast = true;
+    }
   }, [filteredInvoices, toast]);
+
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);

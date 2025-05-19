@@ -1,7 +1,7 @@
 import React, { useEffect, useState} from "react";
 
 import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
-import { Box, Flex, IconButton, Spinner } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner, useToast } from "@chakra-ui/react";
 
 import {
   PDFViewer,
@@ -39,6 +39,9 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
+  const [programName, setProgramName] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState("");
+  const downloadToast = useToast();
 
 
   const fetchInvoiceData = async (invoice, backend, id) => {
@@ -123,18 +126,12 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   };
 
   const getGeneratedDate = (comments, invoice) => {
-    console.log(invoice);
-    if (comments.length > 0) {
-      const latestComment = comments?.sort(
-        (a, b) => new Date(b.datetime) - new Date(a.datetime)
-      )[0];
+    const date = new Date(invoice[0].endDate);
+    const month = date.toLocaleDateString("default", { month: "long" });
+    const year = date.getFullYear();
 
-      const latestDate = new Date(latestComment.datetime);
-      const month = latestDate.toLocaleString("default", { month: "long" });
-
-      const year = latestDate.getFullYear();
-
-      return `${month}  ${year}`;
+    if (month && year) {  
+      return `${month} ${year}`;
     } else {
       return "No Date Found";
     }
@@ -143,16 +140,26 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   const handleDownload = async () => {
   try {
     setLoading(true);
-
     const invoiceResponse = await backend.get(`/invoices/${id}`);
     const invoice = invoiceResponse.data;
     const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
+    setProgramName(invoiceData.programName)
+
 
     const blob = await pdf(
       <InvoicePDFDocument invoice={invoice} {...invoiceData} />
     ).toBlob();
 
-    saveAs(blob, `${invoiceData.programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`);
+    saveAs(blob, `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`);
+    downloadToast({
+      title: 'Invoice Downloaded',
+      description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
+      status: 'success',
+      duration: 6000,
+      position: "bottom-right",
+      variant: 'left-accent',
+      isClosable: false,
+    });
   } catch (err) {
     console.error("Error generating PDF:", err);
   } finally {
@@ -167,14 +174,12 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
         onClick={(e) => {
           e.stopPropagation();
           if (hasUnsavedChanges) {
-            console.log("has unsaved changes");
             handleOtherButtonClick(() => {
               handleDownload();
             })
           }
           else {
             handleDownload();
-            console.log("no unsaved changes");
           }
         }
       }
@@ -275,7 +280,6 @@ const TestPDFViewer = ({ id }) => {
 
   const fetchData = async () => {
     try {
-      console.log("id", id);
       const response = await backend.get("/invoices/22");
       setInvoice(response.data);
 
