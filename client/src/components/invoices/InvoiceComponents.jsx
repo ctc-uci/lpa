@@ -941,7 +941,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 
   const handleEdit = useCallback((id, e) => {
     e.stopPropagation();
-    navigate(`/invoices/${id}`);
+    navigate(`/invoices/edit/${id}`);
   }, [navigate]);
 
   return (
@@ -1077,8 +1077,8 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     </Td>
                     <Td>
                       <Flex justify="space-between" align="center">
-                        <Flex width="100%" justify="center" onClick={() => handleRowClick(invoice.id)}>
-                          <DownloadInvoiceIcon />
+                        <Flex width="100%" justify="center">
+                          <PDFButtonInvoice id={invoice.id} />
                         </Flex>
                         <EditOnlyPopup 
                           handleEdit={handleEdit}

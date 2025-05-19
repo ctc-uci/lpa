@@ -1,6 +1,6 @@
 import React, { useEffect, useState} from "react";
 
-import { DownloadIcon } from "@chakra-ui/icons";
+import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
 import { Box, Flex, IconButton, Spinner } from "@chakra-ui/react";
 
 import {
@@ -163,7 +163,7 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   return (
     <Box>
         <IconButton
-        icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
+        icon={loading ? <Spinner size="sm" /> : <DownloadInvoiceIcon />}
         onClick={(e) => {
           e.stopPropagation();
           if (hasUnsavedChanges) {
