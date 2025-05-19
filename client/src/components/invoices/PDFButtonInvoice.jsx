@@ -126,13 +126,9 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   };
 
   const getGeneratedDate = (comments, invoice) => {
-    console.log("invoice", invoice[0]);
     const date = new Date(invoice[0].endDate);
     const month = date.toLocaleDateString("default", { month: "long" });
     const year = date.getFullYear();
-
-    console.log("month", month);
-    console.log("year", year);
 
     if (month && year) {  
       return `${month} ${year}`;
@@ -177,17 +173,13 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
         icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
         onClick={() => {
           if (hasUnsavedChanges) {
-            console.log("has unsaved changes");
             handleOtherButtonClick(() => {
               handleDownload();
             })
           }
           else {
             handleDownload();
-            console.log("no unsaved changes");
           }
-          console.log("prog", programName)
-          console.log("invoice", invoiceDate)
         }
       }
         backgroundColor="transparent"
@@ -287,7 +279,6 @@ const TestPDFViewer = ({ id }) => {
 
   const fetchData = async () => {
     try {
-      console.log("id", id);
       const response = await backend.get("/invoices/22");
       setInvoice(response.data);
 

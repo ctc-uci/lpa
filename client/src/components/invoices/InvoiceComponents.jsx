@@ -301,8 +301,6 @@ const InvoicePayments = forwardRef(({ comments, setComments, hasUnsavedChanges, 
 
   useEffect(() => {
     const fetchUid = async () => {
-      console.log("In fetchUid");
-      console.log("In fetchUid", currentUser.email);
       try {
         const uidResponse = await backend.get(
           "/users/email/" + currentUser.email
