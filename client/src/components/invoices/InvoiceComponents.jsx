@@ -839,14 +839,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     const pastDueCount = pastDueInvoices.length;
 
     if (pastDueCount > 0) {
-      const programTitle = pastDueInvoices[0].eventName.split(" ").slice(0, 3).join(" ");
+      const programTitle = pastDueInvoices[0].eventName.split(" ").map(word => word.trim()).slice(0, 3).join(" ");
       const date = new Date(pastDueInvoices[0].endDate);
       const month = date.toLocaleString("default", { month: "long" });
       const year = date.getFullYear();
       const description = pastDueCount === 1
         ? `${programTitle}_${month} ${year}`
         : `You have ${pastDueCount} past due invoices`;
-      console.log("showing toast!")
       toast({
         title: pastDueCount === 1 ? "Invoice Past Due" : `${pastDueCount} Invoices Past Due`,
         description: description,
@@ -855,7 +854,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         duration: 5000,
         isClosable: false,
         position: "bottom-right",
-        render: () => (
+        render: ({ title, description }) => (
           <Flex
             bg="#FED7D7"
             borderLeft="4px solid #E53E3E"
@@ -869,7 +868,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
             <Flex align="center">
               <Icon as={CheckCircleIcon} color="#E53E3E" boxSize={5} mr={3} />
               <Box>
-                <Heading size="sm" color="gray.800">Invoice Past Due</Heading>
+                <Heading size="sm" color="gray.800">{title}</Heading>
                 <Text fontSize="sm" color="gray.700">{description}</Text>
               </Box>
             </Flex>

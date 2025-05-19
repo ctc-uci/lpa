@@ -126,20 +126,17 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
   };
 
   const getGeneratedDate = (comments, invoice) => {
-    console.log(invoice);
-    if (comments.length > 0) {
-      const latestComment = comments?.sort(
-        (a, b) => new Date(b.datetime) - new Date(a.datetime)
-      )[0];
+    console.log("invoice", invoice[0]);
+    const date = new Date(invoice[0].endDate);
+    const month = date.toLocaleDateString("default", { month: "long" });
+    const year = date.getFullYear();
 
-      const latestDate = new Date(latestComment.datetime);
-      const month = latestDate.toLocaleString("default", { month: "long" });
+    console.log("month", month);
+    console.log("year", year);
 
-      const year = latestDate.getFullYear();
-      setInvoiceDate(`${month} ${year}`)
-      return `${month}  ${year}`;
+    if (month && year) {  
+      return `${month} ${year}`;
     } else {
-      setInvoiceDate("No Date Found");
       return "No Date Found";
     }
   };
