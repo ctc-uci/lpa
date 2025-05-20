@@ -1,10 +1,6 @@
 import { React, useCallback, useEffect, useMemo, useState } from "react";
 
-
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@chakra-ui/icons";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -42,31 +38,17 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import {
-  EllipsisIcon,
-  Info,
-  FileTextIcon,
-} from "lucide-react";
+import { FileTextIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
 import { DollarBill } from "../../assets/DollarBill";
-import { DuplicateIcon } from "../../assets/DuplicateIcon";
-import { EditIcon } from "../../assets/EditIcon";
 import { DownloadIcon } from "../../assets/DownloadIcon";
-import { EllipsisIcon } from "../../assets/EllipsisIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
-import {
-  sessionsClock,
-  sessionsEllipsis,
-  sessionsFilterClock,
-  sessionsFilterMapPin,
-  sessionsMapPin,
-} from "../../assets/icons/ProgramIcons";
+import { sessionsClock, sessionsMapPin } from "../../assets/icons/ProgramIcons";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { LocationPin } from "../../assets/LocationPin";
 import { PersonIcon } from "../../assets/PersonIcon";
@@ -81,18 +63,8 @@ import { CancelSessionModal } from "./CancelSessionModal";
 
 import "./Program.css";
 
-import {
-  Document,
-  Page,
-  PDFDownloadLink,
-  Text as PDFText,
-  View as PDFView,
-  StyleSheet,
-} from "@react-pdf/renderer";
-import { useNavigate } from "react-router-dom";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../sorting/DateFilter";
-import { DeleteRowModal } from "../popups/DeleteRowModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
@@ -1273,92 +1245,92 @@ export const Sessions = ({
                             </Td>
                           )}
 
-                        {!isArchived ? (
+                          {!isArchived ? (
+                            <Td>
+                              <Box
+                                display="flex"
+                                justifyContent="center"
+                              >
+                                <Box
+                                  height="14px"
+                                  width="14px"
+                                  borderRadius="50%"
+                                  bg={
+                                    hasTimePassed(session.date)
+                                      ? "#DAB434"
+                                      : "#0C824D"
+                                  }
+                                ></Box>
+                              </Box>
+                            </Td>
+                          ) : (
+                            <div></div>
+                          )}
                           <Td>
                             <Box
                               display="flex"
                               justifyContent="center"
+                              alignItems="center"
                             >
-                              <Box
-                                height="14px"
-                                width="14px"
-                                borderRadius="50%"
-                                bg={
-                                  hasTimePassed(session.date)
-                                    ? "#DAB434"
-                                    : "#0C824D"
-                                }
-                              ></Box>
+                              {formatDate(session.date)}
                             </Box>
                           </Td>
-                        ) : (
-                          <div></div>
-                        )}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {formatDate(session.date)}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {formatTime(session.startTime)} -{" "}
-                            {formatTime(session.endTime)}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {rooms.get(session.roomId)}
-                          </Box>
-                        </Td>
-                        {/* Add Lead Artist data */}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {instructors?.length > 0
-                              ? instructors
-                                  .map((instructor) => instructor.clientName)
-                                  .join(", ")
-                              : "N/A"}
-                          </Box>
-                        </Td>
-                        {/* Add Payees data */}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {payees?.length > 0
-                              ? payees
-                                  .map((payee) => payee.clientName)
-                                  .join(", ")
-                              : "N/A"}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <EditCancelPopup
-                            handleEdit={handleEdit}
-                            handleDeactivate={handleDeactivate}
-                            id={session.id}
-                          />
-                        </Td>
-                      </Tr>
-                    ))
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {formatTime(session.startTime)} -{" "}
+                              {formatTime(session.endTime)}
+                            </Box>
+                          </Td>
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {rooms.get(session.roomId)}
+                            </Box>
+                          </Td>
+                          {/* Add Lead Artist data */}
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {instructors?.length > 0
+                                ? instructors
+                                    .map((instructor) => instructor.clientName)
+                                    .join(", ")
+                                : "N/A"}
+                            </Box>
+                          </Td>
+                          {/* Add Payees data */}
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {payees?.length > 0
+                                ? payees
+                                    .map((payee) => payee.clientName)
+                                    .join(", ")
+                                : "N/A"}
+                            </Box>
+                          </Td>
+                          <Td>
+                            <EditCancelPopup
+                              handleEdit={handleEdit}
+                              handleDeactivate={handleDeactivate}
+                              id={session.id}
+                            />
+                          </Td>
+                        </Tr>
+                      ))
                   ) : (
                     <Tr>
                       <Td colSpan={isArchived ? 6 : 7}>
