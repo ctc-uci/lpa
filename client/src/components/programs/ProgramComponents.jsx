@@ -1,5 +1,6 @@
 import { React, useCallback, useEffect, useMemo, useState } from "react";
 
+
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -33,16 +34,37 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 
-import { FileTextIcon } from "lucide-react";
+import {
+  Document,
+  Page,
+  PDFDownloadLink,
+  Text as PDFText,
+  View as PDFView,
+  StyleSheet,
+} from "@react-pdf/renderer";
+import {
+  EllipsisIcon,
+  Info,
+  FileTextIcon,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
 import { DollarBill } from "../../assets/DollarBill";
+import { DuplicateIcon } from "../../assets/DuplicateIcon";
+import { EditIcon } from "../../assets/EditIcon";
 import { DownloadIcon } from "../../assets/DownloadIcon";
+import { EllipsisIcon } from "../../assets/EllipsisIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
 import {
   sessionsClock,
+  sessionsEllipsis,
+  sessionsFilterClock,
+  sessionsFilterMapPin,
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
 import { InfoIconRed } from "../../assets/InfoIconRed";
@@ -70,6 +92,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../sorting/DateFilter";
+import { DeleteRowModal } from "../popups/DeleteRowModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
@@ -272,7 +295,7 @@ export const ProgramSummary = ({
                       setIsArchived={setIsArchived}
                     />
                   )}
-                  
+
                   <Modal
                     isOpen={modalIsOpen}
                     onClose={modalOnClose}
@@ -544,6 +567,11 @@ export const Sessions = ({
     onOpen: openCancelModal,
     onClose: closeCancelModal,
   } = useDisclosure();
+  const {
+    isOpen: deleteModalIsOpen,
+    onOpen: deleteModalOnOpen,
+    onClose: deleteModalOnClose,
+  } = useDisclosure();
 
   const handleConfirmCancel = async (action, reason, waivedFees) => {
     // Create an array of session IDs
@@ -779,12 +807,6 @@ export const Sessions = ({
       setFilteredSessions(sessions);
     }
   }, [sessions]);
-
-  // Function to update sorting
-  const handleSortChange = (key, order) => {
-    setSortKey(key);
-    setSortOrder(order);
-  };
 
   const formatDate = (isoString) => {
     const date = new Date(isoString);
@@ -1123,7 +1145,7 @@ export const Sessions = ({
                           alignItems="flex-start"
                           gap="2px"
                         >
-                          <DateSortingModal onSortChange={handleSortChange} />
+                          <DateSortingModal onSortChange={setSortOrder} />
                         </Box>
                       </Box>
                     </Th>
@@ -1213,35 +1235,43 @@ export const Sessions = ({
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filteredSessions.length > 0 ? (
-                    filteredSessions.map((session) => (
-                      <Tr key={session.id}>
-                        {isSelected && (
-                          <Td width="50px">
-                            <Checkbox
-                              isChecked={selectedSessions.includes(session.id)}
-                              onChange={() =>
-                                handleSessionSelection(session.id)
-                              }
-                              sx={{
-                                "& .chakra-checkbox__control[data-checked]": {
-                                  backgroundColor: "#90080F",
-                                  borderColor: "#90080F",
-                                },
-                                "&:hover .chakra-checkbox__control[data-checked]":
-                                  {
+                  {currentPageSessions.length > 0 ? (
+                    currentPageSessions
+                      .sort((a, b) => {
+                        return sortOrder === "asc"
+                          ? new Date(a.date) - new Date(b.date)
+                          : new Date(b.date) - new Date(a.date);
+                      })
+                      .map((session) => (
+                        <Tr key={session.id}>
+                          {isSelected && (
+                            <Td width="50px">
+                              <Checkbox
+                                isChecked={selectedSessions.includes(
+                                  session.id
+                                )}
+                                onChange={() =>
+                                  handleSessionSelection(session.id)
+                                }
+                                sx={{
+                                  "& .chakra-checkbox__control[data-checked]": {
                                     backgroundColor: "#90080F",
                                     borderColor: "#90080F",
                                   },
-                                "& .chakra-checkbox__control[data-checked]:hover":
-                                  {
-                                    backgroundColor: "#90080F",
-                                    borderColor: "#90080F",
-                                  },
-                              }}
-                            />
-                          </Td>
-                        )}
+                                  "&:hover .chakra-checkbox__control[data-checked]":
+                                    {
+                                      backgroundColor: "#90080F",
+                                      borderColor: "#90080F",
+                                    },
+                                  "& .chakra-checkbox__control[data-checked]:hover":
+                                    {
+                                      backgroundColor: "#90080F",
+                                      borderColor: "#90080F",
+                                    },
+                                }}
+                              />
+                            </Td>
+                          )}
 
                         {!isArchived ? (
                           <Td>

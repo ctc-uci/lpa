@@ -20,6 +20,8 @@ import { PayeesDropdown } from "./programComponents/PayeesDropdown";
 import { ProgramInformation } from "./programComponents/ProgramInformation";
 import { TitleInformation } from "./programComponents/TitleInformation";
 import { ExitStatus } from "typescript";
+import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();

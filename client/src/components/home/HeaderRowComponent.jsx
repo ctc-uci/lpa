@@ -3,9 +3,9 @@ import { Box, Flex } from "@chakra-ui/react";
 import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
 import plusSvg from "../../assets/icons/plus.svg";
 
+
 export const HeaderRowComponent = () => {
   const navigate = useNavigate();
-
   return (
     <Flex className="header-row">
       <Box
