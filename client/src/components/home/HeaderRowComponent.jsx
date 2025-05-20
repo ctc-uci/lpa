@@ -1,12 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import archiveSvg from "../../assets/icons/archive.svg";
 import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
 import plusSvg from "../../assets/icons/plus.svg";
-import { useNavigate } from "react-router-dom";
 
 
 export const HeaderRowComponent = () => {
   const navigate = useNavigate();
-
   return (
     <div className="header-row">
       <div
@@ -24,20 +23,6 @@ export const HeaderRowComponent = () => {
       </div>
 
       <div className="header-right">
-        {/* <div
-          className="archive"
-          onClick={() => {
-            navigate('/programs/archived');
-          }}
-        >
-          <img
-            src={archiveSvg}
-            alt="Archived"
-            className="archive-icon"
-          />
-          <span className="archive-text">Archived</span>
-        </div> */}
-
         <div
           className="new-program"
           onClick={() => navigate("/programs/newprogram")}

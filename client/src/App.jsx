@@ -12,32 +12,32 @@ import { Admin } from "./components/admin/Admin";
 import { EditBooking } from "./components/bookings/EditBooking";
 import { CatchAll } from "./components/CatchAll";
 import { Dashboard } from "./components/dashboard/Dashboard";
-import { EditSingleSession } from "./components/programs/EditSingleSession";
-import { EditRecurringSessions } from "./components/programs/EditRecurringSessions";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
 import { Home } from "./components/home/Home";
 import { EditInvoice } from "./components/invoices/EditInvoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
+import { TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
 import { SavedEdit } from "./components/invoices/SavedEditsInvoice";
 import { SingleInvoice } from "./components/invoices/SingleInvoice";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
 import { Playground } from "./components/playground/Playground";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
+import { EditRecurringSessions } from "./components/programs/EditRecurringSessions";
+import { EditSingleSession } from "./components/programs/EditSingleSession";
 import { ModifyProgram } from "./components/programs/ModifyProgram";
 import { Program } from "./components/programs/Program";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ResetPassword } from "./components/resetpassword/ResetPassword";
 import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
-import { Settings } from "./components/settings/Settings";
 import { MyAccount } from "./components/settings/MyAccount";
+import { Settings } from "./components/settings/Settings";
 import { Signup } from "./components/signup/Signup";
 import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
-import { TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
 
 const App = () => {
   return (
@@ -250,11 +250,7 @@ const App = () => {
 
                 <Route
                   path="/pdftest"
-                  element={
-                    <ProtectedRoute
-                      element={<TestPDFViewer />}
-                    />
-                  }
+                  element={<ProtectedRoute element={<TestPDFViewer />} />}
                 />
               </Routes>
             </Router>

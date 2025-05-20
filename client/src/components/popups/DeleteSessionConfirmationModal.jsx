@@ -1,41 +1,43 @@
+import React, { useCallback } from "react";
+
 import {
   Button,
   Modal,
+  ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  ModalBody,
   useToast,
 } from "@chakra-ui/react";
-import React, { useCallback } from "react";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
-export const DeleteSessionConfirmationModal = ({isOpen, onClose, date, id, setPrograms, programs}) => {
+export const DeleteSessionConfirmationModal = ({
+  isOpen,
+  onClose,
+  date,
+  isNewSession,
+  id,
+  setPrograms,
+  programs,
+}) => {
   const toast = useToast();
   const { backend } = useBackendContext();
 
   const onDelete = useCallback(async () => {
     try {
-      const response = await backend.delete(`/bookings/${id}`);
-      if (response.data.result === "success") {
-        if (setPrograms) {
-          console.log("sessions before: ", programs);
-          setPrograms((prev) => prev.filter((p) => p.id !== id));
-                    console.log("sessions after: ", programs);
-
-        }
-        toast({
-          title: "Booking deleted",
-          description:
-            "The booking and all related records have been successfully deleted.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        throw new Error("Failed to delete booking");
+      if (setPrograms) {
+        setPrograms((prev) => prev.filter((p) => p.id !== id));
       }
+      toast({
+        title: "Booking deleted",
+        description:
+          "The booking and all related records have been successfully deleted.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       console.error("Failed to delete booking:", error);
       toast({
@@ -49,8 +51,7 @@ export const DeleteSessionConfirmationModal = ({isOpen, onClose, date, id, setPr
       });
     }
     onClose();
-  }, [ backend, toast, id, onClose]);
-
+  }, [backend, toast, id, onClose]);
 
   return (
     <Modal
@@ -76,9 +77,7 @@ export const DeleteSessionConfirmationModal = ({isOpen, onClose, date, id, setPr
         >
           Delete {date} session?
         </ModalHeader>
-        <ModalBody p="0">
-          This session will be permanently deleted.
-        </ModalBody>
+        <ModalBody p="0">This session will be permanently deleted.</ModalBody>
         <ModalFooter
           style={{ display: "flex", justifyContent: "flex-end" }}
           gap={3}
@@ -99,7 +98,6 @@ export const DeleteSessionConfirmationModal = ({isOpen, onClose, date, id, setPr
           <Button
             onClick={() => {
               onDelete();
-              onClose();
             }}
             backgroundColor="#90080F"
             color="#EDF2F7"
@@ -114,5 +112,5 @@ export const DeleteSessionConfirmationModal = ({isOpen, onClose, date, id, setPr
         </ModalFooter>
       </ModalContent>
     </Modal>
-  )
+  );
 };

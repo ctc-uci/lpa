@@ -1,4 +1,5 @@
 import { React, useEffect, useState } from "react";
+
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
@@ -71,9 +72,7 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import {
-  Info,
-} from "lucide-react";
+import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
@@ -82,6 +81,7 @@ import { DeleteIconRed } from "../../assets/DeleteIconRed";
 import { DollarBill } from "../../assets/DollarBill";
 import { DuplicateIcon } from "../../assets/DuplicateIcon";
 import { EditIcon } from "../../assets/EditIcon";
+import { EllipsisIcon } from "../../assets/EllipsisIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
 import {
   filterButton,
@@ -92,7 +92,6 @@ import {
   sessionsFilterMapPin,
   sessionsMapPin,
 } from "../../assets/icons/ProgramIcons";
-import { EllipsisIcon } from "../../assets/EllipsisIcon";
 import { LocationPin } from "../../assets/LocationPin";
 import { PersonIcon } from "../../assets/PersonIcon";
 import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
@@ -100,8 +99,8 @@ import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import DateSortingModal from "../sorting/DateFilter";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
+import DateSortingModal from "../sorting/DateFilter";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
@@ -894,7 +893,7 @@ export const Sessions = ({
   eventId,
   refreshSessions,
   instructors,
-  payees
+  payees,
 }) => {
   const navigate = useNavigate();
   const { backend } = useBackendContext();
@@ -903,7 +902,11 @@ export const Sessions = ({
     onOpen: openCancelModal,
     onClose: closeCancelModal,
   } = useDisclosure();
-  const { isOpen: deleteModalIsOpen, onOpen: deleteModalOnOpen, onClose: deleteModalOnClose } = useDisclosure();
+  const {
+    isOpen: deleteModalIsOpen,
+    onOpen: deleteModalOnOpen,
+    onClose: deleteModalOnClose,
+  } = useDisclosure();
 
   const handleConfirmCancel = async (action, reason, waivedFees) => {
     // Create an array of session IDs
@@ -1002,7 +1005,7 @@ export const Sessions = ({
   const [selectMenuOpen, setSelectMenuOpen] = useState(false);
   const [selectOption, setSelectOption] = useState("Select");
   const [selectedSessions, setSelectedSessions] = useState([]);
-  const [selectedSingleSession, setSelectedSingleSession ] = useState(null);
+  const [selectedSingleSession, setSelectedSingleSession] = useState(null);
 
   const handleSessionSelection = (sessionId) => {
     setSelectedSessions((prev) => {
@@ -1163,7 +1166,7 @@ export const Sessions = ({
   };
 
   const deleteSingleSession = async () => {
-    await backend.delete('/bookings/' + selectedSingleSession);
+    await backend.delete("/bookings/" + selectedSingleSession);
     refreshSessions();
   };
 
@@ -1172,7 +1175,11 @@ export const Sessions = ({
       marginBottom="50px"
       width="100%"
     >
-      <DeleteRowModal isOpen={deleteModalIsOpen} onClose={deleteModalOnClose} onDelete={deleteSingleSession}/>
+      <DeleteRowModal
+        isOpen={deleteModalIsOpen}
+        onClose={deleteModalOnClose}
+        onDelete={deleteSingleSession}
+      />
       <Flex
         align="center"
         mb="15px"
@@ -1364,7 +1371,6 @@ export const Sessions = ({
                       : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
                   </button>
                 )}
-
 
                 <Popover onClose={onClose}>
                   <PopoverTrigger>
@@ -1568,10 +1574,14 @@ export const Sessions = ({
                                     height="20%"
                                     onClick={() => setStatus("Active")}
                                     backgroundColor={
-                                      status === "Active" ? "#EDEDFD" : "#F6F6F6"
+                                      status === "Active"
+                                        ? "#EDEDFD"
+                                        : "#F6F6F6"
                                     }
                                     borderColor={
-                                      status === "Active" ? "#4E4AE7" : "#767778"
+                                      status === "Active"
+                                        ? "#4E4AE7"
+                                        : "#767778"
                                     }
                                   >
                                     <Box
@@ -1701,9 +1711,7 @@ export const Sessions = ({
                 </Popover>
               </Flex>
 
-              <Flex
-                alignItems="flex-end"
-              >
+              <Flex alignItems="flex-end">
                 <Button
                   style={{
                     display: "flex",
@@ -1724,7 +1732,9 @@ export const Sessions = ({
                     lineHeight: "normal",
                     letterSpacing: "0.07px",
                   }}
-                  onClick={() => { navigate(`/programs/edit/sessions/${eventId}`) }}
+                  onClick={() => {
+                    navigate(`/programs/edit/sessions/${eventId}`);
+                  }}
                   data-select-menu="true"
                 >
                   Revise Session(s)
@@ -1867,147 +1877,179 @@ export const Sessions = ({
                 </Thead>
                 <Tbody>
                   {currentPageSessions.length > 0 ? (
-                    currentPageSessions.sort((a, b) => { return sortOrder === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date) })
-                    .map((session) => (
-                      <Tr key={session.id}>
-                        {isSelected && (
-                          <Td width="50px">
-                            <Checkbox
-                              isChecked={selectedSessions.includes(session.id)}
-                              onChange={() =>
-                                handleSessionSelection(session.id)
-                              }
-                              sx={{
-                                "& .chakra-checkbox__control[data-checked]": {
-                                  backgroundColor: "#90080F",
-                                  borderColor: "#90080F",
-                                },
-                                "&:hover .chakra-checkbox__control[data-checked]":
-                                  {
+                    currentPageSessions
+                      .sort((a, b) => {
+                        return sortOrder === "asc"
+                          ? new Date(a.date) - new Date(b.date)
+                          : new Date(b.date) - new Date(a.date);
+                      })
+                      .map((session) => (
+                        <Tr key={session.id}>
+                          {isSelected && (
+                            <Td width="50px">
+                              <Checkbox
+                                isChecked={selectedSessions.includes(
+                                  session.id
+                                )}
+                                onChange={() =>
+                                  handleSessionSelection(session.id)
+                                }
+                                sx={{
+                                  "& .chakra-checkbox__control[data-checked]": {
                                     backgroundColor: "#90080F",
                                     borderColor: "#90080F",
                                   },
-                                "& .chakra-checkbox__control[data-checked]:hover":
-                                  {
-                                    backgroundColor: "#90080F",
-                                    borderColor: "#90080F",
-                                  },
-                              }}
-                            />
-                          </Td>
-                        )}
+                                  "&:hover .chakra-checkbox__control[data-checked]":
+                                    {
+                                      backgroundColor: "#90080F",
+                                      borderColor: "#90080F",
+                                    },
+                                  "& .chakra-checkbox__control[data-checked]:hover":
+                                    {
+                                      backgroundColor: "#90080F",
+                                      borderColor: "#90080F",
+                                    },
+                                }}
+                              />
+                            </Td>
+                          )}
 
-                        {!isArchived ? (
+                          {!isArchived ? (
+                            <Td>
+                              <Box
+                                display="flex"
+                                justifyContent="center"
+                              >
+                                <Box
+                                  height="14px"
+                                  width="14px"
+                                  borderRadius="50%"
+                                  bg={
+                                    hasTimePassed(session.date)
+                                      ? "#DAB434"
+                                      : "#0C824D"
+                                  }
+                                ></Box>
+                              </Box>
+                            </Td>
+                          ) : (
+                            <div></div>
+                          )}
                           <Td>
                             <Box
                               display="flex"
                               justifyContent="center"
+                              alignItems="center"
                             >
-                              <Box
-                                height="14px"
-                                width="14px"
-                                borderRadius="50%"
-                                bg={
-                                  hasTimePassed(session.date)
-                                    ? "#DAB434"
-                                    : "#0C824D"
-                                }
-                              ></Box>
+                              {formatDate(session.date)}
                             </Box>
                           </Td>
-                        ) : (
-                          <div></div>
-                        )}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {formatDate(session.date)}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {formatTime(session.startTime)} -{" "}
-                            {formatTime(session.endTime)}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {rooms.get(session.roomId)}
-                          </Box>
-                        </Td>
-                        {/* Add Lead Artist data */}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {instructors?.length > 0
-                              ? instructors.map((instructor) => instructor.clientName).join(", ")
-                              : "N/A"}
-                          </Box>
-                        </Td>
-                        {/* Add Payees data */}
-                        <Td>
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            {payees?.length > 0
-                              ? payees.map((payee) => payee.clientName).join(", ")
-                              : "N/A"}
-                          </Box>
-                        </Td>
-                        <Td>
-                          <Menu >
-                            <MenuButton
-                              as={IconButton}
-                              minWidth="24px"
-                              height="24px"
-                              borderRadius={6}
-                              backgroundColor="#EDF2F7"
-                              icon={<Icon as={EllipsisIcon} />}
-                            />
-                            <MenuList
-                                style={{minWidth:"139px", padding:"4px"}}>
-                              <MenuItem
-                                width="131px"
-                                height="32px"
-                                display="flex"
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {formatTime(session.startTime)} -{" "}
+                              {formatTime(session.endTime)}
+                            </Box>
+                          </Td>
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {rooms.get(session.roomId)}
+                            </Box>
+                          </Td>
+                          {/* Add Lead Artist data */}
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {instructors?.length > 0
+                                ? instructors
+                                    .map((instructor) => instructor.clientName)
+                                    .join(", ")
+                                : "N/A"}
+                            </Box>
+                          </Td>
+                          {/* Add Payees data */}
+                          <Td>
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              {payees?.length > 0
+                                ? payees
+                                    .map((payee) => payee.clientName)
+                                    .join(", ")
+                                : "N/A"}
+                            </Box>
+                          </Td>
+                          <Td>
+                            <Menu>
+                              <MenuButton
+                                as={IconButton}
+                                minWidth="24px"
+                                height="24px"
+                                borderRadius={6}
+                                backgroundColor="#EDF2F7"
+                                icon={<Icon as={EllipsisIcon} />}
+                              />
+                              <MenuList
+                                style={{ minWidth: "139px", padding: "4px" }}
+                              >
+                                <MenuItem
+                                  width="131px"
+                                  height="32px"
+                                  display="flex"
                                   padding="6px 8px"
                                   alignItems="center"
                                   gap="8px"
-                                onClick={() => navigate(`/programs/edit/session/${session.id}`)}
-                              >
+                                  onClick={() =>
+                                    navigate(
+                                      `/programs/edit/session/${session.id}`
+                                    )
+                                  }
+                                >
                                   <Icon as={EditIcon} />
-                                  <Text color="#2D3748" fontSize="14px">Edit</Text>
-
-                              </MenuItem>
-                              <MenuItem  display="flex"
+                                  <Text
+                                    color="#2D3748"
+                                    fontSize="14px"
+                                  >
+                                    Edit
+                                  </Text>
+                                </MenuItem>
+                                <MenuItem
+                                  display="flex"
                                   padding="6px 8px"
                                   alignItems="center"
-                                  gap="8px" width="131px" height="32px" onClick={() => { setSelectedSingleSession(session.id); deleteModalOnOpen(); }}>
-
+                                  gap="8px"
+                                  width="131px"
+                                  height="32px"
+                                  onClick={() => {
+                                    setSelectedSingleSession(session.id);
+                                    deleteModalOnOpen();
+                                  }}
+                                >
                                   <Icon as={CancelIcon} />
-                                  <Text color="#90080F" fontSize="14px">Cancel</Text>
-                              </MenuItem>
-                            </MenuList>
-                          </Menu>
-                        </Td>
-                      </Tr>
-                    ))
+                                  <Text
+                                    color="#90080F"
+                                    fontSize="14px"
+                                  >
+                                    Cancel
+                                  </Text>
+                                </MenuItem>
+                              </MenuList>
+                            </Menu>
+                          </Td>
+                        </Tr>
+                      ))
                   ) : (
                     <Tr>
                       <Td colSpan={isArchived ? 6 : 7}>
