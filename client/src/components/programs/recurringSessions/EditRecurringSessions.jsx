@@ -158,6 +158,9 @@ export const EditRecurringSessions = () => {
             startDate &&
             endDate
           ) {
+            const currentTimezoneDate = new Date(
+              startDate.replace(/-/g, "/").replace(/T.+/, "")
+            );
             const generatedSessions = generateRecurringSessions(
               recurringSession,
               startDate,
