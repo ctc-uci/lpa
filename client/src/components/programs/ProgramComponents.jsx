@@ -1892,8 +1892,8 @@ export const Sessions = ({
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filteredSessions.length > 0 ? (
-                    filteredSessions.map((session) => (
+                  {currentPageSessions.length > 0 ? (
+                    currentPageSessions.map((session) => (
                       <Tr key={session.id}>
                         {isSelected && (
                           <Td width="50px">

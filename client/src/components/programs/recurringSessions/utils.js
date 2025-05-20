@@ -19,6 +19,8 @@ export const generateRecurringSessions = (
   const initialTimeMinutes = startingDate.getUTCMinutes();
   const initialTimeSeconds = startingDate.getUTCSeconds();
   const initialTimeMilliseconds = startingDate.getUTCMilliseconds();
+  let year;
+  let month;
 
   switch (frequency) {
     case "week":
@@ -56,8 +58,8 @@ export const generateRecurringSessions = (
       break;
 
     case "monthDate":
-      let year = currentTimezoneDate.getFullYear();
-      let month = currentTimezoneDate.getMonth(); // 0-11
+      year = currentTimezoneDate.getFullYear();
+      month = currentTimezoneDate.getMonth(); // 0-11
 
       console.log("month date");
 
@@ -86,8 +88,13 @@ export const generateRecurringSessions = (
           break; // Past the end date
         }
 
-        // Ensure the candidate date is not before the startDate (comparison based on date part)
-        if (candidateDate >= currentTimezoneDate) {
+        // Check if this is the first month and if the candidate date matches the start date
+        const isFirstMonth = year === currentTimezoneDate.getUTCFullYear() && 
+                           month === currentTimezoneDate.getUTCMonth();
+        const isStartDate = candidateDate.getUTCDate() === currentTimezoneDate.getUTCDate();
+
+        // Include the date if it's after the start date OR if it's the start date itself
+        if (candidateDate >= currentTimezoneDate || (isFirstMonth && isStartDate)) {
           let sessionDateInstance = new Date(candidateDate.valueOf()); // Clone UTC date
           sessionDateInstance.setUTCHours(
             initialTimeHours,
@@ -137,7 +144,7 @@ export const generateRecurringSessions = (
 
         let occurrences = [];
         for (let day = 1; day <= daysInMonth; day++) {
-          let d = new Date(Date.UTC(year, month, day));
+          const d = new Date(Date.UTC(year, month, day));
           if (d.getUTCDay() === targetJsDayOfWeek) {
             occurrences.push(d);
           }
@@ -158,13 +165,19 @@ export const generateRecurringSessions = (
         }
 
         if (specificOccurrenceDate) {
+          // Check if this is the first month and if the specific occurrence matches the start date
+          const isFirstMonth = year === currentTimezoneDate.getUTCFullYear() && 
+                             month === currentTimezoneDate.getUTCMonth();
+          const isStartDate = specificOccurrenceDate.getUTCDate() === currentTimezoneDate.getUTCDate() &&
+                            specificOccurrenceDate.getUTCDay() === currentTimezoneDate.getUTCDay();
+
           if (specificOccurrenceDate > endingDate) {
             // This specific date is past the end date.
             // Since occurrences are ordered, future months will also be too late.
             break;
           }
-          if (specificOccurrenceDate >= currentTimezoneDate) {
-            let sessionDateInstance = new Date(
+          if (specificOccurrenceDate >= currentTimezoneDate || (isFirstMonth && isStartDate)) {
+            const sessionDateInstance = new Date(
               specificOccurrenceDate.valueOf()
             ); // Clone UTC date
             sessionDateInstance.setUTCHours(
@@ -198,7 +211,7 @@ export const generateRecurringSessions = (
           // A more aggressive break if we are certain no more valid dates can be found.
           // This condition ensures we don't break prematurely if endingDate is far in future.
           // Only break if the new month we're about to check is already past the end date.
-          let nextMonthStartCheck = new Date(Date.UTC(year, month, 1));
+          const nextMonthStartCheck = new Date(Date.UTC(year, month, 1));
           if (nextMonthStartCheck > endingDate) break;
         }
       }
@@ -223,25 +236,75 @@ export const generateRecurringSessions = (
       const targetMonth = months.indexOf(recurringSession.month);
       const targetDay = recurringSession.dayOfMonth;
 
-      // Set starting date to first occurrence of target month/day
-      startingDate.setMonth(targetMonth);
-      startingDate.setDate(targetDay);
+      // Create a new date object for the first occurrence
+      let currentYear = currentTimezoneDate.getFullYear();
+      let candidateDate = new Date(Date.UTC(currentYear, targetMonth, targetDay));
 
-      // If target date this year is before start date, advance to next year
-      if (startingDate < currentTimezoneDate) {
-        startingDate.setFullYear(startingDate.getFullYear() + 1);
+      // Handle case where target day doesn't exist in target month
+      while (candidateDate.getUTCMonth() !== targetMonth) {
+        // If the date rolled over to next month, use the last day of the target month
+        candidateDate = new Date(Date.UTC(currentYear, targetMonth + 1, 0));
       }
 
-      while (startingDate <= endingDate) {
+      // Set the time components from the original start date
+      candidateDate.setUTCHours(
+        initialTimeHours,
+        initialTimeMinutes,
+        initialTimeSeconds,
+        initialTimeMilliseconds
+      );
+
+      // Check if this is the first year and if the candidate date matches the start date
+      const isFirstYear = currentYear === currentTimezoneDate.getUTCFullYear();
+      const isStartDate = candidateDate.getUTCDate() === currentTimezoneDate.getUTCDate() &&
+                         candidateDate.getUTCMonth() === currentTimezoneDate.getUTCMonth();
+
+      // If the target date this year is before the start date, advance to next year
+      // But only if it's not the same date (to include the start date if it matches)
+      if (candidateDate < currentTimezoneDate && !(isFirstYear && isStartDate)) {
+        currentYear++;
+        candidateDate = new Date(Date.UTC(currentYear, targetMonth, targetDay));
+        
+        // Handle case where target day doesn't exist in target month for the new year
+        while (candidateDate.getUTCMonth() !== targetMonth) {
+          candidateDate = new Date(Date.UTC(currentYear, targetMonth + 1, 0));
+        }
+        
+        // Set the time components again for the new date
+        candidateDate.setUTCHours(
+          initialTimeHours,
+          initialTimeMinutes,
+          initialTimeSeconds,
+          initialTimeMilliseconds
+        );
+      }
+
+      // Generate sessions for each year
+      while (candidateDate <= endingDate) {
         sessions.push({
-          date: startingDate.toISOString(),
+          date: candidateDate.toISOString(),
           startTime: recurringSession.startTime,
           endTime: recurringSession.endTime,
           roomId: recurringSession.roomId,
           archived: false,
         });
 
-        startingDate.setFullYear(startingDate.getFullYear() + 1);
+        // Move to next year
+        currentYear++;
+        candidateDate = new Date(Date.UTC(currentYear, targetMonth, targetDay));
+        
+        // Handle case where target day doesn't exist in target month for the new year
+        while (candidateDate.getUTCMonth() !== targetMonth) {
+          candidateDate = new Date(Date.UTC(currentYear, targetMonth + 1, 0));
+        }
+        
+        // Set the time components again for the new date
+        candidateDate.setUTCHours(
+          initialTimeHours,
+          initialTimeMinutes,
+          initialTimeSeconds,
+          initialTimeMilliseconds
+        );
       }
       break;
   }

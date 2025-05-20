@@ -7,8 +7,11 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react";
+import { useState } from "react";
 
 export const SaveSessionModal = ({isOpen, onClose, noSave, programName, save, isFormValid = () => true}) => {
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -56,7 +59,11 @@ export const SaveSessionModal = ({isOpen, onClose, noSave, programName, save, is
             Cancel
           </Button>
           <Button
-            onClick={save}
+            onClick={() => {
+              setIsLoading(true);
+              save();
+            }}
+            isLoading={isLoading}
             isDisabled={!isFormValid()}
             backgroundColor="#4441C8"
             color="#FFFFFF"
