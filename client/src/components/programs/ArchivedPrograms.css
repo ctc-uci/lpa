@@ -65,7 +65,7 @@
 }
 
 .td:first-child, .th:first-child {
-  padding-left: 0!important;
+  padding-left: 8px !important;
   /* display: flex;
   justify-content: flex-start; */
 }
