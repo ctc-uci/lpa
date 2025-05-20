@@ -118,6 +118,7 @@ export const ProgramSummary = ({
   sessions,
   instructors,
   payees,
+  rooms,
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
@@ -660,34 +661,64 @@ export const ProgramSummary = ({
                   </Flex>
 
                   <Flex
-                    align="center"
-                    gap={12}
+                    align="flex-start"
+                    gap={2}
                   >
-                    <Flex
-                      align="center"
-                      gap={2}
-                    >
-                      <LocationPin />
-                      <Text
-                        color="#2D3748"
-                        fontWeight="500"
+                    <LocationPin />
+                    <Box position="relative">
+                      <Flex
+                        direction="column"
+                        height="55px"
+                        paddingRight="20px"
+                        paddingBottom="20px"
+                        overflowY="scroll"
+                        gap={2}
+                        sx={{
+                          '&::-webkit-scrollbar': {
+                            width: '4px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            background: 'transparent',
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            background: '#E2E8F0',
+                            borderRadius: '2px',
+                          },
+                        }}
                       >
-                        {nextRoom?.name || "-"}
-                      </Text>
-                    </Flex>
-                    <Flex
-                      align="center"
-                      gap={2}
-                    >
-                      <DollarBill />
-                      <Text
-                        color="#2D3748"
-                        fontWeight="500"
-                      >
-                        {nextRoom?.rate || "-.--"}
-                      </Text>
-                      <Text color="gray.600">/ hour</Text>
-                    </Flex>
+                        {rooms && Array.from(rooms.entries()).map(([roomId, roomData]) => (
+                          <Flex
+                            key={roomId}
+                            align="center"
+                            gap={2}
+                          >
+                            <Text
+                              color="#2D3748"
+                              fontWeight="500"
+                            >
+                              {roomData.name}
+                            </Text>
+                            <DollarBill />
+                            <Text
+                              color="#2D3748"
+                              fontWeight="500"
+                            >
+                              {roomData.rate ? `$${roomData.rate}` : "-.--"}
+                            </Text>
+                            <Text color="gray.600">/ hour</Text>
+                          </Flex>
+                        ))}
+                      </Flex>
+                      <Box
+                        position="absolute"
+                        bottom={0}
+                        left={0}
+                        right={0}
+                        height="20px"
+                        background="linear-gradient(to bottom, transparent, rgba(255, 255, 255, 1))"
+                        pointerEvents="none"
+                      />
+                    </Box>
                   </Flex>
 
                   <Stack spacing={6}>
@@ -702,14 +733,41 @@ export const ProgramSummary = ({
                       >
                         Room Information
                       </Heading>
-                      <Text
-                        color="#2D3748"
-                        fontWeight="500"
-                        mt={4}
-                        fontSize={14}
+                      <Box
+                        display="flex"
+                        flexDirection="column"
+                        height="100px"
+                        overflowY="scroll"
+                        gap={2}
+                        sx={{
+                          '&::-webkit-scrollbar': {
+                            width: '4px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            background: 'transparent',
+                          },
+                        }}
                       >
-                        {nextRoom?.description || "No description available"}
-                      </Text>
+                        {rooms && Array.from(rooms.entries()).map(([roomId, roomData]) => (
+                          <Box key={roomId} mt={4}>
+                            <Text
+                              color="#2D3748"
+                              fontWeight="600"
+                              fontSize={14}
+                            >
+                              {roomData.name}
+                            </Text>
+                            <Text
+                              color="#2D3748"
+                              fontWeight="500"
+                              mt={2}
+                              fontSize={14}
+                            >
+                              {roomData.description || "No description available"}
+                            </Text>
+                          </Box>
+                        ))}
+                      </Box>
                     </Box>
 
                     <Box>
@@ -1685,19 +1743,19 @@ export const Sessions = ({
                                           borderWidth="1px"
                                           minWidth="auto"
                                           height="20px"
-                                          onClick={() => setSelectedRoom(room)}
+                                          onClick={() => setSelectedRoom(room.name)}
                                           backgroundColor={
-                                            selectedRoom === room
+                                            selectedRoom === room.name
                                               ? "#EDEDFD"
                                               : "#F6F6F6"
                                           }
                                           borderColor={
-                                            selectedRoom === room
+                                            selectedRoom === room.name
                                               ? "#4E4AE7"
                                               : "#767778"
                                           }
                                         >
-                                          {room}
+                                          {room.name}
                                         </Button>
                                       </WrapItem>
                                     )
@@ -1954,7 +2012,7 @@ export const Sessions = ({
                             justifyContent="center"
                             alignItems="center"
                           >
-                            {rooms.get(session.roomId)}
+                            {rooms.get(session.roomId)?.name || "N/A"}
                           </Box>
                         </Td>
                         {/* Add Lead Artist data */}

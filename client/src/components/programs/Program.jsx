@@ -145,8 +145,13 @@ export const Program = () => {
       const roomMap = new Map();
       for (const roomId of roomIds) {
         const roomResponse = await backend.get(`rooms/${roomId}`);
-        const roomData = roomResponse.data;
-        roomMap.set(roomId, roomData[0].name);
+        const roomData = roomResponse.data[0];
+        // Store the full room data object instead of just the name
+        roomMap.set(roomId, {
+          name: roomData.name,
+          rate: roomData.rate,
+          description: roomData.description
+        });
       }
       setRoomNames(roomMap);
     } catch (error) {
@@ -270,6 +275,7 @@ export const Program = () => {
             sessions={sessions}
             instructors={instructors}
             payees={payees}
+            rooms={roomNames}
           />
         )}
         {Object.values(infoLoaded).every(Boolean) && (
