@@ -1,36 +1,11 @@
 import { useEffect, useState } from "react";
 
+
+
 import { ChevronDownIcon, ChevronLeftIcon } from "@chakra-ui/icons";
-import {
-  Box,
-  Button,
-  Card,
-  CardBody,
-  Flex,
-  Heading,
-  Icon,
-  IconButton,
-  Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Select,
-  Tab,
-  Table,
-  TableContainer,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Box, Button, Card, CardBody, Flex, Heading, Icon, IconButton, Input, Menu, MenuButton, MenuItem, MenuList, Select, Tab, Table, TableContainer, TabList, TabPanel, TabPanels, Tabs, Tbody, Td, Text, Th, Thead, Tr, useDisclosure } from "@chakra-ui/react";
+
+
 
 import { EllipsisIcon } from "lucide-react";
 import { AiOutlinePlus } from "react-icons/ai";
@@ -38,6 +13,8 @@ import { IoCloseOutline } from "react-icons/io5";
 import { TbRepeat } from "react-icons/tb";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
+
+
 
 import { CalendarIcon } from "../../assets/CalendarIcon";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
@@ -54,6 +31,7 @@ import { DeleteSessionConfirmationModal } from "../popups/DeleteSessionConfirmat
 import { SaveSessionModal } from "../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 import DateSortingModal from "../sorting/DateFilter";
+
 
 export const EditRecurringSessions = () => {
   const { id } = useParams();
@@ -125,6 +103,7 @@ export const EditRecurringSessions = () => {
 
   // States for general information
   const [startDate, setStartDate] = useState("");
+  const [isRecurring, setIsRecurring] = useState(true);
   const [endDate, setEndDate] = useState("");
   const [isChanged, setIsChanged] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
