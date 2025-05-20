@@ -255,7 +255,7 @@ export const ArchivedPrograms = () => {
     const [hours, minutes] = timeString.split(":").map(Number);
 
     // Determine AM or PM suffix
-    const period = hours >= 12 ? "p.m." : "a.m.";
+    const period = hours >= 12 ? "pm" : "am";
 
     // Convert to 12-hour format
     const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
@@ -285,25 +285,9 @@ export const ArchivedPrograms = () => {
     const lowerCaseQuery = query.toLowerCase();
     const filtered = allArchivedSessions.filter((session) => {
       return (
-        // Search by program name
-        (session.programName &&
-          session.programName.toLowerCase().includes(lowerCaseQuery)) ||
-        // Search by room
-        (session.room && session.room.toLowerCase().includes(lowerCaseQuery)) ||
-        // Search by instructors
-        (session.instructors &&
-          session.instructors.some(
-            (instructor) =>
-              instructor.clientName &&
-              instructor.clientName.toLowerCase().includes(lowerCaseQuery)
-          )) ||
-        // Search by payees
-        (session.payees &&
-          session.payees.some(
-            (payee) =>
-              payee.clientName &&
-              payee.clientName.toLowerCase().includes(lowerCaseQuery)
-          ))
+        // Search only by program name
+        session.programName && session.programName.toLowerCase().includes(lowerCaseQuery)
+
       );
     });
 
@@ -407,31 +391,17 @@ export const ArchivedPrograms = () => {
 
   return (
     <Navbar>
-      <Box margin="40px">
-        <Flex
-          align="center"
-          mb="24px"
-        >
-          <Icon
-            as={archiveBox}
-            width="24px"
-            height="24px"
-          />
-          <Text
-            fontSize="24px"
-            fontWeight="600"
-            fontFamily="Inter"
-            fontStyle="normal"
-            lineHeight="32px"
-            color="#2D3748"
-            ml="8px"
-          >
+
+      <Box className="archivedContainer">
+        <Box className="archiveTitleContainer">
+          <Icon as={archiveBox} width="24px" height="24px" />
+          <Text className="archiveTitle">
             Archived
           </Text>
-        </Flex>
-        <Box
+        </Box>
+        <Box 
           className="programs-table"
-          width="100%"
+          minWidth="calc(100% - 26px) !important"
           margin="0"
           border="1px solid var(--Secondary-3, #e2e8f0)"
           borderRadius="15px"
@@ -444,7 +414,7 @@ export const ArchivedPrograms = () => {
           background="white"
           position="relative"
           zIndex={3}
-          // minHeight="500px" // Add minimum height to prevent collapsing (should it collapse?)
+          style={{overflowX: "hidden"}}
         >
           <Flex
             direction="column"
@@ -507,12 +477,14 @@ export const ArchivedPrograms = () => {
                 searchQuery={searchQuery}
               />
             </Flex>
-            <TableContainer>
+            <TableContainer width="100%">
               <Table
                 variant="unstyled"
                 position="relative"
                 zIndex={3}
                 bg="white"
+                width="100%"
+                style={{tableLayout: "fixed"}}
               >
                 <Thead
                   borderBottom="1px"
@@ -521,7 +493,8 @@ export const ArchivedPrograms = () => {
                   <Tr>
                     <Th
                       className="th"
-                      minWidth="20rem"
+                      width="400px"
+                      minWidth="400px"
                     >
                       <Box
                         className="columnContainer"
@@ -566,12 +539,13 @@ export const ArchivedPrograms = () => {
                         </Box>
                       </Box>
                     </Th>
-                    <Th className="th">
+                    <Th className="th" width="170px">
                       <Box className="columnContainer">
                         <Icon
                           as={archiveClock}
                           width="20px"
                           height="20px"
+                          minWidth="20px"
                         />
                         <Text
                           className="archiveHeaderText"
@@ -583,7 +557,7 @@ export const ArchivedPrograms = () => {
                     </Th>
                     <Th
                       className="th"
-                      maxWidth="6rem"
+                      width="100px"
                     >
                       <Box className="columnContainer">
                         <Icon
@@ -599,7 +573,7 @@ export const ArchivedPrograms = () => {
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th">
+                    <Th className="th" style={{width: "150px !important", maxWidth: "150px !important"}}>
                       <Box className="columnContainer">
                         <Icon
                           as={archivePaintPalette}
@@ -609,12 +583,13 @@ export const ArchivedPrograms = () => {
                         <Text
                           className="archiveHeaderText"
                           textTransform="none"
+                          noOfLines={1}
                         >
                           LEAD ARTIST(S)
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th">
+                    <Th className="th" width="115px" maxWidth="115px" style={{width: "115px !important", maxWidth: "115px !important"}}>
                       <Box className="columnContainer">
                         <Icon
                           as={archivePerson}
@@ -624,12 +599,13 @@ export const ArchivedPrograms = () => {
                         <Text
                           className="archiveHeaderText"
                           textTransform="none"
+                          noOfLines={1}
                         >
                           PAYER(S)
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th">
+                    <Th className="th" width="24px" padding="0" style={{width: "24px !important", paddingRight: "0 !important"}}>
                       {/* Empty column for ellipsis button */}
                     </Th>
                   </Tr>
@@ -661,32 +637,40 @@ export const ArchivedPrograms = () => {
                         key={programSession.programId}
                         onClick={() => handleRowClick(programSession.programId)}
                         cursor="pointer"
+                        className="archiveRow"
                       >
                         <Td
                           className="td"
-                          minWidth="20rem"
+                          width="400px"
+                          minWidth="400px"
                         >
                           {programSession.programName}
                         </Td>
-                        <Td className="td">
+                        <Td 
+                          className="td"
+                          width="100px"
+                        >
                           {programSession.sessionDate !== "N/A"
                             ? formatDate(programSession.sessionDate)
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td className="td" width="160px">
                           {programSession.sessionStart !== "N/A"
                             ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
                             : "N/A"}
                         </Td>
                         <Td
                           className="td"
-                          maxWidth="6rem"
+                          width="100px"
                         >
                           {programSession.room !== "N/A"
                             ? programSession.room
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td 
+                          className="td" 
+                          style={{width: "150px !important", maxWidth: "150px !important", overflow: "hidden", textOverflow: "ellipsis"}}
+                        >
                           {programSession.instructors &&
                           programSession.instructors.length > 0
                             ? programSession.instructors
@@ -694,7 +678,7 @@ export const ArchivedPrograms = () => {
                                 .join(", ")
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td className="td" maxWidth="115px" style={{maxWidth: "115px", overflow: "hidden", textOverflow: "ellipsis"}}>
                           {programSession.payees &&
                           programSession.payees.length > 0
                             ? programSession.payees
@@ -708,6 +692,9 @@ export const ArchivedPrograms = () => {
                             e.stopPropagation();
                             // console.log(programSession);
                           }}
+                          width="24px"
+                          padding="0"
+                          style={{width: "24px !important", paddingRight: "0 !important"}}
                         >
                           <ArchivedDropdown
                             programId={programSession.programId}
@@ -728,12 +715,22 @@ export const ArchivedPrograms = () => {
                       >
                         <Box
                           justifyContent="center"
-                          color="gray.500"
                           fontSize="md"
                         >
-                          <Text textAlign={"center"}>
-                            {allArchivedSessions.length > 0
-                              ? "No matching programs found. Try adjusting your search."
+
+                          <Text 
+                            textAlign={"center"}
+                            color="var(--Secondary-6, #718096)"
+                            fontFamily="Inter"
+                            fontSize="14px"
+                            fontStyle="normal"
+                            fontWeight="400"
+                            lineHeight="normal"
+                            letterSpacing="0.07px"
+                          >
+                            {allArchivedSessions.length > 0 
+                              ? "No program data to display."
+
                               : "No archived program or session data to display."}
                           </Text>
                         </Box>
@@ -770,7 +767,7 @@ export const ArchivedPrograms = () => {
               <Text
                 mr={2}
                 fontSize="sm"
-                color="#474849"
+                color="#718096"
                 fontFamily="Inter, sans-serif"
               >
                 {currentPage} of {totalPages}
@@ -780,8 +777,9 @@ export const ArchivedPrograms = () => {
                 isDisabled={currentPage === 1}
                 size="sm"
                 variant="ghost"
-                padding={0}
+                padding="0px 9px"
                 minWidth="auto"
+                h="40px"
                 color="gray.500"
                 mr="16px"
               >
@@ -792,8 +790,9 @@ export const ArchivedPrograms = () => {
                 isDisabled={currentPage === totalPages}
                 size="sm"
                 variant="ghost"
-                padding={0}
+                padding="0px 9px"
                 minWidth="auto"
+                h="40px"
                 color="gray.500"
               >
                 <ChevronRightIcon />

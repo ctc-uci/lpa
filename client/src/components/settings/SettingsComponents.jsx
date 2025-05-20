@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import {
   Box,
@@ -42,6 +42,49 @@ import { LocationPinIcon } from "../../assets/LocationPinIcon";
 import { PlusIcon } from "../../assets/PlusIcon";
 import { UserIcon } from "../../assets/UserIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { SearchBar } from "../searchBar/SearchBar";
+import { archiveMagnifyingGlass } from "../../assets/icons/ProgramIcons";
+import SortingMenu from "../sorting/SortingMenu";
+
+// Name sorting component
+const NameSortingMenu = ({ onSortChange, currentOrder }) => {
+  const nameSortOptions = [
+    { label: "A ‑ Z", value: "name", order: "asc" },
+    { label: "Z - A", value: "name", order: "desc" },
+  ];
+
+  return (
+    <SortingMenu 
+      options={nameSortOptions}
+      onSortChange={(value, order) => {
+        // Only change if different from current state
+        if (!(value === "name" && order === currentOrder)) {
+          onSortChange(value, order);
+        }
+      }}
+    />
+  );
+};
+
+// Email sorting component
+const EmailSortingMenu = ({ onSortChange, currentOrder }) => {
+  const emailSortOptions = [
+    { label: "A ‑ Z", value: "email", order: "asc" },
+    { label: "Z - A", value: "email", order: "desc" },
+  ];
+
+  return (
+    <SortingMenu 
+      options={emailSortOptions}
+      onSortChange={(value, order) => {
+        // Only change if different from current state
+        if (!(value === "email" && order === currentOrder)) {
+          onSortChange(value, order);
+        }
+      }}
+    />
+  );
+};
 
 const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
     const componentMap = {
@@ -116,6 +159,14 @@ const AdminSettings = () => {
   const { backend } = useBackendContext();
   const [generalUsers, setGeneralUsers] = useState(null);
   const [adminUsers, setAdminUsers] = useState(null);
+  const [filteredGeneralUsers, setFilteredGeneralUsers] = useState([]);
+  const [filteredAdminUsers, setFilteredAdminUsers] = useState([]);
+  const [requestSearchQuery, setRequestSearchQuery] = useState("");
+  const [accountSearchQuery, setAccountSearchQuery] = useState("");
+  const [requestSortKey, setRequestSortKey] = useState("name");
+  const [requestSortOrder, setRequestSortOrder] = useState("asc");
+  const [accountSortKey, setAccountSortKey] = useState("name");
+  const [accountSortOrder, setAccountSortOrder] = useState("asc");
 
   const getAllUsers = async () => {
     try {
@@ -135,6 +186,8 @@ const AdminSettings = () => {
 
       setGeneralUsers(general);
       setAdminUsers(admin);
+      setFilteredGeneralUsers(general);
+      setFilteredAdminUsers(admin);
     } catch (error) {
       console.log("Error in getAllUsers: ", error);
     }
@@ -176,8 +229,108 @@ const AdminSettings = () => {
     }
   };
 
+  const handleRequestSortChange = useCallback((key, order) => {
+    setRequestSortKey(key);
+    setRequestSortOrder(order);
+  }, []);
+
+  const handleAccountSortChange = useCallback((key, order) => {
+    setAccountSortKey(key);
+    setAccountSortOrder(order);
+  }, []);
+
+  const handleRequestSearch = useCallback((query) => {
+    setRequestSearchQuery(query);
+    if (!generalUsers) return;
+    
+    if (!query) {
+      setFilteredGeneralUsers(generalUsers);
+      return;
+    }
+    
+    const lowerCaseQuery = query.toLowerCase();
+    const filtered = generalUsers.filter(user => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      return fullName.includes(lowerCaseQuery);
+    });
+    
+    setFilteredGeneralUsers(filtered);
+  }, [generalUsers]);
+
+  const handleAccountSearch = useCallback((query) => {
+    setAccountSearchQuery(query);
+    if (!adminUsers) return;
+    
+    if (!query) {
+      setFilteredAdminUsers(adminUsers);
+      return;
+    }
+    
+    const lowerCaseQuery = query.toLowerCase();
+    const filtered = adminUsers.filter(user => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      return fullName.includes(lowerCaseQuery);
+    });
+    
+    setFilteredAdminUsers(filtered);
+  }, [adminUsers]);
+
+  // Sort filtered users based on sort key and order
+  const sortedGeneralUsers = useCallback(() => {
+    if (!filteredGeneralUsers) return [];
+    
+    const sorted = [...filteredGeneralUsers];
+    if (requestSortKey === "name") {
+      sorted.sort((a, b) => {
+        const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+        const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+        return requestSortOrder === "asc" 
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      });
+    } else if (requestSortKey === "email") {
+      sorted.sort((a, b) => {
+        return requestSortOrder === "asc"
+          ? a.email.localeCompare(b.email)
+          : b.email.localeCompare(a.email);
+      });
+    }
+    return sorted;
+  }, [filteredGeneralUsers, requestSortKey, requestSortOrder]);
+
+  const sortedAdminUsers = useCallback(() => {
+    if (!filteredAdminUsers) return [];
+    
+    const sorted = [...filteredAdminUsers];
+    if (accountSortKey === "name") {
+      sorted.sort((a, b) => {
+        const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+        const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+        return accountSortOrder === "asc" 
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      });
+    } else if (accountSortKey === "email") {
+      sorted.sort((a, b) => {
+        return accountSortOrder === "asc"
+          ? a.email.localeCompare(b.email)
+          : b.email.localeCompare(a.email);
+      });
+    }
+    return sorted;
+  }, [filteredAdminUsers, accountSortKey, accountSortOrder]);
+
   useEffect(() => {
     getAllUsers();
+  }, []);
+
+  useEffect(() => {
+    if (generalUsers) {
+      setFilteredGeneralUsers(generalUsers);
+    }
+    if (adminUsers) {
+      setFilteredAdminUsers(adminUsers);
+    }
   }, [generalUsers, adminUsers]);
 
   return (
@@ -188,7 +341,19 @@ const AdminSettings = () => {
         padding="0px 16px"
         align="left"
       >
-        <Heading size="sm"> Requests </Heading>
+        <Flex 
+          direction="row" 
+          justifyContent="space-between" 
+          alignItems="center"
+        >
+          <Heading size="sm"> Requests </Heading>
+          <Box width="311px">
+            <SearchBar 
+              handleSearch={handleRequestSearch} 
+              searchQuery={requestSearchQuery} 
+            />
+          </Box>
+        </Flex>
         <Flex
           borderRadius="15px"
           border="1px solid #E2E8F0"
@@ -215,6 +380,7 @@ const AdminSettings = () => {
                     <Flex
                       direction="row"
                       justifyContent="space-between"
+                      alignItems="center"
                     >
                       <Flex direction="row">
                         <Icon as={PersonIcon} />
@@ -228,15 +394,17 @@ const AdminSettings = () => {
                           Name{" "}
                         </Text>
                       </Flex>
-                      <Box>
-                        <Icon as={UpDownArrowIcon} />
-                      </Box>
+                      <NameSortingMenu 
+                        onSortChange={handleRequestSortChange} 
+                        currentOrder={requestSortOrder}
+                      />
                     </Flex>
                   </Th>
                   <Th>
                     <Flex
                       direction="row"
                       justifyContent="space-between"
+                      alignItems="center"
                     >
                       <Flex direction="row">
                         <Icon as={EmailIcon} />
@@ -250,15 +418,16 @@ const AdminSettings = () => {
                           Email{" "}
                         </Text>
                       </Flex>
-                      <Box>
-                        <Icon as={UpDownArrowIcon} />
-                      </Box>
+                      <EmailSortingMenu 
+                        onSortChange={handleRequestSortChange}
+                        currentOrder={requestSortOrder}
+                      />
                     </Flex>
                   </Th>
                   <Th>
                     <Flex
                       direction="row"
-                      justifyContent="right"
+                      justifyContent="flex-end"
                     >
                       <Text
                         fontSize="14px"
@@ -278,10 +447,19 @@ const AdminSettings = () => {
                   "& tr:last-child td": { borderBottom: "none" },
                   height: "70px !important",
                   minHeight: "70px !important",
+                  "& td": {
+                    color: "var(--Secondary-8, #2D3748)",
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    fontStyle: "normal",
+                    fontWeight: "400",
+                    lineHeight: "normal",
+                    letterSpacing: "0.07px"
+                  }
                 }}
               >
-                {generalUsers && generalUsers.length > 0
-                  ? generalUsers.map((gen) => (
+                {filteredGeneralUsers && filteredGeneralUsers.length > 0
+                  ? sortedGeneralUsers().map((gen) => (
                       <Tr key={gen.id}>
                         <Td width="35%">
                           {gen.firstName} {gen.lastName}
@@ -290,7 +468,7 @@ const AdminSettings = () => {
                         <Td width="30%">
                           <Flex
                             direction="row"
-                            justifyContent="right"
+                            justifyContent="flex-end"
                             gap="10px"
                           >
                             <Button
@@ -312,7 +490,19 @@ const AdminSettings = () => {
                         </Td>
                       </Tr>
                     ))
-                  : "No admin requests"}
+                  : <Tr>
+                      <Td colSpan={3} textAlign="center">
+                        <Text
+                          color="var(--Secondary-6, #718096)"
+                          fontFamily="Inter"
+                          fontSize="14px"
+                          lineHeight="1.5"
+                          letterSpacing="-0.084px"
+                        >
+                          No requests to display.
+                        </Text>
+                      </Td>
+                    </Tr>}
               </Tbody>
             </Table>
           </TableContainer>
@@ -325,7 +515,19 @@ const AdminSettings = () => {
         align="left"
         marginTop="40px"
       >
-        <Heading size="sm"> Accounts </Heading>
+        <Flex 
+          direction="row" 
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Heading size="sm"> Accounts </Heading>
+          <Box width="311px">
+            <SearchBar 
+              handleSearch={handleAccountSearch} 
+              searchQuery={accountSearchQuery} 
+            />
+          </Box>
+        </Flex>
         <Flex
           borderRadius="15px"
           border="1px solid #E2E8F0"
@@ -352,6 +554,7 @@ const AdminSettings = () => {
                     <Flex
                       direction="row"
                       justifyContent="space-between"
+                      alignItems="center"
                     >
                       <Flex direction="row">
                         <Icon as={PersonIcon} />
@@ -365,15 +568,17 @@ const AdminSettings = () => {
                           Name{" "}
                         </Text>
                       </Flex>
-                      <Box>
-                        <Icon as={UpDownArrowIcon} />
-                      </Box>
+                      <NameSortingMenu 
+                        onSortChange={handleAccountSortChange}
+                        currentOrder={accountSortOrder}
+                      />
                     </Flex>
                   </Th>
                   <Th>
                     <Flex
                       direction="row"
                       justifyContent="space-between"
+                      alignItems="center"
                     >
                       <Flex direction="row">
                         <Icon as={EmailIcon} />
@@ -387,15 +592,16 @@ const AdminSettings = () => {
                           Email{" "}
                         </Text>
                       </Flex>
-                      <Box>
-                        <Icon as={UpDownArrowIcon} />
-                      </Box>
+                      <EmailSortingMenu 
+                        onSortChange={handleAccountSortChange}
+                        currentOrder={accountSortOrder}
+                      />
                     </Flex>
                   </Th>
                   <Th>
                     <Flex
                       direction="row"
-                      justifyContent="right"
+                      justifyContent="flex-end"
                     >
                       <Text
                         fontSize="14px"
@@ -410,9 +616,22 @@ const AdminSettings = () => {
                   </Th>
                 </Tr>
               </Thead>
-              <Tbody sx={{ "& tr:last-child td": { borderBottom: "none" } }}>
-                {adminUsers && adminUsers.length > 0
-                  ? adminUsers.map((admin) => (
+              <Tbody
+                sx={{
+                  "& tr:last-child td": { borderBottom: "none" },
+                  "& td": {
+                    color: "var(--Secondary-8, #2D3748)",
+                    fontFamily: "Inter",
+                    fontSize: "14px",
+                    fontStyle: "normal",
+                    fontWeight: "400",
+                    lineHeight: "normal",
+                    letterSpacing: "0.07px"
+                  }
+                }}
+              >
+                {filteredAdminUsers && filteredAdminUsers.length > 0
+                  ? sortedAdminUsers().map((admin) => (
                       <Tr
                         key={admin.id}
                         sx={{
@@ -426,7 +645,7 @@ const AdminSettings = () => {
                         <Td width="35%">{admin.email}</Td>
                         <Td width="30%">
                           <Flex
-                            justifyContent="right"
+                            justifyContent="flex-end"
                             marginRight="4px"
                           >
                             <Checkbox
@@ -437,7 +656,19 @@ const AdminSettings = () => {
                         </Td>
                       </Tr>
                     ))
-                  : "No admin"}
+                  : <Tr>
+                      <Td colSpan={3} textAlign="center">
+                        <Text
+                          color="var(--Secondary-6, #718096)"
+                          fontFamily="Inter"
+                          fontSize="14px"
+                          lineHeight="1.5"
+                          letterSpacing="-0.084px"
+                        >
+                          No account data to display.
+                        </Text>
+                      </Td>
+                    </Tr>}
               </Tbody>
             </Table>
           </TableContainer>

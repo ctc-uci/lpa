@@ -606,8 +606,17 @@ export const ProgramsTable = () => {
                   <Td
                     colSpan={8}
                     textAlign="center"
+                    py={4}
                   >
-                    No programs available.
+                    <Text
+                      color="#718096 !important"
+                      fontFamily="Inter"
+                      fontSize="14px"
+                      lineHeight="1.5"
+                      letterSpacing="-0.084px"
+                    >
+                      No program data to display.
+                    </Text>
                   </Td>
                 </Tr>
               ) : (

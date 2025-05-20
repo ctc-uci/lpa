@@ -256,7 +256,17 @@
 }
 
 .programs-table__table tr td * {
-  color: var(--Secondary-8, #2D3748) !important;
+  color: var(--Secondary-8, #2D3748);
+}
+
+/* Exception for no data message and cancel text */
+.programs-table__table tr td .cancel-text,
+.programs-table__table tr td [color="var(--Secondary-6, #718096)"] {
+  color: var(--destructive, #90080F) !important;
+}
+
+.programs-table__table tr td [color="var(--Secondary-6, #718096)"] {
+  color: var(--Secondary-6, #718096) !important;
 }
 
 /* Align program names with header */
