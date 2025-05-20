@@ -255,7 +255,7 @@ export const ArchivedPrograms = () => {
     const [hours, minutes] = timeString.split(":").map(Number);
 
     // Determine AM or PM suffix
-    const period = hours >= 12 ? "p.m." : "a.m.";
+    const period = hours >= 12 ? "pm" : "am";
 
     // Convert to 12-hour format
     const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
@@ -477,12 +477,14 @@ export const ArchivedPrograms = () => {
                 searchQuery={searchQuery}
               />
             </Flex>
-            <TableContainer>
+            <TableContainer width="100%">
               <Table
                 variant="unstyled"
                 position="relative"
                 zIndex={3}
                 bg="white"
+                width="100%"
+                style={{tableLayout: "fixed"}}
               >
                 <Thead
                   borderBottom="1px"
@@ -491,7 +493,8 @@ export const ArchivedPrograms = () => {
                   <Tr>
                     <Th
                       className="th"
-                      minWidth="20rem"
+                      width="400px"
+                      minWidth="400px"
                     >
                       <Box
                         className="columnContainer"
@@ -536,12 +539,13 @@ export const ArchivedPrograms = () => {
                         </Box>
                       </Box>
                     </Th>
-                    <Th className="th">
+                    <Th className="th" width="170px">
                       <Box className="columnContainer">
                         <Icon
                           as={archiveClock}
                           width="20px"
                           height="20px"
+                          minWidth="20px"
                         />
                         <Text
                           className="archiveHeaderText"
@@ -553,7 +557,7 @@ export const ArchivedPrograms = () => {
                     </Th>
                     <Th
                       className="th"
-                      maxWidth="6rem"
+                      width="100px"
                     >
                       <Box className="columnContainer">
                         <Icon
@@ -569,7 +573,7 @@ export const ArchivedPrograms = () => {
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th" width="129px" maxWidth="129px" style={{width: "129px !important", maxWidth: "129px !important"}}>
+                    <Th className="th" style={{width: "150px !important", maxWidth: "150px !important"}}>
                       <Box className="columnContainer">
                         <Icon
                           as={archivePaintPalette}
@@ -585,7 +589,7 @@ export const ArchivedPrograms = () => {
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th" width="129px" maxWidth="129px" style={{width: "129px !important", maxWidth: "129px !important"}}>
+                    <Th className="th" width="115px" maxWidth="115px" style={{width: "115px !important", maxWidth: "115px !important"}}>
                       <Box className="columnContainer">
                         <Icon
                           as={archivePerson}
@@ -601,7 +605,7 @@ export const ArchivedPrograms = () => {
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th" width="40px" padding="0">
+                    <Th className="th" width="24px" padding="0" style={{width: "24px !important", paddingRight: "0 !important"}}>
                       {/* Empty column for ellipsis button */}
                     </Th>
                   </Tr>
@@ -637,29 +641,36 @@ export const ArchivedPrograms = () => {
                       >
                         <Td
                           className="td"
-                          minWidth="20rem"
+                          width="400px"
+                          minWidth="400px"
                         >
                           {programSession.programName}
                         </Td>
-                        <Td className="td">
+                        <Td 
+                          className="td"
+                          width="100px"
+                        >
                           {programSession.sessionDate !== "N/A"
                             ? formatDate(programSession.sessionDate)
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td className="td" width="160px">
                           {programSession.sessionStart !== "N/A"
                             ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
                             : "N/A"}
                         </Td>
                         <Td
                           className="td"
-                          maxWidth="6rem"
+                          width="100px"
                         >
                           {programSession.room !== "N/A"
                             ? programSession.room
                             : "N/A"}
                         </Td>
-                        <Td className="td" maxWidth="129px" style={{maxWidth: "129px", overflow: "hidden", textOverflow: "ellipsis"}}>
+                        <Td 
+                          className="td" 
+                          style={{width: "150px !important", maxWidth: "150px !important", overflow: "hidden", textOverflow: "ellipsis"}}
+                        >
                           {programSession.instructors &&
                           programSession.instructors.length > 0
                             ? programSession.instructors
@@ -667,7 +678,7 @@ export const ArchivedPrograms = () => {
                                 .join(", ")
                             : "N/A"}
                         </Td>
-                        <Td className="td" maxWidth="129px" style={{maxWidth: "129px", overflow: "hidden", textOverflow: "ellipsis"}}>
+                        <Td className="td" maxWidth="115px" style={{maxWidth: "115px", overflow: "hidden", textOverflow: "ellipsis"}}>
                           {programSession.payees &&
                           programSession.payees.length > 0
                             ? programSession.payees
@@ -681,8 +692,9 @@ export const ArchivedPrograms = () => {
                             e.stopPropagation();
                             // console.log(programSession);
                           }}
-                          width="40px"
+                          width="24px"
                           padding="0"
+                          style={{width: "24px !important", paddingRight: "0 !important"}}
                         >
                           <ArchivedDropdown
                             programId={programSession.programId}

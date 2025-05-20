@@ -23,7 +23,7 @@ export const generateRecurringSessions = (
   let month;
 
   switch (frequency) {
-    case "week":
+    case "week": {
       const weekdays = [
         "sunday",
         "monday",
@@ -56,8 +56,9 @@ export const generateRecurringSessions = (
         startingDate.setDate(startingDate.getDate() + 7);
       }
       break;
+    }
 
-    case "monthDate":
+    case "monthDate": {
       year = currentTimezoneDate.getFullYear();
       month = currentTimezoneDate.getMonth(); // 0-11
 
@@ -65,7 +66,7 @@ export const generateRecurringSessions = (
 
       while (true) {
         // Construct candidate date in UTC
-        let candidateDate = new Date(
+        const candidateDate = new Date(
           Date.UTC(year, month, recurringSession.dayOfMonth)
         );
 
@@ -95,7 +96,7 @@ export const generateRecurringSessions = (
 
         // Include the date if it's after the start date OR if it's the start date itself
         if (candidateDate >= currentTimezoneDate || (isFirstMonth && isStartDate)) {
-          let sessionDateInstance = new Date(candidateDate.valueOf()); // Clone UTC date
+          const sessionDateInstance = new Date(candidateDate.valueOf()); // Clone UTC date
           sessionDateInstance.setUTCHours(
             initialTimeHours,
             initialTimeMinutes,
@@ -123,8 +124,9 @@ export const generateRecurringSessions = (
         }
       }
       break;
+    }
 
-    case "monthWeekday":
+    case "monthWeekday": {
       // Type: Same weekday of month
       // recurringSession.dayOfWeek: 1 (Sun) to 7 (Sat). JS Date: 0 (Sun) to 6 (Sat).
       const targetJsDayOfWeek = recurringSession.dayOfWeek - 1;
@@ -142,7 +144,7 @@ export const generateRecurringSessions = (
 
         const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 
-        let occurrences = [];
+        const occurrences = [];
         for (let day = 1; day <= daysInMonth; day++) {
           const d = new Date(Date.UTC(year, month, day));
           if (d.getUTCDay() === targetJsDayOfWeek) {
@@ -216,8 +218,9 @@ export const generateRecurringSessions = (
         }
       }
       break;
+    }
 
-    case "year":
+    case "year": {
       // Get the target month from recurringSession (0-11)
       const months = [
         "January",
@@ -238,7 +241,7 @@ export const generateRecurringSessions = (
 
       // Create a new date object for the first occurrence
       let currentYear = currentTimezoneDate.getFullYear();
-      let candidateDate = new Date(Date.UTC(currentYear, targetMonth, targetDay));
+      const candidateDate = new Date(Date.UTC(currentYear, targetMonth, targetDay));
 
       // Handle case where target day doesn't exist in target month
       while (candidateDate.getUTCMonth() !== targetMonth) {
@@ -307,6 +310,7 @@ export const generateRecurringSessions = (
         );
       }
       break;
+    }
   }
 
   return sessions;
