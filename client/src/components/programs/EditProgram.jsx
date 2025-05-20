@@ -228,26 +228,13 @@ export const EditProgram = () => {
       />
       <div id="body">
         <div id="programsBody">
-          <Flex
-            style={{
-              width: "48px",
-              height: "40px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "6px",
-              padding: "0px 16px"
-            }}
-            _hover={{ bgColor: "#EDF2F7" }}
-          >
-            <Icon
-              fontSize="20px"
-              onClick={exit}
-              id="leftCancel"
-            >
-              <IoCloseOutline />
-            </Icon>
-          </Flex>
+          <IconButton
+            icon={<IoCloseOutline />}
+            fontSize="2xl"
+            onClick={exit}
+            variant="ghost"
+          />
+
           <div id="eventInfoBody">
             <div id="title">
               <TitleInformation
@@ -291,18 +278,21 @@ export const EditProgram = () => {
               />
             </div>
           </div>
-          <div id="saveCancel">
-            <Button
-              id="save"
-              onClick={saveEventToSessions}
-              isDisabled={!isFormValid()}
-              backgroundColor={"#4441C8"}
-              _hover={{ bgColor: "#312E8A" }}
-              rightIcon={<SessionsRightIcon />}
-            >
-              Session
-            </Button>
-          </div>
+
+          <Button
+            onClick={saveEventToSessions}
+            isDisabled={!isFormValid()}
+            sx={{
+              backgroundColor: "#4441C8",
+              color: "white",
+              "&:hover": {
+                backgroundColor: "#312E8A",
+              },
+            }}
+            rightIcon={<SessionsRightIcon />}
+          >
+            Edit Session Information
+          </Button>
         </div>
       </div>
     </Navbar>
