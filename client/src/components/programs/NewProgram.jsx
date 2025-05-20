@@ -1,29 +1,29 @@
-import {
-  Button,
-  Icon,
-  useDisclosure,
-  Flex,
-} from "@chakra-ui/react";
-
 import { useState } from "react";
-import { useNavigate } from 'react-router-dom';
-import './EditProgram.css';
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+
+import { Button, Flex, Icon, useDisclosure, useToast } from "@chakra-ui/react";
+
+import { useNavigate } from "react-router-dom";
+
+import "./EditProgram.css";
+
+import React from "react";
+
 import { IoCloseOutline } from "react-icons/io5";
-import Navbar from "../navbar/Navbar";
-import React from 'react';
 
 import { SessionsRightIcon } from "../../assets/SessionsRightIcon";
-import { TitleInformation } from "./programComponents/TitleInformation";
-import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
-import { PayeesDropdown } from "./programComponents/PayeesDropdown"
-import { ProgramInformation } from "./programComponents/ProgramInformation"
-import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import Navbar from "../navbar/Navbar";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
+import { ArtistsDropdown } from "./programComponents/ArtistsDropdown";
+import { EmailDropdown } from "./programComponents/EmailDropdown";
+import { PayeesDropdown } from "./programComponents/PayeesDropdown";
+import { ProgramInformation } from "./programComponents/ProgramInformation";
+import { TitleInformation } from "./programComponents/TitleInformation";
 
 export const NewProgram = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const toast = useToast();
   const [eventName, setEventName] = useState("");
   const [eventArchived, setEventArchived] = useState(false);
   const [searchedInstructors, setSearchedInstructors] = useState([]);
@@ -50,17 +50,17 @@ export const NewProgram = () => {
     if (window.history.length > 1) {
       navigate(-1);
     } else {
-        navigate("/dashboard");
+      navigate("/dashboard");
     }
   };
 
   const saveAndExit = (newEventId = "") => {
-    navigate('/programs/edit/sessions/' + newEventId);
+    navigate("/programs/edit/sessions/" + newEventId);
   };
 
   const noSave = () => {
-    navigate('/programs');
-  }
+    navigate("/programs");
+  };
 
   const isUnsavedValid = () => {
     return (
@@ -68,7 +68,7 @@ export const NewProgram = () => {
       selectedInstructors.length > 0 ||
       selectedPayees.length > 0
     );
-  }
+  };
 
   const isFormValid = () => {
     return (
@@ -85,10 +85,10 @@ export const NewProgram = () => {
       console.log("Newly added Instructors:", selectedInstructors);
       console.log("Newly added Payees:", selectedPayees);
 
-      const response = await backend.post('/events/', {
-          name: eventName,
-          description: generalInformation,
-          archived: eventArchived
+      const response = await backend.post("/events/", {
+        name: eventName,
+        description: generalInformation,
+        archived: eventArchived,
       });
 
       const newEventId = response.data.id;
@@ -98,44 +98,61 @@ export const NewProgram = () => {
       for (const instructor of selectedInstructors) {
         console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
-            eventId: newEventId,
-            clientId: instructor.id,
-            role: "instructor"
+          eventId: newEventId,
+          clientId: instructor.id,
+          role: "instructor",
         });
       }
 
       for (const payee of selectedPayees) {
         await backend.post("/assignments", {
-            eventId: newEventId,
-            clientId: payee.id,
-            role: "payee"
+          eventId: newEventId,
+          clientId: payee.id,
+          role: "payee",
         });
       }
       console.log("Save complete, navigating away...");
+      toast({
+        title: 'Program "' + eventName + '" created.',
+        description: "We've created your program for you.",
+        status: "success",
+        duration: 9000,
+        isClosable: true,
+      });
       saveAndExit(newEventId);
-
     } catch (error) {
-        console.error("Error getting instructors:", error);
+      console.error("Error getting instructors:", error);
     }
   };
 
   return (
     <Navbar>
-      <UnsavedChangesModal isOpen={isUnsavedModalOpen} onClose={onUnsavedModalClose} noSave={noSave} save={saveEvent} isFormValid={isUnsavedValid()}/>
+      <UnsavedChangesModal
+        isOpen={isUnsavedModalOpen}
+        onClose={onUnsavedModalClose}
+        noSave={noSave}
+        save={saveEvent}
+        isFormValid={isUnsavedValid()}
+      />
       <div id="body">
         <div id="programsBody">
-          <Flex style={{width: "48px",
-            height: "40px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius:"6px",
-          }}
-            _hover={{bgColor: "#EDF2F7"}}>
-            <Icon fontSize="2xl"
+          <Flex
+            style={{
+              width: "48px",
+              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "6px",
+            }}
+            _hover={{ bgColor: "#EDF2F7" }}
+          >
+            <Icon
+              fontSize="2xl"
               onClick={exit}
               id="leftCancel"
-            ><IoCloseOutline/>
+            >
+              <IoCloseOutline />
             </Icon>
           </Flex>
           <div id="eventInfoBody">
@@ -146,7 +163,6 @@ export const NewProgram = () => {
               />
             </div>
             <div id="innerBody">
-
               <ArtistsDropdown
                 instructorSearchTerm={instructorSearchTerm}
                 searchedInstructors={searchedInstructors}
@@ -182,14 +198,14 @@ export const NewProgram = () => {
               />
             </div>
           </div>
-          <div id = "saveCancel">
+          <div id="saveCancel">
             <Button
               id="save"
               onClick={saveEvent}
               isDisabled={!isFormValid()}
               backgroundColor={"#4441C8"}
-              _hover={{ bgColor: "#312E8A"}}
-              rightIcon={<SessionsRightIcon/>}
+              _hover={{ bgColor: "#312E8A" }}
+              rightIcon={<SessionsRightIcon />}
             >
               Sessions
             </Button>

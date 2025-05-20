@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -14,10 +14,13 @@ import {
   FormControl,
   Icon,
   Input,
-  Popover,
-  PopoverBody,
-  PopoverContent,
-  Portal,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Table,
   TableContainer,
   Tbody,
@@ -27,6 +30,7 @@ import {
   Thead,
   Tr,
   useDisclosure,
+  useToast,
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
@@ -43,6 +47,7 @@ import {
   sessionsFilterClock,
   sessionsFilterMapPin,
 } from "../../assets/icons/ProgramIcons";
+import { InfoIconRed } from "../../assets/InfoIconRed";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { ArchivedFilter } from "../filters/ArchivedFilter";
@@ -53,6 +58,7 @@ import ProgramSortingModal from "../sorting/ProgramFilter";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
+  const toast = useToast();
   const [program, setPrograms] = useState([]);
   // Complete dataset of archived programs
   const [allArchivedSessions, setAllArchivedSessions] = useState([]);
@@ -65,12 +71,12 @@ export const ArchivedPrograms = () => {
   const [selectedRoom, setSelectedRoom] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [programToDelete, setProgramToDelete] = useState(null);
   const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const dataFetchedRef = useRef(false);
+  const [programtoDelete, setProgramToDelete] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -102,7 +108,7 @@ export const ArchivedPrograms = () => {
   const getArchivedPrograms = async () => {
     if (dataFetchedRef.current) return;
     setLoading(true);
-    
+
     try {
       const programResponse = await backend.get(`events`);
       const programData = programResponse.data;
@@ -269,21 +275,22 @@ export const ArchivedPrograms = () => {
   // Apply search on the current filtered results
   const handleSearch = (query) => {
     setSearchQuery(query);
-    
+
     if (!query) {
       // If query is empty, use the complete original dataset
       setFilteredArchived(allArchivedSessions);
       return;
     }
-    
+
     const lowerCaseQuery = query.toLowerCase();
-    const filtered = allArchivedSessions.filter(session => {
+    const filtered = allArchivedSessions.filter((session) => {
       return (
         // Search only by program name
         session.programName && session.programName.toLowerCase().includes(lowerCaseQuery)
+
       );
     });
-    
+
     setFilteredArchived(filtered);
     // Reset to first page when searching
     setCurrentPage(1);
@@ -355,6 +362,7 @@ export const ArchivedPrograms = () => {
   };
 
   const handleDelete = async (programId) => {
+    console.log(programId);
     try {
       await deleteArchivedProgram(programId);
 
@@ -363,12 +371,19 @@ export const ArchivedPrograms = () => {
         (session) => session.programId !== programId
       );
       setAllArchivedSessions(updatedAllArchivedSessions);
-      
+
       setFilteredArchived((prevSessions) =>
         prevSessions.filter((session) => session.programId !== programId)
       );
-      
+
       onClose();
+      toast({
+        title: "Archived Program Deleted.",
+        description: "We've deleted the archived program.",
+        status: "success",
+        duration: 9000,
+        isClosable: true,
+      });
     } catch (error) {
       console.log("Couldn't delete program", error);
     }
@@ -376,6 +391,7 @@ export const ArchivedPrograms = () => {
 
   return (
     <Navbar>
+
       <Box className="archivedContainer">
         <Box className="archiveTitleContainer">
           <Icon as={archiveBox} width="24px" height="24px" />
@@ -384,6 +400,7 @@ export const ArchivedPrograms = () => {
           </Text>
         </Box>
         <Box 
+
           className="programs-table"
           width="100%"
           margin="0"
@@ -395,7 +412,7 @@ export const ArchivedPrograms = () => {
           alignItems="flex-start"
           gap="16px"
           alignSelf="stretch"
-          background="white" 
+          background="white"
           position="relative"
           zIndex={3}
         >
@@ -404,7 +421,7 @@ export const ArchivedPrograms = () => {
             justify="space-between"
             width="100%" // Ensure flex container takes full width
           >
-            <Flex 
+            <Flex
               className="programs-table__filter-row"
               height="40px"
               width="100%"
@@ -414,7 +431,10 @@ export const ArchivedPrograms = () => {
               alignItems="center"
               justifyContent="space-between"
             >
-              <Flex gap="16px" alignItems="center">
+              <Flex
+                gap="16px"
+                alignItems="center"
+              >
                 <Button
                   id="programButton"
                   display="flex"
@@ -428,7 +448,11 @@ export const ArchivedPrograms = () => {
                   background="#EDF2F7"
                   _hover={{ background: "#E2E8F0" }}
                 >
-                  <Icon as={BackIcon} width="16px" height="16px" />
+                  <Icon
+                    as={BackIcon}
+                    width="16px"
+                    height="16px"
+                  />
                   <Text
                     color="#2D3748"
                     fontFamily="Inter"
@@ -454,7 +478,12 @@ export const ArchivedPrograms = () => {
               />
             </Flex>
             <TableContainer>
-              <Table variant="unstyled" position="relative" zIndex={3} bg="white">
+              <Table
+                variant="unstyled"
+                position="relative"
+                zIndex={3}
+                bg="white"
+              >
                 <Thead
                   borderBottom="1px"
                   color="#D2D2D2"
@@ -474,9 +503,7 @@ export const ArchivedPrograms = () => {
                         >
                           PROGRAM
                         </Text>
-                        <ProgramSortingModal
-                          onSortChange={handleSortChange}
-                        />
+                        <ProgramSortingModal onSortChange={handleSortChange} />
                       </Box>
                     </Th>
                     <Th className="th">
@@ -489,7 +516,11 @@ export const ArchivedPrograms = () => {
                           gap="8px"
                         >
                           <Box>
-                            <Icon as={archiveCalendar} width="16px" height="16px" />
+                            <Icon
+                              as={archiveCalendar}
+                              width="16px"
+                              height="16px"
+                            />
                           </Box>
                           <Box>
                             <Text
@@ -507,7 +538,11 @@ export const ArchivedPrograms = () => {
                     </Th>
                     <Th className="th">
                       <Box className="columnContainer">
-                        <Icon as={archiveClock} width="20px" height="20px" />
+                        <Icon
+                          as={archiveClock}
+                          width="20px"
+                          height="20px"
+                        />
                         <Text
                           className="archiveHeaderText"
                           textTransform="none"
@@ -521,7 +556,11 @@ export const ArchivedPrograms = () => {
                       maxWidth="6rem"
                     >
                       <Box className="columnContainer">
-                        <Icon as={archiveMapPin} width="20px" height="20px" />
+                        <Icon
+                          as={archiveMapPin}
+                          width="20px"
+                          height="20px"
+                        />
                         <Text
                           className="archiveHeaderText"
                           textTransform="none"
@@ -532,7 +571,11 @@ export const ArchivedPrograms = () => {
                     </Th>
                     <Th className="th">
                       <Box className="columnContainer">
-                        <Icon as={archivePaintPalette} width="20px" height="20px" />
+                        <Icon
+                          as={archivePaintPalette}
+                          width="20px"
+                          height="20px"
+                        />
                         <Text
                           className="archiveHeaderText"
                           textTransform="none"
@@ -543,7 +586,11 @@ export const ArchivedPrograms = () => {
                     </Th>
                     <Th className="th">
                       <Box className="columnContainer">
-                        <Icon as={archivePerson} width="20px" height="20px" />
+                        <Icon
+                          as={archivePerson}
+                          width="20px"
+                          height="20px"
+                        />
                         <Text
                           className="archiveHeaderText"
                           textTransform="none"
@@ -560,7 +607,11 @@ export const ArchivedPrograms = () => {
                 <Tbody>
                   {loading ? (
                     <Tr>
-                      <Td colSpan={7} textAlign="center" className="td">
+                      <Td
+                        colSpan={7}
+                        textAlign="center"
+                        className="td"
+                      >
                         <Box
                           justifyContent="center"
                           color="gray.500"
@@ -578,9 +629,7 @@ export const ArchivedPrograms = () => {
                     currentPagePrograms.map((programSession) => (
                       <Tr
                         key={programSession.programId}
-                        onClick={() =>
-                          handleRowClick(programSession.programId)
-                        }
+                        onClick={() => handleRowClick(programSession.programId)}
                         cursor="pointer"
                         className="archiveRow"
                       >
@@ -626,16 +675,17 @@ export const ArchivedPrograms = () => {
                         </Td>
                         <Td
                           className="td"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // console.log(programSession);
+                          }}
                         >
                           <ArchivedDropdown
                             programId={programSession.programId}
                             programName={programSession.programName}
                             setProgramToDelete={setProgramToDelete}
                             onOpen={onOpen}
-                            setArchivedProgramSessions={
-                              setAllArchivedSessions
-                            }
+                            setArchivedProgramSessions={setAllArchivedSessions}
                           />
                         </Td>
                       </Tr>
@@ -651,6 +701,7 @@ export const ArchivedPrograms = () => {
                           justifyContent="center"
                           fontSize="md"
                         >
+
                           <Text 
                             textAlign={"center"}
                             color="var(--Secondary-6, #718096)"
@@ -663,6 +714,7 @@ export const ArchivedPrograms = () => {
                           >
                             {allArchivedSessions.length > 0 
                               ? "No program data to display."
+
                               : "No archived program or session data to display."}
                           </Text>
                         </Box>
@@ -733,6 +785,74 @@ export const ArchivedPrograms = () => {
           )}
         </Box>
       </Box>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader
+            fontSize={"16px"}
+            fontFamily={"Inter"}
+            fontWeight={"700"}
+          >
+            Delete Program?
+          </ModalHeader>
+          <ModalCloseButton _hover={{ bg: "#EDF2F7" }} />
+          <ModalBody>
+            <Text
+              fontSize={"14px"}
+              fontWeight={"500"}
+              fontFamily={"Inter"}
+            >
+              This program will be permanently deleted from Archives.
+            </Text>
+          </ModalBody>
+
+          <ModalFooter
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "10px",
+            }}
+          >
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              backgroundColor={"#EDF2F7"}
+              _hover={{ bg: "#E2E8F0" }}
+              borderRadius={"6px"}
+              padding={"0px 16px"}
+              gap={"4px"}
+            >
+              <Text
+                fontSize={"14px"}
+                fontFamily={"Inter"}
+                fontWeight={"500"}
+              >
+                Exit
+              </Text>
+            </Button>
+            <Button
+              colorScheme="red"
+              backgroundColor={"#90080F"}
+              gap={"4px"}
+              _hover={{ bg: "#71060C" }}
+              onClick={() => {
+                handleDelete(programtoDelete);
+              }}
+            >
+              <Text
+                fontSize={"14px"}
+                fontFamily={"Inter"}
+                fontWeight={"500"}
+              >
+                Confirm
+              </Text>
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Navbar>
   );
 };

@@ -46,7 +46,7 @@ const SortingMenu = ({ options, onSortChange }) => {
       </MenuButton>
       <MenuList className="program-sorting-popup">
         {options.map(({ label, value, order }) => (
-          <MenuItem key={label} onClick={() => onSortChange(value, order)}>
+          <MenuItem key={label} onClick={() => onSortChange(order)}>
             <Flex align="center" className="sort-menu-item">
               <Box className="icon-style" >{label}</Box>
             </Flex>
