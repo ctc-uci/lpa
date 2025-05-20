@@ -1,11 +1,36 @@
 import { useEffect, useState } from "react";
 
-
-
 import { ChevronDownIcon, ChevronLeftIcon } from "@chakra-ui/icons";
-import { Box, Button, Card, CardBody, Flex, Heading, Icon, IconButton, Input, Menu, MenuButton, MenuItem, MenuList, Select, Tab, Table, TableContainer, TabList, TabPanel, TabPanels, Tabs, Tbody, Td, Text, Th, Thead, Tr, useDisclosure } from "@chakra-ui/react";
-
-
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Flex,
+  Heading,
+  Icon,
+  IconButton,
+  Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Select,
+  Tab,
+  Table,
+  TableContainer,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  useDisclosure,
+} from "@chakra-ui/react";
 
 import { EllipsisIcon } from "lucide-react";
 import { AiOutlinePlus } from "react-icons/ai";
@@ -13,8 +38,6 @@ import { IoCloseOutline } from "react-icons/io5";
 import { TbRepeat } from "react-icons/tb";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
-
-
 
 import { CalendarIcon } from "../../assets/CalendarIcon";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
@@ -31,7 +54,6 @@ import { DeleteSessionConfirmationModal } from "../popups/DeleteSessionConfirmat
 import { SaveSessionModal } from "../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 import DateSortingModal from "../sorting/DateFilter";
-
 
 export const EditRecurringSessions = () => {
   const { id } = useParams();
@@ -917,6 +939,7 @@ export const EditRecurringSessions = () => {
                   onClick={handleResetSessions}
                   color="#EDF2F7"
                   textColor="#2D3748"
+                  fontSize={"14px"}
                 >
                   Reset All Sessions
                 </Button>
@@ -978,8 +1001,14 @@ export const EditRecurringSessions = () => {
               backgroundColor="#4441C8"
               onClick={onSaveSessionModalOpen}
               isDisabled={allSessions.length === 0}
+              _hover={{ bg: "#312E8A" }}
             >
-              <Text color="#FFFFFF">Save Changes</Text>
+              <Text
+                color="#FFFFFF"
+                fontSize={"14px"}
+              >
+                Save Changes
+              </Text>
             </Button>
           </Box>
 

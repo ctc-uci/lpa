@@ -1,14 +1,20 @@
 import {
   Button,
   Modal,
+  ModalCloseButton,
   ModalContent,
   ModalFooter,
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react";
 
-
-export const UnsavedChangesModal = ({isOpen, onClose, noSave, save, isFormValid = () => true}) => {
+export const UnsavedChangesModal = ({
+  isOpen,
+  onClose,
+  noSave,
+  save,
+  isFormValid = () => true,
+}) => {
   return (
     <Modal
       isOpen={isOpen}
@@ -34,6 +40,7 @@ export const UnsavedChangesModal = ({isOpen, onClose, noSave, save, isFormValid 
         >
           Leave without saving changes?
         </ModalHeader>
+        <ModalCloseButton _hover={{ bg: "#EDF2F7" }} />
         <ModalFooter
           style={{ display: "flex", justifyContent: "flex-end" }}
           gap={3}
@@ -61,11 +68,12 @@ export const UnsavedChangesModal = ({isOpen, onClose, noSave, save, isFormValid 
             borderRadius="6px"
             height="40px"
             width="65px"
+            _hover={{ bg: "#312E8A" }}
           >
             Save
           </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
-  )
+  );
 };

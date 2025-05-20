@@ -250,6 +250,7 @@ export const ProgramSummary = ({
                   <PDFButton
                     leftIcon={<Icon as={DownloadIcon} />}
                     fontWeight={"700"}
+                    _hover={{ bg: "#312E8A" }}
                   >
                     Invoice
                   </PDFButton>
@@ -309,7 +310,6 @@ export const ProgramSummary = ({
                           id="deactivateConfirm"
                           onClick={() => {
                             handleDelete();
-                            exit();
                           }}
                         >
                           Confirm
@@ -888,24 +888,24 @@ export const Sessions = ({
               >
                 <Box position="relative">
                   <Button
-                    style={{
-                      display: "flex",
-                      height: "40px",
-                      width: "85px",
-                      padding: "0px 16px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "4px",
-                      flex: "1 0 0",
-                      borderRadius: "6px",
-                      backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
-                      color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
-                      fontFamily: "Inter",
-                      fontSize: "14px",
-                      fontStyle: "normal",
-                      fontWeight: "700",
-                      lineHeight: "normal",
-                      letterSpacing: "0.07px",
+                    height="40px"
+                    width="85px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    flex="1 0 0"
+                    borderRadius="6px"
+                    backgroundColor="var(--Secondary-2-Default, #EDF2F7)"
+                    color={isSelected ? "#4441C8" : "#000000"}
+                    fontFamily="Inter"
+                    fontSize="14px"
+                    fontStyle="normal"
+                    fontWeight="700"
+                    lineHeight="normal"
+                    letterSpacing="0.07px"
+                    _hover={{
+                      backgroundColor: "#E2E8F0", // <-- Add your desired hover color here
                     }}
                     onClick={() => {
                       setSelectMenuOpen(!selectMenuOpen);
@@ -1044,25 +1044,24 @@ export const Sessions = ({
 
               <Flex alignItems="flex-end">
                 <Button
-                  style={{
-                    display: "flex",
-                    height: "40px",
-                    width: "156px",
-                    padding: "0px 16px",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "4px",
-                    flex: "1 0 0",
-                    borderRadius: "6px",
-                    backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
-                    color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
-                    fontFamily: "Inter",
-                    fontSize: "14px",
-                    fontStyle: "normal",
-                    fontWeight: "700",
-                    lineHeight: "normal",
-                    letterSpacing: "0.07px",
-                  }}
+                  display={"flex"}
+                  height={"40px"}
+                  width={"156px"}
+                  padding={"0px 16px"}
+                  justifyContent={"center"}
+                  alignItems={"center"}
+                  gap={"4px"}
+                  flex={"1 0 0"}
+                  borderRadius={"6px"}
+                  backgroundColor={"#EDF2F7"}
+                  color={isSelected ? "#4441C8" : "#000000"}
+                  fontFamily={"Inter"}
+                  fontSize={"14px"}
+                  fontStyle={"normal"}
+                  fontWeight={"700"}
+                  lineHeight={"normal"}
+                  letterSpacing={"0.07px"}
+                  _hover={{ bg: "#E2E8F0" }}
                   onClick={() => {
                     navigate(`/programs/edit/sessions/${eventId}`);
                   }}
@@ -1521,6 +1520,7 @@ const PDFButton = () => {
           padding="0px 16px"
           borderRadius="6px"
           background={"var(--Primary-5-Default, #4441C8)"}
+          _hover={{ bg: "#312E8A" }}
         >
           Invoice
         </Button>
