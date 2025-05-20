@@ -33,6 +33,7 @@ const ActionsIcon = React.memo(() => (
   <Icon
     as={MenuOptionsIcon}
     alt="Actions"
+    boxSize="16px"
   />
 ));
 
@@ -206,6 +207,13 @@ export const ArchivedDropdown = ({
           icon={<ActionsIcon />}
           variant="ghost"
           className="actions-container"
+          _hover={{ bg: "var(--Secondary-3, #E2E8F0)" }}
+          _active={{ bg: "var(--Secondary-3, #E2E8F0)" }}
+          _focus={{ boxShadow: "none", bg: "var(--Secondary-3, #E2E8F0)" }}
+          minW="24px"
+          h="24px"
+          w="24px"
+          p="0"
         />
         <MenuList className="menu-list">
           <MenuItem
@@ -223,8 +231,11 @@ export const ArchivedDropdown = ({
                 maxWidth={"136px"}
                 bgColor={"#718096"}
                 borderRadius={"4px"}
+                placement="top-end"
               >
-                <TooltipIcon />
+                <Box display="flex" alignItems="center" boxSize="16px">
+                  <TooltipIcon boxSize="16px" />
+                </Box>
               </Tooltip>
             </Box>
           </MenuItem>
@@ -243,8 +254,11 @@ export const ArchivedDropdown = ({
                 maxWidth={"136px"}
                 bgColor={"#718096"}
                 borderRadius={"4px"}
+                placement="top-end"
               >
-                <TooltipIcon></TooltipIcon>
+                <Box display="flex" alignItems="center" boxSize="16px">
+                  <TooltipIcon boxSize="16px" />
+                </Box>
               </Tooltip>
             </Box>
           </MenuItem>

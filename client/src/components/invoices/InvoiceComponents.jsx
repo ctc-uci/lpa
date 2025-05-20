@@ -1144,7 +1144,15 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     textAlign="center"
                     py={4}
                   >
-                    No invoices found
+                    <Text
+                      color="var(--Secondary-6, #718096)"
+                      fontFamily="Inter"
+                      fontSize="14px"
+                      lineHeight="1.5"
+                      letterSpacing="-0.084px"
+                    >
+                      No invoice data to display.
+                    </Text>
                   </Td>
                 </Tr>
               )}

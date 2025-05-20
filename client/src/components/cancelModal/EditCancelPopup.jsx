@@ -99,7 +99,15 @@ export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
           <CancelXIcon style={{ marginRight: "0" }} />
           <Text
             fontWeight={"400"}
-            color={"#90080F"}
+            className="cancel-text"
+            style={{
+              color: "var(--destructive, #90080F) !important",
+              fontFamily: "Inter",
+              fontSize: "14px",
+              fontStyle: "normal",
+              lineHeight: "normal",
+              letterSpacing: "0.07px"
+            }}
           >
             Cancel
           </Text>

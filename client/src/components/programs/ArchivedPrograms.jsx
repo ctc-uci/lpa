@@ -279,18 +279,8 @@ export const ArchivedPrograms = () => {
     const lowerCaseQuery = query.toLowerCase();
     const filtered = allArchivedSessions.filter(session => {
       return (
-        // Search by program name
-        (session.programName && session.programName.toLowerCase().includes(lowerCaseQuery)) ||
-        // Search by room
-        (session.room && session.room.toLowerCase().includes(lowerCaseQuery)) ||
-        // Search by instructors
-        (session.instructors && session.instructors.some(instructor => 
-          instructor.clientName && instructor.clientName.toLowerCase().includes(lowerCaseQuery)
-        )) ||
-        // Search by payees
-        (session.payees && session.payees.some(payee => 
-          payee.clientName && payee.clientName.toLowerCase().includes(lowerCaseQuery)
-        ))
+        // Search only by program name
+        session.programName && session.programName.toLowerCase().includes(lowerCaseQuery)
       );
     });
     
@@ -386,24 +376,13 @@ export const ArchivedPrograms = () => {
 
   return (
     <Navbar>
-      <Box margin="40px">
-        <Flex
-          align="center"
-          mb="24px"
-        >
+      <Box className="archivedContainer">
+        <Box className="archiveTitleContainer">
           <Icon as={archiveBox} width="24px" height="24px" />
-          <Text
-            fontSize="24px"
-            fontWeight="600"
-            fontFamily="Inter"
-            fontStyle="normal"
-            lineHeight="32px"
-            color="#2D3748"
-            ml="8px"
-          >
+          <Text className="archiveTitle">
             Archived
           </Text>
-        </Flex>
+        </Box>
         <Box 
           className="programs-table"
           width="100%"
@@ -419,7 +398,6 @@ export const ArchivedPrograms = () => {
           background="white" 
           position="relative"
           zIndex={3}
-          // minHeight="500px" // Add minimum height to prevent collapsing (should it collapse?)
         >
           <Flex
             direction="column"
@@ -604,6 +582,7 @@ export const ArchivedPrograms = () => {
                           handleRowClick(programSession.programId)
                         }
                         cursor="pointer"
+                        className="archiveRow"
                       >
                         <Td
                           className="td"
@@ -670,12 +649,20 @@ export const ArchivedPrograms = () => {
                       >
                         <Box
                           justifyContent="center"
-                          color="gray.500"
                           fontSize="md"
                         >
-                          <Text textAlign={"center"}>
+                          <Text 
+                            textAlign={"center"}
+                            color="var(--Secondary-6, #718096)"
+                            fontFamily="Inter"
+                            fontSize="14px"
+                            fontStyle="normal"
+                            fontWeight="400"
+                            lineHeight="normal"
+                            letterSpacing="0.07px"
+                          >
                             {allArchivedSessions.length > 0 
-                              ? "No matching programs found. Try adjusting your search."
+                              ? "No program data to display."
                               : "No archived program or session data to display."}
                           </Text>
                         </Box>
@@ -712,7 +699,7 @@ export const ArchivedPrograms = () => {
               <Text
                 mr={2}
                 fontSize="sm"
-                color="#474849"
+                color="#718096"
                 fontFamily="Inter, sans-serif"
               >
                 {currentPage} of {totalPages}
@@ -722,8 +709,9 @@ export const ArchivedPrograms = () => {
                 isDisabled={currentPage === 1}
                 size="sm"
                 variant="ghost"
-                padding={0}
+                padding="0px 9px"
                 minWidth="auto"
+                h="40px"
                 color="gray.500"
                 mr="16px"
               >
@@ -734,8 +722,9 @@ export const ArchivedPrograms = () => {
                 isDisabled={currentPage === totalPages}
                 size="sm"
                 variant="ghost"
-                padding={0}
+                padding="0px 9px"
                 minWidth="auto"
+                h="40px"
                 color="gray.500"
               >
                 <ChevronRightIcon />
