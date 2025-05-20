@@ -400,9 +400,8 @@ export const ArchivedPrograms = () => {
           </Text>
         </Box>
         <Box 
-
           className="programs-table"
-          width="100%"
+          minWidth="calc(100% - 26px) !important"
           margin="0"
           border="1px solid var(--Secondary-3, #e2e8f0)"
           borderRadius="15px"
@@ -415,6 +414,7 @@ export const ArchivedPrograms = () => {
           background="white"
           position="relative"
           zIndex={3}
+          style={{overflowX: "hidden"}}
         >
           <Flex
             direction="column"
@@ -569,7 +569,7 @@ export const ArchivedPrograms = () => {
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th">
+                    <Th className="th" width="129px" maxWidth="129px" style={{width: "129px !important", maxWidth: "129px !important"}}>
                       <Box className="columnContainer">
                         <Icon
                           as={archivePaintPalette}
@@ -579,12 +579,13 @@ export const ArchivedPrograms = () => {
                         <Text
                           className="archiveHeaderText"
                           textTransform="none"
+                          noOfLines={1}
                         >
                           LEAD ARTIST(S)
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th">
+                    <Th className="th" width="129px" maxWidth="129px" style={{width: "129px !important", maxWidth: "129px !important"}}>
                       <Box className="columnContainer">
                         <Icon
                           as={archivePerson}
@@ -594,12 +595,13 @@ export const ArchivedPrograms = () => {
                         <Text
                           className="archiveHeaderText"
                           textTransform="none"
+                          noOfLines={1}
                         >
                           PAYER(S)
                         </Text>
                       </Box>
                     </Th>
-                    <Th className="th">
+                    <Th className="th" width="40px" padding="0">
                       {/* Empty column for ellipsis button */}
                     </Th>
                   </Tr>
@@ -657,7 +659,7 @@ export const ArchivedPrograms = () => {
                             ? programSession.room
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td className="td" maxWidth="129px" style={{maxWidth: "129px", overflow: "hidden", textOverflow: "ellipsis"}}>
                           {programSession.instructors &&
                           programSession.instructors.length > 0
                             ? programSession.instructors
@@ -665,7 +667,7 @@ export const ArchivedPrograms = () => {
                                 .join(", ")
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td className="td" maxWidth="129px" style={{maxWidth: "129px", overflow: "hidden", textOverflow: "ellipsis"}}>
                           {programSession.payees &&
                           programSession.payees.length > 0
                             ? programSession.payees
@@ -679,6 +681,8 @@ export const ArchivedPrograms = () => {
                             e.stopPropagation();
                             // console.log(programSession);
                           }}
+                          width="40px"
+                          padding="0"
                         >
                           <ArchivedDropdown
                             programId={programSession.programId}
