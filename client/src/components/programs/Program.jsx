@@ -200,7 +200,7 @@ export const Program = () => {
 
   return (
     <Navbar>
-      <Box style={{ width: "100%", padding: "20px 20px 20px 20px" }}>
+      <Box style={{ padding: "20px 20px 20px 20px" }}>
         {isArchived ? (
           <Flex
             gap={"12px"}

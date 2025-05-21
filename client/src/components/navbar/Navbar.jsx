@@ -70,10 +70,13 @@ const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
   };
 
   return (
-    <div id="navbarBody">
+    <Box style={{
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "flex-start",
+    }}>
       {/* Fixed width container to prevent layout shifts */}
       <Box
-        bg="#F0F0FF"
         bgColor="#FFF"
         className="navbar-container"
         paddingTop="26px"
@@ -81,6 +84,7 @@ const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
         paddingLeft="26px"
         paddingRight="8px"
         minWidth="205px"
+        maxWidth="205px"
         width="205px"
         h="260px"
         flexShrink={0}
@@ -105,7 +109,7 @@ const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
         </VStack>
       </Box>
       <div style={{ width: "100%" }}>{children}</div>
-    </div>
+    </Box>
   );
 };
 
