@@ -176,10 +176,12 @@ button#save {
   border: 1px #E2E8F0 solid;
   border-radius: 5px;
   width: 200px;
+  min-width: 200px;
   background: #F6F6F6;
 }
 
-#instructorTags, #payeeTags {
+#instructorTags, #payeeTags, #emailTags {
+  position: absolute;
   height: 2rem;
   width: 73%;
   left: 0;
@@ -188,18 +190,6 @@ button#save {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-}
-
-#emailTags {
-  height: 2rem;
-  width: 73%;
-  left: 0;
-  top: 0;
-  margin: 0 0 3% 216px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
 }
 
 .instructorTag, .payeeTag, .emailTag {
@@ -209,6 +199,8 @@ button#save {
   margin: .5% 3% 0 0;
   display: flex;
   flex-direction: row;
+  justify-content: center;
+  align-items: center;
   padding: 1% 1%;
 }
 
