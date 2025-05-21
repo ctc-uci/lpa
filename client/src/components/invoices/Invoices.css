@@ -3,8 +3,8 @@
 /* ========================= */
 
 .invoices-table {
-  width: 100%;
-  margin: 0;
+  width: 95%;
+  margin: 26px 26px 0px 26px;
   border: 1px solid var(--Secondary-3, #e2e8f0);
   border-radius: 15px;
   padding: 20px;
@@ -260,4 +260,4 @@
 .ellipsis-action-button:hover {
   background: #E2E8F0 !important;
   cursor: pointer !important;
-} 
+}

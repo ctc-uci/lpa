@@ -1,4 +1,4 @@
-import { Text, Flex} from "@chakra-ui/react";
+import { Flex, Text } from "@chakra-ui/react";
 
 export const DateRange = ({ sessions }) => {
   if (!sessions || sessions.length === 0) {
@@ -32,17 +32,42 @@ export const DateRange = ({ sessions }) => {
   const secondDate = `${formatDate(lastSession.date)}`;
 
   return (
-    <Flex alignItems={"center"} flexDirection="row" gap={1}>
+    <Flex
+      alignItems={"center"}
+      flexDirection="row"
+      gap={1}
+    >
       <Text
         color="gray.600"
+        fontSize={"14px"}
+        fontFamily={"Inter"}
+        fontWeight={"400"}
       >
         Starts on
       </Text>
-      <Text fontFamily="Inter" fontSize={14} fontWeight={500} lineHeight={"normal"} color="#2D3748">{firstDate}</Text>
-      <Text>
+      <Text
+        fontFamily="Inter"
+        fontSize={"14px"}
+        fontWeight={"500"}
+        lineHeight={"normal"}
+        color="#2D3748"
+      >
+        {firstDate}
+      </Text>
+      <Text
+        fontSize={"14px"}
+        fontFamily={"Inter"}
+        fontWeight={"400"}
+      >
         and ends on
       </Text>
-      <Text fontFamily="Inter" fontSize={14} fontWeight={500} lineHeight={"normal"} color="#2D3748">
+      <Text
+        fontFamily="Inter"
+        fontSize={"14px"}
+        fontWeight={"500"}
+        lineHeight={"normal"}
+        color="#2D3748"
+      >
         {secondDate}
       </Text>
     </Flex>

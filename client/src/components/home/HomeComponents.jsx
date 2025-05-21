@@ -559,9 +559,9 @@ export const ProgramsTable = () => {
         onClose={onClose}
         type={"Program"}
       />
-      <Box className="programs-table" >
+      <Box className="programs-table" width={"95%"}>
         <Flex className="programs-table__filter-row">
-          <div 
+          <div
             className="archive"
             onClick={() => {
               navigate("/programs/archived");
