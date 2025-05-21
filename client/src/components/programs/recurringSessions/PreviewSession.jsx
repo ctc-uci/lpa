@@ -1,3 +1,6 @@
+import { useState } from "react";
+
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -70,8 +73,31 @@ export const PreviewSession = ({
   onSaveSessionModalOpen,
   handleArchiveSession,
   handleDeleteSession,
+  onDeleteSessionModalOpen,
   setIsChanged,
+  setDeleteSessionDate,
+  setDeleteSessionId,
 }) => {
+  // pagination controls
+  const itemsPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(allSessions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, allSessions.length);
+  const currentPageSessions = allSessions?.slice(startIndex, endIndex) || [];
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   return (
     <Box
       minH="10vh"
@@ -173,6 +199,9 @@ export const PreviewSession = ({
                         color="#767778"
                         fontSize="16px"
                         fontStyle="normal"
+                        onClick={() => {
+                          console.log(allSessions);
+                        }}
                       >
                         UPCOMING TIME
                       </Text>
@@ -204,7 +233,7 @@ export const PreviewSession = ({
                 </Tr>
               </Thead>
               <Tbody>
-                {allSessions
+                {currentPageSessions
                   .filter((session) => !session.isDeleted)
                   .sort((a, b) => {
                     return sortOrder === "asc"
@@ -314,7 +343,15 @@ export const PreviewSession = ({
 
                             <MenuItem
                               onClick={() => {
-                                handleDeleteSession(session.id);
+                                setDeleteSessionDate(
+                                  formatDate(session.date).split(" ")[1]
+                                );
+                                setDeleteSessionId(session.id);
+                                if (session.isNew) {
+                                  onDeleteSessionModalOpen();
+                                } else {
+                                  onCancelProgramModalOpen();
+                                }
                                 setIsChanged(true);
                               }}
                               display="flex"
@@ -346,6 +383,54 @@ export const PreviewSession = ({
           </TableContainer>
         </CardBody>
       </Card>
+
+      {/* Pagination Controls - moved to bottom right */}
+      <Box
+        width="100%"
+        display="flex"
+        justifyContent="flex-end"
+        mt="auto"
+        pt={4}
+      >
+        {totalPages > 1 && (
+          <Flex
+            alignItems="center"
+            justifyContent="center"
+            mb={2}
+          >
+            <Text
+              mr={2}
+              fontSize="sm"
+              color="#474849"
+              fontFamily="Inter, sans-serif"
+            >
+              {currentPage} of {totalPages}
+            </Text>
+            <Button
+              onClick={goToPreviousPage}
+              isDisabled={currentPage === 1}
+              size="sm"
+              variant="ghost"
+              padding={0}
+              minWidth="auto"
+              color="gray.500"
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <Button
+              onClick={goToNextPage}
+              isDisabled={currentPage === totalPages}
+              size="sm"
+              variant="ghost"
+              padding={0}
+              minWidth="auto"
+              color="gray.500"
+            >
+              <ChevronRightIcon />
+            </Button>
+          </Flex>
+        )}
+      </Box>
     </Box>
   );
 };

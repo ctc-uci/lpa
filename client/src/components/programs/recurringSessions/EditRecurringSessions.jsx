@@ -33,8 +33,10 @@ import { useNavigate } from "react-router-dom";
 import { CalendarIcon } from "../../../assets/CalendarIcon";
 import { SessionsBookmark } from "../../../assets/SessionsBookmark";
 import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
+import { CancelProgram } from "../../cancelModal/CancelProgramComponent";
 import Navbar from "../../navbar/Navbar";
 import { DeleteRowModal } from "../../popups/DeleteRowModal";
+import { DeleteSessionConfirmationModal } from "../../popups/DeleteSessionConfirmationModal";
 import { SaveSessionModal } from "../../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../../popups/UnsavedChangesModal";
 import { PreviewSession } from "./PreviewSession";
@@ -46,6 +48,8 @@ export const EditRecurringSessions = () => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const [sortOrder, setSortOrder] = useState("asc");
+  const [deleteSessionDate, setDeleteSessionDate] = useState("");
+  const [deleteSessionId, setDeleteSessionId] = useState("");
 
   const {
     isOpen: isSaveSessionModalOpen,
@@ -57,6 +61,12 @@ export const EditRecurringSessions = () => {
     isOpen: isUnsavedSessionModalOpen,
     onOpen: onUnsavedSessionModalOpen,
     onClose: onUnsavedSessionModalClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isDeleteSessionModalOpen,
+    onOpen: onDeleteSessionModalOpen,
+    onClose: onDeleteSessionClose,
   } = useDisclosure();
 
   const {
@@ -129,94 +139,84 @@ export const EditRecurringSessions = () => {
   };
 
   const handleChangeSessionField = (type, index, field, value) => {
-    setNewSessions((prev) => {
-      const updatedNewSessions = {
-        ...prev,
-        [type]: prev[type]?.map((session, i) =>
-          i === index ? { ...session, [field]: value } : session
-        ),
-      };
+    setNewSessions((prev) => ({
+      // const updatedNewSessions = {
+      ...prev,
+      [type]: prev[type]?.map((session, i) =>
+        i === index ? { ...session, [field]: value } : session
+      ),
+    }));
 
-      setAllSessions((allPrev) => {
-        let updatedSessions = [...allPrev];
+    setAllSessions((allPrev) => {
+      let updatedSessions = [...allPrev];
 
-        if (type === "recurring") {
-          const recurringSession = {
-            ...updatedNewSessions.recurring[index],
-            [field]: value,
-          };
+      if (type === "recurring") {
+        const recurringSession = {
+          ...newSessions.recurring[index],
+          [field]: value,
+        };
 
-          // Remove all sessions with this recurringId
-          updatedSessions = updatedSessions.filter(
-            (s) => s.recurringId !== recurringSession.id
+        // Remove all sessions with this recurringId
+        updatedSessions = updatedSessions.filter(
+          (s) => s.recurringId !== recurringSession.id
+        );
+
+        if (Object.values(recurringSession).every((val) => val !== "")) {
+          const currentTimezoneDate = new Date(
+            startDate.replace(/-/g, "/").replace(/T.+/, "")
           );
-
-          if (
-            recurringSession.startTime &&
-            recurringSession.endTime &&
-            recurringSession.roomId &&
-            startDate &&
+          const generatedSessions = generateRecurringSessions(
+            {
+              ...recurringSession,
+            },
+            startDate,
             endDate
-          ) {
-            const currentTimezoneDate = new Date(
-              startDate.replace(/-/g, "/").replace(/T.+/, "")
-            );
-            const generatedSessions = generateRecurringSessions(
-              recurringSession,
-              startDate,
-              endDate
-            );
-
-            updatedSessions = [
-              ...updatedSessions,
-              ...generatedSessions.map((s) => ({
-                ...s,
-                recurringId: recurringSession.id,
-                isNew: true,
-              })),
-            ];
-          }
-        } else if (type === "single") {
-          const singleSession = {
-            ...updatedNewSessions.single[index],
-            [field]: value,
-            id: index,
-          };
-
-          // Find and update the existing session or add a new one
-          const existingIndex = updatedSessions.findIndex(
-            (s) =>
-              s.id === singleSession.id ||
-              (s.date === singleSession.date &&
-                s.startTime === singleSession.startTime)
           );
 
-          if (existingIndex !== -1) {
-            updatedSessions[existingIndex] = {
-              ...updatedSessions[existingIndex],
-              ...singleSession,
+          updatedSessions = [
+            ...updatedSessions,
+            ...generatedSessions.map((s) => ({
+              ...s,
+              recurringId: recurringSession.id,
               isNew: true,
-            };
-          } else if (
-            singleSession.date &&
-            singleSession.startTime &&
-            singleSession.endTime &&
-            singleSession.roomId
-          ) {
-            updatedSessions.push({
-              ...singleSession,
-              id: singleSession.id,
-              isNew: true,
-            });
-          }
+            })),
+          ];
         }
+      } else if (type === "single") {
+        const singleSession = {
+          ...newSessions.single[index],
+          [field]: value,
+          id: index,
+        };
 
-        setIsChanged(true);
-        return updatedSessions;
-      });
+        // Find and update the existing session or add a new one
+        const existingIndex = updatedSessions.findIndex(
+          (s) =>
+            s.id === singleSession.id ||
+            (s.date === singleSession.date &&
+              s.startTime === singleSession.startTime)
+        );
 
-      return updatedNewSessions;
+        if (existingIndex !== -1) {
+          updatedSessions[existingIndex] = {
+            ...updatedSessions[existingIndex],
+            ...singleSession,
+            isNew: true,
+          };
+        } else if (Object.values(singleSession).every((val) => val !== "")) {
+          updatedSessions.push({
+            ...singleSession,
+            id: singleSession.id,
+            isNew: true,
+          });
+        }
+      }
+
+      setIsChanged(true);
+      return updatedSessions;
     });
+
+    // });
   };
 
   const handleDeleteRow = (type, index) => {
@@ -382,6 +382,12 @@ export const EditRecurringSessions = () => {
     { value: "monthWeekday", label: "Every Month (Same Weekday)" },
     { value: "year", label: "Every Year" },
   ];
+
+  useEffect(() => {
+    newSessions.recurring.forEach((session, index) => {
+      handleChangeSessionField("recurring", index, "weekday", session.weekday);
+    });
+  }, [startDate, endDate]);
 
   const addRecurring = (
     <>
@@ -713,6 +719,24 @@ export const EditRecurringSessions = () => {
 
   return (
     <Navbar>
+      {/* <CancelProgram
+        id={id}
+        sessionId={deleteSessionId}
+        setPrograms={setAllSessions} // deletes from sessions instead of programs
+        onOpen={onCancelProgramModalOpen}
+        isOpen={isCancelProgramModalOpen}
+        onClose={onCancelProgramModalClose}
+        handleArchiveSession={handleArchiveSession}
+        type={"Session"}
+      /> */}
+      <DeleteSessionConfirmationModal
+        setPrograms={setAllSessions}
+        isOpen={isDeleteSessionModalOpen}
+        onClose={onDeleteSessionClose}
+        date={deleteSessionDate}
+        id={deleteSessionId}
+        programs={allSessions}
+      />
       <Box style={{ width: "100%", padding: "20px 20px 20px 20px" }}>
         <Flex
           align="center"
@@ -771,6 +795,9 @@ export const EditRecurringSessions = () => {
           handleArchiveSession={handleArchiveSession}
           handleDeleteSession={handleDeleteSession}
           setIsChanged={setIsChanged}
+          onDeleteSessionModalOpen={onDeleteSessionModalOpen}
+          setDeleteSessionDate={setDeleteSessionDate}
+          setDeleteSessionId={setDeleteSessionId}
         />
 
         <DeleteRowModal
