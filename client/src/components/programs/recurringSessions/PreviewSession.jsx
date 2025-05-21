@@ -70,7 +70,10 @@ export const PreviewSession = ({
   onSaveSessionModalOpen,
   handleArchiveSession,
   handleDeleteSession,
+  onDeleteSessionModalOpen,
   setIsChanged,
+  setDeleteSessionDate,
+  setDeleteSessionId,
 }) => {
   return (
     <Box
@@ -173,6 +176,9 @@ export const PreviewSession = ({
                         color="#767778"
                         fontSize="16px"
                         fontStyle="normal"
+                        onClick={() => {
+                          console.log(allSessions);
+                        }}
                       >
                         UPCOMING TIME
                       </Text>
@@ -314,7 +320,15 @@ export const PreviewSession = ({
 
                             <MenuItem
                               onClick={() => {
-                                handleDeleteSession(session.id);
+                                setDeleteSessionDate(
+                                  formatDate(session.date).split(" ")[1]
+                                );
+                                setDeleteSessionId(session.id);
+                                if (session.isNew) {
+                                  onDeleteSessionModalOpen();
+                                } else {
+                                  onCancelProgramModalOpen();
+                                }
                                 setIsChanged(true);
                               }}
                               display="flex"

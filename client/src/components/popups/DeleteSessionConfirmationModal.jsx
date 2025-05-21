@@ -28,6 +28,7 @@ export const DeleteSessionConfirmationModal = ({
   const onDelete = useCallback(async () => {
     try {
       if (setPrograms) {
+        console.log("ID is: " + id);
         setPrograms((prev) => prev.filter((p) => p.id !== id));
       }
       toast({
