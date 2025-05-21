@@ -463,6 +463,15 @@ export const TimeFilter = ({ startTime, endTime, onChange }) => {
 
 export const RoomFilter = ({ roomMap, onChange, room }) => {
   const [localRoom, setLocalRoom] = useState(room);
+  const [localRoomMap, setLocalRoomMap] = useState(new Map());
+
+  useEffect(() => {
+    if (roomMap !== null) {
+      setLocalRoomMap(roomMap);
+    } else {
+      setLocalRoomMap(new Map());
+    }
+  }, [roomMap]);
 
   useEffect(() => {
     setLocalRoom(room);
@@ -494,7 +503,7 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
         >
           All
         </RoundedButton>
-        {Array.from(roomMap.values()).map((roomName) => (
+        {Array.from(localRoomMap.values()).map((roomName) => (
           <RoundedButton
             key={roomName}
             onClick={() => handleRoomChange(roomName)}

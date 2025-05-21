@@ -378,7 +378,7 @@ export const EditRecurringSessions = () => {
 
   const frequencyOptions = [
     { value: "week", label: "Every Week" },
-    { value: "monthDate", label: "Every Month (Same Day)" },
+    { value: "monthDate", label: "Every Month (Same Calendar Day)" },
     { value: "monthWeekday", label: "Every Month (Same Weekday)" },
     { value: "year", label: "Every Year" },
   ];
