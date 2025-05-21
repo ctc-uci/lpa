@@ -919,7 +919,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
               >
                 View
               </Button>
-              <Divider orientation="vertical" height="30px" borderColor="#E53E3E" />
+              <Divider orientation="vertical" height="1px" borderColor="#E53E3E" />
               <Button
                 size="sm"
                 variant="link"
