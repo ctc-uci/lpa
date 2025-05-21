@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import '../EditProgram.css';
 import {
   Box,
+  Flex,
   HStack,
   Icon,
   IconButton,
@@ -14,11 +15,13 @@ import { CloseFilledIcon } from '../../../assets/CloseFilledIcon';
 import { PlusFilledIcon } from '../../../assets/PlusFilledIcon';
 import personSvg from "../../../assets/person.svg";
 import { AddClient } from "../../../components/clientsearch/AddClient";
+import { EditClientIcon } from "../../../assets/EditClientIcon";
 
 export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees, setPayeeSearchTerm, setSelectedPayees, setSearchedPayees, setSelectedEmails} ) => {
   const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
+  const [selectedPayeeToEdit, setSelectedPayeeToEdit] = useState(null);
 
 
   useEffect(() => {
@@ -159,31 +162,58 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                       </div>
 
                       {dropdownVisible && searchedPayees.length > 0 && (
-                          <Box id="payeeDropdown" w="100%" maxW="195px">
+                          <Box id="payeeDropdown" w="100%" maxW="198px">
                               {searchedPayees.map((payee) => (
-                                  <Box
+                                  <Flex
                                       key={payee.id}
+                                      align="center"
+                                      justify="space-between"
+                                      padding="6px 8px"
+                                      fontSize="16px"
+                                      cursor="pointer"
+                                      backgroundColor="#FFF"
+                                      _hover={{ bg: "#EDF2F7" }}
+                                      role="group"
                                       onClick={() => {
-                                          // setPayeeSearchTerm(payee.name);
-                                          addTag(payee);
-
+                                        setSelectedPayees((prevItems) => [...prevItems, payee]);
                                       }}
-                                      style={{
-                                          padding: "10px",
-                                          fontSize: "16px",
-                                          cursor: "pointer",
-                                          transition: "0.2s",
-                                          backgroundColor: "#FFF"
-                                      }}
-                                      bg="#F6F6F6"
-                                      _hover={{ bg: "#D9D9D9" }}
-                                  >
+                                    >
                                       {payee.name}
-                                  </Box>
+                                      <IconButton
+                                        icon={<EditClientIcon />}
+                                        size="sm"
+                                        variant="ghost"
+                                        opacity={0} // hide by default
+                                        _groupHover={{ opacity: 1, boxShadow: "none" }} // show on row hover
+                                        _focus={{ boxShadow: "none"}}
+                                        transition="opacity 0.2s"
+                                        onClick={(e) => {
+                                          e.stopPropagation(); // prevent row click
+                                          setSelectedPayeeToEdit(payee);
+                                          setShowAddClient(true);
+                                        }}
+                                      />
+                                  </Flex>
                               ))}
                           </Box>
                       )}
                   </Box>
+                  {selectedPayeeToEdit && (
+                  <AddClient
+                    isOpen={showAddClient}
+                    onClose={() => setShowAddClient(false)}
+                    onSave={(newPayee) => {
+                      setSelectedPayees((prev) => [...prev, newPayee]);
+                      setSelectedEmails((prevItems) => [...prevItems, newPayee]);
+                      setShowAddClient(false);
+                    }}
+                    type="Edit"
+                    firstNameUserInput={selectedPayeeToEdit.name.trim().split(" ")[0] || ""}
+                    lastNameUserInput={selectedPayeeToEdit.name.trim().split(" ").slice(1).join(" ") || ""}
+                    emailUserInput={selectedPayeeToEdit.email.trim()}
+                    client={selectedPayeeToEdit}
+                  />
+                )}
               </div>
           </div>
               <div id="payeeTags">

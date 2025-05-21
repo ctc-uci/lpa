@@ -149,7 +149,7 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                   />
                 </div>
                 {dropdownVisible && searchedInstructors.length > 0 && (
-                  <Box id="instructorDropdown" w="100%" maxW="200px">
+                  <Box id="instructorDropdown" w="100%" maxW="198px">
                     {searchedInstructors.map((instructor) => (
                       <Flex
                         key={instructor.id}
