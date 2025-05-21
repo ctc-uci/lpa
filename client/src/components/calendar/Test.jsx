@@ -10,19 +10,21 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { gapi } from "gapi-script";
 import CalendarModal from "./CalendarModal";
-
-/* Load environment variables from .env file
- * Ensure you have the following variables in your .env file:
- *    VITE_GOOGLE_CLIENT_ID
- *    VITE_GOOGLE_API_KEY
- *    VITE_GOOGLE_CALENDAR_ID
- */
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-const CALENDAR_ID = "primary";
-
+import {
+  initializeGoogleCalendar,
+  signIn,
+  signOut,
+  fetchEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  // generateRecurringSessions,
+  batchInsertBookings,
+  batchUpdateBookings,
+  batchDeleteBookings,
+  extractBackendId
+} from "../../utils/calendar";
 
 export const Test = () => {
   const { backend } = useBackendContext();
@@ -30,52 +32,71 @@ export const Test = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   // State variables
-  const [isSignedIn, setIsSignedIn] = useState(false); // whether or not the user is signed in
-  const [events, setEvents] = useState([]); // list of event the user has upcoming
-  const [newEvent, setNewEvent] = useState({ summary: "", start: "", end: "" }); // current event being edited
-  const [editingEventId, setEditingEventId] = useState(null); // id of the current event being edited (null if new event)
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [newEvent, setNewEvent] = useState({ summary: "", start: "", end: "" });
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [bookingsBatch, setBookingsBatch] = useState([]);
 
-  const [bookingsBatch, setBookingsBatch] = useState([]); // current batch to be added to the gcal (either the old, exisitng booksing or new, generated bookings)
-
-  // generates reoccuring sessions
-  const generateRecurringSessions = (recurringSession, startDate, endDate) => {
-    const sessions = [];
-    const currentTimezoneDate = new Date(startDate.replace(/-/g, '/').replace(/T.+/, ''));
-    const currentDate = new Date(startDate);
-    const endDateObj = new Date(endDate);
-    const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-    const weekdayIndex = weekdays.indexOf(recurringSession.weekday.toLowerCase());
-    const startDayOfWeek = currentTimezoneDate.getDay() ;
-    const daysUntilFirst = (weekdayIndex - startDayOfWeek + 7) % 7;
-
-    if (daysUntilFirst > 0) {
-      currentDate.setDate(currentDate.getDate() + daysUntilFirst );
-    }
-
-    while (currentDate <= endDateObj) {
-        sessions.push({
-            date: currentDate.toISOString(),
-            startTime: recurringSession.startTime,
-            endTime: recurringSession.endTime,
-            roomId: recurringSession.roomId,
-            eventId: 383,
-            archived: false,
+  // Initialize Google Calendar on component mount
+  useEffect(() => {
+    initializeGoogleCalendar()
+      .then(auth2 => {
+        setIsSignedIn(auth2.isSignedIn.get());
+        auth2.isSignedIn.listen(setIsSignedIn);
+      })
+      .catch(error => {
+        console.error("Failed to initialize Google Calendar:", error);
+        toast({
+          title: "Initialization Error",
+          description: "Failed to initialize Google Calendar",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
         });
+      });
+  }, []);
 
-        currentDate.setDate(currentDate.getDate() + 7);
+  // Load events when signed in
+  useEffect(() => {
+    if (!isSignedIn) return;
+    loadEvents();
+  }, [isSignedIn]);
+
+  const loadEvents = async () => {
+    try {
+      const fetchedEvents = await fetchEvents();
+      setEvents(fetchedEvents);
+    } catch (error) {
+      toast({
+        title: "Could not load events",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
-
-    return sessions;
   };
 
-  /**
-   * Generates new bookings
-   *
-   *
-   * This uses generateRecurringSessions and attaches a name to each session
-   * In the real implementation, this would be replaced with the non-hardcoded generateRecurringSessions call
-   * and namedSessions would pass in programName instead of "fake session"
-   */
+  const handleAuthClick = async () => {
+    try {
+      await signIn();
+    } catch (error) {
+      toast({
+        title: "Sign-in failed",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsSignedIn(false);
+  };
+
   const fetchNewBookings = async () => {
     const recurringSession = {
       weekday: 'Wednesday',
@@ -87,15 +108,11 @@ export const Test = () => {
     const startDate = '2025-05-14';
     const endDate = '2025-05-28';
 
-    const sessions = generateRecurringSessions(recurringSession, startDate, endDate);
-    const namedSessions = sessions.map(session => ({ ...session, name: 'fake session' }));
-    console.log(namedSessions);
-    setBookingsBatch(namedSessions);
+    // const sessions = generateRecurringSessions(recurringSession, startDate, endDate);
+    // const namedSessions = sessions.map(session => ({ ...session, name: 'fake session' }));
+    // setBookingsBatch(namedSessions);
   };
 
-  /**
-   * fetches all the existing bookings (that are in the future)
-   */
   const fetchOldBookings = async () => {
     try {
       const response = await backend.get("/bookings/bookingEventNames", {
@@ -104,322 +121,287 @@ export const Test = () => {
         }
       });
       setBookingsBatch(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
     }
   };
 
-  /**
-   * Initialize the Google API client
-   *
-   * This function is called on component mount to set up the
-   * Google API clientand load the calendar API
-   */
-  useEffect(() => {
-    function start() {
-      gapi.client
-        .init({
-          apiKey: GOOGLE_API_KEY,
-          clientId: GOOGLE_CLIENT_ID,
-          scope: "https://www.googleapis.com/auth/calendar.events",
-        })
-        .then(() => gapi.client.load("calendar", "v3"))
-        .then(() => {
-          const auth2 = gapi.auth2.getAuthInstance();
-          if (auth2) {
-            setIsSignedIn(auth2.isSignedIn.get());
-            auth2.isSignedIn.listen(setIsSignedIn);
-          }
-        });
-    }
-    gapi.load("client:auth2", start);
-  }, []);
-
-  /**
-   * This effect runs whenever the sign-in status (`isSignedIn`) changes.
-   * If the user is signed in, it queries the Google Calendar API to fetch upcoming events
-   */
-  useEffect(() => {
-    if (!isSignedIn) return;
-    loadEvents();
-  }, [isSignedIn]);
-
-
-  /**
-   * Fetch and list all events when the user is signed in.
-   * The events are then stored in the `events` state
-   *
-   * If the API call fails, an error toast is shown to the user with the error message.
-   */
-  const loadEvents = () => {
-    gapi.client.calendar.events
-      .list({
-        calendarId: CALENDAR_ID,
-        timeMin: new Date().toISOString(),
-        showDeleted: false,
-        singleEvents: true,
-        orderBy: "startTime",
-      })
-      .then(res => setEvents(res.result.items || []))
-      .catch(err =>
-        toast({
-          title: "Could not load events",
-          description: err.result?.error?.message || err.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        })
-      );
-  };
-
-  /**
-   * Handle the sign-in process with Google OAuth2.
-   */
-  const handleAuthClick = () => {
-    gapi.auth2
-      .getAuthInstance()
-      ?.signIn()
-      .catch((err) => {
-        toast({
-          title: "Sign-in failed",
-          description: err.error,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      });
-  };
-
-  /**
-   * Handle the sign-out process with Google OAuth2.
-   */
-  const handleSignOut = () =>
-    gapi.auth2
-      .getAuthInstance()
-      ?.signOut()
-      .then(() => setIsSignedIn(false));
-
-  /**
-   * Adds all the bookings to the GCal
-   *
-   * @returns {void}
-   */
-  const batchInsertBookings = async (mode = "new") => {
-    // get bookings
-    if (mode === "old") await fetchOldBookings();
-    else await fetchNewBookings();
-
-    // make a new batch
-    const batch = gapi.client.newBatch();
-
-    bookingsBatch.forEach((booking, index) => {
-      // get time values
-      const date = booking.date.split("T")[0];
-      const start = booking.startTime.split('+')[0].trim();
-      const end = booking.endTime.split('+')[0].trim();
-      const startDateTime = new Date(`${date}T${start}`).toISOString();
-      const endDateTime = new Date(`${date}T${end}`).toISOString();
-
-      // create resource
-      const resource = {
-        summary: booking.name,
-        start: {
-          dateTime: startDateTime,
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        },
-        end: {
-          dateTime: endDateTime,
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  const handleBatchInsertBookings = async (mode = "new") => {
+    try {
+      if (mode === "old") {
+        await fetchOldBookings();
+        // Each booking in the batch should already have a backend ID
+        const result = await batchInsertBookings(bookingsBatch);
+        if (result.failCount) {
+          toast({
+            title: "Batch Upload Completed with Errors",
+            description: `${result.successCount}/${result.total} added, ${result.failCount} failed.`,
+            status: "warning",
+            duration: 5000,
+            isClosable: true
+          });
+        } else {
+          toast({
+            title: "Batch Upload Successful",
+            description: `${result.total} events added.`,
+            status: "success",
+            duration: 5000,
+            isClosable: true
+          });
         }
-      };
-
-      // add to batch
-      batch.add(gapi.client.calendar.events.insert({ calendarId: CALENDAR_ID, resource }), { id: `req${index}` });
-    });
-
-    batch.execute(responseMap => {
-      const total = bookingsBatch.length;
-      const successCount = Object.values(responseMap).filter(r => !r.error).length;
-      const failCount = total - successCount;
-      if (failCount) {
-        toast({
-          title: "Batch Upload Completed with Errors",
-          description: `${successCount}/${total} added, ${failCount} failed.`,
-          status: "warning",
-          duration: 5000,
-          isClosable: true });
       } else {
-        toast({
-          title: "Batch Upload Successful",
-          description: `${total} events added.`,
-          status: "success",
-          duration: 5000,
-          isClosable: true });
+        // For new bookings, we need to assign temporary IDs
+        await fetchNewBookings();
+        const bookingsWithIds = bookingsBatch.map((booking, index) => ({
+          ...booking,
+          backendId: Date.now() + index // Temporary IDs until synced with backend
+        }));
+        const result = await batchInsertBookings(bookingsWithIds);
+        if (result.failCount) {
+          toast({
+            title: "Batch Upload Completed with Errors",
+            description: `${result.successCount}/${result.total} added, ${result.failCount} failed.`,
+            status: "warning",
+            duration: 5000,
+            isClosable: true
+          });
+        } else {
+          toast({
+            title: "Batch Upload Successful",
+            description: `${result.total} events added.`,
+            status: "success",
+            duration: 5000,
+            isClosable: true
+          });
+        }
       }
       loadEvents();
-    });
+    } catch (error) {
+      toast({
+        title: "Batch Upload Failed",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      });
+    }
   };
 
-    /**
-   * Handle saving the event (create or update).
-   *
-   * If an existing event is being edited, the event is updated.
-   * If a new event is being created, it is added to Google Calendar.
-   *
-   * Checks that all required fields (summary, start, end) are filled before proceeding.
-   * @returns {void}
-   */
-    const handleSaveEvent = () => {
-      if (!newEvent.summary || !newEvent.start || !newEvent.end) {
+  const handleBatchUpdate = async (bookingsToUpdate) => {
+    try {
+      const result = await batchUpdateBookings(bookingsToUpdate);
+      
+      if (result.failCount) {
+        // If there were any errors, show them in the toast
+        const errorMessages = result.errors
+          .map(e => `Booking ${e.bookingIndex + 1}: ${e.error.message}`)
+          .join('\n');
+          
         toast({
-          title: "Missing fields",
-          description: "Please fill in all event details",
+          title: "Batch Update Completed with Errors",
+          description: (
+            <Box>
+              <Text>{`${result.successCount}/${result.total} updated, ${result.failCount} failed.`}</Text>
+              <Text mt={2} fontSize="sm" color="red.500">
+                {errorMessages}
+              </Text>
+            </Box>
+          ),
           status: "warning",
+          duration: 8000,
+          isClosable: true
+        });
+      } else {
+        toast({
+          title: "Batch Update Successful",
+          description: `${result.total} events updated.`,
+          status: "success",
+          duration: 5000,
+          isClosable: true
+        });
+      }
+      
+      // Refresh the events list
+      loadEvents();
+      
+      return result;
+    } catch (error) {
+      toast({
+        title: "Batch Update Failed",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      });
+      throw error;
+    }
+  };
+
+  const handleBatchDelete = async (bookingsToDelete) => {
+    try {
+      const result = await batchDeleteBookings(bookingsToDelete);
+      
+      if (result.failCount) {
+        // If there were any errors, show them in the toast
+        const errorMessages = result.errors
+          .map(e => `Booking ${e.bookingIndex + 1}: ${e.error.message}`)
+          .join('\n');
+          
+        toast({
+          title: "Batch Delete Completed with Errors",
+          description: (
+            <Box>
+              <Text>{`${result.successCount}/${result.total} deleted, ${result.failCount} failed.`}</Text>
+              <Text mt={2} fontSize="sm" color="red.500">
+                {errorMessages}
+              </Text>
+            </Box>
+          ),
+          status: "warning",
+          duration: 8000,
+          isClosable: true
+        });
+      } else {
+        toast({
+          title: "Batch Delete Successful",
+          description: `${result.total} events deleted.`,
+          status: "success",
+          duration: 5000,
+          isClosable: true
+        });
+      }
+      
+      // Refresh the events list
+      loadEvents();
+      
+      return result;
+    } catch (error) {
+      toast({
+        title: "Batch Delete Failed",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      });
+      throw error;
+    }
+  };
+
+  const handleSaveEvent = async () => {
+    if (!newEvent.summary || !newEvent.start || !newEvent.end) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all event details",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      if (editingEventId) {
+        // Extract backend ID from the Google Calendar event ID
+        const backendId = extractBackendId(editingEventId);
+        if (!backendId) {
+          throw new Error("Invalid event ID format");
+        }
+        const updated = await updateEvent(editingEventId, newEvent);
+        setEvents(prevEvents => prevEvents.map(event => event.id === editingEventId ? updated : event));
+        toast({
+          title: "Event Updated",
+          description: "The event was successfully updated.",
+          status: "success",
           duration: 5000,
           isClosable: true,
         });
-        return;
-      }
-
-      // Build the event resource object
-      const resource = {
-        summary: newEvent.summary,
-        start: {
-          dateTime: new Date(newEvent.start).toISOString(),
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-        end: {
-          dateTime: new Date(newEvent.end).toISOString(),
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-        // Add other optional fields as needed (e.g. attendees, reminders)
-      };
-
-      // If editing, update the event; otherwise, create a new one
-      if (editingEventId) {
-        console.log("CORRECT: ", newEvent.start)
-        updateEvent(editingEventId, resource);
       } else {
-        createEvent(CALENDAR_ID, resource);
+        // For new events, we need a backend ID
+        // In a real implementation, you would get this from your backend
+        // For now, we'll use a temporary ID that will be replaced when synced with backend
+        const tempBackendId = Date.now(); // Temporary ID until synced with backend
+        const created = await createEvent(newEvent, tempBackendId);
+        setEvents(prev => [...prev, created]);
+        toast({
+          title: "Event Created",
+          description: "Your event has been successfully created.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
       }
-    };
-
-  /**
-   * Adds a new event to the user's Google Calendar.
-   *
-   * This function sends a POST request to the Google Calendar API to create a new event
-   * in the specified calendar. On success, it updates the local events state to include
-   * the newly created event, shows a success toast notification, closes the modal, and
-   * resets the new event form state. On failure, it displays an error toast.
-   *
-   * @param {string} calendarID - The ID of the calendar to add the event to.
-   * @param {object} event - The event object containing details such as summary, start, end, etc.
-   *   Example:
-   *     {
-   *       summary: "Meeting with Team",
-   *       start: { dateTime: "2024-06-01T10:00:00Z", timeZone: "America/New_York" },
-   *       end:   { dateTime: "2024-06-01T11:00:00Z", timeZone: "America/New_York" },
-   *       ...other (optional) Google Calendar event fields
-   *     }
-   * @returns {void}
-   */
-  const createEvent = (calendarID, event) => {
-    gapi.client.calendar.events
-      .insert({
-        calendarId: calendarID,
-        resource: event,
-      })
-      // Handle the response and update the state
-      .then(
-        (response) => {
-          const createdEvent = response.result;
-          toast({
-            title: "Event Created",
-            description: "Your event has been successfully created.",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-          setEvents((prev) => [...prev, createdEvent]);
-          onClose();
-          setNewEvent({ summary: "", start: "", end: "" });
-        },
-        (err) => {
-          console.error("Error creating event:", err);
-          toast({
-            title: "Error",
-            description:
-              err.result?.error?.message || "Failed to create the event.",
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          });
-        }
-      );
-  };
-
-  /**
-   * Updates an existing event on the user's Google Calendar.
-   *
-   * This function sends a PATCH request to the Google Calendar API to update
-   * the details of a specific event, identified by its event ID. After a successful
-   * update, it updates the local events state to reflect the changes, shows a success
-   * toast notification, resets the editing state, and closes the modal.
-   *
-   * @param {string} eventId - The unique identifier of the event to update.
-   * @param {object} updatedEvent - The updated event object containing new values for fields such as summary, start, and end.
-   *   Example:
-   *     {
-   *       summary: "Updated Event Title",
-   *       start: { dateTime: "2024-06-01T10:00:00Z", timeZone: "America/New_York" },
-   *       end:   { dateTime: "2024-06-01T11:00:00Z", timeZone: "America/New_York" },
-   *       ...other (optional) Google Calendar event fields
-   *     }
-   * @returns {void}
-   */
-  const updateEvent = (eventId, updatedEvent) => {
-    gapi.client.calendar.events
-      .patch({
-        calendarId: CALENDAR_ID,
-        eventId,
-        resource: updatedEvent,
-      })
-      .then(
-        (response) => {
-          const updated = response.result;
-          setEvents((prevEvents) =>
-            prevEvents.map((event) => (event.id === eventId ? updated : event))
-          );
-          toast({
-            title: "Event Updated",
-            description: "The event was successfully updated.",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-          setEditingEventId(null);
-          onClose();
-          setNewEvent({ summary: "", start: "", end: "" });
-        },
-        (err) => {
-          console.error("Error updating event:", err);
-        }
-      );
-  };
-
-  /**
-   * Delete an event from Google Calendar
-   * @param {string} eventId - ID of the event to delete
-   * @returns {void}
-   */
-  const deleteEvent = (eventId) => {
-    gapi.client.calendar.events
-      .delete({ calendarId: CALENDAR_ID, eventId })
-      .then(() => {
-        setEvents((prev) => prev.filter((e) => e.id !== eventId));
-        toast({ title: "Event Deleted", status: "info", duration: 5000 });
+      setEditingEventId(null);
+      onClose();
+      setNewEvent({ summary: "", start: "", end: "" });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save the event.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
       });
+    }
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    try {
+      await deleteEvent(eventId);
+      setEvents(prev => prev.filter(e => e.id !== eventId));
+      toast({ 
+        title: "Event Deleted", 
+        status: "info", 
+        duration: 5000,
+        isClosable: true 
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete the event.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const updateAllEvents = async () => {
+    // Example: Update all events to add a prefix to their names
+    const updatedBookings = events.map(event => ({
+      ...event,
+      name: `[Updated] ${event.summary}`,
+      backendId: extractBackendId(event.id) || Date.now(), // Use existing ID or generate new one
+      date: event.start.dateTime.split('T')[0],
+      startTime: event.start.dateTime.split('T')[1].slice(0, 5),
+      endTime: event.end.dateTime.split('T')[1].slice(0, 5),
+      location: event.location || "",
+      description: event.description || ""
+    }));
+
+    try {
+      await handleBatchUpdate(updatedBookings);
+    } catch (error) {
+      console.error("Failed to update events:", error);
+    }
+  };
+
+  const deleteAllEvents = async () => {
+    // Transform current events into the format needed for deletion
+    const bookingsToDelete = events.map(event => ({
+      backendId: extractBackendId(event.id) || Date.now(), // Use existing ID or generate new one
+      date: event.start.dateTime.split('T')[0],
+      startTime: event.start.dateTime.split('T')[1].slice(0, 5),
+      endTime: event.end.dateTime.split('T')[1].slice(0, 5),
+      name: event.summary,
+      location: event.location || "",
+      description: event.description || ""
+    }));
+
+    try {
+      await handleBatchDelete(bookingsToDelete);
+    } catch (error) {
+      console.error("Failed to delete events:", error);
+    }
   };
 
   return (
@@ -448,17 +430,30 @@ export const Test = () => {
             </Button>
 
             <Button
-              onClick={() => batchInsertBookings("old")}
+              onClick={() => handleBatchInsertBookings("old")}
             >
               Add Old Bookings
             </Button>
 
             <Button
-              onClick={() => batchInsertBookings("new")}
+              onClick={() => handleBatchInsertBookings("new")}
             >
               Add New (Fake) Bookings
             </Button>
 
+            <Button
+              onClick={updateAllEvents}
+              colorScheme="purple"
+            >
+              Update All Events
+            </Button>
+
+            <Button
+              onClick={deleteAllEvents}
+              colorScheme="red"
+            >
+              Delete All Events
+            </Button>
           </>
         )}
       </Flex>
@@ -487,7 +482,7 @@ export const Test = () => {
                 mt={3}
                 gap={2}
               >
-                <Button onClick={() => deleteEvent(event.id)}>Delete</Button>
+                <Button onClick={() => handleDeleteEvent(event.id)}>Delete</Button>
                 <Button
                   colorScheme="blue"
                   onClick={() => {
