@@ -126,27 +126,26 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                   </Box>
                   <IconButton
                       variant="ghost"
+                      color="#718096"
                       onClick={() => setShowAddClient(true)}
-                      boxShadow="none"
-                      _hover={{ boxShadow: "none" }} // also removes shadow on hover
+                      _hover={{ color: "#4441C8", boxShadow: "none" }} // also removes shadow on hover
                       _focus={{ boxShadow: "none" }} // removes shadow on focus
-                    >
-                    <PlusFilledIcon/>
-                    </IconButton>
-                    <AddClient
-                      isOpen={showAddClient}
-                      onClose={() => setShowAddClient(false)}
-                      onSave={(newInstructor) => {
-                        // Add newly created artist as tag
-                        setSelectedInstructors((prevItems) => [...prevItems, newInstructor]);
-                        setShowAddClient(false);
-                      }}
-                      type="Lead Artist"
-                      firstNameUserInput={instructorSearchTerm.trim().split(" ")[0] || ""}
-                      lastNameUserInput={instructorSearchTerm.trim().split(" ").slice(1).join(" ") || ""}
-                    />
+                      icon={<PlusFilledIcon/>}
+                  >
+                  </IconButton>
+                  <AddClient
+                    isOpen={showAddClient}
+                    onClose={() => setShowAddClient(false)}
+                    onSave={(newInstructor) => {
+                      // Add newly created artist as tag
+                      setSelectedInstructors((prevItems) => [...prevItems, newInstructor]);
+                      setShowAddClient(false);
+                    }}
+                    type="Lead Artist"
+                    firstNameUserInput={instructorSearchTerm.trim().split(" ")[0] || ""}
+                    lastNameUserInput={instructorSearchTerm.trim().split(" ").slice(1).join(" ") || ""}
+                  />
                 </div>
-
                 {dropdownVisible && searchedInstructors.length > 0 && (
                   <Box id="instructorDropdown" w="100%" maxW="195px">
                     {searchedInstructors.map((instructor) => (
