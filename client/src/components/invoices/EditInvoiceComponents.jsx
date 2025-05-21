@@ -325,12 +325,11 @@ const StatementComments = ({
     }
   }, [sessions]);
 
-  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues, totalArray = []) => {
+  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
     if (!startTime || !endTime || !rate) return "0.00";
 
-    // Make sure we're working with valid arrays
+    // Make sure we're working with a valid array of adjustment values
     const currentAdjustmentValues = Array.isArray(adjustmentValues) ? adjustmentValues.filter(adj => adj && adj.type) : [];
-    const currentTotalArray = Array.isArray(totalArray) ? totalArray : [];
 
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
@@ -344,7 +343,6 @@ const StatementComments = ({
 
     const baseRate = Number(rate);
 
-    // Calculate adjustments to the rate
     const adjustedRate = currentAdjustmentValues.reduce((currentRate, adj) => {
       if (!adj || !adj.type || adj.value === undefined) return currentRate;
 
@@ -363,30 +361,14 @@ const StatementComments = ({
       return numericValue < 0 ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
     }, baseRate);
 
-    // Calculate the base total with adjusted rate
-    const baseTotal = adjustedRate * durationInHours;
-
-    // Add any "total" type adjustments
-    const totalAdjustments = currentAdjustmentValues
-      .filter(adj => adj && adj.type === "total")
-      .reduce((sum, adj) => sum + Number(adj.value || 0), 0);
-
-    // Add all values from the total array
-    const totalArraySum = currentTotalArray.reduce((sum, item) => {
-      const value = Number(item.value);
-      return sum + (isNaN(value) ? 0 : value);
-    }, 0);
-
-    // Combine all totals
-    const finalTotal = baseTotal + totalAdjustments + totalArraySum;
-
-    return finalTotal.toFixed(2);
+    const total = adjustedRate * durationInHours;
+    return total.toFixed(2);
   };
 
   const calculateSubtotal = (sessions) => {
     if (!sessions || sessions.length === 0) return "0.00";
 
-    const totalSum = sessions.reduce((acc, session) => {
+    const adjSum = sessions.reduce((acc, session) => {
       // Check if session has adjustmentValues and it's not empty
       if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
         // Calculate without adjustments
@@ -395,32 +377,31 @@ const StatementComments = ({
             session.startTime,
             session.endTime,
             session.rate,
-            [],
-            session.total
+            []
           )
         );
         return acc + total;
       }
-
-      // Check if the first adjustment is a total type
-      if (session.adjustmentValues[0] && session.adjustmentValues[0].type === "total") {
-        return acc + parseFloat(session.adjustmentValues[0].value || 0);
-      }
-
-      // For regular sessions with adjustments, calculate as before
+      
       const total = parseFloat(
         calculateTotalBookingRow(
           session.startTime,
           session.endTime,
           session.rate,
-          session.adjustmentValues,
-          session.total
+          session.adjustmentValues
         )
       );
       return acc + total;
     }, 0);
 
-    const total = totalSum.toFixed(2);
+    const totalSum = sessions.reduce((acc, session) => {  
+      const total = parseFloat(session.total.reduce((sum, item) => sum + Number(item.value || 0), 0));
+      return acc + total;
+    }, 0);
+
+    const finalTotal = adjSum + totalSum;
+
+    const total = finalTotal.toFixed(2);
     setSubtotal(Number(total));
     return total;
   };
@@ -931,8 +912,7 @@ const StatementComments = ({
                                 session.startTime,
                                 session.endTime,
                                 session.rate,
-                                session.adjustmentValues,
-                                session.total
+                                session.adjustmentValues
                               )}
                               deletedIds={deletedIds}
                               setDeletedIds={setDeletedIds}
@@ -977,8 +957,7 @@ const StatementComments = ({
                                   session.startTime,
                                   session.endTime,
                                   session.rate,
-                                  session.adjustmentValues,
-                                  session.total
+                                  session.adjustmentValues
                                 )}
                               </Text>
                             </Flex>

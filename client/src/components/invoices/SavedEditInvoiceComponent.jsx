@@ -38,12 +38,13 @@ const SavedStatementComments = ({
   rooms = [],
   setRooms,
 }) => {
-  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
+  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues, totalArray = []) => {
     if (!startTime || !endTime || !rate) return "0.00";
 
-    // Make sure we're working with the latest adjustment values
-    const currentAdjustmentValues = Array.isArray(adjustmentValues) ? [...adjustmentValues] : [];
-    
+    // Make sure we're working with valid arrays
+    const currentAdjustmentValues = Array.isArray(adjustmentValues) ? adjustmentValues.filter(adj => adj && adj.type) : [];
+    const currentTotalArray = Array.isArray(totalArray) ? totalArray : [];
+
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
       return hours * 60 + minutes;
@@ -55,13 +56,14 @@ const SavedStatementComments = ({
     const durationInHours = (endAdjusted - rawStart) / 60;
 
     const baseRate = Number(rate);
-    
+
+    // Calculate adjustments to the rate
     const adjustedRate = currentAdjustmentValues.reduce((currentRate, adj) => {
       if (!adj || !adj.type || adj.value === undefined) return currentRate;
-      
+
       const numericValue = Number(adj.value);
       if (isNaN(numericValue)) return currentRate;
-      
+
       const numericPart = Math.abs(numericValue);
       let adjustmentAmount = 0;
 
@@ -69,23 +71,27 @@ const SavedStatementComments = ({
         adjustmentAmount = numericPart;
       } else if (adj.type === "rate_percent") {
         adjustmentAmount = (numericPart / 100) * currentRate;
-      } else if (adj.type === "total") {
-        // For total adjustments, we'll handle them separately
-        return currentRate;
       }
 
       return numericValue < 0 ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
     }, baseRate);
 
-    const total = adjustedRate * durationInHours;
-    
+    // Calculate the base total with adjusted rate
+    const baseTotal = adjustedRate * durationInHours;
+
     // Add any "total" type adjustments
     const totalAdjustments = currentAdjustmentValues
       .filter(adj => adj && adj.type === "total")
       .reduce((sum, adj) => sum + Number(adj.value || 0), 0);
-    
-    const finalTotal = total + totalAdjustments;
-    
+
+    // Add all values from the total array
+    const totalArraySum = currentTotalArray.reduce((sum, item) => {
+      const value = Number(item.value);
+      return sum + (isNaN(value) ? 0 : value);
+    }, 0);
+
+    // Combine all totals
+    const finalTotal = baseTotal + totalAdjustments + totalArraySum;
 
     return finalTotal.toFixed(2);
   };
