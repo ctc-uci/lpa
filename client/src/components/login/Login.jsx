@@ -25,7 +25,6 @@ import {
 } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
-
 import logo from "../../assets/logo/logo.png";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -50,10 +49,6 @@ export const Login = () => {
   const [passwordError, setPasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [boxChecked, setBoxChecked] = useState(false);
-
-  const togglePasswordVisibility = () => {
-    setIsPasswordVisible((prev) => !prev);
-  };
 
   const {
     register,
@@ -90,6 +85,7 @@ export const Login = () => {
 
   const handleLogin = async (data) => {
     try {
+      // First login with Firebase
       await login(
         {
           email: data.email,
@@ -98,7 +94,28 @@ export const Login = () => {
         boxChecked
       );
 
-      const permitCheck = await backend.get(`/users/email/${data.email}`);
+      // Try up to 3 times to get the correct permissions
+      let attempts = 0;
+      let permitCheck;
+      while (attempts < 3) {
+        try {
+          permitCheck = await backend.get(`/users/email/${data.email}`);
+          if (permitCheck.data && permitCheck.data.editPerms !== undefined) {
+            break;
+          }
+        } catch (e) {
+          console.error(`Permission check attempt ${attempts + 1} failed:`, e);
+        }
+        attempts++;
+        if (attempts < 3) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      if (!permitCheck || !permitCheck.data) {
+        throw new Error("Could not verify user permissions");
+      }
+
       if (permitCheck.data.editPerms === false) {
         throw {
           code: "auth/no-permission",
@@ -120,7 +137,7 @@ export const Login = () => {
         case "auth/invalid-email":
         case "auth/user-not-found":
           toastLoginError(
-            "Invalid and password. Please try again or create a new account."
+            "Invalid email or password. Please try again or create a new account."
           );
           break;
         case "auth/unverified-email":
@@ -139,26 +156,14 @@ export const Login = () => {
           setPermissionError("Your account is still waiting for approval.");
           break;
         default:
-          toastLoginError(firebaseErrorMsg);
+          if (err.message === "Could not verify user permissions") {
+            toastLoginError("Unable to verify your permissions. Please try logging in again.");
+          } else {
+            toastLoginError(firebaseErrorMsg);
+          }
       }
     }
   };
-
-  useEffect(() => {
-    const checkAuthAndPermissions = async () => {
-      if (currentUser) {
-        try {
-          const permitCheck = await backend.get(`users/email/${currentUser.email}`);
-          if (permitCheck.data.editPerms !== false) {
-            navigate("/programs");
-          }
-        } catch (err) {
-          console.error("Error checking permissions:", err);
-        }
-      }
-    }
-    checkAuthAndPermissions();
-  }, [backend, currentUser, navigate]);
 
   return (
     <Center
