@@ -29,8 +29,6 @@ const InvoiceView = ({
   summary = [],
   compactView = false,
 }) => {
-
-
   return (
     <Flex
       direction="column"

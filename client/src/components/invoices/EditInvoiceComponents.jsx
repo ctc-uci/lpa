@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { AddIcon, ChevronDownIcon, CloseIcon, InfoOutlineIcon } from "@chakra-ui/icons";
+import {
+  AddIcon,
+  ChevronDownIcon,
+  CloseIcon,
+  InfoOutlineIcon,
+} from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -37,6 +42,7 @@ import {
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
+import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 
 import {
   BookWithBookmarkIcon,
@@ -54,8 +60,10 @@ import plusIcon from "../../assets/icons/plus.svg";
 import logo from "../../assets/logo/logo.png";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
-import { RoomFeeAdjustmentSideBar, SummaryFeeAdjustmentSideBar } from "./RoomFeeAdjustmentSideBar";
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
+import {
+  RoomFeeAdjustmentSideBar,
+  SummaryFeeAdjustmentSideBar,
+} from "./RoomFeeAdjustmentSideBar";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -77,7 +85,6 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
 };
 
 const EditInvoiceTitle = ({ comments, invoice, compactView }) => {
-
   return (
     <Flex
       justifyContent="space-between"
@@ -273,9 +280,8 @@ const StatementComments = ({
   setSessions,
   setSubtotal,
   deletedIds,
-  setDeletedIds
+  setDeletedIds,
 }) => {
-
   const { backend } = useBackendContext();
   const [activeRowId, setActiveRowId] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -304,15 +310,18 @@ const StatementComments = ({
     const handleClickOutside = (event) => {
       if (editRowRef.current && !editRowRef.current.contains(event.target)) {
         if (editingCustomRow !== null) {
-          handleSaveCustomRow(sessions[editingCustomRow.split("-")[0]], editingCustomRow.split("-")[1]);
+          handleSaveCustomRow(
+            sessions[editingCustomRow.split("-")[0]],
+            editingCustomRow.split("-")[1]
+          );
         }
       }
     };
 
     if (editingCustomRow !== null) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
       return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener("mousedown", handleClickOutside);
       };
     }
   }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount]);
@@ -325,11 +334,18 @@ const StatementComments = ({
     }
   }, [sessions]);
 
-  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
+  const calculateTotalBookingRow = (
+    startTime,
+    endTime,
+    rate,
+    adjustmentValues
+  ) => {
     if (!startTime || !endTime || !rate) return "0.00";
 
     // Make sure we're working with a valid array of adjustment values
-    const currentAdjustmentValues = Array.isArray(adjustmentValues) ? adjustmentValues.filter(adj => adj && adj.type) : [];
+    const currentAdjustmentValues = Array.isArray(adjustmentValues)
+      ? adjustmentValues.filter((adj) => adj && adj.type)
+      : [];
 
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
@@ -358,7 +374,9 @@ const StatementComments = ({
         adjustmentAmount = (numericPart / 100) * currentRate;
       }
 
-      return numericValue < 0 ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
+      return numericValue < 0
+        ? currentRate - adjustmentAmount
+        : currentRate + adjustmentAmount;
     }, baseRate);
 
     const total = adjustedRate * durationInHours;
@@ -382,7 +400,7 @@ const StatementComments = ({
         );
         return acc + total;
       }
-      
+
       const total = parseFloat(
         calculateTotalBookingRow(
           session.startTime,
@@ -394,8 +412,10 @@ const StatementComments = ({
       return acc + total;
     }, 0);
 
-    const totalSum = sessions.reduce((acc, session) => {  
-      const total = parseFloat(session.total.reduce((sum, item) => sum + Number(item.value || 0), 0));
+    const totalSum = sessions.reduce((acc, session) => {
+      const total = parseFloat(
+        session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
+      );
       return acc + total;
     }, 0);
 
@@ -455,7 +475,7 @@ const StatementComments = ({
       return;
     }
 
-    setSessions(prevSessions => {
+    setSessions((prevSessions) => {
       return prevSessions.map((session, sessionIndex) => {
         if (sessionIndex === index) {
           const comments = session.comments || [];
@@ -464,19 +484,22 @@ const StatementComments = ({
             const newComments = [...comments];
             newComments[commentIndex] = {
               id: comments[commentIndex].id,
-              comment: commentText
+              comment: commentText,
             };
             return {
               ...session,
-              comments: newComments
+              comments: newComments,
             };
           } else {
             // Add new comment
             return {
               ...session,
-              comments: [...comments, {
-                comment: commentText
-              }]
+              comments: [
+                ...comments,
+                {
+                  comment: commentText,
+                },
+              ],
             };
           }
         }
@@ -488,7 +511,6 @@ const StatementComments = ({
   };
 
   const handleAddComment = (index) => {
-
     if (activeCommentId === index) {
       saveComment(index);
     } else {
@@ -497,8 +519,6 @@ const StatementComments = ({
     }
   };
 
-
-
   const handleEditComment = (index, commentIndex) => {
     const session = sessions[index];
     setCommentText(session?.comments[commentIndex]?.comment || "");
@@ -506,7 +526,7 @@ const StatementComments = ({
   };
 
   const handleKeyDown = (e, index, commentIndex = null) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       saveComment(index, commentIndex);
     }
   };
@@ -521,14 +541,14 @@ const StatementComments = ({
   };
 
   const handleDeleteComment = (sessionIndex, commentIndex) => {
-    setSessions(prevSessions => {
+    setSessions((prevSessions) => {
       return prevSessions.map((session, index) => {
         if (index === sessionIndex) {
           const newComments = [...(session.comments || [])];
           newComments.splice(commentIndex, 1);
           return {
             ...session,
-            comments: newComments
+            comments: newComments,
           };
         }
         return session;
@@ -537,33 +557,36 @@ const StatementComments = ({
 
     // If user created comment and immediately deletes it, no need to send to backend
     if (sessions[sessionIndex].comments[commentIndex].id) {
-      setDeletedIds(prevDeletedIds => [...prevDeletedIds, sessions[sessionIndex].comments[commentIndex].id]);
+      setDeletedIds((prevDeletedIds) => [
+        ...prevDeletedIds,
+        sessions[sessionIndex].comments[commentIndex].id,
+      ]);
     }
   };
 
-
-
   const handleAddCustomRow = (index) => {
-
-    setSessions(prevSessions => {
+    setSessions((prevSessions) => {
       return prevSessions.map((session, sessionIndex) => {
         if (sessionIndex === index) {
           return {
             ...session,
-            total: [...session.total, {
-              date: new Date().toISOString().split('T')[0],
-              value: 0,
-              comment: ""
-            }]
-          }
+            total: [
+              ...session.total,
+              {
+                date: new Date().toISOString().split("T")[0],
+                value: 0,
+                comment: "",
+              },
+            ],
+          };
         }
         return session;
       });
     });
     setEditingCustomRow(`${index}-${sessions[index].total.length}`);
-    setEditCustomDate(new Date().toISOString().split('T')[0]);
-    setEditCustomText('');
-    setEditCustomAmount('0');
+    setEditCustomDate(new Date().toISOString().split("T")[0]);
+    setEditCustomText("");
+    setEditCustomAmount("0");
   };
 
   const handleEditCustomRow = (session, index, totalIndex) => {
@@ -571,7 +594,7 @@ const StatementComments = ({
 
     const date = new Date(session.datetime);
     date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-    
+
     setEditCustomDate(session.total[totalIndex].date);
     setEditCustomText(session.total[totalIndex]?.comment || "");
     setEditCustomAmount(session.total[totalIndex].value.toString());
@@ -580,25 +603,25 @@ const StatementComments = ({
   const handleSaveCustomRow = (session, totalIndex) => {
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
-    setSessions(prevSessions => {
-      return prevSessions.map(prevSession => {
+    setSessions((prevSessions) => {
+      return prevSessions.map((prevSession) => {
         // Only update the session that matches
         if (prevSession === session) {
           // Create a new total array with the updated item
           const newTotal = [...prevSession.total];
           const date = new Date(editCustomDate);
           date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-          
+
           newTotal[totalIndex] = {
-            date: date.toISOString().split('T')[0],
+            date: date.toISOString().split("T")[0],
             value: parseFloat(editCustomAmount),
-            comment: editCustomText
+            comment: editCustomText,
           };
 
           // Return new session object with updated total
           return {
             ...prevSession,
-            total: newTotal
+            total: newTotal,
           };
         }
         return prevSession;
@@ -606,22 +629,22 @@ const StatementComments = ({
     });
 
     setEditingCustomRow(null);
-    setEditCustomDate(new Date().toISOString().split('T')[0]);
-    setEditCustomText('');
-    setEditCustomAmount('');
+    setEditCustomDate(new Date().toISOString().split("T")[0]);
+    setEditCustomText("");
+    setEditCustomAmount("");
   };
 
   const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
-    setSessions(prevSessions => {
+    setSessions((prevSessions) => {
       return prevSessions.map((session, index) => {
         if (index === sessionIndex) {
           // Create a new total array without the deleted item
           const newTotal = [...session.total];
           newTotal.splice(totalIndex, 1);
-          
+
           return {
             ...session,
-            total: newTotal
+            total: newTotal,
           };
         }
         return session;
@@ -631,13 +654,11 @@ const StatementComments = ({
     // If the total item had an ID, add it to deletedIds
     const totalItem = sessions[sessionIndex]?.total[totalIndex];
     if (totalItem?.id) {
-      setDeletedIds(prevDeletedIds => [...prevDeletedIds, totalItem.id]);
+      setDeletedIds((prevDeletedIds) => [...prevDeletedIds, totalItem.id]);
     }
   };
 
-
   return (
-
     <Flex
       direction="column"
       minH="24"
@@ -654,7 +675,12 @@ const StatementComments = ({
         </Heading>
       </HStack>
       <Box position="relative">
-        <Flex border="1px solid #D2D2D2" borderRadius="9.57px" minH="24" px="12px">
+        <Flex
+          border="1px solid #D2D2D2"
+          borderRadius="9.57px"
+          minH="24"
+          px="12px"
+        >
           <Box width="100%">
             <Table
               color="#EDF2F7"
@@ -778,7 +804,12 @@ const StatementComments = ({
                               top="50%"
                               transform="translateY(-50%)"
                               zIndex="1"
-                              opacity={hoveredRowIndex === index || activeCommentId === session.id ? 1 : 0}
+                              opacity={
+                                hoveredRowIndex === index ||
+                                activeCommentId === session.id
+                                  ? 1
+                                  : 0
+                              }
                               transition="opacity 0.2s"
                               alignItems="flex-end"
                               width="100px"
@@ -854,14 +885,13 @@ const StatementComments = ({
                               height="32px"
                               opacity={
                                 activeRowId === null ||
-                                  activeRowId === session.id
+                                activeRowId === session.id
                                   ? 1
                                   : 0.3
                               }
                               onClick={() => setActiveRowId(index)}
                               isDisabled={
-                                activeRowId !== null &&
-                                activeRowId !== index
+                                activeRowId !== null && activeRowId !== index
                               }
                             >
                               Adjust
@@ -871,9 +901,14 @@ const StatementComments = ({
                             {session.adjustmentValues.length === 0 ? (
                               "None"
                             ) : (
-                              <Box display="inline-block" marginLeft="10px">
+                              <Box
+                                display="inline-block"
+                                marginLeft="10px"
+                              >
                                 <Tooltip
-                                  label={session.adjustmentValues.map(adj => adj.value).join(", ")}
+                                  label={session.adjustmentValues
+                                    .map((adj) => adj.value)
+                                    .join(", ")}
                                   placement="top"
                                   bg="gray"
                                   w="auto"
@@ -881,12 +916,14 @@ const StatementComments = ({
                                   <Text>
                                     {session.adjustmentValues
                                       .slice(0, 3)
-                                      .map(adj => {
+                                      .map((adj) => {
                                         const value = Number(adj.value);
-                                        const sign = value >= 0 ? '+' : '-';
-                                        const isFlat = adj.type === 'rate_flat';
+                                        const sign = value >= 0 ? "+" : "-";
+                                        const isFlat = adj.type === "rate_flat";
                                         const absValue = Math.abs(value);
-                                        return isFlat ? `${sign}$${absValue}` : `${sign}${absValue}%`;
+                                        return isFlat
+                                          ? `${sign}$${absValue}`
+                                          : `${sign}${absValue}%`;
                                       })
                                       .join(", ")}
                                     {session.adjustmentValues.length > 3
@@ -917,7 +954,6 @@ const StatementComments = ({
                               setDeletedIds={setDeletedIds}
                             />
                           </Td>
-
 
                           {/* Adjustment type */}
                           <Td
@@ -968,24 +1004,36 @@ const StatementComments = ({
                           <React.Fragment key={`comment-${commentIndex}`}>
                             {activeCommentId === `${index}-${commentIndex}` ? (
                               <Tr>
-                                <Td colSpan={6} py={2}>
+                                <Td
+                                  colSpan={6}
+                                  py={2}
+                                >
                                   <Input
                                     placeholder="Edit your comment..."
                                     value={commentText}
-                                    onChange={(e) => setCommentText(e.target.value)}
-                                    onKeyDown={(e) => handleKeyDown(e, index, commentIndex)}
-                                    onBlur={(e) => handleBlur(e, index, commentIndex)}
+                                    onChange={(e) =>
+                                      setCommentText(e.target.value)
+                                    }
+                                    onKeyDown={(e) =>
+                                      handleKeyDown(e, index, commentIndex)
+                                    }
+                                    onBlur={(e) =>
+                                      handleBlur(e, index, commentIndex)
+                                    }
                                     size="sm"
                                     autoFocus
                                     borderColor="#A0AEC0"
                                     height="40px"
                                     _hover={{ borderColor: "#A0AEC0" }}
-                                    _focus={{ borderColor: "#A0AEC0", boxShadow: "none" }}
+                                    _focus={{
+                                      borderColor: "#A0AEC0",
+                                      boxShadow: "none",
+                                    }}
                                     rounded="lg"
                                     sx={{
-                                      '&': {
-                                        paddingY: '8'
-                                      }
+                                      "&": {
+                                        paddingY: "8",
+                                      },
                                     }}
                                   />
                                 </Td>
@@ -1007,7 +1055,9 @@ const StatementComments = ({
                                   >
                                     <Box
                                       cursor="pointer"
-                                      onClick={() => handleEditComment(index, commentIndex)}
+                                      onClick={() =>
+                                        handleEditComment(index, commentIndex)
+                                      }
                                       flex="1"
                                       pr={4}
                                       py="4"
@@ -1022,7 +1072,10 @@ const StatementComments = ({
                                       colorScheme="gray"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleDeleteComment(index, commentIndex);
+                                        handleDeleteComment(
+                                          index,
+                                          commentIndex
+                                        );
                                       }}
                                       opacity="0"
                                       _groupHover={{ opacity: 1 }}
@@ -1035,14 +1088,16 @@ const StatementComments = ({
                                 </Td>
                               </Tr>
                             )}
-
                           </React.Fragment>
                         ))}
 
                         {/* New comment input */}
                         {activeCommentId === index && (
                           <Tr>
-                            <Td colSpan={6} py={2}>
+                            <Td
+                              colSpan={6}
+                              py={2}
+                            >
                               <Input
                                 placeholder="Add your comment here..."
                                 value={commentText}
@@ -1054,12 +1109,15 @@ const StatementComments = ({
                                 borderColor="#A0AEC0"
                                 height="40px"
                                 _hover={{ borderColor: "#A0AEC0" }}
-                                _focus={{ borderColor: "#A0AEC0", boxShadow: "none" }}
+                                _focus={{
+                                  borderColor: "#A0AEC0",
+                                  boxShadow: "none",
+                                }}
                                 rounded="lg"
                                 sx={{
-                                  '&': {
-                                    paddingY: '8'
-                                  }
+                                  "&": {
+                                    paddingY: "8",
+                                  },
                                 }}
                               />
                             </Td>
@@ -1070,12 +1128,20 @@ const StatementComments = ({
                           if (editingCustomRow === `${index}-${totalIndex}`) {
                             return (
                               <Tr ref={editRowRef}>
-                                <Td colSpan={6} py={2}>
-                                  <Flex gap={4} alignItems="flex-end">
+                                <Td
+                                  colSpan={6}
+                                  py={2}
+                                >
+                                  <Flex
+                                    gap={4}
+                                    alignItems="flex-end"
+                                  >
                                     <Input
                                       type="date"
                                       value={editCustomDate}
-                                      onChange={(e) => setEditCustomDate(e.target.value)}
+                                      onChange={(e) =>
+                                        setEditCustomDate(e.target.value)
+                                      }
                                       size="sm"
                                       width="fit-content"
                                       py="6"
@@ -1085,19 +1151,27 @@ const StatementComments = ({
                                     <Input
                                       placeholder="Description"
                                       value={editCustomText}
-                                      onChange={(e) => setEditCustomText(e.target.value)}
+                                      onChange={(e) =>
+                                        setEditCustomText(e.target.value)
+                                      }
                                       size="sm"
                                       flex={1}
                                       py="6"
                                       rounded="md"
                                       border="none"
                                     />
-                                    <InputGroup size="sm" width="fit-content" alignItems="center">
+                                    <InputGroup
+                                      size="sm"
+                                      width="fit-content"
+                                      alignItems="center"
+                                    >
                                       <Text>$</Text>
                                       <Input
                                         type="number"
                                         value={editCustomAmount}
-                                        onChange={(e) => setEditCustomAmount(e.target.value)}
+                                        onChange={(e) =>
+                                          setEditCustomAmount(e.target.value)
+                                        }
                                         width="9ch"
                                         py="6"
                                         rounded="md"
@@ -1116,20 +1190,61 @@ const StatementComments = ({
                                 _hover={{ bg: "gray.50" }}
                                 role="group"
                               >
-                                <Td py="6" onClick={() => handleEditCustomRow(session, index, totalIndex)}>
+                                <Td
+                                  py="6"
+                                  onClick={() =>
+                                    handleEditCustomRow(
+                                      session,
+                                      index,
+                                      totalIndex
+                                    )
+                                  }
+                                >
                                   {(() => {
-                                    const date = new Date(session.total[totalIndex].date);
-                                    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                    const date = new Date(
+                                      session.total[totalIndex].date
+                                    );
+                                    date.setMinutes(
+                                      date.getMinutes() +
+                                        date.getTimezoneOffset()
+                                    );
                                     return format(date, "EEE. M/d/yy");
                                   })()}
                                 </Td>
-                                <Td colSpan={4} onClick={() => handleEditCustomRow(session, index, totalIndex)}>
-                                  {session.total[totalIndex]?.comment || "Custom adjustment"}
+                                <Td
+                                  colSpan={4}
+                                  onClick={() =>
+                                    handleEditCustomRow(
+                                      session,
+                                      index,
+                                      totalIndex
+                                    )
+                                  }
+                                >
+                                  {session.total[totalIndex]?.comment ||
+                                    "Custom adjustment"}
                                 </Td>
-                                <Td textAlign="right" position="relative">
-                                  <Flex justifyContent="flex-end" alignItems="center">
-                                    <Text onClick={() => handleEditCustomRow(session, index, totalIndex)}>
-                                      $ {Number(session.total[totalIndex].value || 0).toFixed(2)}
+                                <Td
+                                  textAlign="right"
+                                  position="relative"
+                                >
+                                  <Flex
+                                    justifyContent="flex-end"
+                                    alignItems="center"
+                                  >
+                                    <Text
+                                      onClick={() =>
+                                        handleEditCustomRow(
+                                          session,
+                                          index,
+                                          totalIndex
+                                        )
+                                      }
+                                    >
+                                      ${" "}
+                                      {Number(
+                                        session.total[totalIndex].value || 0
+                                      ).toFixed(2)}
                                     </Text>
                                     <IconButton
                                       icon={<CloseIcon boxSize={3} />}
@@ -1138,7 +1253,10 @@ const StatementComments = ({
                                       colorScheme="gray"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleDeleteCustomRow(index, totalIndex);
+                                        handleDeleteCustomRow(
+                                          index,
+                                          totalIndex
+                                        );
                                       }}
                                       opacity="0"
                                       _groupHover={{ opacity: 1 }}
@@ -1150,7 +1268,7 @@ const StatementComments = ({
                                   </Flex>
                                 </Td>
                               </Tr>
-                            )
+                            );
                           }
                         })}
                       </React.Fragment>
@@ -1167,7 +1285,6 @@ const StatementComments = ({
                     </Td>
                   </Tr>
                 )}
-
 
                 <Tr py={compactView ? 0 : 4}>
                   <Td
@@ -1208,9 +1325,8 @@ const InvoiceSummary = ({
   summary = [],
   setSummary,
   deletedIds,
-  setDeletedIds
+  setDeletedIds,
 }) => {
-
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
@@ -1220,11 +1336,10 @@ const InvoiceSummary = ({
     if (isNaN(baseRate)) return "0.00";
 
     const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
-
       if (isNaN(val.value)) return acc;
 
       if (val.type === "rate_percent") {
-        const factor = 1 + (val.value / 100);
+        const factor = 1 + val.value / 100;
         return acc * factor;
       } else {
         return acc + Number(val.value);
@@ -1244,12 +1359,16 @@ const InvoiceSummary = ({
   }, [sessions]);
 
   useEffect(() => {
-    if (!summary?.[0]?.adjustmentValues || sessions.length === 0 || originalSessionRateRef.current === null) return;
+    if (
+      !summary?.[0]?.adjustmentValues ||
+      sessions.length === 0 ||
+      originalSessionRateRef.current === null
+    )
+      return;
 
     const originalSessionRate = originalSessionRateRef.current;
 
     const updatedSessions = sessions.map((session) => {
-
       const adjustedRate = calculateTotalBookingRow(
         originalSessionRate,
         summary[0]?.adjustmentValues
@@ -1265,8 +1384,7 @@ const InvoiceSummary = ({
       return session;
     });
 
-    setSessions(updatedSessions)
-
+    setSessions(updatedSessions);
   }, [summary]);
 
   return (
@@ -1365,7 +1483,7 @@ const InvoiceSummary = ({
                 >
                   Room Fee
                 </Td>
-                <Td borderBottom="none" >
+                <Td borderBottom="none">
                   <Button
                     // onClose={() => setActiveRowId(null)}
                     leftIcon={<PencilIcon color="black" />}
@@ -1379,7 +1497,11 @@ const InvoiceSummary = ({
                   >
                     Adjust
                   </Button>
-                  <Tooltip label="Room fee adjustments in Summary will be apply to all Sessions." placement="top" bg="gray">
+                  <Tooltip
+                    label="Room fee adjustments in Summary will be apply to all Sessions."
+                    placement="top"
+                    bg="gray"
+                  >
                     <InfoOutlineIcon ml={2} />
                   </Tooltip>
                 </Td>
@@ -1387,82 +1509,96 @@ const InvoiceSummary = ({
               {/* Room Fee Body Row */}
 
               {/* Custom rows don't have room names, so that's why we filter them out to avoid showing custom rows in the summary */}
-              {sessions?.filter((session) => session.name?.length > 0 && session.adjustmentValues[0]?.type !== "total" && session.adjustmentValues[0]?.type !== "none").map((session, key) => (
-                <Tr key={key}>
-                  <Td
-                    pl="16"
-                    fontSize={compactView ? "6.38px" : "sm"}
-                    py={compactView ? 2 : 4}
-                    borderBottom={
-                      key === sessions.length - 1 ? undefined : "none"
-                    }
-                    colSpan={4}
-                  >
-                    {session.name}
-                  </Td>
-                  <Td
-                    fontSize={compactView ? "6.38px" : "sm"}
-                    py={compactView ? 2 : 4}
-                    borderBottom={
-                      key === sessions.length - 1 ? undefined : "none"
-                    }
-                  >
-                    {summary[0]?.adjustmentValues?.length === 0 ? (
-                      "None"
-                    ) : (
-                      <Box display="inline-block">
-                        <Tooltip
-                          label={summary[0]?.adjustmentValues.map(adj => {
-                            const sign = adj.value < 0 ? "-" : "+";
-                            const isFlat = adj.type === 'rate_flat';
-                            const absValue = Math.abs(adj.value);
-                            return isFlat ? `${sign}$${absValue}` : `${sign}${absValue}%`;
-                          }).join(", ")}
-                          placement="top"
-                          bg="gray"
-                          w="auto"
-                        >
-                          <Text
-                            textOverflow="ellipsis"
-                            overflow="hidden"
-                          >
-                            {summary[0]?.adjustmentValues.map(adj => {
-                              const sign = adj.value < 0 ? "-" : "+";
-                              const isFlat = adj.type === 'rate_flat';
-                              const absValue = Math.abs(adj.value);
-                              return isFlat ? `${sign}$${absValue}` : `${sign}${absValue}%`;
-                            }).join(", ")}
-                          </Text>
-                        </Tooltip>
-                      </Box>
-                    )}
-
-                  </Td>
-                  <Td
-                    textAlign="end"
-                    py={compactView ? 0 : 4}
-                    fontSize={compactView ? "6.38px" : "sm"}
-                    borderBottom={
-                      key === sessions.length - 1 ? undefined : "none"
-                    }
-                  >
-                    <HStack
-                      spacing={1}
-                      justify="end"
+              {sessions
+                ?.filter(
+                  (session) =>
+                    session.name?.length > 0 &&
+                    session.adjustmentValues[0]?.type !== "total" &&
+                    session.adjustmentValues[0]?.type !== "none"
+                )
+                .map((session, key) => (
+                  <Tr key={key}>
+                    <Td
+                      pl="16"
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      py={compactView ? 2 : 4}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                      colSpan={4}
                     >
-                      <Box as="span">$</Box>
-                      <Input
-                        value={parseFloat(session.rate).toFixed(2)}
-                        readOnly={true}
-                        w="8ch"
-                        textAlign="center"
-                        px={1}
-                      />
-                      <Box as="span">/hr</Box>
-                    </HStack>
-                  </Td>
-                </Tr>
-              ))}
+                      {session.name}
+                    </Td>
+                    <Td
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      py={compactView ? 2 : 4}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                    >
+                      {summary[0]?.adjustmentValues?.length === 0 ? (
+                        "None"
+                      ) : (
+                        <Box display="inline-block">
+                          <Tooltip
+                            label={summary[0]?.adjustmentValues
+                              .map((adj) => {
+                                const sign = adj.value < 0 ? "-" : "+";
+                                const isFlat = adj.type === "rate_flat";
+                                const absValue = Math.abs(adj.value);
+                                return isFlat
+                                  ? `${sign}$${absValue}`
+                                  : `${sign}${absValue}%`;
+                              })
+                              .join(", ")}
+                            placement="top"
+                            bg="gray"
+                            w="auto"
+                          >
+                            <Text
+                              textOverflow="ellipsis"
+                              overflow="hidden"
+                            >
+                              {summary[0]?.adjustmentValues
+                                .map((adj) => {
+                                  const sign = adj.value < 0 ? "-" : "+";
+                                  const isFlat = adj.type === "rate_flat";
+                                  const absValue = Math.abs(adj.value);
+                                  return isFlat
+                                    ? `${sign}$${absValue}`
+                                    : `${sign}${absValue}%`;
+                                })
+                                .join(", ")}
+                            </Text>
+                          </Tooltip>
+                        </Box>
+                      )}
+                    </Td>
+                    <Td
+                      textAlign="end"
+                      py={compactView ? 0 : 4}
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                    >
+                      <HStack
+                        spacing={1}
+                        justify="end"
+                      >
+                        <Box as="span">$</Box>
+                        <Input
+                          value={parseFloat(session.rate).toFixed(2)}
+                          readOnly={true}
+                          w="8ch"
+                          textAlign="center"
+                          px={1}
+                        />
+                        <Box as="span">/hr</Box>
+                      </HStack>
+                    </Td>
+                  </Tr>
+                ))}
               {/* past due balance row */}
 
               <Tr>

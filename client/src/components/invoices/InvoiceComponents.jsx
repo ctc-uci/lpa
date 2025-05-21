@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   CalendarIcon,
@@ -9,7 +8,6 @@ import {
   ChevronRightIcon,
   DeleteIcon,
 } from "@chakra-ui/icons";
-
 import {
   Box,
   Button,
@@ -54,6 +52,7 @@ import { format } from "date-fns";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { useParams } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import { CancelIcon } from "../../assets/CancelIcon";
 import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
@@ -65,11 +64,11 @@ import {
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
 import personIcon from "../../assets/person.svg";
+import { useAuthContext } from "../../contexts/hooks/useAuthContext";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import DateSortingModal from "../filters/DateFilter";
 import ProgramSortingModal from "../filters/ProgramFilter";
 import StatusSortingModal from "../filters/StatusFilter";
-import { useAuthContext } from "../../contexts/hooks/useAuthContext";
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
@@ -226,7 +225,7 @@ const InvoiceStats = ({
             Remaining Balance
           </Text>
         </Box>
-        
+
         <Box h={7}>
           <Flex
             gap={2}
@@ -805,7 +804,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         const month = date.toLocaleString("default", { month: "long" });
         const year = date.getFullYear();
         const description = `${programTitle}, ${month} ${year} Invoice`;
-  
+
         setTimeout(() => {
           toast({
             title: "Invoice Past Due",
@@ -819,7 +818,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       }
     });
   }, [filteredInvoices, toast]);
-  
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
@@ -830,34 +828,36 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
     if (!filteredInvoices.length) return [];
 
     const sorted = [...filteredInvoices];
-      if (sortKey === "title") {
-        sorted.sort((a, b) =>
-          sortOrder === "asc"
-            ? a.eventName.localeCompare(b.eventName)
-            : b.eventName.localeCompare(a.eventName)
-        );
-      } else if (sortKey === "date") {
-        sorted.sort((a, b) => {
-          const aInvalid = !a.endDate || a.endDate === "N/A";
-          const bInvalid = !b.endDate || b.endDate === "N/A";
-          if (aInvalid && bInvalid) return 0;
-          if (aInvalid) return 1;
-          if (bInvalid) return -1;
-          const dateA = new Date(a.endDate);
-          const dateB = new Date(b.endDate);
-          return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-        });
-      } else if (sortKey === "status") {
-        sorted.sort((a, b) => {
-          const priority = {
-            "Past Due": 0,
-            "Not Paid": 1,
-            "Paid": 2,
-          };
-          return sortOrder === "asc" ? priority[b.isPaid] - priority[a.isPaid] : priority[a.isPaid] - priority[b.isPaid];
-        });
-      }
-      return sorted;
+    if (sortKey === "title") {
+      sorted.sort((a, b) =>
+        sortOrder === "asc"
+          ? a.eventName.localeCompare(b.eventName)
+          : b.eventName.localeCompare(a.eventName)
+      );
+    } else if (sortKey === "date") {
+      sorted.sort((a, b) => {
+        const aInvalid = !a.endDate || a.endDate === "N/A";
+        const bInvalid = !b.endDate || b.endDate === "N/A";
+        if (aInvalid && bInvalid) return 0;
+        if (aInvalid) return 1;
+        if (bInvalid) return -1;
+        const dateA = new Date(a.endDate);
+        const dateB = new Date(b.endDate);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    } else if (sortKey === "status") {
+      sorted.sort((a, b) => {
+        const priority = {
+          "Past Due": 0,
+          "Not Paid": 1,
+          Paid: 2,
+        };
+        return sortOrder === "asc"
+          ? priority[b.isPaid] - priority[a.isPaid]
+          : priority[a.isPaid] - priority[b.isPaid];
+      });
+    }
+    return sorted;
   }, [filteredInvoices, sortKey, sortOrder]);
 
   const totalInvoices = sortedPrograms?.length || 0;
@@ -1008,70 +1008,69 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
 
                 return (
-                    <Tr key={index}>
-                      <Td
-                        style={{
-                          color: isPaidColor(invoice),
-                          fontWeight:
-                            invoice.isPaid === "Past Due" ? "bold" : "normal",
-                        }}
+                  <Tr key={index}>
+                    <Td
+                      style={{
+                        color: isPaidColor(invoice),
+                        fontWeight:
+                          invoice.isPaid === "Past Due" ? "bold" : "normal",
+                      }}
+                    >
+                      {invoice.isPaid}
+                    </Td>
+                    <Td>
+                      <Flex
+                        justifyContent="center"
+                        align="center"
+                        w="60%"
                       >
-                        {invoice.isPaid}
-                      </Td>
-                      <Td>
-                        <Flex
-                          justifyContent="center"
-                          align="center"
-                          w="60%"
-                        >
-                          {invoice.isSent ? (
-                            <Icon
-                              as={FaCircle}
-                              color="#0C824D"
-                              boxSize={4}
-                            />
-                          ) : (
-                            <Icon
-                              as={FaCircle}
-                              color="#EA4335"
-                              boxSize={4}
-                            />
-                          )}
-                        </Flex>
-                      </Td>
-                      <Td>{invoice.eventName}</Td>
-                      <Td>
-                        {validPayers.length > 1
-                          ? `${validPayers[0].trim()},...`
-                          : validPayers.length === 1
-                            ? validPayers[0].trim()
-                            : "N/A"}
-                      </Td>
-                      <Td>{formatDate(invoice.endDate)}</Td>
-                      <Td>
-                        <Tag
-                          bg={tagBgColor}
-                          color={tagTextColor}
-                        >
-                          {invoice.season}
-                        </Tag>
-                      </Td>
-                      <Td>
-                        <Flex ml="18px">
-                          <PDFButtonInvoice id={invoice.id} />
-                        </Flex>
-                      </Td>
-                      <Td>
-                        <IconButton
-                          icon={<FiMoreHorizontal />}
-                          size="sm"
-                          bg="#EDF2F7"
-                          color="#000000"
-                          borderRadius="md"
-                        />
-                      </Td>
-
-                    </Tr>
+                        {invoice.isSent ? (
+                          <Icon
+                            as={FaCircle}
+                            color="#0C824D"
+                            boxSize={4}
+                          />
+                        ) : (
+                          <Icon
+                            as={FaCircle}
+                            color="#EA4335"
+                            boxSize={4}
+                          />
+                        )}
+                      </Flex>
+                    </Td>
+                    <Td>{invoice.eventName}</Td>
+                    <Td>
+                      {validPayers.length > 1
+                        ? `${validPayers[0].trim()},...`
+                        : validPayers.length === 1
+                          ? validPayers[0].trim()
+                          : "N/A"}
+                    </Td>
+                    <Td>{formatDate(invoice.endDate)}</Td>
+                    <Td>
+                      <Tag
+                        bg={tagBgColor}
+                        color={tagTextColor}
+                      >
+                        {invoice.season}
+                      </Tag>
+                    </Td>
+                    <Td>
+                      <Flex ml="18px">
+                        <PDFButtonInvoice id={invoice.id} />
+                      </Flex>
+                    </Td>
+                    <Td>
+                      <IconButton
+                        icon={<FiMoreHorizontal />}
+                        size="sm"
+                        bg="#EDF2F7"
+                        color="#000000"
+                        borderRadius="md"
+                      />
+                    </Td>
+                  </Tr>
                 );
               })}
               {currentInvoices.length === 0 && (

@@ -1,36 +1,51 @@
-import { Text, Flex, Input, Image, InputGroup, InputRightElement, Heading, useToast } from "@chakra-ui/react";
-import { SearchIcon } from "@chakra-ui/icons";
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import Navbar from "../navbar/Navbar";
-import { useEffect, useState, useRef } from "react";
-import { useNavigate } from 'react-router-dom'
-import { InvoicesTable, InvoicesFilter } from "./InvoiceComponents";
-import AlertIcon from "../../assets/alertIcon.svg"
-import { InvoiceFilter } from "../filters/InvoicesFilter";
+import { useEffect, useRef, useState } from "react";
 
+import { SearchIcon } from "@chakra-ui/icons";
+import {
+  Flex,
+  Heading,
+  Image,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
+
+import { useNavigate } from "react-router-dom";
+
+import AlertIcon from "../../assets/alertIcon.svg";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { InvoiceFilter } from "../filters/InvoicesFilter";
+import Navbar from "../navbar/Navbar";
+import { InvoicesFilter, InvoicesTable } from "./InvoiceComponents";
 
 const InvoicesDashboard = () => {
-  const toast = useToast()
+  const toast = useToast();
   const navigate = useNavigate();
   const { backend } = useBackendContext();
   const [invoices, setInvoices] = useState([]);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const hasShownToast = useRef(false);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [filter, setFilter] = useState({
-    startDate : "",
-    endDate : "",
-    status : "all",
-    instructor : "all",
-    payee : "all"
-  })
+    startDate: "",
+    endDate: "",
+    status: "all",
+    instructor: "all",
+    payee: "all",
+  });
 
   const isPaidColor = (invoice) => {
     if (invoice.isSent && invoice.paymentStatus === "full") {
-        return "#474849";
+      return "#474849";
     }
-    if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
-        return "none";
+    if (
+      !invoice.isSent &&
+      new Date() < new Date(invoice.endDate) &&
+      invoice.paymentStatus !== "full"
+    ) {
+      return "none";
     }
     return "#90080F";
   };
@@ -45,7 +60,7 @@ const InvoicesDashboard = () => {
     } else {
       return ["#e6f7ec", "#008000"];
     }
-  }
+  };
 
   const getSeason = (invoice) => {
     const month = new Date(invoice.endDate).getMonth();
@@ -58,18 +73,21 @@ const InvoicesDashboard = () => {
     } else {
       return "N/A";
     }
-  }
+  };
 
   const isPaid = (invoice) => {
     if (invoice.isSent && invoice.paymentStatus === "full") {
-        return "Paid";
+      return "Paid";
     }
-    if (!invoice.isSent && new Date() < new Date(invoice.endDate) && invoice.paymentStatus !== "full") {
-        return "Not Paid";
+    if (
+      !invoice.isSent &&
+      new Date() < new Date(invoice.endDate) &&
+      invoice.paymentStatus !== "full"
+    ) {
+      return "Not Paid";
     }
     return "Past Due";
   };
-
 
   useEffect(() => {
     const fetchInvoicesData = async () => {
@@ -79,32 +97,30 @@ const InvoicesDashboard = () => {
           const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
           if (invoice.role === "instructor") return acc;
           if (!acc[key]) {
-              // Create a new entry with a payers array
-              acc[key] = {
-                  ...invoice,
-                  payers: [invoice.name] // Store payers in an array
-              };
+            // Create a new entry with a payers array
+            acc[key] = {
+              ...invoice,
+              payers: [invoice.name], // Store payers in an array
+            };
           } else {
-              // Append the payer only if it's not already in the list (avoid duplicates)
-              if (!acc[key].payers.includes(invoice.name)) {
-                  acc[key].payers.push(invoice.name);
-              }
+            // Append the payer only if it's not already in the list (avoid duplicates)
+            if (!acc[key].payers.includes(invoice.name)) {
+              acc[key].payers.push(invoice.name);
+            }
           }
 
           return acc;
         }, {});
-        const invoices = Object.values(groupedInvoices).map(invoice => ({
-            ...invoice,
-            season: getSeason(invoice),
-            isPaid: isPaid(invoice)
-          }
-        ));
+        const invoices = Object.values(groupedInvoices).map((invoice) => ({
+          ...invoice,
+          season: getSeason(invoice),
+          isPaid: isPaid(invoice),
+        }));
         setInvoices(invoices);
-      }
-      catch (err) {
+      } catch (err) {
         console.log(err);
       }
-    }
+    };
     fetchInvoicesData();
   }, []);
 
@@ -112,32 +128,47 @@ const InvoicesDashboard = () => {
     if (invoices.length === 0 || hasShownToast.current) return;
 
     const getUnpaidInvoices = () => {
-      const filteredPastDueInvoices = filteredInvoices.filter(invoice => isPaid(invoice) === "PAST DUE");
+      const filteredPastDueInvoices = filteredInvoices.filter(
+        (invoice) => isPaid(invoice) === "PAST DUE"
+      );
       const notifCounter = filteredPastDueInvoices.length;
 
       if (notifCounter > 0) {
         hasShownToast.current = true; // Set ref to true to prevent multiple toasts
         toast({
           title: "Unpaid Invoices",
-          description: notifCounter > 1
-            ? `You have ${notifCounter} past due invoices`
-            : `${filteredPastDueInvoices[0].name} - ${filteredPastDueInvoices[0].endDate.split("T")[0]}`,
+          description:
+            notifCounter > 1
+              ? `You have ${notifCounter} past due invoices`
+              : `${filteredPastDueInvoices[0].name} - ${filteredPastDueInvoices[0].endDate.split("T")[0]}`,
           status: "error",
           duration: 9000,
           position: "bottom-right",
           isClosable: true,
           render: () => (
-            <Flex p={3} bg="#FED7D7" borderTop="4px solid" borderTopColor="red.500" onClick={() => navigate("/notification")} padding="12px 16px" gap='12px' w='400px'>
+            <Flex
+              p={3}
+              bg="#FED7D7"
+              borderTop="4px solid"
+              borderTopColor="red.500"
+              onClick={() => navigate("/notification")}
+              padding="12px 16px"
+              gap="12px"
+              w="400px"
+            >
               <Image src={AlertIcon} />
-              <Flex flexDirection='column'>
-                <Heading size="sm" align-self='stretch'>Unpaid Invoices</Heading>
-                <Text align-self='stretch'>
-
-                {notifCounter > 1
-                  ? `You have ${notifCounter} past due invoices`
-                  : `${filteredPastDueInvoices[0].name} -
-                  ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "2-digit",})}`
-                }
+              <Flex flexDirection="column">
+                <Heading
+                  size="sm"
+                  align-self="stretch"
+                >
+                  Unpaid Invoices
+                </Heading>
+                <Text align-self="stretch">
+                  {notifCounter > 1
+                    ? `You have ${notifCounter} past due invoices`
+                    : `${filteredPastDueInvoices[0].name} -
+                  ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}`}
                 </Text>
               </Flex>
             </Flex>
@@ -149,33 +180,57 @@ const InvoicesDashboard = () => {
     getUnpaidInvoices();
   }, [invoices]);
 
-  return(
+  return (
     <Navbar>
-      <Flex w='95%' m='50px 40px' flexDirection='column' padding="20px" border="1px solid var(--medium-light-grey)" borderRadius="12px"> 
-        <Flex justifyContent='space-between' mb='40px'>
+      <Flex
+        w="95%"
+        m="50px 40px"
+        flexDirection="column"
+        padding="20px"
+        border="1px solid var(--medium-light-grey)"
+        borderRadius="12px"
+      >
+        <Flex
+          justifyContent="space-between"
+          mb="40px"
+        >
           {/* <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} /> */}
-          <InvoiceFilter invoices={invoices} setFilteredInvoices={setFilteredInvoices}/>
+          <InvoiceFilter
+            invoices={invoices}
+            setFilteredInvoices={setFilteredInvoices}
+          />
 
-          <InputGroup w='400px' borderColor='transparent' >
-            <InputRightElement pointerEvents='none' bgColor="#EDF2F7" borderRadius='0px 6px 6px 0px'>
-              <SearchIcon color='#767778'/>
+          <InputGroup
+            w="400px"
+            borderColor="transparent"
+          >
+            <InputRightElement
+              pointerEvents="none"
+              bgColor="#EDF2F7"
+              borderRadius="0px 6px 6px 0px"
+            >
+              <SearchIcon color="#767778" />
             </InputRightElement>
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              icon={SearchIcon} borderColor='gray.100'
+              icon={SearchIcon}
+              borderColor="gray.100"
               bgColor="#F7FAFC"
-              borderRadius='6px 0px 0px 6px'
+              borderRadius="6px 0px 0px 6px"
               placeholder="Search..."
               textColor="#718096"
             />
           </InputGroup>
         </Flex>
-        <InvoicesTable filteredInvoices={filteredInvoices} isPaidColor={isPaidColor} seasonColor={seasonColor}/>
-        
+        <InvoicesTable
+          filteredInvoices={filteredInvoices}
+          isPaidColor={isPaidColor}
+          seasonColor={seasonColor}
+        />
       </Flex>
     </Navbar>
   );
-}
+};
 
-export { InvoicesDashboard }
+export { InvoicesDashboard };

@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   Box,
   Button,
   Flex,
@@ -8,22 +14,18 @@ import {
   IconButton,
   Image,
   Text,
+  useDisclosure,
   useToast,
   VStack,
-  useDisclosure,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay
 } from "@chakra-ui/react";
 
 import { useNavigate, useParams } from "react-router-dom";
 
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
+import { LeftIcon } from "../../assets/LeftIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { EmailSidebar } from "../email/EmailSidebar";
 import Navbar from "../navbar/Navbar";
 import {
   EditInvoiceDetails,
@@ -33,10 +35,15 @@ import {
   StatementComments,
 } from "./EditInvoiceComponents";
 
-import { EmailSidebar } from "../email/EmailSidebar";
-import { LeftIcon } from "../../assets/LeftIcon";
-
-const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, programName }) => {
+const InvoiceNavBar = ({
+  onBack,
+  onSave,
+  isSaving,
+  payees,
+  comments,
+  invoice,
+  programName,
+}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getGeneratedDate = () => {
@@ -90,7 +97,14 @@ const InvoiceNavBar = ({ onBack, onSave, isSaving, payees, comments, invoice, pr
           Save
         </Button>
         <HStack>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees} pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`} invoice={invoice} />
+          <EmailSidebar
+            isOpen={isOpen}
+            onOpen={onOpen}
+            onClose={onClose}
+            payees={payees}
+            pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
+            invoice={invoice}
+          />
         </HStack>
       </HStack>
     </Flex>
@@ -131,7 +145,6 @@ export const EditInvoice = () => {
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = React.useRef();
-
 
   useEffect(() => {
     if (id) {
@@ -221,14 +234,15 @@ export const EditInvoice = () => {
           pastDue: remainingBalance,
         });
 
+        const sessionResponse = await backend.get(
+          `comments/invoice/sessions/${id}`
+        );
+        setSessions(sessionResponse.data);
 
-        const sessionResponse = await backend.get(`comments/invoice/sessions/${id}`)
-        setSessions(sessionResponse.data)
-
-        const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
+        const summaryResponse = await backend.get(
+          `comments/invoice/summary/${id}`
+        );
         setSummary(summaryResponse.data);
-
-
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -240,29 +254,34 @@ export const EditInvoice = () => {
     const fetchBookingDetails = async () => {
       try {
         // Check if invoice and invoice.data exist and have elements
-        if (!invoice || !invoice.data || !Array.isArray(invoice.data) || invoice.data.length === 0) {
+        if (
+          !invoice ||
+          !invoice.data ||
+          !Array.isArray(invoice.data) ||
+          invoice.data.length === 0
+        ) {
           return;
         }
 
         // Gets all bookings within the invoice start and end date
-        const bookingResponse = await backend.get(
-          `/bookings`, {
+        const bookingResponse = await backend.get(`/bookings`, {
           params: {
             start: invoice.data[0].startDate,
-            end: invoice.data[0].endDate
-          }
-        }
-        );
+            end: invoice.data[0].endDate,
+          },
+        });
 
         // Filter for only the bookings that match the event id
         const bookingsWithinDate = bookingResponse.data;
-        const bookingsWithEventId = bookingsWithinDate.filter(booking => booking.eventId === invoice.data[0].eventId);
+        const bookingsWithEventId = bookingsWithinDate.filter(
+          (booking) => booking.eventId === invoice.data[0].eventId
+        );
 
         setBookingDetails(bookingsWithEventId);
 
         // Now fetch rooms for all those bookings
         if (bookingsWithEventId.length > 0) {
-          const roomPromises = bookingsWithEventId.map(booking =>
+          const roomPromises = bookingsWithEventId.map((booking) =>
             backend.get(`/rooms/${booking.roomId}`)
           );
 
@@ -270,13 +289,16 @@ export const EditInvoice = () => {
           const roomResponses = await Promise.all(roomPromises);
 
           // Extract just the room data from the responses:
-          const roomsArray = roomResponses.map(response =>
-            response.data && response.data.length > 0 ? response.data[0] : null
-          ).filter(Boolean); // Filter out any null values
+          const roomsArray = roomResponses
+            .map((response) =>
+              response.data && response.data.length > 0
+                ? response.data[0]
+                : null
+            )
+            .filter(Boolean); // Filter out any null values
 
           setRoom(roomsArray);
         }
-
       } catch (error) {
         console.error("Error fetching booking details:", error);
       }
@@ -304,13 +326,12 @@ export const EditInvoice = () => {
       // First, delete all comments that are in deletedIds
       if (deletedIds && deletedIds.length > 0) {
         // Process deletions in parallel
-        const deletionPromises = deletedIds.map(id =>
-          backend.delete(`/comments/${id}`)
-            .catch(error => {
-              console.error(`Error deleting comment with ID ${id}:`, error);
-              // Continue with other deletions even if one fails
-              return null;
-            })
+        const deletionPromises = deletedIds.map((id) =>
+          backend.delete(`/comments/${id}`).catch((error) => {
+            console.error(`Error deleting comment with ID ${id}:`, error);
+            // Continue with other deletions even if one fails
+            return null;
+          })
         );
 
         // Wait for all deletions to complete
@@ -322,9 +343,12 @@ export const EditInvoice = () => {
 
       // Process all sessions
       for (const session of sessions) {
-
         // Handle comments for each session
-        if (session.comments && session.comments.length > 0 && session.adjustmentValues[0]?.type !== "total") {
+        if (
+          session.comments &&
+          session.comments.length > 0 &&
+          session.adjustmentValues[0]?.type !== "total"
+        ) {
           for (let i = 0; i < session.comments.length; i++) {
             const commentText = session.comments[i].comment;
 
@@ -342,15 +366,19 @@ export const EditInvoice = () => {
 
             try {
               // For regular sessions, check if this comment already exists
-              const existingComment = comments.find(c =>
-                c.bookingId == commentData.booking_id &&
-                c.comment == commentData.comment
+              const existingComment = comments.find(
+                (c) =>
+                  c.bookingId == commentData.booking_id &&
+                  c.comment == commentData.comment
               );
 
               if (existingComment) {
                 // Update existing comment
                 // console.log("existingComment", existingComment);
-                await backend.put(`/comments/${existingComment.id}`, commentData);
+                await backend.put(
+                  `/comments/${existingComment.id}`,
+                  commentData
+                );
               } else {
                 // Create new comment
                 // console.log("newComment", commentData);
@@ -364,10 +392,18 @@ export const EditInvoice = () => {
         }
 
         // Handle adjustments for each session
-        if (session.adjustmentValues && session.adjustmentValues.length > 0 && session.adjustmentValues[0]?.type !== "none") {
+        if (
+          session.adjustmentValues &&
+          session.adjustmentValues.length > 0 &&
+          session.adjustmentValues[0]?.type !== "none"
+        ) {
           for (const adjustmentValue of session.adjustmentValues) {
             // Skip invalid adjustment values
-            if (isNaN(adjustmentValue.value) || adjustmentValue.value === undefined) continue;
+            if (
+              isNaN(adjustmentValue.value) ||
+              adjustmentValue.value === undefined
+            )
+              continue;
 
             const adjustmentData = {
               id: adjustmentValue.id,
@@ -375,28 +411,37 @@ export const EditInvoice = () => {
               booking_id: session.bookingId || null,
               invoice_id: id,
               datetime: session.datetime,
-              comment: session?.comments && session?.comments.length > 0 && session.adjustmentValues[0]?.type === "total" ? session?.comments[0]?.comment : "",
+              comment:
+                session?.comments &&
+                session?.comments.length > 0 &&
+                session.adjustmentValues[0]?.type === "total"
+                  ? session?.comments[0]?.comment
+                  : "",
               adjustment_type: adjustmentValue.type,
               adjustment_value: adjustmentValue.value,
             };
 
-
-
             try {
               // Check if this adjustment already exists
-              const existingAdjustment = comments.find(c =>
-                c.id == adjustmentValue.id
+              const existingAdjustment = comments.find(
+                (c) => c.id == adjustmentValue.id
               );
 
               if (existingAdjustment) {
                 // Update existing adjustment
                 // console.log("existingAdjustmentData", existingAdjustment);
-                const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
+                const existingAdjustmentResponse = await backend.put(
+                  `/comments/${existingAdjustment.id}`,
+                  adjustmentData
+                );
                 // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
               } else {
                 // Create new adjustment
                 // console.log("newAdjustmentData", adjustmentData);
-                const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
+                const newAdjustmentResponse = await backend.post(
+                  `/comments`,
+                  adjustmentData
+                );
                 // console.log("newAdjustmentResponse", newAdjustmentResponse);
               }
             } catch (error) {
@@ -406,15 +451,13 @@ export const EditInvoice = () => {
           }
         }
 
-
         if (sessions && sessions.length > 0) {
           if (session.total && session.total.length > 0) {
             for (const totalItem of session.total) {
               try {
                 if (totalItem.id) {
                   await backend.put(`/comments/${totalItem.id}`, totalItem);
-                }
-                else {
+                } else {
                   const totalData = {
                     user_id: session.userId,
                     booking_id: session.bookingId,
@@ -437,10 +480,17 @@ export const EditInvoice = () => {
         // Process summary adjustments
         if (summary && summary.length > 0) {
           for (const summaryItem of summary) {
-            if (summaryItem.adjustmentValues && summaryItem.adjustmentValues.length > 0) {
+            if (
+              summaryItem.adjustmentValues &&
+              summaryItem.adjustmentValues.length > 0
+            ) {
               for (const adjustmentValue of summaryItem.adjustmentValues) {
                 // Skip invalid adjustment values
-                if (isNaN(adjustmentValue.value) || adjustmentValue.value === undefined) continue;
+                if (
+                  isNaN(adjustmentValue.value) ||
+                  adjustmentValue.value === undefined
+                )
+                  continue;
 
                 const adjustmentData = {
                   user_id: summaryItem.userId,
@@ -454,19 +504,25 @@ export const EditInvoice = () => {
 
                 try {
                   // Check if this summary adjustment already exists
-                  const existingAdjustment = comments.find(c =>
-                    c.id === adjustmentValue.id
+                  const existingAdjustment = comments.find(
+                    (c) => c.id === adjustmentValue.id
                   );
 
                   if (existingAdjustment) {
                     // Update existing adjustment
                     // console.log("Summary existingAdjustment", existingAdjustment);
-                    const existingAdjustmentResponse = await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
+                    const existingAdjustmentResponse = await backend.put(
+                      `/comments/${existingAdjustment.id}`,
+                      adjustmentData
+                    );
                     // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
                   } else {
                     // Create new adjustment
                     // console.log("Summary newAdjustment", adjustmentData);
-                    const newAdjustmentResponse = await backend.post(`/comments`, adjustmentData);
+                    const newAdjustmentResponse = await backend.post(
+                      `/comments`,
+                      adjustmentData
+                    );
                     // console.log("newAdjustmentResponse", newAdjustmentResponse);
                   }
                 } catch (error) {
@@ -478,9 +534,9 @@ export const EditInvoice = () => {
           }
         }
       }
-        navigate(`/invoices/savededits/${id}`);
-      } catch (error) {
-        console.error("Error saving invoice:", error);
+      navigate(`/invoices/savededits/${id}`);
+    } catch (error) {
+      console.error("Error saving invoice:", error);
     } finally {
       setIsSaving(false);
     }
@@ -526,19 +582,32 @@ export const EditInvoice = () => {
         >
           <AlertDialogOverlay>
             <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              <AlertDialogHeader
+                fontSize="lg"
+                fontWeight="bold"
+              >
                 Saved edits to invoice?
               </AlertDialogHeader>
 
               <AlertDialogBody>
-                Changes made to this invoice will be saved. Please email Payer(s) and Lead Artist(s) this updated PDF.
+                Changes made to this invoice will be saved. Please email
+                Payer(s) and Lead Artist(s) this updated PDF.
               </AlertDialogBody>
 
               <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={handleCancelBack} ml={3}>
+                <Button
+                  ref={cancelRef}
+                  onClick={handleCancelBack}
+                  ml={3}
+                >
                   Cancel
                 </Button>
-                <Button bg="#4441C8" color="white" onClick={handleSaveAndBack} ml={3}>
+                <Button
+                  bg="#4441C8"
+                  color="white"
+                  onClick={handleSaveAndBack}
+                  ml={3}
+                >
                   Save
                 </Button>
               </AlertDialogFooter>

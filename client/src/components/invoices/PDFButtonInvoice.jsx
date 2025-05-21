@@ -3,18 +3,13 @@ import React, { useEffect, useState } from "react";
 import { DownloadIcon } from "@chakra-ui/icons";
 import { Box, Flex, IconButton, Spinner } from "@chakra-ui/react";
 
-import {
-  PDFViewer,
-  Text,
-} from "@react-pdf/renderer";
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { InvoicePDFDocument } from "./InvoicePDFDocument";
-import { pdf } from "@react-pdf/renderer";
+import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { InvoicePDFDocument } from "./InvoicePDFDocument";
+
 // TODO FIX ENDPOINTS TO FIX CALCULATIONS
-
-
 
 const handleSubtotalSum = (startTime, endTime, rate) => {
   if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
@@ -140,28 +135,34 @@ const PDFButtonInvoice = ({ id }) => {
   };
 
   const handleDownload = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const invoiceResponse = await backend.get(`/invoices/${id}`);
-    const invoice = invoiceResponse.data;
-    const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
+      const invoiceResponse = await backend.get(`/invoices/${id}`);
+      const invoice = invoiceResponse.data;
+      const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
 
-    const blob = await pdf(
-      <InvoicePDFDocument invoice={invoice} {...invoiceData} />
-    ).toBlob();
+      const blob = await pdf(
+        <InvoicePDFDocument
+          invoice={invoice}
+          {...invoiceData}
+        />
+      ).toBlob();
 
-    saveAs(blob, `${invoiceData.programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`);
-  } catch (err) {
-    console.error("Error generating PDF:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+      saveAs(
+        blob,
+        `${invoiceData.programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+      );
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box>
-        <IconButton
+      <IconButton
         icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
         onClick={handleDownload}
         backgroundColor="transparent"

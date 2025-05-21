@@ -2,29 +2,36 @@ import React, { useEffect, useState } from "react";
 
 import {
   Box,
+  Button,
+  Link as ChakraLink,
   Flex,
+  HStack,
   Icon,
   IconButton,
   Image,
-  VStack,
-  HStack,
-  useDisclosure,
   Text,
-  Button,
-  Link as ChakraLink
+  useDisclosure,
+  VStack,
 } from "@chakra-ui/react";
-import { Link, useNavigate, useParams} from "react-router-dom";
+
+import { Link, useNavigate, useParams } from "react-router-dom";
+
+import { PencilIcon } from "../../assets/EditInvoiceIcons.jsx";
 import { LeftIcon } from "../../assets/LeftIcon.jsx";
-
 import { SavedInvoiceEllipsisIcon } from "../../assets/SavedInvoiceEllipsisIcon.jsx";
-
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { EmailSidebar } from "../email/EmailSidebar.jsx";
 import Navbar from "../navbar/Navbar";
 import { InvoiceView } from "./InvoiceView";
-import { EmailSidebar } from "../email/EmailSidebar.jsx";
-import { PencilIcon } from "../../assets/EditInvoiceIcons.jsx";
 
-const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments }) => {
+const SavedInvoiceNavBar = ({
+  onBack,
+  id,
+  invoice,
+  payees,
+  programName,
+  comments,
+}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
 
@@ -45,20 +52,19 @@ const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments
     }
   };
 
-
-    return (
-      <Flex
-        width="100%"
-        justifyContent="space-between"
-        alignItems="center"
-        py={4}
-        px={6}
-        bg="white"
-        borderBottom="1px solid #E2E8F0"
-      >
-        <HStack>
+  return (
+    <Flex
+      width="100%"
+      justifyContent="space-between"
+      alignItems="center"
+      py={4}
+      px={6}
+      bg="white"
+      borderBottom="1px solid #E2E8F0"
+    >
+      <HStack>
         <IconButton
-          icon={<LeftIcon color="black"/>}
+          icon={<LeftIcon color="black" />}
           onClick={onBack}
           variant="link"
           color="#474849"
@@ -68,21 +74,26 @@ const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, comments
         <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)}_Classroom Rental Summary`}</Text>
       </HStack>
 
-        <HStack>
-          
-          {/* Edit Icon looks different from Figma HiFi, so lmk if yall want me to make another edit icon or just reuse the icon we already have */}
-            <Button leftIcon={<PencilIcon color="black"/>} onClick={() => navigate(`/invoices/edit/${id}`)}>
-                Edit
-              </Button>
-          <EmailSidebar isOpen={isOpen} onOpen={onOpen} onClose={onClose} payees={payees} pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`} invoice={invoice}/>
-        </HStack>
-
-
-
-
-      </Flex>
-    );
-  };
+      <HStack>
+        {/* Edit Icon looks different from Figma HiFi, so lmk if yall want me to make another edit icon or just reuse the icon we already have */}
+        <Button
+          leftIcon={<PencilIcon color="black" />}
+          onClick={() => navigate(`/invoices/edit/${id}`)}
+        >
+          Edit
+        </Button>
+        <EmailSidebar
+          isOpen={isOpen}
+          onOpen={onOpen}
+          onClose={onClose}
+          payees={payees}
+          pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
+          invoice={invoice}
+        />
+      </HStack>
+    </Flex>
+  );
+};
 
 export const SavedEdit = () => {
   const { id } = useParams();
@@ -102,7 +113,6 @@ export const SavedEdit = () => {
 
   const [sessions, setSessions] = useState([]);
   const [summary, setSummary] = useState([]);
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -133,7 +143,7 @@ export const SavedEdit = () => {
         );
         setInstructors(instructorResponse.data);
 
-        const commentsResponse = await backend.get("/comments/invoice/" + id); 
+        const commentsResponse = await backend.get("/comments/invoice/" + id);
         setComments(commentsResponse.data);
 
         const programNameResponse = await backend.get(
@@ -178,12 +188,15 @@ export const SavedEdit = () => {
 
         // ==== END OF PAST DUE CALCULATION ====
 
-        const sessionResponse = await backend.get(`comments/invoice/sessions/${id}`)
-        setSessions(sessionResponse.data)
+        const sessionResponse = await backend.get(
+          `comments/invoice/sessions/${id}`
+        );
+        setSessions(sessionResponse.data);
 
-        const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
+        const summaryResponse = await backend.get(
+          `comments/invoice/summary/${id}`
+        );
         setSummary(summaryResponse.data);
-
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -224,7 +237,6 @@ export const SavedEdit = () => {
 
   return (
     <Navbar>
-
       <VStack>
         <SavedInvoiceNavBar
           onBack={handleBack}

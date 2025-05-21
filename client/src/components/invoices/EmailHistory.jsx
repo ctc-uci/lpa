@@ -57,10 +57,17 @@ const EmailHistory = ({ emails }) => {
           <Tbody color="#2D3748">
             {emails && emails.length > 0 ? (
               currentPageEmails.map((email) => (
-                <Tr key={email.id} alignItems="center"
-                alignSelf="stretch"
-                gap="12px">
-                  <Td fontSize="14px" paddingInlineStart="8px" paddingInlineEnd="8px">
+                <Tr
+                  key={email.id}
+                  alignItems="center"
+                  alignSelf="stretch"
+                  gap="12px"
+                >
+                  <Td
+                    fontSize="14px"
+                    paddingInlineStart="8px"
+                    paddingInlineEnd="8px"
+                  >
                     {format(new Date(email.datetime), "EEE. M/d/yyyy")}
                   </Td>
                   <Td
@@ -68,7 +75,8 @@ const EmailHistory = ({ emails }) => {
                     fontWeight="700"
                     color="#4441C8"
                     fontFamily={"Inter"}
-                    paddingInlineStart="8px" paddingInlineEnd="8px"
+                    paddingInlineStart="8px"
+                    paddingInlineEnd="8px"
                   >
                     <Link
                       href={email.fileReference}

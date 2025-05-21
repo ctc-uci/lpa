@@ -153,12 +153,8 @@ export const SingleInvoice = () => {
         //   "/comments/paidInvoices/" + id
         // );
 
-        const commentsResponse = await backend.get(
-          "/comments/invoice/" + id
-        );
+        const commentsResponse = await backend.get("/comments/invoice/" + id);
         setComments(commentsResponse.data);
-
-        console.log("commentsResponse", commentsResponse);
 
         // get emails
         const emailsResponse = await backend.get(
@@ -174,10 +170,14 @@ export const SingleInvoice = () => {
         const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
         setEvent(eventResponse.data);
 
-        const sessionResponse = await backend.get(`comments/invoice/sessions/${id}`)
-        setSessions(sessionResponse.data)
+        const sessionResponse = await backend.get(
+          `comments/invoice/sessions/${id}`
+        );
+        setSessions(sessionResponse.data);
 
-        const summaryResponse = await backend.get(`comments/invoice/summary/${id}`)
+        const summaryResponse = await backend.get(
+          `comments/invoice/summary/${id}`
+        );
         setSummary(summaryResponse.data);
       } catch (error) {
         // Invoice/field does not exist
@@ -201,7 +201,6 @@ export const SingleInvoice = () => {
         const bookingResponse = await backend.get(
           `/bookings/${commentWithBookingId}`
         );
-        // console.log("Booking details:", bookingResponse.data);
         setBookingDetails(bookingResponse.data[0]);
 
         const roomResponse = await backend.get(
@@ -239,8 +238,6 @@ export const SingleInvoice = () => {
       navigate(path);
     }
   };
-
-
 
   return (
     <Navbar onNavbarClick={handleNavbarClick}>
@@ -387,7 +384,7 @@ export const SingleInvoice = () => {
                 h="80%"
                 borderColor="#D9D9D933"
                 overflow="hidden" // Important: prevents scrollbars from fighting transform
-                justifyContent="center" 
+                justifyContent="center"
                 alignItems="center"
               >
                 <TransformWrapper
@@ -396,9 +393,12 @@ export const SingleInvoice = () => {
                   limitToWrapper={true}
                   panning={{ velocityDisabled: true }}
                 >
-                  <TransformComponent >
-                    <Box transform="scale(0.85)" transformOrigin="center">
-                    <InvoiceView
+                  <TransformComponent>
+                    <Box
+                      transform="scale(0.85)"
+                      transformOrigin="center"
+                    >
+                      <InvoiceView
                         comments={comments}
                         sessions={sessions}
                         setSessions={setSessions}

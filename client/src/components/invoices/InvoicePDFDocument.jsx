@@ -6,10 +6,10 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
-import InvoiceFooter from "../../assets/background/InvoiceFooter.png";
-import InvoiceHeader from "../../assets/background/InvoiceHeader.png";
 import { format } from "date-fns";
 
+import InvoiceFooter from "../../assets/background/InvoiceFooter.png";
+import InvoiceHeader from "../../assets/background/InvoiceHeader.png";
 import logo from "../../assets/logo/logo.png";
 
 const styles = StyleSheet.create({
@@ -76,7 +76,6 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   }
 };
 
-
 const EditInvoiceTitle = ({ comments, invoice }) => {
   return (
     <View>
@@ -118,9 +117,8 @@ const EditInvoiceDetailsPDF = ({
   programName,
   payees,
   comments,
-  invoice
+  invoice,
 }) => {
-
   return (
     <View
       style={{
@@ -201,7 +199,6 @@ const EditInvoiceDetailsPDF = ({
           ) : (
             <Text style={{ fontSize: 8 }}>No instructors found.</Text>
           )}
-
         </View>
       </View>
     </View>
@@ -515,8 +512,6 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue }) => {
   );
 };
 
-
-
 const InvoicePDFDocument = ({
   invoice,
   instructors,
@@ -581,13 +576,13 @@ const InvoicePDFDocument = ({
             />
           </View>
         </View>
-          <Image
-            src={InvoiceFooter}
-            style={{ width: "100%" }}
-            />
+        <Image
+          src={InvoiceFooter}
+          style={{ width: "100%" }}
+        />
       </Page>
     </Document>
   );
 };
 
-export { InvoicePDFDocument }
+export { InvoicePDFDocument };
