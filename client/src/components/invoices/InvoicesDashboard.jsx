@@ -92,17 +92,19 @@ const InvoicesDashboard = () => {
   }, []);
 
   const isPaidColor = (invoice) => {
-    if (invoice.isSent && invoice.paymentStatus === "full") {
+    const paidStatus = isPaid(invoice);
+
+    if (paidStatus === "Paid") {
       return "#474849";
     }
-    if (
-      !invoice.isSent &&
-      new Date() < new Date(invoice.endDate) &&
-      invoice.paymentStatus !== "full"
-    ) {
+
+    if (paidStatus === "Not Paid") {
       return "none";
     }
-    return "#90080F";
+
+    if (paidStatus === "Past Due") {
+      return "#90080F";
+    }
   };
 
   const seasonColor = (invoice) => {
@@ -131,16 +133,21 @@ const InvoicesDashboard = () => {
   };
 
   const isPaid = (invoice) => {
-    if (invoice.isSent && invoice.paymentStatus === "full") {
+    const endDate = new Date(invoice.endDate);
+
+    console.log(invoice);
+
+    if (invoice.paymentStatus === "full") {
       return "Paid";
     }
+
     if (
-      !invoice.isSent &&
-      new Date() < new Date(invoice.endDate) &&
+      new Date() < endDate &&
       invoice.paymentStatus !== "full"
     ) {
       return "Not Paid";
     }
+
     return "Past Due";
   };
 
@@ -190,7 +197,10 @@ const InvoicesDashboard = () => {
           ...invoice,
           season: getSeason(invoice),
           isPaid: isPaid(invoice),
+          paymentStatus: isPaid(invoice)
         }));
+
+        console.log(invoices);
 
         setInvoices(invoices);
         setFilteredInvoices(invoices);

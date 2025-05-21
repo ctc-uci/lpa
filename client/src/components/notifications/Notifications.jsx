@@ -189,7 +189,20 @@ export const Notifications = () => {
           endpoints.map((endpoint) => backend.get(endpoint))
         );
 
-        const notifsData = responses.flatMap((res) => res.data);
+        // Create a map of endpoint to status
+        const endpointToStatus = {
+          '/invoices/overdue': 'overdue',
+          '/invoices/neardue': 'neardue',
+          '/invoices/highpriority': 'highpriority'
+        };
+
+        // Flatten responses and include the source endpoint
+        const notifsData = responses.flatMap((res, index) => 
+          res.data.map(invoice => ({
+            ...invoice,
+            payStatus: endpointToStatus[endpoints[index]]
+          }))
+        );
 
         // Fetch additional data for each invoice (total, paid, event name)
         const enrichedInvoices = await Promise.all(
@@ -208,22 +221,13 @@ export const Notifications = () => {
 
               const endDate = new Date(invoice.endDate);
               const dueTime = getDueTime(endDate);
-              let payStatus = "";
-              if (endDate < today && invoice.isSent) {
-                payStatus = "overdue";
-              } else if (endDate < today && !invoice.isSent) {
-                payStatus = "highpriority";
-              } else {
-                payStatus = "neardue";
-              }
 
               return {
                 ...invoice,
                 eventName: eventRes.data[0]?.name || "Unknown Event",
                 total: totalRes.data.total,
                 paid: paidRes.data.paid,
-                payStatus,
-                description: getDescription(payStatus, payersRes.data),
+                description: getDescription(invoice.payStatus, payersRes.data),
                 dueTime,
               };
             } catch (err) {
