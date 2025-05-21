@@ -41,6 +41,7 @@ import {
   useDisclosure,
   useToast,
   VStack,
+  Divider,
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
@@ -76,6 +77,7 @@ import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
 import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
+import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -879,7 +881,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         variant: "left-accent",
         status: "error",
         duration: 5000,
-        isClosable: false,
+        isClosable: true,
         position: "bottom-right",
         render: ({ title, description }) => (
           <Flex
@@ -899,8 +901,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 <Text fontSize="sm" color="gray.700">{description}</Text>
               </Box>
             </Flex>
-            <Box border="#E53E3E" borderWidth="5px"></Box>
-            <Flex align="center" px={4} bg="#FED7D7">
+            <Flex align="center" gap={4}>
               <Button
                 size="sm"
                 variant="link"
@@ -915,6 +916,19 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 }}
               >
                 View
+              </Button>
+              <Divider orientation="vertical" height="30px" borderColor="#E53E3E" />
+              <Button
+                size="sm"
+                variant="link"
+                color="#E53E3E"
+                fontWeight="regular"
+                onClick={() => {
+                  window.__hasShownToast = false;
+                  toast.closeAll();
+                }}
+              >
+                Close
               </Button>
             </Flex>
           </Flex>
