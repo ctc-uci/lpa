@@ -3,6 +3,7 @@ import {
   Box,
   HStack,
   Icon,
+  IconButton,
   Input,
   Tag,
 } from "@chakra-ui/react";
@@ -11,10 +12,13 @@ import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
 import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import BsPaletteFill from "../../../assets/icons/BsPaletteFill.svg";
+import {AddClient} from "../../../components/clientsearch/AddClient";
 
 export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, setInstructorSearchTerm} ) => {
   const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [showAddClient, setShowAddClient] = useState(false);
+
 
   useEffect(() => {
     getInstructorResults(instructorSearchTerm);
@@ -78,6 +82,20 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                       placeholder="Lead Artist(s)"
                     onChange={(e) => {searchInstructors(e.target.value)}}
                     onClick={() => {searchInstructors(instructorSearchTerm)}}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const instructor = searchedInstructors.find(
+                          (instr) =>
+                            instr.name.toLowerCase() === instructorSearchTerm.toLowerCase()
+                        );
+                        if (instructor) {
+                          setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                        }
+                        if (!instructor) {
+                          setShowAddClient(true);
+                        }
+                      }
+                    }}
                     value={instructorSearchTerm}
                     id="instructorInput"
                     />
@@ -105,14 +123,26 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                       ? "not-allowed" : "pointer"
                     }
                   >
-                    <PlusFilledIcon
-                      color={
-                        instructorSearchTerm.trim() !== "" &&
-                          searchedInstructors.some(instr => instr.name.toLowerCase() === instructorSearchTerm.toLowerCase())
-                          ? "#4441C8" : "#718096"
-                      }
-                    />
                   </Box>
+                  <IconButton
+                      variant="ghost"
+                      onClick={() => setShowAddClient(true)}
+                      boxShadow="none"
+                      _hover={{ boxShadow: "none" }} // also removes shadow on hover
+                      _focus={{ boxShadow: "none" }} // removes shadow on focus
+                    >
+                    <PlusFilledIcon/>
+                    </IconButton>
+                    <AddClient
+                      isOpen={showAddClient}
+                      onClose={() => setShowAddClient(false)}
+                      onSave={() => {
+                        setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                      }}
+                      type="Lead Artist"
+                      firstNameUserInput={instructorSearchTerm.trim().split(" ")[0] || ""}
+                      lastNameUserInput={instructorSearchTerm.trim().split(" ").slice(1).join(" ") || ""}
+                    />
                 </div>
 
                 {dropdownVisible && searchedInstructors.length > 0 && (

@@ -2,14 +2,19 @@ import { Box, Flex, Stack, Input, Button, Modal, ModalOverlay, ModalContent, Mod
 import { PersonIcon } from "../../assets/AdminSettingsIcons";
 import { EmailIcon } from "../../assets/EmailIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 
-export const AddClient = ({ isOpen, onClose, type }) => {
+export const AddClient = ({ isOpen, onClose, onSave, type, firstNameUserInput, lastNameUserInput}) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const { backend } = useBackendContext();
+
+  useEffect(() => {
+    setFirstName(firstNameUserInput);
+    setLastName(lastNameUserInput);
+  }, [firstNameUserInput, lastNameUserInput]);
 
   const addClient = async () => {
     try {
@@ -23,6 +28,7 @@ export const AddClient = ({ isOpen, onClose, type }) => {
       setFirstName("");
       setLastName("");
       setEmail("");
+      onSave();
       onClose();
     } catch (err) {
       setFirstName("");
