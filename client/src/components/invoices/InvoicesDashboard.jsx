@@ -135,12 +135,13 @@ const InvoicesDashboard = () => {
   const isPaid = (invoice) => {
     const endDate = new Date(invoice.endDate);
 
+    console.log(invoice);
+
     if (invoice.paymentStatus === "full") {
       return "Paid";
     }
 
     if (
-      !invoice.isSent &&
       new Date() < endDate &&
       invoice.paymentStatus !== "full"
     ) {

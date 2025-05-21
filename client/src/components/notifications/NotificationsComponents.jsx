@@ -92,7 +92,7 @@ const NotificationsComponents = ({
     }
 
     setSortedNotifications(sorted);
-  }, [sortKey, sortOrder]);
+  }, [sortKey, sortOrder, notifications]);
 
   const getNotifType = (payStatus) => {
     const statusMap = {
