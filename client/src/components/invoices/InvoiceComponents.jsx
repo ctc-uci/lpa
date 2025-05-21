@@ -908,6 +908,8 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 color="#E53E3E"
                 fontWeight="bold"
                 onClick={() => {
+                  window.__hasShownToast = false;
+                  toast.closeAll();
                   if (pastDueCount === 1) {
                     navigate(`/invoices/${pastDueInvoices[0].id}`);
                   } else {
