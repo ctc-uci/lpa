@@ -36,6 +36,43 @@ bookingsRouter.get("/", async (req, res) => {
   }
 });
 
+// return all bookings with their corresponding event name
+bookingsRouter.get("/bookingEventNames/", async (req, res) => {
+  try {
+    const { start, end } = req.query;
+
+    let query = `
+      SELECT b.*, e.name
+      FROM bookings AS b
+      LEFT JOIN events AS e
+      ON b.event_id = e.id
+    `;
+    const params = [];
+
+    if (start) {
+      const [startDate, startTime] = start.split("T");
+      query += ` WHERE (date > $1 OR (date = $1 AND start_time >= $2))`;
+      params.push(startDate, startTime);
+    }
+
+    if (end) {
+      const [endDate, endTime] = end.split("T");
+      if (params.length === 0) {
+        query += ` WHERE (date < $1 OR (date = $1 AND end_time <= $2))`;
+      } else {
+        query += ` AND (date < $3 OR (date = $3 AND end_time <= $4))`;
+      }
+      params.push(endDate, endTime);
+    }
+
+    const data = await db.query(query, params);
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 bookingsRouter.get("/:id", async (req, res) => {
   try {
       const { id } = req.params;
@@ -78,7 +115,7 @@ bookingsRouter.get("/displayData/:id", async (req, res) => {
         LEFT JOIN rooms       ON rooms.id       = bookings.room_id
         LEFT JOIN assignments ON assignments.event_id = bookings.event_id
         LEFT JOIN clients     ON clients.id     = assignments.client_id
-        WHERE bookings.id = $1;`, 
+        WHERE bookings.id = $1;`,
         [
             id
         ]);
