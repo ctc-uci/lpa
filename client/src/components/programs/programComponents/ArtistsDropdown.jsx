@@ -9,10 +9,10 @@ import {
 } from "@chakra-ui/react";
 import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 
-import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
-import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
+import { CloseFilledIcon } from '../../../assets/CloseFilledIcon';
+import { PlusFilledIcon } from '../../../assets/PlusFilledIcon';
 import BsPaletteFill from "../../../assets/icons/BsPaletteFill.svg";
-import {AddClient} from "../../../components/clientsearch/AddClient";
+import { AddClient } from "../../../components/clientsearch/AddClient";
 
 export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, setInstructorSearchTerm} ) => {
   const { backend } = useBackendContext();
@@ -131,8 +131,7 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                       _hover={{ color: "#4441C8", boxShadow: "none" }} // also removes shadow on hover
                       _focus={{ boxShadow: "none" }} // removes shadow on focus
                       icon={<PlusFilledIcon/>}
-                  >
-                  </IconButton>
+                  />
                   <AddClient
                     isOpen={showAddClient}
                     onClose={() => setShowAddClient(false)}

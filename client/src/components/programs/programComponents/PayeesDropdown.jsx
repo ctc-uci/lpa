@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react'
 import '../EditProgram.css';
 import {
-    Box,
-    HStack,
-    Icon,
-    Input,
-    Tag,
+  Box,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  Tag,
 } from '@chakra-ui/react';
 import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 
-import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
-import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
+import { CloseFilledIcon } from '../../../assets/CloseFilledIcon';
+import { PlusFilledIcon } from '../../../assets/PlusFilledIcon';
 import personSvg from "../../../assets/person.svg";
+import { AddClient } from "../../../components/clientsearch/AddClient";
 
 export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees, setPayeeSearchTerm, setSelectedPayees, setSearchedPayees, setSelectedEmails} ) => {
   const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [showAddClient, setShowAddClient] = useState(false);
+
 
   useEffect(() => {
     getPayeeResults(payeeSearchTerm);
@@ -83,7 +87,21 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                           <Input
                               placeholder="Payee(s)"
                               onChange={(e) => {searchPayees(e.target.value)}}
-                              onClick={(e) => {searchPayees(payeeSearchTerm)}}
+                              onClick={() => {searchPayees(payeeSearchTerm)}}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  const payee = searchedPayees.find(
+                                    (p) =>
+                                      p.name.toLowerCase() === payeeSearchTerm.toLowerCase()
+                                  );
+                                  if (payee) {
+                                    setSelectedPayees((prevItems) => [...prevItems, payee]);
+                                  }
+                                  if (!payee) {
+                                    setShowAddClient(true);
+                                  }
+                                }
+                              }}
                               value={payeeSearchTerm}
                               id="payeeInput"
                               autoComplete="off"
@@ -116,14 +134,28 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                               }
                               _hover={{ color: payeeSearchTerm.trim() !== "" ? "#800080" : "inherit" }}
                           >
-                              <PlusFilledIcon
-                                  color={
-                                      payeeSearchTerm.trim() !== "" &&
-                                        searchedPayees.some(p => p.name.toLowerCase() === payeeSearchTerm.toLowerCase())
-                                        ? "#4441C8" : "#718096"
-                                  }
-                              />
                           </Box>
+                          <IconButton
+                            variant="ghost"
+                            color="#718096"
+                            onClick={() => setShowAddClient(true)}
+                            _hover={{ color: "#4441C8", boxShadow: "none" }} // also removes shadow on hover
+                            _focus={{ boxShadow: "none" }} // removes shadow on focus
+                            icon={<PlusFilledIcon/>}
+                          />
+                          <AddClient
+                            isOpen={showAddClient}
+                            onClose={() => setShowAddClient(false)}
+                            onSave={(newPayee) => {
+                              // Add newly created payer as tag
+                              setSelectedPayees((prevItems) => [...prevItems, newPayee]);
+                              setSelectedEmails((prevItems) => [...prevItems, newPayee]);
+                              setShowAddClient(false);
+                            }}
+                            type="Payer"
+                            firstNameUserInput={payeeSearchTerm.trim().split(" ")[0] || ""}
+                            lastNameUserInput={payeeSearchTerm.trim().split(" ").slice(1).join(" ") || ""}
+                          />
                       </div>
 
                       {dropdownVisible && searchedPayees.length > 0 && (
