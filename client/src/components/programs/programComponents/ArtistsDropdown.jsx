@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
+  Flex,
   Box,
   HStack,
   Icon,
@@ -13,11 +14,13 @@ import { CloseFilledIcon } from '../../../assets/CloseFilledIcon';
 import { PlusFilledIcon } from '../../../assets/PlusFilledIcon';
 import BsPaletteFill from "../../../assets/icons/BsPaletteFill.svg";
 import { AddClient } from "../../../components/clientsearch/AddClient";
+import { EditClientIcon } from "../../../assets/EditClientIcon";
 
 export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, selectedInstructors, setSelectedInstructors, setSearchedInstructors, setInstructorSearchTerm} ) => {
   const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
+  const [selectedInstructorToEdit, setSelectedInstructorToEdit] = useState(null);
 
 
   useEffect(() => {
@@ -146,29 +149,58 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                   />
                 </div>
                 {dropdownVisible && searchedInstructors.length > 0 && (
-                  <Box id="instructorDropdown" w="100%" maxW="195px">
+                  <Box id="instructorDropdown" w="100%" maxW="200px">
                     {searchedInstructors.map((instructor) => (
-                      <Box
+                      <Flex
                         key={instructor.id}
+                        align="center"
+                        justify="space-between"
+                        padding="6px 8px"
+                        fontSize="16px"
+                        cursor="pointer"
+                        backgroundColor="#FFF"
+                        _hover={{ bg: "#EDF2F7" }}
+                        role="group"
                         onClick={() => {
                           setSelectedInstructors((prevItems) => [...prevItems, instructor]);
                         }}
-                          style={{
-                            padding: "10px",
-                            fontSize: "16px",
-                            cursor: "pointer",
-                            transition: "0.2s",
-                            backgroundColor:"#FFF",
-                          }}
-                          bg="#F6F6F6"
-                          _hover={{ bg: "#D9D9D9" }}
                         >
                           {instructor.name}
-                        </Box>
+                          <IconButton
+                            aria-label="Edit"
+                            icon={<EditClientIcon />}
+                            size="sm"
+                            variant="ghost"
+                            opacity={0} // hide by default
+                            _groupHover={{ opacity: 1, boxShadow: "none" }} // show on row hover
+                            _focus={{ boxShadow: "none"}}
+                            transition="opacity 0.2s"
+                            onClick={(e) => {
+                              e.stopPropagation(); // prevent row click
+                              setSelectedInstructorToEdit(instructor);
+                              setShowAddClient(true);
+                            }}
+                          />
+                        </Flex>
                       ))}
                     </Box>
                   )}
                 </Box>
+                {selectedInstructorToEdit && (
+                  <AddClient
+                    isOpen={showAddClient}
+                    onClose={() => setShowAddClient(false)}
+                    onSave={(newInstructor) => {
+                      setSelectedInstructors((prev) => [...prev, newInstructor]);
+                      setShowAddClient(false);
+                    }}
+                    type="Edit"
+                    firstNameUserInput={selectedInstructorToEdit.name.trim().split(" ")[0] || ""}
+                    lastNameUserInput={selectedInstructorToEdit.name.trim().split(" ").slice(1).join(" ") || ""}
+                    emailUserInput={selectedInstructorToEdit.email.trim()}
+                    client={selectedInstructorToEdit}
+                  />
+                )}
               </div>
             </div>
             <div id="instructorTags">

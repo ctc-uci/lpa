@@ -5,7 +5,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import React, { useState, useEffect } from 'react';
 
 
-export const AddClient = ({ isOpen, onClose, onSave, type, firstNameUserInput, lastNameUserInput}) => {
+export const AddClient = ({ isOpen, onClose, onSave, type, firstNameUserInput ="", lastNameUserInput = "", emailUserInput = "", client = null}) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,7 +14,8 @@ export const AddClient = ({ isOpen, onClose, onSave, type, firstNameUserInput, l
   useEffect(() => {
     setFirstName(firstNameUserInput);
     setLastName(lastNameUserInput);
-  }, [firstNameUserInput, lastNameUserInput]);
+    setEmail(emailUserInput);
+  }, [firstNameUserInput, lastNameUserInput, emailUserInput]);
 
   const addClient = async () => {
     try {
@@ -25,6 +26,35 @@ export const AddClient = ({ isOpen, onClose, onSave, type, firstNameUserInput, l
         email: email.trim(),
       });
       console.log("Client added:", res.data);
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      // Pass in res data to onSave to use instructor object
+      onSave({
+        id: res.data[0].id,
+        name: name,
+        email: email.trim(),
+      });
+      onClose();
+    } catch (err) {
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      console.error("Error adding client:", err.message);
+    }
+  };
+
+  const editClient = async () => {
+    try {
+      const name = `${firstName.trim()} ${lastName.trim()}`.trim();
+      console.log('this name', name)
+      console.log("this email", email)
+      const res = await backend.put(`/clients/${client.id}`, {
+        name: name,
+        email: email.trim(),
+      });
+
+      console.log("Client edited:", res.data);
       setFirstName("");
       setLastName("");
       setEmail("");
@@ -54,7 +84,7 @@ export const AddClient = ({ isOpen, onClose, onSave, type, firstNameUserInput, l
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Add {type}</ModalHeader>
+        <ModalHeader> {type === "Edit" ? "Edit Client" : `Add ${type}`} </ModalHeader>
         <ModalBody pb={6}>
           <Stack>
             <Flex>
@@ -89,7 +119,13 @@ export const AddClient = ({ isOpen, onClose, onSave, type, firstNameUserInput, l
             </Flex>
             <Flex justifyContent="flex-end" gap={2}>
               <Button onClick={handleCancel}>Cancel</Button>
-              <Button onClick={addClient} bgColor="#4441C8" color="white">Save</Button>
+              <Button
+                onClick={type === "Edit" ? editClient : addClient}
+                bgColor="#4441C8"
+                color="white"
+              >
+                Save
+              </Button>
             </Flex>
           </Stack>
         </ModalBody>
