@@ -560,7 +560,6 @@ const StatementComments = ({
         return session;
       });
     });
-    console.log("sessions[index].total.length", sessions[index].total.length);
     setEditingCustomRow(`${index}-${sessions[index].total.length}`);
     setEditCustomDate(new Date().toISOString().split('T')[0]);
     setEditCustomText('');

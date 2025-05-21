@@ -107,7 +107,6 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
         }
 
         if(comment.adjustmentType === "total"){
-          console.log("total", comment)
           groupedComments[bookingId].total.push({
             id: comment.commentId,
             value: comment.adjustmentValue,

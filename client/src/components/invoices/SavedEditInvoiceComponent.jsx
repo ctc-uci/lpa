@@ -100,25 +100,41 @@ const SavedStatementComments = ({
     if (!sessions || sessions.length === 0) return "0.00";
 
     const totalSum = sessions.reduce((acc, session) => {
-      if (session?.adjustmentValues[0]?.type === "total") {
+      // Check if session has adjustmentValues and it's not empty
+      if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
+        // Calculate without adjustments
+        const total = parseFloat(
+          calculateTotalBookingRow(
+            session.startTime,
+            session.endTime,
+            session.rate,
+            [],
+            session.total
+          )
+        );
+        return acc + total;
+      }
+
+      // Check if the first adjustment is a total type
+      if (session.adjustmentValues[0] && session.adjustmentValues[0].type === "total") {
         return acc + parseFloat(session.adjustmentValues[0].value || 0);
       }
-      
-      // For regular sessions, calculate as before
+
+      // For regular sessions with adjustments, calculate as before
       const total = parseFloat(
         calculateTotalBookingRow(
           session.startTime,
           session.endTime,
           session.rate,
-          session.adjustmentValues
+          session.adjustmentValues,
+          session.total
         )
       );
-      // console.log("total", total);
       return acc + total;
     }, 0);
 
     const total = totalSum.toFixed(2);
-    setSubtotal(total);
+    setSubtotal(Number(total));
     return total;
   };
 
@@ -162,8 +178,6 @@ const SavedStatementComments = ({
 
     return newRate;
   };
-
-  // console.log("sessions", sessions)
 
   return (
     <Flex
@@ -290,27 +304,6 @@ const SavedStatementComments = ({
             <Tbody color="#2D3748">
               {sessions.length > 0 ? (
                 sessions.flatMap((session, index) => {
-                  // Check if this is a custom row (total adjustment)
-                  const hasTotalAdjustment = session.adjustmentValues && 
-                    session.adjustmentValues.some(adj => adj.type === "total");
-                  
-                  if (hasTotalAdjustment) {
-                    // Display as a custom row
-                    return (
-                      <Tr key={`custom-${session.id || "unknown"}-${index}`}>
-                        <Td py={compactView ? 0 : 6} fontSize={compactView ? "6.38" : "sm"} whiteSpace="nowrap">{format(new Date(session.datetime), "EEE. M/d/yy")}</Td>
-                        <Td colSpan={4} fontSize={compactView ? "6.38" : "sm"}>
-                          {session.comments && session.comments.length > 0 
-                            ? session.comments[0].comment
-                            : "Custom adjustment"}
-                        </Td>
-                        <Td textAlign="right" fontSize={compactView ? "6.38" : "sm"}>
-                          $ {Number(session.adjustmentValues[0].value).toFixed(2) || "0.00"}
-                        </Td>
-                      </Tr>
-                    );
-                  }
-                  
                   // For regular sessions, use the existing code
                   const sessionRow = (
                     <Tr key={`session-${session.id || "unknown"}-${index}`}>
@@ -459,7 +452,36 @@ const SavedStatementComments = ({
                       );
                     }) || [];
 
-                  return [sessionRow, ...textRows];
+                  const totalRow = session?.total?.map((total, totalIndex) => {
+                    return (
+                      <Tr
+                        position="relative"
+                        cursor="pointer"
+                        _hover={{ bg: "gray.50" }}
+                        role="group"
+                      >
+                        <Td py="6" onClick={() => handleEditCustomRow(session, index, totalIndex)}>
+                          {(() => {
+                            const date = new Date(session.total[totalIndex].date);
+                            date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                            return format(date, "EEE. M/d/yy");
+                          })()}
+                        </Td>
+                        <Td colSpan={4} onClick={() => handleEditCustomRow(session, index, totalIndex)}>
+                          {session.total[totalIndex]?.comment || "Custom adjustment"}
+                        </Td>
+                        <Td textAlign="right" position="relative">
+                          <Flex justifyContent="flex-end" alignItems="center">
+                            <Text onClick={() => handleEditCustomRow(session, index, totalIndex)}>
+                              $ {Number(session.total[totalIndex].value || 0).toFixed(2)}
+                            </Text>
+                          </Flex>
+                        </Td>
+                      </Tr>
+                    )
+                  }) || [];
+
+                  return [sessionRow, ...textRows, ...totalRow];
                 })
               ) : (
                 <Tr py="4">
