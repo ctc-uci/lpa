@@ -10,6 +10,41 @@ const EVENT_ID_PREFIX = "lpa_"; // Prefix to identify our events
 const EVENT_ID_SEPARATOR = "_";
 
 /**
+ * @typedef {Object} BookingEvent
+ * @property {number} backendId - The unique identifier
+ * @property {string} name - The name/title of the event
+ * @property {string} date - The date of the event in YYYY-MM-DD format
+ * @property {string} startTime - The start time in HH:mm format (24-hour)
+ * @property {string} endTime - The end time in HH:mm format (24-hour)
+ * @property {string} [location] - Optional location/room of the event
+ * @property {string} [description] - Optional description of the event
+ * @property {number} [roomId] - Optional room ID from our backend
+ */
+
+/**
+ * @typedef {Object} GoogleCalendarEvent
+ * @property {string} id - The Google Calendar event ID
+ * @property {string} summary - The name/title of the event
+ * @property {Object} start - The start time of the event
+ * @property {string} start.dateTime - ISO 8601 datetime string
+ * @property {string} start.timeZone - IANA timezone string
+ * @property {Object} end - The end time of the event
+ * @property {string} end.dateTime - ISO 8601 datetime string
+ * @property {string} end.timeZone - IANA timezone string
+ * @property {string} [location] - Optional location of the event
+ * @property {string} [description] - Optional description of the event
+ */
+
+/**
+ * @typedef {Object} BatchOperationResult
+ * @property {number} total - Total number of operations attempted
+ * @property {number} successCount - Number of successful operations
+ * @property {number} failCount - Number of failed operations
+ * @property {Array<{bookingIndex: number, error: Object}>} errors - Details of any errors that occurred
+ * @property {Object} responseMap - Raw response from Google Calendar API
+ */
+
+/**
  * IDs for events must be unique and between 5 - 1024 characters
  * Our session IDs do not meet this requirement, so we need to generate a new ID
  */
@@ -19,7 +54,7 @@ const EVENT_ID_SEPARATOR = "_";
  * Format: lpa_[backendId]_[hash]
  * The hash is generated from event properties to ensure uniqueness
  * 
- * @param {Object} event - Event object containing backend event data
+ * @param {BookingEvent} event - Event object containing backend event data
  * @param {number} backendId - The backend event ID
  * @returns {string} A unique Google Calendar event ID
  */
@@ -117,7 +152,7 @@ export const signOut = async () => {
 
 /**
  * Fetch all events from Google Calendar
- * @returns {Promise<Array>} Array of calendar events
+ * @returns {Promise<GoogleCalendarEvent[]>} Array of calendar events
  */
 export const fetchEvents = async () => {
   const response = await gapi.client.calendar.events.list({
@@ -132,8 +167,8 @@ export const fetchEvents = async () => {
 
 /**
  * Create a new event in Google Calendar
- * @param {Object} event - Event object containing summary, start, end, etc.
- * @returns {Promise<Object>} Created event
+ * @param {BookingEvent} event - Event object containing summary, start, end, etc.
+ * @returns {Promise<GoogleCalendarEvent>} Created event
  */
 export const createEvent = async (event) => {
   const eventId = generateEventId(event, event.backendId);
@@ -159,8 +194,8 @@ export const createEvent = async (event) => {
 
 /**
  * Update an existing event in Google Calendar
- * @param {Object} updatedEvent - Updated event object
- * @returns {Promise<Object>} Updated event
+ * @param {BookingEvent} updatedEvent - Updated event object
+ * @returns {Promise<GoogleCalendarEvent>} Updated event
  */
 export const updateEvent = async (updatedEvent) => {
   const eventId = generateEventId(updatedEvent, updatedEvent.backendId);
@@ -186,7 +221,7 @@ export const updateEvent = async (updatedEvent) => {
 
 /**
  * Delete an event from Google Calendar
- * @param {Object} event - Event object containing backend event data
+ * @param {BookingEvent} event - Event object containing backend event data
  * @returns {Promise<void>}
  */
 export const deleteEvent = async (event) => {
@@ -240,8 +275,8 @@ export const generateRecurringSessions = (recurringSession, startDate, endDate) 
 
 /**
  * Batch insert multiple bookings into Google Calendar
- * @param {Array} bookings - Array of booking objects
- * @returns {Promise<Object>} Result of batch operation
+ * @param {BookingEvent[]} bookings - Array of booking objects to insert
+ * @returns {Promise<BatchOperationResult>} Result of batch operation
  */
 export const batchInsertBookings = async (bookings) => {
   const batch = gapi.client.newBatch();
@@ -280,6 +315,124 @@ export const batchInsertBookings = async (bookings) => {
       const successCount = Object.values(responseMap).filter(r => !r.error).length;
       const failCount = total - successCount;
       resolve({ total, successCount, failCount });
+    });
+  });
+};
+
+/**
+ * Batch update multiple bookings in Google Calendar
+ * @param {BookingEvent[]} bookings - Array of booking objects to update
+ * @returns {Promise<BatchOperationResult>} Result of batch operation
+ */
+export const batchUpdateBookings = async (bookings) => {
+  const batch = gapi.client.newBatch();
+
+  bookings.forEach((booking, index) => {
+    const date = booking.date.split("T")[0];
+    const start = booking.startTime.split('+')[0].trim();
+    const end = booking.endTime.split('+')[0].trim();
+    const startDateTime = new Date(`${date}T${start}`).toISOString();
+    const endDateTime = new Date(`${date}T${end}`).toISOString();
+    const eventId = generateEventId(booking, booking.backendId);
+    const location = booking.location || "";
+    const description = booking.description || "";
+
+    const resource = {
+      summary: booking.name,
+      start: {
+        dateTime: startDateTime,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      },
+      end: {
+        dateTime: endDateTime,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      },
+      location: location,
+      description: description,
+    };
+
+    // Add update request to batch
+    batch.add(
+      gapi.client.calendar.events.patch({
+        calendarId: CALENDAR_ID,
+        eventId: eventId,
+        resource: resource
+      }), 
+      { id: `update_${index}` }
+    );
+  });
+
+  return new Promise((resolve) => {
+    batch.execute(responseMap => {
+      const total = bookings.length;
+      const successCount = Object.values(responseMap).filter(r => !r.error).length;
+      const failCount = total - successCount;
+      
+      // Collect any errors for reporting
+      const errors = Object.entries(responseMap)
+        .filter(([_, response]) => response.error)
+        .map(([id, response]) => ({
+          bookingIndex: parseInt(id.split('_')[1]),
+          error: response.error
+        }));
+
+      resolve({ 
+        total, 
+        successCount, 
+        failCount,
+        errors,
+        // Include the full response map in case we need to process individual results
+        responseMap 
+      });
+    });
+  });
+};
+
+/**
+ * Batch delete multiple bookings from Google Calendar
+ * @param {BookingEvent[]} bookings - Array of booking objects to delete
+ * @returns {Promise<BatchOperationResult>} Result of batch operation
+ */
+export const batchDeleteBookings = async (bookings) => {
+  const batch = gapi.client.newBatch();
+
+  bookings.forEach((booking, index) => {
+    const eventId = generateEventId(booking, booking.backendId);
+    
+    // Add delete request to batch
+    batch.add(
+      gapi.client.calendar.events.delete({
+        calendarId: CALENDAR_ID,
+        eventId: eventId
+      }), 
+      { id: `delete_${index}` }
+    );
+  });
+
+  return new Promise((resolve) => {
+    batch.execute(responseMap => {
+      const total = bookings.length;
+      // For delete operations, a 204 status code means success
+      // and no response body is returned, so we check for absence of error
+      const successCount = Object.values(responseMap).filter(r => !r.error).length;
+      const failCount = total - successCount;
+      
+      // Collect any errors for reporting
+      const errors = Object.entries(responseMap)
+        .filter(([_, response]) => response.error)
+        .map(([id, response]) => ({
+          bookingIndex: parseInt(id.split('_')[1]),
+          error: response.error
+        }));
+
+      resolve({ 
+        total, 
+        successCount, 
+        failCount,
+        errors,
+        // Include the full response map in case we need to process individual results
+        responseMap 
+      });
     });
   });
 };
