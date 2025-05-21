@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Box,
   HStack,
@@ -17,6 +17,7 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
   const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [addClientModalOpen, setAddClientModalOpen] = useState(false);
+  const tagsRef = useRef(null);
 
   useEffect(() => {
     getInstructorResults(instructorSearchTerm);
@@ -37,6 +38,31 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
       document.removeEventListener("click", handleClickOutside);
     }
   }, []);
+
+  // Add effect to check scrollability
+  useEffect(() => {
+    const checkScrollable = () => {
+      if (tagsRef.current) {
+        const isScrollable = tagsRef.current.scrollHeight > tagsRef.current.clientHeight;
+        tagsRef.current.classList.toggle('scrollable', isScrollable);
+      }
+    };
+
+    // Check initially and after any changes to selected instructors
+    checkScrollable();
+    
+    // Create a ResizeObserver to check when the container size changes
+    const resizeObserver = new ResizeObserver(checkScrollable);
+    if (tagsRef.current) {
+      resizeObserver.observe(tagsRef.current);
+    }
+
+    return () => {
+      if (tagsRef.current) {
+        resizeObserver.unobserve(tagsRef.current);
+      }
+    };
+  }, [selectedInstructors]);
 
   const addTag = (instructor) => {
     setSelectedInstructors((prevItems) => [...prevItems, instructor]);
@@ -158,7 +184,7 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
               </Box>
             </div>
           </div>
-          <div id="instructorTags">
+          <div id="instructorTags" ref={tagsRef}>
             {selectedInstructors.length > 0 ? (
               selectedInstructors.map((instructor, ind) => (
                 <div className="instructorTag" key={ind}>

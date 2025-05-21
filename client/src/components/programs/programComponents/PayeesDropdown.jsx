@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import '../EditProgram.css';
 import {
     Box,
@@ -18,6 +18,7 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
   const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [addClientModalOpen, setAddClientModalOpen] = useState(false);
+  const tagsRef = useRef(null);
 
   useEffect(() => {
     getPayeeResults(payeeSearchTerm);
@@ -38,6 +39,31 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
         document.removeEventListener("click", handleClickOutside);
     }
   }, []);
+
+  // Add effect to check scrollability
+  useEffect(() => {
+    const checkScrollable = () => {
+      if (tagsRef.current) {
+        const isScrollable = tagsRef.current.scrollHeight > tagsRef.current.clientHeight;
+        tagsRef.current.classList.toggle('scrollable', isScrollable);
+      }
+    };
+
+    // Check initially and after any changes to selected payees
+    checkScrollable();
+    
+    // Create a ResizeObserver to check when the container size changes
+    const resizeObserver = new ResizeObserver(checkScrollable);
+    if (tagsRef.current) {
+      resizeObserver.observe(tagsRef.current);
+    }
+
+    return () => {
+      if (tagsRef.current) {
+        resizeObserver.unobserve(tagsRef.current);
+      }
+    };
+  }, [selectedPayees]);
 
   const addTag = (payee) => {
     setSelectedEmails((prevItems) => [...prevItems, payee]);
@@ -164,7 +190,7 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                     </Box>
                 </div>
             </div>
-            <div id="payeeTags">
+            <div id="payeeTags" ref={tagsRef}>
               {selectedPayees.length > 0 ? (
                   selectedPayees.map((payee, ind) => (
                   <div className="payeeTag" key={ind}>
