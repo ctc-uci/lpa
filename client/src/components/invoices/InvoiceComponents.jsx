@@ -956,7 +956,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         const priority = {
           "Past Due": 0,
           "Not Paid": 1,
-          Paid: 2,
+          "Paid": 2,
         };
         return sortOrder === "asc"
           ? priority[b.isPaid] - priority[a.isPaid]

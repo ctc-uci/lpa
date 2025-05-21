@@ -9,6 +9,24 @@ const invoicesRouter = Router();
 invoicesRouter.use(express.json());
 const upload = multer();
 
+
+const OVERDUE_INVOICES_WHERE_CLAUSE = `
+  is_sent = false
+  AND payment_status != 'full'
+  AND end_date <= CURRENT_DATE + INTERVAL '1 week'
+  AND end_date + INTERVAL '5 days' > CURRENT_DATE`;
+
+const NEARDUE_INVOICES_WHERE_CLAUSE = `
+  CURRENT_DATE >= end_date + INTERVAL '5 days'
+  AND is_sent = true
+  AND payment_status != 'full'`;
+
+const HIGHPRIORITY_INVOICES_WHERE_CLAUSE = `
+  CURRENT_DATE >= end_date + INTERVAL '5 days'
+  AND is_sent = false
+  AND payment_status != 'full'`;
+
+
 // Get all invoices
 invoicesRouter.get("/", async (req, res) => {
   try {
@@ -36,30 +54,15 @@ invoicesRouter.get("/", async (req, res) => {
 
 invoicesRouter.get("/notificationCount", async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
     const params = [];
-    let dateFilter = "";
-
-    if (startDate && endDate) {
-      dateFilter = "AND start_date >= $1 AND end_date <= $2";
-      params.push(startDate, endDate);
-    }
 
     const query = `
       SELECT
-          (SELECT COUNT(*) FROM invoices WHERE is_sent = true
-            AND payment_status IN ('partial', 'none')
-            AND end_date < CURRENT_DATE
-            ${dateFilter})
+          (SELECT COUNT(*) FROM invoices WHERE ${OVERDUE_INVOICES_WHERE_CLAUSE})
           +
-          (SELECT COUNT(*) FROM invoices WHERE is_sent = false
-            AND payment_status IN ('partial', 'none')
-            AND end_date < CURRENT_DATE
-            ${dateFilter})
+          (SELECT COUNT(*) FROM invoices WHERE ${NEARDUE_INVOICES_WHERE_CLAUSE})
           +
-          (SELECT COUNT(*) FROM invoices WHERE is_sent = false
-            AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')
-            ${dateFilter}) AS notificationcount
+          (SELECT COUNT(*) FROM invoices WHERE ${HIGHPRIORITY_INVOICES_WHERE_CLAUSE}) AS notificationcount
     `;
 
     const result = await db.query(query, params);
@@ -75,10 +78,8 @@ invoicesRouter.get("/overdue", async (req, res) => {
   try {
     // Base query for overdue invoices
     const query = `
-      SELECT * FROM invoices
-      WHERE is_sent = true
-      AND payment_status IN ('partial', 'none')
-      AND end_date < CURRENT_DATE`;
+      SELECT * FROM invoices WHERE
+      ${OVERDUE_INVOICES_WHERE_CLAUSE}`;
 
     const params = [];
 
@@ -93,10 +94,8 @@ invoicesRouter.get("/highpriority", async (req, res) => {
   try {
     // Base query for overdue invoices
     const query = `
-      SELECT * FROM invoices
-      WHERE is_sent = false
-      AND payment_status IN ('partial', 'none')
-      AND end_date < CURRENT_DATE`;
+      SELECT * FROM invoices WHERE
+      ${HIGHPRIORITY_INVOICES_WHERE_CLAUSE}`;
 
     const highPriorityInvoices = await db.query(query);
     res.status(200).json(keysToCamel(highPriorityInvoices));
@@ -112,9 +111,8 @@ invoicesRouter.get("/neardue", async (req, res) => {
 
     // Base query for neardue invoices
     let query = `
-      SELECT * FROM invoices
-      WHERE is_sent = false
-      AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')`;
+      SELECT * FROM invoices WHERE
+      ${NEARDUE_INVOICES_WHERE_CLAUSE}`;
 
     const params = [];
 

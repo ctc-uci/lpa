@@ -285,20 +285,20 @@ export const InvoiceStatusFilter = ({ value, onChange }) => {
             <Text mb="0">All</Text>
           </RoundedButton>
           <RoundedButton
-            onClick={() => handleStatusChange("full")}
-            isActive={localStatus === "full"}
+            onClick={() => handleStatusChange("Paid")}
+            isActive={localStatus === "Paid"}
           >
             <Text>Paid</Text>
           </RoundedButton>
           <RoundedButton
-            onClick={() => handleStatusChange("notpaid")}
-            isActive={localStatus === "notpaid"}
+            onClick={() => handleStatusChange("Not Paid")}
+            isActive={localStatus === "Not Paid"}
           >
             <Text>Not Paid</Text>
           </RoundedButton>
           <RoundedButton
-            onClick={() => handleStatusChange("none")}
-            isActive={localStatus === "none"}
+            onClick={() => handleStatusChange("Past Due")}
+            isActive={localStatus === "Past Due"}
           >
             <Text>Past Due</Text>
           </RoundedButton>

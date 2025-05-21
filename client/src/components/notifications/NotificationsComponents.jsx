@@ -59,8 +59,23 @@ const NotificationsComponents = ({
 
     if (sortKey === "date") {
       sorted.sort((a, b) => {
-        const dateA = new Date(a.dueTime);
-        const dateB = new Date(b.dueTime);
+        const now = new Date();
+        const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
+        const fiveDaysInMs = 5 * 24 * 60 * 60 * 1000;
+
+        const dateA = new Date(a.endDate);
+        const dateB = new Date(b.endDate);
+
+        // Calculate if dates are within the active range
+        const isAInRange = dateA - oneWeekInMs <= now && now <= dateA.getTime() + fiveDaysInMs;
+        const isBInRange = dateB - oneWeekInMs <= now && now <= dateB.getTime() + fiveDaysInMs;
+
+        // If one is in range and the other isn't, prioritize the one in range
+        if (isAInRange !== isBInRange) {
+          return isAInRange ? -1 : 1;
+        }
+
+        // If both are in range or both are out of range, sort by date
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
     } else if (sortKey === "title") {
@@ -77,7 +92,7 @@ const NotificationsComponents = ({
     }
 
     setSortedNotifications(sorted);
-  }, [sortKey, sortOrder, notifications]);
+  }, [sortKey, sortOrder]);
 
   const getNotifType = (payStatus) => {
     const statusMap = {
