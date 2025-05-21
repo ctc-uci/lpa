@@ -28,7 +28,12 @@ export const AddClient = ({ isOpen, onClose, onSave, type, firstNameUserInput, l
       setFirstName("");
       setLastName("");
       setEmail("");
-      onSave();
+      // Pass in res data to onSave to use instructor object
+      onSave({
+        id: res.data[0].id,
+        name: name,
+        email: email.trim(),
+      });
       onClose();
     } catch (err) {
       setFirstName("");

@@ -136,8 +136,10 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                     <AddClient
                       isOpen={showAddClient}
                       onClose={() => setShowAddClient(false)}
-                      onSave={() => {
-                        setSelectedInstructors((prevItems) => [...prevItems, instructor]);
+                      onSave={(newInstructor) => {
+                        // Add newly created artist as tag
+                        setSelectedInstructors((prevItems) => [...prevItems, newInstructor]);
+                        setShowAddClient(false);
                       }}
                       type="Lead Artist"
                       firstNameUserInput={instructorSearchTerm.trim().split(" ")[0] || ""}
