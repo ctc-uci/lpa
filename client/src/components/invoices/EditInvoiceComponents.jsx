@@ -304,7 +304,7 @@ const StatementComments = ({
     const handleClickOutside = (event) => {
       if (editRowRef.current && !editRowRef.current.contains(event.target)) {
         if (editingCustomRow !== null) {
-          handleSaveCustomRow(editingCustomRow);
+          handleSaveCustomRow(sessions[editingCustomRow.split("-")[0]], editingCustomRow.split("-")[1]);
         }
       }
     };
@@ -325,12 +325,13 @@ const StatementComments = ({
     }
   }, [sessions]);
 
-  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues) => {
+  const calculateTotalBookingRow = (startTime, endTime, rate, adjustmentValues, totalArray = []) => {
     if (!startTime || !endTime || !rate) return "0.00";
 
-    // Make sure we're working with a valid array of adjustment values
+    // Make sure we're working with valid arrays
     const currentAdjustmentValues = Array.isArray(adjustmentValues) ? adjustmentValues.filter(adj => adj && adj.type) : [];
-    
+    const currentTotalArray = Array.isArray(totalArray) ? totalArray : [];
+
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
       return hours * 60 + minutes;
@@ -343,12 +344,13 @@ const StatementComments = ({
 
     const baseRate = Number(rate);
 
+    // Calculate adjustments to the rate
     const adjustedRate = currentAdjustmentValues.reduce((currentRate, adj) => {
       if (!adj || !adj.type || adj.value === undefined) return currentRate;
-      
+
       const numericValue = Number(adj.value);
       if (isNaN(numericValue)) return currentRate;
-      
+
       const numericPart = Math.abs(numericValue);
       let adjustmentAmount = 0;
 
@@ -356,23 +358,28 @@ const StatementComments = ({
         adjustmentAmount = numericPart;
       } else if (adj.type === "rate_percent") {
         adjustmentAmount = (numericPart / 100) * currentRate;
-      } else if (adj.type === "total") {
-        // For total adjustments, we'll handle them separately
-        return currentRate;
       }
 
       return numericValue < 0 ? currentRate - adjustmentAmount : currentRate + adjustmentAmount;
     }, baseRate);
 
-    const total = adjustedRate * durationInHours;
-    
+    // Calculate the base total with adjusted rate
+    const baseTotal = adjustedRate * durationInHours;
+
     // Add any "total" type adjustments
     const totalAdjustments = currentAdjustmentValues
       .filter(adj => adj && adj.type === "total")
       .reduce((sum, adj) => sum + Number(adj.value || 0), 0);
-    
-    const finalTotal = total + totalAdjustments;
-    
+
+    // Add all values from the total array
+    const totalArraySum = currentTotalArray.reduce((sum, item) => {
+      const value = Number(item.value);
+      return sum + (isNaN(value) ? 0 : value);
+    }, 0);
+
+    // Combine all totals
+    const finalTotal = baseTotal + totalAdjustments + totalArraySum;
+
     return finalTotal.toFixed(2);
   };
 
@@ -388,24 +395,26 @@ const StatementComments = ({
             session.startTime,
             session.endTime,
             session.rate,
-            []
+            [],
+            session.total
           )
         );
         return acc + total;
       }
-      
+
       // Check if the first adjustment is a total type
       if (session.adjustmentValues[0] && session.adjustmentValues[0].type === "total") {
         return acc + parseFloat(session.adjustmentValues[0].value || 0);
       }
-      
+
       // For regular sessions with adjustments, calculate as before
       const total = parseFloat(
         calculateTotalBookingRow(
           session.startTime,
           session.endTime,
           session.rate,
-          session.adjustmentValues
+          session.adjustmentValues,
+          session.total
         )
       );
       return acc + total;
@@ -546,86 +555,103 @@ const StatementComments = ({
     });
 
     // If user created comment and immediately deletes it, no need to send to backend
-    if(sessions[sessionIndex].comments[commentIndex].id) {
+    if (sessions[sessionIndex].comments[commentIndex].id) {
       setDeletedIds(prevDeletedIds => [...prevDeletedIds, sessions[sessionIndex].comments[commentIndex].id]);
     }
   };
 
 
-  const handleAddCustomRow = (session, index) => {
-    const newSession = {
-      datetime: new Date().toISOString().split('T')[0],
-      comments: [],
-      rate: 0,
-      userId: session.userId,
-      startTime: "00:00",
-      endTime: "01:00",
-      adjustmentValues: [{
-        type: "total",
-        value: 0
-      }],
-      invoiceId: session.invoiceId,
-      bookingId: session.bookingId,
-      name: "",
-    };
 
-    setSessions(prev => [...prev, newSession]);
-    setEditingCustomRow(index);
-    setEditCustomDate(newSession.datetime);
+  const handleAddCustomRow = (index) => {
+
+    setSessions(prevSessions => {
+      return prevSessions.map((session, sessionIndex) => {
+        if (sessionIndex === index) {
+          return {
+            ...session,
+            total: [...session.total, {
+              date: new Date().toISOString().split('T')[0],
+              value: 0,
+              comment: ""
+            }]
+          }
+        }
+        return session;
+      });
+    });
+    console.log("sessions[index].total.length", sessions[index].total.length);
+    setEditingCustomRow(`${index}-${sessions[index].total.length}`);
+    setEditCustomDate(new Date().toISOString().split('T')[0]);
     setEditCustomText('');
     setEditCustomAmount('0');
   };
 
-  const handleEditCustomRow = (session, index) => {
-    setEditingCustomRow(index);
+  const handleEditCustomRow = (session, index, totalIndex) => {
+    setEditingCustomRow(`${index}-${totalIndex}`);
+
     const date = new Date(session.datetime);
     date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-    setEditCustomDate(date.toISOString().split('T')[0]);
-    setEditCustomText(session.comments[0]?.comment || "");
-    setEditCustomAmount(session.adjustmentValues[0].value.toString());
+    
+    setEditCustomDate(session.total[totalIndex].date);
+    setEditCustomText(session.total[totalIndex]?.comment || "");
+    setEditCustomAmount(session.total[totalIndex].value.toString());
   };
-  
 
-  const handleSaveCustomRow = (sessionIndex) => {
+  const handleSaveCustomRow = (session, totalIndex) => {
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
     setSessions(prevSessions => {
-      // Update the sessions array
-      return prevSessions.map((session, index) => {
-        if (index === sessionIndex) {
+      return prevSessions.map(prevSession => {
+        // Only update the session that matches
+        if (prevSession === session) {
+          // Create a new total array with the updated item
+          const newTotal = [...prevSession.total];
           const date = new Date(editCustomDate);
           date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+          
+          newTotal[totalIndex] = {
+            date: date.toISOString().split('T')[0],
+            value: parseFloat(editCustomAmount),
+            comment: editCustomText
+          };
 
+          // Return new session object with updated total
+          return {
+            ...prevSession,
+            total: newTotal
+          };
+        }
+        return prevSession;
+      });
+    });
+
+    setEditingCustomRow(null);
+    setEditCustomDate(new Date().toISOString().split('T')[0]);
+    setEditCustomText('');
+    setEditCustomAmount('');
+  };
+
+  const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
+    setSessions(prevSessions => {
+      return prevSessions.map((session, index) => {
+        if (index === sessionIndex) {
+          // Create a new total array without the deleted item
+          const newTotal = [...session.total];
+          newTotal.splice(totalIndex, 1);
+          
           return {
             ...session,
-            datetime: date,
-            startTime: "00:00",
-            endTime: "01:00",
-            bookingId: session.bookingId,
-            comments: [{ comment: editCustomText }],
-            adjustmentValues: [{
-              type: "total",
-              value: parseFloat(editCustomAmount)
-            }]
+            total: newTotal
           };
         }
         return session;
       });
     });
-    
-    setEditingCustomRow(null);
-  };
 
-  const handleDeleteCustomRow = (index) => {
-    setSessions(prevSessions => {
-      const newSessions = [...prevSessions];
-      newSessions.splice(index, 1);
-      return newSessions;
-    });
-
-    // If user created comment and immediately deletes it, no need to send to backend
-    if(sessions[index].adjustmentValues[0].id) {
-      setDeletedIds(prevDeletedIds => [...prevDeletedIds, sessions[index].adjustmentValues[0].id]);
+    // If the total item had an ID, add it to deletedIds
+    const totalItem = sessions[sessionIndex]?.total[totalIndex];
+    if (totalItem?.id) {
+      setDeletedIds(prevDeletedIds => [...prevDeletedIds, totalItem.id]);
     }
   };
 
@@ -750,98 +776,9 @@ const StatementComments = ({
               <Tbody color="#2D3748">
                 {sessions && sessions.length > 0 ? (
                   sessions.map((session, index) => {
-                    // Check if this is a total adjustment session
-                    const hasTotalAdjustment = session.adjustmentValues && 
-                      session.adjustmentValues.some(adj => adj.type === "total");
-                    
-                    if (hasTotalAdjustment) {
-                      // Display as a custom row
-                      return (
-                        <React.Fragment key={index}>
-                          {editingCustomRow === index ? (
-                            <Tr ref={editRowRef}>
-                              <Td colSpan={6} py={2}>
-                                <Flex gap={4} alignItems="flex-end">
-                                  <Input
-                                    type="date"
-                                    value={editCustomDate}
-                                    onChange={(e) => setEditCustomDate(e.target.value)}
-                                    size="sm"
-                                    width="fit-content"
-                                    py="6"
-                                    rounded="md"
-                                    textAlign="center"
-                                  />
-                                  <Input
-                                    placeholder="Description"
-                                    value={editCustomText}
-                                    onChange={(e) => setEditCustomText(e.target.value)}
-                                    size="sm"
-                                    flex={1}
-                                    py="6"
-                                    rounded="md"
-                                    border="none"
-                                  />
-                                  <InputGroup size="sm" width="fit-content" alignItems="center">
-                                    <Text>$</Text>
-                                    <Input
-                                      type="number"
-                                      value={editCustomAmount}
-                                      onChange={(e) => setEditCustomAmount(e.target.value)}
-                                      width="9ch"
-                                      py="6"
-                                      rounded="md"
-                                      textAlign="center"
-                                    />
-                                  </InputGroup>
-                                </Flex>
-                              </Td>
-                            </Tr>
-                          ) : (
-                            <Tr
-                              position="relative"
-                              cursor="pointer"
-                              _hover={{ bg: "gray.50" }}
-                              role="group"
-                            >
-                              <Td py="6" onClick={() => handleEditCustomRow(session, index)}>
-                                {format(new Date(session.datetime), "EEE. M/d/yy")}
-                              </Td>
-                              <Td colSpan={4} onClick={() => handleEditCustomRow(session, index)}>
-                                {session.comments[0]?.comment || "Custom adjustment"}
-                              </Td>
-                              <Td textAlign="right" position="relative">
-                                <Flex justifyContent="flex-end" alignItems="center">
-                                  <Text onClick={() => handleEditCustomRow(session, index)}>
-                                    $ {Number(session.adjustmentValues[0].value || 0).toFixed(2)}
-                                  </Text>
-                                  <IconButton
-                                    icon={<CloseIcon boxSize={3} />}
-                                    size="xs"
-                                    variant="ghost"
-                                    colorScheme="gray"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteCustomRow(index);
-                                    }}
-                                    opacity="0"
-                                    _groupHover={{ opacity: 1 }}
-                                    aria-label="Delete custom row"
-                                    ml={2}
-                                    minW="20px"
-                                    height="20px"
-                                  />
-                                </Flex>
-                              </Td>
-                            </Tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    }
-                    
                     // For regular sessions, use the existing code
                     return (
-                      <React.Fragment key={session.id || index}>
+                      <React.Fragment key={index}>
                         <Tr
                           position="relative"
                           onMouseEnter={() => setHoveredRowIndex(index)}
@@ -880,7 +817,7 @@ const StatementComments = ({
                                 size="sm"
                                 colorScheme="gray"
                                 width="100%"
-                                onClick={() => handleAddCustomRow(session, index)}
+                                onClick={() => handleAddCustomRow(index)}
                               >
                                 Custom
                               </Button>
@@ -987,14 +924,15 @@ const StatementComments = ({
                               invoice={invoice[0]}
                               userId={userId}
                               session={session}
-                              sessions={sessions} 
+                              sessions={sessions}
                               setSessions={setSessions}
                               sessionIndex={index}
                               subtotal={calculateTotalBookingRow(
                                 session.startTime,
                                 session.endTime,
                                 session.rate,
-                                session.adjustmentValues
+                                session.adjustmentValues,
+                                session.total
                               )}
                               deletedIds={deletedIds}
                               setDeletedIds={setDeletedIds}
@@ -1039,7 +977,8 @@ const StatementComments = ({
                                   session.startTime,
                                   session.endTime,
                                   session.rate,
-                                  session.adjustmentValues
+                                  session.adjustmentValues,
+                                  session.total
                                 )}
                               </Text>
                             </Flex>
@@ -1118,6 +1057,7 @@ const StatementComments = ({
                                 </Td>
                               </Tr>
                             )}
+
                           </React.Fragment>
                         ))}
 
@@ -1147,6 +1087,94 @@ const StatementComments = ({
                             </Td>
                           </Tr>
                         )}
+
+                        {session?.total?.map((total, totalIndex) => {
+                          if (editingCustomRow === `${index}-${totalIndex}`) {
+                            return (
+                              <Tr ref={editRowRef}>
+                                <Td colSpan={6} py={2}>
+                                  <Flex gap={4} alignItems="flex-end">
+                                    <Input
+                                      type="date"
+                                      value={editCustomDate}
+                                      onChange={(e) => setEditCustomDate(e.target.value)}
+                                      size="sm"
+                                      width="fit-content"
+                                      py="6"
+                                      rounded="md"
+                                      textAlign="center"
+                                    />
+                                    <Input
+                                      placeholder="Description"
+                                      value={editCustomText}
+                                      onChange={(e) => setEditCustomText(e.target.value)}
+                                      size="sm"
+                                      flex={1}
+                                      py="6"
+                                      rounded="md"
+                                      border="none"
+                                    />
+                                    <InputGroup size="sm" width="fit-content" alignItems="center">
+                                      <Text>$</Text>
+                                      <Input
+                                        type="number"
+                                        value={editCustomAmount}
+                                        onChange={(e) => setEditCustomAmount(e.target.value)}
+                                        width="9ch"
+                                        py="6"
+                                        rounded="md"
+                                        textAlign="center"
+                                      />
+                                    </InputGroup>
+                                  </Flex>
+                                </Td>
+                              </Tr>
+                            );
+                          } else {
+                            return (
+                              <Tr
+                                position="relative"
+                                cursor="pointer"
+                                _hover={{ bg: "gray.50" }}
+                                role="group"
+                              >
+                                <Td py="6" onClick={() => handleEditCustomRow(session, index, totalIndex)}>
+                                  {(() => {
+                                    const date = new Date(session.total[totalIndex].date);
+                                    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                    return format(date, "EEE. M/d/yy");
+                                  })()}
+                                </Td>
+                                <Td colSpan={4} onClick={() => handleEditCustomRow(session, index, totalIndex)}>
+                                  {session.total[totalIndex]?.comment || "Custom adjustment"}
+                                </Td>
+                                <Td textAlign="right" position="relative">
+                                  <Flex justifyContent="flex-end" alignItems="center">
+                                    <Text onClick={() => handleEditCustomRow(session, index, totalIndex)}>
+                                      $ {Number(session.total[totalIndex].value || 0).toFixed(2)}
+                                    </Text>
+                                    <IconButton
+                                      icon={<CloseIcon boxSize={3} />}
+                                      size="xs"
+                                      variant="ghost"
+                                      colorScheme="gray"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteCustomRow(index, totalIndex);
+                                      }}
+                                      opacity="0"
+                                      _groupHover={{ opacity: 1 }}
+                                      aria-label="Delete custom row"
+                                      ml={2}
+                                      minW="20px"
+                                      height="20px"
+                                    />
+                                  </Flex>
+                                </Td>
+                              </Tr>
+                            )
+                          }
+                        })}
                       </React.Fragment>
                     );
                   })
@@ -1161,6 +1189,7 @@ const StatementComments = ({
                     </Td>
                   </Tr>
                 )}
+
 
                 <Tr py={compactView ? 0 : 4}>
                   <Td
@@ -1373,7 +1402,7 @@ const InvoiceSummary = ({
                     Adjust
                   </Button>
                   <Tooltip label="Room fee adjustments in Summary will be apply to all Sessions." placement="top" bg="gray">
-                    <InfoOutlineIcon ml={2}/>
+                    <InfoOutlineIcon ml={2} />
                   </Tooltip>
                 </Td>
               </Tr>

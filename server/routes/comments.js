@@ -78,66 +78,85 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
     const data = await db.query(query, queryParams);
     const comments = keysToCamel(data);
 
+
     const groupedComments = {};
 
     comments.forEach((comment) => {
       const bookingId = comment.bookingId;
-      // For "total" adjustment type, create a unique key to make it its own session
-      const sessionKey = comment.adjustmentType === "total" 
-        ? `${bookingId}-total-${comment.commentId}` 
-        : bookingId;
       
       // Initialize the session group if it doesn't exist
-      if (!groupedComments[sessionKey]) {
-        groupedComments[sessionKey] = {
+      if (!groupedComments[bookingId]) {
+
+        groupedComments[bookingId] = {
           ...comment,
           comments: comment.comment ? [{
             id: comment.commentId,
             comment: comment.comment,
           }] : [],
-          adjustmentValues: []
+          adjustmentValues: [],
+          total : []
         };
         
         // Only add adjustment value if type is not "none"
-        if (comment.adjustmentType !== "none") {
-          groupedComments[sessionKey].adjustmentValues.push({
+        if (comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
+          groupedComments[bookingId].adjustmentValues.push({
             id: comment.commentId,
             type: comment.adjustmentType,
             value: comment.adjustmentValue
           });
         }
+
+        if(comment.adjustmentType === "total"){
+          console.log("total", comment)
+          groupedComments[bookingId].total.push({
+            id: comment.commentId,
+            value: comment.adjustmentValue,
+            comment: comment.comment,
+            date: comment.datetime
+          })
+        }
+        
       } else {
         // Add comment if it's not empty
-        if (comment.comment) {
-          groupedComments[sessionKey].comments.push({
+        if (comment.comment && comment.adjustmentType === "none") {
+          groupedComments[bookingId].comments.push({
             id: comment.commentId,
             comment: comment.comment,
           });
         }
 
         // Add adjustment value if not already included and type is not "none"
-        if (comment.adjustmentType !== "none") {
-          const adjustmentExists = groupedComments[sessionKey].adjustmentValues.some(
+        if (comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
+          const adjustmentExists = groupedComments[bookingId].adjustmentValues.some(
             adj => adj.id === comment.commentId || 
                   (adj.type === comment.adjustmentType && 
                    adj.value === comment.adjustmentValue)
           );
           
           if (!adjustmentExists) {
-            groupedComments[sessionKey].adjustmentValues.push({
+            groupedComments[bookingId].adjustmentValues.push({
               id: comment.commentId,
               type: comment.adjustmentType,
               value: comment.adjustmentValue
             });
           }
         }
+
+        if(comment.adjustmentType === "total"){
+          groupedComments[bookingId].total.push({
+            id: comment.commentId,
+            value: comment.adjustmentValue,
+            comment: comment.comment,
+            date: comment.datetime
+          })
+        }
       }
 
       // Clean up unnecessary fields
-      delete groupedComments[sessionKey].adjustmentType;
-      delete groupedComments[sessionKey].adjustmentValue;
-      delete groupedComments[sessionKey].comment;
-      delete groupedComments[sessionKey].commentId;
+      delete groupedComments[bookingId].adjustmentType;
+      delete groupedComments[bookingId].adjustmentValue;
+      delete groupedComments[bookingId].comment;
+      delete groupedComments[bookingId].commentId;
     });
 
     res.status(200).json(Object.values(groupedComments));

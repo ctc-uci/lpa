@@ -157,6 +157,8 @@ const SavedStatementComments = ({
     return newRate;
   };
 
+  // console.log("sessions", sessions)
+
   return (
     <Flex
       direction="column"
