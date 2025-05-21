@@ -10,6 +10,68 @@ const EVENT_ID_PREFIX = "lpa_"; // Prefix to identify our events
 const EVENT_ID_SEPARATOR = "_";
 
 /**
+ * IDs for events must be unique and between 5 - 1024 characters
+ * Our session IDs do not meet this requirement, so we need to generate a new ID
+ */
+
+/**
+ * Generate a unique Google Calendar event ID from backend event data
+ * Format: lpa_[backendId]_[hash]
+ * The hash is generated from event properties to ensure uniqueness
+ * 
+ * @param {Object} event - Event object containing backend event data
+ * @param {number} backendId - The backend event ID
+ * @returns {string} A unique Google Calendar event ID
+ */
+export const generateEventId = (event, backendId) => {
+  // Create a string of unique event properties that should make this event unique
+  const uniqueProps = [
+    event.date,
+    event.startTime,
+    event.endTime,
+    event.roomId,
+    backendId.toString()
+  ].join('|');
+
+  // Generate a simple hash of the unique properties
+  // Using a simple hash function that will give us a consistent output
+  let hash = 0;
+  for (let i = 0; i < uniqueProps.length; i++) {
+    const char = uniqueProps.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+
+  // Convert to positive hex string and take first 8 chars
+  const hashStr = Math.abs(hash).toString(16).padStart(8, '0').slice(0, 8);
+  
+  // Combine prefix, backend ID, and hash
+  return `${EVENT_ID_PREFIX}${backendId}${EVENT_ID_SEPARATOR}${hashStr}`;
+};
+
+/**
+ * Extract the backend event ID from a Google Calendar event ID
+ * NOT USED
+ * 
+ * @param {string} googleEventId - The Google Calendar event ID
+ * @returns {number|null} The backend event ID if valid, null if invalid
+ */
+export const extractBackendId = (googleEventId) => {
+  if (!googleEventId?.startsWith(EVENT_ID_PREFIX)) {
+    return null;
+  }
+
+  const parts = googleEventId.split(EVENT_ID_SEPARATOR);
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  // Remove prefix and get the backend ID
+  const backendId = parseInt(parts[0].slice(EVENT_ID_PREFIX.length));
+  return isNaN(backendId) ? null : backendId;
+};
+
+/**
  * Initialize the Google API client and load the calendar API
  * @returns {Promise<void>}
  */
@@ -66,62 +128,6 @@ export const fetchEvents = async () => {
     orderBy: "startTime",
   });
   return response.result.items || [];
-};
-
-/**
- * Generate a unique Google Calendar event ID from backend event data
- * Format: lpa_[backendId]_[hash]
- * The hash is generated from event properties to ensure uniqueness
- * 
- * @param {Object} event - Event object containing backend event data
- * @param {number} backendId - The backend event ID
- * @returns {string} A unique Google Calendar event ID
- */
-export const generateEventId = (event, backendId) => {
-  // Create a string of unique event properties that should make this event unique
-  const uniqueProps = [
-    event.date,
-    event.startTime,
-    event.endTime,
-    event.roomId,
-    backendId.toString()
-  ].join('|');
-
-  // Generate a simple hash of the unique properties
-  // Using a simple hash function that will give us a consistent output
-  let hash = 0;
-  for (let i = 0; i < uniqueProps.length; i++) {
-    const char = uniqueProps.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-
-  // Convert to positive hex string and take first 8 chars
-  const hashStr = Math.abs(hash).toString(16).padStart(8, '0').slice(0, 8);
-  
-  // Combine prefix, backend ID, and hash
-  return `${EVENT_ID_PREFIX}${backendId}${EVENT_ID_SEPARATOR}${hashStr}`;
-};
-
-/**
- * Extract the backend event ID from a Google Calendar event ID
- * 
- * @param {string} googleEventId - The Google Calendar event ID
- * @returns {number|null} The backend event ID if valid, null if invalid
- */
-export const extractBackendId = (googleEventId) => {
-  if (!googleEventId?.startsWith(EVENT_ID_PREFIX)) {
-    return null;
-  }
-
-  const parts = googleEventId.split(EVENT_ID_SEPARATOR);
-  if (parts.length !== 2) {
-    return null;
-  }
-
-  // Remove prefix and get the backend ID
-  const backendId = parseInt(parts[0].slice(EVENT_ID_PREFIX.length));
-  return isNaN(backendId) ? null : backendId;
 };
 
 /**
