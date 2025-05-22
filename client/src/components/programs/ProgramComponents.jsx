@@ -118,8 +118,8 @@ const formatNamesList = (list = [], maxCharsPerLine) => {
       .join(", ");
 
   const names = list.map((item) => item?.clientName?.trim()).filter(Boolean);
-  let lines = [];
-  let currentLine = "";
+  const lines = [];
+  const currentLine = "";
 
   for (let i = 0; i < names.length; i++) {
     const name = names[i];
