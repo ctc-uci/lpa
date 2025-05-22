@@ -5,10 +5,14 @@ import {
   Icon,
   Input,
   Tag,
+  Flex,
+  Text,
+  Button
 } from "@chakra-ui/react";
 import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 
 import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
+import {EditIcon} from '../../../assets/EditIcon';
 import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import BsPaletteFill from "../../../assets/icons/BsPaletteFill.svg";
 import { AddClient } from '../../clientsearch/AddClient';
@@ -17,7 +21,16 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
   const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [addClientModalOpen, setAddClientModalOpen] = useState(false);
+  const [prefilledEmail, setPrefilledEmail] = useState(null);
+  const [editId, setEditId] = useState(null);
   const tagsRef = useRef(null);
+
+  function resetState() {
+    setInstructorSearchTerm("");
+    setDropdownVisible(false);
+    setEditId(null);
+    setPrefilledEmail(null);
+  }
 
   useEffect(() => {
     getInstructorResults(instructorSearchTerm);
@@ -98,11 +111,13 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
   };
 
   function addNewClient(newClient) {
-    addTag(newClient);
-    setInstructorSearchTerm("");
-    setSearchedInstructors([]);
-    getInstructorResults(")");
-    setDropdownVisible(false);
+    resetState();
+    setInstructorSearchTerm(newClient.name);
+  }
+
+  function updateClient(updatedClient) {  
+    resetState();
+    setInstructorSearchTerm(updatedClient.name);
   }
 
   return (
@@ -137,6 +152,8 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
 
                         if (!instructor) {
                           // use addclient modal
+                          setEditId(null);
+                          setPrefilledEmail(null);
                           setAddClientModalOpen(true);
                         }
 
@@ -176,7 +193,19 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
                         bg="#F6F6F6"
                         _hover={{ bg: "#D9D9D9" }}
                       >
-                        {instructor.name}
+                        <Flex justifyContent="space-between">
+                          <Text overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" w="150px">{instructor.name}</Text>
+                          <Button variant="ghost" size="sm" color="#718096" padding="0px" marginTop="-4px"
+                            onClick={() => {
+                              setEditId(instructor.id);
+                              setPrefilledEmail(instructor.email);
+                              setInstructorSearchTerm(instructor.name);
+                              setAddClientModalOpen(true);
+                            }}
+                          >
+                            <EditIcon color="#718096" />
+                          </Button>
+                        </Flex>
                       </Box>
                     ))}
                   </Box>
@@ -211,10 +240,17 @@ export const ArtistsDropdown = ( {instructorSearchTerm, searchedInstructors, sel
       </HStack>
       <AddClient
         isOpen={addClientModalOpen}
-        onClose={() => setAddClientModalOpen(false)}
+        onClose={() => {
+          setAddClientModalOpen(false);
+          resetState();
+        }}
         onAdd={addNewClient}
+        onUpdate={updateClient}
         preFillName={instructorSearchTerm}
-        type="Add Lead Artist"
+        preFillEmail={prefilledEmail}
+        mode={editId ? "Edit" : "Add"}
+        type={`${editId ? "Edit" : "Add"} Lead Artist`}
+        editId={editId}
       />
     </>
   )

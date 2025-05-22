@@ -5,11 +5,13 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import React, { useState, useEffect } from 'react';
 
 
-export const AddClient = ({ isOpen, onClose, type, onAdd, preFillName, preFillEmail }) => {
+export const AddClient = ({ isOpen, onClose, type, onAdd, onUpdate, preFillName, preFillEmail, mode, editId }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  const [emailEntry, setEmailEntry] = useState("");
+  const [id, setId] = useState(null);
   const [error, setError] = useState("");
+  const [proceedDelete, setProceedDelete] = useState(false);
   const { backend } = useBackendContext();
 
   useEffect(() => {
@@ -18,34 +20,85 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, preFillName, preFillEm
       setLastName(preFillName.split(" ").slice(1).join(" "));
     }
     if (preFillEmail) {
-      setEmail(preFillEmail);
+      setEmailEntry(preFillEmail);
     }
-  }, [preFillName, preFillEmail]);
+    if (editId) {
+      setId(editId);
+    }
+  }, [preFillName, preFillEmail, editId]);
+
+  useEffect(() => {
+    setError(null);
+    setProceedDelete(false);
+    if (mode !== "Edit") {
+      setEmailEntry("");
+    }
+  }, [isOpen]);
+
+  const deleteClient = async () => {
+    try {
+      await backend.delete(`/clients/${id}`);
+      onClose();
+      setError(null);
+      setFirstName("");
+      setLastName("");
+      setEmailEntry("");
+    } catch (err) {
+      setError("An error occurred while deleting the client.");
+    }
+  };
+  
 
   const addClient = async () => {
     try {
       const name = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const email = emailEntry.trim().toLowerCase();
 
-      const res = await backend.post("/clients", {
-        name: name,
-        email: email.trim(),
-      });
+      if (name === "") {
+        setError("Name is required");
+        return;
+      }
 
-      setFirstName("");
-      setLastName("");
-      setEmail("");
+      if (email === "") {
+        setError("Email is required");
+        return;
+      }
+
+      let res;
+      if (mode === "Add") {
+        res = await backend.post("/clients", {
+          name: name,
+          email: email,
+        });
+      } else {
+        res = await backend.put(`/clients/${id}`, {
+          name: name,
+          email: email,
+        });
+      }
+
       onClose();
-      onAdd({
-        name: name,
-        email: email.trim(),
-        id: res.data[0].id
-      });
-    } catch (err) {
+      setError(null);
       setFirstName("");
       setLastName("");
-      setEmail("");
-      if (err.response.data) {
-        setError("An error occurred while adding the client.");
+      setEmailEntry("");
+
+      if (mode === "Add") {
+        onAdd({
+          name: name,
+          email: email,
+          id: res.data[0].id
+        });
+      } else {
+        onUpdate({
+          name: name,
+          email: email,
+          id: res.data[0].id
+        });
+      }
+    } catch (err) {
+      setError("An error occurred while adding the client.");
+      if (err.response && err.response.data) {
         if (err.response.data.includes("unique_email")) {
           setError("Error: Email already exists");
         } else if (err.response.data.includes("name_unique")) {
@@ -58,7 +111,7 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, preFillName, preFillEm
   const handleCancel = () => {
     setFirstName("");
     setLastName("");
-    setEmail("");
+    setEmailEntry("");
     setError(null);
     onClose();
   };
@@ -95,15 +148,27 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, preFillName, preFillEm
                   marginLeft="15px"
                   width="fill"
                   placeholder="email@address.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={emailEntry}
+                  onChange={(e) => setEmailEntry(e.target.value)}
                 />
                 {error && <Text color="red" marginLeft="15px" marginTop="5px">{error}</Text>}
               </Stack>
             </Flex>
-            <Flex justifyContent="flex-end" gap={2}>
-              <Button onClick={handleCancel}>Cancel</Button>
-              <Button onClick={addClient} bgColor="#4441C8" color="white">Save</Button>
+            <Flex justifyContent="space-between" marginTop="10px">
+              <Flex justifyContent="flex-end" gap={2}>
+                <Button onClick={handleCancel}>Cancel</Button>
+                <Button onClick={addClient} bgColor="#4441C8" color="white">Save</Button>
+              </Flex>
+              {mode === "Edit" && !proceedDelete && (
+                <Button bgColor="#90080F" color="white" onClick={() => setProceedDelete(true)}>
+                  Delete
+                </Button>
+              )}
+              {proceedDelete && (
+                <Button bgColor="#90080F" color="white" onClick={deleteClient}>
+                  Confirm Delete
+                </Button>
+              )}
             </Flex>
           </Stack>
         </ModalBody>
