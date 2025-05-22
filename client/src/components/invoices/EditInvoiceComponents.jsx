@@ -42,7 +42,6 @@ import {
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 
 import {
   BookWithBookmarkIcon,

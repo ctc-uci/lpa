@@ -9,8 +9,6 @@ import { saveAs } from "file-saver";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoicePDFDocument } from "./InvoicePDFDocument";
 
-// TODO FIX ENDPOINTS TO FIX CALCULATIONS
-
 const handleSubtotalSum = (startTime, endTime, rate) => {
   if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
 
@@ -44,6 +42,7 @@ const PDFButtonInvoice = ({ id }) => {
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
+      sessionResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
       backend.get(`/comments/invoice/${id}`),
@@ -51,9 +50,11 @@ const PDFButtonInvoice = ({ id }) => {
       backend.get(`/invoices/payees/${id}`),
       backend.get(`/events/remaining/${eventId}`),
       backend.get(`/invoices/total/${id}`),
+      backend.get(`/comments/invoice/sessions/${id}`),
     ]);
 
     const comments = commentsResponse.data;
+    const sessions = sessionResponse.data;
     let booking = {};
     let room = [];
 
@@ -113,11 +114,11 @@ const PDFButtonInvoice = ({ id }) => {
       remainingBalance,
       subtotalSum,
       id,
+      sessions,
     };
   };
 
   const getGeneratedDate = (comments, invoice) => {
-    console.log(invoice);
     if (comments.length > 0) {
       const latestComment = comments?.sort(
         (a, b) => new Date(b.datetime) - new Date(a.datetime)
@@ -173,7 +174,7 @@ const PDFButtonInvoice = ({ id }) => {
   );
 };
 
-const TestPDFViewer = ({ id }) => {
+const TestPDFViewer = () => {
   const { backend } = useBackendContext();
   const [invoice, setInvoice] = useState(null);
   const [invoiceData, setInvoiceData] = useState(null);
@@ -188,16 +189,18 @@ const TestPDFViewer = ({ id }) => {
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
+      sessionResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
       backend.get(`/comments/invoice/${id}`),
       backend.get(`/events/${eventId}`),
       backend.get(`/invoices/payees/${id}`),
       backend.get(`/events/remaining/${eventId}`),
-      backend.get(`/invoices/total/${id}`),
+      backend.get(`/comments/invoice/sessions/${id}`),
     ]);
 
     const comments = commentsResponse.data;
+    const sessions = sessionResponse.data;
     let booking = {};
     let room = [];
 
@@ -257,16 +260,16 @@ const TestPDFViewer = ({ id }) => {
       remainingBalance,
       subtotalSum,
       id,
+      sessions,
     };
   };
 
   const fetchData = async () => {
     try {
-      console.log("id", id);
-      const response = await backend.get("/invoices/22");
+      const response = await backend.get("/invoices/24");
       setInvoice(response.data);
 
-      const invoiceDataResponse = await fetchInvoiceData(response, backend, 22);
+      const invoiceDataResponse = await fetchInvoiceData(response, backend, 24);
       setInvoiceData(invoiceDataResponse);
       setLoading(false);
     } catch (err) {
@@ -277,7 +280,7 @@ const TestPDFViewer = ({ id }) => {
   useEffect(() => {
     fetchData();
   }, []);
-
+  
   return (
     <Box>
       {loading ? (

@@ -35,8 +35,6 @@ const SavedStatementComments = ({
   setSubtotal,
   sessions = [],
   compactView = false,
-  rooms = [],
-  setRooms,
 }) => {
   const calculateTotalBookingRow = (
     startTime,
@@ -440,7 +438,7 @@ const SavedStatementComments = ({
                           display="flex"
                           alignItems="center"
                         >
-                          ${calculateNewRate(session)}/hr
+                          ${calculateNewRate(session).toFixed(2)}/hr
                         </Text>
                       </Td>
 
