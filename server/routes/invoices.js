@@ -10,13 +10,13 @@ invoicesRouter.use(express.json());
 const upload = multer();
 
 
-const OVERDUE_INVOICES_WHERE_CLAUSE = `
+const NEARDUE_INVOICES_WHERE_CLAUSE = `
   is_sent = false
   AND payment_status != 'full'
   AND end_date <= CURRENT_DATE + INTERVAL '1 week'
   AND end_date + INTERVAL '5 days' > CURRENT_DATE`;
 
-const NEARDUE_INVOICES_WHERE_CLAUSE = `
+const OVERDUE_INVOICES_WHERE_CLAUSE = `
   CURRENT_DATE >= end_date + INTERVAL '5 days'
   AND is_sent = true
   AND payment_status != 'full'`;
