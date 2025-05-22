@@ -40,15 +40,16 @@ export const Login = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const { login, handleRedirectResult, currentUser } = useAuthContext();
-  const { backend } = useBackendContext();
-
+  const { login } = useAuthContext();
+  const { backend, user } = useBackendContext();
+  
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [credentialsError, setCredentialsError] = useState(false);
   const [permissionError, setPermissionError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [boxChecked, setBoxChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -85,6 +86,7 @@ export const Login = () => {
 
   const handleLogin = async (data) => {
     try {
+      setIsLoading(true);
       // First login with Firebase
       await login(
         {
@@ -97,10 +99,10 @@ export const Login = () => {
       // Try up to 3 times to get the correct permissions
       let attempts = 0;
       let permitCheck;
-      while (attempts < 3) {
+      while (attempts < 5) {
         try {
           permitCheck = await backend.get(`/users/email/${data.email}`);
-          if (permitCheck.data && permitCheck.data.editPerms !== undefined) {
+          if (permitCheck.data && permitCheck.data.editPerms !== undefined && user) {
             break;
           }
         } catch (e) {
@@ -379,6 +381,7 @@ export const Login = () => {
                   setPasswordError("");
                   setEmailError("");
                 }}
+                isLoading={isLoading}
               >
                 Let's Go
               </Button>
