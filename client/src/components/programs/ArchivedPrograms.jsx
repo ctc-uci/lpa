@@ -430,7 +430,6 @@ export const ArchivedPrograms = () => {
           </Text>
         </Flex>
         <Box
-          className="programs-table"
           width="95%"
           margin="0"
           border="1px solid var(--Secondary-3, #e2e8f0)"
@@ -510,7 +509,6 @@ export const ArchivedPrograms = () => {
             <TableContainer>
               <Table
                 variant="unstyled"
-                position="relative"
                 zIndex={3}
                 bg="white"
               >
@@ -726,6 +724,7 @@ export const ArchivedPrograms = () => {
                         </Td>
                         <Td
                           className="td"
+                          // overflow={"visible"}
                           onClick={(e) => {
                             e.stopPropagation();
                             // console.log(programSession);

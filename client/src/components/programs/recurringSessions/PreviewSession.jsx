@@ -1,23 +1,39 @@
-import { useState } from "react";
-
-
+import { useEffect, useState } from "react";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { Box, Button, Card, CardBody, Flex, Icon, IconButton, Menu, MenuButton, MenuItem, MenuList, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
-
-
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Flex,
+  Icon,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+} from "@chakra-ui/react";
 
 import { EllipsisIcon } from "lucide-react";
 
-
-
 import { DeleteIconRed } from "../../../assets/DeleteIconRed";
 import { FilledOutCalendar } from "../../../assets/FilledOutCalendar";
-import { sessionsClock, sessionsMapPin } from "../../../assets/icons/ProgramIcons";
+import {
+  sessionsClock,
+  sessionsMapPin,
+} from "../../../assets/icons/ProgramIcons";
 import { MdFeaturedPlayList } from "../../../assets/MdFeaturedPlayList";
 import { ReactivateIcon } from "../../../assets/ReactivateIcon";
 import DateSortingModal from "../../sorting/DateFilter";
-
 
 // Function to format date
 // to "Mon. 01.01.2023"
@@ -62,13 +78,8 @@ export const PreviewSession = ({
   setDeleteSessionDate,
   setDeleteSessionId,
 }) => {
-  const sortedSessions = [...allSessions]
-    .filter((session) => !session.isDeleted)
-    .sort((a, b) => {
-      return sortOrder === "asc"
-        ? new Date(a.date) - new Date(b.date)
-        : new Date(b.date) - new Date(a.date);
-    });
+  const [sortedSessions, setSortedSessions] = useState([]);
+
   // pagination controls
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,6 +99,18 @@ export const PreviewSession = ({
       setCurrentPage(currentPage - 1);
     }
   };
+
+  useEffect(() => {
+    const sorted = [...allSessions]
+      .filter((session) => !session.isDeleted)
+      .sort((a, b) =>
+        sortOrder === "asc"
+          ? new Date(a.date) - new Date(b.date)
+          : new Date(b.date) - new Date(a.date)
+      );
+
+    setSortedSessions(sorted);
+  }, [allSessions, sortOrder]);
 
   return (
     <Box
@@ -150,7 +173,6 @@ export const PreviewSession = ({
                     <Box
                       display="flex"
                       padding="8px"
-                      justifyContent="center"
                       alignItems="center"
                       gap="8px"
                     >
@@ -168,11 +190,9 @@ export const PreviewSession = ({
                         flexDirection="column"
                         alignItems="flex-start"
                         gap="2px"
+                        marginLeft={"100px"}
                       >
-                        <DateSortingModal
-                          sortOrder={sortOrder}
-                          setSortOrder={setSortOrder}
-                        />
+                        <DateSortingModal onSortChange={setSortOrder} />
                       </Box>
                     </Box>
                   </Th>
@@ -180,7 +200,6 @@ export const PreviewSession = ({
                     <Box
                       display="flex"
                       padding="8px"
-                      justifyContent="center"
                       alignItems="center"
                       gap="8px"
                     >
@@ -190,9 +209,10 @@ export const PreviewSession = ({
                         color="#767778"
                         fontSize="16px"
                         fontStyle="normal"
-                        onClick={() => {
-                          console.log(sortedSessions);
-                        }}
+                        // onClick={() => {
+                        //   console.log(sortedSessions);
+                        //   console.log(sortOrder);
+                        // }}
                       >
                         UPCOMING TIME
                       </Text>
@@ -202,7 +222,6 @@ export const PreviewSession = ({
                     <Box
                       display="flex"
                       padding="8px"
-                      justifyContent="center"
                       alignItems="center"
                       gap="8px"
                     >
@@ -226,11 +245,6 @@ export const PreviewSession = ({
               <Tbody>
                 {currentPageSessions
                   .filter((session) => !session.isDeleted)
-                  .sort((a, b) => {
-                    return sortOrder === "asc"
-                      ? new Date(a.date) - new Date(b.date)
-                      : new Date(b.date) - new Date(a.date);
-                  })
                   .map((session) => (
                     <Tr
                       key={session.id + session.date}
@@ -244,7 +258,6 @@ export const PreviewSession = ({
                       <Td>
                         <Box
                           display="flex"
-                          justifyContent="center"
                           alignItems="center"
                         >
                           <Text
@@ -259,7 +272,6 @@ export const PreviewSession = ({
                       <Td>
                         <Box
                           display="flex"
-                          justifyContent="center"
                           alignItems="center"
                         >
                           <Text
@@ -275,7 +287,6 @@ export const PreviewSession = ({
                       <Td>
                         <Box
                           display="flex"
-                          justifyContent="center"
                           alignItems="center"
                         >
                           <Text

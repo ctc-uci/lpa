@@ -107,6 +107,9 @@ export const EditRecurringSessions = () => {
   const [programName, setProgramName] = useState("");
   const [changeMade, setChangeMade] = useState(false);
 
+  const onSortChange = (_, order) => {
+    setSortOrder(order);
+  }
   // TODO: allow duplicate sessions? what if a single session is added on a recurring day?
   const handleAddSingleRow = () => {
     setNewSessions((prev) => ({
@@ -789,7 +792,7 @@ export const EditRecurringSessions = () => {
         <PreviewSession
           allSessions={allSessions}
           sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
+          setSortOrder={onSortChange}
           allRooms={allRooms}
           onSaveSessionModalOpen={onSaveSessionModalOpen}
           handleArchiveSession={handleArchiveSession}
