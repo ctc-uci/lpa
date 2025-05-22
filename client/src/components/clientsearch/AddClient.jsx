@@ -11,6 +11,7 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, onUpdate, preFillName,
   const [emailEntry, setEmailEntry] = useState("");
   const [id, setId] = useState(null);
   const [error, setError] = useState("");
+  const [proceedDelete, setProceedDelete] = useState(false);
   const { backend } = useBackendContext();
 
   useEffect(() => {
@@ -28,7 +29,25 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, onUpdate, preFillName,
 
   useEffect(() => {
     setError(null);
+    setProceedDelete(false);
+    if (mode !== "Edit") {
+      setEmailEntry("");
+    }
   }, [isOpen]);
+
+  const deleteClient = async () => {
+    try {
+      await backend.delete(`/clients/${id}`);
+      onClose();
+      setError(null);
+      setFirstName("");
+      setLastName("");
+      setEmailEntry("");
+    } catch (err) {
+      setError("An error occurred while deleting the client.");
+    }
+  };
+  
 
   const addClient = async () => {
     try {
@@ -135,9 +154,21 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, onUpdate, preFillName,
                 {error && <Text color="red" marginLeft="15px" marginTop="5px">{error}</Text>}
               </Stack>
             </Flex>
-            <Flex justifyContent="flex-end" gap={2}>
-              <Button onClick={handleCancel}>Cancel</Button>
-              <Button onClick={addClient} bgColor="#4441C8" color="white">Save</Button>
+            <Flex justifyContent="space-between" marginTop="10px">
+              <Flex justifyContent="flex-end" gap={2}>
+                <Button onClick={handleCancel}>Cancel</Button>
+                <Button onClick={addClient} bgColor="#4441C8" color="white">Save</Button>
+              </Flex>
+              {mode === "Edit" && !proceedDelete && (
+                <Button bgColor="#90080F" color="white" onClick={() => setProceedDelete(true)}>
+                  Delete
+                </Button>
+              )}
+              {proceedDelete && (
+                <Button bgColor="#90080F" color="white" onClick={deleteClient}>
+                  Confirm Delete
+                </Button>
+              )}
             </Flex>
           </Stack>
         </ModalBody>
