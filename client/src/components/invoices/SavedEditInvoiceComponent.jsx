@@ -17,11 +17,10 @@ import {
 import { format } from "date-fns";
 
 const SavedStatementComments = ({
-  comments = [],
-  booking = [],
-  room = [],
-  subtotal = 0.0,
-  setSubtotal
+  subtotal,
+  setSubtotal,
+  sessions = [],
+  compactView = false,
 }) => {
   const [commentsState, setComments] = useState(comments);
   const [bookingState, setBooking] = useState(booking);
@@ -213,18 +212,25 @@ const SavedStatementComments = ({
                     </Flex>
                   </Td>
 
-                  {/* adjustment type */}
-                  <Td>
-                    <Text
-                      h="40px"
-                      p="2"
-                      fontSize="6.38px"
-                      display="flex"
-                      alignItems="center"
-                    >
-                      {(commentsState[index]?.adjustmentType) || "Click to Select"}
-                    </Text>
-                  </Td>
+                      {/* Room fee rate */}
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView ? "6.38" : "sm"}
+                        borderBottom={
+                          session.comments && session.comments.length > 0
+                            ? "none"
+                            : undefined
+                        }
+                      >
+                        <Text
+                          h="40px"
+                          p={compactView ? "0" : "2"}
+                          display="flex"
+                          alignItems="center"
+                        >
+                          ${calculateNewRate(session).toFixed(2)}/hr
+                        </Text>
+                      </Td>
 
                       {/* Total */}
                       <Td
