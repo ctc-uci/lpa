@@ -18,13 +18,10 @@ import {
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-  AiFillEye,
-  AiFillLock,
-  AiFillMail,
-} from "react-icons/ai";
+import { AiFillEye, AiFillLock, AiFillMail } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
+
 import logo from "../../assets/logo/logo.png";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -42,7 +39,7 @@ export const Login = () => {
 
   const { login } = useAuthContext();
   const { backend, user } = useBackendContext();
-  
+
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [credentialsError, setCredentialsError] = useState(false);
   const [permissionError, setPermissionError] = useState("");
@@ -77,7 +74,7 @@ export const Login = () => {
     setEmailError("");
     return e.target.value;
   };
-  
+
   const handlePasswordChange = (e) => {
     if (credentialsError) setCredentialsError("");
     setPasswordError("");
@@ -102,7 +99,11 @@ export const Login = () => {
       while (attempts < 5) {
         try {
           permitCheck = await backend.get(`/users/email/${data.email}`);
-          if (permitCheck.data && permitCheck.data.editPerms !== undefined && user) {
+          if (
+            permitCheck.data &&
+            permitCheck.data.editPerms !== undefined &&
+            user
+          ) {
             break;
           }
         } catch (e) {
@@ -110,7 +111,7 @@ export const Login = () => {
         }
         attempts++;
         if (attempts < 3) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
       }
 
@@ -132,7 +133,9 @@ export const Login = () => {
       switch (errorCode) {
         case "auth/wrong-password":
         case "auth/invalid-credential":
-          setCredentialsError("Invalid email or password. Please try again or create an account.");
+          setCredentialsError(
+            "Invalid email or password. Please try again or create an account."
+          );
           setEmailError("Please enter a valid email address.");
           setPasswordError("Please enter a valid password.");
           break;
@@ -159,7 +162,9 @@ export const Login = () => {
           break;
         default:
           if (err.message === "Could not verify user permissions") {
-            toastLoginError("Unable to verify your permissions. Please try logging in again.");
+            toastLoginError(
+              "Unable to verify your permissions. Please try logging in again."
+            );
           } else {
             toastLoginError(firebaseErrorMsg);
           }
@@ -211,7 +216,13 @@ export const Login = () => {
                 >
                   Email
                 </label>
-                <div className={(errors.email || emailError)? "input-outer-email-error" : "input-outer-email"}>
+                <div
+                  className={
+                    errors.email || emailError
+                      ? "input-outer-email-error"
+                      : "input-outer-email"
+                  }
+                >
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillMail}
@@ -240,8 +251,12 @@ export const Login = () => {
                     {/* No right icon for email */}
                   </div>
                 </div>
-                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
-                Please enter a valid email address.
+                <FormErrorMessage
+                  className="form-error"
+                  color="#90080F"
+                  fontWeight={500}
+                >
+                  Please enter a valid email address.
                 </FormErrorMessage>
               </FormControl>
 
@@ -256,7 +271,13 @@ export const Login = () => {
                 >
                   Password
                 </label>
-                <div className={(errors.password || passwordError) ? "input-outer-password-error" : "input-outer-password"}>
+                <div
+                  className={
+                    errors.password || passwordError
+                      ? "input-outer-password-error"
+                      : "input-outer-password"
+                  }
+                >
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillLock}
@@ -294,7 +315,11 @@ export const Login = () => {
                     </button>
                   </div>
                 </div>
-                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500}>
+                <FormErrorMessage
+                  className="form-error"
+                  color="#90080F"
+                  fontWeight={500}
+                >
                   Please enter a valid password.
                 </FormErrorMessage>
               </FormControl>
@@ -342,8 +367,10 @@ export const Login = () => {
                 lineHeight="normal"
                 letterSpacing="0.07px"
               >
-
-                <VStack gap={0} align="start">
+                <VStack
+                  gap={0}
+                  align="start"
+                >
                   {credentialsError ? (
                     <>
                       <Text>{credentialsError}</Text>
@@ -361,8 +388,10 @@ export const Login = () => {
             {/* Button Group */}
             <HStack className="button-group">
               <Button
-                type="button"
+                // type="button"
                 className="cancel-button"
+                _hover={{ bg: "#E2E8F0" }}
+                bgColor={"#EDF2F7"}
               >
                 <ChakraLink
                   as={Link}
@@ -374,8 +403,9 @@ export const Login = () => {
               <Button
                 type="submit"
                 className="submit-button"
+                _hover={{bg: "#312E8A"}}
                 isDisabled={Object.keys(errors).length > 0}
-                onClick = {() => {
+                onClick={() => {
                   setCredentialsError("");
                   setPermissionError("");
                   setPasswordError("");
@@ -394,7 +424,6 @@ export const Login = () => {
                 Forgot password?
               </ChakraLink>
             </div>
-            
           </VStack>
         </form>
       </VStack>

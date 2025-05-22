@@ -31,6 +31,7 @@ import {
 } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router-dom";
+
 import {
   EmailIcon,
   PersonIcon,
@@ -44,73 +45,90 @@ import { UserIcon } from "../../assets/UserIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
-    const componentMap = {
-        "general": <GeneralSettingsMenu setSelectedComponent={setSelectedComponent}></GeneralSettingsMenu>,
-        // "rooms": <RoomsSettings/>,
-        "calendar": <h1> Calendar </h1>
-    }
+  const componentMap = {
+    general: (
+      <GeneralSettingsMenu
+        setSelectedComponent={setSelectedComponent}
+      ></GeneralSettingsMenu>
+    ),
+    // "rooms": <RoomsSettings/>,
+    calendar: <h1> Calendar </h1>,
+  };
 
-    return (
-        <>
-            {componentMap[selectedComponent]}
-        </>
-    )
-}
-
+  return <>{componentMap[selectedComponent]}</>;
+};
 
 const GeneralSettingsMenu = ({ setSelectedComponent }) => {
-    const navigate = useNavigate();
-    return (
-        <VStack
-            divider={<StackDivider style={{ margin: "0px" }} />}
-            border="1px solid #E2E8F0"
-            borderRadius="15px"
+  const navigate = useNavigate();
+  return (
+    <VStack
+      divider={<StackDivider style={{ margin: "0px" }} />}
+      border="1px solid #E2E8F0"
+      borderRadius="15px"
+    >
+      <Button
+        width="100%"
+        padding="3rem"
+        backgroundColor="transparent"
+        justifyContent="start"
+        gap="0.75rem"
+        onClick={() => navigate("/settings/myaccount")}
+      >
+        <UserIcon></UserIcon>
+        <Text
+          fontSize="14px"
+          fontFamily={"Inter"}
+          fontWeight={"500"}
+          fontStyle={"normal"}
+          lineHeight={"normal"}
+          letterSpacing={"0.07px"}
         >
-            <Button
-                width="100%"
-                padding="3rem"
-                backgroundColor="transparent"
-                justifyContent="start"
-                gap="0.75rem"
-                onClick={() => navigate("/settings/myaccount")}
-            >
-                <UserIcon></UserIcon>
-                <Text>
-                    My Account
-                </Text>
-            </Button>
-            <Button
-                width="100%"
-                padding="3rem"
-                backgroundColor="transparent"
-                justifyContent="start"
-                gap="0.75rem"
-                onClick={() => navigate("/settings/rooms")}
-            >
-                <LocationPinIcon></LocationPinIcon>
-                <Text>
-                    Rooms
-                </Text>
-            </Button>
-            <Button
-                width="100%"
-                padding="3rem"
-                backgroundColor="transparent"
-                justifyContent="start"
-                gap="0.75rem"
-                onClick={() => setSelectedComponent("calendar")}
-            >
-                <GoogleCalendarIcon></GoogleCalendarIcon>
-                <Text>
-                    Google Calendar
-                </Text>
-            </Button>
-        </VStack>
-    );
-}
-
-
-
+          My Account
+        </Text>
+      </Button>
+      <Button
+        width="100%"
+        padding="3rem"
+        backgroundColor="transparent"
+        justifyContent="start"
+        gap="0.75rem"
+        onClick={() => navigate("/settings/rooms")}
+      >
+        <LocationPinIcon></LocationPinIcon>
+        <Text
+          fontSize="14px"
+          fontFamily={"Inter"}
+          fontWeight={"500"}
+          fontStyle={"normal"}
+          lineHeight={"normal"}
+          letterSpacing={"0.07px"}
+        >
+          Rooms
+        </Text>
+      </Button>
+      <Button
+        width="100%"
+        padding="3rem"
+        backgroundColor="transparent"
+        justifyContent="start"
+        gap="0.75rem"
+        onClick={() => setSelectedComponent("calendar")}
+      >
+        <GoogleCalendarIcon></GoogleCalendarIcon>
+        <Text
+          fontSize="14px"
+          fontFamily={"Inter"}
+          fontWeight={"500"}
+          fontStyle={"normal"}
+          lineHeight={"normal"}
+          letterSpacing={"0.07px"}
+        >
+          Google Calendar
+        </Text>
+      </Button>
+    </VStack>
+  );
+};
 
 const AdminSettings = () => {
   const { backend } = useBackendContext();
@@ -188,7 +206,17 @@ const AdminSettings = () => {
         padding="0px 16px"
         align="left"
       >
-        <Heading size="sm"> Requests </Heading>
+        <Heading
+          fontSize="20px"
+          fontFamily={"Inter"}
+          fontWeight={"700"}
+          fontStyle={"normal"}
+          lineHeight={"normal"}
+          letterSpacing={"0.07px"}
+        >
+          {" "}
+          Requests{" "}
+        </Heading>
         <Flex
           borderRadius="15px"
           border="1px solid #E2E8F0"
@@ -325,7 +353,17 @@ const AdminSettings = () => {
         align="left"
         marginTop="40px"
       >
-        <Heading size="sm"> Accounts </Heading>
+        <Heading
+          fontSize="20px"
+          fontFamily={"Inter"}
+          fontWeight={"700"}
+          fontStyle={"normal"}
+          lineHeight={"normal"}
+          letterSpacing={"0.07px"}
+        >
+          {" "}
+          Accounts{" "}
+        </Heading>
         <Flex
           borderRadius="15px"
           border="1px solid #E2E8F0"
