@@ -3,19 +3,19 @@ import { gapi } from "gapi-script";
 // Environment variables
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-const CALENDAR_ID = "c_73d12ba30232f814ea46ab35ee3905da76ab7a17d21f7db0db928faf90c95675@group.calendar.google.com";
 
-// Constants for ID generation
-const EVENT_ID_PREFIX = "lpa_"; // Prefix to identify our events
-const EVENT_ID_SEPARATOR = "_";
+// Local storage key for the selected calendar
+export const SELECTED_CALENDAR_KEY = 'lpa_selected_calendar';
+
+export const EVENT_ID_PREFIX = 'lpa';
+export const EVENT_ID_SEPARATOR = '';
 
 /**
  * @typedef {Object} BookingEvent
  * @property {number} backendId - The unique identifier
  * @property {string} name - The name/title of the event
- * @property {string} date - The date of the event in YYYY-MM-DD format
- * @property {string} startTime - The start time in HH:mm format (24-hour)
- * @property {string} endTime - The end time in HH:mm format (24-hour)
+ * @property {string} start - The start time in ISO 8601 format 
+ * @property {string} end - The end time in ISO 8601 format
  * @property {string} [location] - Optional location/room of the event
  * @property {string} [description] - Optional description of the event
  * @property {number} [roomId] - Optional room ID from our backend
@@ -117,7 +117,7 @@ export const initializeGoogleCalendar = async () => {
         .init({
           apiKey: GOOGLE_API_KEY,
           clientId: GOOGLE_CLIENT_ID,
-          scope: "https://www.googleapis.com/auth/calendar.events",
+          scope: "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
         })
         .then(() => gapi.client.load("calendar", "v3"))
         .then(() => {
@@ -151,12 +151,32 @@ export const signOut = async () => {
 };
 
 /**
+ * Get the currently selected calendar ID
+ * @returns {string} The selected calendar ID or null if none selected
+ */
+export const getSelectedCalendarId = () => {
+  const saved = localStorage.getItem(SELECTED_CALENDAR_KEY);
+  if (!saved) return null;
+  try {
+    const calendar = JSON.parse(saved);
+    return calendar.id;
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Fetch all events from Google Calendar
  * @returns {Promise<GoogleCalendarEvent[]>} Array of calendar events
  */
 export const fetchEvents = async () => {
+  const calendarId = getSelectedCalendarId();
+  if (!calendarId) {
+    throw new Error('No calendar selected');
+  }
+
   const response = await gapi.client.calendar.events.list({
-    calendarId: CALENDAR_ID,
+    calendarId,
     timeMin: new Date().toISOString(),
     showDeleted: false,
     singleEvents: true,
@@ -171,11 +191,16 @@ export const fetchEvents = async () => {
  * @returns {Promise<GoogleCalendarEvent>} Created event
  */
 export const createEvent = async (event) => {
+  const calendarId = getSelectedCalendarId();
+  if (!calendarId) {
+    throw new Error('No calendar selected');
+  }
+
   const eventId = generateEventId(event, event.backendId);
   const response = await gapi.client.calendar.events.insert({
-    calendarId: CALENDAR_ID,
+    calendarId,
     resource: {
-      id: eventId, // Set our custom ID
+      id: eventId,
       ...event,
       start: {
         dateTime: new Date(event.start).toISOString(),
@@ -198,9 +223,14 @@ export const createEvent = async (event) => {
  * @returns {Promise<GoogleCalendarEvent>} Updated event
  */
 export const updateEvent = async (updatedEvent) => {
+  const calendarId = getSelectedCalendarId();
+  if (!calendarId) {
+    throw new Error('No calendar selected');
+  }
+
   const eventId = generateEventId(updatedEvent, updatedEvent.backendId);
   const response = await gapi.client.calendar.events.patch({
-    calendarId: CALENDAR_ID,
+    calendarId,
     eventId,
     resource: {
       ...updatedEvent,
@@ -225,9 +255,14 @@ export const updateEvent = async (updatedEvent) => {
  * @returns {Promise<void>}
  */
 export const deleteEvent = async (event) => {
+  const calendarId = getSelectedCalendarId();
+  if (!calendarId) {
+    throw new Error('No calendar selected');
+  }
+
   const eventId = generateEventId(event, event.backendId);
   await gapi.client.calendar.events.delete({
-    calendarId: CALENDAR_ID,
+    calendarId,
     eventId,
   });
 };
@@ -271,14 +306,17 @@ export const generateRecurringSessions = (recurringSession, startDate, endDate) 
 };
 */
 
-
-
 /**
  * Batch insert multiple bookings into Google Calendar
  * @param {BookingEvent[]} bookings - Array of booking objects to insert
  * @returns {Promise<BatchOperationResult>} Result of batch operation
  */
 export const batchInsertBookings = async (bookings) => {
+  const calendarId = getSelectedCalendarId();
+  if (!calendarId) {
+    throw new Error('No calendar selected');
+  }
+
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
@@ -306,7 +344,7 @@ export const batchInsertBookings = async (bookings) => {
       description: description,
     };
 
-    batch.add(gapi.client.calendar.events.insert({ calendarId: CALENDAR_ID, resource }), { id: `req${index}` });
+    batch.add(gapi.client.calendar.events.insert({ calendarId, resource }), { id: `req${index}` });
   });
 
   return new Promise((resolve) => {
@@ -325,6 +363,11 @@ export const batchInsertBookings = async (bookings) => {
  * @returns {Promise<BatchOperationResult>} Result of batch operation
  */
 export const batchUpdateBookings = async (bookings) => {
+  const calendarId = getSelectedCalendarId();
+  if (!calendarId) {
+    throw new Error('No calendar selected');
+  }
+
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
@@ -351,10 +394,9 @@ export const batchUpdateBookings = async (bookings) => {
       description: description,
     };
 
-    // Add update request to batch
     batch.add(
       gapi.client.calendar.events.patch({
-        calendarId: CALENDAR_ID,
+        calendarId,
         eventId: eventId,
         resource: resource
       }), 
@@ -394,15 +436,19 @@ export const batchUpdateBookings = async (bookings) => {
  * @returns {Promise<BatchOperationResult>} Result of batch operation
  */
 export const batchDeleteBookings = async (bookings) => {
+  const calendarId = getSelectedCalendarId();
+  if (!calendarId) {
+    throw new Error('No calendar selected');
+  }
+
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
     const eventId = generateEventId(booking, booking.backendId);
     
-    // Add delete request to batch
     batch.add(
       gapi.client.calendar.events.delete({
-        calendarId: CALENDAR_ID,
+        calendarId,
         eventId: eventId
       }), 
       { id: `delete_${index}` }
@@ -435,4 +481,51 @@ export const batchDeleteBookings = async (bookings) => {
       });
     });
   });
+};
+
+/**
+ * Check if the Google Calendar API is initialized and ready
+ * @returns {boolean} True if the API is ready to use
+ */
+export const isCalendarApiReady = () => {
+  return gapi.client?.calendar !== undefined;
+};
+
+/**
+ * Check if the user is currently signed into their Google account
+ * @returns {boolean} True if the user is signed in, false otherwise
+ */
+export const isSignedIn = () => {
+  if (!isCalendarApiReady()) {
+    return false;
+  }
+
+  const auth2 = gapi.auth2.getAuthInstance();
+  if (!auth2) return false;
+  return auth2.isSignedIn.get();
+};
+
+/**
+ * Get all available calendars for the authenticated user
+ * @returns {Promise<Array<{id: string, summary: string, description?: string, primary?: boolean}>>} 
+ * Array of calendar objects containing id, name (summary), and optional description and primary status
+ */
+export const getAvailableCalendars = async () => {
+  if (!isCalendarApiReady()) {
+    throw new Error('Google Calendar API is not initialized. Please wait for initialization to complete.');
+  }
+
+  const response = await gapi.client.calendar.calendarList.list({
+    showHidden: false,
+    showDeleted: false,
+  });
+
+  const result = response.result.items.map(calendar => ({
+    id: calendar.id,
+    summary: calendar.summary,
+    description: calendar.description,
+    primary: calendar.primary,
+  }));
+
+  return result;
 };

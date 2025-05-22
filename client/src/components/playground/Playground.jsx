@@ -12,7 +12,8 @@ import {
     Th,
     Td,
     TableContainer,
-    Button
+    Button,
+    Text
   } from "@chakra-ui/react";
 
 import Navbar from "../navbar/Navbar";
@@ -26,6 +27,8 @@ import { Filter } from 'lucide-react';
 import {ProgramFilter} from '../filters/ProgramsFilter';
 import { SessionFilter } from '../filters/SessionsFilter';
 import { AddClient } from "../clientsearch/AddClient";
+import CalendarSelector from '../calendar/CalendarSelector';
+import { createEvent, isSignedIn } from '../../utils/calendar';
 
 
 export const Playground = () => {
@@ -126,6 +129,27 @@ export const Playground = () => {
   return (
     <Navbar>
       <VStack spacing={8} width={"100%"}>
+        {isSignedIn() ? (
+          <Text>Signed in</Text>
+        ) : (
+          <Text>Not signed in</Text>
+        )}
+        <CalendarSelector />
+        <Button onClick={() => {
+          const event = {
+            backendId: 1,
+            name: "Test Event",
+            start: new Date().toISOString(),
+            end: new Date(new Date().getTime() + 1000 * 60 * 60 * 2).toISOString(),
+            location: "Test Location",
+            description: "Test Description",
+            roomId: 1
+          }
+          console.log(event);
+          createEvent(event);
+        }}>
+          Add Test Event
+        </Button>
         <Test />
         <Button onClick={() => setShowAddClient(true)}>
           Add Client
