@@ -1,4 +1,5 @@
 import { gapi } from "gapi-script";
+import { useState } from "react";
 
 // Environment variables
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -503,6 +504,23 @@ export const isSignedIn = () => {
   const auth2 = gapi.auth2.getAuthInstance();
   if (!auth2) return false;
   return auth2.isSignedIn.get();
+};
+
+/**
+ * Hook to manage the selected calendar in local storage
+ */
+export const useSelectedCalendar = () => {
+  const [selectedCalendar, setSelectedCalendar] = useState(() => {
+    const saved = localStorage.getItem(SELECTED_CALENDAR_KEY);
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const updateSelectedCalendar = (calendar) => {
+    setSelectedCalendar(calendar);
+    localStorage.setItem(SELECTED_CALENDAR_KEY, JSON.stringify(calendar));
+  };
+
+  return [selectedCalendar, updateSelectedCalendar];
 };
 
 /**
