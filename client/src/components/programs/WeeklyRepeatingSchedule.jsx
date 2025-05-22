@@ -65,7 +65,7 @@ export const WeeklyRepeatingSchedule = ({ sessions }) => {
   }
 
   console.log(sessionsByDay);
-  const finalSessionsByDay = {}
+  const finalSessionsByDay = {};
   for (const day in sessionsByDay) {
     const dayList = sessionsByDay[day];
     const finalDayList = [];
@@ -99,6 +99,8 @@ export const WeeklyRepeatingSchedule = ({ sessions }) => {
           <Text
             key={`${day}-${timeIndex}`}
             fontWeight="500"
+            fontSize={"14px"}
+            fontFamily={"Inter"}
           >
             {formatTimeString(timeSlot.startTime)} -{" "}
             {formatTimeString(timeSlot.endTime)} on {day}.

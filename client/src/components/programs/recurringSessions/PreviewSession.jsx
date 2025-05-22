@@ -1,39 +1,23 @@
 import { useState } from "react";
 
+
+
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import {
-  Box,
-  Button,
-  Card,
-  CardBody,
-  Flex,
-  Icon,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-} from "@chakra-ui/react";
+import { Box, Button, Card, CardBody, Flex, Icon, IconButton, Menu, MenuButton, MenuItem, MenuList, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
+
+
 
 import { EllipsisIcon } from "lucide-react";
 
+
+
 import { DeleteIconRed } from "../../../assets/DeleteIconRed";
 import { FilledOutCalendar } from "../../../assets/FilledOutCalendar";
-import {
-  sessionsClock,
-  sessionsMapPin,
-} from "../../../assets/icons/ProgramIcons";
+import { sessionsClock, sessionsMapPin } from "../../../assets/icons/ProgramIcons";
 import { MdFeaturedPlayList } from "../../../assets/MdFeaturedPlayList";
 import { ReactivateIcon } from "../../../assets/ReactivateIcon";
 import DateSortingModal from "../../sorting/DateFilter";
+
 
 // Function to format date
 // to "Mon. 01.01.2023"
@@ -78,13 +62,20 @@ export const PreviewSession = ({
   setDeleteSessionDate,
   setDeleteSessionId,
 }) => {
+  const sortedSessions = [...allSessions]
+    .filter((session) => !session.isDeleted)
+    .sort((a, b) => {
+      return sortOrder === "asc"
+        ? new Date(a.date) - new Date(b.date)
+        : new Date(b.date) - new Date(a.date);
+    });
   // pagination controls
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(allSessions.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedSessions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, allSessions.length);
-  const currentPageSessions = allSessions?.slice(startIndex, endIndex) || [];
+  const endIndex = Math.min(startIndex + itemsPerPage, sortedSessions.length);
+  const currentPageSessions = sortedSessions?.slice(startIndex, endIndex) || [];
 
   const goToNextPage = () => {
     if (currentPage < totalPages) {
@@ -142,7 +133,7 @@ export const PreviewSession = ({
             <Button
               backgroundColor="#4441C8"
               onClick={onSaveSessionModalOpen}
-              isDisabled={allSessions.length === 0}
+              isDisabled={sortedSessions.length === 0}
             >
               <Text color="#FFFFFF">Save Changes</Text>
             </Button>
@@ -200,7 +191,7 @@ export const PreviewSession = ({
                         fontSize="16px"
                         fontStyle="normal"
                         onClick={() => {
-                          console.log(allSessions);
+                          console.log(sortedSessions);
                         }}
                       >
                         UPCOMING TIME

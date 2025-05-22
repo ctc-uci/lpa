@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 import { SearchIcon } from "@chakra-ui/icons";
 import {
+  Box,
   Flex,
   Heading,
-  Box,
   Image,
   Input,
   InputGroup,
@@ -141,10 +141,7 @@ const InvoicesDashboard = () => {
       return "Paid";
     }
 
-    if (
-      new Date() < endDate &&
-      invoice.paymentStatus !== "full"
-    ) {
+    if (new Date() < endDate && invoice.paymentStatus !== "full") {
       return "Not Paid";
     }
 
@@ -197,7 +194,7 @@ const InvoicesDashboard = () => {
           ...invoice,
           season: getSeason(invoice),
           isPaid: isPaid(invoice),
-          paymentStatus: isPaid(invoice)
+          paymentStatus: isPaid(invoice),
         }));
 
         console.log(invoices);
@@ -205,7 +202,6 @@ const InvoicesDashboard = () => {
         setInvoices(invoices);
         setFilteredInvoices(invoices);
         setFilterComponentResults(invoices);
-
       } catch (err) {
         console.log(err);
       }
@@ -238,35 +234,34 @@ const InvoicesDashboard = () => {
 
   return (
     <Navbar>
-      <Box className="home-inner">
-        <Box className="invoices-table">
-          <Flex className="invoices-filter-row">
-            <InvoiceFilter
-              invoices={invoices}
-              setFilteredInvoices={(results) => {
-                setFilterComponentResults(results);
-                setFilteredInvoices(results);
-              }}
-            />
-            <Box flex="1" />
-            <SearchBar
-              handleSearch={handleSearch}
-              searchQuery={query}
-            />
-          </Flex>
-          <InvoicesTable
-            filteredInvoices={filteredInvoices}
-            isPaidColor={isPaidColor}
-            seasonColor={seasonColor}
+      {/* <Box className="home-inner"> */}
+      <Box className="invoices-table">
+        <Flex className="invoices-filter-row">
+          <InvoiceFilter
+            invoices={invoices}
+            setFilteredInvoices={(results) => {
+              setFilterComponentResults(results);
+              setFilteredInvoices(results);
+            }}
           />
-        </Box>
-        <PaginationComponent
-          totalPages={totalPages}
-          goToNextPage={goToNextPage}
-          goToPreviousPage={goToPreviousPage}
-          currentPage={currentPage}
+          <Box flex="1" />
+          <SearchBar
+            handleSearch={handleSearch}
+            searchQuery={query}
+          />
+        </Flex>
+        <InvoicesTable
+          filteredInvoices={filteredInvoices}
+          isPaidColor={isPaidColor}
+          seasonColor={seasonColor}
         />
       </Box>
+      <PaginationComponent
+        totalPages={totalPages}
+        goToNextPage={goToNextPage}
+        goToPreviousPage={goToPreviousPage}
+        currentPage={currentPage}
+      />
     </Navbar>
   );
 };

@@ -11,10 +11,8 @@ import "./Home.css";
 export const Home = () => {
   return (
     <Navbar>
-      <Box className="home-inner">
-        <HeaderRowComponent />
-        <ProgramsTable />
-      </Box>
+      <HeaderRowComponent />
+      <ProgramsTable />
     </Navbar>
   );
 };

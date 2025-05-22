@@ -19,6 +19,7 @@ import { EmailDropdown } from "./programComponents/EmailDropdown";
 import { PayeesDropdown } from "./programComponents/PayeesDropdown";
 import { ProgramInformation } from "./programComponents/ProgramInformation";
 import { TitleInformation } from "./programComponents/TitleInformation";
+import { IconButton } from "@chakra-ui/react";
 
 export const EditProgram = () => {
   const { backend } = useBackendContext();

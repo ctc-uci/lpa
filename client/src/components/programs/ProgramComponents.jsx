@@ -82,6 +82,9 @@ import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
 import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
+import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import { SessionFilter } from "../filters/SessionsFilter";
 import { CancelSessionModal } from "./CancelSessionModal";
 
@@ -95,7 +98,7 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import { EllipsisIcon, Info, FileTextIcon } from "lucide-react";
+import { Edit, EllipsisIcon, FileTextIcon, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -122,6 +125,7 @@ export const ProgramSummary = ({
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const [programToDelete, setProgramToDelete] = useState(null);
   const {
     isOpen: modalIsOpen,
     onOpen: modalOnOpen,
@@ -143,11 +147,7 @@ export const ProgramSummary = ({
   };
 
   const filteredAndSortedSessions = getFilteredAndSortedSessions();
-  const {
-    isOpen: popoverIsOpen,
-    onOpen: popoverOnOpen,
-    onClose: popoverOnClose,
-  } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const exit = () => {
     navigate("/programs");
@@ -177,104 +177,11 @@ export const ProgramSummary = ({
   };
 
   const handleEdit = () => {
-    navigate(`/programs/edit/${program[0].id}`);
-  };
-
-  const setArchived = async (boolean) => {
-    await backend.put(`/programs/` + eventId, { archived: boolean });
-    await backend.put(`/programs/updateSessionArchive/` + eventId, {
-      archived: boolean,
-    });
-  };
-
-  const duplicateProgram = async () => {
-    const eventResponse = await backend.get("/events/allInfo/" + eventId);
-    const eventName = eventResponse.data[0].eventname;
-    const generalInformation = eventResponse.data[0].eventdescription;
-
-    const dates = [...new Set(eventResponse.data.map((item) => item.date))];
-    const locationId = eventResponse.data[0].roomId;
-    const startTime = eventResponse.data[0].startTime
-      .split(":")
-      .slice(0, 2)
-      .join(":");
-    const endTime = eventResponse.data[0].endTime
-      .split(":")
-      .slice(0, 2)
-      .join(":");
-
-    const instructors = Array.from(
-      new Map(
-        eventResponse.data
-          .filter((instructor) => instructor.clientrole === "instructor")
-          .map((instructor) => [
-            instructor.email,
-            {
-              id: instructor.clientId,
-              name: instructor.clientname,
-              email: instructor.email,
-            },
-          ])
-      ).values()
-    );
-
-    const payees = Array.from(
-      new Map(
-        eventResponse.data
-          .filter((client) => client.clientrole === "payee")
-          .map((client) => [
-            client.email,
-            {
-              id: client.clientId,
-              name: client.clientname,
-              email: client.email,
-            },
-          ])
-      ).values()
-    );
-
-    const eventInfo = {
-      name: "[Unarchived] " + eventName,
-      description: generalInformation,
-    };
-
-    const response = await backend.post("/events", eventInfo);
-    const newEventId = response.data.id;
-    for (const date of dates) {
-      const bookingInfo = {
-        event_id: newEventId,
-        room_id: locationId,
-        start_time: startTime,
-        end_time: endTime,
-        date: date,
-        archived: false,
-      };
-      await backend.post("/bookings", bookingInfo);
-    }
-    const duplicateId = response.data.id;
-
-    for (const instructor of instructors) {
-      const instructorInfo = {
-        eventId: newEventId,
-        clientId: instructor.id,
-        role: "instructor",
-      };
-      await backend.post("/assignments", instructorInfo);
-    }
-
-    for (const payee of payees) {
-      const payeeInfo = {
-        eventId: newEventId,
-        clientId: payee.id,
-        role: "payee",
-      };
-      await backend.post("/assignments", payeeInfo);
-    }
-
-    navigate("/programs/" + duplicateId);
+    navigate(`/programs/edit/${program[0]?.id}`);
   };
 
   const handleDeactivate = () => {
+    setProgramToDelete(program[0]?.id);
     onOpen();
   };
 
@@ -399,8 +306,16 @@ export const ProgramSummary = ({
                 align="center"
               >
                 <Box>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Icon as={FileTextIcon} boxSize={6} padding={0} />
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={2}
+                  >
+                    <Icon
+                      as={FileTextIcon}
+                      boxSize={6}
+                      padding={0}
+                    />
                     <Heading
                       as="h2"
                       size="md"
@@ -419,92 +334,27 @@ export const ProgramSummary = ({
                   align="center"
                   gap={2}
                 >
-                  <PDFButton leftIcon={<Icon as={DownloadIcon} />}>
+                  <PDFButton
+                    leftIcon={<Icon as={DownloadIcon} />}
+                    fontWeight={"700"}
+                  >
                     Invoice
                   </PDFButton>
+                  {!isArchived ? (
+                    <EditCancelPopup
+                      handleEdit={handleEdit}
+                      handleDeactivate={handleDeactivate}
+                      id={program[0].id}
+                    />
+                  ) : (
+                    <ArchivedDropdown
+                      programId={program[0].id}
+                      programName={program[0].name}
+                      onOpen={modalOnOpen}
+                      setIsArchived={setIsArchived}
+                    />
+                  )}
 
-                  <Popover
-                    placement="bottom-start"
-                    isOpen={popoverIsOpen}
-                    onOpen={popoverOnOpen}
-                    onClose={popoverOnClose}
-                  >
-                    {({ isOpen, onClose }) => (
-                      <>
-                        <PopoverTrigger>
-                          <IconButton icon={<EllipsisIcon />} />
-                        </PopoverTrigger>
-
-                        <PopoverContent sx={{ width: "fit-content" }}>
-                          <PopoverBody>
-                            {!isArchived ? (
-                              <Box>
-                                <Button
-                                  variant="ghost"
-                                  w="full"
-                                  justifyContent="flex-start"
-                                  leftIcon={<EditIcon />}
-                                  onClick={toEditProgram}
-                                >
-                                  Edit
-                                </Button>
-
-                                <Button
-                                  variant="ghost"
-                                  w="full"
-                                  justifyContent="flex-start"
-                                  leftIcon={<CancelIcon />}
-                                  onClick={() => {
-                                    onClose();
-                                    setIsArchived(true);
-                                    setArchived(true);
-                                  }}
-                                >
-                                  Deactivate
-                                </Button>
-                              </Box>
-                            ) : (
-                              <div>
-                                <Button
-                                  variant="ghost"
-                                  w="full"
-                                  justifyContent="flex-start"
-                                  leftIcon={<DuplicateIcon />}
-                                  onClick={duplicateProgram}
-                                >
-                                  Duplicate
-                                </Button>
-
-                                <Button
-                                  variant="ghost"
-                                  w="full"
-                                  justifyContent="flex-start"
-                                  leftIcon={<ReactivateIcon />}
-                                  onClick={() => {
-                                    onClose();
-                                    setIsArchived(false);
-                                    setArchived(false);
-                                  }}
-                                >
-                                  Reactivate
-                                </Button>
-
-                                <Button
-                                  variant="ghost"
-                                  w="full"
-                                  justifyContent="flex-start"
-                                  leftIcon={<DeleteIconRed />}
-                                  onClick={modalOnOpen}
-                                >
-                                  Delete
-                                </Button>
-                              </div>
-                            )}
-                          </PopoverBody>
-                        </PopoverContent>
-                      </>
-                    )}
-                  </Popover>
                   <Modal
                     isOpen={modalIsOpen}
                     onClose={modalOnClose}
@@ -557,7 +407,10 @@ export const ProgramSummary = ({
                 </Flex>
               </Flex>
 
-              <Stack spacing={6} marginTop={-2}>
+              <Stack
+                spacing={6}
+                marginTop={-2}
+              >
                 <Heading
                   as="h2"
                   size="md"
@@ -584,7 +437,14 @@ export const ProgramSummary = ({
                   >
                     <ClockFilled />
                     <Flex direction="column">
-                      <Text marginBottom={2}>Usually:</Text>
+                      <Text
+                        marginBottom={2}
+                        fontSize={"14px"}
+                        fontFamily={"Inter"}
+                        fontWeight={"500"}
+                      >
+                        Usually:
+                      </Text>
                       <Flex direction="column">
                         <WeeklyRepeatingSchedule
                           sessions={filteredAndSortedSessions}
@@ -608,6 +468,8 @@ export const ProgramSummary = ({
                     <Text
                       color="#2D3748"
                       fontWeight="500"
+                      fontSize={"14px"}
+                      fontFamily={"Inter"}
                     >
                       {instructors?.length > 0
                         ? instructors
@@ -629,6 +491,8 @@ export const ProgramSummary = ({
                       <Text
                         color="#2D3748"
                         fontWeight="500"
+                        fontSize={"14px"}
+                        fontFamily={"Inter"}
                       >
                         {payees?.length > 0
                           ? payees.map((payee) => payee.clientName).join(", ")
@@ -649,6 +513,8 @@ export const ProgramSummary = ({
                       <Text
                         color="#2D3748"
                         fontWeight="500"
+                        fontSize={"14px"}
+                        fontFamily={"Inter"}
                       >
                         {payees?.length > 0
                           ? [...(payees || [])]
@@ -674,40 +540,47 @@ export const ProgramSummary = ({
                         overflowY="scroll"
                         gap={2}
                         sx={{
-                          '&::-webkit-scrollbar': {
-                            width: '4px',
+                          "&::-webkit-scrollbar": {
+                            width: "4px",
                           },
-                          '&::-webkit-scrollbar-track': {
-                            background: 'transparent',
+                          "&::-webkit-scrollbar-track": {
+                            background: "transparent",
                           },
-                          '&::-webkit-scrollbar-thumb': {
-                            background: '#E2E8F0',
-                            borderRadius: '2px',
+                          "&::-webkit-scrollbar-thumb": {
+                            background: "#E2E8F0",
+                            borderRadius: "2px",
                           },
                         }}
                       >
-                        {rooms && Array.from(rooms.entries()).map(([roomId, roomData]) => (
-                          <Flex
-                            key={roomId}
-                            align="center"
-                            gap={2}
-                          >
-                            <Text
-                              color="#2D3748"
-                              fontWeight="500"
-                            >
-                              {roomData.name}
-                            </Text>
-                            <DollarBill />
-                            <Text
-                              color="#2D3748"
-                              fontWeight="500"
-                            >
-                              {roomData.rate ? `$${roomData.rate}` : "-.--"}
-                            </Text>
-                            <Text color="gray.600">/ hour</Text>
-                          </Flex>
-                        ))}
+                        {rooms &&
+                          Array.from(rooms.entries()).map(
+                            ([roomId, roomData]) => (
+                              <Flex
+                                key={roomId}
+                                align="center"
+                                gap={2}
+                              >
+                                <Text
+                                  color="#2D3748"
+                                  fontWeight="500"
+                                  fontSize={"14px"}
+                                  fontFamily={"Inter"}
+                                >
+                                  {roomData.name}
+                                </Text>
+                                <DollarBill />
+                                <Text
+                                  color="#2D3748"
+                                  fontWeight="500"
+                                  fontSize={"14px"}
+                                  fontFamily={"Inter"}
+                                >
+                                  {roomData.rate ? `$${roomData.rate}` : "-.--"}
+                                </Text>
+                                <Text color="gray.600">/ hour</Text>
+                              </Flex>
+                            )
+                          )}
                       </Flex>
                       <Box
                         position="absolute"
@@ -740,33 +613,41 @@ export const ProgramSummary = ({
                         overflowY="scroll"
                         gap={2}
                         sx={{
-                          '&::-webkit-scrollbar': {
-                            width: '4px',
+                          "&::-webkit-scrollbar": {
+                            width: "4px",
                           },
-                          '&::-webkit-scrollbar-track': {
-                            background: 'transparent',
+                          "&::-webkit-scrollbar-track": {
+                            background: "transparent",
                           },
                         }}
                       >
-                        {rooms && Array.from(rooms.entries()).map(([roomId, roomData]) => (
-                          <Box key={roomId} mt={4}>
-                            <Text
-                              color="#2D3748"
-                              fontWeight="600"
-                              fontSize={14}
-                            >
-                              {roomData.name}
-                            </Text>
-                            <Text
-                              color="#2D3748"
-                              fontWeight="500"
-                              mt={2}
-                              fontSize={14}
-                            >
-                              {roomData.description || "No description available"}
-                            </Text>
-                          </Box>
-                        ))}
+                        {rooms &&
+                          Array.from(rooms.entries()).map(
+                            ([roomId, roomData]) => (
+                              <Box
+                                key={roomId}
+                                mt={4}
+                              >
+                                <Text
+                                  color="#2D3748"
+                                  fontWeight="600"
+                                  fontSize={"14px"}
+                                  fontFamily={"Inter"}
+                                >
+                                  {roomData.name}
+                                </Text>
+                                <Text
+                                  color="#2D3748"
+                                  fontWeight="500"
+                                  mt={2}
+                                  fontSize={"14px"}
+                                >
+                                  {roomData.description ||
+                                    "No description available"}
+                                </Text>
+                              </Box>
+                            )
+                          )}
                       </Box>
                     </Box>
 
@@ -796,145 +677,14 @@ export const ProgramSummary = ({
           </Card>
         </Flex>
       </Container>
-      <Modal
-        isOpen={modalIsOpen}
-        onClose={modalOnClose}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Deactivate Program?</ModalHeader>
-          <ModalBody>
-            <Alert
-              status="error"
-              borderRadius="md"
-              p={4}
-              display="flex"
-              flexDirection="column"
-            >
-              <Box color="#90080F">
-                <Flex alignitems="center">
-                  <Box
-                    color="#90080F0"
-                    mr={2}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    <Info />
-                  </Box>
-                  <AlertTitle
-                    color="#90080F"
-                    fontSize="md"
-                    fontWeight="500"
-                  >
-                    The deactivation fee deadline for this program is{" "}
-                    <AlertDescription
-                      fontSize="md"
-                      fontWeight="bold"
-                    >
-                      Thu. 1/2/2025.
-                    </AlertDescription>
-                  </AlertTitle>
-                </Flex>
-                <Flex
-                  mt={4}
-                  align="center"
-                  justify="center"
-                  width="100%"
-                >
-                  <Checkbox
-                    fontWeight="500"
-                    sx={{
-                      ".chakra-checkbox__control": {
-                        bg: "white",
-                        border: "#D2D2D2",
-                      },
-                    }}
-                  >
-                    Waive fee
-                  </Checkbox>
-                </Flex>
-              </Box>
-            </Alert>
-            <Box mt={4}>
-              <Text
-                fontWeight="medium"
-                mb={2}
-              >
-                Reason for Deactivation:
-              </Text>
-              <Textarea
-                bg="#F0F1F4"
-                placeholder="..."
-                size="md"
-                borderRadius="md"
-              />
-            </Box>
-            <Box
-              mt={4}
-              display="flex"
-              justifyContent="right"
-            >
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  rightIcon={<ChevronDownIcon />}
-                  bg="#F0F1F4"
-                  variant="outline"
-                  width="50%"
-                  justify="right"
-                >
-                  {selectedIcon} {selectedAction}
-                </MenuButton>
-                <MenuList>
-                  <MenuItem
-                    icon={
-                      <Box
-                        display="inline-flex"
-                        alignItems="center"
-                      >
-                        <Icon
-                          as={ArchiveIcon}
-                          boxSize={4}
-                        />
-                      </Box>
-                    }
-                    onClick={() => handleSelect("Archive", ArchiveIcon)}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    Archive
-                  </MenuItem>
-                  <MenuItem
-                    icon={<DeleteIcon />}
-                    onClick={() => handleSelect("Delete", <DeleteIcon />)}
-                  >
-                    Delete
-                  </MenuItem>
-                </MenuList>
-              </Menu>
-            </Box>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              bg="transparent"
-              onClick={modalOnClose}
-              color="#767778"
-              borderRadius="30px"
-              mr={3}
-            >
-              Exit
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              style={{ backgroundColor: "#90080F" }}
-              colorScheme="white"
-              borderRadius="30px"
-            >
-              Confirm
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <CancelProgram
+        id={program[0].id}
+        setPrograms={null}
+        onOpen={onOpen}
+        isOpen={isOpen}
+        onClose={onClose}
+        type={"Program"}
+      />
     </Box>
   );
 };
@@ -1284,24 +1034,24 @@ export const Sessions = ({
               >
                 <Box position="relative">
                   <Button
-                    style={{
-                      display: "flex",
-                      height: "40px",
-                      width: "85px",
-                      padding: "0px 16px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "4px",
-                      flex: "1 0 0",
-                      borderRadius: "6px",
-                      backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
-                      color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
-                      fontFamily: "Inter",
-                      fontSize: "14px",
-                      fontStyle: "normal",
-                      fontWeight: "700",
-                      lineHeight: "normal",
-                      letterSpacing: "0.07px",
+                    height="40px"
+                    width="85px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    flex="1 0 0"
+                    borderRadius="6px"
+                    backgroundColor="var(--Secondary-2-Default, #EDF2F7)"
+                    color={isSelected ? "#4441C8" : "#000000"}
+                    fontFamily="Inter"
+                    fontSize="14px"
+                    fontStyle="normal"
+                    fontWeight="700"
+                    lineHeight="normal"
+                    letterSpacing="0.07px"
+                    _hover={{
+                      backgroundColor: "#E2E8F0", // <-- Add your desired hover color here
                     }}
                     onClick={() => {
                       setSelectMenuOpen(!selectMenuOpen);
@@ -1743,7 +1493,9 @@ export const Sessions = ({
                                           borderWidth="1px"
                                           minWidth="auto"
                                           height="20px"
-                                          onClick={() => setSelectedRoom(room.name)}
+                                          onClick={() =>
+                                            setSelectedRoom(room.name)
+                                          }
                                           backgroundColor={
                                             selectedRoom === room.name
                                               ? "#EDEDFD"
@@ -1773,25 +1525,23 @@ export const Sessions = ({
 
               <Flex alignItems="flex-end">
                 <Button
-                  style={{
-                    display: "flex",
-                    height: "40px",
-                    width: "156px",
-                    padding: "0px 16px",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "4px",
-                    flex: "1 0 0",
-                    borderRadius: "6px",
-                    backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
-                    color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
-                    fontFamily: "Inter",
-                    fontSize: "14px",
-                    fontStyle: "normal",
-                    fontWeight: "700",
-                    lineHeight: "normal",
-                    letterSpacing: "0.07px",
-                  }}
+                  height="40px"
+                  width={"156px"}
+                  padding="0px 16px"
+                  justifyContent="center"
+                  alignItems="center"
+                  gap="4px"
+                  flex="1 0 0"
+                  borderRadius="6px"
+                  backgroundColor="var(--Secondary-2-Default, #EDF2F7)"
+                  color={isSelected ? "#4441C8" : "#000000"}
+                  fontFamily="Inter"
+                  fontSize="14px"
+                  fontStyle="normal"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  letterSpacing="0.07px"
+                  _hover={{ bg: "#E2E8F0" }}
                   onClick={() => {
                     navigate(`/programs/edit/sessions/${eventId}`);
                   }}
@@ -1814,10 +1564,11 @@ export const Sessions = ({
                         <Text
                           textTransform="none"
                           color="#767778"
-                          fontSize="16px"
+                          fontSize="12px"
                           fontStyle="normal"
+                          fontFamily={"Inter"}
                         >
-                          Status
+                          STATUS
                         </Text>
                       </Th>
                     ) : (
@@ -1835,8 +1586,9 @@ export const Sessions = ({
                         <Text
                           textTransform="none"
                           color="#767778"
-                          fontSize="16px"
+                          fontSize="12px"
                           fontStyle="normal"
+                          paddingRight={"65px"}
                         >
                           DATE
                         </Text>
@@ -1846,7 +1598,10 @@ export const Sessions = ({
                           alignItems="flex-start"
                           gap="2px"
                         >
-                          <DateSortingModal onSortChange={handleSortChange} />
+                          <DateSortingModal
+                            onSortChange={handleSortChange}
+                            a
+                          />
                         </Box>
                       </Box>
                     </Th>
@@ -1862,10 +1617,10 @@ export const Sessions = ({
                         <Text
                           textTransform="none"
                           color="#767778"
-                          fontSize="16px"
+                          fontSize="12px"
                           fontStyle="normal"
                         >
-                          TIME
+                          UPCOMING TIME
                         </Text>
                       </Box>
                     </Th>
@@ -1885,7 +1640,7 @@ export const Sessions = ({
                         <Text
                           textTransform="none"
                           color="#767778"
-                          fontSize="16px"
+                          fontSize="12px"
                           fontStyle="normal"
                         >
                           ROOM
@@ -1905,7 +1660,7 @@ export const Sessions = ({
                         <Text
                           textTransform="none"
                           color="#767778"
-                          fontSize="16px"
+                          fontSize="12px"
                           fontStyle="normal"
                         >
                           LEAD ARTIST(S)
@@ -1925,7 +1680,7 @@ export const Sessions = ({
                         <Text
                           textTransform="none"
                           color="#767778"
-                          fontSize="16px"
+                          fontSize="12px"
                           fontStyle="normal"
                         >
                           PAYEE(S)
@@ -1992,6 +1747,8 @@ export const Sessions = ({
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
+                            fontSize={"14px"}
+                            fontFamily={"Inter"}
                           >
                             {formatDate(session.date)}
                           </Box>
@@ -2001,6 +1758,8 @@ export const Sessions = ({
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
+                            fontSize={"14px"}
+                            fontFamily={"Inter"}
                           >
                             {formatTime(session.startTime)} -{" "}
                             {formatTime(session.endTime)}
@@ -2011,6 +1770,8 @@ export const Sessions = ({
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
+                            fontSize={"14px"}
+                            fontFamily={"Inter"}
                           >
                             {rooms.get(session.roomId)?.name || "N/A"}
                           </Box>
@@ -2021,6 +1782,8 @@ export const Sessions = ({
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
+                            fontSize={"14px"}
+                            fontFamily={"Inter"}
                           >
                             {instructors?.length > 0
                               ? instructors
@@ -2035,6 +1798,8 @@ export const Sessions = ({
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
+                            fontSize={"14px"}
+                            fontFamily={"Inter"}
                           >
                             {payees?.length > 0
                               ? payees
@@ -2047,8 +1812,9 @@ export const Sessions = ({
                           <Menu>
                             <MenuButton
                               as={IconButton}
-                              className="ellipsis-action-button"
-                              icon={<Icon as={sessionsEllipsis} />}
+                              height={"30px"}
+                              width={"30px"}
+                              icon={<Icon as={EllipsisIcon} />}
                             />
                             <MenuList
                               style={{
@@ -2309,6 +2075,7 @@ const PDFButton = () => {
           padding="0px 16px"
           borderRadius="6px"
           background={"var(--Primary-5-Default, #4441C8)"}
+          _hover={{ bg: "#312E8A" }}
         >
           Invoice
         </Button>

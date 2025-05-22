@@ -431,7 +431,7 @@ export const ArchivedPrograms = () => {
         </Flex>
         <Box
           className="programs-table"
-          width="100%"
+          width="95%"
           margin="0"
           border="1px solid var(--Secondary-3, #e2e8f0)"
           borderRadius="15px"
@@ -641,6 +641,8 @@ export const ArchivedPrograms = () => {
                         colSpan={7}
                         textAlign="center"
                         className="td"
+                        fontSize={"14px"}
+                        fontFamily={"Inter"}
                       >
                         <Box
                           justifyContent="center"
@@ -665,15 +667,25 @@ export const ArchivedPrograms = () => {
                         <Td
                           className="td"
                           minWidth="20rem"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
                         >
                           {programSession.programName}
                         </Td>
-                        <Td className="td">
+                        <Td
+                          className="td"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
                           {programSession.sessionDate !== "N/A"
                             ? formatDate(programSession.sessionDate)
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td
+                          className="td"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
                           {programSession.sessionStart !== "N/A"
                             ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
                             : "N/A"}
@@ -681,12 +693,18 @@ export const ArchivedPrograms = () => {
                         <Td
                           className="td"
                           maxWidth="6rem"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
                         >
                           {programSession.room !== "N/A"
                             ? programSession.room
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td
+                          className="td"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
                           {programSession.instructors &&
                           programSession.instructors.length > 0
                             ? programSession.instructors
@@ -694,7 +712,11 @@ export const ArchivedPrograms = () => {
                                 .join(", ")
                             : "N/A"}
                         </Td>
-                        <Td className="td">
+                        <Td
+                          className="td"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
                           {programSession.payees &&
                           programSession.payees.length > 0
                             ? programSession.payees
@@ -745,17 +767,8 @@ export const ArchivedPrograms = () => {
             </TableContainer>
           </Flex>
         </Box>
-        {/* <CancelProgram
-          id={programToDelete}
-          setPrograms={setPrograms}
-          onOpen={onOpen}
-          isOpen={isOpen}
-          onClose={onClose}
-          type="Program"
-        />*/}
-
         <Box
-          width="100%"
+          width="95%"
           display="flex"
           justifyContent="flex-end"
           mt="auto"

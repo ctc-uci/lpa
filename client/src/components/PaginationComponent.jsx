@@ -1,5 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { Button, Flex, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Text } from "@chakra-ui/react";
 
 export const PaginationComponent = ({
   totalPages,
@@ -8,14 +8,14 @@ export const PaginationComponent = ({
   currentPage,
 }) => {
   return (
-    <>
+    <Box>
       {totalPages > 0 && (
         <Flex
           alignItems="center"
           justifyContent="flex-end"
           mt={4}
           mb={4}
-          width="100%"
+          width="95%"
         >
           <Text
             mr={2}
@@ -50,6 +50,6 @@ export const PaginationComponent = ({
           </Button>
         </Flex>
       )}
-    </>
+    </Box>
   );
 };

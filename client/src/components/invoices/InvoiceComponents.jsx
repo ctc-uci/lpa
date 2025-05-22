@@ -1,10 +1,17 @@
-import React, { useEffect, useState, forwardRef, useImperativeHandle, useCallback, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from "react";
 
 import { CalendarIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  Divider,
   Flex,
   Grid,
   Heading,
@@ -41,16 +48,22 @@ import {
   useDisclosure,
   useToast,
   VStack,
-  Divider,
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
+import { EllipsisIcon } from "lucide-react";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { useParams } from "react-router";
+import { useLocation, useNavigate } from "react-router-dom";
 
+import { CancelIcon } from "../../assets/CancelIcon";
+import { ClockFilled } from "../../assets/ClockFilled";
+import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
+import { CustomOption } from "../../assets/CustomOption";
 import { DarkPlusIcon } from "../../assets/DarkPlusIcon";
 import { DollarIcon } from "../../assets/DollarIcon";
+import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
 import editBlackIcon from "../../assets/editBlackIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import filterIcon from "../../assets/filter.svg";
@@ -59,25 +72,20 @@ import {
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
 import personIcon from "../../assets/person.svg";
+import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
+import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import redCancelIcon from "../../assets/redCancelIcon";
+import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
+import { CancelProgram } from "../cancelModal/CancelProgramComponent";
+import { EditOnlyPopup } from "../cancelModal/EditOnlyPopup";
 import { PaginationComponent } from "../PaginationComponent";
 import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusSortingModal from "../sorting/StatusFilter";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
-import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
-import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
-import { SessionsBookmark } from "../../assets/SessionsBookmark";
-import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
-import { CancelProgram } from "../cancelModal/CancelProgramComponent";
-import { EditOnlyPopup } from "../cancelModal/EditOnlyPopup";
-import { CancelIcon } from "../../assets/CancelIcon";
-import { ClockFilled } from "../../assets/ClockFilled";
-import { CustomOption } from "../../assets/CustomOption";
-import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
-import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -307,6 +315,13 @@ const InvoicePayments = forwardRef(
       onOpen: onOpen,
       onClose: onClose,
     } = useDisclosure();
+
+    const {
+      isOpen: isCanceNewCommentOpen,
+      onOpen: onCancelNewCommentOpen,
+      onClose: onCancelNewCommentClose,
+    } = useDisclosure();
+
     const [selectedComment, setSelectedComment] = useState(null);
     const [editID, setEditID] = useState(null);
     const [deleteID, setDeleteID] = useState(null);
@@ -318,19 +333,19 @@ const InvoicePayments = forwardRef(
     const [invoiceYear, setInvoiceYear] = useState("");
     const toast = useToast();
 
-  useEffect(() => {
-    const fetchUid = async () => {
-      try {
-        const uidResponse = await backend.get(
-          "/users/email/" + currentUser.email
-        );
-        setUid(uidResponse.data?.id || null);
-      } catch (err) {
-        console.error("Error fetching UID:", err);
-      }
-    };
-    fetchUid();
-  }, [backend, currentUser]);
+    useEffect(() => {
+      const fetchUid = async () => {
+        try {
+          const uidResponse = await backend.get(
+            "/users/email/" + currentUser.email
+          );
+          setUid(uidResponse.data?.id || null);
+        } catch (err) {
+          console.error("Error fetching UID:", err);
+        }
+      };
+      fetchUid();
+    }, [backend, currentUser]);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -370,6 +385,14 @@ const InvoicePayments = forwardRef(
       } catch (error) {
         console.error("Error deleting:", error);
       }
+    };
+
+    const handleCancelNewComment = () => {
+      setShowInputRow(false);
+      setAdjustValue("--.--");
+      setValueEntered(false);
+      setHasUnsavedChanges(false);
+      onCancelNewCommentClose();
     };
 
     const handleShowDelete = (comment) => {
@@ -658,20 +681,16 @@ const InvoicePayments = forwardRef(
                           <MenuButton
                             as={IconButton}
                             className="ellipsis-action-button"
-                            icon={<Icon as={sessionsEllipsis} />}
+                            icon={<Icon as={EllipsisIcon} />}
                           />
-                          <MenuList>
+                          <MenuList
+                            minWidth={"149px"}
+                            maxWidth={"149px"}
+                          >
                             <MenuItem
                               onClick={() => handleEditComment(comment.id)}
-                              style={{
-                                display: "flex",
-                                width: "131px",
-                                padding: "6px 8px",
-                                alignItems: "center",
-                                gap: "10px",
-                                borderRadius: "4px",
-                                background: "#FFF",
-                              }}
+                              width={"149px"}
+                              _hover={{ bg: "#E2E8F0" }}
                             >
                               <Box
                                 display="flex"
@@ -684,15 +703,8 @@ const InvoicePayments = forwardRef(
                             </MenuItem>
                             <MenuItem
                               onClick={() => handleShowDelete(comment)}
-                              style={{
-                                display: "flex",
-                                width: "131px",
-                                padding: "6px 8px",
-                                alignItems: "center",
-                                gap: "10px",
-                                borderRadius: "4px",
-                                background: "#FFF",
-                              }}
+                              width={"149px"}
+                              _hover={{ bg: "#E2E8F0" }}
                             >
                               <Box
                                 display="flex"
@@ -825,12 +837,90 @@ const InvoicePayments = forwardRef(
                       <MenuButton
                         as={IconButton}
                         className="ellipsis-action-button"
-                        icon={<Icon as={sessionsEllipsis} />}
+                        icon={<Icon as={EllipsisIcon} />}
                       />
+                      <MenuList
+                        minWidth={"149px"}
+                        maxWidth={"149px"}
+                      >
+                        <MenuItem
+                          onClick={() => onCancelNewCommentOpen()}
+                          width={"149px"}
+                          _hover={{ bg: "#E2E8F0" }}
+                        >
+                          <Box
+                            display="flex"
+                            alignItems="center"
+                            gap="8px"
+                          >
+                            <Icon as={redCancelIcon} />
+                            <Text color="#90080F">Cancel</Text>
+                          </Box>
+                        </MenuItem>
+                      </MenuList>
                     </Menu>
                   </Td>
                 </Tr>
               )}
+
+              <Modal
+                isOpen={isCanceNewCommentOpen}
+                onClose={onCancelNewCommentClose}
+              >
+                <ModalOverlay />
+                <ModalContent>
+                  <ModalHeader
+                    color={"var(--Secondary-7, #4A5568)"}
+                    fontFamily={"Inter"}
+                    fontSize={"16px"}
+                    fontWeight={"700"}
+                    mt={"10px"}
+                  >
+                    Cancel payment?
+                  </ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    <Text fontFamily={"Inter"}>
+                      This payment currently being added will be permanently
+                      deleted.
+                    </Text>
+                  </ModalBody>
+
+                  <ModalFooter
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <Button
+                      variant="ghost"
+                      onClick={onCancelNewCommentClose}
+                      fontFamily={"Inter"}
+                      backgroundColor={"#EDF2F7"}
+                      fontSize={"14px"}
+                      fontWeight={"500"}
+                    >
+                      Exit
+                    </Button>
+                    <Button
+                      mr={3}
+                      ml={"12px"}
+                      _hover={{ backgroundColor: "#71060C" }}
+                      backgroundColor={"#90080F"}
+                      fontFamily={"Inter"}
+                      fontSize={"14px"}
+                      fontWeight={"500"}
+                      borderRadius={"6px"}
+                      color={"white"}
+                      onClick={() => {
+                        handleCancelNewComment();
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
             </Tbody>
           </Table>
         </Flex>
@@ -845,7 +935,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 
   const navigate = useNavigate();
   const toast = useToast();
-
 
   const handleRowClick = useCallback(
     (id) => {
@@ -864,19 +953,29 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
 
   useEffect(() => {
     if (window.__hasShownToast || filteredInvoices.length === 0) return;
-    const pastDueInvoices = filteredInvoices.filter(invoice => invoice.isPaid === "Past Due");
+    const pastDueInvoices = filteredInvoices.filter(
+      (invoice) => invoice.isPaid === "Past Due"
+    );
     const pastDueCount = pastDueInvoices.length;
 
     if (pastDueCount > 0) {
-      const programTitle = pastDueInvoices[0].eventName.split(" ").map(word => word.trim()).slice(0, 3).join(" ");
+      const programTitle = pastDueInvoices[0].eventName
+        .split(" ")
+        .map((word) => word.trim())
+        .slice(0, 3)
+        .join(" ");
       const date = new Date(pastDueInvoices[0].endDate);
       const month = date.toLocaleString("default", { month: "long" });
       const year = date.getFullYear();
-      const description = pastDueCount === 1
-        ? `${programTitle}_${month} ${year}`
-        : `You have ${pastDueCount} past due invoices`;
+      const description =
+        pastDueCount === 1
+          ? `${programTitle}_${month} ${year}`
+          : `You have ${pastDueCount} past due invoices`;
       toast({
-        title: pastDueCount === 1 ? "Invoice Past Due" : `${pastDueCount} Invoices Past Due`,
+        title:
+          pastDueCount === 1
+            ? "Invoice Past Due"
+            : `${pastDueCount} Invoices Past Due`,
         description: description,
         variant: "left-accent",
         status: "error",
@@ -895,13 +994,31 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
             w="400px"
           >
             <Flex align="center">
-              <Icon as={CheckCircleIcon} color="#E53E3E" boxSize={5} mr={3} />
+              <Icon
+                as={CheckCircleIcon}
+                color="#E53E3E"
+                boxSize={5}
+                mr={3}
+              />
               <Box>
-                <Heading size="sm" color="gray.800">{title}</Heading>
-                <Text fontSize="sm" color="gray.700">{description}</Text>
+                <Heading
+                  size="sm"
+                  color="gray.800"
+                >
+                  {title}
+                </Heading>
+                <Text
+                  fontSize="sm"
+                  color="gray.700"
+                >
+                  {description}
+                </Text>
               </Box>
             </Flex>
-            <Flex align="center" gap={4}>
+            <Flex
+              align="center"
+              gap={4}
+            >
               <Button
                 size="sm"
                 variant="link"
@@ -913,13 +1030,17 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                   if (pastDueCount === 1) {
                     navigate(`/invoices/${pastDueInvoices[0].id}`);
                   } else {
-                    navigate('/notifications');
+                    navigate("/notifications");
                   }
                 }}
               >
                 View
               </Button>
-              <Divider orientation="vertical" height="1px" borderColor="#E53E3E" />
+              <Divider
+                orientation="vertical"
+                height="30px"
+                borderColor="#E53E3E"
+              />
               <Button
                 size="sm"
                 variant="link"
@@ -939,7 +1060,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       window.__hasShownToast = true;
     }
   }, [filteredInvoices, toast]);
-
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
@@ -972,7 +1092,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         const priority = {
           "Past Due": 0,
           "Not Paid": 1,
-          "Paid": 2,
+          Paid: 2,
         };
         return sortOrder === "asc"
           ? priority[b.isPaid] - priority[a.isPaid]
@@ -997,16 +1117,28 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   // Get current page data
   const currentInvoices = sortedPrograms;
 
-  const handleEdit = useCallback((id, e) => {
-    e.stopPropagation();
-    navigate(`/invoices/edit/${id}`);
-  }, [navigate]);
+  const handleEdit = useCallback(
+    (id, e) => {
+      e.stopPropagation();
+      navigate(`/invoices/edit/${id}`);
+    },
+    [navigate]
+  );
 
   return (
     <>
-      <Box className="invoices-table__container" width="100%">
+      <Box
+        className="invoices-table__container"
+        width="100%"
+      >
         <TableContainer padding="0">
-          <Table className="invoices-table__table" width="100%" position="relative" zIndex={3} bg="white">
+          <Table
+            className="invoices-table__table"
+            width="100%"
+            position="relative"
+            zIndex={3}
+            bg="white"
+          >
             <Thead>
               <Tr>
                 <Th>
@@ -1021,7 +1153,11 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     <StatusSortingModal onSortChange={handleSortChange} />
                   </HStack>
                 </Th>
-                <Th textAlign="center" paddingLeft="8px" paddingRight="8px">
+                <Th
+                  textAlign="center"
+                  paddingLeft="8px"
+                  paddingRight="8px"
+                >
                   <Text>INVOICE SENT</Text>
                 </Th>
                 <Th>
@@ -1036,7 +1172,10 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     <ProgramSortingModal onSortChange={handleSortChange} />
                   </HStack>
                 </Th>
-                <Th paddingLeft="8px" paddingRight="8px">
+                <Th
+                  paddingLeft="8px"
+                  paddingRight="8px"
+                >
                   <Text>PAYER(S)</Text>
                 </Th>
                 <Th>
@@ -1054,12 +1193,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 <Th paddingRight="8px">
                   <Text>SEASON</Text>
                 </Th>
-                <Th paddingLeft="8px" paddingRight="8px">
+                <Th
+                  paddingLeft="8px"
+                  paddingRight="8px"
+                >
                   <Text>DOWNLOADS</Text>
                 </Th>
-                <Th>
-                  {/* Blank for edit button dropdown */}
-                </Th>
+                <Th>{/* Blank for edit button dropdown */}</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -1070,14 +1210,14 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     )
                   : [];
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
-                
-                let statusClass = '';
+
+                let statusClass = "";
                 if (invoice.isPaid === "Paid") {
-                  statusClass = 'status-paid';
+                  statusClass = "status-paid";
                 } else if (invoice.isPaid === "Not Paid") {
-                  statusClass = 'status-not-paid';
+                  statusClass = "status-not-paid";
                 } else if (invoice.isPaid === "Past Due") {
-                  statusClass = 'status-past-due';
+                  statusClass = "status-past-due";
                 }
 
                 return (
@@ -1085,21 +1225,24 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     key={index}
                     cursor="pointer"
                     sx={{
-                      '& td:not(:first-child)': {
-                        color: '#474849',
-                        fontFamily: 'Inter',
-                        fontSize: '14px',
-                        fontStyle: 'normal',
-                        fontWeight: '400',
-                        lineHeight: 'normal',
-                        letterSpacing: '0.07px',
-                      }
+                      "& td:not(:first-child)": {
+                        color: "#474849",
+                        fontFamily: "Inter",
+                        fontSize: "14px",
+                        fontStyle: "normal",
+                        fontWeight: "400",
+                        lineHeight: "normal",
+                        letterSpacing: "0.07px",
+                      },
                     }}
                   >
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       <Box className={statusClass}>{invoice.isPaid}</Box>
                     </Td>
-                    <Td onClick={() => handleRowClick(invoice.id)} textAlign="center">
+                    <Td
+                      onClick={() => handleRowClick(invoice.id)}
+                      textAlign="center"
+                    >
                       <Flex
                         justifyContent="center"
                         align="center"
@@ -1119,7 +1262,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                         )}
                       </Flex>
                     </Td>
-                    <Td onClick={() => handleRowClick(invoice.id)}>{invoice.eventName}</Td>
+                    <Td onClick={() => handleRowClick(invoice.id)}>
+                      {invoice.eventName}
+                    </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       {validPayers.length > 1
                         ? `${validPayers[0].trim()},...`
@@ -1127,7 +1272,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                           ? validPayers[0].trim()
                           : "N/A"}
                     </Td>
-                    <Td onClick={() => handleRowClick(invoice.id)}>{formatDate(invoice.endDate)}</Td>
+                    <Td onClick={() => handleRowClick(invoice.id)}>
+                      {formatDate(invoice.endDate)}
+                    </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       <Tag
                         size="md"
@@ -1138,13 +1285,19 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       </Tag>
                     </Td>
                     <Td>
-                      <Flex width="100%" justify="center">
+                      <Flex
+                        width="100%"
+                        justify="center"
+                      >
                         <PDFButtonInvoice id={invoice.id} />
                       </Flex>
                     </Td>
                     <td>
-                      <Flex width="100%" justify="center">
-                        <EditOnlyPopup 
+                      <Flex
+                        width="100%"
+                        justify="center"
+                      >
+                        <EditOnlyPopup
                           handleEdit={handleEdit}
                           id={invoice.id}
                         />

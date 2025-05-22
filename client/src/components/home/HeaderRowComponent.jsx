@@ -7,7 +7,7 @@ import plusSvg from "../../assets/icons/plus.svg";
 export const HeaderRowComponent = () => {
   const navigate = useNavigate();
   return (
-    <Flex className="header-row">
+    <Flex className="header-row" width={"95%"} mt={"26px"} mb={"16px"}>
       <Box
         className="google-calendar"
         onClick={() => {

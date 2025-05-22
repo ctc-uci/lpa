@@ -24,7 +24,7 @@ export const SignupRequested = () => {
             Your account is waiting approval.
           </Text>
           <Text className="contact-text">
-            For questions, please contact rocio@lapena.org
+            For questions, please contact classes@lapena.org
           </Text>
         </div>
         <Button
