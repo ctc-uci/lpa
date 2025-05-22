@@ -11,7 +11,7 @@ export const HeaderRowComponent = () => {
       <Box
         className="google-calendar"
         onClick={() => {
-          // handle google calendar logic
+          window.open("https://calendar.google.com", "_blank");
         }}
       >
         <img

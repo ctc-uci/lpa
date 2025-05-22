@@ -29,6 +29,7 @@ import { SessionFilter } from '../filters/SessionsFilter';
 import { AddClient } from "../clientsearch/AddClient";
 import CalendarSelector from '../calendar/CalendarSelector';
 import { createEvent, isSignedIn } from '../../utils/calendar';
+import GcalPrompt from '../calendar/GcalPrompt';
 
 
 export const Playground = () => {
@@ -43,7 +44,7 @@ export const Playground = () => {
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [showAddClient, setShowAddClient] = useState(false);
-
+  const [showGcalPrompt, setShowGcalPrompt] = useState(false);
   const [room, setRoom] = useState("all");
   const { backend } = useBackendContext();
 
@@ -129,6 +130,9 @@ export const Playground = () => {
   return (
     <Navbar>
       <VStack spacing={8} width={"100%"}>
+        <Button onClick={() => setShowGcalPrompt(true)}>
+          Sign in to Google Calendar
+        </Button>
         {isSignedIn() ? (
           <Text>Signed in</Text>
         ) : (
@@ -160,6 +164,10 @@ export const Playground = () => {
           type="Payer"
         />
       </VStack>
+      <GcalPrompt 
+        isOpen={showGcalPrompt} 
+        onClose={() => setShowGcalPrompt(false)} 
+      />
     </Navbar>
   );
 };
