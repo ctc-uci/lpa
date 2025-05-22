@@ -49,6 +49,7 @@ import {
   Textarea,
   Th,
   Thead,
+  Tooltip,
   Tr,
   useDisclosure,
   Wrap,
@@ -98,6 +99,7 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
+import { wrap } from "framer-motion";
 import { Edit, EllipsisIcon, FileTextIcon, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -107,9 +109,35 @@ import DateSortingModal from "../sorting/DateFilter";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
-const truncateNames = (name, maxLength = 30) => {
-  if (!name) return "N/A";
-  return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+const formatNamesList = (list = [], maxCharsPerLine) => {
+  if (!Array.isArray(list) || list.length === 0) return "None";
+  if (typeof maxCharsPerLine !== "number" || maxCharsPerLine <= 0)
+    return list
+      .map((item) => item?.clientName)
+      .filter(Boolean)
+      .join(", ");
+
+  const names = list.map((item) => item?.clientName?.trim()).filter(Boolean);
+  let lines = [];
+  let currentLine = "";
+
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i];
+    const withComma = i < names.length - 1 ? `${name}, ` : name;
+
+    if ((currentLine + withComma).length > maxCharsPerLine) {
+      lines.push(currentLine.trimEnd());
+      currentLine = withComma;
+    } else {
+      currentLine += withComma;
+    }
+  }
+
+  if (currentLine) {
+    lines.push(currentLine.trimEnd());
+  }
+
+  return lines.join("\n");
 };
 
 export const ProgramSummary = ({
@@ -126,11 +154,21 @@ export const ProgramSummary = ({
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const [programToDelete, setProgramToDelete] = useState(null);
+  const payeeEmails = (payees || [])
+    .map((person) => person?.clientEmail)
+    .filter(Boolean);
   const {
     isOpen: modalIsOpen,
     onOpen: modalOnOpen,
     onClose: modalOnClose,
   } = useDisclosure();
+
+  const displayNames = instructors
+    .map((instructor) => instructor.clientName)
+    .filter(Boolean);
+  const preview = displayNames.slice(0, 3).join(", ");
+  const remaining = displayNames.length - 3;
+  const fullText = displayNames.join(", ");
 
   const getFilteredAndSortedSessions = () => {
     if (!sessions || sessions.length === 0) return [];
@@ -156,12 +194,43 @@ export const ProgramSummary = ({
   const toEditProgram = () => {
     navigate("/programs/edit/" + eventId);
   };
+
   const [selectedAction, setSelectedAction] = useState("Archive");
   const [selectedIcon, setSelectedIcon] = useState(ArchiveIcon);
 
   const handleSelect = (action, iconSrc) => {
     setSelectedAction(action);
     setSelectedIcon(iconSrc);
+  };
+
+  const formatEmailsList = (list = [], namesPerLine = 5) => {
+    if (!Array.isArray(list) || list.length === 0) return "None";
+
+    return list.reduce((acc, item, index) => {
+      const email = item || "";
+      const isLast = index === list.length - 1;
+      const needsLineBreak = (index + 1) % namesPerLine === 0;
+
+      return acc + email + (isLast ? "" : needsLineBreak ? "\n" : ", ");
+    }, "");
+  };
+
+  const wrapRegularText = (text, limit = 1000) => {
+    if (!text) return "";
+    const words = text.split(" ");
+    let result = "";
+    let line = "";
+
+    for (const word of words) {
+      if ((line + word).length > limit) {
+        result += line.trim() + "\n";
+        line = "";
+      }
+      line += word + " ";
+    }
+
+    result += line.trim();
+    return result;
   };
 
   const formatTimeString = (timeString) => {
@@ -283,400 +352,479 @@ export const ProgramSummary = ({
     <Box
       minH="10vh"
       width="100%"
-      minW="100%"
       py={8}
       paddingTop="1rem"
     >
-      <Container
-        minW="100%"
-        p={0}
-      >
-        <Flex>
-          <Card
-            shadow="md"
-            border="1px"
-            borderColor="gray.300"
-            borderRadius="15px"
-            minW="100%"
-          >
-            <CardBody>
-              <Flex
-                mb={6}
-                justify="space-between"
-                align="center"
-              >
-                <Box>
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    gap={2}
+      <Flex width={"100%"}>
+        <Card
+          shadow="md"
+          border="1px"
+          borderColor="gray.300"
+          borderRadius="15px"
+          width="100%"
+        >
+          <CardBody>
+            <Flex
+              mb={6}
+              justify="space-between"
+              align="center"
+            >
+              <Box>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={2}
+                >
+                  <Icon
+                    as={FileTextIcon}
+                    boxSize={6}
+                    padding={0}
+                  />
+                  <Heading
+                    as="h2"
+                    size="md"
+                    fontFamily="Inter"
+                    fontSize="24px"
+                    fontStyle="normal"
+                    fontWeight="700"
+                    lineHeight="normal"
+                    color="#2D3748"
                   >
-                    <Icon
-                      as={FileTextIcon}
-                      boxSize={6}
-                      padding={0}
-                    />
-                    <Heading
-                      as="h2"
-                      size="md"
-                      fontFamily="Inter"
-                      fontSize="24px"
-                      fontStyle="normal"
-                      fontWeight="700"
-                      lineHeight="normal"
-                      color="#2D3748"
-                    >
-                      Summary
-                    </Heading>
-                  </Box>
+                    Summary
+                  </Heading>
                 </Box>
+              </Box>
+              <Flex
+                align="center"
+                gap={2}
+              >
+                <PDFButton
+                  leftIcon={<Icon as={DownloadIcon} />}
+                  fontWeight={"700"}
+                >
+                  Invoice
+                </PDFButton>
+                {!isArchived ? (
+                  <EditCancelPopup
+                    handleEdit={handleEdit}
+                    handleDeactivate={handleDeactivate}
+                    id={program[0].id}
+                  />
+                ) : (
+                  <ArchivedDropdown
+                    programId={program[0].id}
+                    programName={program[0].name}
+                    onOpen={modalOnOpen}
+                    setIsArchived={setIsArchived}
+                  />
+                )}
+
+                <Modal
+                  isOpen={modalIsOpen}
+                  onClose={modalOnClose}
+                >
+                  <ModalOverlay />
+                  <ModalContent>
+                    <ModalHeader>Delete Program?</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                      <div id="deactivateDeadlineBox">
+                        <Box
+                          backgroundColor="#F4E6E7"
+                          borderRadius="15px"
+                          id="deactivateDeadlineInnerBox"
+                        >
+                          <InfoIconRed
+                            fontSize="2xl"
+                            id="infoIcon"
+                          />
+                          <p id="deactivateDeadlineText">
+                            Program will be permanently deleted from Archives.
+                          </p>
+                        </Box>
+                      </div>
+                    </ModalBody>
+
+                    <ModalFooter
+                      style={{ display: "flex", justifyContent: "flex-end" }}
+                    >
+                      <Button
+                        variant="ghost"
+                        onClick={modalOnClose}
+                      >
+                        Exit
+                      </Button>
+                      <Button
+                        colorScheme="red"
+                        mr={3}
+                        id="deactivateConfirm"
+                        onClick={() => {
+                          handleDelete();
+                          exit();
+                        }}
+                      >
+                        Confirm
+                      </Button>
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
+              </Flex>
+            </Flex>
+
+            <Stack
+              spacing={6}
+              marginTop={-2}
+            >
+              <Heading
+                as="h2"
+                size="md"
+                fontFamily="Inter"
+                fontSize="24px"
+                fontStyle="normal"
+                fontWeight="700"
+                lineHeight="normal"
+                color="#2D3748"
+              >
+                {wrapRegularText(program[0]?.name) || "Untitled Program"}
+              </Heading>
+
+              <Flex
+                align="flex-start"
+                gap={4}
+                color="gray.700"
+                direction="column"
+                alignSelf="stretch"
+              >
+                <Flex
+                  alignItems="flex-start"
+                  gap="2"
+                >
+                  <ClockFilled />
+                  <Flex direction="column">
+                    <Text
+                      marginBottom={2}
+                      fontSize={"14px"}
+                      fontFamily={"Inter"}
+                      fontWeight={"500"}
+                    >
+                      Usually:
+                    </Text>
+                    <Flex direction="column">
+                      <WeeklyRepeatingSchedule
+                        sessions={filteredAndSortedSessions}
+                      />
+                    </Flex>
+                  </Flex>
+                </Flex>
+                <Flex
+                  direction="row"
+                  alignItems="center"
+                  gap="2"
+                >
+                  <ProgramsCalendarIcon />
+                  <DateRange sessions={filteredAndSortedSessions} />
+                </Flex>
                 <Flex
                   align="center"
                   gap={2}
                 >
-                  <PDFButton
-                    leftIcon={<Icon as={DownloadIcon} />}
-                    fontWeight={"700"}
+                  <ArtistIcon />
+                  <Text
+                    color="#2D3748"
+                    fontWeight="500"
+                    fontSize={"14px"}
+                    fontFamily={"Inter"}
                   >
-                    Invoice
-                  </PDFButton>
-                  {!isArchived ? (
-                    <EditCancelPopup
-                      handleEdit={handleEdit}
-                      handleDeactivate={handleDeactivate}
-                      id={program[0].id}
-                    />
-                  ) : (
-                    <ArchivedDropdown
-                      programId={program[0].id}
-                      programName={program[0].name}
-                      onOpen={modalOnOpen}
-                      setIsArchived={setIsArchived}
-                    />
-                  )}
-
-                  <Modal
-                    isOpen={modalIsOpen}
-                    onClose={modalOnClose}
-                  >
-                    <ModalOverlay />
-                    <ModalContent>
-                      <ModalHeader>Delete Program?</ModalHeader>
-                      <ModalCloseButton />
-                      <ModalBody>
-                        <div id="deactivateDeadlineBox">
-                          <Box
-                            backgroundColor="#F4E6E7"
-                            borderRadius="15px"
-                            id="deactivateDeadlineInnerBox"
-                          >
-                            <InfoIconRed
-                              fontSize="2xl"
-                              id="infoIcon"
-                            />
-                            <p id="deactivateDeadlineText">
-                              Program will be permanently deleted from Archives.
-                            </p>
-                          </Box>
-                        </div>
-                      </ModalBody>
-
-                      <ModalFooter
-                        style={{ display: "flex", justifyContent: "flex-end" }}
+                    {instructors?.length > 0 ? (
+                      <Tooltip
+                        label={instructors.map((i) => i.clientName).join(", ")}
+                        hasArrow
+                        placement="top-start"
+                        bgColor={"#718096"}
+                        padding={"8px"}
+                        borderRadius={"6px"}
                       >
-                        <Button
-                          variant="ghost"
-                          onClick={modalOnClose}
+                        <Text
+                          color="#2D3748"
+                          fontWeight="500"
+                          fontSize="14px"
+                          fontFamily="Inter"
+                          whiteSpace="nowrap"
+                          overflow="hidden"
+                          textOverflow="ellipsis"
+                          maxW="300px"
+                          cursor="help"
                         >
-                          Exit
-                        </Button>
-                        <Button
-                          colorScheme="red"
-                          mr={3}
-                          id="deactivateConfirm"
-                          onClick={() => {
-                            handleDelete();
-                            exit();
-                          }}
-                        >
-                          Confirm
-                        </Button>
-                      </ModalFooter>
-                    </ModalContent>
-                  </Modal>
+                          {formatNamesList(instructors, 100)}
+                        </Text>
+                      </Tooltip>
+                    ) : (
+                      "No instructors"
+                    )}
+                  </Text>
                 </Flex>
-              </Flex>
-
-              <Stack
-                spacing={6}
-                marginTop={-2}
-              >
-                <Heading
-                  as="h2"
-                  size="md"
-                  fontFamily="Inter"
-                  fontSize="24px"
-                  fontStyle="normal"
-                  fontWeight="700"
-                  lineHeight="normal"
-                  color="#2D3748"
-                >
-                  {program[0]?.name || "Untitled Program"}
-                </Heading>
 
                 <Flex
-                  align="flex-start"
-                  gap={4}
-                  color="gray.700"
-                  direction="column"
-                  alignSelf="stretch"
+                  spacing={2}
+                  gap={6}
                 >
-                  <Flex
-                    alignItems="flex-start"
-                    gap="2"
-                  >
-                    <ClockFilled />
-                    <Flex direction="column">
-                      <Text
-                        marginBottom={2}
-                        fontSize={"14px"}
-                        fontFamily={"Inter"}
-                        fontWeight={"500"}
-                      >
-                        Usually:
-                      </Text>
-                      <Flex direction="column">
-                        <WeeklyRepeatingSchedule
-                          sessions={filteredAndSortedSessions}
-                        />
-                      </Flex>
-                    </Flex>
-                  </Flex>
-                  <Flex
-                    direction="row"
-                    alignItems="center"
-                    gap="2"
-                  >
-                    <ProgramsCalendarIcon />
-                    <DateRange sessions={filteredAndSortedSessions} />
-                  </Flex>
                   <Flex
                     align="center"
                     gap={2}
                   >
-                    <ArtistIcon />
+                    <PersonIcon />
                     <Text
                       color="#2D3748"
                       fontWeight="500"
                       fontSize={"14px"}
                       fontFamily={"Inter"}
                     >
-                      {instructors?.length > 0
-                        ? instructors
-                            .map((instructor) => instructor.clientName)
-                            .join(", ")
-                        : "No instructors"}
+                      {payees?.length > 0 ? (
+                        <Tooltip
+                          label={payees.map((p) => p.clientName).join(", ")}
+                          hasArrow
+                          placement="top"
+                          whiteSpace="normal"
+                          bgColor={"#718096"}
+                          padding={"8px"}
+                          borderRadius={"6px"}
+                        >
+                          <Text
+                            whiteSpace="nowrap"
+                            maxW="300px"
+                            overflow="hidden"
+                            textOverflow="ellipsis"
+                            fontSize="14px"
+                            fontWeight="500"
+                            color="#2D3748"
+                            fontFamily="Inter"
+                            cursor="help"
+                          >
+                            {formatNamesList(payees, 100)}
+                          </Text>
+                        </Tooltip>
+                      ) : (
+                        "No payees"
+                      )}
                     </Text>
                   </Flex>
+                </Flex>
 
+                <Flex
+                  spacing={2}
+                  gap={6}
+                >
                   <Flex
-                    spacing={2}
-                    gap={6}
-                  >
-                    <Flex
-                      align="center"
-                      gap={2}
-                    >
-                      <PersonIcon />
-                      <Text
-                        color="#2D3748"
-                        fontWeight="500"
-                        fontSize={"14px"}
-                        fontFamily={"Inter"}
-                      >
-                        {payees?.length > 0
-                          ? payees.map((payee) => payee.clientName).join(", ")
-                          : "No payees"}
-                      </Text>
-                    </Flex>
-                  </Flex>
-
-                  <Flex
-                    spacing={2}
-                    gap={6}
-                  >
-                    <Flex
-                      align="center"
-                      gap={2}
-                    >
-                      <ProgramEmailIcon />
-                      <Text
-                        color="#2D3748"
-                        fontWeight="500"
-                        fontSize={"14px"}
-                        fontFamily={"Inter"}
-                      >
-                        {payees?.length > 0
-                          ? [...(payees || [])]
-                              .map((person) => person?.clientEmail)
-                              .filter(Boolean)
-                              .join(", ")
-                          : "No emails available"}
-                      </Text>
-                    </Flex>
-                  </Flex>
-
-                  <Flex
-                    align="flex-start"
+                    align="center"
                     gap={2}
                   >
-                    <LocationPin />
-                    <Box position="relative">
-                      <Flex
-                        direction="column"
-                        height="55px"
-                        paddingRight="20px"
-                        paddingBottom="20px"
-                        overflowY="scroll"
-                        gap={2}
-                        sx={{
-                          "&::-webkit-scrollbar": {
-                            width: "4px",
-                          },
-                          "&::-webkit-scrollbar-track": {
-                            background: "transparent",
-                          },
-                          "&::-webkit-scrollbar-thumb": {
-                            background: "#E2E8F0",
-                            borderRadius: "2px",
-                          },
-                        }}
-                      >
-                        {rooms &&
-                          Array.from(rooms.entries()).map(
-                            ([roomId, roomData]) => (
-                              <Flex
-                                key={roomId}
-                                align="center"
-                                gap={2}
-                              >
-                                <Text
-                                  color="#2D3748"
-                                  fontWeight="500"
-                                  fontSize={"14px"}
-                                  fontFamily={"Inter"}
-                                >
-                                  {roomData.name}
-                                </Text>
-                                <DollarBill />
-                                <Text
-                                  color="#2D3748"
-                                  fontWeight="500"
-                                  fontSize={"14px"}
-                                  fontFamily={"Inter"}
-                                >
-                                  {roomData.rate ? `$${roomData.rate}` : "-.--"}
-                                </Text>
-                                <Text color="gray.600">/ hour</Text>
-                              </Flex>
-                            )
-                          )}
-                      </Flex>
-                      <Box
-                        position="absolute"
-                        bottom={0}
-                        left={0}
-                        right={0}
-                        height="20px"
-                        background="linear-gradient(to bottom, transparent, rgba(255, 255, 255, 1))"
-                        pointerEvents="none"
-                      />
-                    </Box>
-                  </Flex>
-
-                  <Stack spacing={6}>
-                    <Box spacing={2}>
-                      <Heading
-                        size="md"
+                    <ProgramEmailIcon />
+                    <Tooltip
+                      label={payeeEmails.join(", ")}
+                      hasArrow
+                      placement="top"
+                      maxWidth="300px"
+                      whiteSpace="normal"
+                      bgColor={"#718096"}
+                      padding={"8px"}
+                      borderRadius={"6px"}
+                    >
+                      <Text
+                        fontSize="14px"
+                        fontWeight="500"
                         color="#2D3748"
                         fontFamily="Inter"
-                        fontSize="16px"
-                        fontWeight="700"
-                        lineHeight="normal"
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                        maxW="300px"
+                        cursor="help"
                       >
-                        Room Information
-                      </Heading>
-                      <Box
-                        display="flex"
-                        flexDirection="column"
-                        height="100px"
-                        overflowY="scroll"
-                        gap={2}
-                        sx={{
-                          "&::-webkit-scrollbar": {
-                            width: "4px",
-                          },
-                          "&::-webkit-scrollbar-track": {
-                            background: "transparent",
-                          },
-                        }}
-                      >
-                        {rooms &&
-                          Array.from(rooms.entries()).map(
-                            ([roomId, roomData]) => (
-                              <Box
-                                key={roomId}
-                                mt={4}
-                              >
-                                <Text
-                                  color="#2D3748"
-                                  fontWeight="600"
-                                  fontSize={"14px"}
-                                  fontFamily={"Inter"}
-                                >
-                                  {roomData.name}
-                                </Text>
-                                <Text
-                                  color="#2D3748"
-                                  fontWeight="500"
-                                  mt={2}
-                                  fontSize={"14px"}
-                                >
-                                  {roomData.description ||
-                                    "No description available"}
-                                </Text>
-                              </Box>
-                            )
-                          )}
-                      </Box>
-                    </Box>
-
-                    <Box>
-                      <Heading
-                        size="md"
-                        color="#2D3748"
-                        fontSize="16px"
-                        fontStyle="normal"
-                        fontWeight="700"
-                      >
-                        Program Information
-                      </Heading>
-                      <Text
-                        color="#2D3748"
-                        fontWeight="500"
-                        mt={4}
-                        fontSize={14}
-                      >
-                        {program[0]?.description || "No description available"}
+                        {payeeEmails.length > 0
+                          ? formatEmailsList(payeeEmails, 5) // adjust items per line
+                          : "No emails available"}
                       </Text>
-                    </Box>
-                  </Stack>
+                    </Tooltip>
+                  </Flex>
                 </Flex>
-              </Stack>
-            </CardBody>
-          </Card>
-        </Flex>
-      </Container>
+
+                <Flex
+                  align="flex-start"
+                  gap={2}
+                >
+                  <LocationPin />
+                  <Box position="relative">
+                    <Flex
+                      direction="column"
+                      height={rooms && rooms.size > 1 ? "60px" : "45px"}
+                      paddingRight="20px"
+                      paddingBottom="20px"
+                      overflowY="scroll"
+                      gap={2}
+                      sx={{
+                        "&::-webkit-scrollbar": {
+                          width: "4px",
+                        },
+                        "&::-webkit-scrollbar-track": {
+                          background: "transparent",
+                        },
+                        "&::-webkit-scrollbar-thumb": {
+                          background: "#E2E8F0",
+                          borderRadius: "2px",
+                        },
+                      }}
+                    >
+                      {rooms && rooms.size > 0 ? (
+                        Array.from(rooms.entries()).map(
+                          ([roomId, roomData]) => (
+                            <Flex
+                              key={roomId}
+                              align="center"
+                              gap={2}
+                            >
+                              <Text
+                                color="#2D3748"
+                                fontWeight="500"
+                                fontSize={"14px"}
+                                fontFamily={"Inter"}
+                              >
+                                {roomData.name}
+                              </Text>
+                              <DollarBill />
+                              <Text
+                                color="#2D3748"
+                                fontWeight="500"
+                                fontSize={"14px"}
+                                fontFamily={"Inter"}
+                              >
+                                {roomData.rate ? `$${roomData.rate}` : "-.--"}
+                              </Text>
+                              <Text color="gray.600">/ hour</Text>
+                            </Flex>
+                          )
+                        )
+                      ) : (
+                        <Text
+                          color="#2D3748"
+                          fontWeight="500"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
+                          {" "}
+                          No rooms listed
+                        </Text>
+                      )}
+                    </Flex>
+                    <Box
+                      position="absolute"
+                      bottom={0}
+                      left={0}
+                      right={0}
+                      height="20px"
+                      background="linear-gradient(to bottom, transparent, rgba(255, 255, 255, 1))"
+                      pointerEvents="none"
+                    />
+                  </Box>
+                </Flex>
+
+                <Stack spacing={6}>
+                  <Box spacing={2}>
+                    <Heading
+                      size="md"
+                      color="#2D3748"
+                      fontFamily="Inter"
+                      fontSize="16px"
+                      fontWeight="700"
+                      lineHeight="normal"
+                    >
+                      Room Information
+                    </Heading>
+                    <Box
+                      display="flex"
+                      flexDirection="column"
+                      height={rooms && rooms.length > 1 ? "100px" : "70px"}
+                      overflowY="scroll"
+                      gap={2}
+                      sx={{
+                        "&::-webkit-scrollbar": {
+                          width: "4px",
+                        },
+                        "&::-webkit-scrollbar-track": {
+                          background: "transparent",
+                        },
+                      }}
+                    >
+                      {rooms && rooms.size > 0 ? (
+                        Array.from(rooms.entries()).map(
+                          ([roomId, roomData]) => (
+                            <Box
+                              key={roomId}
+                              mt={4}
+                            >
+                              <Text
+                                color="#2D3748"
+                                fontWeight="600"
+                                fontSize={"14px"}
+                                fontFamily={"Inter"}
+                              >
+                                {roomData.name}
+                              </Text>
+                              <Text
+                                color="#2D3748"
+                                fontWeight="500"
+                                mt={2}
+                                fontSize={"14px"}
+                              >
+                                {roomData.description ||
+                                  "No description available"}
+                              </Text>
+                            </Box>
+                          )
+                        )
+                      ) : (
+                        <Text
+                          color="#2D3748"
+                          fontWeight="500"
+                          mt={2}
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
+                          No rooms listed
+                        </Text>
+                      )}
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <Heading
+                      size="md"
+                      color="#2D3748"
+                      fontSize="16px"
+                      fontStyle="normal"
+                      fontWeight="700"
+                      onClick={() => console.log(program[0]?.description)}
+                    >
+                      Program Information
+                    </Heading>
+
+                    <Text
+                      color="#2D3748"
+                      fontWeight="500"
+                      mt={4}
+                      fontSize={14}
+                    >
+                      {program[0]?.description &&
+                      program[0].description.trim() !== ""
+                        ? program[0].description
+                        : "No description available"}
+                    </Text>
+                  </Box>
+                </Stack>
+              </Flex>
+            </Stack>
+          </CardBody>
+        </Card>
+      </Flex>
       <CancelProgram
         id={program[0].id}
         setPrograms={null}
@@ -1785,11 +1933,34 @@ export const Sessions = ({
                             fontSize={"14px"}
                             fontFamily={"Inter"}
                           >
-                            {instructors?.length > 0
-                              ? instructors
-                                  .map((instructor) => instructor.clientName)
-                                  .join(", ")
-                              : "N/A"}
+                            {instructors?.length > 0 ? (
+                              <Tooltip
+                                label={instructors
+                                  .map((i) => i.clientName)
+                                  .join(", ")}
+                                hasArrow
+                                placement="top-start"
+                                bgColor={"#718096"}
+                                padding={"8px"}
+                                borderRadius={"6px"}
+                              >
+                                <Text
+                                  color="#2D3748"
+                                  fontWeight="500"
+                                  fontSize="14px"
+                                  fontFamily="Inter"
+                                  whiteSpace="nowrap"
+                                  overflow="hidden"
+                                  textOverflow="ellipsis"
+                                  maxW="150px"
+                                  cursor="help"
+                                >
+                                  {formatNamesList(instructors, 50)}
+                                </Text>
+                              </Tooltip>
+                            ) : (
+                              "No instructors"
+                            )}
                           </Box>
                         </Td>
                         {/* Add Payees data */}
@@ -1801,11 +1972,34 @@ export const Sessions = ({
                             fontSize={"14px"}
                             fontFamily={"Inter"}
                           >
-                            {payees?.length > 0
-                              ? payees
-                                  .map((payee) => payee.clientName)
-                                  .join(", ")
-                              : "N/A"}
+                            {payees?.length > 0 ? (
+                              <Tooltip
+                                label={payees
+                                  .map((p) => p.clientName)
+                                  .join(", ")}
+                                hasArrow
+                                placement="top-start"
+                                bgColor={"#718096"}
+                                padding={"8px"}
+                                borderRadius={"6px"}
+                              >
+                                <Text
+                                  color="#2D3748"
+                                  fontWeight="500"
+                                  fontSize="14px"
+                                  fontFamily="Inter"
+                                  whiteSpace="nowrap"
+                                  overflow="hidden"
+                                  textOverflow="ellipsis"
+                                  maxW="150px"
+                                  cursor="help"
+                                >
+                                  {formatNamesList(payees, 50)}
+                                </Text>
+                              </Tooltip>
+                            ) : (
+                              "No payees"
+                            )}
                           </Box>
                         </Td>
                         <Td>
