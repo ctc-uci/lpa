@@ -404,11 +404,6 @@ export const ProgramSummary = ({
                       </ModalFooter>
                     </ModalContent>
                   </Modal>
-                  {/* <EditCancelPopup
-                    handleEdit={handleEdit}
-                    handleDeactivate={handleDeactivate}
-                    id={program.id}
-                  /> */}
                 </Flex>
               </Flex>
 
@@ -690,145 +685,6 @@ export const ProgramSummary = ({
         onClose={onClose}
         type={"Program"}
       />
-      {/* <Modal
-        isOpen={modalIsOpen}
-        onClose={modalOnClose}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Deactivate Program?</ModalHeader>
-          <ModalBody>
-            <Alert
-              status="error"
-              borderRadius="md"
-              p={4}
-              display="flex"
-              flexDirection="column"
-            >
-              <Box color="#90080F">
-                <Flex alignitems="center">
-                  <Box
-                    color="#90080F0"
-                    mr={2}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    <Info />
-                  </Box>
-                  <AlertTitle
-                    color="#90080F"
-                    fontSize="md"
-                    fontWeight="500"
-                  >
-                    The deactivation fee deadline for this program is{" "}
-                    <AlertDescription
-                      fontSize="md"
-                      fontWeight="bold"
-                    >
-                      Thu. 1/2/2025.
-                    </AlertDescription>
-                  </AlertTitle>
-                </Flex>
-                <Flex
-                  mt={4}
-                  align="center"
-                  justify="center"
-                  width="100%"
-                >
-                  <Checkbox
-                    fontWeight="500"
-                    sx={{
-                      ".chakra-checkbox__control": {
-                        bg: "white",
-                        border: "#D2D2D2",
-                      },
-                    }}
-                  >
-                    Waive fee
-                  </Checkbox>
-                </Flex>
-              </Box>
-            </Alert>
-            <Box mt={4}>
-              <Text
-                fontWeight="medium"
-                mb={2}
-              >
-                Reason for Deactivation:
-              </Text>
-              <Textarea
-                bg="#F0F1F4"
-                placeholder="..."
-                size="md"
-                borderRadius="md"
-              />
-            </Box>
-            <Box
-              mt={4}
-              display="flex"
-              justifyContent="right"
-            >
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  rightIcon={<ChevronDownIcon />}
-                  bg="#F0F1F4"
-                  variant="outline"
-                  width="50%"
-                  justify="right"
-                >
-                  {selectedIcon} {selectedAction}
-                </MenuButton>
-                <MenuList>
-                  <MenuItem
-                    icon={
-                      <Box
-                        display="inline-flex"
-                        alignItems="center"
-                      >
-                        <Icon
-                          as={ArchiveIcon}
-                          boxSize={4}
-                        />
-                      </Box>
-                    }
-                    onClick={() => handleSelect("Archive", ArchiveIcon)}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    Archive
-                  </MenuItem>
-                  <MenuItem
-                    icon={<DeleteIcon />}
-                    onClick={() => handleSelect("Delete", <DeleteIcon />)}
-                  >
-                    Delete
-                  </MenuItem>
-                </MenuList>
-              </Menu>
-            </Box>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              bg="transparent"
-              onClick={modalOnClose}
-              color="#767778"
-              borderRadius="30px"
-              mr={3}
-            >
-              Exit
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              style={{ backgroundColor: "#90080F" }}
-              colorScheme="white"
-              borderRadius="30px"
-            >
-              Confirm
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal> */}
     </Box>
   );
 };
@@ -1178,24 +1034,24 @@ export const Sessions = ({
               >
                 <Box position="relative">
                   <Button
-                    style={{
-                      display: "flex",
-                      height: "40px",
-                      width: "85px",
-                      padding: "0px 16px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "4px",
-                      flex: "1 0 0",
-                      borderRadius: "6px",
-                      backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
-                      color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
-                      fontFamily: "Inter",
-                      fontSize: "14px",
-                      fontStyle: "normal",
-                      fontWeight: "700",
-                      lineHeight: "normal",
-                      letterSpacing: "0.07px",
+                    height="40px"
+                    width="85px"
+                    padding="0px 16px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
+                    flex="1 0 0"
+                    borderRadius="6px"
+                    backgroundColor="var(--Secondary-2-Default, #EDF2F7)"
+                    color={isSelected ? "#4441C8" : "#000000"}
+                    fontFamily="Inter"
+                    fontSize="14px"
+                    fontStyle="normal"
+                    fontWeight="700"
+                    lineHeight="normal"
+                    letterSpacing="0.07px"
+                    _hover={{
+                      backgroundColor: "#E2E8F0", // <-- Add your desired hover color here
                     }}
                     onClick={() => {
                       setSelectMenuOpen(!selectMenuOpen);
@@ -1669,25 +1525,23 @@ export const Sessions = ({
 
               <Flex alignItems="flex-end">
                 <Button
-                  style={{
-                    display: "flex",
-                    height: "40px",
-                    width: "156px",
-                    padding: "0px 16px",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "4px",
-                    flex: "1 0 0",
-                    borderRadius: "6px",
-                    backgroundColor: "var(--Secondary-2-Default, #EDF2F7)",
-                    color: isSelected ? "#4441C8" : "#000000", // Move the color inside the style object
-                    fontFamily: "Inter",
-                    fontSize: "14px",
-                    fontStyle: "normal",
-                    fontWeight: "700",
-                    lineHeight: "normal",
-                    letterSpacing: "0.07px",
-                  }}
+                  height="40px"
+                  width={"156px"}
+                  padding="0px 16px"
+                  justifyContent="center"
+                  alignItems="center"
+                  gap="4px"
+                  flex="1 0 0"
+                  borderRadius="6px"
+                  backgroundColor="var(--Secondary-2-Default, #EDF2F7)"
+                  color={isSelected ? "#4441C8" : "#000000"}
+                  fontFamily="Inter"
+                  fontSize="14px"
+                  fontStyle="normal"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  letterSpacing="0.07px"
+                  _hover={{ bg: "#E2E8F0" }}
                   onClick={() => {
                     navigate(`/programs/edit/sessions/${eventId}`);
                   }}
@@ -2221,6 +2075,7 @@ const PDFButton = () => {
           padding="0px 16px"
           borderRadius="6px"
           background={"var(--Primary-5-Default, #4441C8)"}
+          _hover={{ bg: "#312E8A" }}
         >
           Invoice
         </Button>
