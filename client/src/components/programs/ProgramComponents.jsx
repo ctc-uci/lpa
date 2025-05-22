@@ -1311,6 +1311,7 @@ export const Sessions = ({
                       fontWeight: "700",
                       lineHeight: "normal",
                       letterSpacing: "0.07px",
+
                       border: "none",
                       cursor:
                         selectedSessions.length > 0 ? "pointer" : "not-allowed",
@@ -1323,7 +1324,15 @@ export const Sessions = ({
                     }}
                     disabled={selectedSessions.length === 0}
                   >
-                    <CancelIcon />{" "}
+                    <Box
+                      bgColor={"white"}
+                      borderRadius={"100%"}
+                      padding={0}
+                      margin={0}
+                    >
+                      <CancelIcon />{" "}
+                    </Box>
+
                     {selectOption === "Select all"
                       ? "All"
                       : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}

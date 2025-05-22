@@ -63,7 +63,7 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
       // Helper to convert time string to minutes since midnight
       const timeToMinutes = (timeStr) => {
         let hours, minutes;
-        
+
         // Check if timeStr is in 24-hour format (e.g., "21:00")
         if (timeStr.includes(":") && !timeStr.includes(" ")) {
           const [h, m] = timeStr.split(":");
@@ -75,17 +75,17 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
           const timeParts = timeStr.split(" ");
           const modifier = timeParts[1] ? timeParts[1].toLowerCase() : null;
           const [h, m] = timeParts[0].split(":");
-          
+
           hours = parseInt(h);
           minutes = parseInt(m);
-          
+
           if (hours === 12) {
             hours = modifier === "am" ? 0 : 12; // 12 AM = 0 hours, 12 PM = 12 hours
           } else if (modifier === "pm") {
             hours = hours + 12; // Convert PM to 24-hour format
           }
         }
-        
+
         return hours * 60 + minutes;
       };
 
@@ -124,29 +124,29 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
       if (filters.endDate) {
         filtered = filtered.filter(program => {
           if (!program.date) return false;
-          
+
           // Create date objects using year, month, day only to remove time component
           const programDate = new Date(program.date);
           const endDate = new Date(filters.endDate);
-          
+
           // Set both dates to midnight to compare date only
           const programDateOnly = new Date(
             programDate.getFullYear(),
             programDate.getMonth(),
             programDate.getDate()
           );
-          
+
           const endDateOnly = new Date(
             endDate.getFullYear(),
             endDate.getMonth(),
             endDate.getDate()+1
           );
-          
+
           // Include programs up to and including the end date
           return programDateOnly <= endDateOnly;
         });
       }
-      
+
       setFilteredSessions(filtered);
     };
 
@@ -188,7 +188,7 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
           roomMap={rooms}
           onChange={updateFilter}
           room={filters.room}/>
-      </ FilterContainer>
+      </FilterContainer>
     );
 };
 
