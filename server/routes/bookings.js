@@ -206,6 +206,107 @@ bookingsRouter.post("/", async (req, res) => {
   }
 });
 
+bookingsRouter.post("/batch", async (req, res) => {
+  try {
+    const { bookings } = req.body;
+
+    if (!bookings || !Array.isArray(bookings) || bookings.length === 0) {
+      return res.status(400).json({
+        result: 'error',
+        message: 'Invalid or empty bookings array'
+      });
+    }
+
+    const ids = [];
+    for (const booking of bookings) {
+      const { event_id, room_id, start_time, end_time, date, archived } = booking;
+      const data = await db.query(
+        `INSERT INTO bookings (event_id, room_id, start_time, end_time, date, archived) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [ event_id, room_id, start_time, end_time, date, archived ]
+      );
+      ids.push(data[0].id);
+    }
+
+    res.status(200).json({
+      result: 'success',
+      message: `${bookings.length} bookings created successfully`,
+      data: ids
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+bookingsRouter.delete("/batch", async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        result: 'error',
+        message: 'Invalid or empty ids array'
+      });
+    }
+
+    const deletedIds = [];
+    for (const id of ids) {
+      const data = await db.query(
+        `DELETE FROM bookings WHERE id = $1 RETURNING *`,
+        [ id ]
+      );
+      deletedIds.push(data[0].id);
+    }
+
+    res.status(200).json({
+      result: 'success',
+      message: `${ids.length} bookings deleted successfully`,
+      data: deletedIds
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+bookingsRouter.put("/batch", async (req, res) => {
+  console.log("BOOKINGS: ", req.body);
+  try {
+    const { bookings } = req.body;
+
+    if (!bookings || !Array.isArray(bookings) || bookings.length === 0) {
+      return res.status(400).json({
+        result: 'error',
+        message: 'Invalid or empty bookings array'
+      });
+    }
+
+
+    const updatedIds = [];
+    for (const booking of bookings) {
+      const { id, event_id, room_id, start_time, end_time, date, archived } = booking;
+      const data = await db.query(
+        `UPDATE bookings SET 
+            event_id = COALESCE($1, event_id),
+            room_id = COALESCE($2, room_id),
+            start_time = COALESCE($3, start_time),
+            end_time = COALESCE($4, end_time),
+            date = COALESCE($5, date),
+            archived = COALESCE($6, archived)
+        WHERE id = $7
+        RETURNING *`,
+        [event_id, room_id, start_time, end_time, date, archived, id]
+      );
+      updatedIds.push(data[0].id);
+    }
+
+    res.status(200).json({
+      result: 'success',
+      message: `${bookings.length} bookings updated successfully`,
+      data: updatedIds
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 bookingsRouter.put("/:id", async (req, res) => {
     try {
       const { id } = req.params;

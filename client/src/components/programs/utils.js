@@ -335,3 +335,48 @@ export const generateRecurringSessions = (
 
   return sessions;
 };
+
+
+export const createNewSessions = async (newSessions, id, backend) => {
+  const formattedNewSessions = newSessions.map((s) => ({
+    event_id: id,
+    room_id: s.roomId,
+    start_time: s.startTime,
+    end_time: s.endTime,
+    date: s.date,
+    archived: s.archived,
+  }));
+  if (formattedNewSessions.length > 0) {
+    await backend.post("/bookings/batch", {
+      bookings: formattedNewSessions,
+    });
+  }
+};
+
+export const updateSessions = async (updatedSessions, id, backend) => {
+  const formattedUpdatedSessions = updatedSessions.map((s) => ({
+    id: s.id,
+    event_id: id,
+    room_id: s.roomId,
+    start_time: s.startTime,
+    end_time: s.endTime,
+    date: s.date,
+    archived: s.archived,
+  }));
+  if (formattedUpdatedSessions.length > 0) {
+    await backend.put("/bookings/batch", {
+      bookings: formattedUpdatedSessions,
+    });
+  }
+};
+
+export const deleteSessions = async (deletedSessions, backend) => {
+  const formattedDeletedSessions = deletedSessions.map((s) => s.id);
+  if (formattedDeletedSessions.length > 0) {
+    await backend.delete("/bookings/batch", {
+      data: {
+        ids: formattedDeletedSessions,
+      },
+    });
+  }
+};

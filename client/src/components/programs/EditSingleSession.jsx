@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { updateSessions } from "./utils";
 
 import {
   Box,
@@ -123,16 +124,7 @@ export const EditSingleSession = () => {
     // TODO: complete delete functionality and check if the session is deleted
     try {
       const updatedSession = allSessions.find((session) => Number(session.id) === Number(id));
-      const convertedSession = {
-        event_id: updatedSession.eventId,
-        room_id: updatedSession.roomId,
-        start_time: updatedSession.startTime,
-        end_time: updatedSession.endTime,
-        date: updatedSession.date,
-        archived: updatedSession.archived
-      };
-      const response = await backend.put(`/bookings/${id}`, convertedSession);
-      console.log("Updated session:", response.data);
+      await updateSessions([updatedSession], updatedSession.eventId, backend);
     }
     catch (error) {
       console.error("Error updating session:", error);

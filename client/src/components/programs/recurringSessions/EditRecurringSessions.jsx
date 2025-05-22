@@ -41,7 +41,7 @@ import { SaveSessionModal } from "../../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../../popups/UnsavedChangesModal";
 import { PreviewSession } from "./PreviewSession";
 import { RecurringSessionRow } from "./RecurringSessionRow";
-import { generateRecurringSessions } from "./utils";
+import { generateRecurringSessions, createNewSessions, updateSessions, deleteSessions } from "../utils";
 
 export const EditRecurringSessions = () => {
   const { id } = useParams();
@@ -253,7 +253,18 @@ export const EditRecurringSessions = () => {
 
   const handleResetSessions = () => {
     // Clear all sessions
-    setAllSessions([]);
+    setAllSessions((prevSessions) =>
+      prevSessions.map((session) => 
+        session.id ? { ...session, isDeleted: true } : null
+      )
+    );
+
+    // Remove all null values
+    setAllSessions((prevSessions) =>
+      prevSessions.filter((session) => session !== null)
+    );
+
+    // setAllSessions([]);
     setNewSessions({
       single: [],
       recurring: [],
@@ -303,22 +314,26 @@ export const EditRecurringSessions = () => {
 
   const saveChanges = async () => {
     try {
-      await backend.delete("bookings/event/" + id);
+      // await backend.delete("bookings/event/" + id);
       console.log("allSessions: ", allSessions);
 
       // Handle new sessions
-      await Promise.all(
-        allSessions.map((s) =>
-          backend.post("/bookings/", {
-            event_id: id,
-            room_id: s.roomId,
-            start_time: s.startTime,
-            end_time: s.endTime,
-            date: s.date,
-            archived: s.archived,
-          })
-        )
-      );
+      const newSessions = allSessions.filter((s) => s.isNew);
+      const updatedSessions = allSessions.filter((s) => s.isUpdated);
+      const deletedSessions = allSessions.filter((s) => s.isDeleted);
+
+      console.log("newSessions: ", newSessions);
+      console.log("updatedSessions: ", updatedSessions);
+      console.log("deletedSessions: ", deletedSessions);
+
+      // Create new sessions
+      await createNewSessions(newSessions, id, backend);
+
+      // Update existing sessions
+      await updateSessions(updatedSessions, id, backend);
+
+      // Delete sessions
+      await deleteSessions(deletedSessions, backend);
     } catch (error) {
       console.error("Error saving changes:", error);
     }
