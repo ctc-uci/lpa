@@ -5,10 +5,10 @@ import "./Program.css";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { Box, Button, Flex, Icon, Text } from "@chakra-ui/react";
 
-import { EyeIcon } from "../../assets/EyeIcon";
 import { useLocation, useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 
+import { EyeIcon } from "../../assets/EyeIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { ProgramSummary, Sessions } from "./ProgramComponents";
@@ -150,7 +150,7 @@ export const Program = () => {
         roomMap.set(roomId, {
           name: roomData.name,
           rate: roomData.rate,
-          description: roomData.description
+          description: roomData.description,
         });
       }
       setRoomNames(roomMap);
@@ -200,7 +200,10 @@ export const Program = () => {
 
   return (
     <Navbar>
-      <Box style={{ padding: "20px 20px 20px 20px" }}>
+      <Box
+        padding={"20px 20px 20px 20px"}
+        width={"100%"}
+      >
         {isArchived ? (
           <Flex
             gap={"12px"}

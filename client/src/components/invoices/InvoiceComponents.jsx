@@ -971,18 +971,15 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
         pastDueCount === 1
           ? `${programTitle}_${month} ${year}`
           : `You have ${pastDueCount} past due invoices`;
-      toast({
-        title:
-          pastDueCount === 1
-            ? "Invoice Past Due"
-            : `${pastDueCount} Invoices Past Due`,
+
+      const toastId = toast({
+        title: pastDueCount === 1 ? "Invoice Past Due" : `${pastDueCount} Invoices Past Due`,
         description: description,
-        variant: "left-accent",
         status: "error",
         duration: 5000,
         isClosable: true,
         position: "bottom-right",
-        render: ({ title, description }) => (
+        render: ({ onClose }) => (
           <Flex
             bg="#FED7D7"
             borderLeft="4px solid #E53E3E"
@@ -1005,7 +1002,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                   size="sm"
                   color="gray.800"
                 >
-                  {title}
+                  {pastDueCount === 1 ? "Invoice Past Due" : `${pastDueCount} Invoices Past Due`}
                 </Heading>
                 <Text
                   fontSize="sm"
@@ -1026,7 +1023,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 fontWeight="bold"
                 onClick={() => {
                   window.__hasShownToast = false;
-                  toast.closeAll();
+                  onClose();
                   if (pastDueCount === 1) {
                     navigate(`/invoices/${pastDueInvoices[0].id}`);
                   } else {
@@ -1048,7 +1045,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                 fontWeight="regular"
                 onClick={() => {
                   window.__hasShownToast = false;
-                  toast.closeAll();
+                  onClose();
                 }}
               >
                 Close
@@ -1059,7 +1056,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       });
       window.__hasShownToast = true;
     }
-  }, [filteredInvoices, toast]);
+  }, [filteredInvoices, toast, navigate]);
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
