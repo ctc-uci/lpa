@@ -58,7 +58,7 @@ import {
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
-import { CancelIcon } from "../../assets/CancelIcon";
+import CancelIcon from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
@@ -83,6 +83,7 @@ import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
 import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
+import { SessionsCancelIcon } from "../../assets/SessionsCancelIcon";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
@@ -1324,15 +1325,13 @@ export const Sessions = ({
                     }}
                     disabled={selectedSessions.length === 0}
                   >
-                    <Box
+                    {/* <Box
                       bgColor={"white"}
                       borderRadius={"100%"}
                       padding={0}
                       margin={0}
-                    >
-                      <CancelIcon />{" "}
-                    </Box>
-
+                    > */}
+                    <SessionsCancelIcon /> {/* </Box> */}
                     {selectOption === "Select all"
                       ? "All"
                       : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
