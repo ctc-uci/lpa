@@ -160,20 +160,42 @@ button#save {
   letter-spacing: 0.07px;
 }
 
+#instructorContainer, #payeeContainer, #emailContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 1%;
+  align-items: center;
+  position: relative;
+}
+
+#instructors, #payees, #emails {
+  display: flex;
+  flex-direction: row;
+  border: 1px #E2E8F0 solid;
+  border-radius: 5px;
+  width: 200px;
+  min-width: 200px;
+  background: #F6F6F6;
+}
+
 #instructorTags, #payeeTags, #emailTags {
-  height: 2rem;
-  width: 73%;
   position: absolute;
+  overflow-y: scroll;
+  height: 120%;
+  width: 73%;
   left: 0;
   top: 0;
   margin: 0 0 3% 216px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  padding-bottom: 8px;
 }
 
-#emailTags {
-  margin: 0 0 3% 238px;
+#instructorTags.scrollable, #payeeTags.scrollable, #emailTags.scrollable {
+  box-shadow: inset 0 -8px 8px -8px rgba(0, 0, 0, 0.2);
 }
 
 .instructorTag, .payeeTag, .emailTag {
@@ -183,6 +205,7 @@ button#save {
   margin: .5% 3% 0 0;
   display: flex;
   flex-direction: row;
+  justify-content: center;
   align-items: center;
   padding: 1% 1%;
 }
@@ -202,19 +225,6 @@ button#save {
   justify-content: center;
 }
 
-#instructors, #payees, #emails {
-  display: flex;
-  flex-direction: row;
-  border: 1px #E2E8F0 solid;
-  border-radius: 5px;
-  width: 200px;
-  background: #F6F6F6;
-}
-
-#emails {
-  width: 222px;
-}
-
 #instructorSelection, #payeeSelection, #emailSelection {
   width: 100%;
 }
@@ -232,7 +242,6 @@ button#save {
   overflow: hidden;
   background-color: #FFF;
   border-radius: 5px 5px 5px 5px;
-
 }
 
 #instructorInput, #payeeInput, #emailInput {
@@ -261,19 +270,9 @@ button#save {
   box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
   z-index: 10;
   max-height: 200px;
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 
-
-#dateTimeDiv, #instructorContainer, #payeeContainer, #emailContainer {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  gap: 1%;
-  align-items: center;
-  position: relative;
-}
 
 #location, #locationRate {
   display: flex;

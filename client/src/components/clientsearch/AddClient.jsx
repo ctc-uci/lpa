@@ -2,15 +2,25 @@ import { Box, Flex, Stack, Input, Button, Modal, ModalOverlay, ModalContent, Mod
 import { PersonIcon } from "../../assets/AdminSettingsIcons";
 import { EmailIcon } from "../../assets/EmailIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 
-export const AddClient = ({ isOpen, onClose, type }) => {
+export const AddClient = ({ isOpen, onClose, type, onAdd, preFillName, preFillEmail }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const { backend } = useBackendContext();
+
+  useEffect(() => {
+    if (preFillName) {
+      setFirstName(preFillName.split(" ")[0]);
+      setLastName(preFillName.split(" ").slice(1).join(" "));
+    }
+    if (preFillEmail) {
+      setEmail(preFillEmail);
+    }
+  }, [preFillName, preFillEmail]);
 
   const addClient = async () => {
     try {
@@ -20,11 +30,16 @@ export const AddClient = ({ isOpen, onClose, type }) => {
         name: name,
         email: email.trim(),
       });
-      console.log("Client added:", res.data);
+
       setFirstName("");
       setLastName("");
       setEmail("");
       onClose();
+      onAdd({
+        name: name,
+        email: email.trim(),
+        id: res.data[0].id
+      });
     } catch (err) {
       setFirstName("");
       setLastName("");
@@ -52,7 +67,7 @@ export const AddClient = ({ isOpen, onClose, type }) => {
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Add {type}</ModalHeader>
+        <ModalHeader>{type}</ModalHeader>
         <ModalBody pb={6}>
           <Stack>
             <Flex>
