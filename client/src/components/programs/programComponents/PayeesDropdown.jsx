@@ -6,10 +6,14 @@ import {
     Icon,
     Input,
     Tag,
+    Flex,
+    Text,
+    Button
 } from '@chakra-ui/react';
 import { useBackendContext } from "../../../contexts/hooks/useBackendContext";
 
 import {CloseFilledIcon} from '../../../assets/CloseFilledIcon';
+import {EditIcon} from '../../../assets/EditIcon';
 import {PlusFilledIcon} from '../../../assets/PlusFilledIcon';
 import personSvg from "../../../assets/person.svg";
 import { AddClient } from '../../clientsearch/AddClient';
@@ -18,7 +22,16 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
   const { backend } = useBackendContext();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [addClientModalOpen, setAddClientModalOpen] = useState(false);
+  const [prefilledEmail, setPrefilledEmail] = useState(null);
+  const [editId, setEditId] = useState(null);
   const tagsRef = useRef(null);
+
+  function resetState() {
+    setPayeeSearchTerm("");
+    setDropdownVisible(false);
+    setEditId(null);
+    setPrefilledEmail(null);
+  }
 
   useEffect(() => {
     getPayeeResults(payeeSearchTerm);
@@ -101,10 +114,16 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
   };
 
   function addNewClient(newClient) {
-    addTag(newClient);
-    setPayeeSearchTerm("");
-    setSearchedPayees([]);
-    getPayeeResults(")");
+    console.log("new", newClient);
+    resetState();
+    setPayeeSearchTerm(newClient.name);
+  }
+
+  function updateClient(updatedClient) {
+    console.log("updated", updatedClient);
+    resetState();
+    setPayeeSearchTerm(updatedClient.name);
+    searchPayees(updatedClient.name);
     setDropdownVisible(false);
   }
 
@@ -140,6 +159,8 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
 
                                     if (!payee) {
                                       // use addclient modal
+                                      setEditId(null);
+                                      setPrefilledEmail(null);
                                       setAddClientModalOpen(true);
                                     }
 
@@ -182,7 +203,19 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
                                         bg="#F6F6F6"
                                         _hover={{ bg: "#D9D9D9" }}
                                     >
-                                        {payee.name}
+                                        <Flex justifyContent="space-between">
+                                            <Text overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" w="150px">{payee.name}</Text>
+                                            <Button variant="ghost" size="sm" color="#718096" padding="0px" marginTop="-4px"
+                                                onClick={() => {
+                                                    setEditId(payee.id);
+                                                    setPrefilledEmail(payee.email);
+                                                    setPayeeSearchTerm(payee.name);
+                                                    setAddClientModalOpen(true);
+                                                }}
+                                            >
+                                                <EditIcon color="#718096" />
+                                            </Button>
+                                        </Flex>
                                     </Box>
                                 ))}
                             </Box>
@@ -219,10 +252,17 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
     </HStack>
     <AddClient
       isOpen={addClientModalOpen}
-        onClose={() => setAddClientModalOpen(false)}
+        onClose={() => {
+          setAddClientModalOpen(false);
+          resetState();
+        }}
         onAdd={addNewClient}
+        onUpdate={updateClient}
         preFillName={payeeSearchTerm}
-        type="Add Payer"
+        preFillEmail={prefilledEmail}
+        mode={editId ? "Edit" : "Add"}
+        type={`${editId ? "Edit" : "Add"} Payer`}
+        editId={editId}
     />
   </>
   )
