@@ -189,6 +189,8 @@ export const Notifications = () => {
           endpoints.map((endpoint) => backend.get(endpoint))
         );
 
+        console.log("responses", responses);
+
         // Create a map of endpoint to status
         const endpointToStatus = {
           '/invoices/overdue': 'overdue',
