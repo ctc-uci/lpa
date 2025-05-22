@@ -226,37 +226,137 @@ const SavedStatementComments = ({
                     </Text>
                   </Td>
 
-                  {/* total */}
-                  <Td>
-                    <Flex
-                      justifyContent="center"
-                      alignItems="center"
-                      gap={2}
-                      fontSize="6.38px"
-                    >
-                      <Text>$</Text>
-                      <Text
-                        textAlign="center"
-                      >
-                        {
-                          bookingState && room && bookingState.startTime && bookingState.endTime && room[0]?.rate
-                            ? handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate)
-                            : "N/A"
+                      {/* Total */}
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView ? "6.38" : "sm"}
+                        borderBottom={
+                          session.comments && session.comments.length > 0
+                            ? "none"
+                            : undefined
                         }
-                      </Text>
+                      >
+                        <Flex
+                          justifyContent="center"
+                          alignItems="center"
+                          gap={2}
+                        >
+                          <Text>$</Text>
+                          <Text textAlign="center">
+                            {calculateTotalBookingRow(
+                              session.startTime,
+                              session.endTime,
+                              session.rate,
+                              session.adjustmentValues
+                            )}
+                          </Text>
+                        </Flex>
+                      </Td>
+                    </Tr>
+                  );
 
-                    </Flex>
+                  const textRows =
+                    session.comments?.map((line, textIndex) => {
+                      const isLast = textIndex === session.comments.length - 1;
+                      return (
+                        <Tr
+                          key={`text-${session.id || "unknown"}-${index}-${textIndex}`}
+                        >
+                          <Td
+                            colSpan={6}
+                            pl={4}
+                            color="gray.600"
+                            py={compactView ? 2 : 6}
+                            fontSize={compactView ? "6.38" : "sm"}
+                            borderBottom={isLast ? "1px solid" : "none"}
+                            borderColor="gray.200"
+                          >
+                            {line.comment}
+                          </Td>
+                        </Tr>
+                      );
+                    }) || [];
+
+                  const totalRow =
+                    session?.total?.map((total, totalIndex) => {
+                      return (
+                        <Tr
+                          position="relative"
+                          cursor="pointer"
+                          _hover={{ bg: "gray.50" }}
+                          role="group"
+                        >
+                          <Td
+                            onClick={() =>
+                              handleEditCustomRow(session, index, totalIndex)
+                            }
+                            fontSize={compactView ? "6" : "12px"}
+                            py={compactView ? "0" : "6"}
+                          >
+                            {(() => {
+                              const date = new Date(
+                                session.total[totalIndex].date
+                              );
+                              date.setMinutes(
+                                date.getMinutes() + date.getTimezoneOffset()
+                              );
+                              return format(date, "EEE. M/d/yy");
+                            })()}
+                          </Td>
+                          <Td
+                            colSpan={4}
+                            onClick={() =>
+                              handleEditCustomRow(session, index, totalIndex)
+                            }
+                            fontSize={compactView ? "6" : "12px"}
+                            py={compactView ? "0" : "6"}
+                          >
+                            {session.total[totalIndex]?.comment ||
+                              "Custom adjustment"}
+                          </Td>
+                          <Td
+                            textAlign="right"
+                            position="relative"
+                          >
+                            <Flex
+                              justifyContent="flex-end"
+                              alignItems="center"
+                            >
+                              <Text
+                                onClick={() =>
+                                  handleEditCustomRow(
+                                    session,
+                                    index,
+                                    totalIndex
+                                  )
+                                }
+                                fontSize={compactView ? "6" : "12px"}
+                                py={compactView ? "0" : "6"}
+                              >
+                                ${" "}
+                                {Number(
+                                  session.total[totalIndex].value || 0
+                                ).toFixed(2)}
+                              </Text>
+                            </Flex>
+                          </Td>
+                        </Tr>
+                      );
+                    }) || [];
+
+                  return [sessionRow, ...textRows, ...totalRow];
+                })
+              ) : (
+                <Tr py="4">
+                  <Td
+                    colSpan={7}
+                    textAlign="center"
+                    fontSize={compactView && "8.509px"}
+                  >
+                    No comments available.
                   </Td>
-                </Tr>,
-              ]).flat()
-
-            ) : (
-              <Tr>
-                <Td colSpan={7} textAlign="center" fontSize={"8.509px"}>
-                  No comments available.
-                </Td>
-              </Tr>
-            )}
+                </Tr>
+              )}
 
             <Tr>
               <Td
