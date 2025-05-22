@@ -23,7 +23,8 @@ import {
   batchInsertBookings,
   batchUpdateBookings,
   batchDeleteBookings,
-  extractBackendId
+  extractBackendId,
+  getAvailableCalendars
 } from "../../utils/calendar";
 
 export const Test = () => {
@@ -453,6 +454,11 @@ export const Test = () => {
               colorScheme="red"
             >
               Delete All Events
+            </Button>
+            <Button
+              onClick={getAvailableCalendars}
+            >
+              Get Available Calendars
             </Button>
           </>
         )}

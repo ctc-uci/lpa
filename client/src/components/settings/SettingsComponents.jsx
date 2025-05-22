@@ -43,7 +43,7 @@ import { LocationPinIcon } from "../../assets/LocationPinIcon";
 import { PlusIcon } from "../../assets/PlusIcon";
 import { UserIcon } from "../../assets/UserIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-
+import { GoogleCalendar } from "./GoogleCalendar";
 const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
   const componentMap = {
     general: (
@@ -52,7 +52,7 @@ const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
       ></GeneralSettingsMenu>
     ),
     // "rooms": <RoomsSettings/>,
-    calendar: <h1> Calendar </h1>,
+    // calendar: <GoogleCalendar />,
   };
 
   return <>{componentMap[selectedComponent]}</>;
@@ -112,7 +112,7 @@ const GeneralSettingsMenu = ({ setSelectedComponent }) => {
         backgroundColor="transparent"
         justifyContent="start"
         gap="0.75rem"
-        onClick={() => setSelectedComponent("calendar")}
+        onClick={() => navigate("/settings/googlecalendar")}
       >
         <GoogleCalendarIcon></GoogleCalendarIcon>
         <Text

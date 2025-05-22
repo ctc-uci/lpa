@@ -32,6 +32,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ResetPassword } from "./components/resetpassword/ResetPassword";
 import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
 import { MyAccount } from "./components/settings/MyAccount";
+import { GoogleCalendar } from "./components/settings/GoogleCalendar";
 import { Settings } from "./components/settings/Settings";
 import { Signup } from "./components/signup/Signup";
 import { SignupRequested } from "./components/signup/SignupRequested";
@@ -227,6 +228,15 @@ const App = () => {
                   element={
                     <ProtectedRoute
                       element={<RoomsSettings />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings/googlecalendar"
+                  element={
+                    <ProtectedRoute
+                      element={<GoogleCalendar />}
                       allowedRoles={["admin"]}
                     />
                   }
