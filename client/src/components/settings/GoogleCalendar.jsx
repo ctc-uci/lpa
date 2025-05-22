@@ -12,35 +12,34 @@ export const GoogleCalendar = () => {
   const [signedIn, setSignedIn] = useState(false);
   const [calendarEmail, setCalendarEmail] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingEmail, setLoadingEmail] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     setTimeout(() => {
       setSignedIn(isSignedIn());
+      setLoading(false);
     }, 500);
   }, []);
 
   useEffect(() => {
-    if (!signedIn) {
-      setCalendarEmail("Signed Out");
-      return;
-    }
-
     const loadEmail = async () => {
       if (signedIn) {
         try {
+          setLoadingEmail(true);
+          setCalendarEmail("Loading...");
           const email = await getCalendarEmail();
-          console.log("email", email);
           setCalendarEmail(email);
         } catch (error) {
           console.error("Failed to load calendar email:", error);
         }
+      } else {
+        setCalendarEmail("Signed Out");
       }
-      setLoading(false);
     };
 
     loadEmail();
-  }, [signedIn]);
+  }, [signedIn, loadingEmail]);
 
   return (
     <Navbar>

@@ -6,7 +6,7 @@ import Navbar from "../navbar/Navbar";
 import { HeaderRowComponent } from "./HeaderRowComponent";
 import { ProgramsTable } from "./HomeComponents";
 import GcalPrompt from "../calendar/GcalPrompt";
-import { isSignedIn } from "../../utils/calendar";
+import { isSignedIn, isCalendarApiReady } from "../../utils/calendar";
 
 import "./Home.css";
 
@@ -14,6 +14,10 @@ export const Home = () => {
   const [showGcalPrompt, setShowGcalPrompt] = useState(false);
 
   useEffect(() => {
+    if (!isCalendarApiReady()) {
+      return;
+    }
+
     setTimeout(() => {
       if (!isSignedIn()) {
         setShowGcalPrompt(true);

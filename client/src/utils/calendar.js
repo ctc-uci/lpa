@@ -119,6 +119,7 @@ export const initializeGoogleCalendar = async () => {
           apiKey: GOOGLE_API_KEY,
           clientId: GOOGLE_CLIENT_ID,
           scope: "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
+          prompt: 'select_account'  // This will force the account selector to appear every time
         })
         .then(() => gapi.client.load("calendar", "v3"))
         .then(() => {
@@ -140,7 +141,9 @@ export const initializeGoogleCalendar = async () => {
  * @returns {Promise<void>}
  */
 export const signIn = async () => {
-  return gapi.auth2.getAuthInstance()?.signIn();
+  return gapi.auth2.getAuthInstance()?.signIn({
+    prompt: 'select_account'
+  });
 };
 
 /**
