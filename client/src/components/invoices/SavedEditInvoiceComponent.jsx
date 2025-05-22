@@ -505,10 +505,11 @@ const SavedStatementComments = ({
                           role="group"
                         >
                           <Td
-                            py="6"
                             onClick={() =>
                               handleEditCustomRow(session, index, totalIndex)
                             }
+                            fontSize={compactView ? "6" : "12px"}
+                            py={compactView ? "0" : "6"}
                           >
                             {(() => {
                               const date = new Date(
@@ -525,6 +526,8 @@ const SavedStatementComments = ({
                             onClick={() =>
                               handleEditCustomRow(session, index, totalIndex)
                             }
+                            fontSize={compactView ? "6" : "12px"}
+                            py={compactView ? "0" : "6"}
                           >
                             {session.total[totalIndex]?.comment ||
                               "Custom adjustment"}
@@ -545,6 +548,8 @@ const SavedStatementComments = ({
                                     totalIndex
                                   )
                                 }
+                                fontSize={compactView ? "6" : "12px"}
+                                py={compactView ? "0" : "6"}
                               >
                                 ${" "}
                                 {Number(
