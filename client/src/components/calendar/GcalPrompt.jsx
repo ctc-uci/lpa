@@ -89,7 +89,7 @@ const GcalPrompt = ({ isOpen, onClose }) => {
               fontWeight="500"
               letterSpacing="0.07px"
               onClick={() => {
-                navigate("/settings");
+                navigate("/settings/googlecalendar");
               }}
             >
               Go To Settings

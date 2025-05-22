@@ -168,11 +168,11 @@ const CalendarSelector = () => {
   });
 
   return (
-    <Box p={6} maxW="1000px" mx="auto">
+    <Box maxW="1000px" mx="auto">
       <VStack spacing={6} align="stretch">
         <Heading
           fontSize="clamp(1rem, 1.5rem, 2rem)"
-          color="#474849"
+          color="#2D3748"
           fontWeight="bold"
           fontFamily="Inter"
         >
@@ -271,4 +271,3 @@ const CalendarSelector = () => {
 };
 
 export default CalendarSelector;
-export { useSelectedCalendar };

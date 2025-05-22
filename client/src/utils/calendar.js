@@ -507,6 +507,16 @@ export const isSignedIn = () => {
 };
 
 /**
+ * Get the user's Google Calendar email address
+ * @returns {Promise<string>} The user's Google Calendar email address
+ */
+export const getCalendarEmail = async () => {
+  const calendars = await getAvailableCalendars();
+  const primaryCalendar = calendars.find(calendar => calendar.primary);
+  return primaryCalendar.id;
+};
+
+/**
  * Hook to manage the selected calendar in local storage
  */
 export const useSelectedCalendar = () => {

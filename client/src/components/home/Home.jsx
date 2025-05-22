@@ -14,9 +14,11 @@ export const Home = () => {
   const [showGcalPrompt, setShowGcalPrompt] = useState(false);
 
   useEffect(() => {
-    if (!isSignedIn()) {
-      setShowGcalPrompt(true);
-    }
+    setTimeout(() => {
+      if (!isSignedIn()) {
+        setShowGcalPrompt(true);
+      }
+    }, 1000);
   }, []);
 
   return (
