@@ -7,7 +7,7 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
     const { backend } = useBackendContext();
 
     const [rooms, setRooms] = useState([]);
-    const [roomMap, setRoomMap] = useState([]);
+    const [roomMap, setRoomMap] = useState(new Map());
     const [clients, setClients] = useState([]);
 
     useEffect(() => {
@@ -36,7 +36,9 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         for (const room of rooms) {
           rMap.set(room.id, room.name);
         }
-        setRoomMap(rMap);
+        if (rMap !== null) {
+          setRoomMap(rMap);
+        }
       } catch (error) {
         console.log("From getRoomNames: ", error);
       }
