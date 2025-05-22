@@ -11,6 +11,7 @@ import { GoogleCalendarIcon } from "../../assets/GoogleCalendarIcon";
 export const GoogleCalendar = () => {
   const [signedIn, setSignedIn] = useState(false);
   const [calendarEmail, setCalendarEmail] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export const GoogleCalendar = () => {
           console.error("Failed to load calendar email:", error);
         }
       }
+      setLoading(false);
     };
 
     loadEmail();
@@ -70,20 +72,34 @@ export const GoogleCalendar = () => {
               >
                 Google Calendar
               </Heading>
-              <Text
-                fontSize="14px"
-                fontWeight="500"
-                letterSpacing="0.07px"
-                marginTop="4px"
-                color={signedIn ? "#2D3748" : "#90080F"}
-              >
-                {calendarEmail}
-              </Text>
-              <Box
-                marginTop="20px"
-              >
-                <GcalAuthButton signedIn={signedIn} setSignedIn={setSignedIn} />
-              </Box>
+              {loading ? (
+                <Text
+                  fontSize="14px"
+                  fontWeight="500"
+                  letterSpacing="0.07px"
+                  marginTop="4px"
+                  color="#2D3748"
+                >
+                  Loading...
+                </Text>
+              ) : (
+                <>
+                  <Text
+                    fontSize="14px"
+                    fontWeight="500"
+                    letterSpacing="0.07px"
+                    marginTop="4px"
+                    color={signedIn ? "#2D3748" : "#90080F"}
+                  >
+                    {calendarEmail}
+                  </Text>
+                  <Box
+                    marginTop="20px"
+                  >
+                    <GcalAuthButton signedIn={signedIn} setSignedIn={setSignedIn} />
+                  </Box>
+                </>
+              )}
             </Flex>
           </Flex>
           <Box width="100%" justifyContent="flex-start">
