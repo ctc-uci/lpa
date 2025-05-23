@@ -211,6 +211,7 @@ const TestPDFViewer = () => {
       payeesResponse,
       unpaidInvoicesResponse,
       sessionResponse,
+      summaryResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
       backend.get(`/comments/invoice/${id}`),
@@ -218,10 +219,12 @@ const TestPDFViewer = () => {
       backend.get(`/invoices/payees/${id}`),
       backend.get(`/events/remaining/${eventId}`),
       backend.get(`/comments/invoice/sessions/${id}`),
+      backend.get(`/comments/invoice/summary/${id}`),
     ]);
 
     const comments = commentsResponse.data;
     const sessions = sessionResponse.data;
+    const summary = summaryResponse.data;
     let booking = {};
     let room = [];
 
@@ -282,6 +285,7 @@ const TestPDFViewer = () => {
       subtotalSum,
       id,
       sessions,
+      summary,
     };
   };
 
