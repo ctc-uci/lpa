@@ -2,11 +2,11 @@ import {
   Document,
   Image,
   Page,
+  Path,
   StyleSheet,
+  Svg,
   Text,
   View,
-  Svg,
-  Path,
 } from "@react-pdf/renderer";
 import { format } from "date-fns";
 
@@ -109,13 +109,19 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
               alignItems: "flex-end",
             }}
           >
-            <Text style={{ fontSize: "10px", textAlign: "right", color: "#2D3748" }}>
+            <Text
+              style={{ fontSize: "10px", textAlign: "right", color: "#2D3748" }}
+            >
               La Peña Cultural Center
             </Text>
-            <Text style={{ fontSize: "10px", textAlign: "right", color: "#2D3748" }}>
+            <Text
+              style={{ fontSize: "10px", textAlign: "right", color: "#2D3748" }}
+            >
               3105 Shattuck Ave., Berkeley, CA 94705
             </Text>
-            <Text style={{ fontSize: "10px", textAlign: "right", color: "#2D3748" }}>
+            <Text
+              style={{ fontSize: "10px", textAlign: "right", color: "#2D3748" }}
+            >
               lapena.org
             </Text>
           </View>
@@ -177,14 +183,28 @@ const EditInvoiceDetailsPDF = ({
       >
         {/* Left column */}
         <View style={{ flex: 1 }}>
-          <Text style={{ fontWeight: "bold", fontSize: 8, marginBottom: 4, color: "#718096" }}>
+          <Text
+            style={{
+              fontWeight: "bold",
+              fontSize: 8,
+              marginBottom: 4,
+              color: "#718096",
+            }}
+          >
             Recurring Program:
           </Text>
           <Text style={{ fontSize: 8, marginBottom: 8 }}>
             {programName || "No program name found"}
           </Text>
 
-          <Text style={{ fontWeight: "bold", fontSize: 8, marginBottom: 4, color: "#718096" }}>
+          <Text
+            style={{
+              fontWeight: "bold",
+              fontSize: 8,
+              marginBottom: 4,
+              color: "#718096",
+            }}
+          >
             Designated Payers:
           </Text>
           {payees && payees.length > 0 ? (
@@ -203,7 +223,14 @@ const EditInvoiceDetailsPDF = ({
 
         {/* Right column */}
         <View style={{ flex: 1 }}>
-          <Text style={{ fontWeight: "bold", fontSize: 8, marginBottom: 4, color: "#718096" }}>
+          <Text
+            style={{
+              fontWeight: "bold",
+              fontSize: 8,
+              marginBottom: 4,
+              color: "#718096",
+            }}
+          >
             Lead Artist(s):
           </Text>
           {instructors && instructors.length > 0 ? (
@@ -327,7 +354,7 @@ const calculateTotalBookingRow = ({
   endTime = "01:00:00+00",
   rate = 0,
   adjustmentValues = [],
-  totalArray = []
+  totalArray = [],
 }) => {
   if (!startTime || !endTime || !rate) return "0.00";
 
@@ -365,14 +392,11 @@ const calculateTotalBookingRow = ({
       adjustmentAmount = (numericPart / 100) * currentRate;
     }
 
-    console.log(numericValue < 0 ? `${currentRate} - ${adjustmentAmount}` : `${currentRate} + ${adjustmentAmount}`);
     return numericValue < 0
       ? currentRate - adjustmentAmount
       : currentRate + adjustmentAmount;
-
   }, baseRate);
 
-  console.log("adjustedRate", adjustedRate);
   // Calculate the base total with adjusted rate
   const baseTotal = adjustedRate * durationInHours;
 
@@ -380,7 +404,6 @@ const calculateTotalBookingRow = ({
   const totalAdjustments = currentAdjustmentValues
     .filter((adj) => adj && adj.type === "total")
     .reduce((sum, adj) => sum + Number(adj.value || 0), 0);
-
 
   // Add all values from the total array
   const totalArraySum = currentTotalArray.reduce((sum, item) => {
@@ -428,9 +451,9 @@ const calculateSubtotal = (sessions, summary) => {
         rate: session.rate,
         adjustmentValues: [
           ...(summary[0]?.adjustmentValues || []),
-          ...(session.adjustmentValues || [])
+          ...(session.adjustmentValues || []),
         ],
-        totalArray: session.total
+        totalArray: session.total,
       })
     );
     return acc + total;
@@ -456,7 +479,14 @@ const InvoiceTable = ({ sessions, summary }) => {
             fill="#2D3748"
           />
         </Svg>
-        <Text style={{ fontSize: "12px", marginLeft: 4, marginBottom: 8, fontWeight: "bold" }}>
+        <Text
+          style={{
+            fontSize: "12px",
+            marginLeft: 4,
+            marginBottom: 8,
+            fontWeight: "bold",
+          }}
+        >
           Sessions
         </Text>
       </View>
@@ -464,7 +494,9 @@ const InvoiceTable = ({ sessions, summary }) => {
         {/* Header Row */}
         <View style={{ ...tableStyles.tableRow }}>
           <View style={tableStyles.tableCol}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+            >
               <Svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="10"
@@ -481,7 +513,9 @@ const InvoiceTable = ({ sessions, summary }) => {
             </View>
           </View>
           <View style={tableStyles.tableCol}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+            >
               <Svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -494,11 +528,15 @@ const InvoiceTable = ({ sessions, summary }) => {
                   fill="#718096"
                 />
               </Svg>
-              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Classroom</Text>
+              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
+                Classroom
+              </Text>
             </View>
           </View>
           <View style={tableStyles.tableCol}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+            >
               <Svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -511,11 +549,15 @@ const InvoiceTable = ({ sessions, summary }) => {
                   fill="#718096"
                 />
               </Svg>
-              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Rental Hours</Text>
+              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
+                Rental Hours
+              </Text>
             </View>
           </View>
           <View style={tableStyles.tableCol}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+            >
               <Svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -529,17 +571,29 @@ const InvoiceTable = ({ sessions, summary }) => {
                 />
               </Svg>
               <View>
-                <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Room Fee</Text>
-                <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Adjustment</Text>
+                <Text
+                  style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}
+                >
+                  Room Fee
+                </Text>
+                <Text
+                  style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}
+                >
+                  Adjustment
+                </Text>
               </View>
             </View>
           </View>
-          <View style={{
-            ...tableStyles.tableCol,
-            alignItems: "flex-end",
-            paddingRight: 20,
-          }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+          <View
+            style={{
+              ...tableStyles.tableCol,
+              alignItems: "flex-end",
+              paddingRight: 20,
+            }}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+            >
               <Svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -552,7 +606,9 @@ const InvoiceTable = ({ sessions, summary }) => {
                   fill="#718096"
                 />
               </Svg>
-              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Room Fee</Text>
+              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
+                Room Fee
+              </Text>
             </View>
           </View>
           <View
@@ -562,7 +618,9 @@ const InvoiceTable = ({ sessions, summary }) => {
               paddingRight: 20,
             }}
           >
-            <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Total</Text>
+            <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
+              Total
+            </Text>
           </View>
         </View>
 
@@ -592,7 +650,8 @@ const InvoiceTable = ({ sessions, summary }) => {
                 }}
               >
                 <Text style={{ fontSize: 7 }}>
-                  {formatTimeString(session.startTime)} - {formatTimeString(session.endTime)}
+                  {formatTimeString(session.startTime)} -{" "}
+                  {formatTimeString(session.endTime)}
                 </Text>
               </View>
               <View
@@ -603,7 +662,6 @@ const InvoiceTable = ({ sessions, summary }) => {
                 }}
               >
                 <Text style={{ fontSize: 7 }}>
-
                   {session.adjustmentValues
                     .filter((adj) => adj.type !== "total")
                     .map((adj) => {
@@ -619,7 +677,9 @@ const InvoiceTable = ({ sessions, summary }) => {
                 </Text>
               </View>
               <View style={{ ...tableStyles.tableCol }}>
-                <Text style={{ fontSize: 7, textAlign: "right", paddingRight: 20 }}>
+                <Text
+                  style={{ fontSize: 7, textAlign: "right", paddingRight: 20 }}
+                >
                   $ {calculateNewRate(session, summary).toFixed(2)}/hr
                 </Text>
               </View>
@@ -638,90 +698,105 @@ const InvoiceTable = ({ sessions, summary }) => {
                     rate: session.rate,
                     adjustmentValues: [
                       ...(summary[0]?.adjustmentValues || []),
-                      ...(session.adjustmentValues || [])
+                      ...(session.adjustmentValues || []),
                     ],
-                    totalArray: []
+                    totalArray: [],
                   })}
                 </Text>
               </View>
             </View>
           );
 
-
-          {/* Comments section */ }
-          const commentRows = session.comments?.map((line, textIndex) => {
-            return (
-              <View key={`comment-${textIndex}`} style={tableStyles.tableRow}>
-                <View style={{
-                  ...tableStyles.tableCol,
-                  flex: 1,
-                }}>
-                  <Text style={{
-                    fontSize: 7,
-                  }}>
-                    {line.comment}
-                  </Text>
+          {
+            /* Comments section */
+          }
+          const commentRows =
+            session.comments?.map((line, textIndex) => {
+              return (
+                <View
+                  key={`comment-${textIndex}`}
+                  style={tableStyles.tableRow}
+                >
+                  <View
+                    style={{
+                      ...tableStyles.tableCol,
+                      flex: 1,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 7,
+                      }}
+                    >
+                      {line.comment}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            );
-          }) || [];
+              );
+            }) || [];
 
-          const totalRow = session?.total?.map((total, totalIndex) => {
-            return (
-              <View
-                style={tableStyles.tableRow}
-              >
-                <View style={tableStyles.tableCol}>
-                  <Text style={{ fontSize: 7 }}>
-                    {format(new Date(total.date), "EEE. M/d/yy")}
-                  </Text>
+          const totalRow =
+            session?.total?.map((total, totalIndex) => {
+              return (
+                <View style={tableStyles.tableRow}>
+                  <View style={tableStyles.tableCol}>
+                    <Text style={{ fontSize: 7 }}>
+                      {format(new Date(total.date), "EEE. M/d/yy")}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      ...tableStyles.tableCol,
+                      flex: 1,
+                    }}
+                  >
+                    <Text style={{ fontSize: 7 }}>
+                      {total.comment || "Custom adjustment"}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      ...tableStyles.tableCol,
+                      alignItems: "flex-end",
+                      paddingRight: 20,
+                    }}
+                  >
+                    <Text style={{ fontSize: 7 }}>
+                      $ {Number(total.value || 0).toFixed(2)}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{
-                  ...tableStyles.tableCol,
-                  flex: 1,
-                }}>
-                  <Text style={{ fontSize: 7 }}>
-                    {total.comment || "Custom adjustment"}
-                  </Text>
-                </View>
-                <View style={{
-                  ...tableStyles.tableCol,
-                  alignItems: "flex-end",
-                  paddingRight: 20,
-                }}>
-                  <Text style={{ fontSize: 7 }}>
-                    $ {Number(total.value || 0).toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-            );
-          }) || [];
-
-
-
+              );
+            }) || [];
 
           return [sessionRows, ...commentRows, ...totalRow];
         })}
 
         <View style={tableStyles.tableRow}>
-          <View style={{
-            ...tableStyles.tableCol,
-            flex: 5,
-            alignItems: "flex-end",
-            paddingRight: 16,
-          }}>
-            <Text style={{
-              fontSize: 7,
-              fontWeight: "bold",
-            }}>
+          <View
+            style={{
+              ...tableStyles.tableCol,
+              flex: 5,
+              alignItems: "flex-end",
+              paddingRight: 16,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 7,
+                fontWeight: "bold",
+              }}
+            >
               Subtotal
             </Text>
           </View>
-          <View style={{
-            ...tableStyles.tableCol,
-            alignItems: "flex-end",
-            paddingRight: 20,
-          }}>
+          <View
+            style={{
+              ...tableStyles.tableCol,
+              alignItems: "flex-end",
+              paddingRight: 20,
+            }}
+          >
             <Text style={{ fontSize: 7 }}>
               $ {calculateSubtotal(sessions, summary)}
             </Text>
@@ -774,9 +849,13 @@ const summaryTableStyles = StyleSheet.create({
   },
 });
 
-
-
-const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summary }) => {
+const SummaryTable = ({
+  remainingBalance,
+  subtotalSum,
+  pastDue,
+  sessions,
+  summary,
+}) => {
   return (
     <View>
       <View style={{ flexDirection: "row", alignItems: "baseline", gap: 2 }}>
@@ -792,7 +871,14 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
             fill="#2D3748"
           />
         </Svg>
-        <Text style={{ fontSize: "12px", marginLeft: 4, marginBottom: 8, fontWeight: "bold" }}>
+        <Text
+          style={{
+            fontSize: "12px",
+            marginLeft: 4,
+            marginBottom: 8,
+            fontWeight: "bold",
+          }}
+        >
           Summary
         </Text>
       </View>
@@ -800,8 +886,9 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
         {/* Header Row */}
         <View style={{ ...summaryTableStyles.tableRow, width: "100%" }}>
           <View style={summaryTableStyles.tableCol}>
-
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+            >
               <Svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -814,11 +901,15 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
                   fill="#718096"
                 />
               </Svg>
-              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Description</Text>
+              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
+                Description
+              </Text>
             </View>
           </View>
           <View style={summaryTableStyles.tableCol}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+            >
               <Svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -831,7 +922,9 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
                   fill="#718096"
                 />
               </Svg>
-              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Room Fee Adjustment</Text>
+              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
+                Room Fee Adjustment
+              </Text>
             </View>
           </View>
           <View
@@ -841,7 +934,9 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
               paddingRight: 20,
             }}
           >
-            <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>Total</Text>
+            <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
+              Total
+            </Text>
           </View>
         </View>
 
@@ -851,68 +946,77 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
             <Text style={{ fontSize: 7 }}>Room Fee</Text>
           </View>
         </View>
-        {
-          sessions?.filter(
-            (session) =>
-              session.name?.length > 0
-          ).map((session, index) => {
+        {sessions
+          ?.filter((session) => session.name?.length > 0)
+          .map((session, index) => {
             const isLast = index === summary.length - 1;
-            const rowStyle = isLast ? summaryTableStyles.lastRoomFeeRow : summaryTableStyles.roomFeeRow;
+            const rowStyle = isLast
+              ? summaryTableStyles.lastRoomFeeRow
+              : summaryTableStyles.roomFeeRow;
             return (
-              <View style={{
-                ...rowStyle,
-                width: "100%",
-                flexDirection: "row",
-                alignItems: "center",
-              }}>
-                <View style={{
-                  ...summaryTableStyles.roomFeeColName,
-                  flex: 2,
-                }}>
+              <View
+                style={{
+                  ...rowStyle,
+                  width: "100%",
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <View
+                  style={{
+                    ...summaryTableStyles.roomFeeColName,
+                    flex: 2,
+                  }}
+                >
                   <Text style={{ fontSize: 7 }}>{session.name}</Text>
                 </View>
-                <View style={{
-                  ...summaryTableStyles.roomFeeColAdjustment,
-                  flex: 2,
-                  paddingHorizontal: 8,
-                }}>
+                <View
+                  style={{
+                    ...summaryTableStyles.roomFeeColAdjustment,
+                    flex: 2,
+                    paddingHorizontal: 8,
+                  }}
+                >
                   <Text style={{ fontSize: 7 }}>
                     {summary[0]?.adjustmentValues?.map((adj, index) => {
                       const value = Number(adj.value);
                       const sign = value >= 0 ? "+" : "-";
                       const isFlat = adj.type === "rate_flat";
                       const absValue = Math.abs(value);
-                      const adjustment = isFlat ? `${sign}$${absValue}` : `${sign}${absValue}%`;
+                      const adjustment = isFlat
+                        ? `${sign}$${absValue}`
+                        : `${sign}${absValue}%`;
                       return index === 0 ? adjustment : `, ${adjustment}`;
                     })}
                   </Text>
                 </View>
-                <View style={{
-                  ...summaryTableStyles.tableCol,
-                  flex: 1,
-                  alignItems: "flex-end",
-                  paddingRight: 20,
-                }}>
+                <View
+                  style={{
+                    ...summaryTableStyles.tableCol,
+                    flex: 1,
+                    alignItems: "flex-end",
+                    paddingRight: 20,
+                  }}
+                >
                   <Text style={{ fontSize: 7 }}>
-                    $ {calculateTotalBookingRow({
+                    ${" "}
+                    {calculateTotalBookingRow({
                       rate: Number(session.rate),
                       adjustmentValues: summary[0].adjustmentValues,
-                    })}/hr
+                    })}
+                    /hr
                   </Text>
                 </View>
               </View>
-            )
-          })
-        }
-
+            );
+          })}
 
         {/* Data Rows */}
         <View style={{ ...summaryTableStyles.tableRow, width: "100%" }}>
           <View style={summaryTableStyles.tableCol}>
             <Text style={{ fontSize: 7 }}>Past Due Balance</Text>
           </View>
-          <View style={summaryTableStyles.tableCol}>
-          </View>
+          <View style={summaryTableStyles.tableCol}></View>
           <View
             style={{
               ...summaryTableStyles.tableCol,
@@ -928,8 +1032,7 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
           <View style={summaryTableStyles.tableCol}>
             <Text style={{ fontSize: 7 }}>Current Statement Subtotal</Text>
           </View>
-          <View style={summaryTableStyles.tableCol}>
-          </View>
+          <View style={summaryTableStyles.tableCol}></View>
           <View
             style={{
               ...summaryTableStyles.tableCol,
@@ -937,7 +1040,9 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
               paddingRight: 20,
             }}
           >
-            <Text style={{ fontSize: 7 }}>$ {calculateSubtotal(sessions, summary)}</Text>
+            <Text style={{ fontSize: 7 }}>
+              $ {calculateSubtotal(sessions, summary)}
+            </Text>
           </View>
         </View>
 
@@ -951,13 +1056,16 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-
             <View style={{ paddingRight: 16 }}>
               <Text style={{ fontSize: 7 }}>Total Amount Due</Text>
             </View>
             <View>
               <Text style={{ fontWeight: "bold", fontSize: 12 }}>
-                ${(remainingBalance + Number(calculateSubtotal(sessions, summary))).toFixed(2)}
+                $
+                {(
+                  remainingBalance +
+                  Number(calculateSubtotal(sessions, summary))
+                ).toFixed(2)}
               </Text>
             </View>
           </View>
@@ -969,56 +1077,74 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
 
 const Footer = () => {
   return (
-    <View style={{
-      marginTop: 18,
-      flexDirection: "row",
-      justifyContent: "space-around",
-      paddingHorizontal: 16,
-      color: "#000000"
-    }}>
+    <View
+      style={{
+        marginTop: 18,
+        flexDirection: "row",
+        justifyContent: "space-around",
+        paddingHorizontal: 16,
+        color: "#000000",
+      }}
+    >
       {/* left text */}
-      <View style={{
-        paddingTop: 12,
-        paddingBottom: 8,
-      }}>
-        <Text style={{
-          fontWeight: "bold",
-          fontSize: 8,
-          marginBottom: 4
-        }}>
+      <View
+        style={{
+          paddingTop: 12,
+          paddingBottom: 8,
+        }}
+      >
+        <Text
+          style={{
+            fontWeight: "bold",
+            fontSize: 8,
+            marginBottom: 4,
+          }}
+        >
           Payments are due at the end of each month.
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-          <Text style={{
-            fontWeight: "bold",
-            fontSize: 8
-          }}>
+          <Text
+            style={{
+              fontWeight: "bold",
+              fontSize: 8,
+            }}
+          >
             You can make your payment at:
           </Text>
-          <Text style={{ fontWeight: "bold", fontSize: 8, color: "#3182CE" }}>lapena.org/payment</Text>
+          <Text style={{ fontWeight: "bold", fontSize: 8, color: "#3182CE" }}>
+            lapena.org/payment
+          </Text>
         </View>
       </View>
 
       {/* right text */}
-      <View style={{
-        paddingTop: 12,
-        paddingBottom: 8,
-      }}>
-        <Text style={{
-          fontWeight: "bold",
-          fontSize: 8,
-          marginBottom: 4
-        }}>
+      <View
+        style={{
+          paddingTop: 12,
+          paddingBottom: 8,
+        }}
+      >
+        <Text
+          style={{
+            fontWeight: "bold",
+            fontSize: 8,
+            marginBottom: 4,
+          }}
+        >
           For any questions,
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-          <Text style={{
-            fontWeight: "bold",
-            fontSize: 8
-          }}>
+          <Text
+            style={{
+              fontWeight: "bold",
+              fontSize: 8,
+            }}
+          >
             please contact:
           </Text>
-          <Text style={{ fontWeight: "bold", fontSize: 8, color: "#3182CE" }}>classes@lapena.org</Text>
+          <Text style={{ fontWeight: "bold", fontSize: 8, color: "#3182CE" }}>
+            classes@lapena.org
+          </Text>
         </View>
       </View>
     </View>
@@ -1036,7 +1162,7 @@ const InvoicePDFDocument = ({
   remainingBalance,
   subtotalSum,
   sessions,
-  summary
+  summary,
 }) => {
   return (
     <Document>

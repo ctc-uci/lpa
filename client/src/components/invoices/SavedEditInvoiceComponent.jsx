@@ -503,9 +503,6 @@ const SavedStatementComments = ({
                           role="group"
                         >
                           <Td
-                            onClick={() =>
-                              handleEditCustomRow(session, index, totalIndex)
-                            }
                             fontSize={compactView ? "6" : "12px"}
                             py={compactView ? "0" : "6"}
                           >
@@ -521,9 +518,6 @@ const SavedStatementComments = ({
                           </Td>
                           <Td
                             colSpan={4}
-                            onClick={() =>
-                              handleEditCustomRow(session, index, totalIndex)
-                            }
                             fontSize={compactView ? "6" : "12px"}
                             py={compactView ? "0" : "6"}
                           >
@@ -539,13 +533,6 @@ const SavedStatementComments = ({
                               alignItems="center"
                             >
                               <Text
-                                onClick={() =>
-                                  handleEditCustomRow(
-                                    session,
-                                    index,
-                                    totalIndex
-                                  )
-                                }
                                 fontSize={compactView ? "6" : "12px"}
                                 py={compactView ? "0" : "6"}
                               >
