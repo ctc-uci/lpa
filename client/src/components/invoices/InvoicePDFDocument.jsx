@@ -259,25 +259,6 @@ const tableStyles = StyleSheet.create({
   },
 });
 
-const handleSubtotalSum = (startTime, endTime, rate) => {
-  if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
-
-  const timeToMinutes = (timeStr) => {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return hours * 60 + minutes;
-  };
-
-  const startMinutes = timeToMinutes(startTime.substring(0, 5));
-  const endMinutes = timeToMinutes(endTime.substring(0, 5));
-  const diff = endMinutes - startMinutes;
-
-  const totalHours = Math.ceil(diff / 60);
-
-  const total = (totalHours * rate).toFixed(2);
-
-  return total;
-};
-
 const formatTimeString = (timeStr) => {
   if (!timeStr) {
     return "N/A";
@@ -293,10 +274,32 @@ const formatTimeString = (timeStr) => {
   return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
-const calculateNewRate = (session) => {
+const calculateNewRate = (session, summary) => {
   let newRate = Number(session.rate || 0);
 
-  session.adjustmentValues.forEach((adj) => {
+  // Apply summary adjustments first
+  summary[0]?.adjustmentValues?.forEach((adj) => {
+    const val = Number(adj.value);
+    const isNegative = val < 0;
+    const numericPart = Math.abs(val);
+
+    let adjustmentAmount = 0;
+
+    if (adj.type === "rate_flat") {
+      adjustmentAmount = numericPart;
+    } else if (adj.type === "rate_percent") {
+      adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
+    }
+
+    if (isNegative) {
+      newRate -= adjustmentAmount;
+    } else {
+      newRate += adjustmentAmount;
+    }
+  });
+
+  // Then apply session adjustments
+  session.adjustmentValues?.forEach((adj) => {
     const val = Number(adj.value);
     const isNegative = val < 0;
     const numericPart = Math.abs(val);
@@ -328,9 +331,6 @@ const calculateTotalBookingRow = ({
 }) => {
   if (!startTime || !endTime || !rate) return "0.00";
 
-
-  
-  
   // Make sure we're working with valid arrays
   const currentAdjustmentValues = Array.isArray(adjustmentValues)
   ? adjustmentValues.filter((adj) => adj && adj.type)
@@ -346,7 +346,6 @@ const calculateTotalBookingRow = ({
   const rawEnd = timeToMinutes(endTime.substring(0, 5));
   const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
   const durationInHours = (endAdjusted - rawStart) / 60;
-  console.log("rate", rate, durationInHours);
   
   const baseRate = Number(rate);
 
@@ -366,11 +365,14 @@ const calculateTotalBookingRow = ({
       adjustmentAmount = (numericPart / 100) * currentRate;
     }
 
+    console.log(numericValue < 0 ? `${currentRate} - ${adjustmentAmount}` : `${currentRate} + ${adjustmentAmount}`);
     return numericValue < 0
       ? currentRate - adjustmentAmount
       : currentRate + adjustmentAmount;
+
   }, baseRate);
 
+  console.log("adjustedRate", adjustedRate);
   // Calculate the base total with adjusted rate
   const baseTotal = adjustedRate * durationInHours;
 
@@ -378,6 +380,7 @@ const calculateTotalBookingRow = ({
   const totalAdjustments = currentAdjustmentValues
     .filter((adj) => adj && adj.type === "total")
     .reduce((sum, adj) => sum + Number(adj.value || 0), 0);
+
 
   // Add all values from the total array
   const totalArraySum = currentTotalArray.reduce((sum, item) => {
@@ -388,10 +391,15 @@ const calculateTotalBookingRow = ({
   // Combine all totals
   const finalTotal = baseTotal + totalAdjustments + totalArraySum;
 
+  console.log("baseTotal", baseTotal);
+  console.log("totalAdjustments", totalAdjustments);
+  console.log("totalArraySum", totalArraySum);
+  console.log("finalTotal", finalTotal, '\n');
+
   return finalTotal.toFixed(2);
 };
 
-const calculateSubtotal = (sessions) => {
+const calculateSubtotal = (sessions, summary) => {
   if (!sessions || sessions.length === 0) return "0.00";
 
   const totalSum = sessions.reduce((acc, session) => {
@@ -420,13 +428,16 @@ const calculateSubtotal = (sessions) => {
 
     // For regular sessions with adjustments, calculate as before
     const total = parseFloat(
-      calculateTotalBookingRow(
-        session.startTime,
-        session.endTime,
-        session.rate,
-        session.adjustmentValues,
-        session.total
-      )
+      calculateTotalBookingRow({
+        startTime: session.startTime,
+        endTime: session.endTime,
+        rate: session.rate,
+        adjustmentValues: [
+          ...(summary[0]?.adjustmentValues || []),
+          ...(session.adjustmentValues || [])
+        ],
+        totalArray: session.total
+      })
     );
     return acc + total;
   }, 0);
@@ -435,9 +446,7 @@ const calculateSubtotal = (sessions) => {
   return total;
 };
 
-const InvoiceTable = ({ sessions }) => {
-  console.log("sessions.adjustmentValues", sessions[0].adjustmentValues);
-  console.log("sessions", sessions);
+const InvoiceTable = ({ sessions, summary }) => {
   return (
     <View>
       <Text style={{ fontSize: "14px", marginLeft: 4, marginBottom: 8 }}>
@@ -607,7 +616,7 @@ const InvoiceTable = ({ sessions }) => {
               </View>
               <View style={{ ...tableStyles.tableCol }}>
                 <Text style={{ fontSize: 7, textAlign: "right", paddingRight: 20 }}>
-                  ${calculateNewRate(session).toFixed(2)}/hr
+                  ${calculateNewRate(session, summary).toFixed(2)}/hr
                 </Text>
               </View>
               <View
@@ -623,8 +632,11 @@ const InvoiceTable = ({ sessions }) => {
                     startTime: session.startTime,
                     endTime: session.endTime,
                     rate: session.rate,
-                    adjustmentValues: session.adjustmentValues,
-                    totalArray: session.total
+                    adjustmentValues: [
+                      ...(summary[0]?.adjustmentValues || []),
+                      ...(session.adjustmentValues || [])
+                    ],
+                    totalArray: []
                   })}
                 </Text>
               </View>
@@ -707,7 +719,7 @@ const InvoiceTable = ({ sessions }) => {
             paddingRight: 20,
           }}>
             <Text style={{ fontSize: 7 }}>
-              $ {calculateSubtotal(sessions)}
+              $ {calculateSubtotal(sessions, summary)}
             </Text>
           </View>
         </View>
@@ -758,9 +770,9 @@ const summaryTableStyles = StyleSheet.create({
   },
 });
 
+
+
 const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summary }) => {
-  // console.log("sessions", sessions)
-  // console.log("summary", summary)
   return (
     <View>
       <Text style={{ fontSize: "14px", marginLeft: 4, marginBottom: 8 }}>
@@ -826,7 +838,6 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
             (session) =>
               session.name?.length > 0
           ).map((session, index) => {
-            console.log("session", session)
             const isLast = index === summary.length - 1;
             const rowStyle = isLast ? summaryTableStyles.lastRoomFeeRow : summaryTableStyles.roomFeeRow;
             return (
@@ -908,7 +919,7 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
               paddingRight: 20,
             }}
           >
-            <Text style={{ fontSize: 7 }}>$ {subtotalSum.toFixed(2)}</Text>
+            <Text style={{ fontSize: 7 }}>$ {calculateSubtotal(sessions,summary)}</Text>
           </View>
         </View>
 
@@ -926,7 +937,7 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
           </View>
           <View>
             <Text style={{ fontSize: 7 }}>
-              {(remainingBalance + subtotalSum).toFixed(2)}
+              ${(remainingBalance + Number(calculateSubtotal(sessions,summary))).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -975,6 +986,7 @@ const InvoicePDFDocument = ({
 
             <InvoiceTable
               sessions={sessions}
+              summary={summary}
             />
 
             <SummaryTable
