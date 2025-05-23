@@ -62,10 +62,6 @@ export const EVENT_ID_SEPARATOR = '';
 export const generateEventId = (event, backendId) => {
   // Create a string of unique event properties that should make this event unique
   const uniqueProps = [
-    event.date,
-    event.startTime,
-    event.endTime,
-    event.roomId,
     backendId.toString()
   ].join('|');
 
@@ -321,6 +317,7 @@ export const batchInsertBookings = async (bookings) => {
     throw new Error('No calendar selected');
   }
 
+  await initializeGoogleCalendar();
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
@@ -332,6 +329,8 @@ export const batchInsertBookings = async (bookings) => {
     const eventId = generateEventId(booking, booking.backendId);
     const location = booking.location || "";
     const description = booking.description || "";
+
+    console.log("NEW EVENT ID: ", eventId);
 
     const resource = {
       summary: booking.name,
@@ -372,6 +371,7 @@ export const batchUpdateBookings = async (bookings) => {
     throw new Error('No calendar selected');
   }
 
+  await initializeGoogleCalendar();
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
@@ -383,6 +383,8 @@ export const batchUpdateBookings = async (bookings) => {
     const eventId = generateEventId(booking, booking.backendId);
     const location = booking.location || "";
     const description = booking.description || "";
+
+    console.log("UPDATED EVENT ID: ", eventId);
 
     const resource = {
       summary: booking.name,
@@ -445,6 +447,7 @@ export const batchDeleteBookings = async (bookings) => {
     throw new Error('No calendar selected');
   }
 
+  await initializeGoogleCalendar();
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
