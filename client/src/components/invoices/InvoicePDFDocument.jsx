@@ -584,11 +584,7 @@ const InvoiceTable = ({ sessions, summary }) => {
                 }}
               >
                 <Text style={{ fontSize: 7 }}>
-                  {formatTimeString(session.startTime)}
-                </Text>
-                <Text style={{ fontSize: 7 }}>to</Text>
-                <Text style={{ fontSize: 7 }}>
-                  {formatTimeString(session.endTime)}
+                  {formatTimeString(session.startTime)} - {formatTimeString(session.endTime)}
                 </Text>
               </View>
               <View
@@ -616,7 +612,7 @@ const InvoiceTable = ({ sessions, summary }) => {
               </View>
               <View style={{ ...tableStyles.tableCol }}>
                 <Text style={{ fontSize: 7, textAlign: "right", paddingRight: 20 }}>
-                  ${calculateNewRate(session, summary).toFixed(2)}/hr
+                  $ {calculateNewRate(session, summary).toFixed(2)}/hr
                 </Text>
               </View>
               <View
@@ -876,7 +872,7 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
                   paddingRight: 20,
                 }}>
                   <Text style={{ fontSize: 7 }}>
-                    {calculateTotalBookingRow({
+                    $ {calculateTotalBookingRow({
                       rate: Number(session.rate),
                       adjustmentValues: summary[0].adjustmentValues,
                     })}/hr
