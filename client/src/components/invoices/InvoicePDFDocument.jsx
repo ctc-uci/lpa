@@ -456,7 +456,7 @@ const InvoiceTable = ({ sessions, summary }) => {
             fill="#2D3748"
           />
         </Svg>
-        <Text style={{ fontSize: "12px", marginLeft: 4, marginBottom: 8 }}>
+        <Text style={{ fontSize: "12px", marginLeft: 4, marginBottom: 8, fontWeight: "bold" }}>
           Sessions
         </Text>
       </View>
@@ -792,7 +792,7 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
             fill="#2D3748"
           />
         </Svg>
-        <Text style={{ fontSize: "12px", marginLeft: 4, marginBottom: 8 }}>
+        <Text style={{ fontSize: "12px", marginLeft: 4, marginBottom: 8, fontWeight: "bold" }}>
           Summary
         </Text>
       </View>
