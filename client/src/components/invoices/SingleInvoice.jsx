@@ -301,7 +301,7 @@ export const SingleInvoice = () => {
           </Modal>
           <Flex
             direction="row"
-            width="100%"
+            width="95%"
           >
             {/* back button */}
             <IconButton
@@ -336,6 +336,7 @@ export const SingleInvoice = () => {
                 gap={"4px"}
                 padding={"0px 16px"}
                 onClick={handlePreviewClick}
+                _hover={{ bg: "#312E8A" }}
               >
                 <FiExternalLink />
                 Preview

@@ -110,6 +110,7 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
           backgroundColor={isSent ? "#F0FFF4" : "#FFF5F5"}
           color={isSent ? "#38A169" : "#E53E3E"}
           variant="solid"
+          _hover={{ bg: isSent ? "#F0FFF4" : "#FFF5F5" }}
         >
           {isSent ? "Sent" : "Not Sent"}
         </Button>
@@ -125,6 +126,7 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
           backgroundColor={isPaid() === "Paid" ? "#F0FFF4" : "#FFF5F5"}
           color={isPaid() === "Paid" ? "#38A169" : "#E53E3E"}
           variant="solid"
+          _hover={{ bg: isSent ? "#F0FFF4" : "#FFF5F5" }}
         >
           {isPaid() === "Paid"
             ? "Paid"

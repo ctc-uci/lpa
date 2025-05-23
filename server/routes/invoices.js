@@ -1,9 +1,12 @@
 import express, { Router } from "express";
 import multer from "multer";
 
+
+
 import { uploadPDF } from "../common/s3";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
+
 
 const invoicesRouter = Router();
 invoicesRouter.use(express.json());
@@ -333,8 +336,10 @@ invoicesRouter.get("/total/:id", async (req, res) => {
     ]);
     const event = eventRes[0];
 
+    // I made a change here for invoice_id
     const comments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id IS NULL"
+      "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id IS NULL AND invoice_id = $1",
+      [id]
     );
 
     const bookings = await db.query(
@@ -342,8 +347,10 @@ invoicesRouter.get("/total/:id", async (req, res) => {
       [event.id, invoice.start_date, invoice.end_date]
     );
 
+    // I made a change here for invoice_id
     const totalAdjustments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type = 'total'"
+      "SELECT * FROM comments WHERE adjustment_type = 'total' AND invoice_id = $1",
+      [id]
     );
 
     const bookingCosts = await Promise.all(
@@ -365,9 +372,10 @@ invoicesRouter.get("/total/:id", async (req, res) => {
           }
         });
 
+        // I made a change here for invoice_id
         const commentsBooking = await db.query(
-          "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id = $1",
-          [booking.id]
+          "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id = $1 AND invoice_id = $2",
+          [booking.id, id]
         );
 
         commentsBooking.forEach((adj) => {

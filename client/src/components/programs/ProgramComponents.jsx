@@ -1,4 +1,5 @@
 import { React, useEffect, useState } from "react";
+
 import { CancelIcon } from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
@@ -71,10 +72,7 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import {
-  EllipsisIcon,
-  Info,
-} from "lucide-react";
+import { EllipsisIcon, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
