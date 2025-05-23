@@ -23,7 +23,6 @@ import {
   batchInsertBookings,
   batchUpdateBookings,
   batchDeleteBookings,
-  extractBackendId,
   getAvailableCalendars
 } from "../../utils/calendar";
 
@@ -303,10 +302,6 @@ export const Test = () => {
     try {
       if (editingEventId) {
         // Extract backend ID from the Google Calendar event ID
-        const backendId = extractBackendId(editingEventId);
-        if (!backendId) {
-          throw new Error("Invalid event ID format");
-        }
         const updated = await updateEvent(editingEventId, newEvent);
         setEvents(prevEvents => prevEvents.map(event => event.id === editingEventId ? updated : event));
         toast({
@@ -371,7 +366,7 @@ export const Test = () => {
     const updatedBookings = events.map(event => ({
       ...event,
       name: `[Updated] ${event.summary}`,
-      backendId: extractBackendId(event.id) || Date.now(), // Use existing ID or generate new one
+      // backendId: extractBackendId(event.id) || Date.now(), // Use existing ID or generate new one
       date: event.start.dateTime.split('T')[0],
       startTime: event.start.dateTime.split('T')[1].slice(0, 5),
       endTime: event.end.dateTime.split('T')[1].slice(0, 5),

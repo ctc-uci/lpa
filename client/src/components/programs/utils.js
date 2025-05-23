@@ -1,3 +1,5 @@
+import { batchInsertBookings, batchUpdateBookings, batchDeleteBookings } from "../../utils/calendar";
+
 export const generateRecurringSessions = (
   recurringSession,
   startDate,
@@ -334,4 +336,129 @@ export const generateRecurringSessions = (
   }
 
   return sessions;
+};
+
+
+export const createNewSessions = async (newSessions, id, backend) => {
+  // Get event name and description
+  const eventResponse = await backend.get(`/events/${id}`);
+  const event = eventResponse.data[0];
+  const eventName = event.name;
+  const eventDescription = event.description;
+  
+  const formattedNewSessions = newSessions.map((s) => ({
+    event_id: id,
+    room_id: s.roomId,
+    start_time: s.startTime,
+    end_time: s.endTime,
+    date: s.date,
+    archived: s.archived,
+  }));
+
+  if (formattedNewSessions.length < 1) {
+    return;
+  }
+
+  const response = await backend.post("/bookings/batch", {
+    bookings: formattedNewSessions,
+  });
+
+  if (response.status !== 200) {
+    return;
+  }
+
+  const backendIds = response.data.data;
+
+  // Get room names from ids
+  const roomNameMap = {};
+  for (const session of newSessions) {
+    const roomResponse = await backend.get(`/rooms/${session.roomId}`);
+    const room = roomResponse.data[0];
+    roomNameMap[session.roomId] = room.name;
+  }
+
+  const gcalFormat = newSessions.map((s, index) => ({
+    backendId: backendIds[index],
+    name: eventName,
+    date: s.date,
+    startTime: s.startTime,
+    endTime: s.endTime,
+    location: roomNameMap[s.roomId],
+    description: eventDescription,
+    roomId: s.roomId,
+  }));
+
+  await batchInsertBookings(gcalFormat);
+};
+
+// id = event id, backend = backend context
+export const updateSessions = async (updatedSessions, id, backend) => {
+  const eventResponse = await backend.get(`/events/${id}`);
+  const event = eventResponse.data[0];
+  const eventName = event.name;
+  const eventDescription = event.description;
+
+  const formattedUpdatedSessions = updatedSessions.map((s) => ({
+    id: s.id,
+    event_id: id,
+    room_id: s.roomId,
+    start_time: s.startTime,
+    end_time: s.endTime,
+    date: s.date,
+    archived: s.archived,
+  }));
+
+  if (formattedUpdatedSessions.length < 1) {
+    return;
+  }
+
+  await backend.put("/bookings/batch", {
+    bookings: formattedUpdatedSessions,
+  });
+
+  // Get room names from ids
+  const roomNameMap = {};
+  for (const session of updatedSessions) {
+    const roomResponse = await backend.get(`/rooms/${session.roomId}`);
+    const room = roomResponse.data[0];
+    roomNameMap[session.roomId] = room.name;
+  }
+
+  // Get event name and description
+  const gcalFormat = updatedSessions.map((s) => ({
+    backendId: s.id,
+    name: eventName,
+    date: s.date,
+    startTime: s.startTime.slice(0, 5),
+    endTime: s.endTime.slice(0, 5),
+    location: roomNameMap[s.roomId],
+    description: eventDescription,
+    roomId: s.roomId,
+  }));
+
+  await batchUpdateBookings(gcalFormat);
+};
+
+export const deleteSessions = async (deletedSessions, backend) => {
+  const formattedDeletedSessions = deletedSessions.map((s) => s.id);
+
+  if (formattedDeletedSessions.length < 1) {
+    return;
+  }
+
+  await backend.delete("/bookings/batch", {
+    data: {
+      ids: formattedDeletedSessions,
+    },
+  });
+
+  const gcalFormat = deletedSessions.map((s) => ({
+    backendId: s.id,
+    date: s.date,
+    startTime: s.startTime.slice(0, 5),
+    endTime: s.endTime.slice(0, 5),
+    roomId: s.roomId,
+  }));
+
+  await batchDeleteBookings(gcalFormat);
 };

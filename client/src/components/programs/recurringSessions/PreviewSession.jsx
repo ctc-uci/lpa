@@ -156,7 +156,7 @@ export const PreviewSession = ({
             <Button
               backgroundColor="#4441C8"
               onClick={onSaveSessionModalOpen}
-              isDisabled={sortedSessions.length === 0}
+              // isDisabled={sortedSessions.length === 0}
             >
               <Text color="#FFFFFF">Save Changes</Text>
             </Button>
