@@ -958,7 +958,16 @@ const StatementComments = ({
                               >
                                 <Tooltip
                                   label={session.adjustmentValues
-                                    .map((adj) => adj.value)
+                                    .filter((adj) => adj.type !== "total")
+                                    .map((adj) => {
+                                      const value = Number(adj.value);
+                                      const sign = value >= 0 ? "+" : "-";
+                                      const isFlat = adj.type === "rate_flat";
+                                      const absValue = Math.abs(value);
+                                      return isFlat
+                                        ? `${sign}$${absValue}`
+                                        : `${sign}${absValue}%`;
+                                    })
                                     .join(", ")}
                                   placement="top"
                                   bg="gray"
