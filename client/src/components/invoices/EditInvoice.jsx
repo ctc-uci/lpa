@@ -381,9 +381,12 @@ export const EditInvoice = () => {
               booking={booking}
               room={room}
               subtotal={editedSubtotal}
-              comments={editedComments}
-              onCommentsChange={handleCommentUpdate}
-              onSubtotalChange={handleSubtotalUpdate}
+              setSubtotal={setEditedSubtotal}
+              sessions={sessions}
+              setSessions={setSessions}
+              deletedIds={deletedIds}
+              setDeletedIds={setDeletedIds}
+              summary={summary}
             />
             <InvoiceSummary
               pastDue={pastDue}

@@ -232,41 +232,125 @@ const EditInvoiceDetails = ({
 };
 
 const StatementComments = ({
-  comments = [],
-  booking = [],
-  room = [],
-  subtotal = 0.0,
-  onCommentsChange,
-  onSubtotalChange,
+  invoice,
+  compactView = false,
+  sessions = [],
+  setSessions,
+  setSubtotal,
+  deletedIds,
+  setDeletedIds,
+  summary = []
 }) => {
-  const [commentsState, setComments] = useState(comments);
-  const [bookingState, setBooking] = useState(booking);
-  const [roomState, setRoom] = useState(room);
-  const [sessionTotals, setSessionTotals] = useState([]);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-  const [expandedCommentIndex, setExpandedCommentIndex] = useState(null); // Track which row is expanded
-  const [rowHoveredIndex, setRowHoveredIndex] = useState(null);
-  const [newSubtotalValue, setNewSubtotalValue] = useState(0);
-  const [inputValues, setInputValues] = useState(
-    Array(comments.length).fill("")
-  ); // Initialize local state for input values
+  const { backend } = useBackendContext();
+  const [activeRowId, setActiveRowId] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [activeCommentId, setActiveCommentId] = useState(null);
+  const [commentText, setCommentText] = useState("");
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+  const [editingCustomRow, setEditingCustomRow] = useState(null);
+  const [editCustomDate, setEditCustomDate] = useState("");
+  const [editCustomText, setEditCustomText] = useState("");
+  const [editCustomAmount, setEditCustomAmount] = useState("");
+  const editRowRef = useRef(null);
 
-  const handleCommentToggle = (index) => {
-    setExpandedCommentIndex(expandedCommentIndex === index ? null : index);
-  };
+  // Store original rates for each session
+  const originalSessionRatesRef = useRef({});
 
   useEffect(() => {
-    // Calculate subtotal on initial load
-    const calculateSubtotal = () => {
-      if (
-        comments &&
-        comments.length > 0 &&
-        booking &&
-        room &&
-        room.length > 0
-      ) {
-        const totals = comments.map(() => {
-          if (!booking.startTime || !booking.endTime) return 0;
+    const fetchUserId = async () => {
+      const currentFirebaseUser = await getCurrentUser();
+      const firebaseUid = currentFirebaseUser?.uid;
+      if (!firebaseUid) return;
+      const userRes = await backend.get(`/users/${firebaseUid}`);
+      setUserId(userRes.data[0].id);
+    };
+
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (editRowRef.current && !editRowRef.current.contains(event.target)) {
+        if (editingCustomRow !== null) {
+          handleSaveCustomRow(
+            sessions[editingCustomRow.split("-")[0]],
+            editingCustomRow.split("-")[1]
+          );
+        }
+      }
+    };
+
+    if (editingCustomRow !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount]);
+
+  useEffect(() => {
+    // Recalculate subtotal whenever sessions change
+    if (sessions && sessions.length > 0) {
+      const newSubtotal = calculateSubtotal(sessions);
+      setSubtotal(newSubtotal);
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    if (sessions?.length > 0) {
+      // Store original rates for each session if not already stored
+      sessions.forEach(session => {
+        if (session.name && originalSessionRatesRef.current[session.name] === undefined) {
+          originalSessionRatesRef.current[session.name] = session.rate;
+        }
+      });
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    if (!summary || sessions.length === 0) return;
+
+    const updatedSessions = sessions.map(session => {
+      // Skip sessions without names (custom rows) or missing original rates
+      if (!session.name || originalSessionRatesRef.current[session.name] === undefined) {
+        return session;
+      }
+
+      const originalRate = originalSessionRatesRef.current[session.name];
+      const currentSummary = summary[0];
+      
+      if (!currentSummary?.adjustmentValues) return session;
+
+      const adjustedRate = calculateTotalBookingRow(
+        originalRate,
+        currentSummary.adjustmentValues
+      );
+
+      if (session.rate !== adjustedRate) {
+        return {
+          ...session,
+          rate: adjustedRate,
+        };
+      }
+
+      return session;
+    });
+
+    setSessions(updatedSessions);
+  }, [summary]);
+
+  const calculateTotalBookingRow = (
+    startTime,
+    endTime,
+    rate,
+    adjustmentValues
+  ) => {
+    if (!startTime || !endTime || !rate) return "0.00";
+
+    // Make sure we're working with a valid array of adjustment values
+    const currentAdjustmentValues = Array.isArray(adjustmentValues)
+      ? adjustmentValues.filter((adj) => adj && adj.type)
+      : [];
 
           const timeToMinutes = (timeStr) => {
             const [hours, minutes] = timeStr.split(":").map(Number);
@@ -744,32 +828,51 @@ const InvoiceSummary = ({
     setPendingSubtotalValue(e.target.value);
   };
 
-  const handleSubtotalSubmit = (e) => {
-    if (e.key === "Enter") {
-      const value = parseFloat(pendingSubtotalValue);
-      if (!isNaN(value)) {
-        if (adjustmentType === "total") {
-          setSubtotalValue((prevValue) => {
-            const newSubtotal = prevValue + value;
-            if (onSubtotalChange) {
-              onSubtotalChange(newSubtotal);
-            }
-            return newSubtotal;
-          });
-        } else if (adjustmentType === "rate_flat") {
-          const updatedRoom = room.map((r, index) =>
-            index === 0 ? { ...r, rate: value } : r
-          );
-          setRoom(updatedRoom);
-        } else if (adjustmentType === "rate_percent") {
-          const updatedRoom = room.map((r, index) =>
-            index === 0 ? { ...r, rate: r.rate * (value / 100) } : r
-          );
-          setRoom(updatedRoom);
+  // Store original rates for each session
+  const originalSessionRatesRef = useRef({});
+
+  useEffect(() => {
+    if (sessions?.length > 0) {
+      // Store original rates for each session if not already stored
+      sessions.forEach(session => {
+        if (session.name && originalSessionRatesRef.current[session.name] === undefined) {
+          originalSessionRatesRef.current[session.name] = session.rate;
         }
-      }
+      });
     }
-  };
+  }, [sessions]);
+
+  useEffect(() => {
+    if (!summary || sessions.length === 0) return;
+
+    const updatedSessions = sessions.map(session => {
+      // Skip sessions without names (custom rows) or missing original rates
+      if (!session.name || originalSessionRatesRef.current[session.name] === undefined) {
+        return session;
+      }
+
+      const originalRate = originalSessionRatesRef.current[session.name];
+      const currentSummary = summary[0];
+      
+      if (!currentSummary?.adjustmentValues) return session;
+
+      const adjustedRate = calculateTotalBookingRow(
+        originalRate,
+        currentSummary.adjustmentValues
+      );
+
+      if (session.rate !== adjustedRate) {
+        return {
+          ...session,
+          rate: adjustedRate,
+        };
+      }
+
+      return session;
+    });
+
+    setSessions(updatedSessions);
+  }, [summary]);
 
   return (
     <Box
@@ -812,124 +915,230 @@ const InvoiceSummary = ({
                     textTransform="none"
                     pl="8"
                   >
-                    Adjustment Type(s)
-                  </Th>
-                  <Th
-                    fontSize="14px"
-                    textTransform="none"
-                    textAlign="end"
-                    pr="14"
-                  >
-                    Total
-                  </Th>
-                </Tr>
-              </Thead>
-              <Tbody color="#2D3748">
-                <Tr>
-                  <Td
-                    fontSize="14px"
-                    border="none"
-                  >
-                    Past Due Balance
-                  </Td>
-                  <Td border={"none"}></Td>
-                  <Td border="none">
-                    <Flex
-                      alignItems="center"
-                      justifyContent="end"
-                    >
-                      <Text
-                        mr={1}
-                        fontSize="14px"
-                      >
-                        ${pastDueValue.toFixed(2)}
-                      </Text>
-                    </Flex>
-                  </Td>
-                </Tr>
-                <Tr
-                  borderBottom="1px solid"
-                  borderColor="gray.200"
-                >
-                  <Td colSpan="1">
-                    <Text
-                      fontWeight="bold"
-                      color="gray.700"
-                    >
-                      Waiting for remaining payments from November and December
-                    </Text>
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td fontSize="14px">Current Statement Subtotal</Td>
-                  <Td>
-                    <RadioDropdownSummary
-                      adjustmentType={adjustmentType}
-                      setAdjustmentType={setAdjustmentType}
+                    <EditDocumentIcon
+                      width={compactView ? "8" : "16"}
+                      height={compactView && "10"}
                     />
-                  </Td>
-                  <Td>
-                    <Flex
-                      alignItems="center"
-                      justifyContent="end"
+                    <Text
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      ml="4px"
                     >
-                      <Text
-                        mr={1}
-                        fontSize="14px"
-                      >
-                        $
-                      </Text>
-                      <Input
-                        type="number"
-                        textAlign="center"
-                        px="0"
-                        fontSize="14px"
-                        value={pendingSubtotalValue}
-                        width={`${pendingSubtotalValue.length + 1}ch`}
-                        onChange={handleSubtotalChange}
-                        onKeyDown={handleSubtotalSubmit} // Listen for Enter key
-                      />
-                    </Flex>
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td
-                    textAlign="end"
-                    colSpan="2"
-                    fontSize="16px"
-                    fontWeight="700"
+                      ROOM FEE ADJUSTMENT
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  textTransform="none"
+                  textAlign="end"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  color="#718096"
+                >
+                  TOTAL
+                </Th>
+              </Tr>
+            </Thead>
+
+            <Tbody color="#2D3748">
+              {/* Room Fee Header Row */}
+              <Tr p="40">
+                <Td
+                  borderBottom="none"
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  py={compactView ? "2" : "8"}
+                  colSpan={4}
+                >
+                  Room Fee
+                </Td>
+                <Td borderBottom="none">
+                  <Button
+                    // onClose={() => setActiveRowId(null)}
+                    leftIcon={<PencilIcon color="black" />}
+                    colorScheme="gray"
+                    borderRadius="md"
+                    px="3"
+                    py="2"
+                    fontSize="small"
+                    height="32px"
+                    onClick={onOpen}
                   >
-                    Total Amount Due
-                  </Td>
-                  <Td>
-                    <Flex
-                      alignItems="center"
-                      justifyContent="end"
+                    Adjust
+                  </Button>
+                  <Tooltip
+                    label="Room fee adjustments in Summary will be apply to all Sessions."
+                    placement="top"
+                    bg="gray"
+                  >
+                    <InfoOutlineIcon ml={2} />
+                  </Tooltip>
+                </Td>
+              </Tr>
+              {/* Room Fee Body Row */}
+
+              {/* Custom rows don't have room names, so that's why we filter them out to avoid showing custom rows in the summary */}
+              {sessions
+                ?.filter(
+                  (session) =>
+                    session.name?.length > 0 &&
+                    session.adjustmentValues[0]?.type !== "total" &&
+                    session.adjustmentValues[0]?.type !== "none"
+                )
+                .map((session, key) => (
+                  <Tr key={key}>
+                    <Td
+                      pl="16"
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      py={compactView ? 2 : 4}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                      colSpan={4}
                     >
-                      <Text
-                        mr={1}
-                        fontSize="14px"
-                      >
-                        $
-                      </Text>
-                      <Text
-                        textAlign="center"
-                        p="2"
-                        fontSize="14px"
-                        borderRadius="md"
-                        width={`${totalAmountDue.toFixed(2).length + 3}ch`}
-                      >
-                        {totalAmountDue.toFixed(2)}
-                      </Text>
-                    </Flex>
-                  </Td>
-                </Tr>
-              </Tbody>
-            </Table>
-          </Box>
-        </Flex>
-      </VStack>
-    </Box>
+                      {session.name}
+                    </Td>
+                    <Td
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      py={compactView ? 2 : 4}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                    >
+                      {!summary || summary.length === 0 ? (
+                        "None"
+                      ) : (
+                        <Box display="inline-block">
+                          <Tooltip
+                            label={summary[0]?.adjustmentValues
+                              .map((adj) => {
+                                const sign = adj.value < 0 ? "-" : "+";
+                                const isFlat = adj.type === "rate_flat";
+                                const absValue = Math.abs(adj.value);
+                                return isFlat
+                                  ? `${sign}$${absValue}`
+                                  : `${sign}${absValue}%`;
+                              })
+                              .join(", ")}
+                            placement="top"
+                            bg="gray"
+                            w="auto"
+                          >
+                            <Text textOverflow="ellipsis" overflow="hidden">
+                              {summary[0]?.adjustmentValues
+                                .map((adj) => {
+                                  const sign = adj.value < 0 ? "-" : "+";
+                                  const isFlat = adj.type === "rate_flat";
+                                  const absValue = Math.abs(adj.value);
+                                  return isFlat
+                                    ? `${sign}$${absValue}`
+                                    : `${sign}${absValue}%`;
+                                })
+                                .join(", ")}
+                            </Text>
+                          </Tooltip>
+                        </Box>
+                      )}
+                    </Td>
+                    <Td
+                      textAlign="end"
+                      py={compactView ? 0 : 4}
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                    >
+                      <HStack spacing={1} justify="end">
+                        <Box as="span">$</Box>
+                        <Input
+                          value={parseFloat(session.rate).toFixed(2)}
+                          readOnly={true}
+                          w="8ch"
+                          textAlign="center"
+                          px={1}
+                        />
+                        <Box as="span">/hr</Box>
+                      </HStack>
+                    </Td>
+                  </Tr>
+                ))}
+              {/* past due balance row */}
+
+              <Tr>
+                <Td
+                  colSpan={4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  py={compactView ? "2" : "8"}
+                >
+                  Past Due Balance
+                </Td>
+                <Td></Td>
+                <Td
+                  textAlign="end"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  $ {pastDue.toFixed(2)}
+                </Td>
+              </Tr>
+
+              {/* current statement balance row */}
+              <Tr>
+                <Td
+                  colSpan={4}
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  Current Statement Subtotal
+                </Td>
+                <Td
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                ></Td>
+                <Td
+                  textAlign="end"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  {`$ ${Number(subtotal).toFixed(2)}`}
+                </Td>
+              </Tr>
+
+              {/* total row */}
+              <Tr>
+                <Td
+                  textAlign="right"
+                  colSpan={5}
+                  fontWeight="700"
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  color="#718096"
+                >
+                  TOTAL AMOUNT DUE
+                </Td>
+                <Td
+                  fontWeight="700"
+                  borderBottom="none"
+                  textAlign="end"
+                  fontSize={compactView ? "6.38px" : "2xl"}
+                  py={compactView ? 0 : 8}
+                >
+                  {`$ ${(parseFloat(pastDue) + parseFloat(subtotal)).toFixed(2)}`}
+                </Td>
+              </Tr>
+            </Tbody>
+          </Table>
+          <SummaryFeeAdjustmentSideBar
+            isOpen={isOpen}
+            onClose={onClose}
+            summary={summary[0]}
+            setSummary={setSummary}
+            sessionIndex={0}
+            subtotal={subtotal}
+            session={sessions[0]}
+            deletedIds={deletedIds}
+            setDeletedIds={setDeletedIds}
+          />
+        </Box>
+      </Flex>
+    </Flex>
   );
 };
 
