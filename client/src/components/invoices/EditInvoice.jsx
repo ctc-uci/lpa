@@ -403,8 +403,8 @@ export const EditInvoice = () => {
               isNaN(adjustmentValue.value) ||
               adjustmentValue.value === undefined
             )
-              continue;
-
+            continue;
+            
             const adjustmentData = {
               id: adjustmentValue.id,
               user_id: session.userId,
@@ -420,7 +420,7 @@ export const EditInvoice = () => {
               adjustment_type: adjustmentValue.type,
               adjustment_value: adjustmentValue.value,
             };
-
+            
             try {
               // Check if this adjustment already exists
               const existingAdjustment = comments.find(

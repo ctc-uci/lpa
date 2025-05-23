@@ -195,6 +195,8 @@ const RoomFeeAdjustmentSideBar = ({
     onClose();
   };
 
+  // console.log("tempSession", tempSession);
+
   return (
     <>
       <Drawer
@@ -239,20 +241,32 @@ const RoomFeeAdjustmentSideBar = ({
 
               <AdjustmentTypeSelector
                 onSelect={(type) => {
-                  setTempSession((prev) => ({
-                    ...prev,
-                    adjustmentValues: [
-                      ...(prev.adjustmentValues || []),
-                      {
-                        id:
-                          prev.adjustmentValues[
-                            prev.adjustmentValues.length - 1
-                          ]?.id + 1 || 0,
-                        type: type === "percent" ? "rate_percent" : "rate_flat",
-                        value: -0,
-                      },
-                    ],
-                  }));
+                  setTempSession((prev) => {
+                    // Get all existing IDs from different sources across all sessions
+                    const adjustmentIds = sessions.map(session => session.adjustmentValues?.map(adj => adj.id) || []).flat();
+                    const commentIds = sessions.map(session => session.comments?.map(comment => comment.id) || []).flat();
+                    const totalIds = sessions.map(session => session.totals?.map(total => total.id) || []).flat();
+                    
+                    // Find the maximum ID across all sources
+                    const maxId = Math.max(
+                      -1, // fallback if all arrays are empty
+                      ...adjustmentIds,
+                      ...commentIds,
+                      ...totalIds
+                    );
+
+                    return {
+                      ...prev,
+                      adjustmentValues: [
+                        ...(prev.adjustmentValues || []),
+                        {
+                          id: maxId + 1,
+                          type: type === "percent" ? "rate_percent" : "rate_flat",
+                          value: -0,
+                        },
+                      ],
+                    };
+                  });
                 }}
                 sessionIndex={sessionIndex}
               />
@@ -684,20 +698,32 @@ const SummaryFeeAdjustmentSideBar = ({
 
               <AdjustmentTypeSelector
                 onSelect={(type) => {
-                  setTempSummary((prev) => ({
-                    ...prev,
-                    adjustmentValues: [
-                      ...(prev.adjustmentValues || []),
-                      {
-                        id:
-                          prev.adjustmentValues?.[
-                            prev.adjustmentValues?.length - 1
-                          ]?.id + 1 || 0,
-                        type: type === "percent" ? "rate_percent" : "rate_flat",
-                        value: -0,
-                      },
-                    ],
-                  }));
+                  setTempSummary((prev) => {
+                    // Get all existing IDs from different sources across all sessions
+                    const adjustmentIds = sessions.map(session => session.adjustmentValues?.map(adj => adj.id) || []).flat();
+                    const commentIds = sessions.map(session => session.comments?.map(comment => comment.id) || []).flat();
+                    const totalIds = sessions.map(session => session.totals?.map(total => total.id) || []).flat();
+                    
+                    // Find the maximum ID across all sources
+                    const maxId = Math.max(
+                      -1, // fallback if all arrays are empty
+                      ...adjustmentIds,
+                      ...commentIds,
+                      ...totalIds
+                    );
+
+                    return {
+                      ...prev,
+                      adjustmentValues: [
+                        ...(prev.adjustmentValues || []),
+                        {
+                          id: maxId + 1,
+                          type: type === "percent" ? "rate_percent" : "rate_flat",
+                          value: -0,
+                        },
+                      ],
+                    };
+                  });
                 }}
                 sessionIndex={sessionIndex}
               />

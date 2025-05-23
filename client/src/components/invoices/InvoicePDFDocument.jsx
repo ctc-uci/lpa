@@ -72,7 +72,12 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
 
     return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
   } else if (invoice) {
-    return invoice["startDate"];
+    const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+    const invoiceDate = new Date(invoiceDateSplit);
+    invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+    const month = invoiceDate.toLocaleString("default", { month: "long" });
+    const year = invoiceDate.getFullYear();
+    return `${month} ${year}`;
   } else {
     return "No Date Found";
   }
@@ -169,7 +174,7 @@ const EditInvoiceDetailsPDF = ({
             fontWeight: 500,
           }}
         >
-          {getGeneratedDate(comments, invoice, false)}
+          {getGeneratedDate([], invoice, false)}
         </Text>
       </View>
 
@@ -634,7 +639,7 @@ const InvoiceTable = ({ sessions, summary }) => {
             >
               <View style={tableStyles.tableCol}>
                 <Text style={{ fontSize: 7 }}>
-                  {format(new Date(session.datetime), "EEE. M/d/yy")}
+                  {format(new Date(session.bookingDate), "EEE. M/d/yy")}
                 </Text>
               </View>
               <View style={tableStyles.tableCol}>
