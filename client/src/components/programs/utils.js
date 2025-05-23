@@ -391,6 +391,7 @@ export const createNewSessions = async (newSessions, id, backend) => {
   await batchInsertBookings(gcalFormat);
 };
 
+// id = event id, backend = backend context
 export const updateSessions = async (updatedSessions, id, backend) => {
   const eventResponse = await backend.get(`/events/${id}`);
   const event = eventResponse.data[0];

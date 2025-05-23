@@ -82,28 +82,6 @@ export const generateEventId = (event, backendId) => {
 };
 
 /**
- * Extract the backend event ID from a Google Calendar event ID
- * NOT USED
- * 
- * @param {string} googleEventId - The Google Calendar event ID
- * @returns {number|null} The backend event ID if valid, null if invalid
- */
-export const extractBackendId = (googleEventId) => {
-  if (!googleEventId?.startsWith(EVENT_ID_PREFIX)) {
-    return null;
-  }
-
-  const parts = googleEventId.split(EVENT_ID_SEPARATOR);
-  if (parts.length !== 2) {
-    return null;
-  }
-
-  // Remove prefix and get the backend ID
-  const backendId = parseInt(parts[0].slice(EVENT_ID_PREFIX.length));
-  return isNaN(backendId) ? null : backendId;
-};
-
-/**
  * Initialize the Google API client and load the calendar API
  * @returns {Promise<void>}
  */
@@ -137,6 +115,7 @@ export const initializeGoogleCalendar = async () => {
  * @returns {Promise<void>}
  */
 export const signIn = async () => {
+  await initializeGoogleCalendar();
   return gapi.auth2.getAuthInstance()?.signIn({
     prompt: 'select_account'
   });
@@ -147,6 +126,7 @@ export const signIn = async () => {
  * @returns {Promise<void>}
  */
 export const signOut = async () => {
+  await initializeGoogleCalendar();
   return gapi.auth2.getAuthInstance()?.signOut();
 };
 
@@ -170,6 +150,7 @@ export const getSelectedCalendarId = () => {
  * @returns {Promise<GoogleCalendarEvent[]>} Array of calendar events
  */
 export const fetchEvents = async () => {
+  await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
     throw new Error('No calendar selected');
@@ -191,6 +172,7 @@ export const fetchEvents = async () => {
  * @returns {Promise<GoogleCalendarEvent>} Created event
  */
 export const createEvent = async (event) => {
+  await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
     throw new Error('No calendar selected');
@@ -223,6 +205,7 @@ export const createEvent = async (event) => {
  * @returns {Promise<GoogleCalendarEvent>} Updated event
  */
 export const updateEvent = async (updatedEvent) => {
+  await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
     throw new Error('No calendar selected');
@@ -255,6 +238,7 @@ export const updateEvent = async (updatedEvent) => {
  * @returns {Promise<void>}
  */
 export const deleteEvent = async (event) => {
+  await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
     throw new Error('No calendar selected');
@@ -268,56 +252,17 @@ export const deleteEvent = async (event) => {
 };
 
 /**
- * Generate recurring sessions based on a template
- * @param {Object} recurringSession - Template session with session ids, weekday, startTime, endTime, location, description
- * @param {string} startDate - Start date in ISO format
- * @param {string} endDate - End date in ISO format
- * @returns {Array} Array of generated sessions
- */
-
-/** 
-export const generateRecurringSessions = (recurringSession, startDate, endDate) => {
-  const sessions = [];
-  const currentTimezoneDate = new Date(startDate.replace(/-/g, '/').replace(/T.+/, ''));
-  const currentDate = new Date(startDate);
-  const endDateObj = new Date(endDate);
-  const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-  const weekdayIndex = weekdays.indexOf(recurringSession.weekday.toLowerCase());
-  const startDayOfWeek = currentTimezoneDate.getDay();
-  const daysUntilFirst = (weekdayIndex - startDayOfWeek + 7) % 7;
-
-  if (daysUntilFirst > 0) {
-    currentDate.setDate(currentDate.getDate() + daysUntilFirst);
-  }
-
-  while (currentDate <= endDateObj) {
-    sessions.push({
-      date: currentDate.toISOString(),
-      startTime: recurringSession.startTime,
-      endTime: recurringSession.endTime,
-      roomId: recurringSession.roomId,
-      eventId: 383, // This should probably be configurable
-      archived: false,
-    });
-    currentDate.setDate(currentDate.getDate() + 7);
-  }
-
-  return sessions;
-};
-*/
-
-/**
  * Batch insert multiple bookings into Google Calendar
  * @param {BookingEvent[]} bookings - Array of booking objects to insert
  * @returns {Promise<BatchOperationResult>} Result of batch operation
  */
 export const batchInsertBookings = async (bookings) => {
+  await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
     throw new Error('No calendar selected');
   }
 
-  await initializeGoogleCalendar();
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
@@ -366,12 +311,12 @@ export const batchInsertBookings = async (bookings) => {
  * @returns {Promise<BatchOperationResult>} Result of batch operation
  */
 export const batchUpdateBookings = async (bookings) => {
+  await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
     throw new Error('No calendar selected');
   }
 
-  await initializeGoogleCalendar();
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
@@ -442,12 +387,12 @@ export const batchUpdateBookings = async (bookings) => {
  * @returns {Promise<BatchOperationResult>} Result of batch operation
  */
 export const batchDeleteBookings = async (bookings) => {
+  await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
     throw new Error('No calendar selected');
   }
 
-  await initializeGoogleCalendar();
   const batch = gapi.client.newBatch();
 
   bookings.forEach((booking, index) => {
@@ -517,6 +462,7 @@ export const isSignedIn = () => {
  * @returns {Promise<string>} The user's Google Calendar email address
  */
 export const getCalendarEmail = async () => {
+  await initializeGoogleCalendar();
   const calendars = await getAvailableCalendars();
   const primaryCalendar = calendars.find(calendar => calendar.primary);
   return primaryCalendar.id;
@@ -545,6 +491,7 @@ export const useSelectedCalendar = () => {
  * Array of calendar objects containing id, name (summary), and optional description and primary status
  */
 export const getAvailableCalendars = async () => {
+  await initializeGoogleCalendar();
   if (!isCalendarApiReady()) {
     throw new Error('Google Calendar API is not initialized. Please wait for initialization to complete.');
   }
