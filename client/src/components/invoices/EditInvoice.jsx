@@ -647,6 +647,7 @@ export const EditInvoice = () => {
               setSessions={setSessions}
               deletedIds={deletedIds}
               setDeletedIds={setDeletedIds}
+              summary={summary}
             />
             <InvoiceSummary
               pastDue={pastDue}

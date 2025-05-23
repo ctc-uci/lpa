@@ -280,6 +280,7 @@ const StatementComments = ({
   setSubtotal,
   deletedIds,
   setDeletedIds,
+  summary = []
 }) => {
   const { backend } = useBackendContext();
   const [activeRowId, setActiveRowId] = useState(null);
@@ -292,6 +293,9 @@ const StatementComments = ({
   const [editCustomText, setEditCustomText] = useState("");
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
+
+  // Store original rates for each session
+  const originalSessionRatesRef = useRef({});
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -332,6 +336,49 @@ const StatementComments = ({
       setSubtotal(newSubtotal);
     }
   }, [sessions]);
+
+  useEffect(() => {
+    if (sessions?.length > 0) {
+      // Store original rates for each session if not already stored
+      sessions.forEach(session => {
+        if (session.name && originalSessionRatesRef.current[session.name] === undefined) {
+          originalSessionRatesRef.current[session.name] = session.rate;
+        }
+      });
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    if (!summary || sessions.length === 0) return;
+
+    const updatedSessions = sessions.map(session => {
+      // Skip sessions without names (custom rows) or missing original rates
+      if (!session.name || originalSessionRatesRef.current[session.name] === undefined) {
+        return session;
+      }
+
+      const originalRate = originalSessionRatesRef.current[session.name];
+      const currentSummary = summary[0];
+      
+      if (!currentSummary?.adjustmentValues) return session;
+
+      const adjustedRate = calculateTotalBookingRow(
+        originalRate,
+        currentSummary.adjustmentValues
+      );
+
+      if (session.rate !== adjustedRate) {
+        return {
+          ...session,
+          rate: adjustedRate,
+        };
+      }
+
+      return session;
+    });
+
+    setSessions(updatedSessions);
+  }, [summary]);
 
   const calculateTotalBookingRow = (
     startTime,
@@ -1348,29 +1395,37 @@ const InvoiceSummary = ({
     return Number(adjustedTotal).toFixed(2);
   };
 
-  // Summary Sidebar total calculations
-  const originalSessionRateRef = useRef(null);
+  // Store original rates for each session
+  const originalSessionRatesRef = useRef({});
 
   useEffect(() => {
-    if (sessions?.length > 0 && originalSessionRateRef.current === null) {
-      originalSessionRateRef.current = sessions[0]?.rate;
+    if (sessions?.length > 0) {
+      // Store original rates for each session if not already stored
+      sessions.forEach(session => {
+        if (session.name && originalSessionRatesRef.current[session.name] === undefined) {
+          originalSessionRatesRef.current[session.name] = session.rate;
+        }
+      });
     }
   }, [sessions]);
 
   useEffect(() => {
-    if (
-      !summary?.[0]?.adjustmentValues ||
-      sessions.length === 0 ||
-      originalSessionRateRef.current === null
-    )
-      return;
+    if (!summary || sessions.length === 0) return;
 
-    const originalSessionRate = originalSessionRateRef.current;
+    const updatedSessions = sessions.map(session => {
+      // Skip sessions without names (custom rows) or missing original rates
+      if (!session.name || originalSessionRatesRef.current[session.name] === undefined) {
+        return session;
+      }
 
-    const updatedSessions = sessions.map((session) => {
+      const originalRate = originalSessionRatesRef.current[session.name];
+      const currentSummary = summary[0];
+      
+      if (!currentSummary?.adjustmentValues) return session;
+
       const adjustedRate = calculateTotalBookingRow(
-        originalSessionRate,
-        summary[0]?.adjustmentValues
+        originalRate,
+        currentSummary.adjustmentValues
       );
 
       if (session.rate !== adjustedRate) {
@@ -1535,7 +1590,7 @@ const InvoiceSummary = ({
                         key === sessions.length - 1 ? undefined : "none"
                       }
                     >
-                      {summary[0]?.adjustmentValues?.length === 0 ? (
+                      {!summary || summary.length === 0 ? (
                         "None"
                       ) : (
                         <Box display="inline-block">
@@ -1554,10 +1609,7 @@ const InvoiceSummary = ({
                             bg="gray"
                             w="auto"
                           >
-                            <Text
-                              textOverflow="ellipsis"
-                              overflow="hidden"
-                            >
+                            <Text textOverflow="ellipsis" overflow="hidden">
                               {summary[0]?.adjustmentValues
                                 .map((adj) => {
                                   const sign = adj.value < 0 ? "-" : "+";
@@ -1581,10 +1633,7 @@ const InvoiceSummary = ({
                         key === sessions.length - 1 ? undefined : "none"
                       }
                     >
-                      <HStack
-                        spacing={1}
-                        justify="end"
-                      >
+                      <HStack spacing={1} justify="end">
                         <Box as="span">$</Box>
                         <Input
                           value={parseFloat(session.rate).toFixed(2)}
