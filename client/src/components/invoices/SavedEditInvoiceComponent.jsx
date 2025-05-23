@@ -397,70 +397,73 @@ const SavedInvoiceSummary = ({
   setSubtotal,
   pastDue
 }) => {
+  const calculateTotalBookingRow = (rate, adjustmentValues) => {
+    if (!rate) return "0.00";
 
-  //! THIS RECALCULATES EVERYTHING BUT PASSING IT BETWEEN COMPONENTS WASNT WORKING
+    const baseRate = Number(rate);
+    if (isNaN(baseRate)) return "0.00";
 
-  const [commentsState, setComments] = useState(comments);
-  const [bookingState, setBooking] = useState(booking);
-  const [roomState, setRoom] = useState(room);
-  const [subtotalSum, setSubtotalSum] = useState(subtotal);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+    const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+      if (isNaN(val.value)) return acc;
 
-  const handleSubtotalSum = (startTime, endTime, rate) => {
-    if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
+      if (val.type === "rate_percent") {
+        const factor = 1 + val.value / 100;
+        return acc * factor;
+      } else {
+        return acc + Number(val.value);
+      }
+    }, baseRate);
 
-    const timeToMinutes = (timeStr) => {
-      const [hours, minutes] = timeStr.split(":").map(Number);
-      return hours * 60 + minutes;
-    };
-
-    const startMinutes = timeToMinutes(startTime.substring(0, 5));
-    const endMinutes = timeToMinutes(endTime.substring(0, 5));
-    const diff = endMinutes - startMinutes;
-
-    const totalHours = Math.ceil(diff / 60);
-
-    const total = (totalHours * rate).toFixed(2);
-
-
-    return total;
+    return Number(adjustedTotal).toFixed(2);
   };
 
-  useEffect(() => {
-    if (comments && comments.length > 0) {
-      setComments(comments);
-      setBooking(booking);
-      setRoom(room);
+  // Summary Sidebar total calculations
+  const originalSessionRateRef = useRef({});
 
+  useEffect(() => {
+    if (sessions?.length > 0) {
+      sessions.forEach(session => {
+        if (session.name && originalSessionRateRef.current[session.name] === undefined) {
+          originalSessionRateRef.current[session.name] = session.rate;
+        }
+      });
     }
   }, [booking, comments, room]);
 
 
 
-    useEffect(() => {
-      // Ensure all required values are available and this only runs once
-      if (
-        bookingState &&
-        room &&
-        bookingState.startTime &&
-        bookingState.endTime &&
-        room[0]?.rate &&
-        !isDataLoaded
-      ) {
-        const total = handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate);
+  useEffect(() => {
+    if (
+      !summary?.[0]?.adjustmentValues ||
+      sessions.length === 0 ||
+      originalSessionRateRef.current === null
+    )
+      return;
 
-        // Add subtotal for each comment (this logic is now inside useEffect)
-        if (commentsState && commentsState.length > 0) {
-          commentsState.forEach(() => {
-          setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
-          });
-        }
-
-        setSubtotal(subtotalSum)
-        // Set flag to prevent future reruns of this effect
-        setIsDataLoaded(true);
+      
+      const updatedSessions = sessions.map((session) => {
+      if (!session.name || originalSessionRateRef.current[session.name] === undefined) {
+        return session;
       }
-    }, [bookingState, room, commentsState, isDataLoaded]);
+
+      const originalSessionRate = originalSessionRateRef.current[session.name];
+      const adjustedRate = calculateTotalBookingRow(
+        originalSessionRate,
+        summary[0]?.adjustmentValues
+      );
+
+      if (session.rate !== adjustedRate) {
+        return {
+          ...session,
+          rate: adjustedRate,
+        };
+      }
+
+      return session;
+    });
+
+    setSessions(updatedSessions);
+  }, [summary]);
 
   return (
     <Flex
@@ -501,19 +504,110 @@ const SavedInvoiceSummary = ({
 
             {/* past due balance row */}
             <Tbody color="#2D3748">
+              {/* Room Fee Header Row */}
+              <Tr p="40">
+                <Td
+                  borderBottom="none"
+                  colSpan={4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  py={compactView ? "2" : "8"}
+                >
+                  Room Fee
+                </Td>
+              </Tr>
+              {/* Room Fee Body Row */}
+              {/* // TODO NEED TO FIX ADJUSTMENTVALUES[0] */}
+              {sessions
+                .map((session, key) => (
+                  <Tr key={key}>
+                    <Td
+                      pl="16"
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      py={compactView ? 2 : 4}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                      colSpan={4}
+                    >
+                      {session.name}
+                    </Td>
+                    <Td
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      py={compactView ? 2 : 4}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                    >
+                      {summary[0]?.adjustmentValues.length === 0 ? (
+                        "None"
+                      ) : (
+                        <Box display="inline-block">
+                          <Tooltip
+                            label={summary[0]?.adjustmentValues
+                              .map((adj) => {
+                                const value = Number(adj.value);
+                                const sign = value >= 0 ? "+" : "-";
+                                const isFlat = adj.type === "rate_flat";
+                                const absValue = Math.abs(value);
+                                return isFlat
+                                  ? `${sign}$${absValue}`
+                                  : `${sign}${absValue}%`;
+                              })
+                              .join(", ")}
+                            placement="top"
+                            bg="gray"
+                            w="auto"
+                          >
+                            <Text
+                              textOverflow="ellipsis"
+                              // whiteSpace="nowrap"
+                              overflow="hidden"
+                            >
+                              {summary[0]?.adjustmentValues
+                                .map((adj) => {
+                                  const value = Number(adj.value);
+                                  const sign = value >= 0 ? "+" : "-";
+                                  const isFlat = adj.type === "rate_flat";
+                                  const absValue = Math.abs(value);
+                                  return isFlat
+                                    ? `${sign}$${absValue}`
+                                    : `${sign}${absValue}%`;
+                                })
+                                .join(", ")}
+                            </Text>
+                          </Tooltip>
+                        </Box>
+                      )}
+                    </Td>
+                    <Td
+                      textAlign="end"
+                      py={compactView ? 0 : 4}
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                    >
+                      ${session.rate}/hr
+                    </Td>
+                  </Tr>
+                ))}
+              {/* past due balance row */}
+
               <Tr>
-                <Td borderBottom='none' fontSize="6.38px" colSpan={4}>Past Due Balance</Td>
-                <Td borderBottom='none' fontSize="6.38px"></Td>
-                <Td borderBottom="none" fontSize="6.38px" textAlign="center" pl={7}>
-                  <Flex
-                    justifyContent="center"
-                    alignItems="center"
-                    gap={2}
-                    fontSize="6.38px"
-                  >
-                    <Text>$</Text>
-                    <Text textAlign="center">{pastDue.toFixed(2)}</Text>
-                  </Flex>
+                <Td
+                  colSpan={4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  py={compactView ? "2" : "8"}
+                >
+                  Past Due Balance
+                </Td>
+                <Td></Td>
+                <Td
+                  textAlign="end"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  $ {pastDue?.toFixed(2)}
                 </Td>
               </Tr>
 
@@ -532,8 +626,17 @@ const SavedInvoiceSummary = ({
                     <Text textAlign="center">{subtotalSum.toFixed(2)}</Text>
                   </Flex>
                 </Td>
-
-
+                <Td
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                ></Td>
+                <Td
+                  textAlign="end"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  {`$ ${subtotal.toFixed(2)}`}
+                </Td>
               </Tr>
 
               {/* total row */}
