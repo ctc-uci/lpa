@@ -959,10 +959,10 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
               <Text style={{ fontSize: 7 }}>Total Amount Due</Text>
             </View>
             <View>
-            <Text style={{ fontWeight: "bold", fontSize: 12 }}>
-              ${(remainingBalance + Number(calculateSubtotal(sessions, summary))).toFixed(2)}
-            </Text>
-          </View>
+              <Text style={{ fontWeight: "bold", fontSize: 12 }}>
+                ${(remainingBalance + Number(calculateSubtotal(sessions, summary))).toFixed(2)}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -970,7 +970,63 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
   );
 };
 
+const Footer = () => {
+  return (
+    <View style={{
+      marginTop: 18,
+      flexDirection: "row",
+      justifyContent: "space-around",
+      paddingHorizontal: 16,
+      color: "#000000"
+    }}>
+      {/* left text */}
+      <View style={{
+        paddingTop: 12,
+        paddingBottom: 8,
+      }}>
+        <Text style={{
+          fontWeight: "bold",
+          fontSize: 8,
+          marginBottom: 4
+        }}>
+          Payments are due at the end of each month.
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+          <Text style={{
+            fontWeight: "bold",
+            fontSize: 8
+          }}>
+            You can make your payment at:
+          </Text>
+          <Text style={{ fontWeight: "bold", fontSize: 8, color: "#3182CE" }}>lapena.org/payment</Text>
+        </View>
+      </View>
 
+      {/* right text */}
+      <View style={{
+        paddingTop: 12,
+        paddingBottom: 8,
+      }}>
+        <Text style={{
+          fontWeight: "bold",
+          fontSize: 8,
+          marginBottom: 4
+        }}>
+          For any questions,
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+          <Text style={{
+            fontWeight: "bold",
+            fontSize: 8
+          }}>
+            please contact:
+          </Text>
+          <Text style={{ fontWeight: "bold", fontSize: 8, color: "#3182CE" }}>classes@lapena.org</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
 
 const InvoicePDFDocument = ({
   invoice,
@@ -1021,6 +1077,8 @@ const InvoicePDFDocument = ({
               summary={summary}
               sessions={sessions}
             />
+
+            <Footer />
           </View>
         </View>
           <Image
