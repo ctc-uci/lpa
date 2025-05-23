@@ -703,6 +703,8 @@ const StatementComments = ({
     }
   };
 
+  console.log("sessions", sessions);
+
   return (
     <Flex
       direction="column"
@@ -878,7 +880,7 @@ const StatementComments = ({
                                 Custom
                               </Button>
                             </VStack>
-                            {format(new Date(session.datetime), "EEE. M/d/yy")}
+                            {format(new Date(session.bookingDate), "EEE. M/d/yy")}
                           </Td>
 
                           {/* Classroom */}

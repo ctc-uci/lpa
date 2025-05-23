@@ -29,6 +29,7 @@ import {
   EditDocumentIcon,
   LocationIcon,
 } from "../../assets/EditInvoiceIcons";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 const SavedStatementComments = ({
   subtotal,
@@ -190,6 +191,8 @@ const SavedStatementComments = ({
     return newRate;
   };
 
+  console.log("sessions", sessions);
+
   return (
     <Flex
       direction="column"
@@ -327,7 +330,7 @@ const SavedStatementComments = ({
                             : undefined
                         }
                       >
-                        {format(new Date(session.datetime), "EEE. M/d/yy")}
+                        {format(new Date(session.bookingDate), "EEE. M/d/yy")}
                       </Td>
 
                       {/* Classroom */}

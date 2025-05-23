@@ -65,13 +65,17 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
                    comments.adjustment_value,
                    bookings.start_time,
                    bookings.end_time,
+                   bookings.date as booking_date,
                    rooms.name,
                    rooms.rate
                 FROM comments
+                JOIN invoices ON comments.invoice_id = invoices.id
                 LEFT JOIN bookings ON comments.booking_id = bookings.id
                 LEFT JOIN rooms ON bookings.room_id = rooms.id
                 WHERE comments.invoice_id = $1 
                 AND comments.booking_id IS NOT NULL
+                AND bookings.date BETWEEN invoices.start_date AND invoices.end_date
+                AND bookings.event_id = invoices.event_id
                 ORDER BY comments.id`;
     const queryParams = [id];
 
