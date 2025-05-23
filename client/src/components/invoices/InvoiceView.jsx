@@ -29,6 +29,7 @@ const InvoiceView = ({
   summary = [],
   compactView = false,
 }) => {
+
   return (
     <Flex
       direction="column"
@@ -53,7 +54,7 @@ const InvoiceView = ({
           programName={programName}
           payees={payees}
           comments={comments}
-          invoice={invoice?.data}
+          invoice={invoice}
           compactView={compactView}
         />
         <SavedStatementComments

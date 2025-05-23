@@ -77,7 +77,12 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
 
     return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
   } else if (invoice) {
-    return invoice["startDate"];
+    const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+    const invoiceDate = new Date(invoiceDateSplit);
+    invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+    const month = invoiceDate.toLocaleString("default", { month: "long" });
+    const year = invoiceDate.getFullYear();
+    return `${month} ${year}`;
   } else {
     return "No Date Found";
   }
@@ -170,7 +175,7 @@ const EditInvoiceDetails = ({
           fontWeight="500"
           mt={"5.85px"}
         >
-          {getGeneratedDate(comments, invoice, false)}
+          {getGeneratedDate([], invoice, false)}
         </Heading>
       </VStack>
 
@@ -703,7 +708,6 @@ const StatementComments = ({
     }
   };
 
-  console.log("sessions", sessions);
 
   return (
     <Flex
