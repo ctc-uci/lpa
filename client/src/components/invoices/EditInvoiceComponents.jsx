@@ -358,13 +358,12 @@ const StatementComments = ({
       }
 
       const originalRate = originalSessionRatesRef.current[session.name];
-      const currentSummary = summary[0];
       
-      if (!currentSummary?.adjustmentValues) return session;
+      if (!summary[0]?.adjustmentValues) return session;
 
       const adjustedRate = calculateTotalBookingRow(
         originalRate,
-        currentSummary.adjustmentValues
+        summary[0].adjustmentValues
       );
 
       if (session.rate !== adjustedRate) {

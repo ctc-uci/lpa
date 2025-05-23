@@ -629,11 +629,15 @@ const SavedInvoiceSummary = ({
   };
 
   // Summary Sidebar total calculations
-  const originalSessionRateRef = useRef(null);
+  const originalSessionRateRef = useRef({});
 
   useEffect(() => {
-    if (sessions?.length > 0 && originalSessionRateRef.current === null) {
-      originalSessionRateRef.current = sessions[0]?.rate;
+    if (sessions?.length > 0) {
+      sessions.forEach(session => {
+        if (session.name && originalSessionRateRef.current[session.name] === undefined) {
+          originalSessionRateRef.current[session.name] = session.rate;
+        }
+      });
     }
   }, [sessions]);
 
@@ -645,9 +649,13 @@ const SavedInvoiceSummary = ({
     )
       return;
 
-    const originalSessionRate = originalSessionRateRef.current;
+      
+      const updatedSessions = sessions.map((session) => {
+      if (!session.name || originalSessionRateRef.current[session.name] === undefined) {
+        return session;
+      }
 
-    const updatedSessions = sessions.map((session) => {
+      const originalSessionRate = originalSessionRateRef.current[session.name];
       const adjustedRate = calculateTotalBookingRow(
         originalSessionRate,
         summary[0]?.adjustmentValues
@@ -763,14 +771,8 @@ const SavedInvoiceSummary = ({
                 </Td>
               </Tr>
               {/* Room Fee Body Row */}
-
+              {/* // TODO NEED TO FIX ADJUSTMENTVALUES[0] */}
               {sessions
-                ?.filter(
-                  (session) =>
-                    session.name?.length > 0 &&
-                    session.adjustmentValues[0]?.type !== "total" &&
-                    session.adjustmentValues[0]?.type !== "none"
-                )
                 .map((session, key) => (
                   <Tr key={key}>
                     <Td
@@ -882,7 +884,7 @@ const SavedInvoiceSummary = ({
                   py={compactView ? 0 : 4}
                   fontSize={compactView ? "6.38px" : "sm"}
                 >
-                  {`$ ${subtotal}`}
+                  {`$ ${subtotal.toFixed(2)}`}
                 </Td>
               </Tr>
 
