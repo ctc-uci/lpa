@@ -151,7 +151,7 @@ const EditInvoiceDetailsPDF = ({
         <Text
           style={{
             textAlign: "center",
-            fontSize: 16,
+            fontSize: 12,
             marginBottom: 4,
             fontWeight: 600,
           }}
@@ -161,7 +161,7 @@ const EditInvoiceDetailsPDF = ({
         <Text
           style={{
             textAlign: "center",
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: 500,
           }}
         >
@@ -246,7 +246,7 @@ const tableStyles = StyleSheet.create({
     borderRightWidth: 0,
     borderBottomWidth: 0,
     border: "1px solid #D2D2D2",
-    borderRadius: "18px",
+    borderRadius: "8px",
     paddingHorizontal: "12px",
   },
   tableRow: {
@@ -254,7 +254,7 @@ const tableStyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#f3f6fa",
     paddingVertical: 12,
-    paddingLeft: 16,
+    paddingLeft: 8,
   },
   tableCol: {
     width: "16.66%",
@@ -336,20 +336,20 @@ const calculateTotalBookingRow = ({
 
   // Make sure we're working with valid arrays
   const currentAdjustmentValues = Array.isArray(adjustmentValues)
-  ? adjustmentValues.filter((adj) => adj && adj.type)
-  : [];
+    ? adjustmentValues.filter((adj) => adj && adj.type)
+    : [];
   const currentTotalArray = Array.isArray(totalArray) ? totalArray : [];
-  
+
   const timeToMinutes = (timeStr) => {
     const [hours, minutes] = timeStr.split(":").map(Number);
     return hours * 60 + minutes;
   };
-  
+
   const rawStart = timeToMinutes(startTime.substring(0, 5));
   const rawEnd = timeToMinutes(endTime.substring(0, 5));
   const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
   const durationInHours = (endAdjusted - rawStart) / 60;
-  
+
   const baseRate = Number(rate);
 
   // Calculate adjustments to the rate
@@ -393,12 +393,6 @@ const calculateTotalBookingRow = ({
 
   // Combine all totals
   const finalTotal = baseTotal + totalAdjustments + totalArraySum;
-
-  console.log("baseTotal", baseTotal);
-  console.log("totalAdjustments", totalAdjustments);
-  console.log("totalArraySum", totalArraySum);
-  console.log("finalTotal", finalTotal, '\n');
-
   return finalTotal.toFixed(2);
 };
 
@@ -452,9 +446,23 @@ const calculateSubtotal = (sessions, summary) => {
 const InvoiceTable = ({ sessions, summary }) => {
   return (
     <View>
-      <Text style={{ fontSize: "14px", marginLeft: 4, marginBottom: 8 }}>
-        Sessions
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "baseline", gap: 2 }}>
+        <Svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 21"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <Path
+            d="M2 20.5C1.45 20.5 0.979333 20.3043 0.588 19.913C0.196666 19.5217 0.000666667 19.0507 0 18.5V2.5C0 1.95 0.196 1.47933 0.588 1.088C0.98 0.696667 1.45067 0.500667 2 0.5H14C14.55 0.5 15.021 0.696 15.413 1.088C15.805 1.48 16.0007 1.95067 16 2.5V18.5C16 19.05 15.8043 19.521 15.413 19.913C15.0217 20.305 14.5507 20.5007 14 20.5H2ZM7 2.5V8.625C7 8.825 7.07933 8.971 7.238 9.063C7.39667 9.155 7.56733 9.15067 7.75 9.05L8.975 8.325C9.14167 8.225 9.31267 8.175 9.488 8.175C9.66333 8.175 9.834 8.225 10 8.325L11.225 9.05C11.4083 9.15 11.5833 9.15433 11.75 9.063C11.9167 8.97167 12 8.82567 12 8.625V2.5H7Z"
+            fill="#2D3748"
+          />
+        </Svg>
+        <Text style={{ fontSize: "12px", marginLeft: 4, marginBottom: 8 }}>
+          Sessions
+        </Text>
+      </View>
       <View style={tableStyles.table}>
         {/* Header Row */}
         <View style={{ ...tableStyles.tableRow }}>
@@ -703,7 +711,7 @@ const InvoiceTable = ({ sessions, summary }) => {
             ...tableStyles.tableCol,
             flex: 5,
             alignItems: "flex-end",
-            paddingRight: 20,
+            paddingRight: 16,
           }}>
             <Text style={{
               fontSize: 7,
@@ -737,32 +745,32 @@ const summaryTableStyles = StyleSheet.create({
     borderRightWidth: 0,
     borderBottomWidth: 0,
     border: "1px solid #D2D2D2",
-    borderRadius: "18px",
+    borderRadius: "8px",
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderColor: "#f3f6fa",
     paddingVertical: 16,
-    paddingLeft: 32,
+    paddingLeft: 16,
   },
   roomFeeRow: {
     flexDirection: "row",
-    paddingVertical: 16,  
-    paddingLeft: 32,
+    paddingVertical: 16,
+    paddingLeft: 16,
   },
   lastRoomFeeRow: {
     borderBottomWidth: 1,
     borderColor: "#f3f6fa",
     paddingVertical: 16,
-    paddingLeft: 32,
+    paddingLeft: 16,
   },
   tableCol: {
     width: "33.33%",
   },
   roomFeeColName: {
     width: "33.33%",
-    paddingLeft: 32,
+    paddingLeft: 16,
   },
   roomFeeColAdjustment: {
     width: "33.33%",
@@ -774,9 +782,23 @@ const summaryTableStyles = StyleSheet.create({
 const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summary }) => {
   return (
     <View>
-      <Text style={{ fontSize: "14px", marginLeft: 4, marginBottom: 8 }}>
-        Summary
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "baseline", gap: 2 }}>
+        <Svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 21"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <Path
+            d="M2 20.5C1.45 20.5 0.979333 20.3043 0.588 19.913C0.196666 19.5217 0.000666667 19.0507 0 18.5V2.5C0 1.95 0.196 1.47933 0.588 1.088C0.98 0.696667 1.45067 0.500667 2 0.5H14C14.55 0.5 15.021 0.696 15.413 1.088C15.805 1.48 16.0007 1.95067 16 2.5V18.5C16 19.05 15.8043 19.521 15.413 19.913C15.0217 20.305 14.5507 20.5007 14 20.5H2ZM7 2.5V8.625C7 8.825 7.07933 8.971 7.238 9.063C7.39667 9.155 7.56733 9.15067 7.75 9.05L8.975 8.325C9.14167 8.225 9.31267 8.175 9.488 8.175C9.66333 8.175 9.834 8.225 10 8.325L11.225 9.05C11.4083 9.15 11.5833 9.15433 11.75 9.063C11.9167 8.97167 12 8.82567 12 8.625V2.5H7Z"
+            fill="#2D3748"
+          />
+        </Svg>
+        <Text style={{ fontSize: "12px", marginLeft: 4, marginBottom: 8 }}>
+          Summary
+        </Text>
+      </View>
       <View style={summaryTableStyles.table}>
         {/* Header Row */}
         <View style={{ ...summaryTableStyles.tableRow, width: "100%" }}>
@@ -840,20 +862,20 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
             const isLast = index === summary.length - 1;
             const rowStyle = isLast ? summaryTableStyles.lastRoomFeeRow : summaryTableStyles.roomFeeRow;
             return (
-              <View style={{ 
-                ...rowStyle, 
+              <View style={{
+                ...rowStyle,
                 width: "100%",
                 flexDirection: "row",
                 alignItems: "center",
               }}>
-                <View style={{ 
-                  ...summaryTableStyles.roomFeeColName, 
+                <View style={{
+                  ...summaryTableStyles.roomFeeColName,
                   flex: 2,
                 }}>
                   <Text style={{ fontSize: 7 }}>{session.name}</Text>
                 </View>
-                <View style={{ 
-                  ...summaryTableStyles.roomFeeColAdjustment, 
+                <View style={{
+                  ...summaryTableStyles.roomFeeColAdjustment,
                   flex: 2,
                   paddingHorizontal: 8,
                 }}>
@@ -868,8 +890,8 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
                     })}
                   </Text>
                 </View>
-                <View style={{ 
-                  ...summaryTableStyles.tableCol, 
+                <View style={{
+                  ...summaryTableStyles.tableCol,
                   flex: 1,
                   alignItems: "flex-end",
                   paddingRight: 20,
@@ -918,7 +940,7 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
               paddingRight: 20,
             }}
           >
-            <Text style={{ fontSize: 7 }}>$ {calculateSubtotal(sessions,summary)}</Text>
+            <Text style={{ fontSize: 7 }}>$ {calculateSubtotal(sessions, summary)}</Text>
           </View>
         </View>
 
@@ -931,13 +953,16 @@ const SummaryTable = ({ remainingBalance, subtotalSum, pastDue, sessions, summar
             paddingRight: 20,
           }}
         >
-          <View style={{ width: "25%" }}>
-            <Text style={{ fontSize: 7 }}>Total Amount Due</Text>
-          </View>
-          <View>
-            <Text style={{ fontSize: 7 }}>
-              ${(remainingBalance + Number(calculateSubtotal(sessions,summary))).toFixed(2)}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+
+            <View style={{ paddingRight: 16 }}>
+              <Text style={{ fontSize: 7 }}>Total Amount Due</Text>
+            </View>
+            <View>
+            <Text style={{ fontWeight: "bold", fontSize: 12 }}>
+              ${(remainingBalance + Number(calculateSubtotal(sessions, summary))).toFixed(2)}
             </Text>
+          </View>
           </View>
         </View>
       </View>
