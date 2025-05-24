@@ -421,10 +421,10 @@ const calculateTotalBookingRow = ({
   return finalTotal.toFixed(2);
 };
 
-const calculateSubtotal = (sessions, summary) => {
+const calculateSubtotal = (sessions) => {
   if (!sessions || sessions.length === 0) return "0.00";
 
-  const totalSum = sessions.reduce((acc, session) => {
+  const adjSum = sessions.reduce((acc, session) => {
     // Check if session has adjustmentValues and it's not empty
     if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
       // Calculate without adjustments
@@ -433,38 +433,33 @@ const calculateSubtotal = (sessions, summary) => {
           session.startTime,
           session.endTime,
           session.rate,
-          [],
-          session.total
+          []
         )
       );
       return acc + total;
     }
 
-    // Check if the first adjustment is a total type
-    if (
-      session.adjustmentValues[0] &&
-      session.adjustmentValues[0].type === "total"
-    ) {
-      return acc + parseFloat(session.adjustmentValues[0].value || 0);
-    }
-
-    // For regular sessions with adjustments, calculate as before
     const total = parseFloat(
-      calculateTotalBookingRow({
-        startTime: session.startTime,
-        endTime: session.endTime,
-        rate: session.rate,
-        adjustmentValues: [
-          ...(summary[0]?.adjustmentValues || []),
-          ...(session.adjustmentValues || []),
-        ],
-        totalArray: session.total,
-      })
+      calculateTotalBookingRow(
+        session.startTime,
+        session.endTime,
+        session.rate,
+        session.adjustmentValues
+      )
     );
     return acc + total;
   }, 0);
 
-  const total = totalSum.toFixed(2);
+  const totalSum = sessions.reduce((acc, session) => {
+    const total = parseFloat(
+      session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
+    );
+    return acc + total;
+  }, 0);
+
+  const finalTotal = adjSum + totalSum;
+
+  const total = finalTotal.toFixed(2);
   return total;
 };
 
@@ -630,8 +625,40 @@ const InvoiceTable = ({ sessions, summary }) => {
         </View>
 
         {/* Data Rows */}
+        {sessions.filter(session => session.name.length === 0).map((session, index) => session.total?.map((total, totalIndex) => {
+          return (
+            <View 
+              key={`total-${index}-${totalIndex}`}
+              style={tableStyles.tableRow}
+            >
+              <View style={tableStyles.tableCol}>
+                <Text style={{ fontSize: 7 }}>
+                  {(() => {
+                    const date = new Date(total.date);
+                    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                    return format(date, "EEE. M/d/yy");
+                  })()}
+                </Text>
+              </View>
+              <View style={{ ...tableStyles.tableCol, flex: 4 }}>
+                <Text style={{ fontSize: 7 }}>
+                  {total.comment || "Custom adjustment"}
+                </Text>
+              </View>
+              <View style={{
+                ...tableStyles.tableCol,
+                alignItems: "flex-end",
+                paddingRight: 20
+              }}>
+                <Text style={{ fontSize: 7 }}>
+                  $ {Number(total.value || 0).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          );
+        }))}
 
-        {sessions?.flatMap((session, index) => {
+        {sessions?.filter(session => session.name.length > 0).flatMap((session, index) => {
           const sessionRows = (
             <View
               style={tableStyles.tableRow}

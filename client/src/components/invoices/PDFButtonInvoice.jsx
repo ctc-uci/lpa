@@ -277,7 +277,7 @@ const TestPDFViewer = () => {
       const response = await backend.get("/invoices/24");
       setInvoice(response.data);
 
-      const invoiceDataResponse = await fetchInvoiceData(response, backend, 24);
+      const invoiceDataResponse = await fetchInvoiceData(response, backend, 40);
       setInvoiceData(invoiceDataResponse);
       setLoading(false);
     } catch (err) {

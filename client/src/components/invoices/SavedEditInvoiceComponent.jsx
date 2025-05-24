@@ -108,7 +108,7 @@ const SavedStatementComments = ({
   const calculateSubtotal = (sessions) => {
     if (!sessions || sessions.length === 0) return "0.00";
 
-    const totalSum = sessions.reduce((acc, session) => {
+    const adjSum = sessions.reduce((acc, session) => {
       // Check if session has adjustmentValues and it's not empty
       if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
         // Calculate without adjustments
@@ -117,35 +117,33 @@ const SavedStatementComments = ({
             session.startTime,
             session.endTime,
             session.rate,
-            [],
-            session.total
+            []
           )
         );
         return acc + total;
       }
 
-      // Check if the first adjustment is a total type
-      if (
-        session.adjustmentValues[0] &&
-        session.adjustmentValues[0].type === "total"
-      ) {
-        return acc + parseFloat(session.adjustmentValues[0].value || 0);
-      }
-
-      // For regular sessions with adjustments, calculate as before
       const total = parseFloat(
         calculateTotalBookingRow(
           session.startTime,
           session.endTime,
           session.rate,
-          session.adjustmentValues,
-          session.total
+          session.adjustmentValues
         )
       );
       return acc + total;
     }, 0);
 
-    const total = totalSum.toFixed(2);
+    const totalSum = sessions.reduce((acc, session) => {
+      const total = parseFloat(
+        session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
+      );
+      return acc + total;
+    }, 0);
+
+    const finalTotal = adjSum + totalSum;
+
+    const total = finalTotal.toFixed(2);
     setSubtotal(Number(total));
     return total;
   };
@@ -312,8 +310,63 @@ const SavedStatementComments = ({
             </Thead>
 
             <Tbody color="#2D3748">
+              {sessions.filter(session => session.name.length === 0).map((session, index) => session.total?.map((total, totalIndex) => {
+
+                return (
+                  <Tr
+                    position="relative"
+                    cursor="pointer"
+                    _hover={{ bg: "gray.50" }}
+                    role="group"
+                  >
+                    <Td
+                      fontSize={compactView ? "6" : "12px"}
+                      py={compactView ? "0" : "6"}
+                    >
+                      {(() => {
+                        const date = new Date(
+                          session.total[totalIndex].date
+                        );
+                        date.setMinutes(
+                          date.getMinutes() + date.getTimezoneOffset()
+                        );
+                        return format(date, "EEE. M/d/yy");
+                      })()}
+                    </Td>
+                    <Td
+                      colSpan={4}
+                      fontSize={compactView ? "6" : "12px"}
+                      py={compactView ? "0" : "6"}
+                    >
+                      {session.total[totalIndex]?.comment ||
+                        "Custom adjustment"}
+                    </Td>
+                    <Td
+                      textAlign="right"
+                      position="relative"
+                    >
+                      <Flex
+                        justifyContent="flex-end"
+                        alignItems="center"
+                      >
+                        <Text
+                          fontSize={compactView ? "6" : "12px"}
+                          py={compactView ? "0" : "6"}
+                        >
+                          ${" "}
+                          {Number(
+                            session.total[totalIndex].value || 0
+                          ).toFixed(2)}
+                        </Text>
+                      </Flex>
+                    </Td>
+                  </Tr>
+                );
+              }
+              ))}
+
               {sessions.length > 0 ? (
-                sessions.flatMap((session, index) => {
+                sessions.filter(session => session.name.length > 0).flatMap((session, index) => {
                   // For regular sessions, use the existing code
                   const sessionRow = (
                     <Tr key={`session-${session.id || "unknown"}-${index}`}>
@@ -377,7 +430,7 @@ const SavedStatementComments = ({
                         }
                       >
                         {session.adjustmentValues &&
-                        session.adjustmentValues.length === 0 ? (
+                          session.adjustmentValues.length === 0 ? (
                           "None"
                         ) : (
                           <Box display="inline-block">
@@ -637,8 +690,8 @@ const SavedInvoiceSummary = ({
     )
       return;
 
-      
-      const updatedSessions = sessions.map((session) => {
+
+    const updatedSessions = sessions.map((session) => {
       if (!session.name || originalSessionRateRef.current[session.name] === undefined) {
         return session;
       }
@@ -759,8 +812,8 @@ const SavedInvoiceSummary = ({
                 </Td>
               </Tr>
               {/* Room Fee Body Row */}
-              {/* // TODO NEED TO FIX ADJUSTMENTVALUES[0] */}
               {sessions
+                .filter(session => session.name.length > 0)
                 .map((session, key) => (
                   <Tr key={key}>
                     <Td

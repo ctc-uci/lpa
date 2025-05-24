@@ -709,6 +709,8 @@ const StatementComments = ({
   };
 
 
+
+  
   return (
     <Flex
       direction="column"
@@ -831,8 +833,157 @@ const StatementComments = ({
               </Thead>
 
               <Tbody color="#2D3748">
+                
+              {sessions.filter(session => session.name.length === 0).map((session, index) => session.total?.map((total, totalIndex) => {
+                          if (editingCustomRow === `${index}-${totalIndex}`) {
+                            return (
+                              <Tr ref={editRowRef}>
+                                <Td
+                                  colSpan={6}
+                                  py={2}
+                                >
+                                  <Flex
+                                    gap={4}
+                                    alignItems="flex-end"
+                                  >
+                                    <Input
+                                      type="date"
+                                      value={editCustomDate}
+                                      onChange={(e) =>
+                                        setEditCustomDate(e.target.value)
+                                      }
+                                      size="sm"
+                                      width="fit-content"
+                                      py="6"
+                                      rounded="md"
+                                      textAlign="center"
+                                    />
+                                    <Input
+                                      placeholder="Description"
+                                      value={editCustomText}
+                                      onChange={(e) =>
+                                        setEditCustomText(e.target.value)
+                                      }
+                                      size="sm"
+                                      flex={1}
+                                      py="6"
+                                      rounded="md"
+                                      border="none"
+                                    />
+                                    <InputGroup
+                                      size="sm"
+                                      width="fit-content"
+                                      alignItems="center"
+                                    >
+                                      <Text>$</Text>
+                                      <Input
+                                        type="number"
+                                        value={editCustomAmount}
+                                        onChange={(e) =>
+                                          setEditCustomAmount(e.target.value)
+                                        }
+                                        width="9ch"
+                                        py="6"
+                                        rounded="md"
+                                        textAlign="center"
+                                      />
+                                    </InputGroup>
+                                  </Flex>
+                                </Td>
+                              </Tr>
+                            );
+                          } else {
+                            return (
+                              <Tr
+                                position="relative"
+                                cursor="pointer"
+                                _hover={{ bg: "gray.50" }}
+                                role="group"
+                              >
+                                <Td
+                                  py="6"
+                                  onClick={() =>
+                                    handleEditCustomRow(
+                                      session,
+                                      index,
+                                      totalIndex
+                                    )
+                                  }
+                                >
+                                  {(() => {
+                                    const date = new Date(
+                                      session.total[totalIndex].date
+                                    );
+                                    date.setMinutes(
+                                      date.getMinutes() +
+                                        date.getTimezoneOffset()
+                                    );
+                                    return format(date, "EEE. M/d/yy");
+                                  })()}
+                                </Td>
+                                <Td
+                                  colSpan={4}
+                                  onClick={() =>
+                                    handleEditCustomRow(
+                                      session,
+                                      index,
+                                      totalIndex
+                                    )
+                                  }
+                                >
+                                  {session.total[totalIndex]?.comment ||
+                                    "Custom adjustment"}
+                                </Td>
+                                <Td
+                                  textAlign="right"
+                                  position="relative"
+                                >
+                                  <Flex
+                                    justifyContent="flex-end"
+                                    alignItems="center"
+                                  >
+                                    <Text
+                                      onClick={() =>
+                                        handleEditCustomRow(
+                                          session,
+                                          index,
+                                          totalIndex
+                                        )
+                                      }
+                                    >
+                                      ${" "}
+                                      {Number(
+                                        session.total[totalIndex].value || 0
+                                      ).toFixed(2)}
+                                    </Text>
+                                    <IconButton
+                                      icon={<CloseIcon boxSize={3} />}
+                                      size="xs"
+                                      variant="ghost"
+                                      colorScheme="gray"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteCustomRow(
+                                          index,
+                                          totalIndex
+                                        );
+                                      }}
+                                      opacity="0"
+                                      _groupHover={{ opacity: 1 }}
+                                      aria-label="Delete custom row"
+                                      ml={2}
+                                      minW="20px"
+                                      height="20px"
+                                    />
+                                  </Flex>
+                                </Td>
+                              </Tr>
+                            );
+                          }
+                        }))}
+
                 {sessions && sessions.length > 0 ? (
-                  sessions.map((session, index) => {
+                  sessions.filter(session => session.name.length > 0).map((session, index) => {
                     // For regular sessions, use the existing code
                     return (
                       <React.Fragment key={index}>

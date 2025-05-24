@@ -83,6 +83,7 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
     const comments = keysToCamel(data);
 
 
+
     const groupedComments = {};
 
     comments.forEach((comment) => {
@@ -162,6 +163,44 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       delete groupedComments[bookingId].commentId;
     });
 
+
+    const totalQuery = `SELECT comments.id as comment_id,
+                   comments.user_id,
+                   comments.invoice_id,
+                   comments.datetime,
+                   comments.comment,
+                   comments.adjustment_type,
+                   comments.adjustment_value,
+                   invoices.start_date
+                FROM comments
+                JOIN invoices ON comments.invoice_id = invoices.id
+                WHERE comments.invoice_id = $1 AND comments.adjustment_type = 'total' AND comments.booking_id IS NULL`;
+    const total = await db.query(totalQuery, queryParams);
+    const totalComments = keysToCamel(total);
+    
+    for (const comment of totalComments) {
+      groupedComments[`total-${comment.commentId}`] = {
+        comments: [],
+        userId: comment.userId,
+        bookingId: null,
+        invoiceId: comment.invoiceId,
+        datetime: comment.datetime,
+        bookingDate: comment.startDate,
+        adjustmentValues: [],
+        startTime: '00:00:00+00',
+        endTime: '01:00:00+00',
+        name: "",
+        rate: 0,
+        total: [{
+          id: comment.commentId,
+          value: comment.adjustmentValue,
+          comment: comment.comment,
+          date: comment.datetime
+        }],
+        
+      };
+      
+    }
     res.status(200).json(Object.values(groupedComments));
   } catch (err) {
     res.status(500).send(err.message);
