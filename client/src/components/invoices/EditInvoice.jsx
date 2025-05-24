@@ -47,7 +47,6 @@ const InvoiceNavBar = ({
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
-    console.log("invoice", invoice);
     if (comments.length > 0) {
       const latestComment = comments.sort(
         (a, b) => new Date(b.datetime) - new Date(a.datetime)

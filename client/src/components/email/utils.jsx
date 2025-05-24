@@ -16,7 +16,6 @@ export const sendSaveEmail = async (
   id
 ) => {
   setLoading(true);
-
   await new Promise(resolve => setTimeout(resolve, 0));
   const blob = await makeBlob(invoice, invoiceData);
   await sendEmail(backend, blob, pdf_title, setLoading, emails, title, message, ccEmails, bccEmails);
@@ -59,7 +58,7 @@ const sendEmail = async (
 
       const response = await backend.post("/email/send", formData);
 
-      console.log("Email sent successfully!", response.data);
+      // console.log("Email sent successfully!", response.data);
     }
   } catch (error) {
     console.error("Error sending email:", error);

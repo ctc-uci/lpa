@@ -30,14 +30,12 @@ const SavedInvoiceNavBar = ({
   invoice,
   payees,
   programName,
-  comments,
 }) => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   
   const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
-    console.log("invoice", invoice);
     if (comments.length > 0) {
       const latestComment = comments.sort(
         (a, b) => new Date(b.datetime) - new Date(a.datetime)
@@ -253,6 +251,7 @@ export const SavedEdit = () => {
           invoice={invoice}
           payees={payees}
           programName={programName}
+          sessions={sessions}
         />
 
         <InvoiceView

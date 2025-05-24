@@ -196,9 +196,8 @@ export const EmailSidebar = ({
     return total;
   };
 
-  const fetchInvoiceData = async (invoice) => {
+  const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
-    const invoiceId = invoice?.data[0]?.id;
 
     const [
       instructorResponse,
@@ -206,22 +205,29 @@ export const EmailSidebar = ({
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
-      invoiceTotalResponse
+      sessionResponse,
+      summaryResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
-      backend.get(`/comments/invoice/${invoiceId}`),
+      backend.get(`/comments/invoice/${id}`),
       backend.get(`/events/${eventId}`),
-      backend.get(`/invoices/payees/${invoiceId}`),
+      backend.get(`/invoices/payees/${id}`),
       backend.get(`/events/remaining/${eventId}`),
-      backend.get(`/invoices/total/${invoiceId}`)
+      backend.get(`/comments/invoice/sessions/${id}`),
+      backend.get(`/comments/invoice/summary/${id}`),
     ]);
 
     const comments = commentsResponse.data;
+    const sessions = sessionResponse.data;
+    const summary = summaryResponse.data;
+
     let booking = {};
     let room = [];
 
     if (comments.length > 0 && comments[0].bookingId) {
-      const bookingResponse = await backend.get(`/bookings/${comments[0].bookingId}`);
+      const bookingResponse = await backend.get(
+        `/bookings/${comments[0].bookingId}`
+      );
       booking = bookingResponse.data[0];
 
       const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
@@ -229,17 +235,20 @@ export const EmailSidebar = ({
     }
 
     const unpaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map(invoice =>
+      unpaidInvoicesResponse.data.map((invoice) =>
         backend.get(`/invoices/total/${invoice.id}`)
       )
     );
     const partiallyPaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map(invoice =>
+      unpaidInvoicesResponse.data.map((invoice) =>
         backend.get(`/invoices/paid/${invoice.id}`)
       )
     );
 
-    const unpaidTotal = unpaidTotals.reduce((sum, res) => sum + res.data.total, 0);
+    const unpaidTotal = unpaidTotals.reduce(
+      (sum, res) => sum + res.data.total,
+      0
+    );
     const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
       return res.data.total ? sum + Number(res.data.total) : sum;
     }, 0);
@@ -247,8 +256,17 @@ export const EmailSidebar = ({
     const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
     let subtotalSum = 0;
-    if (comments.length && booking.startTime && booking.endTime && room[0]?.rate) {
-      const total = handleSubtotalSum(booking.startTime, booking.endTime, room[0].rate);
+    if (
+      comments.length &&
+      booking.startTime &&
+      booking.endTime &&
+      room[0]?.rate
+    ) {
+      const total = handleSubtotalSum(
+        booking.startTime,
+        booking.endTime,
+        room[0].rate
+      );
       subtotalSum = parseFloat(total) * comments.length;
     }
 
@@ -261,11 +279,14 @@ export const EmailSidebar = ({
       room,
       remainingBalance,
       subtotalSum,
+      id,
+      sessions,
+      summary,
     };
   };
 
   const handleEmailClick = async () => {
-    const invoiceData = await fetchInvoiceData(invoice);
+    const invoiceData = await fetchInvoiceData(invoice, backend, id);
     sendSaveEmail(setLoading, setisConfirmModalOpen, invoice, pdf_title, invoiceData, emails, title, message, ccEmails, bccEmails, backend, id);
   };
 

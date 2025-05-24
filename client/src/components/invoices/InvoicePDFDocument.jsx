@@ -104,7 +104,7 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
             INVOICE
           </Text>
           <Text style={{ color: "#718096", fontSize: "12px" }}>
-            Generated on {getGeneratedDate(comments, invoice, true)}
+            Generated on {getGeneratedDate(comments, invoice.data, true)}
           </Text>
         </View>
 
@@ -174,7 +174,7 @@ const EditInvoiceDetailsPDF = ({
             fontWeight: 500,
           }}
         >
-          {getGeneratedDate([], invoice, false)}
+          {getGeneratedDate([], invoice.data, false)}
         </Text>
       </View>
 
@@ -1029,7 +1029,7 @@ const SummaryTable = ({
               paddingRight: 20,
             }}
           >
-            <Text style={{ fontSize: 7 }}>$ {remainingBalance.toFixed(2)}</Text>
+            <Text style={{ fontSize: 7 }}>$ {Number(remainingBalance).toFixed(2)}</Text>
           </View>
         </View>
 
