@@ -32,21 +32,30 @@ const SavedInvoiceNavBar = ({
   programName,
   comments,
 }) => {
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
-
-  const getGeneratedDate = () => {
+  
+  const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
+    console.log("invoice", invoice);
     if (comments.length > 0) {
-      const latestComment = comments?.sort(
+      const latestComment = comments.sort(
         (a, b) => new Date(b.datetime) - new Date(a.datetime)
       )[0];
-
+  
       const latestDate = new Date(latestComment.datetime);
       const month = latestDate.toLocaleString("default", { month: "long" });
-
+      const day = latestDate.getDate();
       const year = latestDate.getFullYear();
-
-      return `${month}  ${year}`;
+  
+      return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
+    } else if (invoice) {
+      const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+      const invoiceDate = new Date(invoiceDateSplit);
+      invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+      const month = invoiceDate.toLocaleString("default", { month: "long" });
+      const year = invoiceDate.getFullYear();
+      return `${month} ${year}`;
     } else {
       return "No Date Found";
     }
@@ -71,7 +80,7 @@ const SavedInvoiceNavBar = ({
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)}_Classroom Rental Summary`}</Text>
+        <Text fontWeight="700">{`${programName.trim().split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate([], invoice?.data, false)}_Classroom Rental Summary`}</Text>
       </HStack>
 
       <HStack>
@@ -87,7 +96,7 @@ const SavedInvoiceNavBar = ({
           onOpen={onOpen}
           onClose={onClose}
           payees={payees}
-          pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
+          pdf_title={`${programName.trim().split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate([], invoice?.data, false)} Invoice`}
           invoice={invoice}
         />
       </HStack>
@@ -244,7 +253,6 @@ export const SavedEdit = () => {
           invoice={invoice}
           payees={payees}
           programName={programName}
-          comments={comments}
         />
 
         <InvoiceView
