@@ -1747,6 +1747,7 @@ const InvoiceSummary = ({
                     session.name?.length > 0 &&
                     session.adjustmentValues[0]?.type !== "total" &&
                     session.adjustmentValues[0]?.type !== "none"
+                    
                 )
                 .map((session, key) => (
                   <Tr key={key}>
@@ -1773,16 +1774,17 @@ const InvoiceSummary = ({
                       ) : (
                         <Box display="inline-block">
                           <Tooltip
-                            label={summary[0]?.adjustmentValues
-                              .map((adj) => {
-                                const sign = adj.value < 0 ? "-" : "+";
-                                const isFlat = adj.type === "rate_flat";
-                                const absValue = Math.abs(adj.value);
-                                return isFlat
+                            label={summary[0]?.adjustmentValues.length > 0
+                              ? summary[0]?.adjustmentValues
+                                .map((adj) => {
+                                  const sign = adj.value < 0 ? "-" : "+";
+                                  const isFlat = adj.type === "rate_flat";
+                                  const absValue = Math.abs(adj.value);
+                                  return isFlat
                                   ? `${sign}$${absValue}`
                                   : `${sign}${absValue}%`;
                               })
-                              .join(", ")}
+                              .join(", ") : "None"}
                             placement="top"
                             bg="gray"
                             w="auto"
@@ -1791,16 +1793,17 @@ const InvoiceSummary = ({
                               textOverflow="ellipsis"
                               overflow="hidden"
                             >
-                              {summary[0]?.adjustmentValues
-                                .map((adj) => {
-                                  const sign = adj.value < 0 ? "-" : "+";
-                                  const isFlat = adj.type === "rate_flat";
-                                  const absValue = Math.abs(adj.value);
-                                  return isFlat
+                              {summary[0]?.adjustmentValues.length > 0
+                                ? summary[0]?.adjustmentValues
+                                  .map((adj) => {
+                                    const sign = adj.value < 0 ? "-" : "+";
+                                    const isFlat = adj.type === "rate_flat";
+                                    const absValue = Math.abs(adj.value);
+                                    return isFlat
                                     ? `${sign}$${absValue}`
                                     : `${sign}${absValue}%`;
                                 })
-                                .join(", ")}
+                                .join(", ") : "None"}
                             </Text>
                           </Tooltip>
                         </Box>
@@ -1906,6 +1909,7 @@ const InvoiceSummary = ({
             session={sessions[0]}
             deletedIds={deletedIds}
             setDeletedIds={setDeletedIds}
+            sessions={sessions}
           />
         </Box>
       </Flex>

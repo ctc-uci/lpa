@@ -34,6 +34,7 @@ import {
   InvoiceSummary,
   StatementComments,
 } from "./EditInvoiceComponents";
+import { getCurrentUser } from "../../utils/auth/firebase";
 
 const InvoiceNavBar = ({
   onBack,
@@ -144,7 +145,7 @@ export const EditInvoice = () => {
   const [pastDue, setPastDue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [deletedIds, setDeletedIds] = useState([]);
-
+  const [userId, setUserId] = useState(null);
   const [editedFields, setEditedFields] = useState({
     comments: [],
     subtotal: 0,
@@ -159,11 +160,6 @@ export const EditInvoice = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = React.useRef();
 
-  useEffect(() => {
-    if (id) {
-      sessionStorage.setItem("userId", id);
-    }
-  }, [id]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -174,7 +170,15 @@ export const EditInvoice = () => {
         console.error("Error fetching data:", error);
       }
     };
+    const fetchUserId = async () => {
+      const currentFirebaseUser = await getCurrentUser();
+      const firebaseUid = currentFirebaseUser?.uid;
+      if (!firebaseUid) return;
+      const userRes = await backend.get(`/users/${firebaseUid}`);
+      setUserId(userRes.data[0].id);
+    };
     fetchData();
+    fetchUserId();
   }, [backend, id]);
 
   useEffect(() => {
@@ -366,9 +370,10 @@ export const EditInvoice = () => {
             const commentText = session.comments[i].comment;
 
             // Prepare comment data
+
             const commentData = {
               id: session.comments[i].id,
-              user_id: session.userId, // Will be set by the server if null
+              user_id: userId, // Will be set by the server if null
               booking_id: session.bookingId || null,
               invoice_id: id,
               datetime: session.datetime,
@@ -420,7 +425,7 @@ export const EditInvoice = () => {
 
             const adjustmentData = {
               id: adjustmentValue.id,
-              user_id: session.userId,
+              user_id: userId,
               booking_id: session.bookingId || null,
               invoice_id: id,
               datetime: session.datetime,
@@ -506,7 +511,7 @@ export const EditInvoice = () => {
                   continue;
 
                 const adjustmentData = {
-                  user_id: summaryItem.userId,
+                  user_id: userId,
                   booking_id: null, // Summary adjustments don't have booking_id
                   invoice_id: id,
                   datetime: new Date().toISOString(),

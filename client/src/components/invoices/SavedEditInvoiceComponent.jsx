@@ -105,13 +105,57 @@ const SavedStatementComments = ({
     return finalTotal.toFixed(2);
   };
 
+  useEffect(() => {
+    const calculateAndSetSubtotal = () => {
+      if (!sessions || sessions.length === 0) {
+        setSubtotal(0);
+        return;
+      }
+
+      const adjSum = sessions.reduce((acc, session) => {
+        if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
+          const total = parseFloat(
+            calculateTotalBookingRow(
+              session.startTime,
+              session.endTime,
+              session.rate,
+              []
+            )
+          );
+          return acc + total;
+        }
+
+        const total = parseFloat(
+          calculateTotalBookingRow(
+            session.startTime,
+            session.endTime,
+            session.rate,
+            session.adjustmentValues
+          )
+        );
+        return acc + total;
+      }, 0);
+
+      const totalSum = sessions.reduce((acc, session) => {
+        const total = parseFloat(
+          session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
+        );
+        return acc + total;
+      }, 0);
+
+      const finalTotal = adjSum + totalSum;
+      const total = finalTotal.toFixed(2);
+      setSubtotal(Number(total));
+    };
+
+    calculateAndSetSubtotal();
+  }, [sessions, setSubtotal]);
+
   const calculateSubtotal = (sessions) => {
     if (!sessions || sessions.length === 0) return "0.00";
 
     const adjSum = sessions.reduce((acc, session) => {
-      // Check if session has adjustmentValues and it's not empty
       if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
-        // Calculate without adjustments
         const total = parseFloat(
           calculateTotalBookingRow(
             session.startTime,
@@ -142,10 +186,7 @@ const SavedStatementComments = ({
     }, 0);
 
     const finalTotal = adjSum + totalSum;
-
-    const total = finalTotal.toFixed(2);
-    setSubtotal(Number(total));
-    return total;
+    return finalTotal.toFixed(2);
   };
 
   const formatTimeString = (timeStr) => {
@@ -725,6 +766,8 @@ const SavedInvoiceSummary = ({
     setSessions(updatedSessions);
   }, [summary]);
 
+  console.log("summary", summary);
+
   return (
     <Flex
       direction="column"
@@ -844,7 +887,7 @@ const SavedInvoiceSummary = ({
                         key === sessions.length - 1 ? undefined : "none"
                       }
                     >
-                      {summary[0]?.adjustmentValues.length === 0 ? (
+                      {summary.length === 0 || summary[0]?.adjustmentValues.length === 0 ? (
                         "None"
                       ) : (
                         <Box display="inline-block">

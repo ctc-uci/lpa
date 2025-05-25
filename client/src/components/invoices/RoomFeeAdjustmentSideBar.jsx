@@ -243,39 +243,40 @@ const RoomFeeAdjustmentSideBar = ({
                 onSelect={(type) => {
                   setTempSession((prev) => {
                     // Get all existing IDs from different sources across all sessions
-                    const adjustmentIds = sessions
-                      .map(
-                        (session) =>
-                          session.adjustmentValues?.map((adj) => adj.id) || []
-                      )
-                      .flat();
-                    const commentIds = sessions
-                      .map(
-                        (session) =>
-                          session.comments?.map((comment) => comment.id) || []
-                      )
-                      .flat();
-                    const totalIds = sessions
-                      .map(
-                        (session) =>
-                          session.totals?.map((total) => total.id) || []
-                      )
-                      .flat();
+                    // const adjustmentIds = sessions
+                    //   .map(
+                    //     (session) =>
+                    //       session.adjustmentValues?.map((adj) => adj.id) || []
+                    //   )
+                    //   .flat();
+                    // const commentIds = sessions
+                    //   .map(
+                    //     (session) =>
+                    //       session.comments?.map((comment) => comment.id) || []
+                    //   )
+                    //   .flat();
+                    // const totalIds = sessions
+                    //   .map(
+                    //     (session) =>
+                    //       session.totals?.map((total) => total.id) || []
+                    //   )
+                    //   .flat();
 
-                    // Find the maximum ID across all sources
-                    const maxId = Math.max(
-                      -1, // fallback if all arrays are empty
-                      ...adjustmentIds,
-                      ...commentIds,
-                      ...totalIds
-                    );
+                    // // Find the maximum ID across all sources
+                    // console.log("sessions.length", sessions.length);
+                    // const maxId = Math.max(
+                    //   -1, // fallback if all arrays are empty
+                    //   ...adjustmentIds,
+                    //   ...commentIds,
+                    //   ...totalIds
+                    // );
 
                     return {
                       ...prev,
                       adjustmentValues: [
                         ...(prev.adjustmentValues || []),
                         {
-                          id: maxId + 1,
+                          // id: maxId + 1,
                           type:
                             type === "percent" ? "rate_percent" : "rate_flat",
                           value: -0,
@@ -508,6 +509,7 @@ const SummaryFeeAdjustmentSideBar = ({
   session,
   deletedIds,
   setDeletedIds,
+  sessions
 }) => {
   const { backend } = useBackendContext();
   const [tempSummary, setTempSummary] = useState(summary || {});
@@ -670,6 +672,8 @@ const SummaryFeeAdjustmentSideBar = ({
     onClose();
   };
 
+  // console.log("summary", summary);
+
   return (
     <>
       <Drawer
@@ -715,40 +719,43 @@ const SummaryFeeAdjustmentSideBar = ({
               <AdjustmentTypeSelector
                 onSelect={(type) => {
                   setTempSummary((prev) => {
-                    // Get all existing IDs from different sources across all sessions
-                    const adjustmentIds = sessions
-                      .map(
-                        (session) =>
-                          session.adjustmentValues?.map((adj) => adj.id) || []
-                      )
-                      .flat();
-                    const commentIds = sessions
-                      .map(
-                        (session) =>
-                          session.comments?.map((comment) => comment.id) || []
-                      )
-                      .flat();
-                    const totalIds = sessions
-                      .map(
-                        (session) =>
-                          session.totals?.map((total) => total.id) || []
-                      )
-                      .flat();
-
-                    // Find the maximum ID across all sources
-                    const maxId = Math.max(
-                      -1, // fallback if all arrays are empty
-                      ...adjustmentIds,
-                      ...commentIds,
-                      ...totalIds
-                    );
+                  //   // Get all existing IDs from different sources across all sessions
+                  //   const adjustmentIds = sessions
+                  //     .map(
+                  //       (session) =>
+                  //         session.adjustmentValues?.map((adj) => adj.id) || []
+                  //     )
+                  //     .flat();
+                  //   const commentIds = sessions
+                  //     .map(
+                  //       (session) =>
+                  //         session.comments?.map((comment) => comment.id) || []
+                  //     )
+                  //     .flat();
+                  //   const totalIds = sessions
+                  //     .map(
+                  //       (session) =>
+                  //         session.totals?.map((total) => total.id) || []
+                  //     )
+                  //     .flat();
+                    
+                  //   console.log("adjustmentIds", adjustmentIds);
+                  //   console.log("commentIds", commentIds);
+                  //   console.log("totalIds", totalIds);
+                  //   // Find the maximum ID across all sources
+                  //   const maxId = Math.max(
+                  //     -1, // fallback if all arrays are empty
+                  //     ...adjustmentIds,
+                  //     ...commentIds,
+                  //     ...totalIds
+                  //   );
 
                     return {
                       ...prev,
                       adjustmentValues: [
                         ...(prev.adjustmentValues || []),
                         {
-                          id: maxId + 1,
+                          // id: maxId + 1,
                           type:
                             type === "percent" ? "rate_percent" : "rate_flat",
                           value: -0,
