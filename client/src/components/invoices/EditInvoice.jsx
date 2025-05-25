@@ -46,22 +46,28 @@ const InvoiceNavBar = ({
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
+  const getGeneratedDate = (
+    comments = [],
+    invoice = null,
+    includeDay = true
+  ) => {
     if (comments.length > 0) {
       const latestComment = comments.sort(
         (a, b) => new Date(b.datetime) - new Date(a.datetime)
       )[0];
-  
+
       const latestDate = new Date(latestComment.datetime);
       const month = latestDate.toLocaleString("default", { month: "long" });
       const day = latestDate.getDate();
       const year = latestDate.getFullYear();
-  
+
       return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
     } else if (invoice) {
-      const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+      const invoiceDateSplit = invoice[0]?.startDate?.split("T")[0];
       const invoiceDate = new Date(invoiceDateSplit);
-      invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+      invoiceDate.setMinutes(
+        invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset()
+      );
       const month = invoiceDate.toLocaleString("default", { month: "long" });
       const year = invoiceDate.getFullYear();
       return `${month} ${year}`;
@@ -410,8 +416,8 @@ export const EditInvoice = () => {
               isNaN(adjustmentValue.value) ||
               adjustmentValue.value === undefined
             )
-            continue;
-            
+              continue;
+
             const adjustmentData = {
               id: adjustmentValue.id,
               user_id: session.userId,
@@ -427,7 +433,7 @@ export const EditInvoice = () => {
               adjustment_type: adjustmentValue.type,
               adjustment_value: adjustmentValue.value,
             };
-            
+
             try {
               // Check if this adjustment already exists
               const existingAdjustment = comments.find(

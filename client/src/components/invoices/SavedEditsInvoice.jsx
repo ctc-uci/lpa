@@ -24,33 +24,32 @@ import { EmailSidebar } from "../email/EmailSidebar.jsx";
 import Navbar from "../navbar/Navbar";
 import { InvoiceView } from "./InvoiceView";
 
-const SavedInvoiceNavBar = ({
-  onBack,
-  id,
-  invoice,
-  payees,
-  programName,
-}) => {
-
+const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
-  
-  const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
+
+  const getGeneratedDate = (
+    comments = [],
+    invoice = null,
+    includeDay = true
+  ) => {
     if (comments.length > 0) {
       const latestComment = comments.sort(
         (a, b) => new Date(b.datetime) - new Date(a.datetime)
       )[0];
-  
+
       const latestDate = new Date(latestComment.datetime);
       const month = latestDate.toLocaleString("default", { month: "long" });
       const day = latestDate.getDate();
       const year = latestDate.getFullYear();
-  
+
       return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
     } else if (invoice) {
-      const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+      const invoiceDateSplit = invoice[0]?.startDate?.split("T")[0];
       const invoiceDate = new Date(invoiceDateSplit);
-      invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+      invoiceDate.setMinutes(
+        invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset()
+      );
       const month = invoiceDate.toLocaleString("default", { month: "long" });
       const year = invoiceDate.getFullYear();
       return `${month} ${year}`;
@@ -210,33 +209,6 @@ export const SavedEdit = () => {
     };
     fetchData();
   }, [invoice]);
-
-  // useEffect(() => {
-  //   const fetchBookingDetails = async () => {
-  //     try {
-  //       if (!comments || !Array.isArray(comments) || comments.length === 0) {
-  //         return;
-  //       }
-
-  //       const commentWithBookingId = comments[0].bookingId;
-
-  //       const bookingResponse = await backend.get(
-  //         `/bookings/${commentWithBookingId}`
-  //       );
-  //       setBookingDetails(bookingResponse.data[0]);
-
-  //       const roomResponse = await backend.get(
-  //         `/rooms/${bookingResponse.data[0].roomId}`
-  //       );
-  //       setRoom(roomResponse.data);
-  //       console.log("roomresponse.data", roomResponse.data)
-  //     } catch (error) {
-  //       console.error("Error fetching booking details:", error);
-  //     }
-  //   };
-
-  //   fetchBookingDetails();
-  // }, [comments, backend]);
 
   const handleBack = () => {
     navigate(`/invoices/${id}`);

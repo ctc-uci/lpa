@@ -1,4 +1,5 @@
 import { pdf } from "@react-pdf/renderer";
+
 import { InvoicePDFDocument } from "../invoices/InvoicePDFDocument.jsx";
 
 export const sendSaveEmail = async (
@@ -16,9 +17,19 @@ export const sendSaveEmail = async (
   id
 ) => {
   setLoading(true);
-  await new Promise(resolve => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
   const blob = await makeBlob(invoice, invoiceData);
-  await sendEmail(backend, blob, pdf_title, setLoading, emails, title, message, ccEmails, bccEmails);
+  await sendEmail(
+    backend,
+    blob,
+    pdf_title,
+    setLoading,
+    emails,
+    title,
+    message,
+    ccEmails,
+    bccEmails
+  );
   await saveEmail(backend, blob, pdf_title, id);
   setisConfirmModalOpen(true);
 };
@@ -33,7 +44,7 @@ const makeBlob = async (invoice, invoiceData) => {
 
   const blob = await pdf(pdfDocument).toBlob();
   return blob;
-}
+};
 
 const sendEmail = async (
   backend,
@@ -44,7 +55,8 @@ const sendEmail = async (
   title,
   message,
   ccEmails,
-  bccEmails,) => {
+  bccEmails
+) => {
   try {
     if (blob) {
       const formData = new FormData();
@@ -75,8 +87,7 @@ const saveEmail = async (backend, blob, pdf_title, id) => {
       formData.append("comment", "");
 
       await backend.post(`invoices/backupInvoice/` + id, formData);
-    }
-    else {
+    } else {
       console.log("no formData for save email");
     }
   } catch (error) {

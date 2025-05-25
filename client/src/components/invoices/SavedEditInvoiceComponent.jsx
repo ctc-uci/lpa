@@ -310,151 +310,137 @@ const SavedStatementComments = ({
             </Thead>
 
             <Tbody color="#2D3748">
-              {sessions.filter(session => session.name.length === 0).map((session, index) => session.total?.map((total, totalIndex) => {
-
-                return (
-                  <Tr
-                    position="relative"
-                    cursor="pointer"
-                    _hover={{ bg: "gray.50" }}
-                    role="group"
-                  >
-                    <Td
-                      fontSize={compactView ? "6" : "12px"}
-                      py={compactView ? "0" : "6"}
-                    >
-                      {(() => {
-                        const date = new Date(
-                          session.total[totalIndex].date
-                        );
-                        date.setMinutes(
-                          date.getMinutes() + date.getTimezoneOffset()
-                        );
-                        return format(date, "EEE. M/d/yy");
-                      })()}
-                    </Td>
-                    <Td
-                      colSpan={4}
-                      fontSize={compactView ? "6" : "12px"}
-                      py={compactView ? "0" : "6"}
-                    >
-                      {session.total[totalIndex]?.comment ||
-                        "Custom adjustment"}
-                    </Td>
-                    <Td
-                      textAlign="right"
-                      position="relative"
-                    >
-                      <Flex
-                        justifyContent="flex-end"
-                        alignItems="center"
+              {sessions
+                .filter((session) => session.name.length === 0)
+                .map((session, index) =>
+                  session.total?.map((total, totalIndex) => {
+                    return (
+                      <Tr
+                        position="relative"
+                        cursor="pointer"
+                        _hover={{ bg: "gray.50" }}
+                        role="group"
                       >
-                        <Text
+                        <Td
                           fontSize={compactView ? "6" : "12px"}
                           py={compactView ? "0" : "6"}
                         >
-                          ${" "}
-                          {Number(
-                            session.total[totalIndex].value || 0
-                          ).toFixed(2)}
-                        </Text>
-                      </Flex>
-                    </Td>
-                  </Tr>
-                );
-              }
-              ))}
+                          {(() => {
+                            const date = new Date(
+                              session.total[totalIndex].date
+                            );
+                            date.setMinutes(
+                              date.getMinutes() + date.getTimezoneOffset()
+                            );
+                            return format(date, "EEE. M/d/yy");
+                          })()}
+                        </Td>
+                        <Td
+                          colSpan={4}
+                          fontSize={compactView ? "6" : "12px"}
+                          py={compactView ? "0" : "6"}
+                        >
+                          {session.total[totalIndex]?.comment ||
+                            "Custom adjustment"}
+                        </Td>
+                        <Td
+                          textAlign="right"
+                          position="relative"
+                        >
+                          <Flex
+                            justifyContent="flex-end"
+                            alignItems="center"
+                          >
+                            <Text
+                              fontSize={compactView ? "6" : "12px"}
+                              py={compactView ? "0" : "6"}
+                            >
+                              ${" "}
+                              {Number(
+                                session.total[totalIndex].value || 0
+                              ).toFixed(2)}
+                            </Text>
+                          </Flex>
+                        </Td>
+                      </Tr>
+                    );
+                  })
+                )}
 
               {sessions.length > 0 ? (
-                sessions.filter(session => session.name.length > 0).flatMap((session, index) => {
-                  // For regular sessions, use the existing code
-                  const sessionRow = (
-                    <Tr key={`session-${session.id || "unknown"}-${index}`}>
-                      {/* Date */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        whiteSpace="nowrap"
-                        borderBottom={
-                          session.comments && session.comments.length > 0
-                            ? "none"
-                            : undefined
-                        }
-                      >
-                        {format(new Date(session.bookingDate), "EEE. M/d/yy")}
-                      </Td>
-
-                      {/* Classroom */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments && session.comments.length > 0
-                            ? "none"
-                            : undefined
-                        }
-                      >
-                        {session.name}
-                      </Td>
-
-                      {/* Rental hours */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments && session.comments.length > 0
-                            ? "none"
-                            : undefined
-                        }
-                      >
-                        <Flex
-                          align="center"
+                sessions
+                  .filter((session) => session.name.length > 0)
+                  .flatMap((session, index) => {
+                    // For regular sessions, use the existing code
+                    const sessionRow = (
+                      <Tr key={`session-${session.id || "unknown"}-${index}`}>
+                        {/* Date */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
                           whiteSpace="nowrap"
-                          overflow="hidden"
-                          textOverflow="ellipsis"
+                          borderBottom={
+                            session.comments && session.comments.length > 0
+                              ? "none"
+                              : undefined
+                          }
                         >
-                          <Text>{formatTimeString(session.startTime)}</Text>
-                          <Text>-</Text>
-                          <Text>{formatTimeString(session.endTime)}</Text>
-                        </Flex>
-                      </Td>
+                          {format(new Date(session.bookingDate), "EEE. M/d/yy")}
+                        </Td>
 
-                      {/* Room fee adjustment */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments && session.comments.length > 0
-                            ? "none"
-                            : undefined
-                        }
-                      >
-                        {session.adjustmentValues &&
+                        {/* Classroom */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments && session.comments.length > 0
+                              ? "none"
+                              : undefined
+                          }
+                        >
+                          {session.name}
+                        </Td>
+
+                        {/* Rental hours */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments && session.comments.length > 0
+                              ? "none"
+                              : undefined
+                          }
+                        >
+                          <Flex
+                            align="center"
+                            whiteSpace="nowrap"
+                            overflow="hidden"
+                            textOverflow="ellipsis"
+                          >
+                            <Text>{formatTimeString(session.startTime)}</Text>
+                            <Text>-</Text>
+                            <Text>{formatTimeString(session.endTime)}</Text>
+                          </Flex>
+                        </Td>
+
+                        {/* Room fee adjustment */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments && session.comments.length > 0
+                              ? "none"
+                              : undefined
+                          }
+                        >
+                          {session.adjustmentValues &&
                           session.adjustmentValues.length === 0 ? (
-                          "None"
-                        ) : (
-                          <Box display="inline-block">
-                            <Tooltip
-                              label={session.adjustmentValues
-                                .filter((adj) => adj.type !== "total")
-                                .map((adj) => {
-                                  const value = Number(adj.value);
-                                  const sign = value >= 0 ? "+" : "-";
-                                  const isFlat = adj.type === "rate_flat";
-                                  const absValue = Math.abs(value);
-                                  return isFlat
-                                    ? `${sign}$${absValue}`
-                                    : `${sign}${absValue}%`;
-                                })
-                                .join(", ")}
-                              placement="top"
-                              bg="gray"
-                              w="auto"
-                            >
-                              <Text>
-                                {session.adjustmentValues
+                            "None"
+                          ) : (
+                            <Box display="inline-block">
+                              <Tooltip
+                                label={session.adjustmentValues
                                   .filter((adj) => adj.type !== "total")
-                                  .slice(0, 3)
                                   .map((adj) => {
                                     const value = Number(adj.value);
                                     const sign = value >= 0 ? "+" : "-";
@@ -465,144 +451,163 @@ const SavedStatementComments = ({
                                       : `${sign}${absValue}%`;
                                   })
                                   .join(", ")}
-                                {session.adjustmentValues.filter(
-                                  (adj) => adj.type !== "total"
-                                ).length > 3
-                                  ? ", ..."
-                                  : ""}
-                              </Text>
-                            </Tooltip>
-                          </Box>
-                        )}
-                      </Td>
-
-                      {/* Room fee rate */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments && session.comments.length > 0
-                            ? "none"
-                            : undefined
-                        }
-                      >
-                        <Text
-                          h="40px"
-                          p={compactView ? "0" : "2"}
-                          display="flex"
-                          alignItems="center"
-                        >
-                          ${calculateNewRate(session).toFixed(2)}/hr
-                        </Text>
-                      </Td>
-
-                      {/* Total */}
-                      <Td
-                        py={compactView ? 0 : 4}
-                        fontSize={compactView ? "6.38" : "sm"}
-                        borderBottom={
-                          session.comments && session.comments.length > 0
-                            ? "none"
-                            : undefined
-                        }
-                      >
-                        <Flex
-                          justifyContent="center"
-                          alignItems="center"
-                          gap={2}
-                        >
-                          <Text>$</Text>
-                          <Text textAlign="center">
-                            {calculateTotalBookingRow(
-                              session.startTime,
-                              session.endTime,
-                              session.rate,
-                              session.adjustmentValues
-                            )}
-                          </Text>
-                        </Flex>
-                      </Td>
-                    </Tr>
-                  );
-
-                  const textRows =
-                    session.comments?.map((line, textIndex) => {
-                      const isLast = textIndex === session.comments.length - 1;
-                      return (
-                        <Tr
-                          key={`text-${session.id || "unknown"}-${index}-${textIndex}`}
-                        >
-                          <Td
-                            colSpan={6}
-                            pl={4}
-                            color="gray.600"
-                            py={compactView ? 2 : 6}
-                            fontSize={compactView ? "6.38" : "sm"}
-                            borderBottom={isLast ? "1px solid" : "none"}
-                            borderColor="gray.200"
-                          >
-                            {line.comment}
-                          </Td>
-                        </Tr>
-                      );
-                    }) || [];
-
-                  const totalRow =
-                    session?.total?.map((total, totalIndex) => {
-                      return (
-                        <Tr
-                          position="relative"
-                          cursor="pointer"
-                          _hover={{ bg: "gray.50" }}
-                          role="group"
-                        >
-                          <Td
-                            fontSize={compactView ? "6" : "12px"}
-                            py={compactView ? "0" : "6"}
-                          >
-                            {(() => {
-                              const date = new Date(
-                                session.total[totalIndex].date
-                              );
-                              date.setMinutes(
-                                date.getMinutes() + date.getTimezoneOffset()
-                              );
-                              return format(date, "EEE. M/d/yy");
-                            })()}
-                          </Td>
-                          <Td
-                            colSpan={4}
-                            fontSize={compactView ? "6" : "12px"}
-                            py={compactView ? "0" : "6"}
-                          >
-                            {session.total[totalIndex]?.comment ||
-                              "Custom adjustment"}
-                          </Td>
-                          <Td
-                            textAlign="right"
-                            position="relative"
-                          >
-                            <Flex
-                              justifyContent="flex-end"
-                              alignItems="center"
-                            >
-                              <Text
-                                fontSize={compactView ? "6" : "12px"}
-                                py={compactView ? "0" : "6"}
+                                placement="top"
+                                bg="gray"
+                                w="auto"
                               >
-                                ${" "}
-                                {Number(
-                                  session.total[totalIndex].value || 0
-                                ).toFixed(2)}
-                              </Text>
-                            </Flex>
-                          </Td>
-                        </Tr>
-                      );
-                    }) || [];
+                                <Text>
+                                  {session.adjustmentValues
+                                    .filter((adj) => adj.type !== "total")
+                                    .slice(0, 3)
+                                    .map((adj) => {
+                                      const value = Number(adj.value);
+                                      const sign = value >= 0 ? "+" : "-";
+                                      const isFlat = adj.type === "rate_flat";
+                                      const absValue = Math.abs(value);
+                                      return isFlat
+                                        ? `${sign}$${absValue}`
+                                        : `${sign}${absValue}%`;
+                                    })
+                                    .join(", ")}
+                                  {session.adjustmentValues.filter(
+                                    (adj) => adj.type !== "total"
+                                  ).length > 3
+                                    ? ", ..."
+                                    : ""}
+                                </Text>
+                              </Tooltip>
+                            </Box>
+                          )}
+                        </Td>
 
-                  return [sessionRow, ...textRows, ...totalRow];
-                })
+                        {/* Room fee rate */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments && session.comments.length > 0
+                              ? "none"
+                              : undefined
+                          }
+                        >
+                          <Text
+                            h="40px"
+                            p={compactView ? "0" : "2"}
+                            display="flex"
+                            alignItems="center"
+                          >
+                            ${calculateNewRate(session).toFixed(2)}/hr
+                          </Text>
+                        </Td>
+
+                        {/* Total */}
+                        <Td
+                          py={compactView ? 0 : 4}
+                          fontSize={compactView ? "6.38" : "sm"}
+                          borderBottom={
+                            session.comments && session.comments.length > 0
+                              ? "none"
+                              : undefined
+                          }
+                        >
+                          <Flex
+                            justifyContent="center"
+                            alignItems="center"
+                            gap={2}
+                          >
+                            <Text>$</Text>
+                            <Text textAlign="center">
+                              {calculateTotalBookingRow(
+                                session.startTime,
+                                session.endTime,
+                                session.rate,
+                                session.adjustmentValues
+                              )}
+                            </Text>
+                          </Flex>
+                        </Td>
+                      </Tr>
+                    );
+
+                    const textRows =
+                      session.comments?.map((line, textIndex) => {
+                        const isLast =
+                          textIndex === session.comments.length - 1;
+                        return (
+                          <Tr
+                            key={`text-${session.id || "unknown"}-${index}-${textIndex}`}
+                          >
+                            <Td
+                              colSpan={6}
+                              pl={4}
+                              color="gray.600"
+                              py={compactView ? 2 : 6}
+                              fontSize={compactView ? "6.38" : "sm"}
+                              borderBottom={isLast ? "1px solid" : "none"}
+                              borderColor="gray.200"
+                            >
+                              {line.comment}
+                            </Td>
+                          </Tr>
+                        );
+                      }) || [];
+
+                    const totalRow =
+                      session?.total?.map((total, totalIndex) => {
+                        return (
+                          <Tr
+                            position="relative"
+                            cursor="pointer"
+                            _hover={{ bg: "gray.50" }}
+                            role="group"
+                          >
+                            <Td
+                              fontSize={compactView ? "6" : "12px"}
+                              py={compactView ? "0" : "6"}
+                            >
+                              {(() => {
+                                const date = new Date(
+                                  session.total[totalIndex].date
+                                );
+                                date.setMinutes(
+                                  date.getMinutes() + date.getTimezoneOffset()
+                                );
+                                return format(date, "EEE. M/d/yy");
+                              })()}
+                            </Td>
+                            <Td
+                              colSpan={4}
+                              fontSize={compactView ? "6" : "12px"}
+                              py={compactView ? "0" : "6"}
+                            >
+                              {session.total[totalIndex]?.comment ||
+                                "Custom adjustment"}
+                            </Td>
+                            <Td
+                              textAlign="right"
+                              position="relative"
+                            >
+                              <Flex
+                                justifyContent="flex-end"
+                                alignItems="center"
+                              >
+                                <Text
+                                  fontSize={compactView ? "6" : "12px"}
+                                  py={compactView ? "0" : "6"}
+                                >
+                                  ${" "}
+                                  {Number(
+                                    session.total[totalIndex].value || 0
+                                  ).toFixed(2)}
+                                </Text>
+                              </Flex>
+                            </Td>
+                          </Tr>
+                        );
+                      }) || [];
+
+                    return [sessionRow, ...textRows, ...totalRow];
+                  })
               ) : (
                 <Tr py="4">
                   <Td
@@ -674,8 +679,11 @@ const SavedInvoiceSummary = ({
 
   useEffect(() => {
     if (sessions?.length > 0) {
-      sessions.forEach(session => {
-        if (session.name && originalSessionRateRef.current[session.name] === undefined) {
+      sessions.forEach((session) => {
+        if (
+          session.name &&
+          originalSessionRateRef.current[session.name] === undefined
+        ) {
           originalSessionRateRef.current[session.name] = session.rate;
         }
       });
@@ -690,9 +698,11 @@ const SavedInvoiceSummary = ({
     )
       return;
 
-
     const updatedSessions = sessions.map((session) => {
-      if (!session.name || originalSessionRateRef.current[session.name] === undefined) {
+      if (
+        !session.name ||
+        originalSessionRateRef.current[session.name] === undefined
+      ) {
         return session;
       }
 
@@ -813,7 +823,7 @@ const SavedInvoiceSummary = ({
               </Tr>
               {/* Room Fee Body Row */}
               {sessions
-                .filter(session => session.name.length > 0)
+                .filter((session) => session.name.length > 0)
                 .map((session, key) => (
                   <Tr key={key}>
                     <Td
