@@ -251,7 +251,7 @@ export const SingleInvoice = () => {
       }
     };
     fetchBookingDetails();
-  }, [comments, backend, room]);
+  }, [sessions, backend]);
 
   const handlePreviewClick = () => {
     navigate(`/invoices/savededits/${id}`);
