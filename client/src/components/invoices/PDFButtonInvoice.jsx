@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { DownloadIcon } from "@chakra-ui/icons";
-import { Box, Flex, IconButton, Spinner, useToast, HStack, VStack, Icon, Text as ChakraText } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner, useToast, HStack, VStack, Icon, Text as ChakraText, Button } from "@chakra-ui/react";
 import { CheckCircleIcon } from "@chakra-ui/icons";
 
 import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
@@ -223,13 +223,14 @@ const PDFButtonInvoice = ({ id }) => {
 
   return (
     <Box>
-      <IconButton
-        icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
+      <Button
         onClick={handleDownload}
-        backgroundColor="transparent"
+        leftIcon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
         aria-label="Download PDF"
         isDisabled={loading}
-      />
+      >
+        Download
+      </Button>
     </Box>
   );
 };

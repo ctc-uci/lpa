@@ -674,7 +674,7 @@ const InvoiceTable = ({ sessions, summary }) => {
             const sessionRows = (
               <View
                 style={tableStyles.tableRow}
-                key={index}
+                key={`${index}-${session.bookingDate}`}
               >
                 <View style={tableStyles.tableCol}>
                   <Text style={{ fontSize: 7 }}>

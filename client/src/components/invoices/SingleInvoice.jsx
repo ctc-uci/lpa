@@ -243,7 +243,6 @@ export const SingleInvoice = () => {
 
 
         const totalRoomRate = sessions.reduce((acc, session) => {
-          console.log("session", session);
           return acc + (Number(session.rate) || 0);
         }, 0);
         setRoomRate(totalRoomRate);
@@ -251,7 +250,6 @@ export const SingleInvoice = () => {
         console.error("Error fetching booking details:", error);
       }
     };
-    console.log("fetching booking details");
     fetchBookingDetails();
   }, [comments, backend, room]);
 
