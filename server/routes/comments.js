@@ -163,6 +163,36 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       delete groupedComments[bookingId].commentId;
     });
 
+    if(Object.keys(groupedComments).length === 0){
+      const query = `SELECT bookings.id as booking_id, 
+                    invoices.id as invoice_id, 
+                    rooms.id as room_id, 
+                    rooms.name, rooms.rate, bookings.date as booking_date, bookings.start_time as start_time, bookings.end_time as end_time
+                    FROM bookings, invoices, rooms 
+                    WHERE bookings.event_id = invoices.event_id 
+                    AND invoices.id = $1 
+                    AND bookings.date BETWEEN invoices.start_date 
+                    AND invoices.end_date 
+                    AND bookings.room_id = rooms.id`;
+      const data = await db.query(query, [id]);
+      const bookings = keysToCamel(data);
+
+      for(const booking of bookings){
+        groupedComments[booking.bookingId] = {
+          adjustmentValues: [],
+          comments: [],
+          bookingId: booking.bookingId,
+          bookingDate: booking.bookingDate,
+          endTime: booking.endTime,
+          startTime: booking.startTime,
+          name: booking.name,
+          rate: booking.rate,
+          total : []
+        };
+      }
+      console.log("groupedComments", groupedComments);
+    }
+
 
     const totalQuery = `SELECT comments.id as comment_id,
                    comments.user_id,

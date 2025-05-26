@@ -766,8 +766,6 @@ const SavedInvoiceSummary = ({
     setSessions(updatedSessions);
   }, [summary]);
 
-  console.log("summary", summary);
-
   return (
     <Flex
       direction="column"

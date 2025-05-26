@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 
 import { DownloadIcon } from "@chakra-ui/icons";
-import { Box, Flex, IconButton, Spinner } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner, useToast, HStack, VStack, Icon, Text as ChakraText } from "@chakra-ui/react";
+import { CheckCircleIcon } from "@chakra-ui/icons";
 
 import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
@@ -32,6 +33,8 @@ const PDFButtonInvoice = ({ id }) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const [programName, setProgramName] = useState(null);
 
   const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
@@ -57,6 +60,8 @@ const PDFButtonInvoice = ({ id }) => {
     const comments = commentsResponse.data;
     const sessions = sessionResponse.data;
     const summary = summaryResponse.data;
+
+    setProgramName(programNameResponse.data[0].name.split(" ").slice(0, 3).join(" "));
 
     let booking = {};
     let room = [];
@@ -147,6 +152,10 @@ const PDFButtonInvoice = ({ id }) => {
       const invoice = invoiceResponse.data;
       const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
 
+      const date = new Date(invoice[0].startDate);
+      const month = date.toLocaleString("default", { month: "long" });
+      const year = date.getFullYear();
+
       const blob = await pdf(
         <InvoicePDFDocument
           invoice={invoice}
@@ -156,8 +165,55 @@ const PDFButtonInvoice = ({ id }) => {
 
       saveAs(
         blob,
-        `${invoiceData.programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+        `${programName}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
       );
+
+      toast({
+        position: "bottom-right",
+        duration: 3000,
+        status: "success",
+        render: () => (
+          <HStack
+            bg="green.100"
+            p={4}
+            borderRadius="md"
+            boxShadow="md"
+            borderLeft="6px solid"
+            borderColor="green.500"
+            spacing={3}
+            align="center"
+          >
+            <Icon
+              as={CheckCircleIcon}
+              color="green.600"
+              boxSize={5}
+            />
+            <VStack
+              align="left"
+              spacing={0}
+            >
+              <ChakraText
+                color="#2D3748"
+                fontFamily="Inter"
+                fontSize="16px"
+                fontStyle="normal"
+                fontWeight={700}
+                lineHeight="normal"
+                letterSpacing="0.08px"
+              >
+                Invoice Downloaded
+              </ChakraText>
+              {month && year && (
+                <ChakraText 
+                  fontSize="sm"
+                >
+                  {programName}_{month} {year}
+                </ChakraText>
+              )}
+            </VStack>
+          </HStack>
+        ),
+      });
     } catch (err) {
       console.error("Error generating PDF:", err);
     } finally {

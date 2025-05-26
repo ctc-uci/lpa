@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import {
   Box,
@@ -54,6 +54,8 @@ export const SingleInvoice = () => {
   const [programName, setProgramName] = useState("");
   const [instructors, setInstructors] = useState([]);
   const [invoice, setInvoice] = useState([]);
+  const currentPastDue = useRef(pastDue);
+  
   const {
     isOpen: isModalOpen,
     onOpen: openModal,
@@ -97,39 +99,53 @@ export const SingleInvoice = () => {
         // get invoice total
         const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
         const total = invoiceTotalResponse.data.total;
-        setTotal(total);
+        setTotal(total); 
         setSubtotal(total);
 
-        // calculate sum of unpaid/remaining invoices
-        const unpaidInvoicesResponse = await backend.get(
-          "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
-        );
-        const unpaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/total/${invoice.id}`)
-          )
-        );
-        const partiallyPaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/paid/${invoice.id}`)
-          )
-        );
-        const unpaidTotal = unpaidTotals.reduce(
-          (sum, res) => sum + res.data.total,
-          0
-        );
-        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-          (sum, res) => {
-            const paidAmount = res.data.paid || 0;
-            return sum + paidAmount;
-          },
-          0
-        );
+        // // calculate sum of unpaid/remaining invoices
+        // const unpaidInvoicesResponse = await backend.get(
+        //   "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
+        // );
+        // // console.log("currentInvoiceResponse data[0] eventId", currentInvoiceResponse.data[0]["eventId"]);
+        
+        // const unpaidTotals = await Promise.all(
+        //   unpaidInvoicesResponse.data.map((invoice) =>{
+        //     // console.log("invoice.id", invoice.id) 
+        //     return backend.get(`/invoices/total/${invoice.id}`)
+        //   })
+        // )
 
-        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        // const partiallyPaidTotals = await Promise.all(
+        //   unpaidInvoicesResponse.data.map((invoice) =>
+        //     backend.get(`/invoices/paid/${invoice.id}`)
+        //   )
+        // );
+        // console.log("partiallyPaidTotals", partiallyPaidTotals);
+        // const unpaidTotal = unpaidTotals.reduce(
+        //   (sum, res) => sum + res.data.total,
+        //   0
+        // );
+        // const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+        //   (sum, res) => {
+        //     const paidAmount = res.data.paid || 0;
+        //     return sum + paidAmount;
+        //   },
+        //   0
+        // );
 
-        setRemainingBalance(remainingBalance);
-        setPastDue(remainingBalance);
+        // const remainingBalanceCalculated = unpaidTotal - unpaidPartiallyPaidTotal;
+        // console.log("remainingBalance", remainingBalance);
+        // console.log("unpaidTotal - unpaidPartiallyPaidTotal", `${unpaidTotal} - ${unpaidPartiallyPaidTotal}`);
+
+        // setRemainingBalance(remainingBalanceCalculated);
+        // setPastDue(remainingBalance);
+
+        const paidTotalResponse = await backend.get(`/invoices/paid/${id}`);
+        const paidTotal = paidTotalResponse.data.total;
+
+        const remainingBalanceCalculated = (total - paidTotal) > 0 ? (total - paidTotal) : 0 ;
+        setRemainingBalance(remainingBalanceCalculated);
+        setPastDue(remainingBalanceCalculated);
 
         // get program name
         const programNameResponse = await backend.get(
@@ -191,28 +207,51 @@ export const SingleInvoice = () => {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        if (!comments || !Array.isArray(comments) || comments.length === 0) {
-          return;
-        }
+        // console.log("fetching booking details 2");
+        // if (!comments || !Array.isArray(comments) || comments.length === 0) {
+        //   return;
+        // }
 
-        // Find the first comment with a booking_id
-        const commentWithBookingId = comments[0].bookingId;
+        // console.log("fetching booking details 3");
+        // console.log("comments", comments);
 
-        const bookingResponse = await backend.get(
-          `/bookings/${commentWithBookingId}`
-        );
-        setBookingDetails(bookingResponse.data[0]);
+        // // Check if bookingId exists and is not null
+        // const commentWithBookingId = comments[0]?.bookingId;
+        // if (!commentWithBookingId) {
+        //   return;
+        // }
 
-        const roomResponse = await backend.get(
-          `/rooms/${bookingResponse.data[0].roomId}`
-        );
-        setRoom(roomResponse.data);
-        setRoomRate(room[0]?.rate);
+        // console.log("fetching booking details 4");
+
+        // const bookingResponse = await backend.get(
+        //   `/bookings/${commentWithBookingId}`
+        // );
+        
+        // if (!bookingResponse.data || !bookingResponse.data[0]) {
+        //   return;
+        // }
+        
+        // setBookingDetails(bookingResponse.data[0]);
+
+        // const roomResponse = await backend.get(
+        //   `/rooms/${bookingResponse.data[0].roomId}`
+        // );
+        // if (roomResponse.data) {
+        //   setRoom(roomResponse.data);
+        //   setRoomRate(roomResponse.data[0]?.rate || 0);
+        // }
+
+
+        const totalRoomRate = sessions.reduce((acc, session) => {
+          console.log("session", session);
+          return acc + (Number(session.rate) || 0);
+        }, 0);
+        setRoomRate(totalRoomRate);
       } catch (error) {
         console.error("Error fetching booking details:", error);
       }
     };
-
+    console.log("fetching booking details");
     fetchBookingDetails();
   }, [comments, backend, room]);
 
@@ -367,12 +406,16 @@ export const SingleInvoice = () => {
                   roomRate={roomRate}
                   billingPeriod={billingPeriod}
                   amountDue={total}
-                  remainingBalance={!remainingBalance}
+                  remainingBalance={remainingBalance}
                 ></InvoiceStats>
                 <InvoicePayments
+                  sessions={sessions}
+                  setSessions={setSessions}
                   comments={comments}
                   setComments={setComments}
                   setHasUnsavedChanges={setHasUnsavedChanges}
+                  setRemainingBalance={setRemainingBalance}
+                  amountDue={total}
                 ></InvoicePayments>
                 <EmailHistory emails={emails}></EmailHistory>
               </Flex>
@@ -387,6 +430,7 @@ export const SingleInvoice = () => {
                 overflow="hidden" // Important: prevents scrollbars from fighting transform
                 justifyContent="center"
                 alignItems="center"
+                mr="40px"
               >
                 <TransformWrapper
                   limitToBounds={false}
@@ -408,7 +452,7 @@ export const SingleInvoice = () => {
                         room={room}
                         subtotal={subtotal}
                         setSubtotal={setSubtotal}
-                        pastDue={pastDue}
+                        pastDue={currentPastDue.current}
                         payees={payees}
                         programName={programName}
                         instructors={instructors}

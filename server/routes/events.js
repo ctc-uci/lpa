@@ -68,7 +68,6 @@ eventsRouter.get("/remaining/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const currentMonth = new Date().toISOString().split("T")[0] + "T00:00:00Z";
-
     const unpaidInvoices = await db.query(
       `SELECT * FROM invoices
       WHERE invoices.event_id = $1 AND payment_status <> 'full' AND end_date < $2;`,

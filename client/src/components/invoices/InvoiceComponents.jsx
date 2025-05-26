@@ -143,8 +143,11 @@ const InvoiceStats = ({
   roomRate,
   billingPeriod,
   amountDue,
-  remainingBalance,
+  remainingBalance
 }) => {
+  const { backend } = useBackendContext();
+  const { id } = useParams();
+  const navigate = useNavigate();
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
     return date.toLocaleDateString("en-US", {
@@ -152,6 +155,15 @@ const InvoiceStats = ({
       day: "numeric",
     });
   };
+
+  const navigateToPreviousInvoice = async () => {
+    const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
+    const eventId = currentInvoiceResponse.data[0].eventId;
+    const previousInvoices = await backend.get(`/invoices/previousInvoices/${id}?event_id=${eventId}`);
+    const previousInvoiceId = previousInvoices.data[0].id;
+    navigate(`/invoices/${previousInvoiceId}`);
+  };
+  
 
   return (
     <Flex
@@ -238,9 +250,7 @@ const InvoiceStats = ({
               fontSize="14px"
               fontWeight="500"
             >
-              {roomRate !== 0
-                ? `$${Number(remainingBalance).toFixed(2)}`
-                : "N/A"}
+              ${Number(remainingBalance).toFixed(2)}
             </Text>
             <Button
               backgroundColor="#EDF2F7"
@@ -253,6 +263,7 @@ const InvoiceStats = ({
               fontWeight={"500"}
               fontSize={"14px"}
               fontFamily={"Inter"}
+              onClick={navigateToPreviousInvoice}
             >
               View Previous Invoice
             </Button>
@@ -277,7 +288,7 @@ const InvoiceStats = ({
   );
 };
 
-const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
+const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges, setRemainingBalance, amountDue }) => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const [commentsPerPage, setCommentsPerPage] = useState(3);
@@ -290,7 +301,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
   const [selectedComment, setSelectedComment] = useState(null);
   const [editID, setEditID] = useState(null);
   const [deleteID, setDeleteID] = useState(null);
-
+  const [editDate, setEditDate] = useState(null);
   const { currentUser } = useAuthContext();
   const [uid, setUid] = useState(null);
   const [programName, setProgramName] = useState("");
@@ -300,8 +311,6 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
 
   useEffect(() => {
     const fetchUid = async () => {
-      console.log("In fetchUid");
-      console.log("In fetchUid", currentUser.email);
       try {
         const uidResponse = await backend.get(
           "/users/email/" + currentUser.email
@@ -337,6 +346,27 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
 
   const currentPageComments = comments ?? [];
 
+  const updateRemainingBalance = async () => {
+    // Get updated comments
+    const commentsResponse = await backend.get(
+      "/comments/paidInvoices/" + id
+    );
+    
+    // Update comments state with new data
+    setComments(commentsResponse.data);
+
+    // Calculate new remaining balance using updated comments
+    const paidTotal = commentsResponse.data.reduce((acc, comment) => {
+      if (comment.adjustmentType === "paid") {
+        return acc + parseFloat(comment.adjustmentValue);
+      }
+      return acc;
+    }, 0);
+    
+    const remainingBalanceCalculated = (amountDue - paidTotal) > 0 ? (amountDue - paidTotal) : 0.00;
+    setRemainingBalance(remainingBalanceCalculated);
+  }
+
   const handleDeleteComment = async () => {
     try {
       await backend.delete("/comments/" + deleteID);
@@ -347,6 +377,9 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
       onClose();
     } catch (error) {
       console.error("Error deleting:", error);
+    }
+    finally {
+      updateRemainingBalance();
     }
   };
 
@@ -360,9 +393,11 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
     }
   };
 
-  const handleEditComment = (edit) => {
+  const handleEditComment = (edit, datetime, adjustmentValue) => {
     try {
       setEditID(edit);
+      setEditDate(datetime);
+      setAdjustValue(adjustmentValue);
       setShowEditRow(true);
       setHasUnsavedChanges(true);
     } catch (error) {
@@ -371,15 +406,20 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
   };
 
   const handleSaveComment = async () => {
+    const editDateObj = new Date(editDate);
+    editDateObj.setMinutes(editDateObj.getMinutes() + editDateObj.getTimezoneOffset());
+    
     try {
+      const adjustmentValue = parseFloat(adjustValue);
+      
       const commentsData = {
         user_id: uid,
         invoice_id: id,
         booking_id: null,
-        datetime: new Date().toISOString(),
+        datetime: editDateObj.toISOString(),
         comment: "",
         adjustment_type: "paid",
-        adjustment_value: Number(adjustValue),
+        adjustment_value: adjustmentValue,
       };
 
       if (showEditRow) {
@@ -475,14 +515,16 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
           ),
         });
       }
-      const commentsResponse = await backend.get(
-        "/comments/paidInvoices/" + id
-      );
-      setComments(commentsResponse.data);
+      
+
+      updateRemainingBalance();
+
+      // Reset UI state
       setShowEditRow(false);
       setShowInputRow(false);
       setHasUnsavedChanges(false);
       setAdjustValue("--.--");
+      
     } catch (error) {
       console.error("Error saving:", error);
     }
@@ -491,6 +533,12 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
   const handleAddComment = async () => {
     setShowInputRow(true);
     setHasUnsavedChanges(true);
+    // Set today's date in YYYY-MM-DD format for the date input
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    setEditDate(formattedDate);
+    setAdjustValue("0.00");
+    setEditID(null);
   };
 
   const formatDate = (dateString) => {
@@ -557,8 +605,9 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
             color="#2D3748"
             width="100%"
           >
-            {comments && comments.length > 0 ? (
+            {comments && comments.filter(comment => comment.adjustmentType === "paid").length > 0 ? (
               [...currentPageComments]
+                .filter(comment => comment.adjustmentType === "paid")
                 .sort((a, b) => a.id - b.id)
                 .map((comment) => (
                   <Tr
@@ -572,7 +621,9 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                       paddingInlineStart="8px"
                       paddingInlineEnd="8px"
                     >
-                      {format(new Date(comment.datetime), "EEE. M/d/yy")}
+                        <Text>
+                          {format(new Date(comment.datetime), "EEE. M/d/yy")}
+                        </Text>
                     </Td>
                     <Td
                       fontSize="14px"
@@ -590,7 +641,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                             $
                           </Text>
                           <Input
-                            type="number"
+                            type="text"
                             placeholder="__.__"
                             value={adjustValue}
                             w="60px"
@@ -598,11 +649,23 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                             fontWeight="700"
                             fontSize="14px"
                             variant="unstyled"
-                            onChange={(e) => setAdjustValue(e.target.value)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                                setAdjustValue(value);
+                                setValueEntered(true);
+                              }
+                            }}
+                            onBlur={(e) => {
+                              if (e.target.value) {
+                                const formattedValue = Number(e.target.value).toFixed(2);
+                                setAdjustValue(formattedValue);
+                              }
+                            }}
                           />
                         </Flex>
                       ) : comment.adjustmentValue ? (
-                        `$${Number(comment.adjustmentValue).toFixed(0)}`
+                        `$${Number(comment.adjustmentValue).toFixed(2)}`
                       ) : (
                         "N/A"
                       )}
@@ -624,7 +687,7 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                         />
                         <MenuList>
                           <MenuItem
-                            onClick={() => handleEditComment(comment.id)}
+                            onClick={() => handleEditComment(comment.id, comment.datetime, comment.adjustmentValue)}
                           >
                             <Box
                               display="flex"
@@ -727,7 +790,12 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                   paddingInlineStart="8px"
                   paddingInlineEnd="8px"
                 >
-                  {format(new Date(), "EEE. M/d/yy")}
+                  <Input
+                    type="date"
+                    value={editDate}
+                    width="fit-content"
+                    onChange={(e) => setEditDate(e.target.value)}
+                  />
                 </Td>
                 <Td
                   fontSize="14px"
@@ -744,15 +812,27 @@ const InvoicePayments = ({ comments, setComments, setHasUnsavedChanges }) => {
                       $
                     </Text>
                     <Input
-                      type="number"
-                      placeholder="__.__"
+                      type="text"
+                      placeholder="0.00"
                       value={adjustValue}
                       w="60px"
-                      fontSize="14px"
                       color="#0C824D"
-                      fontWeight="400"
+                      fontWeight="700"
+                      fontSize="14px"
                       variant="unstyled"
-                      onChange={(e) => setAdjustValue(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                          setAdjustValue(value);
+                          setValueEntered(true);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value) {
+                          const formattedValue = Number(e.target.value).toFixed(2);
+                          setAdjustValue(formattedValue);
+                        }
+                      }}
                     ></Input>
                   </Flex>
                 </Td>
@@ -1004,8 +1084,8 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
               {currentInvoices.map((invoice, index) => {
                 const validPayers = Array.isArray(invoice.payers)
                   ? invoice.payers.filter(
-                      (payer) => payer && typeof payer === "string"
-                    )
+                    (payer) => payer && typeof payer === "string"
+                  )
                   : [];
                 const [tagBgColor, tagTextColor] = seasonColor(invoice);
 
@@ -1060,7 +1140,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     </Td>
                     <Td>
                       <Flex ml="18px">
-                        <PDFButtonInvoice id={invoice.id} />
+                        <PDFButtonInvoice id={invoice.id} invoiceMonth={invoice.month} invoiceYear={invoice.year} programName={invoice.eventName} />
                       </Flex>
                     </Td>
                     <Td>
