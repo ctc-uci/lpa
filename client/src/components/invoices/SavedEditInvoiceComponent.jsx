@@ -863,34 +863,57 @@ const SavedInvoiceSummary = ({
                 </Td>
               </Tr>
               {/* Room Fee Body Row */}
-              {sessions
-                .filter((session) => session.name.length > 0)
-                .map((session, key) => (
-                  <Tr key={key}>
-                    <Td
-                      pl="16"
-                      fontSize={compactView ? "6.38px" : "sm"}
-                      py={compactView ? 2 : 4}
-                      borderBottom={
-                        key === sessions.length - 1 ? undefined : "none"
-                      }
-                      colSpan={4}
-                    >
-                      {session.name}
-                    </Td>
-                    <Td
-                      fontSize={compactView ? "6.38px" : "sm"}
-                      py={compactView ? 2 : 4}
-                      borderBottom={
-                        key === sessions.length - 1 ? undefined : "none"
-                      }
-                    >
-                      {summary.length === 0 || summary[0]?.adjustmentValues.length === 0 ? (
-                        "None"
-                      ) : (
-                        <Box display="inline-block">
-                          <Tooltip
-                            label={summary[0]?.adjustmentValues
+              {Object.values(
+                sessions
+                  .filter((session) => session.name.length > 0)
+                  .reduce((acc, session) => {
+                    // Use the session name as the key
+                    if (!acc[session.name]) {
+                      acc[session.name] = {
+                        ...session,
+                        rate: session.rate // Keep the first rate we see
+                      };
+                    }
+                    return acc;
+                  }, {})
+              ).map((session, key, array) => (
+                <Tr key={key}>
+                  <Td
+                    pl="16"
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 4}
+                    borderBottom={key === array.length - 1 ? undefined : "none"}
+                    colSpan={4}
+                  >
+                    {session.name}
+                  </Td>
+                  <Td
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 4}
+                    borderBottom={key === array.length - 1 ? undefined : "none"}
+                  >
+                    {summary.length === 0 || summary[0]?.adjustmentValues.length === 0 ? (
+                      "None"
+                    ) : (
+                      <Box display="inline-block">
+                        <Tooltip
+                          label={summary[0]?.adjustmentValues
+                            .map((adj) => {
+                              const value = Number(adj.value);
+                              const sign = value >= 0 ? "+" : "-";
+                              const isFlat = adj.type === "rate_flat";
+                              const absValue = Math.abs(value);
+                              return isFlat
+                                ? `${sign}$${absValue}`
+                                : `${sign}${absValue}%`;
+                            })
+                            .join(", ")}
+                          placement="top"
+                          bg="gray"
+                          w="auto"
+                        >
+                          <Text textOverflow="ellipsis" overflow="hidden">
+                            {summary[0]?.adjustmentValues
                               .map((adj) => {
                                 const value = Number(adj.value);
                                 const sign = value >= 0 ? "+" : "-";
@@ -901,43 +924,21 @@ const SavedInvoiceSummary = ({
                                   : `${sign}${absValue}%`;
                               })
                               .join(", ")}
-                            placement="top"
-                            bg="gray"
-                            w="auto"
-                          >
-                            <Text
-                              textOverflow="ellipsis"
-                              // whiteSpace="nowrap"
-                              overflow="hidden"
-                            >
-                              {summary[0]?.adjustmentValues
-                                .map((adj) => {
-                                  const value = Number(adj.value);
-                                  const sign = value >= 0 ? "+" : "-";
-                                  const isFlat = adj.type === "rate_flat";
-                                  const absValue = Math.abs(value);
-                                  return isFlat
-                                    ? `${sign}$${absValue}`
-                                    : `${sign}${absValue}%`;
-                                })
-                                .join(", ")}
-                            </Text>
-                          </Tooltip>
-                        </Box>
-                      )}
-                    </Td>
-                    <Td
-                      textAlign="end"
-                      py={compactView ? 0 : 4}
-                      fontSize={compactView ? "6.38px" : "sm"}
-                      borderBottom={
-                        key === sessions.length - 1 ? undefined : "none"
-                      }
-                    >
-                      ${session.rate}/hr
-                    </Td>
-                  </Tr>
-                ))}
+                          </Text>
+                        </Tooltip>
+                      </Box>
+                    )}
+                  </Td>
+                  <Td
+                    textAlign="end"
+                    py={compactView ? 0 : 4}
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    borderBottom={key === array.length - 1 ? undefined : "none"}
+                  >
+                    ${session.rate}/hr
+                  </Td>
+                </Tr>
+              ))}
               {/* past due balance row */}
 
               <Tr>

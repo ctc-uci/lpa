@@ -707,6 +707,7 @@ const InvoiceTable = ({ sessions, summary }) => {
                 >
                   <Text style={{ fontSize: 7 }}>
                     {session.adjustmentValues
+                      .filter((adj) => adj.type !== "total").length > 0 ? session.adjustmentValues
                       .filter((adj) => adj.type !== "total")
                       .map((adj) => {
                         const value = Number(adj.value);
@@ -717,7 +718,7 @@ const InvoiceTable = ({ sessions, summary }) => {
                           ? `${sign}$${absValue}`
                           : `${sign}${absValue}%`;
                       })
-                      .join(", ")}
+                      .join(", ") : "None"}
                   </Text>
                 </View>
                 <View style={{ ...tableStyles.tableCol }}>
@@ -994,70 +995,79 @@ const SummaryTable = ({
             <Text style={{ fontSize: 7 }}>Room Fee</Text>
           </View>
         </View>
-        {sessions
-          ?.filter((session) => session.name?.length > 0)
-          .map((session, index) => {
-            const isLast = index === summary.length - 1;
-            const rowStyle = isLast
-              ? summaryTableStyles.lastRoomFeeRow
-              : summaryTableStyles.roomFeeRow;
-            return (
+        {Object.values(
+          (sessions || [])
+            ?.filter((session) => session.name?.length > 0)
+            .reduce((acc, session) => {
+              // Use session name as key to remove duplicates
+              if (!acc[session.name]) {
+                acc[session.name] = {
+                  ...session,
+                  rate: session.rate
+                };
+              }
+              return acc;
+            }, {})
+        ).map((session, index, array) => {
+          const isLast = index === array.length - 1;
+          const rowStyle = isLast
+            ? summaryTableStyles.lastRoomFeeRow
+            : summaryTableStyles.roomFeeRow;
+          return (
+            <View
+              style={{
+                ...rowStyle,
+                width: "100%",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
               <View
                 style={{
-                  ...rowStyle,
-                  width: "100%",
-                  flexDirection: "row",
-                  alignItems: "center",
+                  ...summaryTableStyles.roomFeeColName,
+                  flex: 2,
                 }}
               >
-                <View
-                  style={{
-                    ...summaryTableStyles.roomFeeColName,
-                    flex: 2,
-                  }}
-                >
-                  <Text style={{ fontSize: 7 }}>{session.name}</Text>
-                </View>
-                <View
-                  style={{
-                    ...summaryTableStyles.roomFeeColAdjustment,
-                    flex: 2,
-                    paddingHorizontal: 8,
-                  }}
-                >
-                  <Text style={{ fontSize: 7 }}>
-                    {summary[0]?.adjustmentValues?.map((adj, index) => {
-                      const value = Number(adj.value);
-                      const sign = value >= 0 ? "+" : "-";
-                      const isFlat = adj.type === "rate_flat";
-                      const absValue = Math.abs(value);
-                      const adjustment = isFlat
-                        ? `${sign}$${absValue}`
-                        : `${sign}${absValue}%`;
-                      return index === 0 ? adjustment : `, ${adjustment}`;
-                    })}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    ...summaryTableStyles.tableCol,
-                    flex: 1,
-                    alignItems: "flex-end",
-                    paddingRight: 20,
-                  }}
-                >
-                  <Text style={{ fontSize: 7 }}>
-                    ${" "}
-                    {calculateTotalBookingRow({
-                      rate: Number(session.rate),
-                      adjustmentValues: summary[0].adjustmentValues,
-                    })}
-                    /hr
-                  </Text>
-                </View>
+                <Text style={{ fontSize: 7 }}>{session.name}</Text>
               </View>
-            );
-          })}
+              <View
+                style={{
+                  ...summaryTableStyles.roomFeeColAdjustment,
+                  flex: 2,
+                  paddingHorizontal: 8,
+                }}
+              >
+                <Text style={{ fontSize: 7 }}>
+                  {summary.length > 0 && summary[0]?.adjustmentValues?.length > 0 ? summary[0]?.adjustmentValues?.map((adj, index) => {
+                    const value = Number(adj.value);
+                    const sign = value >= 0 ? "+" : "-";
+                    const isFlat = adj.type === "rate_flat";
+                    const absValue = Math.abs(value);
+                    const adjustment = isFlat
+                      ? `${sign}$${absValue}`
+                      : `${sign}${absValue}%`;
+                    return index === 0 ? adjustment : `, ${adjustment}`;
+                  }) : "None"}
+                </Text>
+              </View>
+              <View
+                style={{
+                  ...summaryTableStyles.tableCol,
+                  flex: 1,
+                  alignItems: "flex-end",
+                  paddingRight: 20,
+                }}
+              >
+                <Text style={{ fontSize: 7 }}>
+                  $ {calculateTotalBookingRow({
+                    rate: Number(session.rate),
+                    adjustmentValues: summary.length > 0 ? summary[0].adjustmentValues : [],
+                  })}/hr
+                </Text>
+              </View>
+            </View>
+          );
+        })}
 
         {/* Data Rows */}
         <View style={{ ...summaryTableStyles.tableRow, width: "100%" }}>

@@ -1741,99 +1741,97 @@ const InvoiceSummary = ({
               {/* Room Fee Body Row */}
 
               {/* Custom rows don't have room names, so that's why we filter them out to avoid showing custom rows in the summary */}
-              {sessions
-                ?.filter(
-                  (session) =>
-                    session.name?.length > 0 &&
-                    session.adjustmentValues[0]?.type !== "total" &&
-                    session.adjustmentValues[0]?.type !== "none"
-                    
-                )
-                .map((session, key) => (
-                  <Tr key={key}>
-                    <Td
-                      pl="16"
-                      fontSize={compactView ? "6.38px" : "sm"}
-                      py={compactView ? 2 : 4}
-                      borderBottom={
-                        key === sessions.length - 1 ? undefined : "none"
-                      }
-                      colSpan={4}
-                    >
-                      {session.name}
-                    </Td>
-                    <Td
-                      fontSize={compactView ? "6.38px" : "sm"}
-                      py={compactView ? 2 : 4}
-                      borderBottom={
-                        key === sessions.length - 1 ? undefined : "none"
-                      }
-                    >
-                      {!summary || summary.length === 0 ? (
-                        "None"
-                      ) : (
-                        <Box display="inline-block">
-                          <Tooltip
-                            label={summary[0]?.adjustmentValues.length > 0
+              {Object.values(
+                (sessions || [])
+                  .filter(
+                    (session) =>
+                      session.name?.length > 0 &&
+                      session.adjustmentValues[0]?.type !== "total" &&
+                      session.adjustmentValues[0]?.type !== "none"
+                  )
+                  .reduce((acc, session) => {
+                    // Use session name as key to remove duplicates
+                    if (!acc[session.name]) {
+                      acc[session.name] = {
+                        ...session,
+                        rate: session.rate
+                      };
+                    }
+                    return acc;
+                  }, {})
+              ).map((session, key, array) => (
+                <Tr key={key}>
+                  <Td
+                    pl="16"
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 4}
+                    borderBottom={key === array.length - 1 ? undefined : "none"}
+                    colSpan={4}
+                  >
+                    {session.name}
+                  </Td>
+                  <Td
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 4}
+                    borderBottom={key === array.length - 1 ? undefined : "none"}
+                  >
+                    {!summary || summary.length === 0 ? (
+                      "None"
+                    ) : (
+                      <Box display="inline-block">
+                        <Tooltip
+                          label={summary[0]?.adjustmentValues.length > 0
+                            ? summary[0]?.adjustmentValues
+                              .map((adj) => {
+                                const sign = adj.value < 0 ? "-" : "+";
+                                const isFlat = adj.type === "rate_flat";
+                                const absValue = Math.abs(adj.value);
+                                return isFlat
+                                ? `${sign}$${absValue}`
+                                : `${sign}${absValue}%`;
+                            })
+                            .join(", ") : "None"}
+                          placement="top"
+                          bg="gray"
+                          w="auto"
+                        >
+                          <Text textOverflow="ellipsis" overflow="hidden">
+                            {summary[0]?.adjustmentValues.length > 0
                               ? summary[0]?.adjustmentValues
                                 .map((adj) => {
                                   const sign = adj.value < 0 ? "-" : "+";
                                   const isFlat = adj.type === "rate_flat";
                                   const absValue = Math.abs(adj.value);
                                   return isFlat
-                                  ? `${sign}$${absValue}`
-                                  : `${sign}${absValue}%`;
-                              })
-                              .join(", ") : "None"}
-                            placement="top"
-                            bg="gray"
-                            w="auto"
-                          >
-                            <Text
-                              textOverflow="ellipsis"
-                              overflow="hidden"
-                            >
-                              {summary[0]?.adjustmentValues.length > 0
-                                ? summary[0]?.adjustmentValues
-                                  .map((adj) => {
-                                    const sign = adj.value < 0 ? "-" : "+";
-                                    const isFlat = adj.type === "rate_flat";
-                                    const absValue = Math.abs(adj.value);
-                                    return isFlat
                                     ? `${sign}$${absValue}`
                                     : `${sign}${absValue}%`;
                                 })
                                 .join(", ") : "None"}
-                            </Text>
-                          </Tooltip>
-                        </Box>
-                      )}
-                    </Td>
-                    <Td
-                      textAlign="end"
-                      py={compactView ? 0 : 4}
-                      fontSize={compactView ? "6.38px" : "sm"}
-                      borderBottom={
-                        key === sessions.length - 1 ? undefined : "none"
-                      }
-                    >
-                      <HStack
-                        spacing={1}
-                        justify="end"
-                      >
-                        <Box as="span">$</Box>
-                        <Input
-                          value={parseFloat(session.rate).toFixed(2)}
-                          readOnly={true}
-                          w="8ch"
-                          textAlign="center"
-                          px={1}
-                        />
-                        <Box as="span">/hr</Box>
-                      </HStack>
-                    </Td>
-                  </Tr>
-                ))}
+                          </Text>
+                        </Tooltip>
+                      </Box>
+                    )}
+                  </Td>
+                  <Td
+                    textAlign="end"
+                    py={compactView ? 0 : 4}
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    borderBottom={key === array.length - 1 ? undefined : "none"}
+                  >
+                    <HStack spacing={1} justify="end">
+                      <Box as="span">$</Box>
+                      <Input
+                        value={parseFloat(session.rate).toFixed(2)}
+                        readOnly={true}
+                        w="8ch"
+                        textAlign="center"
+                        px={1}
+                      />
+                      <Box as="span">/hr</Box>
+                    </HStack>
+                  </Td>
+                </Tr>
+              ))}
               {/* past due balance row */}
 
               <Tr>
