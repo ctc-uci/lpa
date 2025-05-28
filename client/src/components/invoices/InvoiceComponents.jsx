@@ -1140,7 +1140,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     </Td>
                     <Td>
                       <Flex ml="18px">
-                        <PDFButtonInvoice id={invoice.id} invoiceMonth={invoice.month} invoiceYear={invoice.year} programName={invoice.eventName} />
+                        <PDFButtonInvoice onlyIcon={true} id={invoice.id} invoiceMonth={invoice.month} invoiceYear={invoice.year} programName={invoice.eventName} />
                       </Flex>
                     </Td>
                     <Td>

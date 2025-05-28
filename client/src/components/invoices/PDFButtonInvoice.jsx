@@ -29,7 +29,7 @@ const handleSubtotalSum = (startTime, endTime, rate) => {
   return total;
 };
 
-const PDFButtonInvoice = ({ id }) => {
+const PDFButtonInvoice = ({ id, onlyIcon = false }) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
@@ -61,7 +61,7 @@ const PDFButtonInvoice = ({ id }) => {
     const sessions = sessionResponse.data;
     const summary = summaryResponse.data;
 
-    setProgramName(programNameResponse.data[0].name.split(" ").slice(0, 3).join(" "));
+    setProgramName(programNameResponse.data[0].name.trim().split(" ").slice(0, 3).join("_"));
 
     let booking = {};
     let room = [];
@@ -223,6 +223,16 @@ const PDFButtonInvoice = ({ id }) => {
 
   return (
     <Box>
+      {onlyIcon ? 
+      <IconButton
+        onClick={handleDownload}
+        bg="transparent"
+        icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
+        aria-label="Download PDF"
+        isDisabled={loading}
+      >
+      </IconButton>
+      :
       <Button
         onClick={handleDownload}
         leftIcon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
@@ -231,6 +241,7 @@ const PDFButtonInvoice = ({ id }) => {
       >
         Download
       </Button>
+      }
     </Box>
   );
 };
