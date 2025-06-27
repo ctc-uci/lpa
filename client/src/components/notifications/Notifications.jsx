@@ -216,6 +216,10 @@ export const Notifications = () => {
                 backend.get(`/events/${invoice.eventId}`),
               ]);
 
+              console.log("totalRes", totalRes);
+              console.log("paidRes", paidRes);
+              console.log("eventRes", eventRes);
+
               const eventId = eventRes.data[0]?.id;
               const payersRes = await backend.get(
                 `/assignments/event/${eventId}`
