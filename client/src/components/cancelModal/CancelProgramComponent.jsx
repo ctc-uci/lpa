@@ -35,6 +35,7 @@ export const CancelProgram = ({
   onClose,
   type,
   handleArchiveSession,
+  setIsArchived,
 }) => {
   const [selectedAction, setSelectedAction] = useState("Archive");
   const [selectedIcon, setSelectedIcon] = useState(<CancelArchiveIcon />);
@@ -69,6 +70,7 @@ export const CancelProgram = ({
         archived: true,
         description: eventDescription + "\n" + cancelReason,
       });
+      setIsArchived(true);
       if (setPrograms) {
         setPrograms((prev) => prev.filter((p) => p.id !== id));
       }

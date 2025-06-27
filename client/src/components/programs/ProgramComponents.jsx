@@ -833,6 +833,7 @@ export const ProgramSummary = ({
         isOpen={isOpen}
         onClose={onClose}
         type={"Program"}
+        setIsArchived={setIsArchived}
       />
     </Box>
   );
