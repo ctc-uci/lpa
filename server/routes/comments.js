@@ -44,6 +44,229 @@ commentsRouter.get("/invoice/:id", async (req, res) => {
   }
 });
 
+const formatAdjustmentFee = (adjustmentType, val) => {
+  if (adjustmentType === "rate_percent")  return val > 0 ? `+${val}%` : `-${Math.abs(val)}%`;
+  if (adjustmentType === "rate_flat") return val > 0 ? `+$${val}` : `-$${Math.abs(val)}`;
+  return null;
+};
+
+commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // First, get regular session comments
+    const query = `SELECT comments.id as comment_id,
+                   comments.user_id,
+                   comments.booking_id,
+                   comments.invoice_id,
+                   comments.datetime,
+                   comments.comment,
+                   comments.adjustment_type,
+                   comments.adjustment_value,
+                   bookings.start_time,
+                   bookings.end_time,
+                   bookings.date as booking_date,
+                   rooms.name,
+                   rooms.rate
+                FROM comments
+                JOIN invoices ON comments.invoice_id = invoices.id
+                LEFT JOIN bookings ON comments.booking_id = bookings.id
+                LEFT JOIN rooms ON bookings.room_id = rooms.id
+                WHERE comments.invoice_id = $1 
+                AND comments.booking_id IS NOT NULL
+                AND bookings.date BETWEEN invoices.start_date AND invoices.end_date
+                AND bookings.event_id = invoices.event_id
+                ORDER BY comments.id`;
+    const queryParams = [id];
+
+    const data = await db.query(query, queryParams);
+    const comments = keysToCamel(data);
+
+
+    const groupedComments = {};
+
+    comments.forEach((comment) => {
+      const bookingId = comment.bookingId;
+      
+      // Initialize the session group if it doesn't exist
+      if (!groupedComments[bookingId]) {
+
+        groupedComments[bookingId] = {
+          ...comment,
+          comments: comment.comment ? [{
+            id: comment.commentId,
+            comment: comment.comment,
+          }] : [],
+          adjustmentValues: [],
+          total : []
+        };
+        
+        // Only add adjustment value if type is not "none"
+        if (comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
+          groupedComments[bookingId].adjustmentValues.push({
+            id: comment.commentId,
+            type: comment.adjustmentType,
+            value: comment.adjustmentValue
+          });
+        }
+
+        if(comment.adjustmentType === "total"){
+          groupedComments[bookingId].total.push({
+            id: comment.commentId,
+            value: comment.adjustmentValue,
+            comment: comment.comment,
+            date: comment.datetime
+          })
+        }
+        
+      } else {
+        // Add comment if it's not empty
+        if (comment.comment && comment.adjustmentType === "none") {
+          groupedComments[bookingId].comments.push({
+            id: comment.commentId,
+            comment: comment.comment,
+          });
+        }
+
+        // Add adjustment value if not already included and type is not "none"
+        if (comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
+          const adjustmentExists = groupedComments[bookingId].adjustmentValues.some(
+            adj => adj.id === comment.commentId || 
+                  (adj.type === comment.adjustmentType && 
+                   adj.value === comment.adjustmentValue)
+          );
+          
+          if (!adjustmentExists) {
+            groupedComments[bookingId].adjustmentValues.push({
+              id: comment.commentId,
+              type: comment.adjustmentType,
+              value: comment.adjustmentValue
+            });
+          }
+        }
+
+        if(comment.adjustmentType === "total"){
+          groupedComments[bookingId].total.push({
+            id: comment.commentId,
+            value: comment.adjustmentValue,
+            comment: comment.comment,
+            date: comment.datetime
+          })
+        }
+      }
+
+      // Clean up unnecessary fields
+      delete groupedComments[bookingId].adjustmentType;
+      delete groupedComments[bookingId].adjustmentValue;
+      delete groupedComments[bookingId].comment;
+      delete groupedComments[bookingId].commentId;
+    });
+
+    res.status(200).json(Object.values(groupedComments));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+commentsRouter.get("/invoice/summary/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { includeNoBooking } = req.query;
+
+    const query = `SELECT comments.id as comment_id,
+                   comments.user_id,
+                   comments.booking_id,
+                   comments.invoice_id,
+                   comments.datetime,
+                   comments.comment,
+                   comments.adjustment_type,
+                   comments.adjustment_value
+                FROM comments
+                WHERE comments.invoice_id = $1 
+                AND comments.booking_id IS NULL`;
+    const queryParams = [id];
+
+    const data = await db.query(query, queryParams);
+    const comments = keysToCamel(data);
+    const groupedComments = {};
+
+    comments.forEach((comment) => {
+      // Skip comments with adjustment type "none" or "total" for the main summary
+      if (comment.adjustmentType === "none" || comment.adjustmentType === "total") {
+        // For "total" adjustments, still create a separate entry
+        if (comment.adjustmentType === "total") {
+          const totalKey = `summary-total-${comment.commentId}`;
+          groupedComments[totalKey] = {
+            ...comment,
+            comments: comment.comment ? [comment.comment] : [],
+            adjustmentValues: [{
+              id: comment.commentId,
+              type: comment.adjustmentType,
+              value: comment.adjustmentValue
+            }]
+          };
+          
+          // Clean up unnecessary fields
+          delete groupedComments[totalKey].adjustmentType;
+          delete groupedComments[totalKey].adjustmentValue;
+          delete groupedComments[totalKey].comment;
+          delete groupedComments[totalKey].commentId;
+        }
+        
+        // Skip further processing for both "none" and "total"
+        return;
+      }
+      
+      const bookingId = comment.bookingId || 'summary';
+      
+      // Initialize the session group if it doesn't exist
+      if (!groupedComments[bookingId]) {
+        groupedComments[bookingId] = {
+          ...comment,
+          comments: comment.comment ? [comment.comment] : [],
+          adjustmentValues: [{
+            id: comment.commentId,
+            type: comment.adjustmentType,
+            value: comment.adjustmentValue
+          }]
+        };
+      } else {
+        // Add comment if it's not empty
+        if (comment.comment) {
+          groupedComments[bookingId].comments.push(comment.comment);
+        }
+
+        // Add adjustment value if not already included
+        const adjustmentExists = groupedComments[bookingId].adjustmentValues.some(
+          adj => adj.id === comment.commentId || 
+                (adj.type === comment.adjustmentType && 
+                 adj.value === comment.adjustmentValue)
+        );
+        
+        if (!adjustmentExists) {
+          groupedComments[bookingId].adjustmentValues.push({
+            id: comment.commentId,
+            type: comment.adjustmentType,
+            value: comment.adjustmentValue
+          });
+        }
+      }
+
+      // Clean up unnecessary fields
+      delete groupedComments[bookingId].adjustmentType;
+      delete groupedComments[bookingId].adjustmentValue;
+      delete groupedComments[bookingId].comment;
+      delete groupedComments[bookingId].commentId;
+    });
+
+    res.status(200).json(Object.values(groupedComments));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+
+
 commentsRouter.get("/paidInvoices/:id", async (req, res) => {
   try {
     const { id } = req.params;

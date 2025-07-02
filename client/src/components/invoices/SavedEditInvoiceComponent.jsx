@@ -1,282 +1,587 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import {
   Box,
   Flex,
   Heading,
+  HStack,
+  Icon,
   Table,
+  TableContainer,
   Tbody,
   Td,
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
   VStack,
 } from "@chakra-ui/react";
 
 import { format } from "date-fns";
 
+import { ClockFilled } from "../../assets/ClockFilled";
+import {
+  BookWithBookmarkIcon,
+  CalendarIcon,
+  ClockIcon,
+  DollarSignIcon,
+  EditDocumentIcon,
+  LocationIcon,
+} from "../../assets/EditInvoiceIcons";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+
 const SavedStatementComments = ({
-  comments = [],
-  booking = [],
-  room = [],
-  subtotal = 0.0,
-  setSubtotal
+  subtotal,
+  setSubtotal,
+  sessions = [],
+  compactView = false,
 }) => {
-  const [commentsState, setComments] = useState(comments);
-  const [bookingState, setBooking] = useState(booking);
-  const [roomState, setRoom] = useState(room);
-  const [subtotalSum, setSubtotalSum] = useState(subtotal);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const calculateTotalBookingRow = (
+    startTime,
+    endTime,
+    rate,
+    adjustmentValues,
+    totalArray = []
+  ) => {
+    if (!startTime || !endTime || !rate) return "0.00";
 
-  const handleSubtotalSum = (startTime, endTime, rate) => {
-    if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
-
+    // Make sure we're working with valid arrays
+    const currentAdjustmentValues = Array.isArray(adjustmentValues)
+      ? adjustmentValues.filter((adj) => adj && adj.type)
+      : [];
+    const currentTotalArray = Array.isArray(totalArray) ? totalArray : [];
 
     const timeToMinutes = (timeStr) => {
       const [hours, minutes] = timeStr.split(":").map(Number);
       return hours * 60 + minutes;
     };
 
+    const rawStart = timeToMinutes(startTime.substring(0, 5));
+    const rawEnd = timeToMinutes(endTime.substring(0, 5));
+    const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
+    const durationInHours = (endAdjusted - rawStart) / 60;
 
-    const startMinutes = timeToMinutes(startTime.substring(0, 5));
-    const endMinutes = timeToMinutes(endTime.substring(0, 5));
-    const diff = endMinutes - startMinutes;
+    const baseRate = Number(rate);
 
+    // Calculate adjustments to the rate
+    const adjustedRate = currentAdjustmentValues.reduce((currentRate, adj) => {
+      if (!adj || !adj.type || adj.value === undefined) return currentRate;
 
-    const totalHours = Math.ceil(diff / 60);
+      const numericValue = Number(adj.value);
+      if (isNaN(numericValue)) return currentRate;
 
+      const numericPart = Math.abs(numericValue);
+      let adjustmentAmount = 0;
 
-    const total = (totalHours * rate).toFixed(2);
+      if (adj.type === "rate_flat") {
+        adjustmentAmount = numericPart;
+      } else if (adj.type === "rate_percent") {
+        adjustmentAmount = (numericPart / 100) * currentRate;
+      }
 
+      return numericValue < 0
+        ? currentRate - adjustmentAmount
+        : currentRate + adjustmentAmount;
+    }, baseRate);
 
+    // Calculate the base total with adjusted rate
+    const baseTotal = adjustedRate * durationInHours;
 
+    // Add any "total" type adjustments
+    const totalAdjustments = currentAdjustmentValues
+      .filter((adj) => adj && adj.type === "total")
+      .reduce((sum, adj) => sum + Number(adj.value || 0), 0);
 
+    // Add all values from the total array
+    const totalArraySum = currentTotalArray.reduce((sum, item) => {
+      const value = Number(item.value);
+      return sum + (isNaN(value) ? 0 : value);
+    }, 0);
+
+    // Combine all totals
+    const finalTotal = baseTotal + totalAdjustments + totalArraySum;
+
+    return finalTotal.toFixed(2);
+  };
+
+  const calculateSubtotal = (sessions) => {
+    if (!sessions || sessions.length === 0) return "0.00";
+
+    const totalSum = sessions.reduce((acc, session) => {
+      // Check if session has adjustmentValues and it's not empty
+      if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
+        // Calculate without adjustments
+        const total = parseFloat(
+          calculateTotalBookingRow(
+            session.startTime,
+            session.endTime,
+            session.rate,
+            [],
+            session.total
+          )
+        );
+        return acc + total;
+      }
+
+      // Check if the first adjustment is a total type
+      if (
+        session.adjustmentValues[0] &&
+        session.adjustmentValues[0].type === "total"
+      ) {
+        return acc + parseFloat(session.adjustmentValues[0].value || 0);
+      }
+
+      // For regular sessions with adjustments, calculate as before
+      const total = parseFloat(
+        calculateTotalBookingRow(
+          session.startTime,
+          session.endTime,
+          session.rate,
+          session.adjustmentValues,
+          session.total
+        )
+      );
+      return acc + total;
+    }, 0);
+
+    const total = totalSum.toFixed(2);
+    setSubtotal(Number(total));
     return total;
   };
 
-
-  useEffect(() => {
-    if (comments && comments.length > 0) {
-      setComments(comments);
-      setBooking(booking);
-      setRoom(room);
-
-
+  const formatTimeString = (timeStr) => {
+    if (!timeStr) {
+      return "N/A";
     }
-  }, [booking, comments, room]);
+    const timePart = timeStr.split("-")[0]?.substring(0, 5); // Added optional chaining
+    if (!timePart) {
+      return "N/A";
+    }
 
+    const [hours, minutes] = timePart.split(":").map(Number);
+    const period = hours >= 12 ? "pm" : "am";
+    const hour12 = hours % 12 || 12;
+    return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
 
+  const calculateNewRate = (session) => {
+    let newRate = Number(session.rate || 0);
 
+    session.adjustmentValues.forEach((adj) => {
+      const val = Number(adj.value);
+      const isNegative = val < 0;
+      const numericPart = Math.abs(val);
 
-    useEffect(() => {
-      // Ensure all required values are available and this only runs once
-      if (
-        bookingState &&
-        room &&
-        bookingState.startTime &&
-        bookingState.endTime &&
-        room[0]?.rate &&
-        !isDataLoaded
-      ) {
-        console.log("CHECK", bookingState.startTime, bookingState.endTime, room[0]?.rate);
-        const total = handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate);
+      let adjustmentAmount = 0;
 
-
-        // Add subtotal for each comment (this logic is now inside useEffect)
-        if (commentsState && commentsState.length > 0) {
-          commentsState.forEach(() => {
-            setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
-          });
-        }
-
-
-        setSubtotal(subtotalSum)
-        // Set flag to prevent future reruns of this effect
-        setIsDataLoaded(true);
+      if (adj.type === "rate_flat") {
+        adjustmentAmount = numericPart;
+      } else if (adj.type === "rate_percent") {
+        adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
       }
-    }, [bookingState, room, commentsState, isDataLoaded]);
+
+      if (isNegative) {
+        newRate -= adjustmentAmount;
+      } else {
+        newRate += adjustmentAmount;
+      }
+    });
+
+    return newRate;
+  };
 
   return (
     <Flex
       direction="column"
-      w="100%"
       minH="24"
       fontFamily="Inter"
       color="#2D3748"
     >
-      <Heading fontSize="11.7px" mb="2">Sessions</Heading>
+      <HStack align="baseline">
+        <BookWithBookmarkIcon />
+        <Heading
+          size={compactView ? "1.2em" : "md"}
+          mb="2"
+        >
+          Sessions
+        </Heading>
+      </HStack>
       <Flex
         border="1px solid #D2D2D2"
         borderRadius="9.57px"
         minH="24"
         px="12px"
-        width="100%"
       >
-        <Box width="100%">
-        <Table
-          color="#EDF2F7"
-          width="100%"
-          textAlign="center"
-          tableLayout="fixed"
-          size="sm"
-        >
-          {/* header row */}
-          <Thead>
-            <Tr color="#4A5568">
-              <Th textTransform="none" width="80px" fontSize="6.38px" borderBottom='none'>Date</Th>
-              <Th textTransform="none" width="80px" fontSize="6.38px" borderBottom='none'>Classroom</Th>
-              <Th textTransform="none" width="80px" fontSize="6.38px" borderBottom='none'>Rental Hours</Th>
-              <Th textTransform="none" width="80px" fontSize="6.38px" borderBottom='none'>Room Fee</Th>
-              <Th textTransform="none" width="80px" fontSize="6.38px" borderBottom='none'>Adjustment Type(s)</Th>
-              <Th textTransform="none" width="80px" fontSize="6.38px" borderBottom='none'>Total</Th>
-            </Tr>
-          </Thead>
-
-          <Tbody color="#2D3748">
-            {comments.length > 0 ? (
-              comments.map((comment, index) => [
-                <Tr key={`comment-${comment.id || "unknown"}-${index}`}>
-                  {/* date */}
-                  <Td fontSize="6.38px">
-                    {format(new Date(comment.datetime), "M/d/yy")}
-                  </Td>
-
-                  {/* classroom */}
-                  <Td fontSize="6.38px">
-                    {room && room.length > 0 ? `${room[0].name}` : "N/A"}
-                  </Td>
-
-                  {/* rental hours */}
-                  <Td fontSize="6.38px">
-                    <Flex
-                      align="center"
-                      justifyContent="space-evenly"
-                      gap={2}
-                    >
-                      <Text
-                        p={2}
-                      >
-                        {booking.startTime
-                          ? (() => {
-                              const startTime = booking.startTime
-                                .split("-")[0]
-                                .substring(0, 5);
-                              const formatTime = (timeStr) => {
-                                const [hours, minutes] = timeStr
-                                  .split(":")
-                                  .map(Number);
-                                const period = hours >= 12 ? "pm" : "am";
-                                const hour12 = hours % 12 || 12;
-                                return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
-                              };
-
-                              return `${formatTime(startTime)}`;
-                            })()
-                          : "N/A"}
-                      </Text>
-                      <Text>to</Text>
-                      <Text
-                        p={2}
-                      >
-                        {booking.startTime
-                          ? (() => {
-                              const endTime = booking.endTime
-                                .split("-")[0]
-                                .substring(0, 5);
-                              const formatTime = (timeStr) => {
-                                const [hours, minutes] = timeStr
-                                  .split(":")
-                                  .map(Number);
-                                const period = hours >= 12 ? "pm" : "am";
-                                const hour12 = hours % 12 || 12;
-                                return `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
-                              };
-
-                              return `${formatTime(endTime)}`;
-                            })()
-                          : "N/A"}
-                      </Text>
-                    </Flex>
-                  </Td>
-
-                  {/* room fee */}
-                  <Td fontSize="6.38px">
-                    <Flex align="center" gap="1">
-                      <Text
-                        fontSize="6.38px"
-                        p="2"
-                      >
-                        {room && room.length > 0 ? `$${room[0].rate}` : "N/A"}
-                      </Text>
-                      <Text fontSize="6.38px">/hr</Text>
-                    </Flex>
-                  </Td>
-
-                  {/* adjustment type */}
-                  <Td>
+        <Box position="relative">
+          <Table
+            color="#EDF2F7"
+            textAlign="center"
+            variant="simple"
+            size="sm"
+          >
+            {/* header row */}
+            <Thead>
+              <Tr color="#4A5568">
+                <Th
+                  fontSize={compactView ? "6" : "12px"}
+                  py={compactView ? "4" : "8"}
+                >
+                  <Flex align="center">
+                    <CalendarIcon width={compactView && "8"} />
                     <Text
-                      h="40px"
-                      p="2"
-                      fontSize="6.38px"
-                      display="flex"
-                      alignItems="center"
+                      marginLeft="4px"
+                      fontSize={compactView ? "6" : "sm"}
+                      color="#718096"
                     >
-                      {(commentsState[index]?.adjustmentType) || "Click to Select"}
+                      Date
                     </Text>
-                  </Td>
-
-                  {/* total */}
-                  <Td>
-                    <Flex
-                      justifyContent="center"
-                      alignItems="center"
-                      gap={2}
-                      fontSize="6.38px"
+                  </Flex>
+                </Th>
+                <Th fontSize={compactView ? "6" : "12px"}>
+                  <Flex align="center">
+                    <LocationIcon
+                      width={compactView ? "8" : "12"}
+                      height={compactView && "10"}
+                    />
+                    <Text
+                      marginLeft="4px"
+                      color="#718096"
                     >
-                      <Text>$</Text>
-                      <Text
-                        textAlign="center"
-                      >
-                        {
-                          bookingState && room && bookingState.startTime && bookingState.endTime && room[0]?.rate
-                            ? handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate)
-                            : "N/A"
+                      Classroom
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th fontSize={compactView ? "6" : "12px"}>
+                  <Flex align="center">
+                    <ClockIcon
+                      width={compactView ? "8" : "24"}
+                      height={compactView ? "10" : "16"}
+                    />
+                    <Text
+                      marginLeft="4px"
+                      color="#718096"
+                      whiteSpace="nowrap"
+                    >
+                      Rental Hours
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  fontSize={compactView ? "6" : "12px"}
+                  whiteSpace="nowrap"
+                >
+                  <Flex align="center">
+                    <EditDocumentIcon
+                      width={compactView ? "8" : "16"}
+                      height={compactView && "10"}
+                    />
+                    <Text
+                      marginLeft="4px"
+                      color="#718096"
+                    >
+                      Room Fee Adjustment
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  fontSize={compactView ? "6" : "12px"}
+                  whiteSpace="nowrap"
+                >
+                  <Flex align="center">
+                    <DollarSignIcon
+                      width={compactView ? "12" : "20"}
+                      height={compactView ? "12" : "20"}
+                    />
+                    <Text
+                      marginLeft="4px"
+                      color="#718096"
+                    >
+                      Room Fee
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  textAlign="end"
+                  fontSize={compactView ? "6" : "12px"}
+                  color="#718096"
+                >
+                  Total
+                </Th>
+              </Tr>
+            </Thead>
+
+            <Tbody color="#2D3748">
+              {sessions.length > 0 ? (
+                sessions.flatMap((session, index) => {
+                  // For regular sessions, use the existing code
+                  const sessionRow = (
+                    <Tr key={`session-${session.id || "unknown"}-${index}`}>
+                      {/* Date */}
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView ? "6.38" : "sm"}
+                        whiteSpace="nowrap"
+                        borderBottom={
+                          session.comments && session.comments.length > 0
+                            ? "none"
+                            : undefined
                         }
-                      </Text>
+                      >
+                        {format(new Date(session.bookingDate), "EEE. M/d/yy")}
+                      </Td>
 
-                    </Flex>
+                      {/* Classroom */}
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView ? "6.38" : "sm"}
+                        borderBottom={
+                          session.comments && session.comments.length > 0
+                            ? "none"
+                            : undefined
+                        }
+                      >
+                        {session.name}
+                      </Td>
+
+                      {/* Rental hours */}
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView ? "6.38" : "sm"}
+                        borderBottom={
+                          session.comments && session.comments.length > 0
+                            ? "none"
+                            : undefined
+                        }
+                      >
+                        <Flex
+                          align="center"
+                          whiteSpace="nowrap"
+                          overflow="hidden"
+                          textOverflow="ellipsis"
+                        >
+                          <Text>{formatTimeString(session.startTime)}</Text>
+                          <Text>-</Text>
+                          <Text>{formatTimeString(session.endTime)}</Text>
+                        </Flex>
+                      </Td>
+
+                      {/* Room fee adjustment */}
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView ? "6.38" : "sm"}
+                        borderBottom={
+                          session.comments && session.comments.length > 0
+                            ? "none"
+                            : undefined
+                        }
+                      >
+                        {session.adjustmentValues &&
+                        session.adjustmentValues.length === 0 ? (
+                          "None"
+                        ) : (
+                          <Box display="inline-block">
+                            <Tooltip
+                              label={session.adjustmentValues
+                                .filter((adj) => adj.type !== "total")
+                                .map((adj) => {
+                                  const value = Number(adj.value);
+                                  const sign = value >= 0 ? "+" : "-";
+                                  const isFlat = adj.type === "rate_flat";
+                                  const absValue = Math.abs(value);
+                                  return isFlat
+                                    ? `${sign}$${absValue}`
+                                    : `${sign}${absValue}%`;
+                                })
+                                .join(", ")}
+                              placement="top"
+                              bg="gray"
+                              w="auto"
+                            >
+                              <Text>
+                                {session.adjustmentValues
+                                  .filter((adj) => adj.type !== "total")
+                                  .slice(0, 3)
+                                  .map((adj) => {
+                                    const value = Number(adj.value);
+                                    const sign = value >= 0 ? "+" : "-";
+                                    const isFlat = adj.type === "rate_flat";
+                                    const absValue = Math.abs(value);
+                                    return isFlat
+                                      ? `${sign}$${absValue}`
+                                      : `${sign}${absValue}%`;
+                                  })
+                                  .join(", ")}
+                                {session.adjustmentValues.filter(
+                                  (adj) => adj.type !== "total"
+                                ).length > 3
+                                  ? ", ..."
+                                  : ""}
+                              </Text>
+                            </Tooltip>
+                          </Box>
+                        )}
+                      </Td>
+
+                      {/* Room fee rate */}
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView ? "6.38" : "sm"}
+                        borderBottom={
+                          session.comments && session.comments.length > 0
+                            ? "none"
+                            : undefined
+                        }
+                      >
+                        <Text
+                          h="40px"
+                          p={compactView ? "0" : "2"}
+                          display="flex"
+                          alignItems="center"
+                        >
+                          ${calculateNewRate(session).toFixed(2)}/hr
+                        </Text>
+                      </Td>
+
+                      {/* Total */}
+                      <Td
+                        py={compactView ? 0 : 4}
+                        fontSize={compactView ? "6.38" : "sm"}
+                        borderBottom={
+                          session.comments && session.comments.length > 0
+                            ? "none"
+                            : undefined
+                        }
+                      >
+                        <Flex
+                          justifyContent="center"
+                          alignItems="center"
+                          gap={2}
+                        >
+                          <Text>$</Text>
+                          <Text textAlign="center">
+                            {calculateTotalBookingRow(
+                              session.startTime,
+                              session.endTime,
+                              session.rate,
+                              session.adjustmentValues
+                            )}
+                          </Text>
+                        </Flex>
+                      </Td>
+                    </Tr>
+                  );
+
+                  const textRows =
+                    session.comments?.map((line, textIndex) => {
+                      const isLast = textIndex === session.comments.length - 1;
+                      return (
+                        <Tr
+                          key={`text-${session.id || "unknown"}-${index}-${textIndex}`}
+                        >
+                          <Td
+                            colSpan={6}
+                            pl={4}
+                            color="gray.600"
+                            py={compactView ? 2 : 6}
+                            fontSize={compactView ? "6.38" : "sm"}
+                            borderBottom={isLast ? "1px solid" : "none"}
+                            borderColor="gray.200"
+                          >
+                            {line.comment}
+                          </Td>
+                        </Tr>
+                      );
+                    }) || [];
+
+                  const totalRow =
+                    session?.total?.map((total, totalIndex) => {
+                      return (
+                        <Tr
+                          position="relative"
+                          cursor="pointer"
+                          _hover={{ bg: "gray.50" }}
+                          role="group"
+                        >
+                          <Td
+                            fontSize={compactView ? "6" : "12px"}
+                            py={compactView ? "0" : "6"}
+                          >
+                            {(() => {
+                              const date = new Date(
+                                session.total[totalIndex].date
+                              );
+                              date.setMinutes(
+                                date.getMinutes() + date.getTimezoneOffset()
+                              );
+                              return format(date, "EEE. M/d/yy");
+                            })()}
+                          </Td>
+                          <Td
+                            colSpan={4}
+                            fontSize={compactView ? "6" : "12px"}
+                            py={compactView ? "0" : "6"}
+                          >
+                            {session.total[totalIndex]?.comment ||
+                              "Custom adjustment"}
+                          </Td>
+                          <Td
+                            textAlign="right"
+                            position="relative"
+                          >
+                            <Flex
+                              justifyContent="flex-end"
+                              alignItems="center"
+                            >
+                              <Text
+                                fontSize={compactView ? "6" : "12px"}
+                                py={compactView ? "0" : "6"}
+                              >
+                                ${" "}
+                                {Number(
+                                  session.total[totalIndex].value || 0
+                                ).toFixed(2)}
+                              </Text>
+                            </Flex>
+                          </Td>
+                        </Tr>
+                      );
+                    }) || [];
+
+                  return [sessionRow, ...textRows, ...totalRow];
+                })
+              ) : (
+                <Tr py="4">
+                  <Td
+                    colSpan={7}
+                    textAlign="center"
+                    fontSize={compactView && "8.509px"}
+                  >
+                    No comments available.
                   </Td>
-                </Tr>,
-              ]).flat()
+                </Tr>
+              )}
 
-            ) : (
-              <Tr>
-                <Td colSpan={7} textAlign="center" fontSize={"8.509px"}>
-                  No comments available.
+              <Tr py={compactView ? 0 : 4}>
+                <Td
+                  textAlign="right"
+                  colSpan={5}
+                  fontWeight="bold"
+                  fontSize={compactView ? "6.38" : "sm"}
+                >
+                  Subtotal
+                </Td>
+                <Td
+                  borderBottom="none"
+                  py={compactView ? "0" : "8"}
+                  textAlign="center"
+                  fontSize={compactView ? "6.38" : "sm"}
+                >
+                  {`$ ${calculateSubtotal(sessions)}`}
                 </Td>
               </Tr>
-            )}
-
-            <Tr>
-              <Td
-                textAlign="right"
-                colSpan={5}
-                fontSize="6.38px"
-                fontWeight="bold"
-              >
-                Subtotal
-              </Td>
-              <Td
-                fontSize="6.38px" borderBottom='none'
-                py="8"
-                textAlign="center"
-              >
-                {`$ ${subtotalSum.toFixed(2)}`}
-              </Td>
-            </Tr>
-          </Tbody>
-        </Table>
+            </Tbody>
+          </Table>
         </Box>
       </Flex>
     </Flex>
@@ -284,77 +589,78 @@ const SavedStatementComments = ({
 };
 
 const SavedInvoiceSummary = ({
-  comments = [],
-  booking = [],
-  room = [],
+  sessions = [],
+  setSessions,
   subtotal = 0.0,
-  setSubtotal,
-  pastDue
+  pastDue,
+  summary = [],
+  compactView = false,
 }) => {
+  const calculateTotalBookingRow = (rate, adjustmentValues) => {
+    if (!rate) return "0.00";
 
-  //! THIS RECALCULATES EVERYTHING BUT PASSING IT BETWEEN COMPONENTS WASNT WORKING
+    const baseRate = Number(rate);
+    if (isNaN(baseRate)) return "0.00";
 
-  const [commentsState, setComments] = useState(comments);
-  const [bookingState, setBooking] = useState(booking);
-  const [roomState, setRoom] = useState(room);
-  const [subtotalSum, setSubtotalSum] = useState(subtotal);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+    const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+      if (isNaN(val.value)) return acc;
 
-  const handleSubtotalSum = (startTime, endTime, rate) => {
-    if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
+      if (val.type === "rate_percent") {
+        const factor = 1 + val.value / 100;
+        return acc * factor;
+      } else {
+        return acc + Number(val.value);
+      }
+    }, baseRate);
 
-    const timeToMinutes = (timeStr) => {
-      const [hours, minutes] = timeStr.split(":").map(Number);
-      return hours * 60 + minutes;
-    };
-
-    const startMinutes = timeToMinutes(startTime.substring(0, 5));
-    const endMinutes = timeToMinutes(endTime.substring(0, 5));
-    const diff = endMinutes - startMinutes;
-
-    const totalHours = Math.ceil(diff / 60);
-
-    const total = (totalHours * rate).toFixed(2);
-
-
-    return total;
+    return Number(adjustedTotal).toFixed(2);
   };
 
+  // Summary Sidebar total calculations
+  const originalSessionRateRef = useRef({});
+
   useEffect(() => {
-    if (comments && comments.length > 0) {
-      setComments(comments);
-      setBooking(booking);
-      setRoom(room);
-
-    }
-  }, [booking, comments, room]);
-
-
-
-    useEffect(() => {
-      // Ensure all required values are available and this only runs once
-      if (
-        bookingState &&
-        room &&
-        bookingState.startTime &&
-        bookingState.endTime &&
-        room[0]?.rate &&
-        !isDataLoaded
-      ) {
-        const total = handleSubtotalSum(bookingState.startTime, bookingState.endTime, room[0]?.rate);
-
-        // Add subtotal for each comment (this logic is now inside useEffect)
-        if (commentsState && commentsState.length > 0) {
-          commentsState.forEach(() => {
-          setSubtotalSum((prevSubtotal) => prevSubtotal + parseFloat(total)); // Add to subtotalSum
-          });
+    if (sessions?.length > 0) {
+      sessions.forEach(session => {
+        if (session.name && originalSessionRateRef.current[session.name] === undefined) {
+          originalSessionRateRef.current[session.name] = session.rate;
         }
+      });
+    }
+  }, [sessions]);
 
-        setSubtotal(subtotalSum)
-        // Set flag to prevent future reruns of this effect
-        setIsDataLoaded(true);
+  useEffect(() => {
+    if (
+      !summary?.[0]?.adjustmentValues ||
+      sessions.length === 0 ||
+      originalSessionRateRef.current === null
+    )
+      return;
+
+      
+      const updatedSessions = sessions.map((session) => {
+      if (!session.name || originalSessionRateRef.current[session.name] === undefined) {
+        return session;
       }
-    }, [bookingState, room, commentsState, isDataLoaded]);
+
+      const originalSessionRate = originalSessionRateRef.current[session.name];
+      const adjustedRate = calculateTotalBookingRow(
+        originalSessionRate,
+        summary[0]?.adjustmentValues
+      );
+
+      if (session.rate !== adjustedRate) {
+        return {
+          ...session,
+          rate: adjustedRate,
+        };
+      }
+
+      return session;
+    });
+
+    setSessions(updatedSessions);
+  }, [summary]);
 
   return (
     <Flex
@@ -365,69 +671,209 @@ const SavedInvoiceSummary = ({
       color="#2D3748"
       mt={8}
     >
-
-  <Heading fontSize="11.7px" mb="2">Summary</Heading>
-  <Flex
+      <HStack align="baseline">
+        <BookWithBookmarkIcon />
+        <Heading
+          mb="2"
+          size={compactView ? "11.7px" : "md"}
+        >
+          Summary
+        </Heading>
+      </HStack>
+      <Flex
         border="1px solid #D2D2D2"
         borderRadius="9.57px"
         minH="24"
         px="12px"
-        width="100%"
       >
-
-
-<Box width="100%">
-        <Table
-          color="#EDF2F7"
-          width="100%"
-          textAlign="center"
-          tableLayout="fixed"
-          size="sm"
-        >
+        <Box w="100%">
+          <Table
+            color="#EDF2F7"
+            textAlign="center"
+            size="sm"
+          >
             {/* header row */}
             <Thead color="#4A5568">
               <Tr>
-                <Th fontSize="6.38px" colSpan={4} textTransform="none" borderBottom='none'>Description</Th>
-                <Th fontSize="6.38px" textTransform="none" borderBottom='none'>Adjustment Type(s)</Th>
-                <Th fontSize="6.38px" textTransform="none" borderBottom='none' textAlign="end" pr={14}>Total</Th>
+                <Th
+                  colSpan={4}
+                  textTransform="none"
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  py={compactView ? "4" : "8"}
+                >
+                  <Flex
+                    color="#718096"
+                    align="center"
+                  >
+                    <DollarSignIcon
+                      width={compactView ? "12" : "20"}
+                      height={compactView ? "12" : "20"}
+                    />
+                    <Text fontSize={compactView ? "6.38px" : "sm"}>
+                      DESCRIPTION
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  textTransform="none"
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  <Flex
+                    color="#718096"
+                    align="center"
+                  >
+                    <EditDocumentIcon
+                      width={compactView ? "8" : "16"}
+                      height={compactView && "10"}
+                    />
+                    <Text
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      ml="4px"
+                    >
+                      ROOM FEE ADJUSTMENT
+                    </Text>
+                  </Flex>
+                </Th>
+                <Th
+                  textTransform="none"
+                  textAlign="end"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  color="#718096"
+                >
+                  TOTAL
+                </Th>
               </Tr>
             </Thead>
 
-            {/* past due balance row */}
             <Tbody color="#2D3748">
+              {/* Room Fee Header Row */}
+              <Tr p="40">
+                <Td
+                  borderBottom="none"
+                  colSpan={4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  py={compactView ? "2" : "8"}
+                >
+                  Room Fee
+                </Td>
+              </Tr>
+              {/* Room Fee Body Row */}
+              {/* // TODO NEED TO FIX ADJUSTMENTVALUES[0] */}
+              {sessions
+                .map((session, key) => (
+                  <Tr key={key}>
+                    <Td
+                      pl="16"
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      py={compactView ? 2 : 4}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                      colSpan={4}
+                    >
+                      {session.name}
+                    </Td>
+                    <Td
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      py={compactView ? 2 : 4}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                    >
+                      {summary[0]?.adjustmentValues.length === 0 ? (
+                        "None"
+                      ) : (
+                        <Box display="inline-block">
+                          <Tooltip
+                            label={summary[0]?.adjustmentValues
+                              .map((adj) => {
+                                const value = Number(adj.value);
+                                const sign = value >= 0 ? "+" : "-";
+                                const isFlat = adj.type === "rate_flat";
+                                const absValue = Math.abs(value);
+                                return isFlat
+                                  ? `${sign}$${absValue}`
+                                  : `${sign}${absValue}%`;
+                              })
+                              .join(", ")}
+                            placement="top"
+                            bg="gray"
+                            w="auto"
+                          >
+                            <Text
+                              textOverflow="ellipsis"
+                              // whiteSpace="nowrap"
+                              overflow="hidden"
+                            >
+                              {summary[0]?.adjustmentValues
+                                .map((adj) => {
+                                  const value = Number(adj.value);
+                                  const sign = value >= 0 ? "+" : "-";
+                                  const isFlat = adj.type === "rate_flat";
+                                  const absValue = Math.abs(value);
+                                  return isFlat
+                                    ? `${sign}$${absValue}`
+                                    : `${sign}${absValue}%`;
+                                })
+                                .join(", ")}
+                            </Text>
+                          </Tooltip>
+                        </Box>
+                      )}
+                    </Td>
+                    <Td
+                      textAlign="end"
+                      py={compactView ? 0 : 4}
+                      fontSize={compactView ? "6.38px" : "sm"}
+                      borderBottom={
+                        key === sessions.length - 1 ? undefined : "none"
+                      }
+                    >
+                      ${session.rate}/hr
+                    </Td>
+                  </Tr>
+                ))}
+              {/* past due balance row */}
+
               <Tr>
-                <Td borderBottom='none' fontSize="6.38px" colSpan={4}>Past Due Balance</Td>
-                <Td borderBottom='none' fontSize="6.38px"></Td>
-                <Td borderBottom="none" fontSize="6.38px" textAlign="center" pl={7}>
-                  <Flex
-                    justifyContent="center"
-                    alignItems="center"
-                    gap={2}
-                    fontSize="6.38px"
-                  >
-                    <Text>$</Text>
-                    <Text textAlign="center">{pastDue.toFixed(2)}</Text>
-                  </Flex>
+                <Td
+                  colSpan={4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  py={compactView ? "2" : "8"}
+                >
+                  Past Due Balance
+                </Td>
+                <Td></Td>
+                <Td
+                  textAlign="end"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  $ {pastDue?.toFixed(2)}
                 </Td>
               </Tr>
 
               {/* current statement balance row */}
               <Tr>
-                <Td fontSize="6.38px" colSpan={4}>Current Statement Subtotal</Td>
-                <Td fontSize="6.38px">None</Td>
-                <Td fontSize="6.38px" textAlign="center">
-                  <Flex
-                    justifyContent="center"
-                    alignItems="center"
-                    gap={2}
-                    fontSize="6.38px"
-                  >
-                    <Text>$</Text>
-                    <Text textAlign="center">{subtotalSum.toFixed(2)}</Text>
-                  </Flex>
+                <Td
+                  colSpan={4}
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  Current Statement Subtotal
                 </Td>
-
-
+                <Td
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                ></Td>
+                <Td
+                  textAlign="end"
+                  py={compactView ? 0 : 4}
+                  fontSize={compactView ? "6.38px" : "sm"}
+                >
+                  {`$ ${subtotal.toFixed(2)}`}
+                </Td>
               </Tr>
 
               {/* total row */}
@@ -435,30 +881,28 @@ const SavedInvoiceSummary = ({
                 <Td
                   textAlign="right"
                   colSpan={5}
-                  fontSize="7.45px"
                   fontWeight="700"
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  color="#718096"
                 >
-                  Total Amount Due
+                  TOTAL AMOUNT DUE
                 </Td>
                 <Td
-                  fontSize="11.7px"
                   fontWeight="700"
-                  borderBottom='none'
-                  py="8"
-                  textAlign="center"
+                  borderBottom="none"
+                  textAlign="end"
+                  fontSize={compactView ? "6.38px" : "2xl"}
+                  py={compactView ? 0 : 8}
                 >
-                  {`$ ${(pastDue + subtotalSum).toFixed(2)}`}
+                  {`$ ${(parseFloat(pastDue) + parseFloat(subtotal)).toFixed(2)}`}
                 </Td>
               </Tr>
             </Tbody>
-            </Table>
+          </Table>
         </Box>
       </Flex>
     </Flex>
   );
 };
 
-export {
-  SavedStatementComments,
-  SavedInvoiceSummary
-};
+export { SavedStatementComments, SavedInvoiceSummary };

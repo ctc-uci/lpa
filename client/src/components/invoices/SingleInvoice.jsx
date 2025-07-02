@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 
 import {
+  Box,
   Button,
   Flex,
   IconButton,
@@ -15,6 +16,12 @@ import {
 import { FaAngleLeft } from "react-icons/fa6";
 import { FiExternalLink } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  TransformComponent,
+  TransformWrapper,
+  useControls,
+} from "react-zoom-pan-pinch";
+
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
 import { EmailHistory } from "./EmailHistory";
@@ -58,7 +65,8 @@ export const SingleInvoice = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [actionToContinue, setActionToContinue] = useState(null);
-
+  const [summary, setSummary] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const invoicePaymentsRef = useRef(null);
 
   useEffect(() => {
@@ -144,11 +152,12 @@ export const SingleInvoice = () => {
           endDate: currentInvoice.endDate,
         });
         // get comments
-        const commentsResponse = await backend.get(
-          "/comments/paidInvoices/" + id
-        );
+        // const commentsResponse = await backend.get(
+        //   "/comments/paidInvoices/" + id
+        // );
+
+        const commentsResponse = await backend.get("/comments/invoice/" + id);
         setComments(commentsResponse.data);
-        console.log("COMMENTS: ", commentsResponse.data);
 
         // get emails
         const emailsResponse = await backend.get(
@@ -163,6 +172,16 @@ export const SingleInvoice = () => {
         // get corresponding event
         const eventResponse = await backend.get("/invoices/invoiceEvent/" + id);
         setEvent(eventResponse.data);
+
+        const sessionResponse = await backend.get(
+          `comments/invoice/sessions/${id}`
+        );
+        setSessions(sessionResponse.data);
+
+        const summaryResponse = await backend.get(
+          `comments/invoice/summary/${id}`
+        );
+        setSummary(summaryResponse.data);
       } catch (error) {
         // Invoice/field does not exist
         console.error("Error fetching data:", error);
@@ -185,14 +204,13 @@ export const SingleInvoice = () => {
         const bookingResponse = await backend.get(
           `/bookings/${commentWithBookingId}`
         );
-        // console.log("Booking details:", bookingResponse.data);
         setBookingDetails(bookingResponse.data[0]);
 
         const roomResponse = await backend.get(
           `/rooms/${bookingResponse.data[0].roomId}`
         );
         setRoom(roomResponse.data);
-        setRoomRate(room[0].rate);
+        setRoomRate(room[0]?.rate);
       } catch (error) {
         console.error("Error fetching booking details:", error);
       }
@@ -243,7 +261,7 @@ export const SingleInvoice = () => {
           direction="column"
           height="100%"
           width="100%"
-          padding="2.5vw"
+          paddingY="2.5vw"
           gap="1.25vw"
         >
           <Modal
@@ -302,7 +320,7 @@ export const SingleInvoice = () => {
           </Modal>
           <Flex
             direction="row"
-            width="100%"
+            width="95%"
           >
             {/* back button */}
             <IconButton
@@ -347,8 +365,9 @@ export const SingleInvoice = () => {
                   }
                 }
                 }
+                _hover={{ bg: "#312E8A" }}
               >
-                <FiExternalLink></FiExternalLink>
+                <FiExternalLink />
                 Preview
               </Button>
             </Flex>
@@ -357,19 +376,20 @@ export const SingleInvoice = () => {
             direction="column"
             height="100%"
             width="100%"
-            padding="50px 26px 26px 26px"
+            padding="2.5vh 26px 26px 4vw"
             gap="1.25vw"
           >
             <Flex
               direction="row"
               width="100%"
-              gap={5}
+              justify="space-between"
+              gap="16px"
             >
               <Flex
                 direction="column"
                 height="100%"
-                width="50%"
-                padding="2.5vw"
+                w="50%"
+                // padding="2.5vw"
                 gap="1.25vw"
               >
                 <InvoiceStats
@@ -389,29 +409,48 @@ export const SingleInvoice = () => {
                 ></InvoicePayments>
                 <EmailHistory emails={emails}></EmailHistory>
               </Flex>
-
               <Flex
                 direction="column"
-                height="100%"
-                width="50%"
                 gap="1.25vw"
                 borderWidth={25}
                 borderRadius={18}
+                w="50%"
+                h="80%"
                 borderColor="#D9D9D933"
-                overflow="hidden"
+                overflow="hidden" // Important: prevents scrollbars from fighting transform
+                justifyContent="center"
+                alignItems="center"
               >
-                <InvoiceView
-                  comments={comments}
-                  booking={booking}
-                  room={room}
-                  subtotal={subtotal}
-                  setSubtotal={setSubtotal}
-                  pastDue={pastDue}
-                  payees={payees}
-                  programName={programName}
-                  instructors={instructors}
-                  invoice={invoice?.data}
-                />
+                <TransformWrapper
+                  limitToBounds={false}
+                  centerOnInit={true}
+                  limitToWrapper={true}
+                  panning={{ velocityDisabled: true }}
+                >
+                  <TransformComponent>
+                    <Box
+                      transform="scale(0.85)"
+                      transformOrigin="center"
+                    >
+                      <InvoiceView
+                        comments={comments}
+                        sessions={sessions}
+                        setSessions={setSessions}
+                        summary={summary}
+                        booking={booking}
+                        room={room}
+                        subtotal={subtotal}
+                        setSubtotal={setSubtotal}
+                        pastDue={pastDue}
+                        payees={payees}
+                        programName={programName}
+                        instructors={instructors}
+                        invoice={invoice?.data}
+                        compactView={true}
+                      />
+                    </Box>
+                  </TransformComponent>
+                </TransformWrapper>
               </Flex>
             </Flex>
           </Flex>

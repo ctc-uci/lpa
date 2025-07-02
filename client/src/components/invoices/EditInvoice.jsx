@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   Box,
   Button,
   Flex,
@@ -18,6 +24,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BackArrowIcon } from "../../assets/BackArrowIcon";
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
+import { LeftIcon } from "../../assets/LeftIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { EmailSidebar } from "../email/EmailSidebar";
 import Navbar from "../navbar/Navbar";
@@ -40,18 +47,26 @@ const InvoiceNavBar = ({
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const getGeneratedDate = () => {
+  const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
+    console.log("invoice", invoice);
     if (comments.length > 0) {
-      const latestComment = comments?.sort(
+      const latestComment = comments.sort(
         (a, b) => new Date(b.datetime) - new Date(a.datetime)
       )[0];
-
+  
       const latestDate = new Date(latestComment.datetime);
       const month = latestDate.toLocaleString("default", { month: "long" });
-
+      const day = latestDate.getDate();
       const year = latestDate.getFullYear();
-
-      return `${month}  ${year}`;
+  
+      return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
+    } else if (invoice) {
+      const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+      const invoiceDate = new Date(invoiceDateSplit);
+      invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+      const month = invoiceDate.toLocaleString("default", { month: "long" });
+      const year = invoiceDate.getFullYear();
+      return `${month} ${year}`;
     } else {
       return "No Date Found";
     }
@@ -69,14 +84,14 @@ const InvoiceNavBar = ({
     >
       <HStack>
         <IconButton
-          icon={<BackArrowIcon />}
+          icon={<LeftIcon color="black" />}
           onClick={onBack}
           variant="link"
           color="#474849"
           fontSize="1.5em"
           aria-label="Go back"
         />
-        <Text fontWeight="700">{`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}</Text>
+        <Text fontWeight="700">{`${programName.trim().split(" ").slice(0, 3).join(" ")}_${getGeneratedDate([], invoice.data, false)}_Classroom Rental Summary`}</Text>
       </HStack>
       <HStack>
         <Button
@@ -97,7 +112,7 @@ const InvoiceNavBar = ({
             onOpen={onOpen}
             onClose={onClose}
             payees={payees}
-            pdf_title={`${programName.split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate(comments, invoice, false)} Invoice`}
+            pdf_title={`${programName.trim().split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate([], invoice.data, false)} Invoice`}
             invoice={invoice}
           />
         </HStack>
@@ -125,6 +140,7 @@ export const EditInvoice = () => {
   const [editedSubtotal, setEditedSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletedIds, setDeletedIds] = useState([]);
 
   const [editedFields, setEditedFields] = useState({
     comments: [],
@@ -133,6 +149,12 @@ export const EditInvoice = () => {
   });
 
   const [subtotalValue, setSubtotalValue] = useState(0);
+
+  const [sessions, setSessions] = useState([]);
+  const [summary, setSummary] = useState([]);
+
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const cancelRef = React.useRef();
 
   useEffect(() => {
     if (id) {
@@ -221,6 +243,16 @@ export const EditInvoice = () => {
           subtotal: subtotalResponse.data.total,
           pastDue: remainingBalance,
         });
+
+        const sessionResponse = await backend.get(
+          `comments/invoice/sessions/${id}`
+        );
+        setSessions(sessionResponse.data);
+
+        const summaryResponse = await backend.get(
+          `comments/invoice/summary/${id}`
+        );
+        setSummary(summaryResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -231,89 +263,287 @@ export const EditInvoice = () => {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        if (!comments || !Array.isArray(comments) || comments.length === 0) {
+        // Check if invoice and invoice.data exist and have elements
+        if (
+          !invoice ||
+          !invoice.data ||
+          !Array.isArray(invoice.data) ||
+          invoice.data.length === 0
+        ) {
           return;
         }
 
-        const commentWithBookingId = comments[0].bookingId;
+        // Gets all bookings within the invoice start and end date
+        const bookingResponse = await backend.get(`/bookings`, {
+          params: {
+            start: invoice.data[0].startDate,
+            end: invoice.data[0].endDate,
+          },
+        });
 
-        const bookingResponse = await backend.get(
-          `/bookings/${commentWithBookingId}`
+        // Filter for only the bookings that match the event id
+        const bookingsWithinDate = bookingResponse.data;
+        const bookingsWithEventId = bookingsWithinDate.filter(
+          (booking) => booking.eventId === invoice.data[0].eventId
         );
-        setBookingDetails(bookingResponse.data[0]);
 
-        const roomResponse = await backend.get(
-          `/rooms/${bookingResponse.data[0].roomId}`
-        );
-        setRoom(roomResponse.data);
+        setBookingDetails(bookingsWithEventId);
+
+        // Now fetch rooms for all those bookings
+        if (bookingsWithEventId.length > 0) {
+          const roomPromises = bookingsWithEventId.map((booking) =>
+            backend.get(`/rooms/${booking.roomId}`)
+          );
+
+          // Wait for all the room requests to complete in parallel:
+          const roomResponses = await Promise.all(roomPromises);
+
+          // Extract just the room data from the responses:
+          const roomsArray = roomResponses
+            .map((response) =>
+              response.data && response.data.length > 0
+                ? response.data[0]
+                : null
+            )
+            .filter(Boolean); // Filter out any null values
+
+          setRoom(roomsArray);
+        }
       } catch (error) {
         console.error("Error fetching booking details:", error);
       }
     };
 
     fetchBookingDetails();
-  }, [comments, backend]);
+  }, [invoice, backend]);
 
   const handleBack = () => {
-    navigate(`/invoices/${id}`);
+    setIsAlertOpen(true);
+  };
+
+  const handleCancelBack = () => {
+    setIsAlertOpen(false);
+  };
+
+  const handleSaveAndBack = async () => {
+    setIsAlertOpen(false);
+    await handleSave();
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const roomData = {
-        ...room[0],
-        rate: room[0].rate,
-      };
+      // First, delete all comments that are in deletedIds
+      if (deletedIds && deletedIds.length > 0) {
+        // Process deletions in parallel
+        const deletionPromises = deletedIds.map((id) =>
+          backend.delete(`/comments/${id}`).catch((error) => {
+            console.error(`Error deleting comment with ID ${id}:`, error);
+            // Continue with other deletions even if one fails
+            return null;
+          })
+        );
 
-      console.log("roomData", roomData);
-      const roomResponse = await backend.put(`/rooms/${room[0].id}`, roomData);
-      console.log("roomResponse", roomResponse);
+        // Wait for all deletions to complete
+        await Promise.all(deletionPromises);
 
-      for (const comment of editedComments) {
-        const commentData = {
-          adjustment_type: comment.adjustmentType || null,
-          adjustment_value: comment.adjustmentValue,
-          booking_id: comment.bookingId,
-          comment: comment.comment,
-          datetime: comment.datetime,
-          id: comment.id || null,
-          invoice_id: comment.invoiceId,
-          user_id: comment.userId,
-        };
+        // Clear the deletedIds array after successful deletion
+        setDeletedIds([]);
+      }
 
-        try {
-          if (comment.id) {
-            // Update existing comment
-            const response = await backend.put(
-              `/comments/${comment.id}`,
-              commentData
-            );
-            console.log("Updated comment:", response.data);
-          } else {
-            // Create new comment
-            const response = await backend.post(`/comments`, commentData);
-            console.log("Created new comment:", response.data);
-          }
-        } catch (error) {
-          console.error(`Error saving comment ${comment.id}:`, error);
+      // Process all sessions
+      for (const session of sessions) {
+        // Handle comments for each session
+        if (
+          session.comments &&
+          session.comments.length > 0 &&
+          session.adjustmentValues[0]?.type !== "total"
+        ) {
+          for (let i = 0; i < session.comments.length; i++) {
+            const commentText = session.comments[i].comment;
 
-          if (error.response && error.response.status === 400) {
+            // Prepare comment data
+            const commentData = {
+              id: session.comments[i].id,
+              user_id: session.userId, // Will be set by the server if null
+              booking_id: session.bookingId || null,
+              invoice_id: id,
+              datetime: session.datetime,
+              comment: commentText,
+              adjustment_type: "none",
+              adjustment_value: 0,
+            };
+
             try {
-              const altResponse = await backend.post(
-                `/comments/update/${comment.id}`,
-                commentData
+              // For regular sessions, check if this comment already exists
+              const existingComment = comments.find(
+                (c) =>
+                  c.bookingId == commentData.booking_id &&
+                  c.comment == commentData.comment
               );
-            } catch (altError) {
-              console.error("Alternative update failed:", altError);
-              throw altError;
+
+              if (existingComment) {
+                // Update existing comment
+                // console.log("existingComment", existingComment);
+                await backend.put(
+                  `/comments/${existingComment.id}`,
+                  commentData
+                );
+              } else {
+                // Create new comment
+                // console.log("newComment", commentData);
+                await backend.post(`/comments`, commentData);
+              }
+            } catch (error) {
+              console.error(`Error saving comment:`, error);
+              throw error;
             }
-          } else {
-            throw error;
+          }
+        }
+
+        // Handle adjustments for each session
+        if (
+          session.adjustmentValues &&
+          session.adjustmentValues.length > 0 &&
+          session.adjustmentValues[0]?.type !== "none"
+        ) {
+          for (const adjustmentValue of session.adjustmentValues) {
+            // Skip invalid adjustment values
+            if (
+              isNaN(adjustmentValue.value) ||
+              adjustmentValue.value === undefined
+            )
+            continue;
+            
+            const adjustmentData = {
+              id: adjustmentValue.id,
+              user_id: session.userId,
+              booking_id: session.bookingId || null,
+              invoice_id: id,
+              datetime: session.datetime,
+              comment:
+                session?.comments &&
+                session?.comments.length > 0 &&
+                session.adjustmentValues[0]?.type === "total"
+                  ? session?.comments[0]?.comment
+                  : "",
+              adjustment_type: adjustmentValue.type,
+              adjustment_value: adjustmentValue.value,
+            };
+            
+            try {
+              // Check if this adjustment already exists
+              const existingAdjustment = comments.find(
+                (c) => c.id == adjustmentValue.id
+              );
+
+              if (existingAdjustment) {
+                // Update existing adjustment
+                // console.log("existingAdjustmentData", existingAdjustment);
+                const existingAdjustmentResponse = await backend.put(
+                  `/comments/${existingAdjustment.id}`,
+                  adjustmentData
+                );
+                // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
+              } else {
+                // Create new adjustment
+                // console.log("newAdjustmentData", adjustmentData);
+                const newAdjustmentResponse = await backend.post(
+                  `/comments`,
+                  adjustmentData
+                );
+                // console.log("newAdjustmentResponse", newAdjustmentResponse);
+              }
+            } catch (error) {
+              console.error(`Error saving adjustment:`, error);
+              throw error;
+            }
+          }
+        }
+
+        if (sessions && sessions.length > 0) {
+          if (session.total && session.total.length > 0) {
+            for (const totalItem of session.total) {
+              try {
+                if (totalItem.id) {
+                  await backend.put(`/comments/${totalItem.id}`, totalItem);
+                } else {
+                  const totalData = {
+                    user_id: session.userId,
+                    booking_id: session.bookingId,
+                    invoice_id: session.invoiceId,
+                    datetime: totalItem.date,
+                    comment: totalItem.comment,
+                    adjustment_type: "total",
+                    adjustment_value: totalItem.value,
+                  };
+
+                  await backend.post(`/comments`, totalData);
+                }
+              } catch (error) {
+                console.error(`Error saving total item:`, error);
+                throw error;
+              }
+            }
+          }
+        }
+        // Process summary adjustments
+        if (summary && summary.length > 0) {
+          for (const summaryItem of summary) {
+            if (
+              summaryItem.adjustmentValues &&
+              summaryItem.adjustmentValues.length > 0
+            ) {
+              for (const adjustmentValue of summaryItem.adjustmentValues) {
+                // Skip invalid adjustment values
+                if (
+                  isNaN(adjustmentValue.value) ||
+                  adjustmentValue.value === undefined
+                )
+                  continue;
+
+                const adjustmentData = {
+                  user_id: summaryItem.userId,
+                  booking_id: null, // Summary adjustments don't have booking_id
+                  invoice_id: id,
+                  datetime: new Date().toISOString(),
+                  comment: "",
+                  adjustment_type: adjustmentValue.type,
+                  adjustment_value: adjustmentValue.value,
+                };
+
+                try {
+                  // Check if this summary adjustment already exists
+                  const existingAdjustment = comments.find(
+                    (c) => c.id === adjustmentValue.id
+                  );
+
+                  if (existingAdjustment) {
+                    // Update existing adjustment
+                    // console.log("Summary existingAdjustment", existingAdjustment);
+                    const existingAdjustmentResponse = await backend.put(
+                      `/comments/${existingAdjustment.id}`,
+                      adjustmentData
+                    );
+                    // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
+                  } else {
+                    // Create new adjustment
+                    // console.log("Summary newAdjustment", adjustmentData);
+                    const newAdjustmentResponse = await backend.post(
+                      `/comments`,
+                      adjustmentData
+                    );
+                    // console.log("newAdjustmentResponse", newAdjustmentResponse);
+                  }
+                } catch (error) {
+                  console.error(`Error saving summary adjustment:`, error);
+                  throw error;
+                }
+              }
+            }
           }
         }
       }
-
       navigate(`/invoices/savededits/${id}`);
     } catch (error) {
       console.error("Error saving invoice:", error);
@@ -353,6 +583,48 @@ export const EditInvoice = () => {
           invoice={invoice}
           programName={programName}
         />
+
+        {/* Alert Dialog */}
+        <AlertDialog
+          isOpen={isAlertOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={handleCancelBack}
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent>
+              <AlertDialogHeader
+                fontSize="lg"
+                fontWeight="bold"
+              >
+                Saved edits to invoice?
+              </AlertDialogHeader>
+
+              <AlertDialogBody>
+                Changes made to this invoice will be saved. Please email
+                Payer(s) and Lead Artist(s) this updated PDF.
+              </AlertDialogBody>
+
+              <AlertDialogFooter>
+                <Button
+                  ref={cancelRef}
+                  onClick={handleCancelBack}
+                  ml={3}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  bg="#4441C8"
+                  color="white"
+                  onClick={handleSaveAndBack}
+                  ml={3}
+                >
+                  Save
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
+
         <Image
           w="80%"
           position="relative"
@@ -365,7 +637,7 @@ export const EditInvoice = () => {
           spacing={4}
           px={8}
         >
-          <Box width="100%">
+          <Box>
             <EditInvoiceTitle
               comments={editedComments}
               invoice={invoice?.data}
@@ -378,21 +650,30 @@ export const EditInvoice = () => {
               invoice={invoice?.data}
             />
             <StatementComments
-              booking={booking}
-              room={room}
+              invoice={invoice?.data}
               subtotal={editedSubtotal}
-              comments={editedComments}
-              onCommentsChange={handleCommentUpdate}
-              onSubtotalChange={handleSubtotalUpdate}
+              setSubtotal={setEditedSubtotal}
+              sessions={sessions}
+              setSessions={setSessions}
+              deletedIds={deletedIds}
+              setDeletedIds={setDeletedIds}
+              summary={summary}
             />
             <InvoiceSummary
               pastDue={pastDue}
-              subtotal={subtotalValue}
+              subtotal={editedSubtotal}
+              setSubtotal={setEditedSubtotal}
               comments={editedComments}
               onCommentsChange={handleCommentUpdate}
               onSubtotalChange={handleSubtotalUpdate}
               room={room}
               setRoom={setRoom}
+              sessions={sessions}
+              setSessions={setSessions}
+              summary={summary}
+              setSummary={setSummary}
+              deletedIds={deletedIds}
+              setDeletedIds={setDeletedIds}
             />
             <FooterDescription />
           </Box>

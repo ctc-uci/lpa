@@ -268,6 +268,15 @@ const App = () => {
                     />
                   }
                 />
+
+                {/* <Route
+                  path="/pdftest"
+                  element={
+                    <ProtectedRoute
+                      element={<TestPDFViewer />}
+                    />
+                  }
+                /> */}
               </Routes>
             </Router>
           </RoleProvider>

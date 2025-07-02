@@ -388,6 +388,7 @@ export const EmailSidebar = ({
 
   const fetchInvoiceData = async (invoice) => {
     const eventId = invoice?.data[0]?.eventId;
+    const invoiceId = invoice?.data[0]?.id;
 
     const [
       instructorResponse,
@@ -398,11 +399,11 @@ export const EmailSidebar = ({
       invoiceTotalResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
-      backend.get(`/comments/invoice/22`),
+      backend.get(`/comments/invoice/${invoiceId}`),
       backend.get(`/events/${eventId}`),
-      backend.get(`/invoices/payees/22`),
+      backend.get(`/invoices/payees/${invoiceId}`),
       backend.get(`/events/remaining/${eventId}`),
-      backend.get(`/invoices/total/22`),
+      backend.get(`/invoices/total/${invoiceId}`)
     ]);
 
     const comments = commentsResponse.data;

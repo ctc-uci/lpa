@@ -2,58 +2,107 @@ import React, { useEffect, useState } from "react";
 
 import {
   Box,
+  Button,
+  Link as ChakraLink,
   Flex,
+  HStack,
   Icon,
   IconButton,
   Image,
+  Text,
+  useDisclosure,
   VStack,
 } from "@chakra-ui/react";
-import { useNavigate, useParams} from "react-router-dom";
 
-import { BackArrowIcon } from "../../assets/BackArrowIcon";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
+import { PencilIcon } from "../../assets/EditInvoiceIcons.jsx";
+import { LeftIcon } from "../../assets/LeftIcon.jsx";
 import { SavedInvoiceEllipsisIcon } from "../../assets/SavedInvoiceEllipsisIcon.jsx";
-
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { EmailSidebar } from "../email/EmailSidebar.jsx";
 import Navbar from "../navbar/Navbar";
 import { InvoiceView } from "./InvoiceView";
 
-const SavedInvoiceNavBar = ({ onBack, id }) => {
-    return (
-      <Flex
-        width="100%"
-        justifyContent="space-between"
-        alignItems="center"
-        py={4}
-        px={6}
-        bg="white"
-        borderBottom="1px solid #E2E8F0"
-      >
+const SavedInvoiceNavBar = ({
+  onBack,
+  id,
+  invoice,
+  payees,
+  programName,
+  comments,
+}) => {
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
+  
+  const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
+    console.log("invoice", invoice);
+    if (comments.length > 0) {
+      const latestComment = comments.sort(
+        (a, b) => new Date(b.datetime) - new Date(a.datetime)
+      )[0];
+  
+      const latestDate = new Date(latestComment.datetime);
+      const month = latestDate.toLocaleString("default", { month: "long" });
+      const day = latestDate.getDate();
+      const year = latestDate.getFullYear();
+  
+      return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
+    } else if (invoice) {
+      const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+      const invoiceDate = new Date(invoiceDateSplit);
+      invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+      const month = invoiceDate.toLocaleString("default", { month: "long" });
+      const year = invoiceDate.getFullYear();
+      return `${month} ${year}`;
+    } else {
+      return "No Date Found";
+    }
+  };
+
+  return (
+    <Flex
+      width="100%"
+      justifyContent="space-between"
+      alignItems="center"
+      py={4}
+      px={6}
+      bg="white"
+      borderBottom="1px solid #E2E8F0"
+    >
+      <HStack>
         <IconButton
-          icon={<BackArrowIcon/>}
+          icon={<LeftIcon color="black" />}
           onClick={onBack}
           variant="link"
           color="#474849"
           fontSize="1.5em"
           aria-label="Go back"
         />
+        <Text fontWeight="700">{`${programName.trim().split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate([], invoice?.data, false)}_Classroom Rental Summary`}</Text>
+      </HStack>
 
-        <Icon
-          viewBox="0 0 17 16"
-          boxSize={5}
-          color="#4A5568"
+      <HStack>
+        {/* Edit Icon looks different from Figma HiFi, so lmk if yall want me to make another edit icon or just reuse the icon we already have */}
+        <Button
+          leftIcon={<PencilIcon color="black" />}
+          onClick={() => navigate(`/invoices/edit/${id}`)}
         >
-          <SavedInvoiceEllipsisIcon/>
-          <path
-            d="M8.17904 6.6665C7.4457 6.6665 6.8457 7.2665 6.8457 7.99984C6.8457 8.73317 7.4457 9.33317 8.17904 9.33317C8.91237 9.33317 9.51237 8.73317 9.51237 7.99984C9.51237 7.2665 8.91237 6.6665 8.17904 6.6665ZM12.179 6.6665C11.4457 6.6665 10.8457 7.2665 10.8457 7.99984C10.8457 8.73317 11.4457 9.33317 12.179 9.33317C12.9124 9.33317 13.5124 8.73317 13.5124 7.99984C13.5124 7.2665 12.9124 6.6665 12.179 6.6665ZM4.17904 6.6665C3.4457 6.6665 2.8457 7.2665 2.8457 7.99984C2.8457 8.73317 3.4457 9.33317 4.17904 9.33317C4.91237 9.33317 5.51237 8.73317 5.51237 7.99984C5.51237 7.2665 4.91237 6.6665 4.17904 6.6665Z"
-            fill="currentColor"
-          />
-        </Icon>
-
-
-
-      </Flex>
-    );
-  };
+          Edit
+        </Button>
+        <EmailSidebar
+          isOpen={isOpen}
+          onOpen={onOpen}
+          onClose={onClose}
+          payees={payees}
+          pdf_title={`${programName.trim().split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate([], invoice?.data, false)} Invoice`}
+          invoice={invoice}
+        />
+      </HStack>
+    </Flex>
+  );
+};
 
 export const SavedEdit = () => {
   const { id } = useParams();
@@ -71,6 +120,8 @@ export const SavedEdit = () => {
   const [subtotal, setSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
 
+  const [sessions, setSessions] = useState([]);
+  const [summary, setSummary] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,7 +153,6 @@ export const SavedEdit = () => {
         setInstructors(instructorResponse.data);
 
         const commentsResponse = await backend.get("/comments/invoice/" + id);
-        console.log(commentsResponse)
         setComments(commentsResponse.data);
 
         const programNameResponse = await backend.get(
@@ -113,10 +163,10 @@ export const SavedEdit = () => {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
         setPayees(payeesResponse.data);
 
-        const subtotalResponse = await backend.get("/invoices/total/" + id);
-        setSubtotal(subtotalResponse.data.total);
+        // const subtotalResponse = await backend.get("/invoices/total/" + id);
+        // setSubtotal(subtotalResponse.data.total);
 
-        // get the unpaid/remaining invoices
+        // ==== PAST DUE CALCULATION ====
         const unpaidInvoicesResponse = await backend.get(
           "/events/remaining/" + invoice.data[0]["eventId"]
         );
@@ -144,6 +194,18 @@ export const SavedEdit = () => {
         );
         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
         setPastDue(remainingBalance);
+
+        // ==== END OF PAST DUE CALCULATION ====
+
+        const sessionResponse = await backend.get(
+          `comments/invoice/sessions/${id}`
+        );
+        setSessions(sessionResponse.data);
+
+        const summaryResponse = await backend.get(
+          `comments/invoice/summary/${id}`
+        );
+        setSummary(summaryResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -151,51 +213,53 @@ export const SavedEdit = () => {
     fetchData();
   }, [invoice]);
 
-  useEffect(() => {
-    const fetchBookingDetails = async () => {
-      try {
-        if (!comments || !Array.isArray(comments) || comments.length === 0) {
-          return;
-        }
+  // useEffect(() => {
+  //   const fetchBookingDetails = async () => {
+  //     try {
+  //       if (!comments || !Array.isArray(comments) || comments.length === 0) {
+  //         return;
+  //       }
 
-        const commentWithBookingId = comments[0].bookingId;
+  //       const commentWithBookingId = comments[0].bookingId;
 
-        const bookingResponse = await backend.get(
-          `/bookings/${commentWithBookingId}`
-        );
-        setBookingDetails(bookingResponse.data[0]);
+  //       const bookingResponse = await backend.get(
+  //         `/bookings/${commentWithBookingId}`
+  //       );
+  //       setBookingDetails(bookingResponse.data[0]);
 
-        const roomResponse = await backend.get(
-          `/rooms/${bookingResponse.data[0].roomId}`
-        );
-        setRoom(roomResponse.data);
-      } catch (error) {
-        console.error("Error fetching booking details:", error);
-      }
-    };
+  //       const roomResponse = await backend.get(
+  //         `/rooms/${bookingResponse.data[0].roomId}`
+  //       );
+  //       setRoom(roomResponse.data);
+  //       console.log("roomresponse.data", roomResponse.data)
+  //     } catch (error) {
+  //       console.error("Error fetching booking details:", error);
+  //     }
+  //   };
 
-    fetchBookingDetails();
-  }, [comments, backend]);
+  //   fetchBookingDetails();
+  // }, [comments, backend]);
 
   const handleBack = () => {
     navigate(`/invoices/${id}`);
   };
 
-  useEffect(() => {
-    console.log("comments in saved", comments, invoice);
-  }, [comments, invoice])
-
   return (
     <Navbar>
-
       <VStack>
         <SavedInvoiceNavBar
           onBack={handleBack}
           id={id}
+          invoice={invoice}
+          payees={payees}
+          programName={programName}
         />
 
         <InvoiceView
           comments={comments}
+          sessions={sessions}
+          setSessions={setSessions}
+          summary={summary}
           booking={booking}
           room={room}
           subtotal={subtotal}

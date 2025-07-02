@@ -1,3 +1,11 @@
+import {
+  CalendarIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+} from "@chakra-ui/icons";
 import React, {
   forwardRef,
   useCallback,
@@ -7,7 +15,6 @@ import React, {
   useState,
 } from "react";
 
-import { CalendarIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -55,6 +62,7 @@ import { EllipsisIcon } from "lucide-react";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { useParams } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { CancelIcon } from "../../assets/CancelIcon";
@@ -72,12 +80,12 @@ import {
   sessionsEllipsis,
 } from "../../assets/icons/ProgramIcons";
 import personIcon from "../../assets/person.svg";
+import { useAuthContext } from "../../contexts/hooks/useAuthContext";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
 import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import redCancelIcon from "../../assets/redCancelIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
-import { useAuthContext } from "../../contexts/hooks/useAuthContext";
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditOnlyPopup } from "../cancelModal/EditOnlyPopup";
@@ -126,6 +134,7 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
           backgroundColor={isSent ? "#F0FFF4" : "#FFF5F5"}
           color={isSent ? "#38A169" : "#E53E3E"}
           variant="solid"
+          _hover={{ bg: isSent ? "#F0FFF4" : "#FFF5F5" }}
         >
           {isSent ? "Sent" : "Not Sent"}
         </Button>
@@ -141,6 +150,7 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
           backgroundColor={isPaid() === "Paid" ? "#F0FFF4" : "#FFF5F5"}
           color={isPaid() === "Paid" ? "#38A169" : "#E53E3E"}
           variant="solid"
+          _hover={{ bg: isSent ? "#F0FFF4" : "#FFF5F5" }}
         >
           {isPaid() === "Paid"
             ? "Paid"
@@ -944,13 +954,12 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   );
 
   const location = useLocation();
-
   useEffect(() => {
     if (location.pathname === "/invoices") {
       window.__hasShownToast = false; // 🔁 Reset when user visits invoices page
     }
   }, [location.pathname]);
-
+  
   useEffect(() => {
     if (window.__hasShownToast || filteredInvoices.length === 0) return;
     const pastDueInvoices = filteredInvoices.filter(
@@ -1057,6 +1066,30 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       window.__hasShownToast = true;
     }
   }, [filteredInvoices, toast, navigate]);
+  
+  // useEffect(() => {
+  //   filteredInvoices.forEach((invoice, index) => {
+  //     if (invoice.isPaid === "Past Due") {
+  //       const programTitle = invoice.eventName.split(" ").slice(0, 3).join(" ");
+  //       const date = new Date(invoice.endDate);
+  //       const month = date.toLocaleString("default", { month: "long" });
+  //       const year = date.getFullYear();
+  //       const description = `${programTitle}, ${month} ${year} Invoice`;
+  
+  //       setTimeout(() => {
+  //         toast({
+  //           title: "Invoice Past Due",
+  //           description: description,
+  //           status: "error",
+  //           duration: 1000,
+  //           isClosable: true,
+  //           position: "bottom-right",
+  //         });
+  //       }, index * 500);
+  //     }
+  //   });
+  // }, [filteredInvoices, toast]);
+  
 
   const handleSortChange = useCallback((key, order) => {
     setSortKey(key);
@@ -1233,7 +1266,11 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       },
                     }}
                   >
-                    <Td onClick={() => handleRowClick(invoice.id)}>
+                    <Td onClick={() => handleRowClick(invoice.id)} style={{
+                        color: isPaidColor(invoice),
+                        fontWeight:
+                          invoice.isPaid === "Past Due" ? "bold" : "normal",
+                      }}>
                       <Box className={statusClass}>{invoice.isPaid}</Box>
                     </Td>
                     <Td

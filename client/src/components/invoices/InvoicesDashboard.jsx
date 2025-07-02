@@ -140,8 +140,11 @@ const InvoicesDashboard = () => {
     if (invoice.paymentStatus === "full") {
       return "Paid";
     }
-
-    if (new Date() < endDate && invoice.paymentStatus !== "full") {
+    if (
+      !invoice.isSent &&
+      new Date() < new Date(invoice.endDate) &&
+      invoice.paymentStatus !== "full"
+    ) {
       return "Not Paid";
     }
 
@@ -177,11 +180,13 @@ const InvoicesDashboard = () => {
           const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
           if (invoice.role === "instructor") return acc;
           if (!acc[key]) {
+            // Create a new entry with a payers array
             acc[key] = {
               ...invoice,
               payers: [invoice.name], // Store payers in an array
             };
           } else {
+            // Append the payer only if it's not already in the list (avoid duplicates)
             if (!acc[key].payers.includes(invoice.name)) {
               acc[key].payers.push(invoice.name);
             }
@@ -206,10 +211,9 @@ const InvoicesDashboard = () => {
         console.log(err);
       }
     };
-
     fetchInvoicesData();
-  }, [backend, navigate, toast]); // Include dependencies the function uses
-
+  }, [backend, navigate, toast]);
+  
   const handleSearch = (value) => {
     setQuery(value);
     if (value === "") {
@@ -231,6 +235,47 @@ const InvoicesDashboard = () => {
 
     setFilteredInvoices(filtered);
   };
+
+  useEffect(() => {
+    if (invoices.length === 0 || hasShownToast.current) return;
+
+    const getUnpaidInvoices = () => {
+      const filteredPastDueInvoices = filteredInvoices.filter(invoice => isPaid(invoice) === "PAST DUE");
+      const notifCounter = filteredPastDueInvoices.length;
+
+      if (notifCounter > 0) {
+        hasShownToast.current = true; // Set ref to true to prevent multiple toasts
+        toast({
+          title: "Unpaid Invoices",
+          description: notifCounter > 1
+            ? `You have ${notifCounter} past due invoices`
+            : `${filteredPastDueInvoices[0].name} - ${filteredPastDueInvoices[0].endDate.split("T")[0]}`,
+          status: "error",
+          duration: 9000,
+          position: "bottom-right",
+          isClosable: true,
+          render: () => (
+            <Flex p={3} bg="#FED7D7" borderTop="4px solid" borderTopColor="red.500" onClick={() => navigate("/notification")} padding="12px 16px" gap='12px' w='400px'>
+              <Image src={AlertIcon} />
+              <Flex flexDirection='column'>
+                <Heading size="sm" align-self='stretch'>Unpaid Invoices</Heading>
+                <Text align-self='stretch'>
+
+                {notifCounter > 1
+                  ? `You have ${notifCounter} past due invoices`
+                  : `${filteredPastDueInvoices[0].name} -
+                  ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "2-digit",})}`
+                }
+                </Text>
+              </Flex>
+            </Flex>
+          ),
+        });
+      }
+    };
+
+    getUnpaidInvoices();
+  }, [invoices]);
 
   return (
     <Navbar>
