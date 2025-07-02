@@ -63,7 +63,7 @@ const InvoiceView = ({
           booking={booking}
           subtotal={subtotal}
           setSubtotal={setSubtotal}
-          session={sessions}
+          // session={sessions}
           summary={summary}
           compactView={compactView}
         />
