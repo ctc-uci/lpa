@@ -62,7 +62,6 @@ import { EllipsisIcon } from "lucide-react";
 import { FaCircle, FaUser } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { useParams } from "react-router";
-import { useNavigate } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { CancelIcon } from "../../assets/CancelIcon";

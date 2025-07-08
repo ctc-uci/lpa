@@ -1,16 +1,14 @@
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 
-import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
 import { DownloadIcon } from "@chakra-ui/icons";
 import { Box, Flex, IconButton, Spinner, useToast } from "@chakra-ui/react";
 
 import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
+import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoicePDFDocument } from "./InvoicePDFDocument";
-import { pdf } from "@react-pdf/renderer";
-import { saveAs } from "file-saver";
 
 // TODO FIX ENDPOINTS TO FIX CALCULATIONS
 const handleSubtotalSum = (startTime, endTime, rate) => {
@@ -32,14 +30,17 @@ const handleSubtotalSum = (startTime, endTime, rate) => {
   return total;
 };
 
-const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
+const PDFButtonInvoice = ({
+  id,
+  hasUnsavedChanges,
+  handleOtherButtonClick,
+}) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
   const [programName, setProgramName] = useState("");
   const [invoiceDate, setInvoiceDate] = useState("");
   const downloadToast = useToast();
-
 
   const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
@@ -141,68 +142,73 @@ const PDFButtonInvoice = ({ id, hasUnsavedChanges, handleOtherButtonClick}) => {
 
       const year = latestDate.getFullYear();
 
-    if (month && year) {  
-      return `${month} ${year}`;
-    } else {
-      return "No Date Found";
-    }
-  };
-
-  const handleDownload = async () => {
-  try {
-    setLoading(true);
-    const invoiceResponse = await backend.get(`/invoices/${id}`);
-    const invoice = invoiceResponse.data;
-    const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
-    setProgramName(invoiceData.programName)
-
-
-      const blob = await pdf(
-        <InvoicePDFDocument
-          invoice={invoice}
-          {...invoiceData}
-        />
-      ).toBlob();
-
-    saveAs(blob, `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`);
-    downloadToast({
-      title: 'Invoice Downloaded',
-      description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
-      status: 'success',
-      duration: 6000,
-      position: "bottom-right",
-      variant: 'left-accent',
-      isClosable: false,
-    });
-  } catch (err) {
-    console.error("Error generating PDF:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  return (
-    <Box>
-        <IconButton
-        icon={loading ? <Spinner size="sm" /> : <DownloadInvoiceIcon />}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (hasUnsavedChanges) {
-            handleOtherButtonClick(() => {
-              handleDownload();
-            })
-          }
-          else {
-            handleDownload();
-          }
-        }
+      if (month && year) {
+        return `${month} ${year}`;
+      } else {
+        return "No Date Found";
       }
-        backgroundColor="transparent"
-        aria-label="Download PDF"
-        isDisabled={loading}
-      />
-    </Box>
-  );
+    }
+
+    const handleDownload = async () => {
+      try {
+        setLoading(true);
+        const invoiceResponse = await backend.get(`/invoices/${id}`);
+        const invoice = invoiceResponse.data;
+        const invoiceData = await fetchInvoiceData(
+          invoiceResponse,
+          backend,
+          id
+        );
+        setProgramName(invoiceData.programName);
+
+        const blob = await pdf(
+          <InvoicePDFDocument
+            invoice={invoice}
+            {...invoiceData}
+          />
+        ).toBlob();
+
+        saveAs(
+          blob,
+          `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+        );
+        downloadToast({
+          title: "Invoice Downloaded",
+          description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
+          status: "success",
+          duration: 6000,
+          position: "bottom-right",
+          variant: "left-accent",
+          isClosable: false,
+        });
+      } catch (err) {
+        console.error("Error generating PDF:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <Box>
+        <IconButton
+          icon={loading ? <Spinner size="sm" /> : <DownloadInvoiceIcon />}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasUnsavedChanges) {
+              handleOtherButtonClick(() => {
+                handleDownload();
+              });
+            } else {
+              handleDownload();
+            }
+          }}
+          backgroundColor="transparent"
+          aria-label="Download PDF"
+          isDisabled={loading}
+        />
+      </Box>
+    );
+  };
 };
 
 const TestPDFViewer = () => {

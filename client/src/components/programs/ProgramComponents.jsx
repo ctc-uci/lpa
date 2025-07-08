@@ -1,14 +1,5 @@
 import { React, useEffect, useState } from "react";
 
-import { CancelIcon } from "../../assets/CancelIcon";
-import { ClockFilled } from "../../assets/ClockFilled";
-import { CustomOption } from "../../assets/CustomOption";
-import { InfoIconRed } from "../../assets/InfoIconRed";
-import { SessionFilter } from "../filters/SessionsFilter";
-import { CancelSessionModal } from "./CancelSessionModal";
-
-import "./Program.css";
-
 import {
   CalendarIcon,
   ChevronDownIcon,
@@ -73,12 +64,13 @@ import {
   View as PDFView,
   StyleSheet,
 } from "@react-pdf/renderer";
-import { EllipsisIcon, Info } from "lucide-react";
+import { Edit, EllipsisIcon, FileTextIcon, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+import "./Program.css";
 
 import { ArchiveIcon } from "../../assets/ArchiveIcon";
 import { ArtistIcon } from "../../assets/ArtistsIcon";
-import CancelIcon from "../../assets/CancelIcon";
 import { ClockFilled } from "../../assets/ClockFilled";
 import { CustomOption } from "../../assets/CustomOption";
 import { DeleteIconRed } from "../../assets/DeleteIconRed";
@@ -104,29 +96,15 @@ import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import { ReactivateIcon } from "../../assets/ReactivateIcon";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { SessionsCancelIcon } from "../../assets/SessionsCancelIcon";
+
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import { SessionFilter } from "../filters/SessionsFilter";
-import { CancelSessionModal } from "./CancelSessionModal";
-
-import "./Program.css";
-
-import {
-  Document,
-  Page,
-  PDFDownloadLink,
-  Text as PDFText,
-  View as PDFView,
-  StyleSheet,
-} from "@react-pdf/renderer";
-import { wrap } from "framer-motion";
-import { Edit, EllipsisIcon, FileTextIcon, Info } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-
-import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
 import DateSortingModal from "../sorting/DateFilter";
+import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 
