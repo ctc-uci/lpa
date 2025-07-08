@@ -484,7 +484,8 @@ async function getInvoicePaidAmount(invoiceId) {
   try {
     const result = await db.oneOrNone(
       `SELECT SUM(c.adjustment_value) FROM
-      invoices as i, comments as c
+      invoices as i
+      JOIN comments as c on i.id = c.invoice_id
       WHERE i.id = $1 AND c.adjustment_type = 'paid';`,
       [invoiceId]
     );
