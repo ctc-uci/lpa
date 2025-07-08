@@ -370,6 +370,10 @@ commentsRouter.put("/:id", async (req, res) => {
       return res.status(404).send("Comment not found");
     }
 
+    if (adjustment_type === "paid" && invoice_id) {
+      await updateInvoiceStatus(invoice_id);
+    }
+
     res.status(200).json(keysToCamel(data));
   } catch (err) {
     res.status(400).send(err.message);
@@ -410,41 +414,7 @@ commentsRouter.post("/", async (req, res) => {
 
     // Updating payment status for invoice
     if (adjustment_type === "paid" && invoice_id) {
-      console.log(`Processing payment adjustment for invoice: ${invoice_id}`);
-
-      const paidAmount = await getInvoicePaidAmount(invoice_id);
-      const totalAmount = await getInvoiceTotal(invoice_id);
-      console.log(`Paid amount: ${paidAmount}, Total amount: ${totalAmount}`);
-
-      let newStatus = "none";
-
-      if (paidAmount >= totalAmount) {
-        newStatus = "full"; // This should be "full" not "paid" based on your schema
-        console.log(`Invoice ${invoice_id} is fully paid`);
-      } else if (paidAmount > 0) {
-        newStatus = "partial";
-        console.log(`Invoice ${invoice_id} is partially paid`);
-      } else {
-        newStatus = "none";
-        console.log(`Invoice ${invoice_id} has no payment`);
-      }
-
-      console.log(`Updating invoice ${invoice_id} status to ${newStatus}`);
-
-      // Update the invoice
-      await db.query("UPDATE invoices SET payment_status = $1 WHERE id = $2", [
-        newStatus,
-        invoice_id,
-      ]);
-
-      // Verify the update
-      const updatedInvoice = await db.oneOrNone(
-        "SELECT payment_status FROM invoices WHERE id = $1",
-        [invoice_id]
-      );
-      console.log(
-        `After update, invoice status is: ${updatedInvoice?.payment_status}`
-      );
+      await updateInvoiceStatus(invoice_id);
     }
 
     res.status(200).json(keysToCamel(inserted_row));
@@ -737,7 +707,8 @@ async function getInvoicePaidAmount(invoiceId) {
   try {
     const result = await db.oneOrNone(
       `SELECT SUM(c.adjustment_value) FROM
-      invoices as i, comments as c
+      invoices as i
+      JOIN comments as c on i.id = c.invoice_id
       WHERE i.id = $1 AND c.adjustment_type = 'paid';`,
       [invoiceId]
     );
@@ -747,6 +718,27 @@ async function getInvoicePaidAmount(invoiceId) {
     console.error("Error calculating invoice paid amount:", error);
     throw error;
   }
+}
+
+// Update invoice status based on paid amount
+async function updateInvoiceStatus(invoice_id) {
+  const paidAmount = await getInvoicePaidAmount(invoice_id);
+  const totalAmount = await getInvoiceTotal(invoice_id);
+  
+  let newStatus = "none";
+  if (paidAmount >= totalAmount) {
+    newStatus = "full"; 
+  } else if (paidAmount > 0) {
+    newStatus = "partial";
+  } else {
+    newStatus = "none";
+  }
+
+  // Update the invoice
+  await db.query("UPDATE invoices SET payment_status = $1 WHERE id = $2", [
+    newStatus,
+    invoice_id,
+  ]);
 }
 
 export { commentsRouter };

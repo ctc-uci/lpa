@@ -25,6 +25,7 @@ import {
 
 import { CancelArchiveIcon } from "../../assets/CancelArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { getCurrentUser } from "../../utils/auth/firebase";
 
 export const CancelProgram = ({
   id,
@@ -35,6 +36,7 @@ export const CancelProgram = ({
   onClose,
   type,
   handleArchiveSession,
+  setIsArchived,
 }) => {
   const [selectedAction, setSelectedAction] = useState("Archive");
   const [selectedIcon, setSelectedIcon] = useState(<CancelArchiveIcon />);
@@ -63,11 +65,15 @@ export const CancelProgram = ({
 
   const handleProgramArchive = useCallback(async () => {
     try {
-      console.log("concat: ");
-      console.log(eventDescription + "\n" + cancelReason);
-      await backend.put(`/events/${id}`, {
-        archived: true,
-        description: eventDescription + "\n" + cancelReason,
+      const currentFirebaseUser = await getCurrentUser();
+      const firebaseUid = currentFirebaseUser?.uid;
+      if (!firebaseUid) {
+        throw new Error("No logged in user");
+      }
+
+      await backend.post(`/programs/archive/${id}`, {
+        reason: cancelReason,
+        firebaseUid: firebaseUid,
       });
       if (setPrograms) {
         setPrograms((prev) => prev.filter((p) => p.id !== id));
@@ -217,27 +223,47 @@ export const CancelProgram = ({
           <Box>
             <Flex className="cancelModalText">
               <Text>
-                The cancellation fee deadline for this {type.toLowerCase()} is
-                Thu. 1/2/2025.
+                {selectedAction === "Archive" ? (
+                  <>
+                    {type.toLowerCase() === "program" ? (
+                      <>
+                        The total costs for all sessions within 2 weeks will be added as a fee to the current invoice. This invoice will not be shown until the program is unarchived.
+                      </>
+                    ) : (
+                      <>
+                        The cancellation fee deadline for this {type.toLowerCase()} is
+                        Thu. 1/2/2025.
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    Are you sure you want to delete this {type.toLowerCase()}? {type.toLowerCase() === "program" && "All sessions, invoices, and comments will be deleted."}
+                  </>
+                )}
               </Text>
             </Flex>
           </Box>
           <Box mt={4}>
-            <Text
-              fontWeight="medium"
-              className="cancelModalCancelReason"
-            >
-              Reason for Cancellation:
-            </Text>
-            <Textarea
-              bg="transparent"
-              size="md"
-              borderRadius="md"
-              onChange={(e) => {
-                setCancelReason(e.target.value);
-                console.log(cancelReason);
-              }}
-            />
+            {selectedAction === "Archive" && (
+              <>
+                <Text
+                  fontWeight="medium"
+                  className="cancelModalCancelReason"
+                >
+                  Reason for Cancellation:
+                </Text>
+                <Textarea
+                  bg="transparent"
+                  size="md"
+                  borderRadius="md"
+                  onChange={(e) => {
+                    setCancelReason(e.target.value);
+                    console.log(cancelReason);
+                    }}
+                />
+              </>
+            )}
           </Box>
           <Box
             mt={4}

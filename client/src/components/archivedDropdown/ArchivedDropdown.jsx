@@ -186,7 +186,7 @@ export const ArchivedDropdown = ({
           </Box>
         ),
       });
-      navigate("/programs");
+      navigate(`/programs/${programId}`);
     } catch (error) {
       console.log("Couldn't reactivate program", error);
     }
