@@ -378,8 +378,8 @@ export const EditInvoice = () => {
               // For regular sessions, check if this comment already exists
               const existingComment = comments.find(
                 (c) =>
-                  c.bookingId == commentData.booking_id &&
-                  c.comment == commentData.comment
+                  c.bookingId === commentData.booking_id &&
+                  c.comment === commentData.comment
               );
 
               if (existingComment) {
@@ -434,7 +434,7 @@ export const EditInvoice = () => {
             try {
               // Check if this adjustment already exists
               const existingAdjustment = comments.find(
-                (c) => c.id == adjustmentValue.id
+                (c) => c.id === adjustmentValue.id
               );
 
               if (existingAdjustment) {
