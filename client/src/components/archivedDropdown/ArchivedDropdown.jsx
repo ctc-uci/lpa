@@ -6,6 +6,7 @@ import "./ArchivedDropdown.css";
 
 import {
   Box,
+  Button,
   Flex,
   Icon,
   IconButton,
@@ -18,6 +19,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
+import { EllipsisIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { GreenCheckIcon } from "../../assets/GreenCheckIcon";
@@ -204,7 +206,7 @@ export const ArchivedDropdown = ({
           as={IconButton}
           aria-label="Options"
           icon={<ActionsIcon />}
-          variant="ghost"
+          _hover={{ bg: "pink" }}
           className="actions-container"
         />
         <MenuList className="menu-list">
@@ -213,19 +215,23 @@ export const ArchivedDropdown = ({
             className="menu-item menu-item--edit"
           >
             <Box className="menuItemBox">
-              <div className="horizontal">
+              <Box className="horizontal">
                 <Icon as={duplicateIcon} />
                 <Text className="dropdownText">Duplicate</Text>
-              </div>
-              <Tooltip
-                label="For applying changes to program/session"
-                textAlign={"center"}
-                maxWidth={"136px"}
-                bgColor={"#718096"}
-                borderRadius={"4px"}
-              >
-                <TooltipIcon />
-              </Tooltip>
+
+                <Tooltip
+                  label="For applying changes to program/session"
+                  textAlign={"center"}
+                  maxWidth={"136px"}
+                  bgColor={"#718096"}
+                  borderRadius={"4px"}
+                >
+                  <TooltipIcon
+                    width={"18px"}
+                    height={"18px"}
+                  />
+                </Tooltip>
+              </Box>
             </Box>
           </MenuItem>
           <MenuItem
@@ -233,19 +239,23 @@ export const ArchivedDropdown = ({
             className="menu-item menu-item--edit"
           >
             <Box className="menuItemBox">
-              <div className="horizontal">
+              <Box className="horizontal">
                 <Icon as={reactivateIcon} />
                 <Text className="dropdownText">Reactivate</Text>
-              </div>
-              <Tooltip
-                textAlign={"center"}
-                label="No changes will be applied to program/session"
-                maxWidth={"136px"}
-                bgColor={"#718096"}
-                borderRadius={"4px"}
-              >
-                <TooltipIcon></TooltipIcon>
-              </Tooltip>
+
+                <Tooltip
+                  textAlign={"center"}
+                  label="No changes will be applied to program/session"
+                  maxWidth={"136px"}
+                  bgColor={"#718096"}
+                  borderRadius={"4px"}
+                >
+                  <TooltipIcon
+                    width={"18px"}
+                    height={"18px"}
+                  />
+                </Tooltip>
+              </Box>
             </Box>
           </MenuItem>
           <MenuItem

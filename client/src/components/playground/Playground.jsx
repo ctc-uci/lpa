@@ -1,36 +1,47 @@
-import { React, useState, useEffect } from 'react';
+import { React, useEffect, useState } from "react";
 
 import {
-    Box,
-    VStack,
-    FormLabel,
-    FormControl,
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td,
-    TableContainer,
-    Button,
-    Text
-  } from "@chakra-ui/react";
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  VStack,
+} from "@chakra-ui/react";
 
-import Navbar from "../navbar/Navbar";
+import { Filter } from "lucide-react";
 
-import { Test } from "../calendar/Test";
-import { SendEmailButton } from "../email/SendEmailButton";
-import { DayFilter, DateFilter, TimeFilter, SeasonFilter, EmailFilter, ClientsFilter, RoomFilter, ProgramStatusFilter, InvoiceStatusFilter, SessionStatusFilter } from '../filters/FilterComponents';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { FilterContainer } from '../filters/FilterContainer';
-import { Filter } from 'lucide-react';
-import {ProgramFilter} from '../filters/ProgramsFilter';
-import { SessionFilter } from '../filters/SessionsFilter';
+import { createEvent, isSignedIn } from "../../utils/calendar";
+import CalendarSelector from "../calendar/CalendarSelector";
+import GcalPrompt from "../calendar/GcalPrompt";
+import { Test } from "../calendar/Test";
 import { AddClient } from "../clientsearch/AddClient";
-import CalendarSelector from '../calendar/CalendarSelector';
-import { createEvent, isSignedIn } from '../../utils/calendar';
-import GcalPrompt from '../calendar/GcalPrompt';
-
+import { SendEmailButton } from "../email/SendEmailButton";
+import {
+  ClientsFilter,
+  DateFilter,
+  DayFilter,
+  EmailFilter,
+  InvoiceStatusFilter,
+  ProgramStatusFilter,
+  RoomFilter,
+  SeasonFilter,
+  SessionStatusFilter,
+  TimeFilter,
+} from "../filters/FilterComponents";
+import { FilterContainer } from "../filters/FilterContainer";
+import { ProgramFilter } from "../filters/ProgramsFilter";
+import { SessionFilter } from "../filters/SessionsFilter";
+import { PDFButtonInvoice } from "../invoices/PDFButtonInvoice";
+import Navbar from "../navbar/Navbar";
 
 export const Playground = () => {
   const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
@@ -62,16 +73,15 @@ export const Playground = () => {
         const payeeResponse = await backend.get("/clients/search", {
           params: {
             searchTerm: search,
-            columns: ["name"]
-          }
+            columns: ["name"],
+          },
         });
         filterSelectedPayeesFromSearch(payeeResponse.data);
-      }
-      else {
+      } else {
         setSearchedPayees([]);
       }
     } catch (error) {
-        console.error("Error getting instructors:", error);
+      console.error("Error getting instructors:", error);
     }
   };
 
@@ -81,12 +91,11 @@ export const Playground = () => {
         const instructorResponse = await backend.get("/clients/search", {
           params: {
             searchTerm: search,
-            columns: ["name"]
-          }
+            columns: ["name"],
+          },
         });
         filterSelectedInstructorsFromSearch(instructorResponse.data);
-      }
-      else {
+      } else {
         setSearchedInstructors([]);
       }
     } catch (error) {
@@ -126,48 +135,49 @@ export const Playground = () => {
   //   fetchData();
   // }, [backend]);
 
-
   return (
     <Navbar>
-      <VStack spacing={8} width={"100%"}>
+      <VStack
+        spacing={8}
+        width={"100%"}
+      >
         <Button onClick={() => setShowGcalPrompt(true)}>
           Sign in to Google Calendar
         </Button>
-        {isSignedIn() ? (
-          <Text>Signed in</Text>
-        ) : (
-          <Text>Not signed in</Text>
-        )}
+        {isSignedIn() ? <Text>Signed in</Text> : <Text>Not signed in</Text>}
         <CalendarSelector />
-        <Button onClick={() => {
-          const event = {
-            backendId: 1,
-            name: "Test Event",
-            start: new Date().toISOString(),
-            end: new Date(new Date().getTime() + 1000 * 60 * 60 * 2).toISOString(),
-            location: "Test Location",
-            description: "Test Description",
-            roomId: 1
-          }
-          console.log(event);
-          createEvent(event);
-        }}>
+        <Button
+          onClick={() => {
+            const event = {
+              backendId: 1,
+              name: "Test Event",
+              start: new Date().toISOString(),
+              end: new Date(
+                new Date().getTime() + 1000 * 60 * 60 * 2
+              ).toISOString(),
+              location: "Test Location",
+              description: "Test Description",
+              roomId: 1,
+            };
+            console.log(event);
+            createEvent(event);
+          }}
+        >
           Add Test Event
         </Button>
         <Test />
-        <Button onClick={() => setShowAddClient(true)}>
-          Add Client
-        </Button>
-        <AddClient 
-          isOpen={showAddClient} 
-          onClose={() => setShowAddClient(false)} 
+        <Button onClick={() => setShowAddClient(true)}>Add Client</Button>
+        <AddClient
+          isOpen={showAddClient}
+          onClose={() => setShowAddClient(false)}
           type="Payer"
         />
       </VStack>
-      <GcalPrompt 
-        isOpen={showGcalPrompt} 
-        onClose={() => setShowGcalPrompt(false)} 
+      <GcalPrompt
+        isOpen={showGcalPrompt}
+        onClose={() => setShowGcalPrompt(false)}
       />
+      <PDFButtonInvoice />
     </Navbar>
   );
 };

@@ -1,16 +1,16 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   Box,
   Button,
   Flex,
   IconButton,
-  useDisclosure,
   Modal,
-  ModalOverlay,
   ModalContent,
-  ModalHeader,
   ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
 } from "@chakra-ui/react";
 
 import { FaAngleLeft } from "react-icons/fa6";
@@ -24,8 +24,8 @@ import {
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import { EmailHistory } from "./EmailHistory";
 import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
+import { EmailHistory } from "./EmailHistory";
 import {
   InvoicePayments,
   InvoiceStats,
@@ -56,7 +56,7 @@ export const SingleInvoice = () => {
   const [instructors, setInstructors] = useState([]);
   const [invoice, setInvoice] = useState([]);
   const currentPastDue = useRef(pastDue);
-  
+
   const {
     isOpen: isModalOpen,
     onOpen: openModal,
@@ -102,7 +102,7 @@ export const SingleInvoice = () => {
         // get invoice total
         const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
         const total = invoiceTotalResponse.data.total;
-        setTotal(total); 
+        setTotal(total);
         setSubtotal(total);
 
         // // calculate sum of unpaid/remaining invoices
@@ -110,10 +110,10 @@ export const SingleInvoice = () => {
         //   "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
         // );
         // // console.log("currentInvoiceResponse data[0] eventId", currentInvoiceResponse.data[0]["eventId"]);
-        
+
         // const unpaidTotals = await Promise.all(
         //   unpaidInvoicesResponse.data.map((invoice) =>{
-        //     // console.log("invoice.id", invoice.id) 
+        //     // console.log("invoice.id", invoice.id)
         //     return backend.get(`/invoices/total/${invoice.id}`)
         //   })
         // )
@@ -146,7 +146,8 @@ export const SingleInvoice = () => {
         const paidTotalResponse = await backend.get(`/invoices/paid/${id}`);
         const paidTotal = paidTotalResponse.data.total;
 
-        const remainingBalanceCalculated = (total - paidTotal) > 0 ? (total - paidTotal) : 0 ;
+        const remainingBalanceCalculated =
+          total - paidTotal > 0 ? total - paidTotal : 0;
         setRemainingBalance(remainingBalanceCalculated);
         setPastDue(remainingBalanceCalculated);
 
@@ -229,11 +230,11 @@ export const SingleInvoice = () => {
         // const bookingResponse = await backend.get(
         //   `/bookings/${commentWithBookingId}`
         // );
-        
+
         // if (!bookingResponse.data || !bookingResponse.data[0]) {
         //   return;
         // }
-        
+
         // setBookingDetails(bookingResponse.data[0]);
 
         // const roomResponse = await backend.get(
@@ -243,7 +244,6 @@ export const SingleInvoice = () => {
         //   setRoom(roomResponse.data);
         //   setRoomRate(roomResponse.data[0]?.rate || 0);
         // }
-
 
         const totalRoomRate = sessions.reduce((acc, session) => {
           return acc + (Number(session.rate) || 0);
@@ -262,15 +262,15 @@ export const SingleInvoice = () => {
   };
 
   const handleSaveChanges = () => {
-      if (pendingNavigation) {
-        invoicePaymentsRef.current?.handleSaveComment();
-        pendingNavigation();
-        setPendingNavigation(null);
-        setHasUnsavedChanges(false);
-      } else {
-        invoicePaymentsRef.current?.handleSaveComment();
-        setHasUnsavedChanges(false);
-      }
+    if (pendingNavigation) {
+      invoicePaymentsRef.current?.handleSaveComment();
+      pendingNavigation();
+      setPendingNavigation(null);
+      setHasUnsavedChanges(false);
+    } else {
+      invoicePaymentsRef.current?.handleSaveComment();
+      setHasUnsavedChanges(false);
+    }
   };
 
   const handleNavbarClick = (path) => {
@@ -288,7 +288,10 @@ export const SingleInvoice = () => {
   }, []);
 
   return (
-    <Navbar handleNavbarClick={handleNavbarClick} hasUnsavedChanges={hasUnsavedChanges}>
+    <Navbar
+      handleNavbarClick={handleNavbarClick}
+      hasUnsavedChanges={hasUnsavedChanges}
+    >
       <Flex
         direction="row"
         height="100%"
@@ -326,7 +329,7 @@ export const SingleInvoice = () => {
                     if (pendingNavigation) {
                       pendingNavigation();
                       setHasUnsavedChanges(false);
-                    } else if (actionToContinue){
+                    } else if (actionToContinue) {
                       actionToContinue();
                       setActionToContinue(null);
                       setHasUnsavedChanges(false);
@@ -381,7 +384,11 @@ export const SingleInvoice = () => {
               marginLeft="auto"
               gap={1}
             >
-              <PDFButtonInvoice id={id} hasUnsavedChanges={hasUnsavedChanges} handleOtherButtonClick={handleOtherButtonClick}/>
+              <PDFButtonInvoice
+                id={id}
+                hasUnsavedChanges={hasUnsavedChanges}
+                handleOtherButtonClick={handleOtherButtonClick}
+              />
               <Button
                 height={"40px"}
                 backgroundColor="#4441C8"
@@ -395,13 +402,14 @@ export const SingleInvoice = () => {
                   console.log(hasUnsavedChanges);
                   if (hasUnsavedChanges) {
                     openModal();
-                    setPendingNavigation(() => () => navigate(`/invoices/savededits/${id}`));
+                    setPendingNavigation(
+                      () => () => navigate(`/invoices/savededits/${id}`)
+                    );
                     console.log("has unsaved changes");
-                  } else{
+                  } else {
                     handlePreviewClick();
                   }
-                }
-                }
+                }}
                 _hover={{ bg: "#312E8A" }}
               >
                 <FiExternalLink />

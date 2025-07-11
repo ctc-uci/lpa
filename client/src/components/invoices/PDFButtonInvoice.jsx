@@ -165,150 +165,164 @@ const PDFButtonInvoice = ({
         return "No Date Found";
       }
     }
-
-    const handleDownload = async () => {
-      try {
-        setLoading(true);
-        const invoiceResponse = await backend.get(`/invoices/${id}`);
-        const invoice = invoiceResponse.data;
-        const invoiceData = await fetchInvoiceData(
-          invoiceResponse,
-          backend,
-          id
-        );
-        setProgramName(invoiceData.programName);
-
-        const blob = await pdf(
-          <InvoicePDFDocument
-            invoice={invoice}
-            {...invoiceData}
-          />
-        ).toBlob();
-
-        saveAs(
-          blob,
-          `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
-        );
-        downloadToast({
-          title: "Invoice Downloaded",
-          description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
-          status: "success",
-          duration: 6000,
-          position: "bottom-right",
-          variant: "left-accent",
-          isClosable: false,
-        });
-      } catch (err) {
-        console.error("Error generating PDF:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    //   const date = new Date(invoice[0].startDate);
-    //   const month = date.toLocaleString("default", { month: "long" });
-    //   const year = date.getFullYear();
-
-    //   const blob = pdf(
-    //     <InvoicePDFDocument
-    //       invoice={invoice}
-    //       {...invoiceData}
-    //     />
-    //   ).toBlob();
-
-    //   saveAs(
-    //     blob,
-    //     `${programName}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
-    //   );
-
-    //   toast({
-    //     position: "bottom-right",
-    //     duration: 3000,
-    //     status: "success",
-    //     render: () => (
-    //       <HStack
-    //         bg="green.100"
-    //         p={4}
-    //         borderRadius="md"
-    //         boxShadow="md"
-    //         borderLeft="6px solid"
-    //         borderColor="green.500"
-    //         spacing={3}
-    //         align="center"
-    //       >
-    //         <Icon
-    //           as={CheckCircleIcon}
-    //           color="green.600"
-    //           boxSize={5}
-    //         />
-    //         <VStack
-    //           align="left"
-    //           spacing={0}
-    //         >
-    //           <ChakraText
-    //             color="#2D3748"
-    //             fontFamily="Inter"
-    //             fontSize="16px"
-    //             fontStyle="normal"
-    //             fontWeight={700}
-    //             lineHeight="normal"
-    //             letterSpacing="0.08px"
-    //           >
-    //             Invoice Downloaded
-    //           </ChakraText>
-    //           {month && year && (
-    //             <ChakraText
-    //               fontSize="sm"
-    //             >
-    //               {programName}_{month} {year}
-    //             </ChakraText>
-    //           )}
-    //         </VStack>
-    //       </HStack>
-    //     ),
-    //   });
-    // } catch (err) {
-    //   console.error("Error generating PDF:", err);
-    // } finally {
-    //   setLoading(false);
-    // }
-
-    return (
-      <Box>
-        {onlyIcon ? (
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              if (hasUnsavedChanges) {
-                handleOtherButtonClick(() => {
-                  handleDownload();
-                });
-              } else {
-                handleDownload();
-              }
-            }}
-            bg="transparent"
-            icon={
-              loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />
-            }
-            aria-label="Download PDF"
-            isDisabled={loading}
-          ></IconButton>
-        ) : (
-          <Button
-            onClick={handleDownload}
-            leftIcon={
-              loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />
-            }
-            aria-label="Download PDF"
-            isDisabled={loading}
-          >
-            Download
-          </Button>
-        )}
-      </Box>
-    );
   };
+
+  const handleDownload = async () => {
+    try {
+      setLoading(true);
+      const invoiceResponse = await backend.get(`/invoices/${id}`);
+      const invoice = invoiceResponse.data;
+      const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
+      setProgramName(invoiceData.programName);
+
+      const blob = await pdf(
+        <InvoicePDFDocument
+          invoice={invoice}
+          {...invoiceData}
+        />
+      ).toBlob();
+
+      saveAs(
+        blob,
+        `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+      );
+      downloadToast({
+        title: "Invoice Downloaded",
+        description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
+        status: "success",
+        duration: 6000,
+        position: "bottom-right",
+        variant: "left-accent",
+        isClosable: false,
+      });
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //   const date = new Date(invoice[0].startDate);
+  //   const month = date.toLocaleString("default", { month: "long" });
+  //   const year = date.getFullYear();
+
+  //   const blob = pdf(
+  //     <InvoicePDFDocument
+  //       invoice={invoice}
+  //       {...invoiceData}
+  //     />
+  //   ).toBlob();
+
+  //   saveAs(
+  //     blob,
+  //     `${programName}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+  //   );
+
+  //   toast({
+  //     position: "bottom-right",
+  //     duration: 3000,
+  //     status: "success",
+  //     render: () => (
+  //       <HStack
+  //         bg="green.100"
+  //         p={4}
+  //         borderRadius="md"
+  //         boxShadow="md"
+  //         borderLeft="6px solid"
+  //         borderColor="green.500"
+  //         spacing={3}
+  //         align="center"
+  //       >
+  //         <Icon
+  //           as={CheckCircleIcon}
+  //           color="green.600"
+  //           boxSize={5}
+  //         />
+  //         <VStack
+  //           align="left"
+  //           spacing={0}
+  //         >
+  //           <ChakraText
+  //             color="#2D3748"
+  //             fontFamily="Inter"
+  //             fontSize="16px"
+  //             fontStyle="normal"
+  //             fontWeight={700}
+  //             lineHeight="normal"
+  //             letterSpacing="0.08px"
+  //           >
+  //             Invoice Downloaded
+  //           </ChakraText>
+  //           {month && year && (
+  //             <ChakraText
+  //               fontSize="sm"
+  //             >
+  //               {programName}_{month} {year}
+  //             </ChakraText>
+  //           )}
+  //         </VStack>
+  //       </HStack>
+  //     ),
+  //   });
+  // } catch (err) {
+  //   console.error("Error generating PDF:", err);
+  // } finally {
+  //   setLoading(false);
+  // }
+
+  return (
+    <Box>
+      {onlyIcon ? (
+        <IconButton
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasUnsavedChanges) {
+              handleOtherButtonClick(() => {
+                handleDownload();
+              });
+            } else {
+              handleDownload();
+            }
+          }}
+          bg="transparent"
+          icon={
+            loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />
+          }
+          aria-label="Download PDF"
+          isDisabled={loading}
+        ></IconButton>
+      ) : (
+        <Button
+          onClick={handleDownload}
+          leftIcon={
+            loading ? (
+              <Spinner size="sm" />
+            ) : (
+              <DownloadIcon
+                boxSize="20px"
+                color={"#4441C8"}
+              />
+            )
+          }
+          bg="transparent"
+          aria-label="Download PDF"
+          isDisabled={loading}
+          color={"#4441C8"}
+          fontWeight={"600"}
+          fontSize={"16px"}
+          borderRadius={"6px"}
+          border={"1px solid #4441C8"}
+          mr={"16px"}
+          padding={"0px 16px"}
+          justifyContent={"center"}
+          alignItems={"center"}
+          height={"40px"}
+        >
+          Download
+        </Button>
+      )}
+    </Box>
+  );
 };
 
 const TestPDFViewer = () => {

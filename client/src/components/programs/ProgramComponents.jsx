@@ -78,6 +78,7 @@ import { DollarBill } from "../../assets/DollarBill";
 import { DuplicateIcon } from "../../assets/DuplicateIcon";
 import { EditIcon } from "../../assets/EditIcon";
 import { FilledOutCalendar } from "../../assets/FilledOutCalendar";
+import CancelIcon from "../../assets/CancelIcon";
 import {
   filterButton,
   filterDateCalendar,
