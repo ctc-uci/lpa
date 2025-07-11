@@ -394,21 +394,6 @@ const InvoicePayments = forwardRef(
       handleSaveComment: handleSaveComment,
     }));
 
-    const currentPageComments = comments ?? [];
-
-    const handleDeleteComment = async () => {
-      try {
-        await backend.delete("/comments/" + deleteID);
-        const commentsResponse = await backend.get(
-          "/comments/paidInvoices/" + id
-        );
-        setComments(commentsResponse.data);
-        onClose();
-      } catch (error) {
-        console.error("Error deleting:", error);
-      }
-    };
-
     const handleCancelNewComment = () => {
       setShowInputRow(false);
       setAdjustValue("--.--");
@@ -416,26 +401,6 @@ const InvoicePayments = forwardRef(
       setHasUnsavedChanges(false);
       onCancelNewCommentClose();
     };
-
-    const handleShowDelete = (comment) => {
-      try {
-        if (hasUnsavedChanges) {
-          handleButtonWhileUnsaved(() => {
-            setSelectedComment(comment);
-            setDeleteID(comment.id);
-            onOpen();
-          });
-        } else {
-          setSelectedComment(comment);
-          setDeleteID(comment.id);
-          onOpen();
-        }
-      } catch (error) {
-        console.error("Error showing modal:", error);
-      }
-    };
-    fetchData();
-  }, [backend, id]);
 
   const currentPageComments = comments ?? [];
 
@@ -475,36 +440,44 @@ const InvoicePayments = forwardRef(
       updateRemainingBalance();
     }
   };
-
+  
   const handleShowDelete = (comment) => {
     try {
-      setSelectedComment(comment);
-      setDeleteID(comment.id);
-      onOpen();
+      if (hasUnsavedChanges) {
+        handleButtonWhileUnsaved(() => {
+          setSelectedComment(comment);
+          setDeleteID(comment.id);
+          onOpen();
+        });
+      } else {
+        setSelectedComment(comment);
+        setDeleteID(comment.id);
+        onOpen();
+      }
     } catch (error) {
       console.error("Error showing modal:", error);
     }
   };
 
-    const handleEditComment = (edit, datetime, adjustmentValue) => {
-      try {
-        if (hasUnsavedChanges) {
-          handleButtonWhileUnsaved(() => {
-            setEditID(edit);
-            setEditDate(datetime);
-            setAdjustValue(adjustmentValue);
-            setShowEditRow(true);
-            setHasUnsavedChanges(true);
-          });
-        } else {
+  const handleEditComment = (edit, datetime, adjustmentValue) => {
+    try {
+      if (hasUnsavedChanges) {
+        handleButtonWhileUnsaved(() => {
           setEditID(edit);
+          setEditDate(datetime);
+          setAdjustValue(adjustmentValue);
           setShowEditRow(true);
           setHasUnsavedChanges(true);
-        }
-      } catch (error) {
-        console.error("Error editing:", error);
+        });
+      } else {
+        setEditID(edit);
+        setShowEditRow(true);
+        setHasUnsavedChanges(true);
       }
-    };
+    } catch (error) {
+      console.error("Error editing:", error);
+    }
+  };
 
     const handleSaveComment = async () => {
       const editDateObj = new Date(editDate);
@@ -635,11 +608,11 @@ const InvoicePayments = forwardRef(
       setShowInputRow(false);
       setHasUnsavedChanges(false);
       setAdjustValue("--.--");
-      
-    } catch (error) {
-      console.error("Error saving:", error);
-    }
-  };
+    }  
+  //   } catch (error) {
+  //     console.error("Error saving:", error);
+  //   }
+  // };
 
   const handleAddComment = async () => {
     setShowInputRow(true);
@@ -1005,6 +978,7 @@ const InvoicePayments = forwardRef(
                       justifyContent: "flex-end",
                     }}
                   >
+                  <Button>
                     Confirm
                   </Button>
                 </ModalFooter>
@@ -1088,39 +1062,39 @@ const InvoicePayments = forwardRef(
             )}
           </Tbody>
         </Table>
-//                     <Button
-//                       variant="ghost"
-//                       onClick={onCancelNewCommentClose}
-//                       fontFamily={"Inter"}
-//                       backgroundColor={"#EDF2F7"}
-//                       fontSize={"14px"}
-//                       fontWeight={"500"}
-//                     >
-//                       Exit
-//                     </Button>
-//                     <Button
-//                       mr={3}
-//                       ml={"12px"}
-//                       _hover={{ backgroundColor: "#71060C" }}
-//                       backgroundColor={"#90080F"}
-//                       fontFamily={"Inter"}
-//                       fontSize={"14px"}
-//                       fontWeight={"500"}
-//                       borderRadius={"6px"}
-//                       color={"white"}
-//                       onClick={() => {
-//                         handleCancelNewComment();
-//                       }}
-//                     >
-//                       Confirm
-//                     </Button>
-//                   </ModalFooter>
-//                 </ModalContent>
-//               </Modal>
-//             </Tbody>
-//           </Table>
-//         </Flex>
-
+                    {/* <Button
+                      variant="ghost"
+                      onClick={onCancelNewCommentClose}
+                      fontFamily={"Inter"}
+                      backgroundColor={"#EDF2F7"}
+                      fontSize={"14px"}
+                      fontWeight={"500"}
+                    >
+                      Exit
+                    </Button>
+                    <Button
+                      mr={3}
+                      ml={"12px"}
+                      _hover={{ backgroundColor: "#71060C" }}
+                      backgroundColor={"#90080F"}
+                      fontFamily={"Inter"}
+                      fontSize={"14px"}
+                      fontWeight={"500"}
+                      borderRadius={"6px"}
+                      color={"white"}
+                      onClick={() => {
+                        handleCancelNewComment();
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+            </Tbody>
+          </Table>
+        </Flex> */}
+      </Flex>
       </Flex>
     );
   }

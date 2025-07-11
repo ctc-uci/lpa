@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from "react";
 
-import { DownloadIcon } from "@chakra-ui/icons";
-import { Box, Flex, IconButton, Spinner, useToast, HStack, VStack, Icon, Text as ChakraText, Button } from "@chakra-ui/react";
-import { CheckCircleIcon } from "@chakra-ui/icons";
+import { CheckCircleIcon, DownloadIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Button,
+  Text as ChakraText,
+  Flex,
+  HStack,
+  Icon,
+  IconButton,
+  Spinner,
+  useToast,
+  VStack,
+} from "@chakra-ui/react";
 
 import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
@@ -70,7 +80,9 @@ const PDFButtonInvoice = ({
     const sessions = sessionResponse.data;
     const summary = summaryResponse.data;
 
-    setProgramName(programNameResponse.data[0].name.trim().split(" ").slice(0, 3).join("_"));
+    setProgramName(
+      programNameResponse.data[0].name.trim().split(" ").slice(0, 3).join("_")
+    );
 
     let booking = {};
     let room = [];
@@ -193,107 +205,110 @@ const PDFButtonInvoice = ({
       }
     };
 
-      const date = new Date(invoice[0].startDate);
-      const month = date.toLocaleString("default", { month: "long" });
-      const year = date.getFullYear();
+    //   const date = new Date(invoice[0].startDate);
+    //   const month = date.toLocaleString("default", { month: "long" });
+    //   const year = date.getFullYear();
 
-      const blob = await pdf(
-        <InvoicePDFDocument
-          invoice={invoice}
-          {...invoiceData}
-        />
-      ).toBlob();
+    //   const blob = pdf(
+    //     <InvoicePDFDocument
+    //       invoice={invoice}
+    //       {...invoiceData}
+    //     />
+    //   ).toBlob();
 
-      saveAs(
-        blob,
-        `${programName}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
-      );
+    //   saveAs(
+    //     blob,
+    //     `${programName}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+    //   );
 
-      toast({
-        position: "bottom-right",
-        duration: 3000,
-        status: "success",
-        render: () => (
-          <HStack
-            bg="green.100"
-            p={4}
-            borderRadius="md"
-            boxShadow="md"
-            borderLeft="6px solid"
-            borderColor="green.500"
-            spacing={3}
-            align="center"
-          >
-            <Icon
-              as={CheckCircleIcon}
-              color="green.600"
-              boxSize={5}
-            />
-            <VStack
-              align="left"
-              spacing={0}
-            >
-              <ChakraText
-                color="#2D3748"
-                fontFamily="Inter"
-                fontSize="16px"
-                fontStyle="normal"
-                fontWeight={700}
-                lineHeight="normal"
-                letterSpacing="0.08px"
-              >
-                Invoice Downloaded
-              </ChakraText>
-              {month && year && (
-                <ChakraText 
-                  fontSize="sm"
-                >
-                  {programName}_{month} {year}
-                </ChakraText>
-              )}
-            </VStack>
-          </HStack>
-        ),
-      });
-    } catch (err) {
-      console.error("Error generating PDF:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    //   toast({
+    //     position: "bottom-right",
+    //     duration: 3000,
+    //     status: "success",
+    //     render: () => (
+    //       <HStack
+    //         bg="green.100"
+    //         p={4}
+    //         borderRadius="md"
+    //         boxShadow="md"
+    //         borderLeft="6px solid"
+    //         borderColor="green.500"
+    //         spacing={3}
+    //         align="center"
+    //       >
+    //         <Icon
+    //           as={CheckCircleIcon}
+    //           color="green.600"
+    //           boxSize={5}
+    //         />
+    //         <VStack
+    //           align="left"
+    //           spacing={0}
+    //         >
+    //           <ChakraText
+    //             color="#2D3748"
+    //             fontFamily="Inter"
+    //             fontSize="16px"
+    //             fontStyle="normal"
+    //             fontWeight={700}
+    //             lineHeight="normal"
+    //             letterSpacing="0.08px"
+    //           >
+    //             Invoice Downloaded
+    //           </ChakraText>
+    //           {month && year && (
+    //             <ChakraText
+    //               fontSize="sm"
+    //             >
+    //               {programName}_{month} {year}
+    //             </ChakraText>
+    //           )}
+    //         </VStack>
+    //       </HStack>
+    //     ),
+    //   });
+    // } catch (err) {
+    //   console.error("Error generating PDF:", err);
+    // } finally {
+    //   setLoading(false);
+    // }
 
-  return (
-    <Box>
-      {onlyIcon ? 
-      <IconButton
-        onClick={(e) => {
-            e.stopPropagation();
-            if (hasUnsavedChanges) {
-              handleOtherButtonClick(() => {
+    return (
+      <Box>
+        {onlyIcon ? (
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              if (hasUnsavedChanges) {
+                handleOtherButtonClick(() => {
+                  handleDownload();
+                });
+              } else {
                 handleDownload();
-              });
-            } else {
-              handleDownload();
+              }
+            }}
+            bg="transparent"
+            icon={
+              loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />
             }
-          }}
-        bg="transparent"
-        icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
-        aria-label="Download PDF"
-        isDisabled={loading}
-      >
-      </IconButton>
-      :
-      <Button
-        onClick={handleDownload}
-        leftIcon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
-        aria-label="Download PDF"
-        isDisabled={loading}
-      >
-        Download
-      </Button>
-      }
-    </Box>
-  );
+            aria-label="Download PDF"
+            isDisabled={loading}
+          ></IconButton>
+        ) : (
+          <Button
+            onClick={handleDownload}
+            leftIcon={
+              loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />
+            }
+            aria-label="Download PDF"
+            isDisabled={loading}
+          >
+            Download
+          </Button>
+        )}
+      </Box>
+    );
+  };
 };
 
 const TestPDFViewer = () => {
