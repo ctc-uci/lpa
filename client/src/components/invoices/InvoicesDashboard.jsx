@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { SearchIcon } from "@chakra-ui/icons";
 import {
+  Box,
   Flex,
   Heading,
   Image,
@@ -18,7 +19,11 @@ import AlertIcon from "../../assets/alertIcon.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoiceFilter } from "../filters/InvoicesFilter";
 import Navbar from "../navbar/Navbar";
+import { PaginationComponent } from "../PaginationComponent";
+import { SearchBar } from "../searchBar/SearchBar";
 import { InvoicesFilter, InvoicesTable } from "./InvoiceComponents";
+
+import "./Invoices.css";
 
 const InvoicesDashboard = () => {
   const toast = useToast();
@@ -28,6 +33,11 @@ const InvoicesDashboard = () => {
   const [query, setQuery] = useState("");
   const hasShownToast = useRef(false);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
+  const [filterComponentResults, setFilterComponentResults] = useState([]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const [filter, setFilter] = useState({
     startDate: "",
     endDate: "",
@@ -36,18 +46,65 @@ const InvoicesDashboard = () => {
     payee: "all",
   });
 
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const totalInvoices = filteredInvoices?.length || 0;
+  const totalPages = Math.ceil(totalInvoices / itemsPerPage);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
+  const currentPageInvoices = filteredInvoices.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredInvoices]);
+
+  useEffect(() => {
+    const calculateRowsPerPage = () => {
+      // Always return 12 rows per page for invoices
+      return 12;
+    };
+
+    setItemsPerPage(calculateRowsPerPage());
+
+    const handleResize = () => {
+      setItemsPerPage(calculateRowsPerPage());
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   const isPaidColor = (invoice) => {
-    if (invoice.isSent && invoice.paymentStatus === "full") {
+    const paidStatus = isPaid(invoice);
+
+    if (paidStatus === "Paid") {
       return "#474849";
     }
-    if (
-      !invoice.isSent &&
-      new Date() < new Date(invoice.endDate) &&
-      invoice.paymentStatus !== "full"
-    ) {
+
+    if (paidStatus === "Not Paid") {
       return "none";
     }
-    return "#90080F";
+
+    if (paidStatus === "Past Due") {
+      return "#90080F";
+    }
   };
 
   const seasonColor = (invoice) => {
@@ -76,7 +133,11 @@ const InvoicesDashboard = () => {
   };
 
   const isPaid = (invoice) => {
-    if (invoice.isSent && invoice.paymentStatus === "full") {
+    const endDate = new Date(invoice.endDate);
+
+    console.log(invoice);
+
+    if (invoice.paymentStatus === "full") {
       return "Paid";
     }
     if (
@@ -86,7 +147,29 @@ const InvoicesDashboard = () => {
     ) {
       return "Not Paid";
     }
+
     return "Past Due";
+  };
+
+  const filterInvoices = (invoices, query) => {
+    if (!query) return invoices;
+
+    return invoices.filter((invoice) => {
+      console.log(invoice);
+      const invoiceName = invoice.name?.toLowerCase() || "";
+      const invoiceEventName = invoice.eventName?.toLowerCase() || "";
+      const invoicePayer = Array.isArray(invoice.payers)
+        ? invoice.payers
+            .filter((payer) => typeof payer === "string")
+            .map((payer) => payer.toLowerCase())
+            .join(", ")
+        : "";
+      return (
+        invoiceName.includes(query.toLowerCase()) ||
+        invoiceEventName.includes(query.toLowerCase()) ||
+        invoicePayer.includes(query.toLowerCase())
+      );
+    });
   };
 
   useEffect(() => {
@@ -111,64 +194,78 @@ const InvoicesDashboard = () => {
 
           return acc;
         }, {});
+
         const invoices = Object.values(groupedInvoices).map((invoice) => ({
           ...invoice,
           season: getSeason(invoice),
           isPaid: isPaid(invoice),
+          paymentStatus: isPaid(invoice),
         }));
+
+        console.log(invoices);
+
         setInvoices(invoices);
+        setFilteredInvoices(invoices);
+        setFilterComponentResults(invoices);
       } catch (err) {
         console.log(err);
       }
     };
     fetchInvoicesData();
-  }, []);
+  }, [backend, navigate, toast]);
+  
+  const handleSearch = (value) => {
+    setQuery(value);
+    if (value === "") {
+      setFilteredInvoices(invoices);
+      return;
+    }
+
+    const searchValue = value.toLowerCase();
+    const filtered = invoices.filter((invoice) => {
+      return (
+        (invoice.eventName &&
+          invoice.eventName.toLowerCase().includes(searchValue)) ||
+        (invoice.payers &&
+          invoice.payers.some(
+            (payer) => payer && payer.toLowerCase().includes(searchValue)
+          ))
+      );
+    });
+
+    setFilteredInvoices(filtered);
+  };
 
   useEffect(() => {
     if (invoices.length === 0 || hasShownToast.current) return;
 
     const getUnpaidInvoices = () => {
-      const filteredPastDueInvoices = filteredInvoices.filter(
-        (invoice) => isPaid(invoice) === "PAST DUE"
-      );
+      const filteredPastDueInvoices = filteredInvoices.filter(invoice => isPaid(invoice) === "PAST DUE");
       const notifCounter = filteredPastDueInvoices.length;
 
       if (notifCounter > 0) {
         hasShownToast.current = true; // Set ref to true to prevent multiple toasts
         toast({
           title: "Unpaid Invoices",
-          description:
-            notifCounter > 1
-              ? `You have ${notifCounter} past due invoices`
-              : `${filteredPastDueInvoices[0].name} - ${filteredPastDueInvoices[0].endDate.split("T")[0]}`,
+          description: notifCounter > 1
+            ? `You have ${notifCounter} past due invoices`
+            : `${filteredPastDueInvoices[0].name} - ${filteredPastDueInvoices[0].endDate.split("T")[0]}`,
           status: "error",
           duration: 9000,
           position: "bottom-right",
           isClosable: true,
           render: () => (
-            <Flex
-              p={3}
-              bg="#FED7D7"
-              borderTop="4px solid"
-              borderTopColor="red.500"
-              onClick={() => navigate("/notification")}
-              padding="12px 16px"
-              gap="12px"
-              w="400px"
-            >
+            <Flex p={3} bg="#FED7D7" borderTop="4px solid" borderTopColor="red.500" onClick={() => navigate("/notification")} padding="12px 16px" gap='12px' w='400px'>
               <Image src={AlertIcon} />
-              <Flex flexDirection="column">
-                <Heading
-                  size="sm"
-                  align-self="stretch"
-                >
-                  Unpaid Invoices
-                </Heading>
-                <Text align-self="stretch">
-                  {notifCounter > 1
-                    ? `You have ${notifCounter} past due invoices`
-                    : `${filteredPastDueInvoices[0].name} -
-                  ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}`}
+              <Flex flexDirection='column'>
+                <Heading size="sm" align-self='stretch'>Unpaid Invoices</Heading>
+                <Text align-self='stretch'>
+
+                {notifCounter > 1
+                  ? `You have ${notifCounter} past due invoices`
+                  : `${filteredPastDueInvoices[0].name} -
+                  ${new Date(filteredPastDueInvoices[0].endDate).toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "2-digit",})}`
+                }
                 </Text>
               </Flex>
             </Flex>
@@ -182,53 +279,34 @@ const InvoicesDashboard = () => {
 
   return (
     <Navbar>
-      <Flex
-        w="95%"
-        m="50px 40px"
-        flexDirection="column"
-        padding="20px"
-        border="1px solid var(--medium-light-grey)"
-        borderRadius="12px"
-      >
-        <Flex
-          justifyContent="space-between"
-          mb="40px"
-        >
-          {/* <InvoicesFilter filter={filter} setFilter={setFilter} invoices={invoices} /> */}
+      {/* <Box className="home-inner"> */}
+      <Box className="invoices-table">
+        <Flex className="invoices-filter-row">
           <InvoiceFilter
             invoices={invoices}
-            setFilteredInvoices={setFilteredInvoices}
+            setFilteredInvoices={(results) => {
+              setFilterComponentResults(results);
+              setFilteredInvoices(results);
+            }}
           />
-
-          <InputGroup
-            w="400px"
-            borderColor="transparent"
-          >
-            <InputRightElement
-              pointerEvents="none"
-              bgColor="#EDF2F7"
-              borderRadius="0px 6px 6px 0px"
-            >
-              <SearchIcon color="#767778" />
-            </InputRightElement>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              icon={SearchIcon}
-              borderColor="gray.100"
-              bgColor="#F7FAFC"
-              borderRadius="6px 0px 0px 6px"
-              placeholder="Search..."
-              textColor="#718096"
-            />
-          </InputGroup>
+          <Box flex="1" />
+          <SearchBar
+            handleSearch={handleSearch}
+            searchQuery={query}
+          />
         </Flex>
         <InvoicesTable
           filteredInvoices={filteredInvoices}
           isPaidColor={isPaidColor}
           seasonColor={seasonColor}
         />
-      </Flex>
+      </Box>
+      <PaginationComponent
+        totalPages={totalPages}
+        goToNextPage={goToNextPage}
+        goToPreviousPage={goToPreviousPage}
+        currentPage={currentPage}
+      />
     </Navbar>
   );
 };

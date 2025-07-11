@@ -12,9 +12,9 @@ invoicesAssignments.get("/", async (req, res) => {
        FROM events
        JOIN invoices ON events.id = invoices.event_id
        LEFT JOIN assignments ON assignments.event_id = events.id
-       LEFT JOIN clients ON clients.id = assignments.client_id;`,
+       LEFT JOIN clients ON clients.id = assignments.client_id
+       WHERE events.archived = false;`, // Dont show archived event invoices
     );
-
 
     res.status(200).json(keysToCamel(invoices)); // Ensure you return `data.rows`
   }

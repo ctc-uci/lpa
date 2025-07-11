@@ -1,18 +1,17 @@
-import archiveSvg from "../../assets/icons/archive.svg";
+import { useNavigate } from "react-router-dom";
+import { Box, Flex } from "@chakra-ui/react";
 import googleCalendarSvg from "../../assets/icons/google-calendar.svg";
 import plusSvg from "../../assets/icons/plus.svg";
-import { useNavigate } from "react-router-dom";
 
 
 export const HeaderRowComponent = () => {
   const navigate = useNavigate();
-
   return (
-    <div className="header-row">
-      <div
+    <Flex className="header-row" width={"95%"} mt={"26px"} mb={"16px"}>
+      <Box
         className="google-calendar"
         onClick={() => {
-          // handle google calendar logic
+          window.open("https://calendar.google.com", "_blank");
         }}
       >
         <img
@@ -21,35 +20,20 @@ export const HeaderRowComponent = () => {
           className="google-calendar-icon"
         />
         <span className="google-calendar-text">Google Calendar</span>
-      </div>
+      </Box>
 
-      <div className="header-right">
-        <div
-          className="archive"
-          onClick={() => {
-            navigate('/programs/archived');
-          }}
-        >
-          <img
-            src={archiveSvg}
-            alt="Archived"
-            className="archive-icon"
-          />
-          <span className="archive-text">Archived</span>
-        </div>
+      <Box
+        className="new-program"
+        onClick={() => navigate("/programs/newprogram")}
+      >
+        <img
+          src={plusSvg}
+          alt="New Program"
+          className="new-program-icon"
+        />
+        <span className="new-program-text">New Program</span>
+      </Box>
+    </Flex>
 
-        <div
-          className="new-program"
-          onClick={() => navigate("/addprogram")}
-        >
-          <img
-            src={plusSvg}
-            alt="New Program"
-            className="new-program-icon"
-          />
-          <span className="new-program-text">New Program</span>
-        </div>
-      </div>
-    </div>
   );
 };

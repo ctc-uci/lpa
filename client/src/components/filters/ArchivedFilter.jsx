@@ -6,6 +6,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
     const {backend} = useBackendContext();
     const [clients, setClients] = useState([]);
+    const [originalData] = useState(archived); // Store the original data to restore on reset
 
     useEffect(() => {
       const fetchData = async () => {
@@ -31,19 +32,17 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
     });
 
     const updateFilter = (type, value) => {
-      console.log(`Updating filter: ${type} with value:`, value);
       setFilters((prev) => ({ ...prev, [type]: value }));
     };
 
     // Apply the filters to the programs page
     const applyFilters = () => {
-      console.log("Applying filters:", filters);
-      console.log("Original archived:", archived);
-      let filtered = archived;
+      // Always start with the original full dataset
+      let filtered = [...archived]; 
 
       if (filters.room !== "all"){
         filtered = filtered.filter(program =>
-          program.room.toLowerCase() === filters.room.toLowerCase()
+          program.room && program.room.toLowerCase() === filters.room.toLowerCase()
         );
       }
 
@@ -65,10 +64,13 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
 
       if (filters.endDate) {
         filtered = filtered.filter(program => {
-          if (!program.date) return false;
+          if (!program.date && !program.sessionDate) return false;
+          
+          // Use sessionDate as fallback for date
+          const dateToUse = program.date || program.sessionDate;
           
           // Create date objects using year, month, day only to remove time component
-          const programDate = new Date(program.date);
+          const programDate = new Date(dateToUse);
           const endDate = new Date(filters.endDate);
           
           // Set both dates to midnight to compare date only
@@ -90,66 +92,99 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
       }
 
 
-      function timeToMinutes(timeStr) {
-        const [time, offset] = timeStr.split('+');
-        [hours, minutes, seconds] = time.split(':').map(Number);
-
-        // If there's no offset, we assume it's in the same timezone as the other time
-        if (offset) {
-          // Adjust for timezone if needed
-          const offsetHours = Number(offset.slice(0, 2));
-          const offsetMinutes = Number(offset.slice(2));
-          hours -= offsetHours; // Subtract because +00 means ahead of UTC
-          minutes -= offsetMinutes;
-        }
-
-        // Ensure hours are within 0-23 range
-        hours = (hours + 24) % 24;
-
-        return hours * 60 + minutes;
-      }
-
-
+      const compareTimeStrings = (time1, time2) => {
+        // Helper to convert time string to minutes since midnight
+        const timeToMinutes = (timeStr) => {
+          if (!timeStr) return 0; // Handle null/undefined times
+          
+          let hours, minutes;
+          
+          // Check if timeStr is in 24-hour format (e.g., "21:00")
+          if (timeStr.includes(":") && !timeStr.includes(" ")) {
+            const [h, m] = timeStr.split(":");
+            hours = parseInt(h);
+            minutes = parseInt(m);
+          }
+          // Otherwise, handle the 12-hour time format (e.g., "12:00 am", "03:00 pm")
+          else {
+            const timeParts = timeStr.split(" ");
+            const modifier = timeParts[1] ? timeParts[1].toLowerCase() : null;
+            const [h, m] = timeParts[0].split(":");
+            
+            hours = parseInt(h);
+            minutes = parseInt(m);
+            
+            if (hours === 12) {
+              hours = modifier === "am" ? 0 : 12; // 12 AM = 0 hours, 12 PM = 12 hours
+            } else if (modifier === "pm") {
+              hours = hours + 12; // Convert PM to 24-hour format
+            }
+          }
+          
+          return hours * 60 + minutes;
+        };
+        
+        const minutes1 = timeToMinutes(time1);
+        const minutes2 = timeToMinutes(time2);
+        
+        if (minutes1 < minutes2) return -1; // time1 is earlier
+        if (minutes1 > minutes2) return 1;  // time1 is later
+        return 0;  // times are equal
+      };
+      
+      // Time filter for sessions
       if (filters.startTime) {
-        filtered = filtered.filter(program => timeToMinutes(program.sessionStart) >= timeToMinutes(filters.startTime));
+        filtered = filtered.filter(session => {
+          // Convert both times to comparable format and then compare
+          const sessionStartTime = session.sessionStart; // Assuming this is a string
+          if (!sessionStartTime) return false;
+          return compareTimeStrings(sessionStartTime, filters.startTime) >= 0;
+        });
       }
-
+      
       if (filters.endTime) {
-        filtered = filtered.filter(program => timeToMinutes(program.sessionEnd) <= timeToMinutes(filters.endTime));
+        filtered = filtered.filter(session => {
+          // Convert both times to comparable format and then compare
+          const sessionEndTime = session.sessionEnd; // Assuming this is a string
+          if (!sessionEndTime) return false;
+          return compareTimeStrings(sessionEndTime, filters.endTime) <= 0;
+        });
       }
 
       // Filter for instructor
       if (filters.instructor.length > 0) {
         filtered = filtered.filter(program => {
-          if (program.instructors && Object.keys(program.instructors).length > 0) {
-            return Object.values(program.instructors).some(instructor =>
+          if (program.instructors && program.instructors.length > 0) {
+            return program.instructors.some(instructor =>
               filters.instructor.some(filterInstructor =>
+                instructor.clientName && filterInstructor.name && 
                 instructor.clientName.toLowerCase() === filterInstructor.name.toLowerCase()
               )
             );
           }
           return false;
-      });
-    }
+        });
+      }
+      
       // Filter for payee
-        if (filters.payee.length > 0) {
-          filtered = filtered.filter(program => {
-            if (program.payees && Object.keys(program.payees).length > 0) {
-              return Object.values(program.payees).some(payee =>
-                filters.payee.some(filterPayee =>
-                  payee.clientName.toLowerCase() === filterPayee.name.toLowerCase()
-                )
-              );
-            }
-            return false;
+      if (filters.payee.length > 0) {
+        filtered = filtered.filter(program => {
+          if (program.payees && program.payees.length > 0) {
+            return program.payees.some(payee =>
+              filters.payee.some(filterPayee =>
+                payee.clientName && filterPayee.name && 
+                payee.clientName.toLowerCase() === filterPayee.name.toLowerCase()
+              )
+            );
+          }
+          return false;
         });
       }
 
-      console.log("NEW FILTERED", filtered);
       setArchivedPrograms(filtered);
     };
 
-    const resetFilter = (type, value) => {
+    const resetFilter = () => {
       setFilters({
         days: [],
         startTime: null,
@@ -160,6 +195,7 @@ export const ArchivedFilter = ({ archived, setArchivedPrograms, roomMap }) => {
         instructor: [],
         payee: [],
       });
+      // Reset to original data
       setArchivedPrograms(archived);
     }
 

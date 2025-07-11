@@ -1,4 +1,5 @@
 import express, { Router } from "express";
+import axios from "axios";
 
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
@@ -125,6 +126,83 @@ programsRouter.delete("/:id", async (req, res) => {
     }
 
     res.status(200).json({result: 'success'});
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+programsRouter.post("/archive/:eventId", async (req, res) => {
+  // Archives a program, all of its sessions, and adds a fee to the current invoice
+
+  try {
+    const { eventId } = req.params;
+    const { reason, firebaseUid } = req.body;
+
+    // Find all sessions within 2 weeks
+    // WRITE FUNCTION TO GET THE COST OF SESSIONS WITHIN 2 WEEKS IN FUTURE 
+    const totalCost = 100;
+
+    // Add the total cost to the current invoice
+    const invoice = await db.query(`
+      SELECT id FROM invoices
+      WHERE event_id = $1
+      ORDER BY start_date DESC
+      LIMIT 1
+      `, [eventId]);
+    const invoiceId = invoice[0].id;
+    if (invoiceId === undefined) {
+      res.status(500).json({result: "error while finding invoice"});
+    }
+
+    // Get the user id from the firebase uid
+    const user = await db.query(`
+      SELECT id FROM users
+      WHERE firebase_uid = $1
+      `, [firebaseUid]);
+    const userId = user[0].id;
+    if (userId === undefined) {
+      res.status(500).json({result: "error while finding user"});
+    }
+
+    // Make HTTP request to comments endpoint
+    // This handles updating invoice status to paid or partial
+    console.log(`${req.protocol}://${req.get('host')}/comments`);
+    const commentResponse = await axios.post(`${req.protocol}://${req.get('host')}/comments`, {
+      user_id: userId,
+      invoice_id: invoiceId,
+      datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      comment: reason,
+      adjustment_type: "total",
+      adjustment_value: totalCost
+    });
+    
+    if (commentResponse.status !== 200) {
+      console.log(commentResponse.data, commentResponse.status);
+      return res.status(500).json({result: "error while creating comment"});
+    }
+    console.log(commentResponse.data);
+
+    // Archive the program
+    const program = await db.query(`
+      UPDATE events
+      SET
+        archived = true
+      WHERE id = $1
+      RETURNING *;
+      `, [eventId]);
+    if (program.length === 0) {
+      res.status(500).json({result: "error while archiving program"});
+    }
+
+    // Archive the bookings
+    await db.query(`
+      UPDATE bookings
+      SET
+        archived = true
+      WHERE event_id = $1;
+      `, [eventId]);
+
+    res.status(200).json({result: "success"});
   } catch (err) {
     res.status(500).send(err.message);
   }

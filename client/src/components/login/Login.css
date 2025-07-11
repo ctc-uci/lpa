@@ -25,6 +25,15 @@
   --font-primary: "Inter", sans-serif;
 }
 
+/* FORGOT PASSWORD */
+.forgot-password {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--Primary-8, #29267D);
+}
+
 /* GENERAL CONTAINER */
 .signup-container {
   width: 550px;
@@ -151,6 +160,51 @@
   border: 1px solid var(--Secondary-3);
   background: var(--white);
 }
+
+.signup-container .input-outer-email {
+  display: flex;
+  width: 363px;
+  padding-right: 10px;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  border: 1px solid var(--Secondary-3);
+  background: var(--white);
+}
+
+.signup-container .input-outer-email-error {
+  display: flex;
+  width: 363px;
+  padding-right: 10px;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  border: 2px solid #90080F;
+  background: var(--white);
+}
+
+.signup-container .input-outer-password{
+  display: flex;
+  width: 363px;
+  padding-right: 10px;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  border: 1px solid var(--Secondary-3);
+  background: var(--white);
+}
+
+.signup-container .input-outer-password-error {
+  display: flex;
+  width: 363px;
+  padding-right: 10px;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  border: 2px solid #90080F;
+  background: var(--white);
+}
+
 .signup-container .input-icon-container {
   display: flex;
   width: 44px;
@@ -235,8 +289,8 @@
 
 /* Style the checked state */
 .keep-signed-in-checkbox:checked {
-  background-color: #4299E1; /* Or whatever color you prefer */
-  border-color: #4299E1;
+  background-color: var(--Primary-5-Default, #4441C8); /* Update to primary purple */
+  border-color: var(--Primary-5-Default, #4441C8);
   position: relative;
 }
 
@@ -342,7 +396,30 @@
   color: var(--Secondary-8);
 }
 
-.signup-container .submit-button:hover {
+.signup-container .submit-button:hover:not(:disabled) {
+  background: var(--Primary-7, #312E8A);
+}
+
+.signup-container .submit-button:disabled {
   background: var(--Primary-5-Default, #4441c8);
-  color: #fff;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Remove blue autofill background */
+.signup-container input:-webkit-autofill,
+.signup-container input:-webkit-autofill:hover, 
+.signup-container input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: inherit !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Force specific browsers to respect our styling */
+.signup-container input:autofill,
+.signup-container input:autofill:hover,
+.signup-container input:autofill:focus {
+  box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: inherit !important;
+  caret-color: inherit !important;
 }

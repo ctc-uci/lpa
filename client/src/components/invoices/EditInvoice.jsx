@@ -21,6 +21,7 @@ import {
 
 import { useNavigate, useParams } from "react-router-dom";
 
+import { BackArrowIcon } from "../../assets/BackArrowIcon";
 import InvoiceFooterBackground from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeaderBackground from "../../assets/background/InvoiceHeader.png";
 import { LeftIcon } from "../../assets/LeftIcon";
@@ -102,7 +103,8 @@ const InvoiceNavBar = ({
         <Button
           height="2.5em"
           borderRadius={10}
-          backgroundColor="#4E4AE7"
+          backgroundColor="#4441C8"
+          _hover={{ backgroundColor: "#312E8A" }}
           color="#FFF"
           fontSize="clamp(.75rem, 1rem, 1.25rem)"
           onClick={onSave}
@@ -386,8 +388,8 @@ export const EditInvoice = () => {
               // For regular sessions, check if this comment already exists
               const existingComment = comments.find(
                 (c) =>
-                  c.bookingId == commentData.booking_id &&
-                  c.comment == commentData.comment
+                  c.bookingId === commentData.booking_id &&
+                  c.comment === commentData.comment
               );
 
               if (existingComment) {
@@ -442,7 +444,7 @@ export const EditInvoice = () => {
             try {
               // Check if this adjustment already exists
               const existingAdjustment = comments.find(
-                (c) => c.id == adjustmentValue.id
+                (c) => c.id === adjustmentValue.id
               );
 
               if (existingAdjustment) {

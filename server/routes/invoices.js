@@ -12,6 +12,27 @@ const invoicesRouter = Router();
 invoicesRouter.use(express.json());
 const upload = multer();
 
+
+const NEARDUE_INVOICES_WHERE_CLAUSE = `
+  is_sent = false
+  AND payment_status != 'full'
+  AND end_date <= CURRENT_DATE + INTERVAL '1 week'
+  AND end_date + INTERVAL '5 days' > CURRENT_DATE
+  AND events.archived = false`;
+
+const OVERDUE_INVOICES_WHERE_CLAUSE = `
+  CURRENT_DATE >= end_date + INTERVAL '5 days'
+  AND is_sent = true
+  AND payment_status != 'full'
+  AND events.archived = false`;
+
+const HIGHPRIORITY_INVOICES_WHERE_CLAUSE = `
+  CURRENT_DATE >= end_date + INTERVAL '5 days'
+  AND is_sent = false
+  AND payment_status != 'full'
+  AND events.archived = false`;
+
+
 // Get all invoices
 invoicesRouter.get("/", async (req, res) => {
   try {
@@ -39,30 +60,24 @@ invoicesRouter.get("/", async (req, res) => {
 
 invoicesRouter.get("/notificationCount", async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
     const params = [];
-    let dateFilter = "";
-
-    if (startDate && endDate) {
-      dateFilter = "AND start_date >= $1 AND end_date <= $2";
-      params.push(startDate, endDate);
-    }
 
     const query = `
       SELECT
-          (SELECT COUNT(*) FROM invoices WHERE is_sent = true
-            AND payment_status IN ('partial', 'none')
-            AND end_date < CURRENT_DATE
-            ${dateFilter})
+          (SELECT COUNT(*) 
+          FROM invoices 
+          JOIN events ON invoices.event_id = events.id
+          WHERE ${OVERDUE_INVOICES_WHERE_CLAUSE})
           +
-          (SELECT COUNT(*) FROM invoices WHERE is_sent = false
-            AND payment_status IN ('partial', 'none')
-            AND end_date < CURRENT_DATE
-            ${dateFilter})
+          (SELECT COUNT(*) 
+          FROM invoices 
+          JOIN events ON invoices.event_id = events.id
+          WHERE ${NEARDUE_INVOICES_WHERE_CLAUSE})
           +
-          (SELECT COUNT(*) FROM invoices WHERE is_sent = false
-            AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')
-            ${dateFilter}) AS notificationcount
+          (SELECT COUNT(*) 
+          FROM invoices 
+          JOIN events ON invoices.event_id = events.id
+          WHERE ${HIGHPRIORITY_INVOICES_WHERE_CLAUSE}) AS notificationcount
     `;
 
     const result = await db.query(query, params);
@@ -78,10 +93,10 @@ invoicesRouter.get("/overdue", async (req, res) => {
   try {
     // Base query for overdue invoices
     const query = `
-      SELECT * FROM invoices
-      WHERE is_sent = true
-      AND payment_status IN ('partial', 'none')
-      AND end_date < CURRENT_DATE`;
+      SELECT invoices.*, events.archived FROM invoices 
+      JOIN events ON invoices.event_id = events.id
+      WHERE
+      ${OVERDUE_INVOICES_WHERE_CLAUSE}`;
 
     const params = [];
 
@@ -96,10 +111,10 @@ invoicesRouter.get("/highpriority", async (req, res) => {
   try {
     // Base query for overdue invoices
     const query = `
-      SELECT * FROM invoices
-      WHERE is_sent = false
-      AND payment_status IN ('partial', 'none')
-      AND end_date < CURRENT_DATE`;
+      SELECT invoices.*, events.archived FROM invoices 
+      JOIN events ON invoices.event_id = events.id
+      WHERE
+      ${HIGHPRIORITY_INVOICES_WHERE_CLAUSE}`;
 
     const highPriorityInvoices = await db.query(query);
     res.status(200).json(keysToCamel(highPriorityInvoices));
@@ -115,20 +130,23 @@ invoicesRouter.get("/neardue", async (req, res) => {
 
     // Base query for neardue invoices
     let query = `
-      SELECT * FROM invoices
-      WHERE is_sent = false
-      AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')`;
+      SELECT invoices.*, events.archived FROM invoices 
+      JOIN events ON invoices.event_id = events.id
+      WHERE
+      ${NEARDUE_INVOICES_WHERE_CLAUSE}`;
 
     const params = [];
 
     // Add date range filtering if both dates are provided
     if (startDate && endDate) {
       query = `
-        SELECT * FROM invoices
+        SELECT invoices.*, events.archived FROM invoices
+        JOIN events ON invoices.event_id = events.id
         WHERE is_sent = false
         AND end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '7 days')
         AND start_date >= $1
-        AND end_date <= $2`;
+        AND end_date <= $2
+        AND events.archived = false`;
       params.push(startDate, endDate);
     }
 

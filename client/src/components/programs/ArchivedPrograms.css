@@ -1,0 +1,51 @@
+#programButton {
+  border-radius: 6px;
+  background: var(--Secondary-2-Default, #EDF2F7);
+}
+
+#programButton:hover {
+  background: var(--Secondary-3, #E2E8F0);
+}
+
+.archiveHeaderText {
+  color: var(--Secondary-6, #718096);
+  font-family: Inter;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.07px;
+  text-transform: none;
+}
+
+.columnContainer {
+  display: flex;
+  padding: 8px 16px 8px 0;
+  align-items: center;
+  gap: 8px;
+}
+
+
+.th {
+  padding: 12px 0px!important;
+}
+
+.td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis!important;
+  max-width: 13rem;
+  padding-left: 0!important;
+}
+
+.td:first-child, .th:first-child {
+  padding-left: 0!important;
+  /* display: flex;
+  justify-content: flex-start; */
+}
+
+.td:last-child, .th:last-child {
+  padding-right: 0!important;
+  /* display: flex;
+  justify-content: flex-end; */
+}

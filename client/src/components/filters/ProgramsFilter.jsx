@@ -113,68 +113,71 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         });
       }
 
-      function compareTimeStrings(time1, time2) {
-        // Helper function to convert time string to minutes since midnight
-        function timeToMinutes(timeStr) {
-          const [time, modifier] = timeStr.split(' ');
-          let [hours, minutes] = time.split(':');
-
-          hours = parseInt(hours);
-          minutes = parseInt(minutes);
-
-          if (hours === 12) {
-            hours = 0;
+      const compareTimeStrings = (time1, time2) => {
+        // Helper to convert time string to minutes since midnight
+        const timeToMinutes = (timeStr) => {
+          let hours, minutes;
+          
+          // Check if timeStr is in 24-hour format (e.g., "21:00")
+          if (timeStr.includes(":") && !timeStr.includes(" ")) {
+            const [h, m] = timeStr.split(":");
+            hours = parseInt(h);
+            minutes = parseInt(m);
           }
-
-          if (modifier && modifier.toLowerCase() === 'pm') {
-            hours = hours + 12;
+          // Otherwise, handle the 12-hour time format (e.g., "12:00 am", "03:00 pm")
+          else {
+            const timeParts = timeStr.split(" ");
+            const modifier = timeParts[1] ? timeParts[1].toLowerCase() : null;
+            const [h, m] = timeParts[0].split(":");
+            
+            hours = parseInt(h);
+            minutes = parseInt(m);
+            
+            if (hours === 12) {
+              hours = modifier === "am" ? 0 : 12; // 12 AM = 0 hours, 12 PM = 12 hours
+            } else if (modifier === "pm") {
+              hours = hours + 12; // Convert PM to 24-hour format
+            }
           }
-
+          
           return hours * 60 + minutes;
-        }
-
-        // Convert both times to minutes and compare
+        };
+        
         const minutes1 = timeToMinutes(time1);
         const minutes2 = timeToMinutes(time2);
-
-        if (minutes1 < minutes2) {
-          return -1; // time1 is earlier
-        } else if (minutes1 > minutes2) {
-          return 1;  // time1 is later
-        } else {
-          return 0;  // times are equal
-        }
-      }
-
-      function isTimeBefore(time1, time2) {
-        return compareTimeStrings(time1, time2) < 0;
-      }
-
+        
+        if (minutes1 < minutes2) return -1; // time1 is earlier
+        if (minutes1 > minutes2) return 1;  // time1 is later
+        return 0;  // times are equal
+      };
+      
+      const isTimeBefore = (time1, time2) => compareTimeStrings(time1, time2) < 0;
+      const isTimeAfter = (time1, time2) => compareTimeStrings(time1, time2) > 0;
+      
+      // Start time filter - keep programs that start AFTER the filter time
       if (filters.startTime) {
         filtered = filtered.filter(program => {
           if (program.upcomingTime !== "N/A") {
             const [start] = program.upcomingTime.split(" - ");
-            // console.log("start", start);
-            // console.log(filters.startTime);
-            // console.log(isTimeBefore(start, filters.startTime));
-            return isTimeBefore(start, filters.startTime) <= 0;
+            console.log("Comparing start:", start, "with", filters.startTime);
+            return isTimeAfter(start, filters.startTime) || compareTimeStrings(start, filters.startTime) === 0;
           }
           return false;
         });
       }
-
+      
+      // End time filter - keep programs that end BEFORE the filter time
       if (filters.endTime) {
         filtered = filtered.filter(program => {
           if (program.upcomingTime !== "N/A") {
             const [, end] = program.upcomingTime.split(" - ");
-            // console.log("end", end);
-            // console.log(filters.endTime);
-            // console.log(isTimeBefore(end, filters.endTime));
-            return isTimeBefore(end, filters.endTime) <= 0;
+            console.log("Comparing end:", end, "with", filters.endTime);
+            return isTimeBefore(end, filters.endTime) || compareTimeStrings(end, filters.endTime) === 0;
           }
           return false;
         });
       }
+    
 
       // Filter for instructor
       if (filters.instructor.length > 0) {

@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+
+import "./ArchivedPrograms.css";
+
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@chakra-ui/icons";
-import {
-  Alert,
-  AlertTitle,
   Box,
   Button,
   Card,
@@ -14,25 +13,14 @@ import {
   Flex,
   FormControl,
   Icon,
-  IconButton,
   Input,
-  InputGroup,
-  InputRightElement,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Modal,
   ModalBody,
+  ModalCloseButton,
   ModalContent,
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Popover,
-  PopoverBody,
-  PopoverContent,
-  PopoverTrigger,
-  Portal,
   Table,
   TableContainer,
   Tbody,
@@ -42,62 +30,61 @@ import {
   Thead,
   Tr,
   useDisclosure,
+  useToast,
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
-
-import { Info } from "lucide-react";
 
 import {
   archiveBox,
   archiveCalendar,
   archiveClock,
-  archiveMagnifyingGlass,
   archiveMapPin,
+  archivePaintPalette,
   archivePerson,
-  deleteIcon,
-  duplicateIcon,
-  filterButton,
+  BackIcon,
   filterDateCalendar,
-  reactivateIcon,
-  sessionsEllipsis,
   sessionsFilterClock,
   sessionsFilterMapPin,
 } from "../../assets/icons/ProgramIcons";
+import { InfoIconRed } from "../../assets/InfoIconRed";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import DateSortingModal from "../filters/DateFilter";
-import ProgramSortingModal from "../filters/ProgramFilter";
-import Navbar from "../navbar/Navbar";
+import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { ArchivedFilter } from "../filters/ArchivedFilter";
+import Navbar from "../navbar/Navbar";
+import { SearchBar } from "../searchBar/SearchBar";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
+  const toast = useToast();
   const [program, setPrograms] = useState([]);
-  const [archived, setArchived] = useState([]);
+  // Complete dataset of archived programs
+  const [allArchivedSessions, setAllArchivedSessions] = useState([]);
+  // Filtered dataset (after applying filters)
+  const [filteredArchived, setFilteredArchived] = useState([]);
   const [uniqueRooms, setUniqueRooms] = useState(null);
   const [roomNames, setRoomNames] = useState(null);
-  const [archivedSessions, setArchivedProgramSessions] = useState([]);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
   const [selectedRoom, setSelectedRoom] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [programToDelete, setProgramToDelete] = useState(null);
   const [sortKey, setSortKey] = useState("title"); // can be "title" or "date"
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const dataFetchedRef = useRef(false);
+  const [programtoDelete, setProgramToDelete] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-
-      const availableHeight = viewportHeight * 0.48;
-
-      console.log(availableHeight / rowHeight);
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
+      // Use 10 rows per page for archives - slightly less than other pages
+      return 10;
     };
 
     setItemsPerPage(calculateRowsPerPage());
@@ -112,7 +99,6 @@ export const ArchivedPrograms = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-  const [filteredArchived, setFilteredArchived] = useState([]);
 
   const handleSortChange = (key, order) => {
     setSortKey(key);
@@ -120,6 +106,9 @@ export const ArchivedPrograms = () => {
   };
 
   const getArchivedPrograms = async () => {
+    if (dataFetchedRef.current) return;
+    setLoading(true);
+
     try {
       const programResponse = await backend.get(`events`);
       const programData = programResponse.data;
@@ -130,11 +119,12 @@ export const ArchivedPrograms = () => {
         (program) => program.archived === true
       );
 
-      setArchived(archivedSessions);
-
       await getArchivedProgramSessions(archivedSessions);
     } catch (error) {
       console.log("From getArchivedSessions: ", error);
+    } finally {
+      setLoading(false);
+      dataFetchedRef.current = true;
     }
   };
 
@@ -210,15 +200,12 @@ export const ArchivedPrograms = () => {
           instructors: thisAssignments.instructors,
           payees: thisAssignments.payees,
         };
-        // console.log("THIS SESSION", thisSession);
         info.push(thisSession);
       }
 
-      setArchivedProgramSessions(info);
+      setAllArchivedSessions(info);
       setFilteredArchived(info);
       setUniqueRooms([...allRoomIds]);
-      // console.log("here");
-      // console.log(archivedSessions);
     } catch (error) {
       console.log("From getArchivedProgramSessions: ", error);
     }
@@ -238,13 +225,10 @@ export const ArchivedPrograms = () => {
     }
   };
 
+  // Load data only once when component mounts
   useEffect(() => {
     getArchivedPrograms();
   }, []);
-
-  useEffect(() => {
-    // Runs whenever searchQuery, dateRange, or timeRange changes
-  }, [searchQuery, dateRange, timeRange]);
 
   useEffect(() => {
     if (uniqueRooms) {
@@ -288,52 +272,56 @@ export const ArchivedPrograms = () => {
     setTimeRange((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Apply search on the current filtered results
   const handleSearch = (query) => {
-    // Sets query for filterSessions
     setSearchQuery(query);
-  };
 
-  const filterSessions = () => {
-    return archivedSessions.filter((program) => {
-      const sessionDate = new Date(program.sessionDate);
-      const sessionStartTime = program.sessionStart;
-      const sessionEndTime = program.sessionEnd;
+    if (!query) {
+      // If query is empty, use the complete original dataset
+      setFilteredArchived(allArchivedSessions);
+      return;
+    }
 
-      const isDateInRange =
-        (!dateRange.start || new Date(dateRange.start) <= sessionDate) &&
-        (!dateRange.end || sessionDate <= new Date(dateRange.end));
-      const isTimeInRange =
-        (!timeRange.start || timeRange.start <= sessionStartTime) &&
-        (!timeRange.end || sessionEndTime <= timeRange.end);
-      const searchLower = searchQuery.toLowerCase();
-      const isRoomMatch =
-        selectedRoom === "All" || program.room === selectedRoom;
-      const matchesSearch =
-        program.programName.toLowerCase().includes(searchLower) ||
-        program.room.toLowerCase().includes(searchLower) ||
-        (program.instructors &&
-          program.instructors.some((instructor) =>
-            instructor.clientName.toLowerCase().includes(searchLower)
+    const lowerCaseQuery = query.toLowerCase();
+    const filtered = allArchivedSessions.filter((session) => {
+      return (
+        // Search by program name
+        (session.programName &&
+          session.programName.toLowerCase().includes(lowerCaseQuery)) ||
+        // Search by room
+        (session.room && session.room.toLowerCase().includes(lowerCaseQuery)) ||
+        // Search by instructors
+        (session.instructors &&
+          session.instructors.some(
+            (instructor) =>
+              instructor.clientName &&
+              instructor.clientName.toLowerCase().includes(lowerCaseQuery)
           )) ||
-        (program.payees &&
-          program.payees.some((payee) =>
-            payee.clientName.toLowerCase().includes(searchLower)
-          )) ||
-        program.sessionDate.includes(searchQuery) ||
-        program.sessionStart.includes(searchQuery) ||
-        program.sessionEnd.includes(searchQuery);
-      return isDateInRange && isTimeInRange && isRoomMatch && matchesSearch;
+        // Search by payees
+        (session.payees &&
+          session.payees.some(
+            (payee) =>
+              payee.clientName &&
+              payee.clientName.toLowerCase().includes(lowerCaseQuery)
+          ))
+      );
     });
+
+    setFilteredArchived(filtered);
+    // Reset to first page when searching
+    setCurrentPage(1);
   };
+
+  const handleRowClick = useCallback(
+    (id) => {
+      navigate(`/programs/${id}`);
+    },
+    [navigate]
+  );
 
   const sortedArchivedSessions = useMemo(() => {
-    // Filtered should be the results of the archivedfilter update
-    // const filtered = filterSessions();
+    // Use filtered data
     const filtered = filteredArchived;
-    console.log(
-      "Filtered session dates:",
-      filtered.map((s) => s.sessionDate)
-    );
 
     const sorted = [...filtered];
     if (sortKey === "title") {
@@ -351,23 +339,10 @@ export const ArchivedPrograms = () => {
         // If one is null, push it to the end.
         if (!dateA) return 1;
         if (!dateB) return -1;
-        console.log(
-          "Comparing:",
-          a.sessionDate,
-          "->",
-          dateA,
-          "vs",
-          b.sessionDate,
-          "->",
-          dateB
-        );
+        // Compare dates
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
     }
-    console.log(
-      "Sorted session dates:",
-      sorted.map((s) => s.sessionDate)
-    );
     return sorted;
   }, [filteredArchived, sortKey, sortOrder]);
 
@@ -402,109 +377,29 @@ export const ArchivedPrograms = () => {
     }
   };
 
-  const reactivateArchivedProgram = async (programId) => {
-    try {
-      await backend.put(`/events/${programId}`, {
-        archived: false,
-      });
-      // unarchive all related sessions(bookings)
-      await backend.put(`/programs/updateSessionArchive/${programId}`, {
-        archived: false,
-      });
-    } catch (error) {
-      console.log("Couldn't reactivate", error);
-    }
-  };
-
-  const duplicateArchivedProgram = async (programId) => {
-    try {
-      // Get original program data
-      const originalEvent = await backend.get(`/events/${programId}`);
-      const originalSessions = await backend.get(
-        `/bookings/byEvent/${programId}`
-      );
-      const originalAssignments = await backend.get(
-        `/assignments/event/${programId}`
-      );
-
-      // Create a new program
-      const newEventData = { ...originalEvent.data[0] };
-      delete newEventData.id; // Remove the original ID
-      newEventData.name = `${originalEvent.data[0].name}`;
-      newEventData.description = `${originalEvent.data[0].description}`;
-      newEventData.archived = false; // Ensure the new event is not archived
-      const newEvent = await backend.post("/events", newEventData);
-      console.log("New event created:", newEvent.data);
-      console.log(newEventData);
-
-      // Create copies of sessions for the new program
-      for (const session of originalSessions.data) {
-        const newSessionData = {
-          event_id: newEvent.data.id,
-          room_id: session.roomId,
-          start_time: session.startTime,
-          end_time: session.endTime,
-          date: session.date,
-          archived: false,
-        };
-        const newBooking = await backend.post("/bookings", newSessionData);
-        console.log("New booking", newSessionData);
-        console.log(newBooking);
-      }
-
-      // Create copies of assignments for the new program
-      for (const assignment of originalAssignments.data) {
-        const newAssignmentData = {
-          event_id: newEvent.data.id, // Set the new event ID
-          client_id: assignment.clientId, // Ensure clientId is a number
-          role: assignment.role,
-        };
-        const newAssignment = await backend.post(
-          "/assignments",
-          newAssignmentData
-        );
-      }
-
-      return newEvent.data;
-    } catch (error) {
-      console.log("Couldn't duplicate event", error);
-    }
-  };
-
-  const handleDuplicate = async (programId) => {
-    try {
-      await duplicateArchivedProgram(programId);
-    } catch (error) {
-      console.log("Couldn't duplicate program", error);
-    }
-  };
-
-  const handleReactivate = async (programId) => {
-    try {
-      await reactivateArchivedProgram(programId);
-      // Update local state
-      setArchivedProgramSessions((prevSessions) =>
-        prevSessions.filter((session) => session.programId !== programId)
-      );
-    } catch (error) {
-      console.log("Couldn't reactivate program", error);
-    }
-  };
-
-  const handleConfirmDelete = (programId) => {
-    onOpen();
-    setProgramToDelete(programId);
-  };
-
   const handleDelete = async (programId) => {
+    console.log(programId);
     try {
       await deleteArchivedProgram(programId);
 
-      // Update local state
-      setArchivedProgramSessions((prevSessions) =>
+      // Update local state by removing the deleted program from all state variables
+      const updatedAllArchivedSessions = allArchivedSessions.filter(
+        (session) => session.programId !== programId
+      );
+      setAllArchivedSessions(updatedAllArchivedSessions);
+
+      setFilteredArchived((prevSessions) =>
         prevSessions.filter((session) => session.programId !== programId)
       );
+
       onClose();
+      toast({
+        title: "Archived Program Deleted.",
+        description: "We've deleted the archived program.",
+        status: "success",
+        duration: 9000,
+        isClosable: true,
+      });
     } catch (error) {
       console.log("Couldn't delete program", error);
     }
@@ -513,332 +408,366 @@ export const ArchivedPrograms = () => {
   return (
     <Navbar>
       <Box margin="40px">
-        <Card
-          shadow="md"
-          border="1px"
-          borderColor="gray.300"
-          borderRadius="15px"
+        <Flex
+          align="center"
+          mb="24px"
         >
-          <CardBody margin="6px">
+          <Icon
+            as={archiveBox}
+            width="24px"
+            height="24px"
+          />
+          <Text
+            fontSize="24px"
+            fontWeight="600"
+            fontFamily="Inter"
+            fontStyle="normal"
+            lineHeight="32px"
+            color="#2D3748"
+            ml="8px"
+          >
+            Archived
+          </Text>
+        </Flex>
+        <Box
+          width="95%"
+          margin="0"
+          border="1px solid var(--Secondary-3, #e2e8f0)"
+          borderRadius="15px"
+          padding="20px"
+          display="flex"
+          flexDirection="column"
+          alignItems="flex-start"
+          gap="16px"
+          alignSelf="stretch"
+          background="white"
+          position="relative"
+          zIndex={3}
+          // minHeight="500px" // Add minimum height to prevent collapsing (should it collapse?)
+        >
+          <Flex
+            direction="column"
+            justify="space-between"
+            width="100%" // Ensure flex container takes full width
+          >
             <Flex
-              direction="column"
-              justify="space-between"
+              className="programs-table__filter-row"
+              height="40px"
+              width="100%"
+              margin="0"
+              marginBottom="15px"
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
             >
               <Flex
-                align="center"
-                mb="15px"
+                gap="16px"
+                alignItems="center"
               >
-                <Icon as={archiveBox} />
-                <Text
-                  fontSize="25px"
-                  fontWeight="semibold"
-                  color="#474849"
-                  ml="8px"
+                <Button
+                  id="programButton"
+                  display="flex"
+                  gap="0.25rem"
+                  onClick={() => {
+                    navigate("/programs");
+                  }}
+                  width="119px"
+                  height="40px"
+                  borderRadius="6px"
+                  background="#EDF2F7"
+                  _hover={{ background: "#E2E8F0" }}
                 >
-                  Archived
-                </Text>
+                  <Icon
+                    as={BackIcon}
+                    width="16px"
+                    height="16px"
+                  />
+                  <Text
+                    color="#2D3748"
+                    fontFamily="Inter"
+                    fontSize="14px"
+                    fontStyle="normal"
+                    fontWeight="700"
+                    lineHeight="normal"
+                    letterSpacing="0.07px"
+                  >
+                    Programs
+                  </Text>
+                </Button>
+                <ArchivedFilter
+                  archived={allArchivedSessions}
+                  setArchivedPrograms={setFilteredArchived}
+                  roomMap={roomNames}
+                />
               </Flex>
-              <Box
-                display="flex"
-                justify-content="space-between"
-                align-items="flex-start"
-                align-self="stretch"
-                marginTop="5px"
-                marginBottom="15px"
+              <Box flex="1" />
+              <SearchBar
+                handleSearch={handleSearch}
+                searchQuery={searchQuery}
+              />
+            </Flex>
+            <TableContainer>
+              <Table
+                variant="unstyled"
+                zIndex={3}
+                bg="white"
               >
-                <Flex marginRight="auto">
-                  <ArchivedFilter
-                    archived={archivedSessions}
-                    setArchivedPrograms={setFilteredArchived}
-                    roomMap={roomNames}/>
-                </Flex>
-                <Flex>
-                  <InputGroup
-                    size="md"
-                    width="300px"
-                    variant="outline"
-                    borderColor="#D2D2D2"
-                    background="white"
-                    type="text"
-                  >
-                    <Input
-                      placeholder="Search..."
-                      borderRadius="15px"
-                      onChange={(e) => handleSearch(e.target.value)}
-                    />
-                    <InputRightElement marginRight="4px">
-                      <Button
-                        size="sm"
-                        borderRadius="15px"
-                        background="#F0F1F4"
-                        onClick={() => handleSearch(searchQuery)}
+                <Thead
+                  borderBottom="1px"
+                  color="#D2D2D2"
+                >
+                  <Tr>
+                    <Th
+                      className="th"
+                      minWidth="20rem"
+                    >
+                      <Box
+                        className="columnContainer"
+                        width="100%"
                       >
-                        <Icon as={archiveMagnifyingGlass} />
-                      </Button>
-                    </InputRightElement>
-                  </InputGroup>
-                </Flex>
-              </Box>
-              <TableContainer>
-                <Table variant="unstyled">
-                  <Thead
-                    borderBottom="1px"
-                    color="#D2D2D2"
-                  >
-                    <Tr>
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
                         >
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Program
-                          </Text>
-                          <ProgramSortingModal
-                            onSortChange={handleSortChange}
-                          />
-                        </Box>
-                      </Th>
-
-                      <Th>
+                          PROGRAM
+                        </Text>
+                        <ProgramSortingModal onSortChange={handleSortChange} />
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      <Box
+                        className="columnContainer"
+                        justifyContent="space-between"
+                      >
                         <Flex
                           align="center"
                           gap="8px"
                         >
                           <Box>
-                            <Icon as={archiveCalendar} />
+                            <Icon
+                              as={archiveCalendar}
+                              width="16px"
+                              height="16px"
+                            />
                           </Box>
                           <Box>
                             <Text
+                              className="archiveHeaderText"
                               textTransform="none"
-                              color="#767778"
-                              fontSize="16px"
-                              fontStyle="normal"
                             >
-                              Date
+                              DATE
                             </Text>
-                          </Box>
-                          <Box>
-                            <DateSortingModal onSortChange={handleSortChange} />
                           </Box>
                         </Flex>
-                      </Th>
-
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
+                        <Box>
+                          <DateSortingModal onSortChange={handleSortChange} />
+                        </Box>
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      <Box className="columnContainer">
+                        <Icon
+                          as={archiveClock}
+                          width="20px"
+                          height="20px"
+                        />
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
                         >
-                          <Icon as={archiveClock} />
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Time
+                          UPCOMING TIME
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th
+                      className="th"
+                      maxWidth="6rem"
+                    >
+                      <Box className="columnContainer">
+                        <Icon
+                          as={archiveMapPin}
+                          width="20px"
+                          height="20px"
+                        />
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
+                        >
+                          ROOM
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      <Box className="columnContainer">
+                        <Icon
+                          as={archivePaintPalette}
+                          width="20px"
+                          height="20px"
+                        />
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
+                        >
+                          LEAD ARTIST(S)
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      <Box className="columnContainer">
+                        <Icon
+                          as={archivePerson}
+                          width="20px"
+                          height="20px"
+                        />
+                        <Text
+                          className="archiveHeaderText"
+                          textTransform="none"
+                        >
+                          PAYER(S)
+                        </Text>
+                      </Box>
+                    </Th>
+                    <Th className="th">
+                      {/* Empty column for ellipsis button */}
+                    </Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {loading ? (
+                    <Tr>
+                      <Td
+                        colSpan={7}
+                        textAlign="center"
+                        className="td"
+                        fontSize={"14px"}
+                        fontFamily={"Inter"}
+                      >
+                        <Box
+                          justifyContent="center"
+                          color="gray.500"
+                          fontSize="md"
+                          width="100%"
+                          margin="auto"
+                        >
+                          <Text textAlign={"center"}>
+                            Loading archived programs...
                           </Text>
                         </Box>
-                      </Th>
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
-                        >
-                          <Icon as={archiveMapPin} />
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Room
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
-                        >
-                          <Icon as={archivePerson} />
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Lead Artist(s)
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th>
-                        <Box
-                          display="flex"
-                          padding="8px"
-                          justifyContent="center"
-                          alignItems="center"
-                          gap="8px"
-                        >
-                          <Icon as={archivePerson} />
-                          <Text
-                            textTransform="none"
-                            color="#767778"
-                            fontSize="16px"
-                            fontStyle="normal"
-                          >
-                            Payer(s)
-                          </Text>
-                        </Box>
-                      </Th>
-                      <Th>{/* Empty column for ellipsis button */}</Th>
+                      </Td>
                     </Tr>
-                  </Thead>
-                  <Tbody>
-                    {sortedArchivedSessions.length > 0 ? (
-                      currentPagePrograms.map((programSession) => (
-                        <Tr key={programSession.programId}>
-                          <Td>{programSession.programName}</Td>
-                          <Td>
-                            {programSession.sessionDate !== "N/A"
-                              ? formatDate(programSession.sessionDate)
-                              : "N/A"}
-                          </Td>
-                          <Td>
-                            {programSession.sessionStart !== "N/A"
-                              ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
-                              : "N/A"}
-                          </Td>
-                          <Td>
-                            {programSession.room !== "N/A"
-                              ? programSession.room
-                              : "N/A"}
-                          </Td>
-                          <Td>
-                            {programSession.instructors &&
-                            programSession.instructors.length > 0
-                              ? programSession.instructors
-                                  .map((instructor) => instructor.clientName)
-                                  .join(", ")
-                              : "N/A"}
-                          </Td>
-                          <Td>
-                            {programSession.payees &&
-                            programSession.payees.length > 0
-                              ? programSession.payees
-                                  .map((payee) => payee.clientName)
-                                  .join(", ")
-                              : "N/A"}
-                          </Td>
-                          <Td>
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                height="30px"
-                                width="30px"
-                                rounded="full"
-                                variant="ghost"
-                                icon={<Icon as={sessionsEllipsis} />}
-                              />
-                              <MenuList>
-                                <MenuItem
-                                  onClick={() =>
-                                    handleDuplicate(programSession.programId)
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    padding="12px 16px"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Icon as={duplicateIcon} />
-                                    <Text color="#767778">Duplicate</Text>
-                                  </Box>
-                                </MenuItem>
-                                <MenuItem
-                                  onClick={() =>
-                                    handleReactivate(programSession.programId)
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    padding="12px 16px"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Icon as={reactivateIcon} />
-                                    <Text color="#767778">Reactivate</Text>
-                                  </Box>
-                                </MenuItem>
-                                <MenuItem
-                                  onClick={() =>
-                                    handleConfirmDelete(
-                                      programSession.programId
-                                    )
-                                  }
-                                >
-                                  <Box
-                                    display="flex"
-                                    padding="12px 16px"
-                                    alignItems="center"
-                                    gap="8px"
-                                  >
-                                    <Icon as={deleteIcon} />
-                                    <Text color="#90080F">Delete</Text>
-                                  </Box>
-                                </MenuItem>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
-                      ))
-                    ) : (
-                      <Tr>
+                  ) : sortedArchivedSessions.length > 0 ? (
+                    currentPagePrograms.map((programSession) => (
+                      <Tr
+                        key={programSession.programId}
+                        onClick={() => handleRowClick(programSession.programId)}
+                        cursor="pointer"
+                      >
                         <Td
-                          colSpan={7}
-                          textAlign="center"
+                          className="td"
+                          minWidth="20rem"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
                         >
-                          <Box
-                            justifyContent="center"
-                            py={6}
-                            color="gray.500"
-                            fontSize="md"
-                            width="300px"
-                            margin="auto"
-                          >
-                            <Text>
-                              No archived program or session data to display.
-                            </Text>
-                          </Box>
+                          {programSession.programName}
+                        </Td>
+                        <Td
+                          className="td"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
+                          {programSession.sessionDate !== "N/A"
+                            ? formatDate(programSession.sessionDate)
+                            : "N/A"}
+                        </Td>
+                        <Td
+                          className="td"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
+                          {programSession.sessionStart !== "N/A"
+                            ? `${formatTime(programSession.sessionStart)} - ${formatTime(programSession.sessionEnd)}`
+                            : "N/A"}
+                        </Td>
+                        <Td
+                          className="td"
+                          maxWidth="6rem"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
+                          {programSession.room !== "N/A"
+                            ? programSession.room
+                            : "N/A"}
+                        </Td>
+                        <Td
+                          className="td"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
+                          {programSession.instructors &&
+                          programSession.instructors.length > 0
+                            ? programSession.instructors
+                                .map((instructor) => instructor.clientName)
+                                .join(", ")
+                            : "N/A"}
+                        </Td>
+                        <Td
+                          className="td"
+                          fontSize={"14px"}
+                          fontFamily={"Inter"}
+                        >
+                          {programSession.payees &&
+                          programSession.payees.length > 0
+                            ? programSession.payees
+                                .map((payee) => payee.clientName)
+                                .join(", ")
+                            : "N/A"}
+                        </Td>
+                        <Td
+                          className="td"
+                          // overflow={"visible"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // console.log(programSession);
+                          }}
+                        >
+                          <ArchivedDropdown
+                            programId={programSession.programId}
+                            programName={programSession.programName}
+                            setProgramToDelete={setProgramToDelete}
+                            onOpen={onOpen}
+                            setArchivedProgramSessions={setAllArchivedSessions}
+                          />
                         </Td>
                       </Tr>
-                    )}
-                  </Tbody>
-                </Table>
-              </TableContainer>
-            </Flex>
-          </CardBody>
-        </Card>
+                    ))
+                  ) : (
+                    <Tr>
+                      <Td
+                        colSpan={7}
+                        textAlign="center"
+                        className="td"
+                      >
+                        <Box
+                          justifyContent="center"
+                          color="gray.500"
+                          fontSize="md"
+                        >
+                          <Text textAlign={"center"}>
+                            {allArchivedSessions.length > 0
+                              ? "No matching programs found. Try adjusting your search."
+                              : "No archived program or session data to display."}
+                          </Text>
+                        </Box>
+                      </Td>
+                    </Tr>
+                  )}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </Flex>
+        </Box>
         <Box
-          width="100%"
+          width="95%"
           display="flex"
           justifyContent="flex-end"
           mt="auto"
@@ -884,70 +813,75 @@ export const ArchivedPrograms = () => {
             </Flex>
           )}
         </Box>
-        <Modal
-          isOpen={isOpen}
-          onClose={onClose}
-        >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader
-              fontStyle="normal"
-              fontWeight="400"
-              color="#474849"
+      </Box>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader
+            fontSize={"16px"}
+            fontFamily={"Inter"}
+            fontWeight={"700"}
+          >
+            Delete Program?
+          </ModalHeader>
+          <ModalCloseButton _hover={{ bg: "#EDF2F7" }} />
+          <ModalBody>
+            <Text
+              fontSize={"14px"}
+              fontWeight={"500"}
+              fontFamily={"Inter"}
             >
-              Delete Program?
-            </ModalHeader>
-            <ModalBody>
-              <Alert
-                status="error"
-                borderRadius="md"
-                p={4}
-                display="flex"
-                flexDirection="column"
-              >
-                <Box color="#90080F">
-                  <Flex alignitems="center">
-                    <Box
-                      color="#90080F0"
-                      mr={2}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <Info />
-                    </Box>
-                    <AlertTitle
-                      color="#90080F"
-                      fontStyle="normal"
-                      fontWeight="500"
-                    >
-                      Program will be permanently deleted from Archives.
-                    </AlertTitle>
-                  </Flex>
-                </Box>
-              </Alert>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                bg="transparent"
-                onClick={onClose}
-                color="#767778"
-                borderRadius="30px"
-                mr={3}
+              This program will be permanently deleted from Archives.
+            </Text>
+          </ModalBody>
+
+          <ModalFooter
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "10px",
+            }}
+          >
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              backgroundColor={"#EDF2F7"}
+              _hover={{ bg: "#E2E8F0" }}
+              borderRadius={"6px"}
+              padding={"0px 16px"}
+              gap={"4px"}
+            >
+              <Text
+                fontSize={"14px"}
+                fontFamily={"Inter"}
+                fontWeight={"500"}
               >
                 Exit
-              </Button>
-              <Button
-                onClick={() => handleDelete(programToDelete)}
-                style={{ backgroundColor: "#90080F" }}
-                colorScheme="white"
-                borderRadius="30px"
+              </Text>
+            </Button>
+            <Button
+              colorScheme="red"
+              backgroundColor={"#90080F"}
+              gap={"4px"}
+              _hover={{ bg: "#71060C" }}
+              onClick={() => {
+                handleDelete(programtoDelete);
+              }}
+            >
+              <Text
+                fontSize={"14px"}
+                fontFamily={"Inter"}
+                fontWeight={"500"}
               >
                 Confirm
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </Box>
+              </Text>
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Navbar>
   );
 };

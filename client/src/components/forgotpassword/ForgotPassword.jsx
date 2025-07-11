@@ -22,6 +22,7 @@ import { z } from "zod";
 
 import logo from "../../assets/logo/logo.png";
 import { useAuthContext } from "../../contexts/hooks/useAuthContext";
+import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -30,11 +31,13 @@ const forgotPasswordSchema = z.object({
 export const ForgotPassword = () => {
   const navigate = useNavigate();
   const { resetPassword } = useAuthContext();
+  const { backend } = useBackendContext();
   const toast = useToast();
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
@@ -42,17 +45,20 @@ export const ForgotPassword = () => {
   });
 
   const handleResetEmail = async (data) => {
+    const email = data.email;
+
     try {
-      const email = data.email;
+      await backend.get(`/users/email/${email}`);
       await resetPassword({ email });
       navigate("/forgotpassword/sent");
-    } catch (error) {
-      toast({
-        title: "An error occurred while sending reset email",
-        description: error.message,
-        status: "error",
-        variant: "subtle",
+      return;
+
+    } catch (err) {
+      setError("email", {
+        type: "manual",
+        message: "Email not found. Please enter a valid email address.",
       });
+      return;
     }
   };
 
@@ -101,7 +107,7 @@ export const ForgotPassword = () => {
                 >
                   Email
                 </label>
-                <div className="input-outer">
+                <div className={errors.email ? "input-outer-email-error" : "input-outer-email"}>
                   <div className="input-icon-container">
                     <Icon
                       as={AiFillMail}
@@ -125,7 +131,7 @@ export const ForgotPassword = () => {
                     {/* No right icon for email */}
                   </div>
                 </div>
-                <FormErrorMessage className="form-error">
+                <FormErrorMessage className="form-error" color="#90080F" fontWeight={500} alignContent="center">
                   {errors.email?.message?.toString()}
                 </FormErrorMessage>
               </FormControl>

@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React from "react";
 
-import { PDFViewer } from "@react-pdf/renderer";
 import { CookiesProvider } from "react-cookie";
 import {
   Navigate,
@@ -18,26 +17,29 @@ import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSe
 import { Home } from "./components/home/Home";
 import { EditInvoice } from "./components/invoices/EditInvoice";
 import { InvoicesDashboard } from "./components/invoices/InvoicesDashboard";
+import { TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
 import { SavedEdit } from "./components/invoices/SavedEditsInvoice";
 import { SingleInvoice } from "./components/invoices/SingleInvoice";
 import { Login } from "./components/login/Login";
 import { Notifications } from "./components/notifications/Notifications";
-import PDFButton from "./components/PDFButton";
 import { Playground } from "./components/playground/Playground";
 import { ArchivedPrograms } from "./components/programs/ArchivedPrograms";
+import { EditSingleSession } from "./components/programs/EditSingleSession";
 import { ModifyProgram } from "./components/programs/ModifyProgram";
 import { Program } from "./components/programs/Program";
+import { EditRecurringSessions } from "./components/programs/recurringSessions/EditRecurringSessions";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ResetPassword } from "./components/resetpassword/ResetPassword";
 import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
-import { Settings } from "./components/settings/Settings";
 import { MyAccount } from "./components/settings/MyAccount";
+import { GoogleCalendar } from "./components/settings/GoogleCalendar";
+import { Settings } from "./components/settings/Settings";
 import { Signup } from "./components/signup/Signup";
 import { SignupRequested } from "./components/signup/SignupRequested";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BackendProvider } from "./contexts/BackendContext";
 import { RoleProvider } from "./contexts/RoleContext";
-import { PDFButtonInvoice, TestPDFViewer } from "./components/invoices/PDFButtonInvoice";
+import{ RoomsSettings } from "./components/settings/SettingsRooms";
 
 const App = () => {
   return (
@@ -97,6 +99,7 @@ const App = () => {
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
                 />
+
                 <Route
                   path="/playground"
                   element={<Playground />}
@@ -176,10 +179,28 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/addprogram"
+                  path="/programs/newprogram"
                   element={
                     <ProtectedRoute
                       element={<ModifyProgram load={false} />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/programs/edit/sessions/:id"
+                  element={
+                    <ProtectedRoute
+                      element={<EditRecurringSessions />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/programs/edit/session/:id"
+                  element={
+                    <ProtectedRoute
+                      element={<EditSingleSession />}
                       allowedRoles={["admin"]}
                     />
                   }
@@ -198,6 +219,24 @@ const App = () => {
                   element={
                     <ProtectedRoute
                       element={<MyAccount />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings/rooms"
+                  element={
+                    <ProtectedRoute
+                      element={<RoomsSettings />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings/googlecalendar"
+                  element={
+                    <ProtectedRoute
+                      element={<GoogleCalendar />}
                       allowedRoles={["admin"]}
                     />
                   }

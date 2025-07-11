@@ -1,9 +1,9 @@
-export const PersonIcon = () => {
+export const PersonIcon = ({ width = "20", height = "20" }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
+      width={width}
+      height={height}
       viewBox="0 0 20 20"
       fill="none"
     >

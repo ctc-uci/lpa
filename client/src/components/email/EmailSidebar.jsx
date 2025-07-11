@@ -23,15 +23,16 @@ import {
 } from "@chakra-ui/react";
 
 import { useParams } from "react-router-dom";
-import { sendSaveEmail } from "./utils.jsx";
 
 import { EnvelopeIcon } from "../../assets/EnvelopeIcon.jsx";
 import IoPaperPlane from "../../assets/IoPaperPlane.svg";
 import logo from "../../assets/logo/logo.png";
-import { PlusFilledIcon } from "../../assets/PlusFilledIcon.jsx";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { EmailDropdown } from "../clientsearch/EmailDropdown.jsx";
 import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { DiscardEmailModal } from "./DiscardEmailModal";
+import { EmailInput } from "./EmailInput.jsx";
+import { sendSaveEmail } from "./utils.jsx";
 
 export const EmailSidebar = ({
   isOpen,
@@ -52,9 +53,23 @@ export const EmailSidebar = ({
   const [ccEmails, setCcEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
 
+  const [instructorSearchTerm, setInstructorSearchTerm] = useState("");
+  const [searchedInstructors, setSearchedInstructors] = useState([]);
+  const [selectedInstructors, setSelectedInstructors] = useState([]);
+
+  const [ccSearchTerm, setCcSearchTerm] = useState("");
+  const [searchedCc, setSearchedCc] = useState([]);
+  const [selectedCc, setSelectedCc] = useState([]);
+
+  const [bccSearchTerm, setBccSearchTerm] = useState("");
+  const [searchedBcc, setSearchedBcc] = useState([]);
+  const [selectedBcc, setSelectedBcc] = useState([]);
+
   const [isDiscardModalOpen, setisDiscardModalOpen] = useState(false);
   const [isConfirmModalOpen, setisConfirmModalOpen] = useState(false);
   const [isDrawerOpen, setisDrawerOpen] = useState(false);
+
+  const [allUsers, SetAllUsers] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -87,18 +102,32 @@ export const EmailSidebar = ({
     const fetchData = async () => {
       try {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
+        const instructorResponse = await backend.get("/clients/");
+        const userList = [...payeesResponse.data, ...instructorResponse.data];
+        const uniqueUsers = userList.filter(
+          (user, index, self) =>
+            index === self.findIndex((u) => u.email === user.email)
+        );
+        SetAllUsers(uniqueUsers);
+        console.log(uniqueUsers);
+
         const payeeEmails = payeesResponse.data.map((payee) => payee.email);
+
+        const instructorEmails = instructorResponse.data.map(
+          (instructor) => instructor.email
+        );
 
         setEmails((prevEmails) => {
           const newEmails = [...prevEmails];
-          payeeEmails.forEach((email) => {
+          [...payeeEmails, ...instructorEmails].forEach((email) => {
             if (!newEmails.includes(email)) {
               newEmails.push(email);
             }
           });
           return newEmails;
         });
-        setOriginalEmails(emails);
+
+        setOriginalEmails([...payeeEmails, ...instructorEmails]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -106,6 +135,168 @@ export const EmailSidebar = ({
 
     fetchData();
   }, []);
+
+  // const getInstructorResults = async ({ searchTerm, setSearchedResults, selectedUsers }) => {
+  //   try {
+  //     if (search !== "") {
+  //       const instructorResponse = await backend.get("/clients/search", {
+  //         params: {
+  //           searchTerm: search,
+  //         },
+  //       });
+  //       const payeesResponse = await backend.get("/invoices/payees/" + id);
+  //       filterSelectedInstructorsFromSearch(
+  //         instructorResponse.data,
+  //         payeesResponse.data,
+  //         setSearched,
+  //         selectedUser
+  //       );
+  //     } else {
+  //       setSearched([]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error getting instructors:", error);
+  //   }
+  // };
+
+  const getInstructorResults = async (search, setSearched, selectedUser) => {
+    try {
+      // Make sure search is a string to avoid TypeErrors
+      const searchString = typeof search === "string" ? search : "";
+
+      if (searchString !== "") {
+        const instructorResponse = await backend.get("/clients/search", {
+          params: {
+            searchTerm: searchString,
+          },
+        });
+        const payeesResponse = await backend.get("/invoices/payees/" + id);
+
+        // Make sure selectedUser is an array
+        const safeSelectedUser = Array.isArray(selectedUser)
+          ? selectedUser
+          : [];
+
+        filterSelectedInstructorsFromSearch(
+          instructorResponse.data,
+          payeesResponse.data,
+          setSearched,
+          safeSelectedUser
+        );
+      } else {
+        if (typeof setSearched === "function") {
+          setSearched([]);
+        }
+      }
+    } catch (error) {
+      console.error("Error getting instructors:", error);
+    }
+  };
+  // const filterSelectedInstructorsFromSearch = (instructorData, payeeData, setSearched, selectedUser) => {
+  //   const filteredInstructors = instructorData.filter(
+  //     (instructor) =>
+  //       !selectedUser || !selectedUser.some((selected) => selected && selected.email === instructor.email)
+  //   );
+  //   setSearched(filteredInstructors);
+  // };
+
+  const filterSelectedInstructorsFromSearch = (
+    instructorData,
+    payeeData,
+    setSearched,
+    selectedUser
+  ) => {
+    // Add null checks and make sure arrays are arrays
+    const safeInstructorData = Array.isArray(instructorData)
+      ? instructorData
+      : [];
+    const safeSelectedUser = Array.isArray(selectedUser) ? selectedUser : [];
+
+    const filteredInstructors = safeInstructorData.filter(
+      (instructor) =>
+        instructor &&
+        instructor.email &&
+        !safeSelectedUser.some(
+          (selected) =>
+            selected && selected.email && instructor.email === selected.email
+        )
+    );
+
+    if (typeof setSearched === "function") {
+      setSearched(filteredInstructors);
+    }
+  };
+
+  // useEffect(() => {
+  //   // Extract emails from selected instructors and add them to the emails list
+  //   const instructorEmails = selectedInstructors
+  //     .filter((instructor) => instructor.email)
+  //     .map((instructor) => instructor.email);
+
+  //   if (instructorEmails.length > 0) {
+  //     setEmails((prevEmails) => {
+  //       const newEmails = [...prevEmails];
+  //       instructorEmails.forEach((email) => {
+  //         if (!newEmails.includes(email)) {
+  //           newEmails.push(email);
+  //         }
+  //       });
+  //       return newEmails;
+  //     });
+  //   }
+  // }, [selectedInstructors]);
+
+  //TO
+  // useEffect(() => {
+  //   getInstructorResults({
+  //     searchTerm: instructorSearchTerm,
+  //     setSearchedResults: setSearchedInstructors,
+  //     selectedUsers: selectedInstructors
+  //   });
+  // }, [instructorSearchTerm, selectedInstructors]);
+
+  // //CC
+  // useEffect(() => {
+  //   getInstructorResults({
+  //     searchTerm: ccSearchTerm,
+  //     setSearchedResults: setSearchedCc,
+  //     selectedUsers: selectedCc
+  //   });
+  // }, [ccSearchTerm, selectedCc]);
+
+  // //BCC
+  // useEffect(() => {
+  //   getInstructorResults({
+  //     searchTerm: bccSearchTerm,
+  //     setSearchedResults: setSearchedBcc,
+  //     selectedUsers: selectedBcc
+  //   });
+  // }, [bccSearchTerm, selectedBcc]);
+
+  useEffect(() => {
+    // Only call if instructorSearchTerm is defined
+    if (instructorSearchTerm !== undefined) {
+      getInstructorResults(
+        instructorSearchTerm,
+        setSearchedInstructors,
+        selectedInstructors
+      );
+    }
+  }, [instructorSearchTerm]);
+
+  useEffect(() => {
+    // Only call if ccSearchTerm is defined
+    if (ccSearchTerm !== undefined) {
+      getInstructorResults(ccSearchTerm, setSearchedCc, selectedCc);
+    }
+  }, [ccSearchTerm]);
+
+  useEffect(() => {
+    // Only call if bccSearchTerm is defined
+    if (bccSearchTerm !== undefined) {
+      getInstructorResults(bccSearchTerm, setSearchedBcc, selectedBcc);
+    }
+  }, [bccSearchTerm]);
 
   const emptyInputs = () => {
     setTitle(pdf_title);
@@ -175,7 +366,6 @@ export const EmailSidebar = ({
     La Peña Cultural Center
     3105 Shattuck Ave., Berkeley, CA 94705
     lapena.org`;
-
 
   const handleSubtotalSum = (startTime, endTime, rate) => {
     if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
@@ -287,7 +477,31 @@ export const EmailSidebar = ({
 
   const handleEmailClick = async () => {
     const invoiceData = await fetchInvoiceData(invoice, backend, id);
-    sendSaveEmail(setLoading, setisConfirmModalOpen, invoice, pdf_title, invoiceData, emails, title, message, ccEmails, bccEmails, backend, id);
+    sendSaveEmail(
+      setLoading,
+      setisConfirmModalOpen,
+      invoice,
+      pdf_title,
+      invoiceData,
+      emails,
+      title,
+      message,
+      ccEmails,
+      bccEmails,
+      backend,
+      id
+    );
+  };
+
+  const HandleEmailSearch = (email) => {
+    backend
+      .get(`/users/email/${email}`)
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.error("User not found");
+      });
   };
 
   return (
@@ -317,6 +531,7 @@ export const EmailSidebar = ({
         onClick={() => setisDrawerOpen(true)}
         leftIcon={<EnvelopeIcon />}
         backgroundColor="#4441C8"
+        _hover={{backgroundColor: "#312E8A"}}
         color="white"
         borderRadius={10}
       >
@@ -373,9 +588,11 @@ export const EmailSidebar = ({
           </DrawerHeader>
           <DrawerBody ml="4">
             <Stack
-              w="300px"
+              w="100%"
               mb="20px"
             >
+              {/* // Here are the fixed EmailDropdown calls for the EmailSidebar
+              component // For the "To:" section */}
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
@@ -386,71 +603,59 @@ export const EmailSidebar = ({
                 >
                   To:
                 </Text>
-                <InputGroup w="200px">
-                  <Input
-                    placeholder="johndoe@gmail.com"
-                    onChange={(e) => setToInput(e.target.value)}
-                    value={toInput}
-                    onKeyDown={handleKeyDown}
-                  />
-                  <InputRightElement>
-                    <IconButton
-                      bgColor="transparent"
-                      sx={{
-                        svg: {
-                          width: "16px",
-                          height: "16px",
-                        },
-                      }}
-                      _hover={{
-                        bgColor: "transparent",
-                        svg: {
-                          rect: { fill: "#4441C8" },
-                        },
-                      }}
-                      _active={{ bgColor: "transparent" }}
-                      _focus={{ boxShadow: "none" }}
-                      icon={<PlusFilledIcon />}
-                      onClick={handleAddEmail}
-                    />
-                  </InputRightElement>
-                </InputGroup>
+                <EmailDropdown
+                  searchTerm={instructorSearchTerm}
+                  searchedUser={searchedInstructors}
+                  selectedUsers={selectedInstructors}
+                  setSelectedUsers={setSelectedInstructors}
+                  setSearchedUsers={setSearchedInstructors}
+                  getUserResults={getInstructorResults}
+                  setSearchTerm={setInstructorSearchTerm}
+                />
               </Flex>
+              {/* Display selected To: emails */}
               <Flex
                 gap="4"
-                justifyContent="start"
-                wrap="wrap"
+                justifyContent="end"
               >
-                {[...emails].map((email, index) => (
-                  <Tag
-                    key={index}
-                    size="lg"
-                    borderRadius="full"
-                    variant="solid"
-                    bg={"white"}
-                    border={"1px solid"}
-                    borderColor={"#E2E8F0"}
-                    textColor={"#080A0E"}
-                    fontWeight={"normal"}
-                  >
-                    <TagLabel>{email}</TagLabel>
-                    <TagCloseButton
-                      onClick={() =>
-                        setEmails((prevEmails) =>
-                          prevEmails.filter((e) => e !== email)
-                        )
-                      }
-                      bgColor={"#718096"}
-                      opacity={"none"}
-                      _hover={{
-                        bg: "#4441C8",
-                      }}
-                      textColor={"white"}
-                    />
-                  </Tag>
-                ))}
+                {selectedInstructors &&
+                  selectedInstructors.length > 0 &&
+                  selectedInstructors.map(
+                    (user, index) =>
+                      user &&
+                      user.email && (
+                        <Tag
+                          key={`user-${index}`}
+                          size="lg"
+                          borderRadius="full"
+                          variant="solid"
+                          bg={"white"}
+                          border={"1px solid"}
+                          borderColor={"#E2E8F0"}
+                          textColor={"#080A0E"}
+                          fontWeight={"normal"}
+                        >
+                          <TagLabel>{user.email}</TagLabel>
+                          <TagCloseButton
+                            onClick={() => {
+                              setSelectedInstructors((prevUsers) =>
+                                prevUsers.filter(
+                                  (item) => item && item.id !== user.id
+                                )
+                              );
+                            }}
+                            bgColor={"#718096"}
+                            opacity={"none"}
+                            _hover={{
+                              bg: "#4441C8",
+                            }}
+                            textColor={"white"}
+                          />
+                        </Tag>
+                      )
+                  )}
               </Flex>
-
+              {/* For the "Cc:" section */}
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
@@ -461,44 +666,25 @@ export const EmailSidebar = ({
                 >
                   Cc:
                 </Text>
-                <InputGroup w="200px">
-                  <Input
-                    placeholder="johndoe@gmail.com"
-                    value={ccInput}
-                    onChange={(e) => setCcInput(e.target.value)}
-                    onKeyDown={handleKeyPressCc}
-                  />
-                  <InputRightElement>
-                    <IconButton
-                      bgColor="transparent"
-                      sx={{
-                        svg: {
-                          width: "16px",
-                          height: "16px",
-                        },
-                      }}
-                      _hover={{
-                        bgColor: "transparent",
-                        svg: {
-                          rect: { fill: "#4441C8" },
-                        },
-                      }}
-                      _active={{ bgColor: "transparent" }}
-                      _focus={{ boxShadow: "none" }}
-                      onClick={handleAddCcEmail}
-                      icon={<PlusFilledIcon />}
-                    />
-                  </InputRightElement>
-                </InputGroup>
+                <EmailDropdown
+                  searchTerm={ccSearchTerm}
+                  searchedUser={searchedCc}
+                  selectedUsers={selectedCc}
+                  setSelectedUsers={setSelectedCc}
+                  setSearchedUsers={setSearchedCc}
+                  getUserResults={getInstructorResults}
+                  setSearchTerm={setCcSearchTerm}
+                />
               </Flex>
+              {/* Display selected Cc: emails */}
               <Flex
                 gap="4"
-                justifyContent="start"
-                wrap="wrap"
+                justifyContent="end"
               >
+                {/* Display regular cc emails */}
                 {ccEmails.map((email, index) => (
                   <Tag
-                    key={index}
+                    key={`string-${index}`}
                     size="lg"
                     borderRadius="full"
                     variant="solid"
@@ -510,9 +696,9 @@ export const EmailSidebar = ({
                   >
                     <TagLabel>{email}</TagLabel>
                     <TagCloseButton
-                      onClick={() =>
-                        setCcEmails(ccEmails.filter((e) => e !== email))
-                      }
+                      onClick={() => {
+                        setCcEmails(ccEmails.filter((e) => e !== email));
+                      }}
                       bgColor={"#718096"}
                       opacity={"none"}
                       _hover={{
@@ -522,8 +708,46 @@ export const EmailSidebar = ({
                     />
                   </Tag>
                 ))}
-              </Flex>
 
+                {/* Display selected cc users from dropdown */}
+                {selectedCc &&
+                  selectedCc.length > 0 &&
+                  selectedCc.map(
+                    (user, index) =>
+                      user &&
+                      user.email && (
+                        <Tag
+                          key={`user-${index}`}
+                          size="lg"
+                          borderRadius="full"
+                          variant="solid"
+                          bg={"white"}
+                          border={"1px solid"}
+                          borderColor={"#E2E8F0"}
+                          textColor={"#080A0E"}
+                          fontWeight={"normal"}
+                        >
+                          <TagLabel>{user.email}</TagLabel>
+                          <TagCloseButton
+                            onClick={() => {
+                              setSelectedCc((prevUsers) =>
+                                prevUsers.filter(
+                                  (item) => item && item.id !== user.id
+                                )
+                              );
+                            }}
+                            bgColor={"#718096"}
+                            opacity={"none"}
+                            _hover={{
+                              bg: "#4441C8",
+                            }}
+                            textColor={"white"}
+                          />
+                        </Tag>
+                      )
+                  )}
+              </Flex>
+              {/* For the "Bcc:" section */}
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
@@ -534,44 +758,25 @@ export const EmailSidebar = ({
                 >
                   Bcc:
                 </Text>
-                <InputGroup w="200px">
-                  <Input
-                    placeholder="johndoe@gmail.com"
-                    value={bccInput}
-                    onChange={(e) => setBccInput(e.target.value)}
-                    onKeyDown={handleKeyPressBcc}
-                  />
-                  <InputRightElement>
-                    <IconButton
-                      bgColor="transparent"
-                      sx={{
-                        svg: {
-                          width: "16px",
-                          height: "16px",
-                        },
-                      }}
-                      _hover={{
-                        bgColor: "transparent",
-                        svg: {
-                          rect: { fill: "#4441C8" },
-                        },
-                      }}
-                      _active={{ bgColor: "transparent" }}
-                      _focus={{ boxShadow: "none" }}
-                      onClick={handleAddBccEmail}
-                      icon={<PlusFilledIcon />}
-                    />
-                  </InputRightElement>
-                </InputGroup>
+                <EmailDropdown
+                  searchTerm={bccSearchTerm}
+                  searchedUser={searchedBcc}
+                  selectedUsers={selectedBcc}
+                  setSelectedUsers={setSelectedBcc}
+                  setSearchedUsers={setSearchedBcc}
+                  getUserResults={getInstructorResults}
+                  setSearchTerm={setBccSearchTerm}
+                />
               </Flex>
+              {/* Display selected Bcc: emails */}
               <Flex
                 gap="4"
-                justifyContent="start"
-                wrap="wrap"
+                justifyContent="end"
               >
+                {/* Display regular bcc emails */}
                 {bccEmails.map((email, index) => (
                   <Tag
-                    key={index}
+                    key={`string-${index}`}
                     size="lg"
                     borderRadius="full"
                     variant="solid"
@@ -595,6 +800,44 @@ export const EmailSidebar = ({
                     />
                   </Tag>
                 ))}
+
+                {/* Display selected bcc users from dropdown */}
+                {selectedBcc &&
+                  selectedBcc.length > 0 &&
+                  selectedBcc.map(
+                    (user, index) =>
+                      user &&
+                      user.email && (
+                        <Tag
+                          key={`user-${index}`}
+                          size="lg"
+                          borderRadius="full"
+                          variant="solid"
+                          bg={"white"}
+                          border={"1px solid"}
+                          borderColor={"#E2E8F0"}
+                          textColor={"#080A0E"}
+                          fontWeight={"normal"}
+                        >
+                          <TagLabel>{user.email}</TagLabel>
+                          <TagCloseButton
+                            onClick={() => {
+                              setSelectedBcc((prevUsers) =>
+                                prevUsers.filter(
+                                  (item) => item && item.id !== user.id
+                                )
+                              );
+                            }}
+                            bgColor={"#718096"}
+                            opacity={"none"}
+                            _hover={{
+                              bg: "#4441C8",
+                            }}
+                            textColor={"white"}
+                          />
+                        </Tag>
+                      )
+                  )}
               </Flex>
             </Stack>
 

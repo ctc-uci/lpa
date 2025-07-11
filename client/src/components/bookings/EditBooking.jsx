@@ -50,14 +50,22 @@ import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
 import { DeleteIcon } from "../../assets/DeleteIcon";
 import { DollarIcon } from "../../assets/DollarIcon";
 import { EmailIcon } from "../../assets/EmailIcon";
-import { InfoIconPurple } from "../../assets/InfoIconPurple";
+import { EyeIcon } from "../../assets/EyeIcon";
 import { InfoIconRed } from "../../assets/InfoIconRed";
 import { LocationIcon } from "../../assets/LocationIcon";
+import { PaintPaletteIcons } from "../../assets/PaintPaletteIcon";
 import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
 import { ProfileIcon } from "../../assets/ProfileIcon";
 import { RepeatIcon } from "../../assets/RepeatIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
+import { ArtistsDropdown } from "../programs/programComponents/ArtistsDropdown";
+import { LocationDropdown } from "../programs/programComponents/LocationDropdown";
+import { PayeesDropdown } from "../programs/programComponents/PayeesDropdown";
+import { ProgramInformation } from "../programs/programComponents/ProgramInformation";
+import { RoomInformation } from "../programs/programComponents/RoomInformation";
+import { TimeInputs } from "../programs/programComponents/TimeInputs";
+import { UnsavedChangesModal } from "../unsavedChanges/UnsavedChangesModal";
 
 export const EditBooking = () => {
   const { backend } = useBackendContext();
@@ -77,10 +85,16 @@ export const EditBooking = () => {
   const [endTime, setEndTime] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [day, setDay] = useState("");
   const [selectedDays, setSelectedDays] = useState([]);
   const [bookingIds, setBookingIds] = useState([]);
   const [eventId, setEventId] = useState();
   const { isOpen: isOpen, onOpen: onOpen, onClose: onClose } = useDisclosure();
+  const [initialState, setInitialState] = useState(null);
+  const [infoLoaded, setInfoLoaded] = useState({
+    event: false,
+    locations: false,
+  });
 
   const {
     isOpen: cancelIsOpen,
@@ -90,16 +104,35 @@ export const EditBooking = () => {
   const [deactivateOption, setDeactivateOption] = useState("archive");
 
   useEffect(() => {
-    getInitialEventData();
-    getInitialLocations();
+    const loadInitialData = async () => {
+      await getInitialEventData().then(setInfoLoaded((prev) => ({ ...prev, event: true })));
+      await getInitialLocations().then(setInfoLoaded((prev) => ({ ...prev, locations: true })));
+    };
+
+    loadInitialData();
   }, []);
+
+  useEffect(() => {
+    console.log("initialState", initialState)
+    console.log("infoLoaded", infoLoaded);
+    if (initialState === null && Object.values(infoLoaded).every(Boolean)) {
+      setInitialState(JSON.stringify({
+        selectedLocationId,
+        startTime,
+        endTime,
+        startDate,
+      }));
+    }
+  }, [infoLoaded]);
 
   const exit = () => {
     navigate("/programs/" + eventId);
   };
 
   const getInitialEventData = async () => {
+    console.log("the id is: ", id)
     const eventResponse = await backend.get(`/bookings/displayData/${id}`);
+    console.log("eventresponse: ", eventResponse)
     setEventId(eventResponse.data[0].eventId);
     setEventName(eventResponse.data[0].eventname);
     setGeneralInformation(eventResponse.data[0].eventdescription);
@@ -134,6 +167,19 @@ export const EditBooking = () => {
             },
           ])
       ).values()
+    );
+
+    const daysMap = {
+      0: "Sunday",
+      1: "Monday",
+      2: "Tuesday",
+      3: "Wednesday",
+      4: "Thursday",
+      5: "Friday",
+      6: "Saturday",
+    };
+    setDay(
+      daysMap[new Date(eventResponse.data[0].date.split("T")[0]).getDay()]
     );
 
     const payees = Array.from(
@@ -176,7 +222,8 @@ export const EditBooking = () => {
         description: generalInformation,
       };
 
-      await backend.put("/bookings/byEvent/" + id, bookingsData);
+      await backend.put("/bookings/" + id, bookingsData);
+      console.log("bookingsData in edit: ", bookingsData);
 
       exit();
     } catch (error) {
@@ -198,195 +245,118 @@ export const EditBooking = () => {
     exit();
   };
 
+  const isFormValid = () => {
+    const currentState = JSON.stringify({
+        selectedLocationId,
+        startTime,
+        endTime,
+        startDate,
+      });
+      return (
+        startTime && endTime &&
+        startDate &&
+        selectedLocationId !== "" &&
+        initialState !== currentState
+      );
+    };
+
   return (
     <Navbar>
       <div id="body">
         <div id="programsBody">
           <div>
             <Icon
-              fontSize="2xl"
+              fontSize="xl"
               onClick={cancelOnOpen}
               id="leftCancel"
             >
               <IoCloseOutline />
             </Icon>
-            <Modal
+            <UnsavedChangesModal
               isOpen={cancelIsOpen}
+              onOpen={cancelOnOpen}
               onClose={cancelOnClose}
-            >
-              <ModalOverlay />
-              <ModalContent>
-                <ModalHeader
-                  textAlign="center"
-                  paddingBottom="0"
-                >
-                  Discard unsaved changes?
-                </ModalHeader>
-                <ModalFooter
-                  style={{ display: "flex", justifyContent: "flex-end" }}
-                >
-                  <Button
-                    variant="ghost"
-                    onClick={cancelOnClose}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    colorScheme="red"
-                    mr={3}
-                    id="deactivateConfirm"
-                    onClick={exit}
-                  >
-                    Ok
-                  </Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
+              exit={exit}
+              save={saveEvent}
+              isFormValid={isFormValid}
+            />
           </div>
           <div id="eventInfoBody">
             <div id="info">
-              <InfoIconPurple id="infoIcon" />
-              <p>You are editing a session of this program</p>
+              <EyeIcon id="infoIcon" />
+              <p>Editing Session of Program</p>
             </div>
-            <div id="title">
-              <h1>
-                <b>{eventName}</b>
-              </h1>
-            </div>
+            <div id="title">{eventName}</div>
             <div id="innerBody">
-              <div
-                id="dateTimeDiv"
-                style={{ fontSize: "1rem" }}
-              >
-                <div>
-                  <Icon
-                    boxSize={6}
-                    fontSize="sm"
-                  >
-                    <ClockFilledIcon />
-                  </Icon>
-                  <Input
-                    id="time1"
-                    placeholder="00:00 am"
-                    type="time"
-                    variant="outline"
-                    size="md"
-                    value={startTime}
-                    onChange={(event) => setStartTime(event.target.value)}
-                    backgroundColor="#F6F6F6"
-                    color="#767778"
-                  />
-                </div>
-                to
-                <div>
-                  <Icon
-                    boxSize={6}
-                    fontSize="lg"
-                  >
-                    <ClockFilledIcon />
-                  </Icon>
-                  <Input
-                    id="time2"
-                    placeholder="00:00 pm"
-                    type="time"
-                    variant="outline"
-                    size="md"
-                    value={endTime}
-                    onChange={(event) => setEndTime(event.target.value)}
-                    backgroundColor="#F6F6F6"
-                    color="#767778"
-                  />
-                </div>
-                from
-                <div>
-                  <Icon
-                    boxSize={6}
-                    fontSize="lg"
-                  >
-                    <CalendarIcon />
-                  </Icon>
-                  <Input
-                    id="date1"
-                    placeholder="Day. MM/DD/YYYY"
-                    type="date"
-                    variant="outline"
-                    size="md"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    backgroundColor="#F6F6F6"
-                    color="#767778"
-                  />
-                </div>
-              </div>
+              <TimeInputs
+                selectedDays={selectedDays}
+                setSelectedDays={setSelectedDays}
+                startTime={startTime}
+                endTime={endTime}
+                setStartTime={setStartTime}
+                setEndTime={setEndTime}
+              />
+              <Flex id="bookingDate">
+                <CalendarIcon />
+                <span>On {day}</span>
+                <Input
+                  type="date1"
+                  size="md"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  backgroundColor="#fff"
+                  color="#2D3748"
+                  _placeholder={{
+                    color: "#E2E8F0",
+                  }}
+                  borderColor="#E2E8F0"
+                  borderWidth="1px"
+                  borderRadius="4px"
+                  w={150}
+                  textAlign="center"
+                  marginLeft="1rem"
+                />
+              </Flex>
 
-              <div id="payee">
-                <Flex
-                  align="center"
-                  gap={8.25}
-                >
-                  <ProfileIcon />
-                  <span>
-                    {" "}
-                    {selectedPayees.map((payee) => payee.name).join(", ")}{" "}
-                  </span>
-                  <ProfileIcon />
-                  <span>
-                    {" "}
-                    {selectedInstructors
-                      .map((instructors) => instructors.name)
-                      .join(", ")}{" "}
-                  </span>
-                </Flex>
-              </div>
+              <Flex id="instructor">
+                <PaintPaletteIcons />
+                <span>
+                  {selectedPayees?.length > 0
+                    ? selectedPayees.map((payee) => payee.name).join(", ")
+                    : "No payees"}
+                </span>
+              </Flex>
 
-              <div id="payeeEmails">
+              <Flex id="payee">
+                <ProfileIcon />
+                <span>
+                  {selectedInstructors?.length > 0
+                    ? selectedInstructors
+                        .map((instructors) => instructors.name)
+                        .join(", ")
+                    : "No instructors"}
+                </span>
+              </Flex>
+
+              <Flex id="emails">
                 <EmailIcon />
-                {selectedPayees.map((payee) => payee.email).join(", ")}
-              </div>
+                <span>
+                  {selectedPayees?.length > 0
+                    ? selectedPayees.map((payee) => payee.email).join(", ")
+                    : "No emails"}
+                </span>
+              </Flex>
 
-              <div id="location">
-                <LocationIcon />
-                {locations && locations.length > 0 ? (
-                  <Select
-                    width="30%"
-                    backgroundColor="#F6F6F6"
-                    value={
-                      selectedLocationId === "" ? "DEFAULT" : selectedLocationId
-                    }
-                    onChange={(event) => {
-                      const selectedId = parseInt(event.target.value);
-                      const location = locations.find(
-                        (loc) => loc.id === selectedId
-                      );
-                      setSelectedLocation(location.name);
-                      setSelectedLocationId(location.id);
-                      setRoomDescription(location.description);
-                      setLocationRate(location.rate);
-                    }}
-                  >
-                    <option
-                      value={"DEFAULT"}
-                      disabled
-                    >
-                      Location...
-                    </option>
-                    {locations.map((location) => (
-                      <option
-                        value={location.id}
-                        key={location.id}
-                      >
-                        {location.name}
-                      </option>
-                    ))}
-                  </Select>
-                ) : (
-                  <div></div>
-                )}
-                <div id="locationRate">
-                  <DollarIcon />
-                  <p>{locationRate} / hour</p>
-                </div>
-              </div>
+              <LocationDropdown
+                locations={locations}
+                locationRate={locationRate}
+                selectedLocationId={selectedLocationId}
+                selectedLocation={selectedLocation}
+                setSelectedLocation={setSelectedLocation}
+                setSelectedLocationId={setSelectedLocationId}
+                setRoomDescription={setRoomDescription}
+                setLocationRate={setLocationRate}
+              />
 
               <div id="roomDescription">
                 <h3>Room Description</h3>
@@ -395,11 +365,12 @@ export const EditBooking = () => {
 
               <div id="information">
                 <h3>General Information</h3>
-                <Textarea
-                  value={generalInformation}
-                  isReadOnly
-                  backgroundColor="#F6F6F6"
-                ></Textarea>
+                <p>{generalInformation}</p>
+              </div>
+
+              <div id="sessionInformation">
+                <h3>Session Information</h3>
+                <Textarea placeholder="..."></Textarea>
               </div>
             </div>
           </div>
@@ -407,133 +378,12 @@ export const EditBooking = () => {
             <Button
               id="save"
               onClick={saveEvent}
+              isDisabled={!isFormValid()}
+              backgroundColor={isFormValid() ? "#4441C8.600" : "gray.300"}
+              _hover={{ backgroundColor: isFormValid() ? "#312E8A.700" : "gray.300" }}
             >
               Save
             </Button>
-            <Popover id="popTrigger">
-              <PopoverTrigger asChild>
-                <Icon boxSize="10">
-                  <CiCircleMore />
-                </Icon>
-              </PopoverTrigger>
-              <PopoverContent style={{ width: "100%" }}>
-                <PopoverBody onClick={onOpen}>
-                  <div id="cancelBody">
-                    <Icon fontSize="1xl">
-                      <CancelIcon id="cancelIcon" />
-                    </Icon>
-                    <p id="cancel">Deactivate</p>
-                  </div>
-                </PopoverBody>
-              </PopoverContent>
-            </Popover>
-            <Modal
-              isOpen={isOpen}
-              onClose={onClose}
-            >
-              <ModalOverlay />
-              <ModalContent>
-                <ModalHeader>Deactivate Program?</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody>
-                  <div id="deactivateDeadlineBox">
-                    <Box
-                      padding="10px"
-                      backgroundColor="red.100"
-                      borderRadius="15px"
-                    >
-                      <div class="horizontal">
-                        <InfoIconRed fontSize="2xl" />
-                        <p id="deactivateDeadlineText">
-                          {" "}
-                          The deactivation fee deadline for this session is Thu.
-                          1/2/2025{" "}
-                        </p>
-                      </div>
-                      <Checkbox borderColor="black">Waive fee </Checkbox>
-                    </Box>
-                  </div>
-                  <div id="deactivateReason">
-                    Reason for Deactivation
-                    <Input placeholder="..." />
-                  </div>
-                  <div
-                    id="archive"
-                    style={{ display: "flex", justifyContent: "flex-end" }}
-                  >
-                    <Menu>
-                      <MenuButton
-                        as={Button}
-                        rightIcon={<ChevronDownIcon />}
-                        backgroundColor="#F6F6F6"
-                        width="30%"
-                      >
-                        <Box
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="space-between"
-                          gap="8px"
-                        >
-                          <Box
-                            as="span"
-                            display="flex"
-                            alignItems="center"
-                            gap="8px"
-                          >
-                            <Icon as={ArchiveIcon} />
-                            {deactivateOption === "archive"
-                              ? "Archive"
-                              : "Delete "}
-                          </Box>
-                        </Box>
-                      </MenuButton>
-                      <MenuList>
-                        <MenuItem
-                          icon={<ArchiveIcon />}
-                          onClick={() => {
-                            setDeactivateOption("archive");
-                            setEventArchived(true);
-                          }}
-                        >
-                          Archive
-                        </MenuItem>
-                        <MenuItem
-                          icon={<DeleteIcon />}
-                          onClick={() => {
-                            setDeactivateOption("delete");
-                            setEventArchived(false);
-                          }}
-                        >
-                          Delete
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
-                  </div>
-                </ModalBody>
-
-                <ModalFooter
-                  style={{ display: "flex", justifyContent: "flex-end" }}
-                >
-                  <Button
-                    variant="ghost"
-                    onClick={onClose}
-                  >
-                    Exit
-                  </Button>
-                  <Button
-                    colorScheme="red"
-                    mr={3}
-                    id="deactivateConfirm"
-                    onClick={() => {
-                      handleConfirm();
-                      exit();
-                    }}
-                  >
-                    Confirm
-                  </Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
           </div>
         </div>
       </div>

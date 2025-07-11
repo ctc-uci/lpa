@@ -1,0 +1,72 @@
+.actions-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px!important;
+  background: var(--Secondary-2-Default, #EDF2F7);
+}
+
+.menuItemBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2D3748;
+  width: 100%!important;
+  justify-content: space-between;
+}
+
+.horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+.dropdownText {
+  margin-left: .5rem;
+  color: #2D3748;
+}
+
+.dropdownTextRed {
+  margin-left: .5rem;
+  color: #90080F;
+}
+
+.menu-list {
+  border-radius: 6px !important;
+  background: #FFF!important;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) !important;
+  padding: 8px !important;
+  width: 11rem!important;
+  min-width: 11rem!important;
+}
+
+.menu-list .chakra-menu__menuitem {
+  border-radius: 6px !important;
+  background: #FFF!important;
+  display: flex !important;
+  padding: 6px 8px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-family: var(--font-inter) !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  width: 100%!important;
+}
+
+.menu-list .chakra-menu__menuitem:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 6px !important;
+}
+
+.menu-item--edit {
+  color: var(--medium-grey, #767778) !important;
+}
+
+.menu-item--delete {
+  color: var(--deep-red, #90080f) !important;
+}
+
+
+

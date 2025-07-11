@@ -1,51 +1,57 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import {
-  Box,
-  Button,
-  Flex,
-  HStack,
-  Icon,
-  Image,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-} from "@chakra-ui/react";
+import { HStack, Flex, Icon, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr, Box } from "@chakra-ui/react";
 
-import { archiveCalendar } from "../../assets/icons/ProgramIcons";
 import { CalendarIcon } from "./CalendarIcon";
-import DateSortingModal from "../filters/DateFilter";
-import ProgramSortingModal from "../filters/ProgramFilter";
+import DateSortingModal from "../sorting/DateFilter";
+import ProgramSortingModal from "../sorting/ProgramFilter";
 import { InfoTooltip } from "./InfoTooltip";
 
-const NotificationsComponents = ({ notifications }) => {
+// Add custom styles to enforce row height
+const customStyles = `
+  .notification-table-row {
+    height: 41px !important;
+    max-height: 41px !important;
+    min-height: 41px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .notification-table-row td {
+    height: 41px !important;
+    max-height: 41px !important;
+    min-height: 41px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .notification-table-row:last-child td {
+    border-bottom: none !important;
+  }
+`;
+
+const NotificationsComponents = ({ 
+  notifications, 
+  loadingNotifications, 
+  currentPage, 
+  itemsPerPage,
+  sortKey, 
+  sortOrder, 
+  onSortChange 
+}) => {
   const navigator = useNavigate();
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [sortKey, setSortKey] = useState("date");
-  const [sortOrder, setSortOrder] = useState("asc");
   const [sortedNotifications, setSortedNotifications] = useState([]);
-
-  const totalNotifications = sortedNotifications?.length || 0;
-  const totalPages = Math.ceil(totalNotifications / itemsPerPage);
+  
+  // Calculate pagination values
+  const totalNotifications = notifications?.length || 0;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalNotifications);
+  
+  // Get current page's notifications
+  const currentNotifications = sortedNotifications?.slice(startIndex, endIndex) || [];
 
-  const currentNotifications =
-    sortedNotifications?.slice(startIndex, endIndex) || [];
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [notifications]);
-
+  // Sort notifications when sort parameters or data changes
   useEffect(() => {
     if (!notifications) return;
 
@@ -53,8 +59,23 @@ const NotificationsComponents = ({ notifications }) => {
 
     if (sortKey === "date") {
       sorted.sort((a, b) => {
-        const dateA = new Date(a.dueTime);
-        const dateB = new Date(b.dueTime);
+        const now = new Date();
+        const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
+        const fiveDaysInMs = 5 * 24 * 60 * 60 * 1000;
+
+        const dateA = new Date(a.endDate);
+        const dateB = new Date(b.endDate);
+
+        // Calculate if dates are within the active range
+        const isAInRange = dateA - oneWeekInMs <= now && now <= dateA.getTime() + fiveDaysInMs;
+        const isBInRange = dateB - oneWeekInMs <= now && now <= dateB.getTime() + fiveDaysInMs;
+
+        // If one is in range and the other isn't, prioritize the one in range
+        if (isAInRange !== isBInRange) {
+          return isAInRange ? -1 : 1;
+        }
+
+        // If both are in range or both are out of range, sort by date
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
     } else if (sortKey === "title") {
@@ -72,51 +93,6 @@ const NotificationsComponents = ({ notifications }) => {
 
     setSortedNotifications(sorted);
   }, [sortKey, sortOrder, notifications]);
-
-  // Function to update sorting
-  const handleSortChange = (key, order) => {
-    setSortKey(key);
-    setSortOrder(order);
-  };
-
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const goToPage = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  useEffect(() => {
-    const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 56;
-
-      const availableHeight = viewportHeight * 0.5;
-
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
-    };
-
-    setItemsPerPage(calculateRowsPerPage());
-
-    const handleResize = () => {
-      setItemsPerPage(calculateRowsPerPage());
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   const getNotifType = (payStatus) => {
     const statusMap = {
@@ -158,6 +134,7 @@ const NotificationsComponents = ({ notifications }) => {
           fontWeight={fontWeight}
           lineHeight="normal"
           letterSpacing="0.07px"
+          paddingRight="8px"
         >
           {label}
         </Text>
@@ -168,7 +145,7 @@ const NotificationsComponents = ({ notifications }) => {
 
   const paymentText = (eventName, description, invoiceId) => {
     const handleClick = () => {
-      navigator(`/invoices/edit/${invoiceId}`);
+      navigator(`/invoices/${invoiceId}`);
     };
 
     const textStyles = {
@@ -201,25 +178,70 @@ const NotificationsComponents = ({ notifications }) => {
   };
 
   return (
-    <>
-      <TableContainer>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th
-                textTransform="none"
-                fontSize="md"
-                paddingBottom="24px"
+    <TableContainer padding={"16px 16px 16px 0"}>
+      <style>{customStyles}</style>
+      <Table position="relative" zIndex={2} bg="white">
+        <Thead>
+          <Tr>
+            <Th
+              textTransform="none"
+              fontSize="md"
+              paddingBottom="24px"
+              paddingLeft="8px"
+              width="10%"
+            >
+              <Text
+                color="var(--Secondary-6, #718096)"
+                fontFamily="Inter"
+                fontSize="12px"
+                fontStyle="normal"
+                fontWeight="700"
+                lineHeight="normal"
                 paddingLeft="0px"
-                width="10%"
               >
-                <Flex
-                  display="flex"
-                  height="15px"
-                  padding="8px"
-                  justifyContent="space-between"
+                STATUS
+              </Text>
+            </Th>
+            <Th
+              textTransform="none"
+              fontSize="md"
+              paddingBottom="24px"
+              width="80%"
+            >
+              <HStack
+                spacing={2}
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Text
+                  color="var(--Secondary-6, #718096)"
+                  fontFamily="Inter"
+                  fontSize="12px"
+                  fontStyle="normal"
+                  fontWeight="700"
+                  lineHeight="normal"
+                >
+                  DESCRIPTION
+                </Text>
+                <ProgramSortingModal onSortChange={onSortChange} />
+              </HStack>
+            </Th>
+            <Th
+              textTransform="none"
+              fontSize="md"
+              paddingBottom="24px"
+              width="10%"
+            >
+              <HStack
+                alignItems="center"
+                justifyContent="space-between"
+                width="100%"
+              >
+                <HStack
+                  spacing={1}
                   alignItems="center"
                 >
+                  <Icon as={CalendarIcon} />
                   <Text
                     color="var(--Secondary-6, #718096)"
                     fontFamily="Inter"
@@ -228,72 +250,31 @@ const NotificationsComponents = ({ notifications }) => {
                     fontWeight="700"
                     lineHeight="normal"
                   >
-                    STATUS
+                    DATE
                   </Text>
-                </Flex>
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="md"
-                paddingBottom="24px"
-                width="80%"
-              >
-                <HStack
-                  spacing={2}
-                  alignItems="center"
-                  justifyContent="space-between"
-                >
-                  <Text
-                    color="var(--Secondary-6, #718096)"
-                    fontFamily="Inter"
-                    fontSize="12px"
-                    fontStyle="normal"
-                    fontWeight="700"
-                    lineHeight="normal"
-                  >
-                    DESCRIPTION
-                  </Text>
-                  <ProgramSortingModal onSortChange={handleSortChange} />
                 </HStack>
-              </Th>
-              <Th
-                textTransform="none"
-                fontSize="md"
-                paddingBottom="24px"
-                width="10%"
-              >
-                <HStack
-                  alignItems="center"
-                  justifyContent="space-between"
-                  width="100%"
-                >
-                  <HStack
-                    spacing={1}
-                    alignItems="center"
-                  >
-                    <Icon as={CalendarIcon} />
-                    <Text
-                      color="var(--Secondary-6, #718096)"
-                      fontFamily="Inter"
-                      fontSize="12px"
-                      fontStyle="normal"
-                      fontWeight="700"
-                      lineHeight="normal"
-                    >
-                      DATE
-                    </Text>
-                  </HStack>
-                  <DateSortingModal onSortChange={handleSortChange} />
-                </HStack>
-              </Th>
-            </Tr>
-          </Thead>
-
+                <DateSortingModal onSortChange={onSortChange} />
+              </HStack>
+            </Th>
+          </Tr>
+        </Thead>
           <Tbody>
-            {currentNotifications.length > 0 ? (
+            {loadingNotifications ? (
+              <Tr>
+                <Td colSpan={3}>
+                  <Flex
+                    justify="center"
+                    align="center"
+                    p={6}
+                  >
+                    <Text color="gray.500">Loading...</Text>
+                  </Flex>
+                </Td>
+              </Tr>
+            ) : currentNotifications.length > 0 ? (
               currentNotifications.map((item, index) => (
-                <Tr key={index}>
-                  <Td paddingLeft="0px">{getNotifType(item.payStatus)}</Td>
+                <Tr key={index} className="notification-table-row">
+                  <Td paddingLeft="8px">{getNotifType(item.payStatus)}</Td>
                   <Td paddingLeft="24px">
                     {paymentText(
                       item.eventName,
@@ -328,49 +309,6 @@ const NotificationsComponents = ({ notifications }) => {
           </Tbody>
         </Table>
       </TableContainer>
-      {/* Pagination Controls - only show if there's more than one page */}
-      {totalPages > 1 && (
-        <Flex
-          alignItems="center"
-          justifyContent="flex-end"
-          mt={4}
-          mb={4}
-          pr={4}
-        >
-          <Text
-            mr={2}
-            fontSize="sm"
-            color="#474849"
-            fontFamily="Inter, sans-serif"
-          >
-            {currentPage} of {totalPages}
-          </Text>
-          <Button
-            onClick={goToPreviousPage}
-            isDisabled={currentPage === 1}
-            size="sm"
-            variant="ghost"
-            padding={0}
-            minWidth="auto"
-            color="gray.500"
-            mr="16px"
-          >
-            <ChevronLeftIcon />
-          </Button>
-          <Button
-            onClick={goToNextPage}
-            isDisabled={currentPage === totalPages}
-            size="sm"
-            variant="ghost"
-            padding={0}
-            minWidth="auto"
-            color="gray.500"
-          >
-            <ChevronRightIcon />
-          </Button>
-        </Flex>
-      )}
-    </>
   );
 };
 

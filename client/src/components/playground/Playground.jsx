@@ -11,7 +11,9 @@ import {
     Tr,
     Th,
     Td,
-    TableContainer
+    TableContainer,
+    Button,
+    Text
   } from "@chakra-ui/react";
 
 import Navbar from "../navbar/Navbar";
@@ -24,6 +26,10 @@ import { FilterContainer } from '../filters/FilterContainer';
 import { Filter } from 'lucide-react';
 import {ProgramFilter} from '../filters/ProgramsFilter';
 import { SessionFilter } from '../filters/SessionsFilter';
+import { AddClient } from "../clientsearch/AddClient";
+import CalendarSelector from '../calendar/CalendarSelector';
+import { createEvent, isSignedIn } from '../../utils/calendar';
+import GcalPrompt from '../calendar/GcalPrompt';
 
 
 export const Playground = () => {
@@ -37,8 +43,8 @@ export const Playground = () => {
   // const [filtered, setFiltered] = useState([]);
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [sessions, setSessions] = useState([]);
-
-
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [showGcalPrompt, setShowGcalPrompt] = useState(false);
   const [room, setRoom] = useState("all");
   const { backend } = useBackendContext();
 
@@ -55,7 +61,8 @@ export const Playground = () => {
       if (search !== "") {
         const payeeResponse = await backend.get("/clients/search", {
           params: {
-            searchTerm: search
+            searchTerm: search,
+            columns: ["name"]
           }
         });
         filterSelectedPayeesFromSearch(payeeResponse.data);
@@ -73,7 +80,8 @@ export const Playground = () => {
       if (search !== "") {
         const instructorResponse = await backend.get("/clients/search", {
           params: {
-            searchTerm: search
+            searchTerm: search,
+            columns: ["name"]
           }
         });
         filterSelectedInstructorsFromSearch(instructorResponse.data);
@@ -121,12 +129,45 @@ export const Playground = () => {
 
   return (
     <Navbar>
-    <VStack
-      spacing={8}
-      width={"100%"}
-    >
-        <Test></Test>
-    </VStack>
+      <VStack spacing={8} width={"100%"}>
+        <Button onClick={() => setShowGcalPrompt(true)}>
+          Sign in to Google Calendar
+        </Button>
+        {isSignedIn() ? (
+          <Text>Signed in</Text>
+        ) : (
+          <Text>Not signed in</Text>
+        )}
+        <CalendarSelector />
+        <Button onClick={() => {
+          const event = {
+            backendId: 1,
+            name: "Test Event",
+            start: new Date().toISOString(),
+            end: new Date(new Date().getTime() + 1000 * 60 * 60 * 2).toISOString(),
+            location: "Test Location",
+            description: "Test Description",
+            roomId: 1
+          }
+          console.log(event);
+          createEvent(event);
+        }}>
+          Add Test Event
+        </Button>
+        <Test />
+        <Button onClick={() => setShowAddClient(true)}>
+          Add Client
+        </Button>
+        <AddClient 
+          isOpen={showAddClient} 
+          onClose={() => setShowAddClient(false)} 
+          type="Payer"
+        />
+      </VStack>
+      <GcalPrompt 
+        isOpen={showGcalPrompt} 
+        onClose={() => setShowGcalPrompt(false)} 
+      />
     </Navbar>
   );
 };

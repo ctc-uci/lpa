@@ -7,13 +7,14 @@ import "./Navbar.css";
 import { NavCalendarIcon } from "../../assets/NavCalendarIcon";
 import { useState, useEffect } from "react";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useNavigate } from "react-router-dom";
 
-const Navbar = ({ children }) => {
+const Navbar = ({ children, handleNavbarClick, hasUnsavedChanges }) => {
   const { backend } = useBackendContext();
+  const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
   const [count, setCount] = useState(0); // Initialize with 0 instead of undefined
-  const [hoveredItem, setHoveredItem] = useState(null);
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -26,23 +27,23 @@ const Navbar = ({ children }) => {
     };
 
     fetchCount();
-    
+
     // Set up a refresh interval (e.g., every 60 seconds)
     const intervalId = setInterval(fetchCount, 60000);
-    
+
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
   }, []); // Empty dependency array so it only runs on mount
 
   const menuItems = [
-    { 
-      name: "Programs", 
-      path: "/programs", 
+    {
+      name: "Programs",
+      path: "/programs",
       icon: <NavCalendarIcon />,
     },
-    { 
-      name: "Invoices", 
-      path: "/invoices", 
+    {
+      name: "Invoices",
+      path: "/invoices",
       icon: <DocumentIcon />,
     },
     {
@@ -60,19 +61,31 @@ const Navbar = ({ children }) => {
     },
   ];
 
+  const handleNavigateAttempt = (path) => {
+    if (hasUnsavedChanges) { // Function to check unsaved changes in SingleInvoice
+      handleNavbarClick(path);
+    } else {
+      navigate(path);
+    }
+  };
+
   return (
-    <div id="navbarBody">
+    <Box style={{
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "flex-start",
+    }}>
       {/* Fixed width container to prevent layout shifts */}
       <Box
-        bg="#F0F0FF"
         bgColor="#FFF"
         className="navbar-container"
         paddingTop="26px"
         paddingBottom="26px"
         paddingLeft="26px"
         paddingRight="8px"
-        minWidth="209px"
-        width="auto"
+        minWidth="205px"
+        maxWidth="205px"
+        width="205px"
         h="260px"
         flexShrink={0}
       >
@@ -90,12 +103,13 @@ const Navbar = ({ children }) => {
                 currentPath === item.path ||
                 (currentPath.startsWith(item.path + "/") && item.path !== "/")
               }
+              onNavigateAttempt={handleNavigateAttempt}
             />
           ))}
         </VStack>
       </Box>
       <div style={{ width: "100%" }}>{children}</div>
-    </div>
+    </Box>
   );
 };
 

@@ -1,0 +1,56 @@
+/* Reset all margin and padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.search-wrapper {
+  display: flex;
+  width: 311px;
+  height: 40px;
+  max-height: 40px;
+  min-height: 40px;
+  border: 1px solid var(--Secondary-3, #E2E8F0);
+  border-radius: 6px;
+  overflow: hidden;
+  line-height: 1;
+  font-size: 0; /* Fix for whitespace issues */
+}
+
+.search-input {
+  width: 263px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  padding: 0 0 0 16px;
+  margin: 0;
+  border: none;
+  outline: none;
+  border-radius: 6px 0px 0px 6px;
+  background: var(--Secondary-1, #F7FAFC);
+  color: var(--Secondary-6, #718096);
+  font-family: Inter;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 40px;
+  letter-spacing: 0.07px;
+  vertical-align: top;
+  display: block;
+}
+
+.search-icon-container {
+  width: 48px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #EDF2F7;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  flex-grow: 0;
+} 

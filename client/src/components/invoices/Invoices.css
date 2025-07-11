@@ -1,0 +1,263 @@
+/* ========================= */
+/* Invoices Table CSS       */
+/* ========================= */
+
+.invoices-table {
+  width: 95%;
+  margin: 26px 26px 0px 26px;
+  border: 1px solid var(--Secondary-3, #e2e8f0);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+  background-color: white;
+  position: relative;
+  z-index: 3;
+}
+
+.invoices-filter-row {
+  height: 40px;
+  width: 100%;
+  margin: 0;
+  margin-bottom: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.invoices-table__container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  margin-top: -4px;
+}
+
+.invoices-table__table {
+  border-spacing: 0 !important;
+  border-collapse: separate !important;
+  width: 100% !important;
+  table-layout: fixed !important;
+}
+
+/* Table header styling */
+.invoices-table__table th {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--Secondary-3, #e2e8f0) !important;
+  vertical-align: middle !important;
+  height: 65px !important;
+  color: var(--Secondary-6, #718096) !important;
+  font-family: "Inter", sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: normal !important;
+  text-transform: none !important;
+}
+
+/* Column width specifications */
+.invoices-table__table th:nth-child(1),
+.invoices-table__table td:nth-child(1) {
+  width: 92px !important;
+  padding-left: 0px !important;
+  padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(1) > div {
+  padding-left: 8px !important; /* Match cell padding */
+}
+
+.invoices-table__table th:nth-child(2),
+.invoices-table__table td:nth-child(2) {
+  width: 101px !important;
+  text-align: center !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(2) > div {
+  padding-left: 8px !important; /* Match cell padding */
+  text-align: center !important;
+}
+
+.invoices-table__table th:nth-child(3),
+.invoices-table__table td:nth-child(3) {
+  width: 362px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(3) > div {
+  padding-left: 8px !important; /* Match cell padding */
+}
+
+.invoices-table__table th:nth-child(4),
+.invoices-table__table td:nth-child(4) {
+  width: 180px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(4) > div {
+  padding-left: 8px !important; /* Match cell padding */
+}
+
+.invoices-table__table th:nth-child(5),
+.invoices-table__table td:nth-child(5) {
+  width: 180px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(5) > div {
+  padding-left: 8px !important; /* Match cell padding */
+}
+
+.invoices-table__table th:nth-child(6),
+.invoices-table__table td:nth-child(6) {
+  width: 90px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(7),
+.invoices-table__table td:nth-child(7) {
+  width: 100px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.invoices-table__table th:nth-child(8),
+.invoices-table__table td:nth-child(8) {
+  width: 40px !important;
+}
+
+/* Table row and cell styling */
+.invoices-table__table tr td {
+  border-bottom: 1px solid var(--Secondary-3, #e2e8f0) !important;
+  vertical-align: middle !important;
+  height: 65px !important;
+  padding: 0 !important;
+}
+
+/* Remove border-bottom from the last row */
+.invoices-table__table tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Icon sizes */
+.invoices-table__table th img,
+.invoices-table__table th svg,
+.invoices-table__table th .chakra-icon {
+  min-width: 16px !important;
+  min-height: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Payer and Deadline icons size */
+.invoices-table__table th:nth-child(4) img,
+.invoices-table__table th:nth-child(4) svg,
+.invoices-table__table th:nth-child(4) .chakra-icon,
+.invoices-table__table th:nth-child(5) img,
+.invoices-table__table th:nth-child(5) svg,
+.invoices-table__table th:nth-child(5) .chakra-icon {
+  min-width: 16px !important;
+  min-height: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Header spacing */
+.invoices-table__table th .chakra-stack {
+  gap: 12px !important;
+}
+
+/* Sorting icons positioning */
+.invoices-table__table th:first-child .chakra-stack,
+.invoices-table__table th:nth-child(3) .chakra-stack,
+.invoices-table__table th:nth-child(5) .chakra-stack {
+  width: 100% !important;
+  justify-content: space-between !important;
+}
+
+/* Status styling */
+.status-paid {
+  color: var(--Secondary-8, #2D3748) !important;
+  font-family: Inter !important;
+  font-size: 14px !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  line-height: normal !important;
+  letter-spacing: 0.07px !important;
+  padding-left: 8px !important;
+}
+
+.status-not-paid {
+  color: var(--Secondary-8, #2D3748) !important;
+  font-family: Inter !important;
+  font-size: 14px !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  line-height: normal !important;
+  letter-spacing: 0.07px !important;
+  padding-left: 8px !important;
+}
+
+.status-past-due {
+  color: var(--destructive, #90080F) !important;
+  font-family: Inter !important;
+  font-size: 14px !important;
+  font-style: normal !important;
+  font-weight: 700 !important;
+  line-height: normal !important;
+  letter-spacing: 0.07px !important;
+  padding-left: 8px !important;
+}
+
+/* Filter Box & Search CSS */
+.filter-box-invoices {
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  background: var(--Secondary-2-Default, #EDF2F7) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.filter-box-text-invoices {
+  color: #2d3748;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.07px;
+}
+
+/* Ellipsis Action Button */
+.ellipsis-action-button {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 4px !important;
+  border-radius: 6px !important;
+  background: var(--Secondary-2-Default, #EDF2F7) !important;
+  min-width: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+  transition: background-color 0.2s ease-in-out !important;
+}
+
+.ellipsis-action-button:hover {
+  background: #E2E8F0 !important;
+  cursor: pointer !important;
+}

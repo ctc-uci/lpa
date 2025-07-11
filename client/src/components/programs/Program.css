@@ -1,36 +1,98 @@
-#infoRed {
+.componentContainer {
+  width: 100%;
+  min-width: 100%;
+  padding: 1rem 0;
+  align-items: center;
+}
+
+.componentContainer * {
+  color: var(--Secondary-8, #2d3748);
+  font-family: Inter;
+  font-style: normal;
+  line-height: normal;
+}
+
+#titleContainer {
+  margin-bottom: 1rem;
+  width: 100%;
+  height: 2rem;
+  justify-content: space-between;
+}
+
+#archivedBlurb {
   display: flex;
   flex-direction: row;
   gap: 2%;
-  border-radius: 15px;
-  border: 1px solid var(--destructive, #90080F);
-  background: #F4E6E7;
+  background: #f4e6e7;
   align-items: center;
-  width: 23rem;
-  padding: .5rem;
-  margin-bottom: 1rem;
+  width: 16.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #f0f0ff;
+  justify-content: center;
+  font-weight: 700;
 }
 
+.sessionsColumnContainer {
+  display: flex;
+  padding: 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 10rem;
+}
 
-#infoRed > p {
-  color: var(--destructive, #90080F);
-  font-family: Inter;
-  font-size: 16px;
+.sessionsColumnTitle {
+  color: var(--Secondary-6, #718096);
+  text-transform: none;
+  color: #767778;
+  font-size: 12px;
   font-style: normal;
-  font-weight: 500;
-  line-height: 20px;
+  font-weight: 700;
+  line-height: normal;
 }
 
+.componentTitleText {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+#archivedBlurb > p {
+  font-size: 16px;
+  letter-spacing: 0.08px;
+}
+
+.invoiceButton {
+  display: flex;
+  height: 40px;
+  padding: 0px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  background:#4441c8;
+  color: white;
+  font-family: Inter;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.07px;
+}
+
+.invoiceButton:hover {
+  background: #312e8a;
+}
 
 #deactivateDeadlineInnerBox {
   display: flex;
   flex-direction: row;
   text-align: left;
-  gap: .5rem;
-  padding: .8rem;
+  gap: 0.5rem;
+  padding: 0.8rem;
 }
 
-#popoverChoice, #deleteBody {
+#popoverChoice,
+#deleteBody {
   display: flex;
   flex-direction: row;
   gap: 1rem;
@@ -40,29 +102,50 @@
   background-color: transparent;
 }
 
-#popoverChoice:hover, #deleteBody:hover {
-  background-color: #F0F1F4;
+#popoverChoice:hover,
+#deleteBody:hover {
+  background-color: #f0f1f4;
 }
 
-#popoverChoice > *, #deleteBody > * {
-  align-items: start!important;
+#popoverChoice > *,
+#deleteBody > * {
+  align-items: start !important;
 }
 
 #popoverChoice p {
-  color: #767778!important;
+  color: #767778 !important;
 }
 
 #deleteBody p {
-  color: #90080F!important;
+  color: #90080f !important;
 }
 
 #deactivateDeadlineInnerBox {
   align-items: center;
 }
 
+#backProgramButton {
+  display: flex;
+  height: 40px;
+  padding: 0px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  background-color: #edf2f7;
+}
 
+.sessionData {
+  display: flex;
+  justify-content: left;
+}
 
-
-
-
-
+.ellipsis-box {
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis !important;
+  white-space: nowrap;
+  display: block;
+}

@@ -14,7 +14,6 @@ export const DeleteConfirmationModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   return (
     <>
-
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>

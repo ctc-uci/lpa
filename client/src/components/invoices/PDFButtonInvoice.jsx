@@ -7,9 +7,11 @@ import { CheckCircleIcon } from "@chakra-ui/icons";
 import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
+import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoicePDFDocument } from "./InvoicePDFDocument";
 
+// TODO FIX ENDPOINTS TO FIX CALCULATIONS
 const handleSubtotalSum = (startTime, endTime, rate) => {
   if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
 
@@ -29,12 +31,19 @@ const handleSubtotalSum = (startTime, endTime, rate) => {
   return total;
 };
 
-const PDFButtonInvoice = ({ id, onlyIcon = false }) => {
+const PDFButtonInvoice = ({
+  id,
+  onlyIcon = false,
+  hasUnsavedChanges,
+  handleOtherButtonClick,
+}) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
-  const toast = useToast();
   const [programName, setProgramName] = useState(null);
+  const [invoiceDate, setInvoiceDate] = useState("");
+  const toast = useToast();
+  const downloadToast = useToast();
 
   const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
@@ -138,19 +147,51 @@ const PDFButtonInvoice = ({ id, onlyIcon = false }) => {
 
       const year = latestDate.getFullYear();
 
-      return `${month}  ${year}`;
-    } else {
-      return "No Date Found";
+      if (month && year) {
+        return `${month} ${year}`;
+      } else {
+        return "No Date Found";
+      }
     }
-  };
 
-  const handleDownload = async () => {
-    try {
-      setLoading(true);
+    const handleDownload = async () => {
+      try {
+        setLoading(true);
+        const invoiceResponse = await backend.get(`/invoices/${id}`);
+        const invoice = invoiceResponse.data;
+        const invoiceData = await fetchInvoiceData(
+          invoiceResponse,
+          backend,
+          id
+        );
+        setProgramName(invoiceData.programName);
 
-      const invoiceResponse = await backend.get(`/invoices/${id}`);
-      const invoice = invoiceResponse.data;
-      const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
+        const blob = await pdf(
+          <InvoicePDFDocument
+            invoice={invoice}
+            {...invoiceData}
+          />
+        ).toBlob();
+
+        saveAs(
+          blob,
+          `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+        );
+        downloadToast({
+          title: "Invoice Downloaded",
+          description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
+          status: "success",
+          duration: 6000,
+          position: "bottom-right",
+          variant: "left-accent",
+          isClosable: false,
+        });
+      } catch (err) {
+        console.error("Error generating PDF:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
       const date = new Date(invoice[0].startDate);
       const month = date.toLocaleString("default", { month: "long" });
@@ -225,7 +266,16 @@ const PDFButtonInvoice = ({ id, onlyIcon = false }) => {
     <Box>
       {onlyIcon ? 
       <IconButton
-        onClick={handleDownload}
+        onClick={(e) => {
+            e.stopPropagation();
+            if (hasUnsavedChanges) {
+              handleOtherButtonClick(() => {
+                handleDownload();
+              });
+            } else {
+              handleDownload();
+            }
+          }}
         bg="transparent"
         icon={loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />}
         aria-label="Download PDF"

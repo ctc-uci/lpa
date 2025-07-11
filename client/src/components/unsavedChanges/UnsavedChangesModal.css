@@ -1,0 +1,33 @@
+#deactivateModal {
+  align-items: center;
+}
+
+.deactivateFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 200rem;
+}
+
+#deactivateCancel {
+  background: var(--Secondary-2-Default, #EDF2F7);
+  color: #2D3748;
+  border-radius: 6px;
+  margin-right: 1rem;
+}
+
+#deactivateCancel:hover {
+  background: #E2E8F0;
+  color: #2D3748;
+}
+
+
+#deactivateConfirm {
+  background-color: #4441C8;
+  color: white;
+  border-radius: 6px;
+}
+
+#deactivateConfirm:hover {
+  background-color: #312E8A;
+  color: white;
+}
