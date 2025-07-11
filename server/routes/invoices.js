@@ -572,4 +572,21 @@ invoicesRouter.post(
   }
 );
 
+invoicesRouter.get("/previousInvoices/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { event_id } = req.query;
+
+    // Get previous invoices from database
+    const data = await db.query("SELECT * FROM invoices WHERE event_id = $1 AND start_date < (SELECT start_date FROM invoices WHERE id = $2) AND payment_status <> 'full' ORDER BY start_date DESC", 
+      [event_id, id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+
 export { invoicesRouter };

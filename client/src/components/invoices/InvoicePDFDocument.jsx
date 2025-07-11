@@ -72,9 +72,11 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
 
     return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
   } else if (invoice) {
-    const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+    const invoiceDateSplit = invoice[0]?.startDate?.split("T")[0];
     const invoiceDate = new Date(invoiceDateSplit);
-    invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+    invoiceDate.setMinutes(
+      invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset()
+    );
     const month = invoiceDate.toLocaleString("default", { month: "long" });
     const year = invoiceDate.getFullYear();
     return `${month} ${year}`;
@@ -104,7 +106,7 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
             INVOICE
           </Text>
           <Text style={{ color: "#718096", fontSize: "12px" }}>
-            Generated on {getGeneratedDate(comments, invoice, true)}
+            Generated on {getGeneratedDate(comments, invoice.data, true)}
           </Text>
         </View>
 
@@ -174,7 +176,7 @@ const EditInvoiceDetailsPDF = ({
             fontWeight: 500,
           }}
         >
-          {getGeneratedDate([], invoice, false)}
+          {getGeneratedDate([], invoice.data, false)}
         </Text>
       </View>
 
@@ -421,10 +423,10 @@ const calculateTotalBookingRow = ({
   return finalTotal.toFixed(2);
 };
 
-const calculateSubtotal = (sessions, summary) => {
+const calculateSubtotal = (sessions) => {
   if (!sessions || sessions.length === 0) return "0.00";
 
-  const totalSum = sessions.reduce((acc, session) => {
+  const adjSum = sessions.reduce((acc, session) => {
     // Check if session has adjustmentValues and it's not empty
     if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
       // Calculate without adjustments
@@ -433,38 +435,33 @@ const calculateSubtotal = (sessions, summary) => {
           session.startTime,
           session.endTime,
           session.rate,
-          [],
-          session.total
+          []
         )
       );
       return acc + total;
     }
 
-    // Check if the first adjustment is a total type
-    if (
-      session.adjustmentValues[0] &&
-      session.adjustmentValues[0].type === "total"
-    ) {
-      return acc + parseFloat(session.adjustmentValues[0].value || 0);
-    }
-
-    // For regular sessions with adjustments, calculate as before
     const total = parseFloat(
-      calculateTotalBookingRow({
-        startTime: session.startTime,
-        endTime: session.endTime,
-        rate: session.rate,
-        adjustmentValues: [
-          ...(summary[0]?.adjustmentValues || []),
-          ...(session.adjustmentValues || []),
-        ],
-        totalArray: session.total,
-      })
+      calculateTotalBookingRow(
+        session.startTime,
+        session.endTime,
+        session.rate,
+        session.adjustmentValues
+      )
     );
     return acc + total;
   }, 0);
 
-  const total = totalSum.toFixed(2);
+  const totalSum = sessions.reduce((acc, session) => {
+    const total = parseFloat(
+      session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
+    );
+    return acc + total;
+  }, 0);
+
+  const finalTotal = adjSum + totalSum;
+
+  const total = finalTotal.toFixed(2);
   return total;
 };
 
@@ -630,131 +627,27 @@ const InvoiceTable = ({ sessions, summary }) => {
         </View>
 
         {/* Data Rows */}
-
-        {sessions?.flatMap((session, index) => {
-          const sessionRows = (
-            <View
-              style={tableStyles.tableRow}
-              key={index}
-            >
-              <View style={tableStyles.tableCol}>
-                <Text style={{ fontSize: 7 }}>
-                  {format(new Date(session.bookingDate), "EEE. M/d/yy")}
-                </Text>
-              </View>
-              <View style={tableStyles.tableCol}>
-                <Text style={{ fontSize: 7 }}>
-                  {session.name && `${session.name}`}
-                </Text>
-              </View>
-              <View
-                style={{
-                  ...tableStyles.tableCol,
-                  flexDirection: "row",
-                  gap: 4,
-                }}
-              >
-                <Text style={{ fontSize: 7 }}>
-                  {formatTimeString(session.startTime)} -{" "}
-                  {formatTimeString(session.endTime)}
-                </Text>
-              </View>
-              <View
-                style={{
-                  ...tableStyles.tableCol,
-                  flexDirection: "row",
-                  gap: 4,
-                }}
-              >
-                <Text style={{ fontSize: 7 }}>
-                  {session.adjustmentValues
-                    .filter((adj) => adj.type !== "total")
-                    .map((adj) => {
-                      const value = Number(adj.value);
-                      const sign = value >= 0 ? "+" : "-";
-                      const isFlat = adj.type === "rate_flat";
-                      const absValue = Math.abs(value);
-                      return isFlat
-                        ? `${sign}$${absValue}`
-                        : `${sign}${absValue}%`;
-                    })
-                    .join(", ")}
-                </Text>
-              </View>
-              <View style={{ ...tableStyles.tableCol }}>
-                <Text
-                  style={{ fontSize: 7, textAlign: "right", paddingRight: 20 }}
-                >
-                  $ {calculateNewRate(session, summary).toFixed(2)}/hr
-                </Text>
-              </View>
-              <View
-                style={{
-                  ...tableStyles.tableCol,
-                  alignItems: "flex-end",
-                  paddingRight: 20,
-                }}
-              >
-                <Text style={{ fontSize: 7 }}>
-                  ${" "}
-                  {calculateTotalBookingRow({
-                    startTime: session.startTime,
-                    endTime: session.endTime,
-                    rate: session.rate,
-                    adjustmentValues: [
-                      ...(summary[0]?.adjustmentValues || []),
-                      ...(session.adjustmentValues || []),
-                    ],
-                    totalArray: [],
-                  })}
-                </Text>
-              </View>
-            </View>
-          );
-
-          {
-            /* Comments section */
-          }
-          const commentRows =
-            session.comments?.map((line, textIndex) => {
+        {sessions
+          .filter((session) => session.name.length === 0)
+          .map((session, index) =>
+            session.total?.map((total, totalIndex) => {
               return (
                 <View
-                  key={`comment-${textIndex}`}
+                  key={`total-${index}-${totalIndex}`}
                   style={tableStyles.tableRow}
                 >
-                  <View
-                    style={{
-                      ...tableStyles.tableCol,
-                      flex: 1,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 7,
-                      }}
-                    >
-                      {line.comment}
-                    </Text>
-                  </View>
-                </View>
-              );
-            }) || [];
-
-          const totalRow =
-            session?.total?.map((total, totalIndex) => {
-              return (
-                <View style={tableStyles.tableRow}>
                   <View style={tableStyles.tableCol}>
                     <Text style={{ fontSize: 7 }}>
-                      {format(new Date(total.date), "EEE. M/d/yy")}
+                      {(() => {
+                        const date = new Date(total.date);
+                        date.setMinutes(
+                          date.getMinutes() + date.getTimezoneOffset()
+                        );
+                        return format(date, "EEE. M/d/yy");
+                      })()}
                     </Text>
                   </View>
-                  <View
-                    style={{
-                      ...tableStyles.tableCol,
-                      flex: 1,
-                    }}
-                  >
+                  <View style={{ ...tableStyles.tableCol, flex: 4 }}>
                     <Text style={{ fontSize: 7 }}>
                       {total.comment || "Custom adjustment"}
                     </Text>
@@ -772,10 +665,161 @@ const InvoiceTable = ({ sessions, summary }) => {
                   </View>
                 </View>
               );
-            }) || [];
+            })
+          )}
 
-          return [sessionRows, ...commentRows, ...totalRow];
-        })}
+        {sessions
+          ?.filter((session) => session.name.length > 0)
+          .flatMap((session, index) => {
+            const sessionRows = (
+              <View
+                style={tableStyles.tableRow}
+                key={`${index}-${session.bookingDate}`}
+              >
+                <View style={tableStyles.tableCol}>
+                  <Text style={{ fontSize: 7 }}>
+                    {format(new Date(session.bookingDate), "EEE. M/d/yy")}
+                  </Text>
+                </View>
+                <View style={tableStyles.tableCol}>
+                  <Text style={{ fontSize: 7 }}>
+                    {session.name && `${session.name}`}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    ...tableStyles.tableCol,
+                    flexDirection: "row",
+                    gap: 4,
+                  }}
+                >
+                  <Text style={{ fontSize: 7 }}>
+                    {formatTimeString(session.startTime)} -{" "}
+                    {formatTimeString(session.endTime)}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    ...tableStyles.tableCol,
+                    flexDirection: "row",
+                    gap: 4,
+                  }}
+                >
+                  <Text style={{ fontSize: 7 }}>
+                    {session.adjustmentValues
+                      .filter((adj) => adj.type !== "total").length > 0 ? session.adjustmentValues
+                      .filter((adj) => adj.type !== "total")
+                      .map((adj) => {
+                        const value = Number(adj.value);
+                        const sign = value >= 0 ? "+" : "-";
+                        const isFlat = adj.type === "rate_flat";
+                        const absValue = Math.abs(value);
+                        return isFlat
+                          ? `${sign}$${absValue}`
+                          : `${sign}${absValue}%`;
+                      })
+                      .join(", ") : "None"}
+                  </Text>
+                </View>
+                <View style={{ ...tableStyles.tableCol }}>
+                  <Text
+                    style={{
+                      fontSize: 7,
+                      textAlign: "right",
+                      paddingRight: 20,
+                    }}
+                  >
+                    $ {calculateNewRate(session, summary).toFixed(2)}/hr
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    ...tableStyles.tableCol,
+                    alignItems: "flex-end",
+                    paddingRight: 20,
+                  }}
+                >
+                  <Text style={{ fontSize: 7 }}>
+                    ${" "}
+                    {calculateTotalBookingRow({
+                      startTime: session.startTime,
+                      endTime: session.endTime,
+                      rate: session.rate,
+                      adjustmentValues: [
+                        ...(summary[0]?.adjustmentValues || []),
+                        ...(session.adjustmentValues || []),
+                      ],
+                      totalArray: [],
+                    })}
+                  </Text>
+                </View>
+              </View>
+            );
+
+            {
+              /* Comments section */
+            }
+            const commentRows =
+              session.comments?.map((line, textIndex) => {
+                return (
+                  <View
+                    key={`comment-${textIndex}`}
+                    style={tableStyles.tableRow}
+                  >
+                    <View
+                      style={{
+                        ...tableStyles.tableCol,
+                        flex: 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 7,
+                        }}
+                      >
+                        {line.comment}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              }) || [];
+
+            const totalRow =
+              session?.total?.map((total, totalIndex) => {
+                return (
+                  <View style={tableStyles.tableRow}>
+                    <View style={tableStyles.tableCol}>
+                      <Text style={{ fontSize: 7 }}>
+                        {format(new Date(total.date), "EEE. M/d/yy")}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        ...tableStyles.tableCol,
+                        flex: 1,
+                      }}
+                    >
+                      <Text style={{ fontSize: 7 }}>
+                        {total.comment || "Custom adjustment"}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        ...tableStyles.tableCol,
+                        alignItems: "flex-end",
+                        paddingRight: 20,
+                      }}
+                    >
+                      <Text style={{ fontSize: 7 }}>
+                        $ {Number(total.value || 0).toFixed(2)}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              }) || [];
+
+            return [sessionRows, ...commentRows, ...totalRow];
+          })}
 
         <View style={tableStyles.tableRow}>
           <View
@@ -951,70 +995,79 @@ const SummaryTable = ({
             <Text style={{ fontSize: 7 }}>Room Fee</Text>
           </View>
         </View>
-        {sessions
-          ?.filter((session) => session.name?.length > 0)
-          .map((session, index) => {
-            const isLast = index === summary.length - 1;
-            const rowStyle = isLast
-              ? summaryTableStyles.lastRoomFeeRow
-              : summaryTableStyles.roomFeeRow;
-            return (
+        {Object.values(
+          (sessions || [])
+            ?.filter((session) => session.name?.length > 0)
+            .reduce((acc, session) => {
+              // Use session name as key to remove duplicates
+              if (!acc[session.name]) {
+                acc[session.name] = {
+                  ...session,
+                  rate: session.rate
+                };
+              }
+              return acc;
+            }, {})
+        ).map((session, index, array) => {
+          const isLast = index === array.length - 1;
+          const rowStyle = isLast
+            ? summaryTableStyles.lastRoomFeeRow
+            : summaryTableStyles.roomFeeRow;
+          return (
+            <View
+              style={{
+                ...rowStyle,
+                width: "100%",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
               <View
                 style={{
-                  ...rowStyle,
-                  width: "100%",
-                  flexDirection: "row",
-                  alignItems: "center",
+                  ...summaryTableStyles.roomFeeColName,
+                  flex: 2,
                 }}
               >
-                <View
-                  style={{
-                    ...summaryTableStyles.roomFeeColName,
-                    flex: 2,
-                  }}
-                >
-                  <Text style={{ fontSize: 7 }}>{session.name}</Text>
-                </View>
-                <View
-                  style={{
-                    ...summaryTableStyles.roomFeeColAdjustment,
-                    flex: 2,
-                    paddingHorizontal: 8,
-                  }}
-                >
-                  <Text style={{ fontSize: 7 }}>
-                    {summary[0]?.adjustmentValues?.map((adj, index) => {
-                      const value = Number(adj.value);
-                      const sign = value >= 0 ? "+" : "-";
-                      const isFlat = adj.type === "rate_flat";
-                      const absValue = Math.abs(value);
-                      const adjustment = isFlat
-                        ? `${sign}$${absValue}`
-                        : `${sign}${absValue}%`;
-                      return index === 0 ? adjustment : `, ${adjustment}`;
-                    })}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    ...summaryTableStyles.tableCol,
-                    flex: 1,
-                    alignItems: "flex-end",
-                    paddingRight: 20,
-                  }}
-                >
-                  <Text style={{ fontSize: 7 }}>
-                    ${" "}
-                    {calculateTotalBookingRow({
-                      rate: Number(session.rate),
-                      adjustmentValues: summary[0].adjustmentValues,
-                    })}
-                    /hr
-                  </Text>
-                </View>
+                <Text style={{ fontSize: 7 }}>{session.name}</Text>
               </View>
-            );
-          })}
+              <View
+                style={{
+                  ...summaryTableStyles.roomFeeColAdjustment,
+                  flex: 2,
+                  paddingHorizontal: 8,
+                }}
+              >
+                <Text style={{ fontSize: 7 }}>
+                  {summary.length > 0 && summary[0]?.adjustmentValues?.length > 0 ? summary[0]?.adjustmentValues?.map((adj, index) => {
+                    const value = Number(adj.value);
+                    const sign = value >= 0 ? "+" : "-";
+                    const isFlat = adj.type === "rate_flat";
+                    const absValue = Math.abs(value);
+                    const adjustment = isFlat
+                      ? `${sign}$${absValue}`
+                      : `${sign}${absValue}%`;
+                    return index === 0 ? adjustment : `, ${adjustment}`;
+                  }) : "None"}
+                </Text>
+              </View>
+              <View
+                style={{
+                  ...summaryTableStyles.tableCol,
+                  flex: 1,
+                  alignItems: "flex-end",
+                  paddingRight: 20,
+                }}
+              >
+                <Text style={{ fontSize: 7 }}>
+                  $ {calculateTotalBookingRow({
+                    rate: Number(session.rate),
+                    adjustmentValues: summary.length > 0 ? summary[0].adjustmentValues : [],
+                  })}/hr
+                </Text>
+              </View>
+            </View>
+          );
+        })}
 
         {/* Data Rows */}
         <View style={{ ...summaryTableStyles.tableRow, width: "100%" }}>
@@ -1029,7 +1082,9 @@ const SummaryTable = ({
               paddingRight: 20,
             }}
           >
-            <Text style={{ fontSize: 7 }}>$ {remainingBalance.toFixed(2)}</Text>
+            <Text style={{ fontSize: 7 }}>
+              $ {Number(remainingBalance).toFixed(2)}
+            </Text>
           </View>
         </View>
 

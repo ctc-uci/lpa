@@ -386,9 +386,8 @@ export const EmailSidebar = ({
     return total;
   };
 
-  const fetchInvoiceData = async (invoice) => {
+  const fetchInvoiceData = async (invoice, backend, id) => {
     const eventId = invoice?.data[0]?.eventId;
-    const invoiceId = invoice?.data[0]?.id;
 
     const [
       instructorResponse,
@@ -396,17 +395,22 @@ export const EmailSidebar = ({
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
-      invoiceTotalResponse,
+      sessionResponse,
+      summaryResponse,
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
-      backend.get(`/comments/invoice/${invoiceId}`),
+      backend.get(`/comments/invoice/${id}`),
       backend.get(`/events/${eventId}`),
-      backend.get(`/invoices/payees/${invoiceId}`),
+      backend.get(`/invoices/payees/${id}`),
       backend.get(`/events/remaining/${eventId}`),
-      backend.get(`/invoices/total/${invoiceId}`)
+      backend.get(`/comments/invoice/sessions/${id}`),
+      backend.get(`/comments/invoice/summary/${id}`),
     ]);
 
     const comments = commentsResponse.data;
+    const sessions = sessionResponse.data;
+    const summary = summaryResponse.data;
+
     let booking = {};
     let room = [];
 
@@ -465,11 +469,14 @@ export const EmailSidebar = ({
       room,
       remainingBalance,
       subtotalSum,
+      id,
+      sessions,
+      summary,
     };
   };
 
   const handleEmailClick = async () => {
-    const invoiceData = await fetchInvoiceData(invoice);
+    const invoiceData = await fetchInvoiceData(invoice, backend, id);
     sendSaveEmail(
       setLoading,
       setisConfirmModalOpen,

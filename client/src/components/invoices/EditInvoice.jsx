@@ -35,6 +35,7 @@ import {
   InvoiceSummary,
   StatementComments,
 } from "./EditInvoiceComponents";
+import { getCurrentUser } from "../../utils/auth/firebase";
 
 const InvoiceNavBar = ({
   onBack,
@@ -47,23 +48,28 @@ const InvoiceNavBar = ({
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
-    console.log("invoice", invoice);
+  const getGeneratedDate = (
+    comments = [],
+    invoice = null,
+    includeDay = true
+  ) => {
     if (comments.length > 0) {
       const latestComment = comments.sort(
         (a, b) => new Date(b.datetime) - new Date(a.datetime)
       )[0];
-  
+
       const latestDate = new Date(latestComment.datetime);
       const month = latestDate.toLocaleString("default", { month: "long" });
       const day = latestDate.getDate();
       const year = latestDate.getFullYear();
-  
+
       return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
     } else if (invoice) {
-      const invoiceDateSplit = invoice[0]?.startDate?.split('T')[0];
+      const invoiceDateSplit = invoice[0]?.startDate?.split("T")[0];
       const invoiceDate = new Date(invoiceDateSplit);
-      invoiceDate.setMinutes(invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset());
+      invoiceDate.setMinutes(
+        invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset()
+      );
       const month = invoiceDate.toLocaleString("default", { month: "long" });
       const year = invoiceDate.getFullYear();
       return `${month} ${year}`;
@@ -141,7 +147,7 @@ export const EditInvoice = () => {
   const [pastDue, setPastDue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [deletedIds, setDeletedIds] = useState([]);
-
+  const [userId, setUserId] = useState(null);
   const [editedFields, setEditedFields] = useState({
     comments: [],
     subtotal: 0,
@@ -156,11 +162,6 @@ export const EditInvoice = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = React.useRef();
 
-  useEffect(() => {
-    if (id) {
-      sessionStorage.setItem("userId", id);
-    }
-  }, [id]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -171,7 +172,15 @@ export const EditInvoice = () => {
         console.error("Error fetching data:", error);
       }
     };
+    const fetchUserId = async () => {
+      const currentFirebaseUser = await getCurrentUser();
+      const firebaseUid = currentFirebaseUser?.uid;
+      if (!firebaseUid) return;
+      const userRes = await backend.get(`/users/${firebaseUid}`);
+      setUserId(userRes.data[0].id);
+    };
     fetchData();
+    fetchUserId();
   }, [backend, id]);
 
   useEffect(() => {
@@ -363,9 +372,10 @@ export const EditInvoice = () => {
             const commentText = session.comments[i].comment;
 
             // Prepare comment data
+
             const commentData = {
               id: session.comments[i].id,
-              user_id: session.userId, // Will be set by the server if null
+              user_id: userId, // Will be set by the server if null
               booking_id: session.bookingId || null,
               invoice_id: id,
               datetime: session.datetime,
@@ -413,11 +423,11 @@ export const EditInvoice = () => {
               isNaN(adjustmentValue.value) ||
               adjustmentValue.value === undefined
             )
-            continue;
-            
+              continue;
+
             const adjustmentData = {
               id: adjustmentValue.id,
-              user_id: session.userId,
+              user_id: userId,
               booking_id: session.bookingId || null,
               invoice_id: id,
               datetime: session.datetime,
@@ -430,7 +440,7 @@ export const EditInvoice = () => {
               adjustment_type: adjustmentValue.type,
               adjustment_value: adjustmentValue.value,
             };
-            
+
             try {
               // Check if this adjustment already exists
               const existingAdjustment = comments.find(
@@ -503,7 +513,7 @@ export const EditInvoice = () => {
                   continue;
 
                 const adjustmentData = {
-                  user_id: summaryItem.userId,
+                  user_id: userId,
                   booking_id: null, // Summary adjustments don't have booking_id
                   invoice_id: id,
                   datetime: new Date().toISOString(),

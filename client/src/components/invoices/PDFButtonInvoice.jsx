@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from "react";
 
-import { DownloadIcon } from "@chakra-ui/icons";
-import { Box, Flex, IconButton, Spinner, useToast } from "@chakra-ui/react";
+import { CheckCircleIcon, DownloadIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Button,
+  Text as ChakraText,
+  Flex,
+  HStack,
+  Icon,
+  IconButton,
+  Spinner,
+  useToast,
+  VStack,
+} from "@chakra-ui/react";
 
 import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
@@ -32,14 +43,16 @@ const handleSubtotalSum = (startTime, endTime, rate) => {
 
 const PDFButtonInvoice = ({
   id,
+  onlyIcon = false,
   hasUnsavedChanges,
   handleOtherButtonClick,
 }) => {
   // // get comments for the invoice, all relevant db data here
   const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
-  const [programName, setProgramName] = useState("");
+  const [programName, setProgramName] = useState(null);
   const [invoiceDate, setInvoiceDate] = useState("");
+  const toast = useToast();
   const downloadToast = useToast();
 
   const fetchInvoiceData = async (invoice, backend, id) => {
@@ -66,6 +79,10 @@ const PDFButtonInvoice = ({
     const comments = commentsResponse.data;
     const sessions = sessionResponse.data;
     const summary = summaryResponse.data;
+
+    setProgramName(
+      programNameResponse.data[0].name.trim().split(" ").slice(0, 3).join("_")
+    );
 
     let booking = {};
     let room = [];
@@ -188,24 +205,107 @@ const PDFButtonInvoice = ({
       }
     };
 
+    //   const date = new Date(invoice[0].startDate);
+    //   const month = date.toLocaleString("default", { month: "long" });
+    //   const year = date.getFullYear();
+
+    //   const blob = pdf(
+    //     <InvoicePDFDocument
+    //       invoice={invoice}
+    //       {...invoiceData}
+    //     />
+    //   ).toBlob();
+
+    //   saveAs(
+    //     blob,
+    //     `${programName}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+    //   );
+
+    //   toast({
+    //     position: "bottom-right",
+    //     duration: 3000,
+    //     status: "success",
+    //     render: () => (
+    //       <HStack
+    //         bg="green.100"
+    //         p={4}
+    //         borderRadius="md"
+    //         boxShadow="md"
+    //         borderLeft="6px solid"
+    //         borderColor="green.500"
+    //         spacing={3}
+    //         align="center"
+    //       >
+    //         <Icon
+    //           as={CheckCircleIcon}
+    //           color="green.600"
+    //           boxSize={5}
+    //         />
+    //         <VStack
+    //           align="left"
+    //           spacing={0}
+    //         >
+    //           <ChakraText
+    //             color="#2D3748"
+    //             fontFamily="Inter"
+    //             fontSize="16px"
+    //             fontStyle="normal"
+    //             fontWeight={700}
+    //             lineHeight="normal"
+    //             letterSpacing="0.08px"
+    //           >
+    //             Invoice Downloaded
+    //           </ChakraText>
+    //           {month && year && (
+    //             <ChakraText
+    //               fontSize="sm"
+    //             >
+    //               {programName}_{month} {year}
+    //             </ChakraText>
+    //           )}
+    //         </VStack>
+    //       </HStack>
+    //     ),
+    //   });
+    // } catch (err) {
+    //   console.error("Error generating PDF:", err);
+    // } finally {
+    //   setLoading(false);
+    // }
+
     return (
       <Box>
-        <IconButton
-          icon={loading ? <Spinner size="sm" /> : <DownloadInvoiceIcon />}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (hasUnsavedChanges) {
-              handleOtherButtonClick(() => {
+        {onlyIcon ? (
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              if (hasUnsavedChanges) {
+                handleOtherButtonClick(() => {
+                  handleDownload();
+                });
+              } else {
                 handleDownload();
-              });
-            } else {
-              handleDownload();
+              }
+            }}
+            bg="transparent"
+            icon={
+              loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />
             }
-          }}
-          backgroundColor="transparent"
-          aria-label="Download PDF"
-          isDisabled={loading}
-        />
+            aria-label="Download PDF"
+            isDisabled={loading}
+          ></IconButton>
+        ) : (
+          <Button
+            onClick={handleDownload}
+            leftIcon={
+              loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />
+            }
+            aria-label="Download PDF"
+            isDisabled={loading}
+          >
+            Download
+          </Button>
+        )}
       </Box>
     );
   };
@@ -310,7 +410,7 @@ const TestPDFViewer = () => {
       const response = await backend.get("/invoices/24");
       setInvoice(response.data);
 
-      const invoiceDataResponse = await fetchInvoiceData(response, backend, 24);
+      const invoiceDataResponse = await fetchInvoiceData(response, backend, 40);
       setInvoiceData(invoiceDataResponse);
       setLoading(false);
     } catch (err) {
