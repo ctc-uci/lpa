@@ -220,7 +220,7 @@ export const SingleInvoice = () => {
   }, [comments, backend, room]);
 
   const handlePreviewClick = () => {
-    // navigate(`/invoices/savededits/${id}`);
+    navigate(`/invoices/savededits/${id}`);
     console.log("Preview clicked");
   };
 
