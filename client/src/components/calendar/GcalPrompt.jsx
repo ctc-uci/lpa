@@ -52,8 +52,18 @@ const GcalPrompt = ({ isOpen, onClose }) => {
             fontSize="14px"
             fontWeight="500"
             letterSpacing="0.07px"
+            marginBottom="10px"
           >
             This portal is not synced to Google Calendar. <b>Please enter your Google Calendar email in Settings</b> to stay organized.
+          </Text>
+          <Text
+            fontFamily="Inter"
+            color="#474849"
+            fontSize="14px"
+            fontWeight="500"
+            letterSpacing="0.07px"
+          >
+            Google may also log you out after a period of inactivity.
           </Text>
           <HStack justifyContent="flex-end" gap="16px" padding="20px 10px 15px 10px">
             <Button

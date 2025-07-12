@@ -164,6 +164,9 @@ programsRouter.post("/archive/:eventId", async (req, res) => {
       res.status(500).json({result: "error while finding user"});
     }
 
+    // THE FOLLOWING IS NOT A GOOD WAY TO DO THIS.
+    // I will fix this later if there is time...
+
     // Make HTTP request to comments endpoint
     // This handles updating invoice status to paid or partial
     console.log(`${req.protocol}://${req.get('host')}/comments`);
