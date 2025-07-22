@@ -3,8 +3,9 @@ export const cancelBookingFeeCalculation = async (db, bookingId) => {
   const booking = await db.query(`
     SELECT * FROM bookings
     WHERE id = $1
-    AND (date) >= CURRENT_DATE 
-    AND (date) <= CURRENT_DATE + INTERVAL '14 days'
+    AND (date) >= CAST(CURRENT_DATE AT TIME ZONE 'America/Los_Angeles' AS DATE) 
+    AND (date) <= CAST(CURRENT_DATE AT TIME ZONE 'America/Los_Angeles' AS DATE) + INTERVAL '14 days'
+    AND archived = false
   `, [bookingId]);
 
   if (booking.length === 0) {
@@ -71,41 +72,38 @@ export const cancelBookingFeeCalculation = async (db, bookingId) => {
     ORDER BY id ASC
   `, [invoiceId, bookingId]);
 
-  // Add all invoice rate adjustments to rate
-  let rate = bookingRate;
+  let rate = Number(bookingRate);
+  if (isNaN(rate)) {
+    throw new Error(`Invalid booking rate: ${bookingRate}`);
+  }
   for (const adjustment of invoiceRateAdjustments) {
+    const value = Number(adjustment.adjustment_value);
+    if (isNaN(value)) {
+      throw new Error(`Invalid adjustment_value: ${adjustment.adjustment_value}`);
+    }
     if (adjustment.adjustment_type === "rate_flat") {
-      rate += adjustment.adjustment_value;
+      rate += value;
     } else if (adjustment.adjustment_type === "rate_percent") {
-      rate += (adjustment.adjustment_value/100 * rate);
+      rate += (value / 100) * rate;
     }
   }
 
   for (const adjustment of sessionRateAdjustments) {
+    const value = Number(adjustment.adjustment_value);
+    if (isNaN(value)) {
+      throw new Error(`Invalid adjustment_value: ${adjustment.adjustment_value}`);
+    }
     if (adjustment.adjustment_type === "rate_flat") {
-      rate += adjustment.adjustment_value;
+      rate += value;
     } else if (adjustment.adjustment_type === "rate_percent") {
-      rate += (adjustment.adjustment_value/100 * rate);
+      rate += (value / 100) * rate;
     }
   }
 
-  const invoiceRate = invoiceRateAdjustments.reduce((acc, adjustment) => {
-    if (adjustment.adjustment_type === "rate_flat") {
-      return acc + adjustment.adjustment_value;
-    } else {
-      return acc + (adjustment.adjustment_value * bookingDuration);
-    }
-  }, bookingRate);
-
-  // Add all session rate adjustments to rate
-  const finalRate = sessionRateAdjustments.reduce((acc, adjustment) => {
-    return acc + adjustment.adjustment_value;
-  }, invoiceRate);
-
-  // Calculate the fee
-  const fee = finalRate * bookingDuration;
-
-  return fee;
+  // Round rate to 2 decimal places
+  rate = Math.round(rate * 100) / 100;
+  const fee = rate * bookingDuration;
+  return Math.round(fee * 100) / 100;
 }
 
 export const cancelProgramFeeCalculation = async (db, eventId) => {
@@ -113,8 +111,9 @@ export const cancelProgramFeeCalculation = async (db, eventId) => {
   const bookings = await db.query(`
     SELECT * FROM bookings
     WHERE event_id = $1
-    AND (date) >= CURRENT_DATE 
-    AND (date) <= CURRENT_DATE + INTERVAL '14 days'
+    AND (date) >= CAST(CURRENT_DATE AT TIME ZONE 'America/Los_Angeles' AS DATE) 
+    AND (date) <= CAST(CURRENT_DATE AT TIME ZONE 'America/Los_Angeles' AS DATE) + INTERVAL '14 days'
+    AND archived = false
   `, [eventId]);
 
   if (bookings.length === 0) {
@@ -127,6 +126,8 @@ export const cancelProgramFeeCalculation = async (db, eventId) => {
   const fees = await Promise.all(bookings.map(async (booking) => {
     return await cancelBookingFeeCalculation(db, booking.id);
   }));
+
+  console.log("Fees: ", fees);
 
   // Return the total fee
   return fees.reduce((acc, fee) => acc + fee, 0);
