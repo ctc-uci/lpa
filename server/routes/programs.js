@@ -3,7 +3,7 @@ import axios from "axios";
 
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
-
+import { cancelProgramFeeCalculation } from "./utils/feeCalculation";
 const programsRouter = Router();
 programsRouter.use(express.json());
 
@@ -138,17 +138,17 @@ programsRouter.post("/archive/:eventId", async (req, res) => {
     const { eventId } = req.params;
     const { reason, firebaseUid } = req.body;
 
-    // Find all sessions within 2 weeks
-    // WRITE FUNCTION TO GET THE COST OF SESSIONS WITHIN 2 WEEKS IN FUTURE 
-    const totalCost = 100;
+    // Calculate the total cost of the program
+    const totalCost = await cancelProgramFeeCalculation(db, eventId);
 
-    // Add the total cost to the current invoice
+    // Get current invoice
     const invoice = await db.query(`
       SELECT id FROM invoices
       WHERE event_id = $1
       ORDER BY start_date DESC
       LIMIT 1
       `, [eventId]);
+
     const invoiceId = invoice[0].id;
     if (invoiceId === undefined) {
       res.status(500).json({result: "error while finding invoice"});
@@ -169,21 +169,21 @@ programsRouter.post("/archive/:eventId", async (req, res) => {
 
     // Make HTTP request to comments endpoint
     // This handles updating invoice status to paid or partial
-    console.log(`${req.protocol}://${req.get('host')}/comments`);
-    const commentResponse = await axios.post(`${req.protocol}://${req.get('host')}/comments`, {
-      user_id: userId,
-      invoice_id: invoiceId,
-      datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-      comment: reason,
-      adjustment_type: "total",
-      adjustment_value: totalCost
-    });
+    if (totalCost > 0 || reason !== "") {
+      const commentResponse = await axios.post(`${req.protocol}://${req.get('host')}/comments`, {
+        user_id: userId,
+        invoice_id: invoiceId,
+        datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        comment: reason,
+        adjustment_type: "total",
+        adjustment_value: totalCost
+      });
     
-    if (commentResponse.status !== 200) {
-      console.log(commentResponse.data, commentResponse.status);
-      return res.status(500).json({result: "error while creating comment"});
+      if (commentResponse.status !== 200) {
+        console.log(commentResponse.data, commentResponse.status);
+        return res.status(500).json({result: "error while creating comment"});
+      }
     }
-    console.log(commentResponse.data);
 
     // Archive the program
     const program = await db.query(`
@@ -204,6 +204,27 @@ programsRouter.post("/archive/:eventId", async (req, res) => {
         archived = true
       WHERE event_id = $1;
       `, [eventId]);
+
+    res.status(200).json({result: "success"});
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+programsRouter.delete("/delete/:eventId", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Delete the program
+    const program = await db.query(`
+      DELETE FROM events
+      WHERE id = $1
+      RETURNING *;
+      `, [eventId]);
+
+    if (program.length === 0) {
+      res.status(500).json({result: "error while deleting program"});
+    }
 
     res.status(200).json({result: "success"});
   } catch (err) {
