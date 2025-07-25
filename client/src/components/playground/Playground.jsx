@@ -137,7 +137,7 @@ export const Playground = () => {
 
   return (
     <Navbar>
-      <VStack
+      {/* <VStack
         spacing={8}
         width={"100%"}
       >
@@ -176,8 +176,8 @@ export const Playground = () => {
       <GcalPrompt
         isOpen={showGcalPrompt}
         onClose={() => setShowGcalPrompt(false)}
-      />
-      <PDFButtonInvoice />
+      /> */}
+      {/* <PDFButtonInvoice /> */}
     </Navbar>
   );
 };

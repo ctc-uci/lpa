@@ -353,7 +353,11 @@ const InvoicePayments = forwardRef(
     const [programName, setProgramName] = useState("");
     const [invoiceMonth, setInvoiceMonth] = useState("");
     const [invoiceYear, setInvoiceYear] = useState("");
+    const [editDate, setEditDate] = useState("");
+    const [isProcessing, setIsProcessing] = useState(false);
     const toast = useToast();
+
+    comments = comments.filter(comment => comment.adjustmentType === "paid");
 
     useEffect(() => {
       const fetchUid = async () => {
@@ -395,11 +399,13 @@ const InvoicePayments = forwardRef(
     }));
 
     const handleCancelNewComment = () => {
+      setIsProcessing(false);
       setShowInputRow(false);
       setAdjustValue("--.--");
       setValueEntered(false);
       setHasUnsavedChanges(false);
       onCancelNewCommentClose();
+      setIsProcessing(false);
     };
 
   const currentPageComments = comments ?? [];
@@ -426,6 +432,7 @@ const InvoicePayments = forwardRef(
   }
 
   const handleDeleteComment = async () => {
+    setIsProcessing(true);
     try {
       await backend.delete("/comments/" + deleteID);
       const commentsResponse = await backend.get(
@@ -438,6 +445,7 @@ const InvoicePayments = forwardRef(
     }
     finally {
       updateRemainingBalance();
+      setIsProcessing(false);
     }
   };
   
@@ -472,6 +480,7 @@ const InvoicePayments = forwardRef(
       } else {
         setEditID(edit);
         setShowEditRow(true);
+        setAdjustValue(adjustmentValue);
         setHasUnsavedChanges(true);
       }
     } catch (error) {
@@ -480,6 +489,7 @@ const InvoicePayments = forwardRef(
   };
 
     const handleSaveComment = async () => {
+      setIsProcessing(true);
       const editDateObj = new Date(editDate);
       editDateObj.setMinutes(editDateObj.getMinutes() + editDateObj.getTimezoneOffset());
     
@@ -493,7 +503,7 @@ const InvoicePayments = forwardRef(
           datetime: editDateObj.toISOString(),
           comment: "",
           adjustment_type: "paid",
-          adjustment_value: Number(adjustValue),
+          adjustment_value: Number(adjustmentValue),
         };
 
         if (showEditRow) {
@@ -607,6 +617,7 @@ const InvoicePayments = forwardRef(
       setShowEditRow(false);
       setShowInputRow(false);
       setHasUnsavedChanges(false);
+      setIsProcessing(false);
       setAdjustValue("--.--");
     }  
   //   } catch (error) {
@@ -672,6 +683,7 @@ const InvoicePayments = forwardRef(
             </Button>
           ) : (
             <Button
+              isLoading={isProcessing}
               onClick={handleSaveComment}
               disabled={!valueEntered}
             >
@@ -728,18 +740,21 @@ const InvoicePayments = forwardRef(
                             $
                           </Text>
                           <Input
-                            type="text"
+                            type="number"
                             placeholder="__.__"
-                            value={adjustValue}
+                            value={Number(adjustValue).toFixed(2)}
                             w="60px"
-                            color="#0C824D"
-                            fontWeight="700"
+                            textAlign="left"
+                            padding="0px 0px 0px 5px"
+                            margin="0px 0px 0px 5px"
                             fontSize="14px"
-                            variant="unstyled"
+                            color="#0C824D"
+                            fontWeight="400"
                             onChange={(e) => {
                               const value = e.target.value;
                               if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
                                 setAdjustValue(value);
+                                setEditDate(new Date());
                                 setValueEntered(true);
                               }
                             }}
@@ -763,16 +778,15 @@ const InvoicePayments = forwardRef(
                       paddingInlineStart="4px"
                       paddingInlineEnd="4px"
                     >
-                      <Menu>
+                      <Menu
+                       placement="bottom-end"
+                      >
                         <MenuButton
                           as={IconButton}
-                          minWidth="24px"
-                          height="24px"
-                          borderRadius={6}
-                          backgroundColor="#EDF2F7"
-                          icon={<Icon as={sessionsEllipsis} />}
+                          className="ellipsis-action-button"
+                          icon={<Icon as={EllipsisIcon} />}
                         />
-                        <MenuList minWidth={"149px"} maxWidth={"149px"}>
+                        <MenuList minWidth={"152px"} maxWidth={"152px"}>
                             <MenuItem
                               onClick={() => handleEditComment(comment.id, comment.datetime, comment.adjustmentValue)}
                               width={"149px"}
@@ -808,7 +822,9 @@ const InvoicePayments = forwardRef(
                   ))
               ) : (
                 <Tr>
-                  <Td colSpan={3}>No comments available.</Td>
+                  {!showInputRow && (
+                    <Td colSpan={3}>No comments available.</Td>
+                  )}
                 </Tr>
               )}
 
@@ -858,6 +874,7 @@ const InvoicePayments = forwardRef(
                       mr={3}
                       ml={"12px"}
                       _hover={{ backgroundColor: "#71060C" }}
+                      isLoading={isProcessing}
                       backgroundColor={"#90080F"}
                       fontFamily={"Inter"}
                       fontSize={"14px"}
@@ -881,10 +898,18 @@ const InvoicePayments = forwardRef(
                 >
                   <Td
                     fontSize="14px"
-                    paddingInlineStart="8px"
+                    paddingInlineStart="3px"
                     paddingInlineEnd="8px"
                   >
-                    {format(new Date(), "EEE. M/d/yy")}
+                    <Input
+                      type="date"
+                      fontSize="14px"
+                      margin="0px 0px 0px 0px"
+                      padding="5px"
+                      width="95px"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                    />
                   </Td>
                   <Td
                     fontSize="14px"
@@ -905,11 +930,25 @@ const InvoicePayments = forwardRef(
                         placeholder="__.__"
                         value={adjustValue}
                         w="60px"
+                        textAlign="left"
+                        padding="0px 0px 0px 5px"
+                        margin="0px 0px 0px 5px"
                         fontSize="14px"
                         color="#0C824D"
                         fontWeight="400"
-                        variant="unstyled"
-                        onChange={(e) => setAdjustValue(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                            setAdjustValue(value);
+                            setValueEntered(true);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value) {
+                            const formattedValue = Number(e.target.value).toFixed(2);
+                            setAdjustValue(formattedValue);
+                          }
+                        }}
                       ></Input>
                     </Flex>
                   </Td>
@@ -978,122 +1017,19 @@ const InvoicePayments = forwardRef(
                       justifyContent: "flex-end",
                     }}
                   >
-                  <Button>
+                  <Button
+                    isLoading={isProcessing}
+                    onClick={() => {
+                      handleCancelNewComment();
+                    }}
+                  >
                     Confirm
                   </Button>
                 </ModalFooter>
               </ModalContent>
             </Modal>
-            {showInputRow && (
-              <Tr
-                alignItems="center"
-                alignSelf="stretch"
-                gap="12px"
-              >
-                <Td
-                  fontSize="14px"
-                  paddingInlineStart="8px"
-                  paddingInlineEnd="8px"
-                >
-                  <Input
-                    type="date"
-                    value={editDate}
-                    width="fit-content"
-                    onChange={(e) => setEditDate(e.target.value)}
-                  />
-                </Td>
-                <Td
-                  fontSize="14px"
-                  color="#0C824D"
-                  fontWeight="700"
-                  paddingInlineStart="8px"
-                  paddingInlineEnd="8px"
-                >
-                  <Flex alignItems="center">
-                    <Text
-                      color="#0C824D"
-                      fontWeight="bold"
-                    >
-                      $
-                    </Text>
-                    <Input
-                      type="text"
-                      placeholder="0.00"
-                      value={adjustValue}
-                      w="60px"
-                      color="#0C824D"
-                      fontWeight="700"
-                      fontSize="14px"
-                      variant="unstyled"
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
-                          setAdjustValue(value);
-                          setValueEntered(true);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (e.target.value) {
-                          const formattedValue = Number(e.target.value).toFixed(2);
-                          setAdjustValue(formattedValue);
-                        }
-                      }}
-                    ></Input>
-                  </Flex>
-                </Td>
-                <Td
-                  textAlign="right"
-                  width="1%"
-                  paddingInlineStart="4px"
-                  paddingInlineEnd="4px"
-                >
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      minWidth="24px"
-                      height="24px"
-                      borderRadius={6}
-                      backgroundColor="#EDF2F7"
-                      icon={<Icon as={sessionsEllipsis} />}
-                    />
-                  </Menu>
-                </Td>
-              </Tr>
-            )}
           </Tbody>
         </Table>
-                    {/* <Button
-                      variant="ghost"
-                      onClick={onCancelNewCommentClose}
-                      fontFamily={"Inter"}
-                      backgroundColor={"#EDF2F7"}
-                      fontSize={"14px"}
-                      fontWeight={"500"}
-                    >
-                      Exit
-                    </Button>
-                    <Button
-                      mr={3}
-                      ml={"12px"}
-                      _hover={{ backgroundColor: "#71060C" }}
-                      backgroundColor={"#90080F"}
-                      fontFamily={"Inter"}
-                      fontSize={"14px"}
-                      fontWeight={"500"}
-                      borderRadius={"6px"}
-                      color={"white"}
-                      onClick={() => {
-                        handleCancelNewComment();
-                      }}
-                    >
-                      Confirm
-                    </Button>
-                  </ModalFooter>
-                </ModalContent>
-              </Modal>
-            </Tbody>
-          </Table>
-        </Flex> */}
       </Flex>
       </Flex>
     );
