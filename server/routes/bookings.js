@@ -371,6 +371,19 @@ bookingsRouter.put("/event/:id", async (req, res) => {
     }
   });
 
+bookingsRouter.get("/event/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await db.query(`
+      SELECT * FROM bookings
+      WHERE event_id = $1
+      `, [id]);
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 
 bookingsRouter.delete("/:id", async (req, res) => {
     try {
@@ -476,7 +489,9 @@ bookingsRouter.delete("/batch/delete", async (req, res) => {
 });
 
 // Batch operation for a specific event's bookings
-bookingsRouter.post("/event/:eventId/batch/archive", async (req, res) => {
+
+// TODO: remove this, should be unused
+bookingsRouter.post("/event/archive/:eventId", async (req, res) => {
   try {
     const { eventId } = req.params;
 
@@ -488,6 +503,31 @@ bookingsRouter.post("/event/:eventId/batch/archive", async (req, res) => {
     res.status(200).json({
       result: 'success',
       message: `${data.length} sessions archived for event ${eventId}`,
+      data: keysToCamel(data)
+    });
+  } catch (err) {
+    res.status(500).json({
+      result: 'error',
+      message: err.message
+    });
+  }
+});
+
+// Batch operation for a specific event's bookings
+
+// TODO: remove this, should be unused
+bookingsRouter.delete("/event/delete/:eventId", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Delete all bookings for a specific event
+    const query = `DELETE FROM bookings WHERE event_id = $1 RETURNING *`;
+
+    const data = await db.query(query, [eventId]);
+
+    res.status(200).json({
+      result: 'success',
+      message: `${data.length} sessions deleted for event ${eventId}`,
       data: keysToCamel(data)
     });
   } catch (err) {

@@ -26,6 +26,7 @@ import {
 import { CancelArchiveIcon } from "../../assets/CancelArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
+import { archiveProgram, deleteProgram } from "../../utils/programModifications";
 
 export const CancelProgram = ({
   id,
@@ -42,6 +43,7 @@ export const CancelProgram = ({
   const [selectedIcon, setSelectedIcon] = useState(<CancelArchiveIcon />);
   const [cancelReason, setCancelReason] = useState("");
   const [eventDescription, setEventDescription] = useState("");
+  const [submissionLoading, setSubmissionLoading] = useState(false);
   const { backend } = useBackendContext();
   const toast = useToast();
 
@@ -65,16 +67,7 @@ export const CancelProgram = ({
 
   const handleProgramArchive = useCallback(async () => {
     try {
-      const currentFirebaseUser = await getCurrentUser();
-      const firebaseUid = currentFirebaseUser?.uid;
-      if (!firebaseUid) {
-        throw new Error("No logged in user");
-      }
-
-      await backend.post(`/programs/archive/${id}`, {
-        reason: cancelReason,
-        firebaseUid: firebaseUid,
-      });
+      await archiveProgram(backend, id, cancelReason);
       if (setPrograms) {
         setPrograms((prev) => prev.filter((p) => p.id !== id));
       }
@@ -94,7 +87,7 @@ export const CancelProgram = ({
         isClosable: true,
       });
     }
-  }, [backend, id, onClose, toast, cancelReason]);
+  }, [backend, id, cancelReason, setPrograms, onClose, toast]);
 
   const handleBookingArchive = useCallback(async () => {
     try {
@@ -120,26 +113,22 @@ export const CancelProgram = ({
         isClosable: true,
       });
     }
-  }, [backend, sessionId, onClose, toast, cancelReason]);
+  }, [backend, sessionId, onClose, toast]);
 
   const handleProgramDelete = useCallback(async () => {
     try {
-      const response = await backend.delete(`/events/${id}`);
-      if (response.data.result === "success") {
-        if (setPrograms) {
-          setPrograms((prev) => prev.filter((p) => p.id !== id));
-        }
-        toast({
-          title: "Program deleted",
-          description:
-            "The program and all related records have been successfully deleted.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        throw new Error("Failed to delete program");
+      await deleteProgram(backend, id);
+      if (setPrograms) {
+        setPrograms((prev) => prev.filter((p) => p.id !== id));
       }
+      toast({
+        title: "Program deleted",
+        description:
+          "The program and all related records have been successfully deleted.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       console.error("Failed to delete program:", error);
       toast({
@@ -153,7 +142,7 @@ export const CancelProgram = ({
       });
     }
     onClose();
-  }, [backend, id, onClose, toast]);
+  }, [backend, id, onClose, setPrograms, toast]);
 
   const handleBookingDelete = useCallback(async () => {
     try {
@@ -186,9 +175,10 @@ export const CancelProgram = ({
       });
     }
     onClose();
-  }, [backend, sessionId, onClose, toast]);
+  }, [onClose, backend, sessionId, setPrograms, toast]);
 
   const handleConfirm = useCallback(async () => {
+    setSubmissionLoading(true);
     if (selectedAction === "Archive") {
       if (type === "Program") {
         await handleProgramArchive();
@@ -203,13 +193,8 @@ export const CancelProgram = ({
         await handleBookingDelete();
       }
     }
-  }, [
-    selectedAction,
-    handleProgramArchive,
-    handleBookingArchive,
-    handleProgramDelete,
-    handleBookingDelete,
-  ]);
+    setSubmissionLoading(false);
+  }, [selectedAction, type, handleProgramArchive, handleArchiveSession, sessionId, onClose, handleProgramDelete, handleBookingDelete]);
 
   return (
     <Modal
@@ -316,6 +301,7 @@ export const CancelProgram = ({
             Exit
           </Button>
           <Button
+            isLoading={submissionLoading}
             onClick={handleConfirm}
             bg="#90080F"
             color="white"
