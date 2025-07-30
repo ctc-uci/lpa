@@ -603,7 +603,7 @@ const SavedStatementComments = ({
                             role="group"
                           >
                             <Td
-                              fontSize={compactView ? "6" : "12px"}
+                              fontSize={compactView ? "6" : "sm"}
                               py={compactView ? "0" : "6"}
                             >
                               {(() => {
@@ -618,7 +618,7 @@ const SavedStatementComments = ({
                             </Td>
                             <Td
                               colSpan={4}
-                              fontSize={compactView ? "6" : "12px"}
+                              fontSize={compactView ? "6" : "sm"}
                               py={compactView ? "0" : "6"}
                             >
                               {session.total[totalIndex]?.comment ||
@@ -633,8 +633,9 @@ const SavedStatementComments = ({
                                 alignItems="center"
                               >
                                 <Text
-                                  fontSize={compactView ? "6" : "12px"}
+                                  fontSize={compactView ? "6.38px" : "sm"}
                                   py={compactView ? "0" : "6"}
+                                  color="red"
                                 >
                                   ${" "}
                                   {Number(

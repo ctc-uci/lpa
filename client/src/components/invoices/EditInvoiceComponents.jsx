@@ -320,9 +320,10 @@ const StatementComments = ({
     const handleClickOutside = (event) => {
       if (editRowRef.current && !editRowRef.current.contains(event.target)) {
         if (editingCustomRow !== null) {
+          const [sessionIndex, totalIndex] = editingCustomRow.split("-");
           handleSaveCustomRow(
-            sessions[editingCustomRow.split("-")[0]],
-            editingCustomRow.split("-")[1]
+            parseInt(sessionIndex),
+            parseInt(totalIndex)
           );
         }
       }
@@ -527,7 +528,9 @@ const StatementComments = ({
   };
 
   const saveComment = (index, commentIndex = null) => {
+    console.log(`saveComment called with index: ${index}, commentIndex: ${commentIndex}, commentText: "${commentText}"`);
     if (!commentText.trim()) {
+      console.log('Comment is empty, clearing state');
       setActiveCommentId(null);
       setCommentText("");
       return;
@@ -585,7 +588,17 @@ const StatementComments = ({
 
   const handleKeyDown = (e, index, commentIndex = null) => {
     if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
       saveComment(index, commentIndex);
+    }
+  };
+
+  const handleCustomRowKeyDown = (e, sessionIndex, totalIndex) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      handleSaveCustomRow(sessionIndex, totalIndex);
     }
   };
 
@@ -658,13 +671,13 @@ const StatementComments = ({
     setEditCustomAmount(session.total[totalIndex].value.toString());
   };
 
-  const handleSaveCustomRow = (session, totalIndex) => {
+  const handleSaveCustomRow = (sessionIndex, totalIndex) => {
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
     setSessions((prevSessions) => {
-      return prevSessions.map((prevSession) => {
-        // Only update the session that matches
-        if (prevSession === session) {
+      return prevSessions.map((prevSession, index) => {
+        // Only update the session that matches the sessionIndex
+        if (index === sessionIndex) {
           // Create a new total array with the updated item
           const newTotal = [...prevSession.total];
           const date = new Date(editCustomDate);
@@ -715,6 +728,10 @@ const StatementComments = ({
       setDeletedIds((prevDeletedIds) => [...prevDeletedIds, totalItem.id]);
     }
   };
+
+  useEffect(() => {
+    console.log(`editinvoicecomponentss sessions ${sessions}`);
+  }, [sessions]);
 
   return (
     <Flex
@@ -864,6 +881,9 @@ const StatementComments = ({
                                   py="6"
                                   rounded="md"
                                   textAlign="center"
+                                  onKeyDown={(e) =>
+                                    handleCustomRowKeyDown(e, index, totalIndex)
+                                  }
                                 />
                                 <Input
                                   placeholder="Description"
@@ -876,6 +896,9 @@ const StatementComments = ({
                                   py="6"
                                   rounded="md"
                                   border="none"
+                                  onKeyDown={(e) =>
+                                    handleCustomRowKeyDown(e, index, totalIndex)
+                                  }
                                 />
                                 <InputGroup
                                   size="sm"
@@ -893,6 +916,9 @@ const StatementComments = ({
                                     py="6"
                                     rounded="md"
                                     textAlign="center"
+                                    onKeyDown={(e) =>
+                                      handleCustomRowKeyDown(e, index, totalIndex)
+                                    }
                                   />
                                 </InputGroup>
                               </Flex>
@@ -1365,6 +1391,9 @@ const StatementComments = ({
                                         py="6"
                                         rounded="md"
                                         textAlign="center"
+                                        onKeyDown={(e) =>
+                                          handleCustomRowKeyDown(e, index, totalIndex)
+                                        }
                                       />
                                       <Input
                                         placeholder="Description"
@@ -1377,6 +1406,9 @@ const StatementComments = ({
                                         py="6"
                                         rounded="md"
                                         border="none"
+                                        onKeyDown={(e) =>
+                                          handleCustomRowKeyDown(e, index, totalIndex)
+                                        }
                                       />
                                       <InputGroup
                                         size="sm"
@@ -1394,6 +1426,9 @@ const StatementComments = ({
                                           py="6"
                                           rounded="md"
                                           textAlign="center"
+                                          onKeyDown={(e) =>
+                                            handleCustomRowKeyDown(e, index, totalIndex)
+                                          }
                                         />
                                       </InputGroup>
                                     </Flex>
