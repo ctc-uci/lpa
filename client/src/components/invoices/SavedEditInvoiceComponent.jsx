@@ -635,7 +635,6 @@ const SavedStatementComments = ({
                                 <Text
                                   fontSize={compactView ? "6.38px" : "sm"}
                                   py={compactView ? "0" : "6"}
-                                  color="red"
                                 >
                                   ${" "}
                                   {Number(
