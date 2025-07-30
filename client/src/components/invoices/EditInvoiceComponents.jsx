@@ -528,9 +528,7 @@ const StatementComments = ({
   };
 
   const saveComment = (index, commentIndex = null) => {
-    console.log(`saveComment called with index: ${index}, commentIndex: ${commentIndex}, commentText: "${commentText}"`);
     if (!commentText.trim()) {
-      console.log('Comment is empty, clearing state');
       setActiveCommentId(null);
       setCommentText("");
       return;
@@ -728,10 +726,6 @@ const StatementComments = ({
       setDeletedIds((prevDeletedIds) => [...prevDeletedIds, totalItem.id]);
     }
   };
-
-  useEffect(() => {
-    console.log(`editinvoicecomponentss sessions ${sessions}`);
-  }, [sessions]);
 
   return (
     <Flex
