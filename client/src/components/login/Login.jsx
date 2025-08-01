@@ -116,6 +116,7 @@ export const Login = () => {
       }
 
       if (!permitCheck || !permitCheck.data) {
+        setIsLoading(false);
         throw new Error("Could not verify user permissions");
       }
 
@@ -127,6 +128,7 @@ export const Login = () => {
 
       navigate("/programs");
     } catch (err) {
+      setIsLoading(false);
       const errorCode = err.code;
       const firebaseErrorMsg = err.message;
 
