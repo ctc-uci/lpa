@@ -104,14 +104,20 @@ const RoomFeeAdjustmentSideBar = ({
   const handleNegativeClick = (index) => {
     setTempSession((prev) => {
       const newSession = JSON.parse(JSON.stringify(prev));
-      if (!newSession.adjustmentValues || !newSession.adjustmentValues[index])
+      if (!newSession.adjustmentValues || !newSession.adjustmentValues[index]){
         return prev;
+      }
 
       const currentValue = newSession.adjustmentValues[index].value;
       const valueWithoutSign = String(currentValue).replace(/^[+-]/, "");
-      newSession.adjustmentValues[index].value = -Math.abs(
-        Number(valueWithoutSign)
-      );
+      // For 0 values, set to negative, otherwise keep the same logic
+      if (Number(valueWithoutSign) === 0) {
+        newSession.adjustmentValues[index].value = -0;
+      } else {
+        newSession.adjustmentValues[index].value = -Math.abs(
+          Number(valueWithoutSign)
+        );
+      }
       return newSession;
     });
   };
@@ -124,9 +130,14 @@ const RoomFeeAdjustmentSideBar = ({
 
       const currentValue = newSession.adjustmentValues[index].value;
       const valueWithoutSign = String(currentValue).replace(/^[+-]/, "");
-      newSession.adjustmentValues[index].value = Math.abs(
-        Number(valueWithoutSign)
-      );
+      // For 0 values, set to positive, otherwise keep the same logic
+      if (Number(valueWithoutSign) === 0) {
+        newSession.adjustmentValues[index].value = 0;
+      } else {
+        newSession.adjustmentValues[index].value = Math.abs(
+          Number(valueWithoutSign)
+        );
+      }
       return newSession;
     });
   };
@@ -138,7 +149,7 @@ const RoomFeeAdjustmentSideBar = ({
         return prev;
 
       const currentValue = newSession.adjustmentValues[index].value;
-      const isNegative = Number(currentValue) < 0;
+      const isNegative = Number(currentValue) < 0 || Object.is(currentValue, -0);
       const numericValue = Math.abs(parseFloat(newValue)) || 0;
 
       newSession.adjustmentValues[index].id = prev.adjustmentValues[index].id;
@@ -233,9 +244,6 @@ const RoomFeeAdjustmentSideBar = ({
                 fontSize="14px"
                 whiteSpace="nowrap"
               >
-                {session.datetime
-                  ? format(new Date(session.datetime), "M/d/yy")
-                  : "N/A"}{" "}
                 Room Fee Adjustment
               </Text>
 
@@ -322,7 +330,7 @@ const RoomFeeAdjustmentSideBar = ({
                         <IconButton
                           aria-label="Negative sign"
                           icon={
-                            Number(adj.value) < 0 ? (
+                            Number(adj.value) < 0 || Object.is(adj.value, -0) ? (
                               <MinusFilledIcon />
                             ) : (
                               <MinusOutlineIcon size="16" />
@@ -360,11 +368,10 @@ const RoomFeeAdjustmentSideBar = ({
                             <Text>%</Text>
                           </>
                         )}
-
                         <IconButton
                           aria-label="Plus sign"
                           icon={
-                            Number(adj.value) >= 0 ? (
+                            Number(adj.value) > 0 || (Number(adj.value) === 0 && !Object.is(adj.value, -0)) ? (
                               <PlusFilledIcon
                                 color="#4441C8"
                                 size="20"
@@ -588,9 +595,14 @@ const SummaryFeeAdjustmentSideBar = ({
 
       const currentValue = newSummary.adjustmentValues[index].value;
       const valueWithoutSign = String(currentValue).replace(/^[+-]/, "");
-      newSummary.adjustmentValues[index].value = -Math.abs(
-        Number(valueWithoutSign)
-      );
+      // For 0 values, set to negative, otherwise keep the same logic
+      if (Number(valueWithoutSign) === 0) {
+        newSummary.adjustmentValues[index].value = -0;
+      } else {
+        newSummary.adjustmentValues[index].value = -Math.abs(
+          Number(valueWithoutSign)
+        );
+      }
       return newSummary;
     });
   };
@@ -603,9 +615,14 @@ const SummaryFeeAdjustmentSideBar = ({
 
       const currentValue = newSummary.adjustmentValues[index].value;
       const valueWithoutSign = String(currentValue).replace(/^[+-]/, "");
-      newSummary.adjustmentValues[index].value = Math.abs(
-        Number(valueWithoutSign)
-      );
+      // For 0 values, set to positive, otherwise keep the same logic
+      if (Number(valueWithoutSign) === 0) {
+        newSummary.adjustmentValues[index].value = 0;
+      } else {
+        newSummary.adjustmentValues[index].value = Math.abs(
+          Number(valueWithoutSign)
+        );
+      }
       return newSummary;
     });
   };
@@ -617,7 +634,7 @@ const SummaryFeeAdjustmentSideBar = ({
         return prev;
 
       const currentValue = newSummary.adjustmentValues[index].value;
-      const isNegative = Number(currentValue) < 0;
+      const isNegative = Number(currentValue) < 0 || Object.is(currentValue, -0);
       const numericValue = Math.abs(parseFloat(newValue)) || 0;
 
       newSummary.adjustmentValues[index].value = isNegative
@@ -710,9 +727,6 @@ const SummaryFeeAdjustmentSideBar = ({
                 fontSize="14px"
                 whiteSpace="nowrap"
               >
-                {summary?.datetime
-                  ? format(new Date(summary?.datetime), "M/d/yy")
-                  : "N/A"}{" "}
                 Room Fee Adjustment
               </Text>
 
@@ -801,7 +815,7 @@ const SummaryFeeAdjustmentSideBar = ({
                         <IconButton
                           aria-label="Negative sign"
                           icon={
-                            Number(adj.value) < 0 ? (
+                            Number(adj.value) < 0 || Object.is(adj.value, -0) ? (
                               <MinusFilledIcon />
                             ) : (
                               <MinusOutlineIcon size="16" />
@@ -842,7 +856,7 @@ const SummaryFeeAdjustmentSideBar = ({
                         <IconButton
                           aria-label="Plus sign"
                           icon={
-                            Number(adj.value) >= 0 ? (
+                            Number(adj.value) > 0 || (Number(adj.value) === 0 && !Object.is(adj.value, -0)) ? (
                               <PlusFilledIcon
                                 color="#4441C8"
                                 size="20"

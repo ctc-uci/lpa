@@ -109,7 +109,6 @@ export const EmailSidebar = ({
             index === self.findIndex((u) => u.email === user.email)
         );
         SetAllUsers(uniqueUsers);
-        console.log(uniqueUsers);
 
         const payeeEmails = payeesResponse.data.map((payee) => payee.email);
 

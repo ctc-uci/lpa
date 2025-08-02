@@ -421,7 +421,9 @@ export const EditInvoice = () => {
             // Skip invalid adjustment values
             if (
               isNaN(adjustmentValue.value) ||
-              adjustmentValue.value === undefined
+              adjustmentValue.value === undefined ||
+              Object.is(adjustmentValue.value, -0) ||
+              adjustmentValue.value === 0
             )
               continue;
 

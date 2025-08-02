@@ -1123,8 +1123,17 @@ const StatementComments = ({
                               </Button>
 
                               {/* Room fee adjustments from sidebar */}
-                              {session.adjustmentValues.length === 0 ? (
-                                "None"
+                              {session.adjustmentValues.filter(
+                                (adj) =>
+                                  adj.value !== 0 &&
+                                  adj.value !== -0
+                              ).length === 0 ? (
+                                <Box
+                                  display="inline-block"
+                                  marginLeft="10px"
+                                >
+                                  None
+                                </Box>
                               ) : (
                                 <Box
                                   display="inline-block"
@@ -1132,7 +1141,12 @@ const StatementComments = ({
                                 >
                                   <Tooltip
                                     label={session.adjustmentValues
-                                      .filter((adj) => adj.type !== "total")
+                                      .filter(
+                                        (adj) =>
+                                          adj.type !== "total" &&
+                                          adj.value !== 0 &&
+                                          adj.value !== -0
+                                      )
                                       .map((adj) => {
                                         const value = Number(adj.value);
                                         const sign = value >= 0 ? "+" : "-";
@@ -1149,6 +1163,11 @@ const StatementComments = ({
                                   >
                                     <Text>
                                       {session.adjustmentValues
+                                        .filter(
+                                          (adj) =>
+                                            adj.value !== 0 &&
+                                            adj.value !== -0
+                                        )
                                         .slice(0, 3)
                                         .map((adj) => {
                                           const value = Number(adj.value);
@@ -1161,7 +1180,11 @@ const StatementComments = ({
                                             : `${sign}${absValue}%`;
                                         })
                                         .join(", ")}
-                                      {session.adjustmentValues.length > 3
+                                      {session.adjustmentValues.filter(
+                                          (adj) =>
+                                            adj.value !== 0 &&
+                                            adj.value !== -0
+                                        ).length > 3
                                         ? ", ..."
                                         : ""}
                                     </Text>
@@ -1825,7 +1848,11 @@ const InvoiceSummary = ({
                           w="auto"
                         >
                           <Text textOverflow="ellipsis" overflow="hidden">
-                            {summary[0]?.adjustmentValues.length > 0
+                            {summary[0]?.adjustmentValues.filter(
+                              (adj) =>
+                                adj.value !== 0 &&
+                                adj.value !== -0
+                            ).length > 0
                               ? summary[0]?.adjustmentValues
                                 .map((adj) => {
                                   const sign = adj.value < 0 ? "-" : "+";

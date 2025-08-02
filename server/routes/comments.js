@@ -190,7 +190,6 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
           total : []
         };
       }
-      console.log("groupedComments", groupedComments);
     }
 
 
