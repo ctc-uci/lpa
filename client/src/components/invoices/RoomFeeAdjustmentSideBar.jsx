@@ -400,7 +400,6 @@ const RoomFeeAdjustmentSideBar = ({
                   </Box>
                 ))}
             </Box>
-
             <Box
               mt={4}
               p={2}
@@ -410,13 +409,15 @@ const RoomFeeAdjustmentSideBar = ({
                 alignItems="center"
                 gap="10px"
               >
+                
                 <Heading
                   size="xs"
                   color="#718096"
                   marginRight="15px"
                 >
-                  NEW ROOM FEE
+                  {JSON.stringify(tempSession.adjustmentValues) !== JSON.stringify(session.adjustmentValues) ? `NEW` : `CURRENT`} ROOM FEE
                 </Heading>
+
                 <Heading size="md">${calculateNewRate().toFixed(2)}/hr</Heading>
               </Flex>
               <Flex
@@ -430,7 +431,7 @@ const RoomFeeAdjustmentSideBar = ({
                   color="#718096"
                   marginRight="15px"
                 >
-                  NEW SESSION TOTAL
+                  {JSON.stringify(tempSession.adjustmentValues) !== JSON.stringify(session.adjustmentValues) ? `NEW` : `CURRENT`} SESSION TOTAL
                 </Heading>
                 <Heading size="md">
                   {" "}
@@ -899,7 +900,7 @@ const SummaryFeeAdjustmentSideBar = ({
                   color="#718096"
                   marginRight="15px"
                 >
-                  NEW ROOM FEE
+                  {JSON.stringify(tempSummary.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} ROOM FEE
                 </Heading>
                 <Heading size="md">
                   ${calculateTempRate().toFixed(2)}/hr
@@ -916,7 +917,7 @@ const SummaryFeeAdjustmentSideBar = ({
                   color="#718096"
                   marginRight="15px"
                 >
-                  NEW SESSION TOTAL
+                  {JSON.stringify(tempSummary.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} SESSION TOTAL
                 </Heading>
                 <Heading size="md">
                   {" "}

@@ -1827,17 +1827,29 @@ const InvoiceSummary = ({
                     py={compactView ? 2 : 4}
                     borderBottom={key === array.length - 1 ? undefined : "none"}
                   >
-                    {!summary || summary.length === 0 ? (
+                    {!summary || summary[0]?.adjustmentValues.filter(
+                      (adj) =>
+                        adj.value !== 0 &&
+                        adj.value !== -0 &&
+                        Number(adj.value) !== 0
+                    ).length === 0 ? (
                       "None"
                     ) : (
                       <Box display="inline-block">
                         <Tooltip
-                          label={summary[0]?.adjustmentValues.length > 0
+                          label={summary[0]?.adjustmentValues.filter(
+                            (adj) =>
+                              adj.value !== 0 &&
+                              adj.value !== -0 &&
+                              Number(adj.value) !== 0
+                          ).length > 0
                             ? summary[0]?.adjustmentValues
+
                               .map((adj) => {
                                 const sign = adj.value < 0 ? "-" : "+";
                                 const isFlat = adj.type === "rate_flat";
                                 const absValue = Math.abs(adj.value);
+                                if(absValue === 0) return "None";
                                 return isFlat
                                 ? `${sign}$${absValue}`
                                 : `${sign}${absValue}%`;
@@ -1851,9 +1863,11 @@ const InvoiceSummary = ({
                             {summary[0]?.adjustmentValues.filter(
                               (adj) =>
                                 adj.value !== 0 &&
-                                adj.value !== -0
+                                adj.value !== -0 &&
+                                Number(adj.value) !== 0
                             ).length > 0
                               ? summary[0]?.adjustmentValues
+                                .filter((adj) => adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
                                 .map((adj) => {
                                   const sign = adj.value < 0 ? "-" : "+";
                                   const isFlat = adj.type === "rate_flat";
