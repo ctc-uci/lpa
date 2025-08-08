@@ -70,10 +70,13 @@ export const useSessionStore = create<SessionStore>((set) => ({
                 : s
         ),
     })),
-    deleteComment: (sessionIndex, commentId) => set((state) => ({
+    deleteComment: (sessionIndex, commentIndex) => set((state) => ({
         sessions: state.sessions.map((s, idx) =>
             idx === sessionIndex
-                ? { ...s, comments: (s.comments || []).filter((c) => c.id !== commentId) }
+                ? { 
+                    ...s, 
+                    comments: (s.comments || []).filter((c, cidx) => cidx !== Number(commentIndex))
+                  }
                 : s
         ),
     })),

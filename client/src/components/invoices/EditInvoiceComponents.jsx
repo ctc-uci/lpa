@@ -300,7 +300,7 @@ const StatementComments = ({
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
 
-  const { sessions, setSessions, addSession, deleteSession, addComment, setComment } = useSessionStore();
+  const { sessions, setSessions, addSession, deleteSession, addComment, setComment, deleteComment } = useSessionStore();
 
   // Store original rates for each session
   const originalSessionRatesRef = useRef({});
@@ -588,26 +588,11 @@ const StatementComments = ({
     }, 100);
   };
 
-  // const handleDeleteComment = (sessionIndex, commentIndex) => {
-  //   const comment = sessions?.[sessionIndex]?.comments?.[commentIndex];
-  //   const commentId = comment?.id;
-
-  //   if (commentId) {
-  //     // Use global store deletion when we have a persisted ID
-  //     useSessionStore.getState().deleteComment(sessionIndex, commentId);
-  //     setDeletedIds((prev) => [...prev, commentId]);
-  //   } else {
-  //     // Local-only deletion if no id exists yet
-  //     setSessions((prevSessions) =>
-  //       prevSessions.map((session, index) => {
-  //         if (index !== sessionIndex) return session;
-  //         const newComments = [...(session.comments || [])];
-  //         newComments.splice(commentIndex, 1);
-  //         return { ...session, comments: newComments };
-  //       })
-  //     );
-  //   }
-  // };
+  const handleDeleteComment = (sessionIndex, commentIndex) => {
+    const comment = sessions?.[sessionIndex]?.comments?.[commentIndex];
+    deleteComment(sessionIndex, commentIndex);
+    setDeletedIds((prev) => [...prev, comment.id]);
+  };
 
   // const handleAddCustomRow = (index) => {
   //   setSessions((prevSessions) => {
@@ -1317,10 +1302,10 @@ const StatementComments = ({
                                         colorScheme="gray"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          // handleDeleteComment(
-                                          //   index,
-                                          //   commentIndex
-                                          // );
+                                          handleDeleteComment(
+                                            index,
+                                            commentIndex
+                                          );
                                         }}
                                         opacity="0"
                                         _groupHover={{ opacity: 1 }}
