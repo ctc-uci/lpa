@@ -54,6 +54,7 @@ export interface SessionStore {
     // Custom Rows/Totals
     addCustomRow: (sessionIndex: number, customRow: Total) => void;
     setCustomRow: (sessionIndex: number, totalIndex: number, customRow: Total) => void;
+    deleteCustomRow: (sessionIndex: number, totalIndex: number) => void;
 }
 
 
@@ -107,6 +108,14 @@ export const useSessionStore = create<SessionStore>((set) => ({
         sessions: state.sessions.map((s, idx) =>
             idx === sessionIndex
                 ? { ...s, total: (s.total || []).map((t, tidx) => tidx === totalIndex ? customRow : t) }
+                : s
+        ),
+    })),
+
+    deleteCustomRow: (sessionIndex, totalIndex) => set((state) => ({
+        sessions: state.sessions.map((s, idx) =>
+            idx === sessionIndex
+                ? { ...s, total: (s.total || []).filter((t, tidx) => tidx !== totalIndex) }
                 : s
         ),
     })),

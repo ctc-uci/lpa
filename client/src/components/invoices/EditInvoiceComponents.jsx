@@ -300,7 +300,17 @@ const StatementComments = ({
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
 
-  const { sessions, setSessions, addSession, deleteSession, addComment, setComment, deleteComment, addCustomRow, setCustomRow } = useSessionStore();
+  const { sessions, setSessions, addSession, deleteSession, addComment, setComment, deleteComment, addCustomRow, setCustomRow, deleteCustomRow } = useSessionStore();
+  const formatDateForInput = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value.split("T")[0];
+    try {
+      return new Date(value).toISOString().split("T")[0];
+    } catch {
+      return "";
+    }
+  };
+
 
   // Store original rates for each session
   const originalSessionRatesRef = useRef({});
@@ -557,7 +567,7 @@ const StatementComments = ({
 
   const handleEditComment = (sessionIndex, commentIndex) => {
     setComment(sessionIndex, commentIndex, commentText);
-    
+
     // const session = sessions[sessionIndex];
     // setCommentText(session?.comments[commentIndex]?.comment || "");
     setActiveCommentId(`${sessionIndex}-${commentIndex}`);
@@ -595,8 +605,8 @@ const StatementComments = ({
   };
 
   const handleAddCustomRow = (index) => {
-    if(editingCustomRow !== null) return;
-    
+    if (editingCustomRow !== null) return;
+
     addCustomRow(index, {
       date: new Date().toISOString().split("T")[0],
       value: 0,
@@ -610,14 +620,14 @@ const StatementComments = ({
   };
 
   const handleEditCustomRow = (session, index, totalIndex) => {
-    if(editingCustomRow !== null) return;
-    
+    if (editingCustomRow !== null) return;
+
     setEditingCustomRow(`${index}-${totalIndex}`);
 
     const date = new Date(session.datetime);
-    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());  
 
-    setEditCustomDate(session.total[totalIndex].date);
+    setEditCustomDate(formatDateForInput(session.total[totalIndex].date));
     setEditCustomText(session.total[totalIndex]?.comment || "");
     setEditCustomAmount(session.total[totalIndex].value.toString());
   };
@@ -638,29 +648,15 @@ const StatementComments = ({
     setEditCustomAmount("");
   };
 
-  // const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
-  //   setSessions((prevSessions) => {
-  //     return prevSessions.map((session, index) => {
-  //       if (index === sessionIndex) {
-  //         // Create a new total array without the deleted item
-  //         const newTotal = [...session.total];
-  //         newTotal.splice(totalIndex, 1);
+  const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
+    deleteCustomRow(sessionIndex, totalIndex);
 
-  //         return {
-  //           ...session,
-  //           total: newTotal,
-  //         };
-  //       }
-  //       return session;
-  //     });
-  //   });
-
-  //   // If the total item had an ID, add it to deletedIds
-  //   const totalItem = sessions[sessionIndex]?.total[totalIndex];
-  //   if (totalItem?.id) {
-  //     setDeletedIds((prevDeletedIds) => [...prevDeletedIds, totalItem.id]);
-  //   }
-  // };
+    // If the total item had an ID, add it to deletedIds
+    const totalItem = sessions[sessionIndex]?.total[totalIndex];
+    if (totalItem?.id) {
+      setDeletedIds((prevDeletedIds) => [...prevDeletedIds, totalItem.id]);
+    }
+  };
 
   useEffect(() => {
     console.log(sessions);
@@ -786,9 +782,10 @@ const StatementComments = ({
                   </Th>
                 </Tr>
               </Thead>
-
+              
               <Tbody color="#2D3748">
-                {sessions
+                {/* I lowkey don't remember what this was for */}
+                {/* {sessions
                   .filter((session) => session.name.length === 0)
                   .map((session, index) =>
                     session.total?.map((total, totalIndex) => {
@@ -805,7 +802,7 @@ const StatementComments = ({
                               >
                                 <Input
                                   type="date"
-                                  value={editCustomDate}  
+                                  value={editCustomDate}
                                   onChange={(e) =>
                                     setEditCustomDate(e.target.value)
                                   }
@@ -868,9 +865,9 @@ const StatementComments = ({
                           >
                             <Td
                               py="6"
-                              // onClick={() =>
-                              //   handleEditCustomRow(session, index, totalIndex)
-                              // }
+                            // onClick={() =>
+                            //   handleEditCustomRow(session, index, totalIndex)
+                            // }
                             >
                               {(() => {
                                 const date = new Date(
@@ -934,7 +931,7 @@ const StatementComments = ({
                         );
                       }
                     })
-                  )}
+                  )} */}
 
                 {sessions && sessions.length > 0 ? (
                   sessions
@@ -964,7 +961,7 @@ const StatementComments = ({
                                 zIndex="1"
                                 opacity={
                                   hoveredRowIndex === index ||
-                                  activeCommentId === session.id
+                                    activeCommentId === session.id
                                     ? 1
                                     : 0
                                 }
@@ -977,8 +974,9 @@ const StatementComments = ({
                                   size="sm"
                                   colorScheme="gray"
                                   onClick={() => {
-                                    if(activeCommentId !== null) return;
-                                    handleAddComment(index)}
+                                    if (activeCommentId !== null) return;
+                                    handleAddComment(index)
+                                  }
                                   }
                                   width="100%"
                                 >
@@ -1051,7 +1049,7 @@ const StatementComments = ({
                                 height="32px"
                                 opacity={
                                   activeRowId === null ||
-                                  activeRowId === session.id
+                                    activeRowId === session.id
                                     ? 1
                                     : 0.3
                                 }
@@ -1122,10 +1120,10 @@ const StatementComments = ({
                                         })
                                         .join(", ")}
                                       {session.adjustmentValues.filter(
-                                          (adj) =>
-                                            adj.value !== 0 &&
-                                            adj.value !== -0
-                                        ).length > 3
+                                        (adj) =>
+                                          adj.value !== 0 &&
+                                          adj.value !== -0
+                                      ).length > 3
                                         ? ", ..."
                                         : ""}
                                     </Text>
@@ -1202,7 +1200,7 @@ const StatementComments = ({
                           {session.comments?.map((comment, commentIndex) => (
                             <React.Fragment key={`comment-${commentIndex}`}>
                               {activeCommentId ===
-                              `${index}-${commentIndex}` ? (
+                                `${index}-${commentIndex}` ? (
                                 <Tr>
                                   <Td
                                     colSpan={6}
@@ -1256,10 +1254,10 @@ const StatementComments = ({
                                       <Box
                                         cursor="pointer"
                                         onClick={() => {
-                                            if(activeCommentId !== null) return;
-                                            setCommentText(comment.comment);
-                                            handleEditComment(index, commentIndex)
-                                          }
+                                          if (activeCommentId !== null) return;
+                                          setCommentText(comment.comment);
+                                          handleEditComment(index, commentIndex)
+                                        }
                                         }
                                         flex="1"
                                         pr={4}
@@ -1420,7 +1418,7 @@ const StatementComments = ({
                                       );
                                       date.setMinutes(
                                         date.getMinutes() +
-                                          date.getTimezoneOffset()
+                                        date.getTimezoneOffset()
                                       );
                                       return format(date, "EEE. M/d/yy");
                                     })()}
@@ -1452,10 +1450,10 @@ const StatementComments = ({
                                         colorScheme="gray"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          // handleDeleteCustomRow(
-                                          //   index,
-                                          //   totalIndex
-                                          // );
+                                          handleDeleteCustomRow(
+                                            index,
+                                            totalIndex
+                                          );
                                         }}
                                         opacity="0"
                                         _groupHover={{ opacity: 1 }}
@@ -1778,12 +1776,12 @@ const InvoiceSummary = ({
                                 const sign = adj.value < 0 ? "-" : "+";
                                 const isFlat = adj.type === "rate_flat";
                                 const absValue = Math.abs(adj.value);
-                                if(absValue === 0) return "None";
+                                if (absValue === 0) return "None";
                                 return isFlat
-                                ? `${sign}$${absValue}`
-                                : `${sign}${absValue}%`;
-                            })
-                            .join(", ") : "None"}
+                                  ? `${sign}$${absValue}`
+                                  : `${sign}${absValue}%`;
+                              })
+                              .join(", ") : "None"}
                           placement="top"
                           bg="gray"
                           w="auto"
