@@ -36,6 +36,8 @@ import {
   StatementComments,
 } from "./EditInvoiceComponents";
 import { getCurrentUser } from "../../utils/auth/firebase";
+import { useSessionStore } from "../../stores/useSessionStore";
+import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
 
 const InvoiceNavBar = ({
   onBack,
@@ -156,7 +158,7 @@ export const EditInvoice = () => {
 
   const [subtotalValue, setSubtotalValue] = useState(0);
 
-  const [sessions, setSessions] = useState([]);
+  const { sessions, setSessions } = useSessionStore();
   const [summary, setSummary] = useState([]);
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -192,6 +194,7 @@ export const EditInvoice = () => {
           setProgramName("");
           setPayees(null);
           setPastDue(0);
+          setSessions([]);
           return;
         }
 
@@ -253,11 +256,6 @@ export const EditInvoice = () => {
           pastDue: remainingBalance,
         });
 
-        const sessionResponse = await backend.get(
-          `comments/invoice/sessions/${id}`
-        );
-        setSessions(sessionResponse.data);
-
         const summaryResponse = await backend.get(
           `comments/invoice/summary/${id}`
         );
@@ -268,6 +266,9 @@ export const EditInvoice = () => {
     };
     fetchData();
   }, [invoice]);
+
+  // Fetch sessions via hook into the store
+  useInvoiceSessions(id);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {

@@ -1457,7 +1457,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                         )}
                       </Flex>
                     </Td>
-                    <Td onClick={() => handleRowClick(invoice.id)}>
+                    <Td onClick={() => handleRowClick(invoice.id)} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                       {invoice.eventName}
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>

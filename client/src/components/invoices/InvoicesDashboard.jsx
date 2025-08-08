@@ -135,7 +135,6 @@ const InvoicesDashboard = () => {
   const isPaid = (invoice) => {
     const endDate = new Date(invoice.endDate);
 
-    console.log(invoice);
 
     if (invoice.paymentStatus === "full") {
       return "Paid";
@@ -155,7 +154,6 @@ const InvoicesDashboard = () => {
     if (!query) return invoices;
 
     return invoices.filter((invoice) => {
-      console.log(invoice);
       const invoiceName = invoice.name?.toLowerCase() || "";
       const invoiceEventName = invoice.eventName?.toLowerCase() || "";
       const invoicePayer = Array.isArray(invoice.payers)
@@ -202,7 +200,6 @@ const InvoicesDashboard = () => {
           paymentStatus: isPaid(invoice),
         }));
 
-        console.log(invoices);
 
         setInvoices(invoices);
         setFilteredInvoices(invoices);

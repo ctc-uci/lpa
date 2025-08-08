@@ -63,6 +63,7 @@ import {
   RoomFeeAdjustmentSideBar,
   SummaryFeeAdjustmentSideBar,
 } from "./RoomFeeAdjustmentSideBar";
+import { useSessionStore } from "../../stores/useSessionStore";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -282,8 +283,6 @@ const EditInvoiceDetails = ({
 const StatementComments = ({
   invoice,
   compactView = false,
-  sessions = [],
-  setSessions,
   setSubtotal,
   deletedIds,
   setDeletedIds,
@@ -300,6 +299,8 @@ const StatementComments = ({
   const [editCustomText, setEditCustomText] = useState("");
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
+
+  const { sessions, setSessions, addSession, deleteSession, addComment, setComment } = useSessionStore();
 
   // Store original rates for each session
   const originalSessionRatesRef = useRef({});
@@ -534,37 +535,13 @@ const StatementComments = ({
       return;
     }
 
-    setSessions((prevSessions) => {
-      return prevSessions.map((session, sessionIndex) => {
-        if (sessionIndex === index) {
-          const comments = session.comments || [];
-          if (commentIndex !== null) {
-            // Edit existing comment
-            const newComments = [...comments];
-            newComments[commentIndex] = {
-              id: comments[commentIndex].id,
-              comment: commentText,
-            };
-            return {
-              ...session,
-              comments: newComments,
-            };
-          } else {
-            // Add new comment
-            return {
-              ...session,
-              comments: [
-                ...comments,
-                {
-                  comment: commentText,
-                },
-              ],
-            };
-          }
-        }
-        return session;
-      });
-    });
+    if (commentIndex !== null) {
+      // Edit existing comment locally for now
+      setComment(index, commentIndex, commentText);
+    } else {
+      // Add new comment via global store
+      addComment(index, commentText.trim());
+    }
     setActiveCommentId(null);
     setCommentText("");
   };
@@ -578,10 +555,12 @@ const StatementComments = ({
     }
   };
 
-  const handleEditComment = (index, commentIndex) => {
-    const session = sessions[index];
-    setCommentText(session?.comments[commentIndex]?.comment || "");
-    setActiveCommentId(`${index}-${commentIndex}`);
+  const handleEditComment = (sessionIndex, commentIndex) => {
+    setComment(sessionIndex, commentIndex, commentText);
+    
+    // const session = sessions[sessionIndex];
+    // setCommentText(session?.comments[commentIndex]?.comment || "");
+    setActiveCommentId(`${sessionIndex}-${commentIndex}`);
   };
 
   const handleKeyDown = (e, index, commentIndex = null) => {
@@ -592,13 +571,13 @@ const StatementComments = ({
     }
   };
 
-  const handleCustomRowKeyDown = (e, sessionIndex, totalIndex) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      e.stopPropagation();
-      handleSaveCustomRow(sessionIndex, totalIndex);
-    }
-  };
+  // const handleCustomRowKeyDown = (e, sessionIndex, totalIndex) => {
+  //   if (e.key === "Enter") {
+  //     e.preventDefault();
+  //     e.stopPropagation();
+  //     handleSaveCustomRow(sessionIndex, totalIndex);
+  //   }
+  // };
 
   const handleBlur = (e, index, commentIndex = null) => {
     // Small timeout to allow clicking on buttons
@@ -609,123 +588,124 @@ const StatementComments = ({
     }, 100);
   };
 
-  const handleDeleteComment = (sessionIndex, commentIndex) => {
-    setSessions((prevSessions) => {
-      return prevSessions.map((session, index) => {
-        if (index === sessionIndex) {
-          const newComments = [...(session.comments || [])];
-          newComments.splice(commentIndex, 1);
-          return {
-            ...session,
-            comments: newComments,
-          };
-        }
-        return session;
-      });
-    });
+  // const handleDeleteComment = (sessionIndex, commentIndex) => {
+  //   const comment = sessions?.[sessionIndex]?.comments?.[commentIndex];
+  //   const commentId = comment?.id;
 
-    // If user created comment and immediately deletes it, no need to send to backend
-    if (sessions[sessionIndex].comments[commentIndex].id) {
-      setDeletedIds((prevDeletedIds) => [
-        ...prevDeletedIds,
-        sessions[sessionIndex].comments[commentIndex].id,
-      ]);
-    }
-  };
+  //   if (commentId) {
+  //     // Use global store deletion when we have a persisted ID
+  //     useSessionStore.getState().deleteComment(sessionIndex, commentId);
+  //     setDeletedIds((prev) => [...prev, commentId]);
+  //   } else {
+  //     // Local-only deletion if no id exists yet
+  //     setSessions((prevSessions) =>
+  //       prevSessions.map((session, index) => {
+  //         if (index !== sessionIndex) return session;
+  //         const newComments = [...(session.comments || [])];
+  //         newComments.splice(commentIndex, 1);
+  //         return { ...session, comments: newComments };
+  //       })
+  //     );
+  //   }
+  // };
 
-  const handleAddCustomRow = (index) => {
-    setSessions((prevSessions) => {
-      return prevSessions.map((session, sessionIndex) => {
-        if (sessionIndex === index) {
-          return {
-            ...session,
-            total: [
-              ...session.total,
-              {
-                date: new Date().toISOString().split("T")[0],
-                value: 0,
-                comment: "",
-              },
-            ],
-          };
-        }
-        return session;
-      });
-    });
-    setEditingCustomRow(`${index}-${sessions[index].total.length}`);
-    setEditCustomDate(new Date().toISOString().split("T")[0]);
-    setEditCustomText("");
-    setEditCustomAmount("0");
-  };
+  // const handleAddCustomRow = (index) => {
+  //   setSessions((prevSessions) => {
+  //     return prevSessions.map((session, sessionIndex) => {
+  //       if (sessionIndex === index) {
+  //         return {
+  //           ...session,
+  //           total: [
+  //             ...session.total,
+  //             {
+  //               date: new Date().toISOString().split("T")[0],
+  //               value: 0,
+  //               comment: "",
+  //             },
+  //           ],
+  //         };
+  //       }
+  //       return session;
+  //     });
+  //   });
+  //   setEditingCustomRow(`${index}-${sessions[index].total.length}`);
+  //   setEditCustomDate(new Date().toISOString().split("T")[0]);
+  //   setEditCustomText("");
+  //   setEditCustomAmount("0");
+  // };
 
-  const handleEditCustomRow = (session, index, totalIndex) => {
-    setEditingCustomRow(`${index}-${totalIndex}`);
+  // const handleEditCustomRow = (session, index, totalIndex) => {
+  //   setEditingCustomRow(`${index}-${totalIndex}`);
 
-    const date = new Date(session.datetime);
-    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  //   const date = new Date(session.datetime);
+  //   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
 
-    setEditCustomDate(session.total[totalIndex].date);
-    setEditCustomText(session.total[totalIndex]?.comment || "");
-    setEditCustomAmount(session.total[totalIndex].value.toString());
-  };
+  //   setEditCustomDate(session.total[totalIndex].date);
+  //   setEditCustomText(session.total[totalIndex]?.comment || "");
+  //   setEditCustomAmount(session.total[totalIndex].value.toString());
+  // };
 
-  const handleSaveCustomRow = (sessionIndex, totalIndex) => {
-    if (!editCustomDate || !editCustomText || !editCustomAmount) return;
+  // const handleSaveCustomRow = (sessionIndex, totalIndex) => {
+  //   if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
-    setSessions((prevSessions) => {
-      return prevSessions.map((prevSession, index) => {
-        // Only update the session that matches the sessionIndex
-        if (index === sessionIndex) {
-          // Create a new total array with the updated item
-          const newTotal = [...prevSession.total];
-          const date = new Date(editCustomDate);
-          date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+  //   setSessions((prevSessions) => {
+  //     return prevSessions.map((prevSession, index) => {
+  //       // Only update the session that matches the sessionIndex
+  //       if (index === sessionIndex) {
+  //         // Create a new total array with the updated item
+  //         const newTotal = [...prevSession.total];
+  //         const date = new Date(editCustomDate);
+  //         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
 
-          newTotal[totalIndex] = {
-            date: date.toISOString().split("T")[0],
-            value: parseFloat(editCustomAmount),
-            comment: editCustomText,
-          };
+  //         newTotal[totalIndex] = {
+  //           date: date.toISOString().split("T")[0],
+  //           value: parseFloat(editCustomAmount),
+  //           comment: editCustomText,
+  //         };
 
-          // Return new session object with updated total
-          return {
-            ...prevSession,
-            total: newTotal,
-          };
-        }
-        return prevSession;
-      });
-    });
+  //         // Return new session object with updated total
+  //         return {
+  //           ...prevSession,
+  //           total: newTotal,
+  //         };
+  //       }
+  //       return prevSession;
+  //     });
+  //   });
 
-    setEditingCustomRow(null);
-    setEditCustomDate(new Date().toISOString().split("T")[0]);
-    setEditCustomText("");
-    setEditCustomAmount("");
-  };
+  //   setEditingCustomRow(null);
+  //   setEditCustomDate(new Date().toISOString().split("T")[0]);
+  //   setEditCustomText("");
+  //   setEditCustomAmount("");
+  // };
 
-  const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
-    setSessions((prevSessions) => {
-      return prevSessions.map((session, index) => {
-        if (index === sessionIndex) {
-          // Create a new total array without the deleted item
-          const newTotal = [...session.total];
-          newTotal.splice(totalIndex, 1);
+  // const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
+  //   setSessions((prevSessions) => {
+  //     return prevSessions.map((session, index) => {
+  //       if (index === sessionIndex) {
+  //         // Create a new total array without the deleted item
+  //         const newTotal = [...session.total];
+  //         newTotal.splice(totalIndex, 1);
 
-          return {
-            ...session,
-            total: newTotal,
-          };
-        }
-        return session;
-      });
-    });
+  //         return {
+  //           ...session,
+  //           total: newTotal,
+  //         };
+  //       }
+  //       return session;
+  //     });
+  //   });
 
-    // If the total item had an ID, add it to deletedIds
-    const totalItem = sessions[sessionIndex]?.total[totalIndex];
-    if (totalItem?.id) {
-      setDeletedIds((prevDeletedIds) => [...prevDeletedIds, totalItem.id]);
-    }
-  };
+  //   // If the total item had an ID, add it to deletedIds
+  //   const totalItem = sessions[sessionIndex]?.total[totalIndex];
+  //   if (totalItem?.id) {
+  //     setDeletedIds((prevDeletedIds) => [...prevDeletedIds, totalItem.id]);
+  //   }
+  // };
+
+  useEffect(() => {
+    console.log(sessions);
+  }, [sessions]);
 
   return (
     <Flex
@@ -929,9 +909,9 @@ const StatementComments = ({
                           >
                             <Td
                               py="6"
-                              onClick={() =>
-                                handleEditCustomRow(session, index, totalIndex)
-                              }
+                              // onClick={() =>
+                              //   handleEditCustomRow(session, index, totalIndex)
+                              // }
                             >
                               {(() => {
                                 const date = new Date(
@@ -945,9 +925,9 @@ const StatementComments = ({
                             </Td>
                             <Td
                               colSpan={4}
-                              onClick={() =>
-                                handleEditCustomRow(session, index, totalIndex)
-                              }
+                              // onClick={() =>
+                              //   handleEditCustomRow(session, index, totalIndex)
+                              // }
                             >
                               {session.total[totalIndex]?.comment ||
                                 "Custom adjustment"}
@@ -981,7 +961,7 @@ const StatementComments = ({
                                   colorScheme="gray"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDeleteCustomRow(index, totalIndex);
+                                    // handleDeleteCustomRow(index, totalIndex);
                                   }}
                                   opacity="0"
                                   _groupHover={{ opacity: 1 }}
@@ -1038,7 +1018,10 @@ const StatementComments = ({
                                   leftIcon={<AddIcon />}
                                   size="sm"
                                   colorScheme="gray"
-                                  onClick={() => handleAddComment(index)}
+                                  onClick={() => {
+                                    if(activeCommentId !== null) return;
+                                    handleAddComment(index)}
+                                  }
                                   width="100%"
                                 >
                                   Comment
@@ -1048,7 +1031,7 @@ const StatementComments = ({
                                   size="sm"
                                   colorScheme="gray"
                                   width="100%"
-                                  onClick={() => handleAddCustomRow(index)}
+                                  // onClick={() => handleAddCustomRow(index)}
                                 >
                                   Custom
                                 </Button>
@@ -1314,8 +1297,11 @@ const StatementComments = ({
                                     >
                                       <Box
                                         cursor="pointer"
-                                        onClick={() =>
-                                          handleEditComment(index, commentIndex)
+                                        onClick={() => {
+                                            if(activeCommentId !== null) return;
+                                            setCommentText(comment.comment);
+                                            handleEditComment(index, commentIndex)
+                                          }
                                         }
                                         flex="1"
                                         pr={4}
@@ -1331,10 +1317,10 @@ const StatementComments = ({
                                         colorScheme="gray"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleDeleteComment(
-                                            index,
-                                            commentIndex
-                                          );
+                                          // handleDeleteComment(
+                                          //   index,
+                                          //   commentIndex
+                                          // );
                                         }}
                                         opacity="0"
                                         _groupHover={{ opacity: 1 }}
@@ -1462,13 +1448,13 @@ const StatementComments = ({
                                 >
                                   <Td
                                     py="6"
-                                    onClick={() =>
-                                      handleEditCustomRow(
-                                        session,
-                                        index,
-                                        totalIndex
-                                      )
-                                    }
+                                    // onClick={() =>
+                                    //   handleEditCustomRow(
+                                    //     session,
+                                    //     index,
+                                    //     totalIndex
+                                    //   )
+                                    // }
                                   >
                                     {(() => {
                                       const date = new Date(
@@ -1483,13 +1469,13 @@ const StatementComments = ({
                                   </Td>
                                   <Td
                                     colSpan={4}
-                                    onClick={() =>
-                                      handleEditCustomRow(
-                                        session,
-                                        index,
-                                        totalIndex
-                                      )
-                                    }
+                                    // onClick={() =>
+                                    //   handleEditCustomRow(
+                                    //     session,
+                                    //     index,
+                                    //     totalIndex
+                                    //   )
+                                    // }
                                   >
                                     {session.total[totalIndex]?.comment ||
                                       "Custom adjustment"}
@@ -1503,13 +1489,13 @@ const StatementComments = ({
                                       alignItems="center"
                                     >
                                       <Text
-                                        onClick={() =>
-                                          handleEditCustomRow(
-                                            session,
-                                            index,
-                                            totalIndex
-                                          )
-                                        }
+                                        // onClick={() =>
+                                        //   handleEditCustomRow(
+                                        //     session,
+                                        //     index,
+                                        //     totalIndex
+                                        //   )
+                                        // }
                                       >
                                         ${" "}
                                         {Number(
@@ -1523,10 +1509,10 @@ const StatementComments = ({
                                         colorScheme="gray"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleDeleteCustomRow(
-                                            index,
-                                            totalIndex
-                                          );
+                                          // handleDeleteCustomRow(
+                                          //   index,
+                                          //   totalIndex
+                                          // );
                                         }}
                                         opacity="0"
                                         _groupHover={{ opacity: 1 }}

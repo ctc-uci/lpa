@@ -38,14 +38,11 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
   });
 
   const updateFilter = (type, value) => {
-    console.log(`Updating filter: ${type} with value:`, value);
     setFilters((prev) => ({ ...prev, [type]: value }));
   };
 
   // Apply the filters to the programs page
   const applyFilters = () => {
-    console.log("Applying filters:", filters);
-    console.log("Original programs:", invoices);
     let filtered = invoices;
 
     if (filters.startDate) {
