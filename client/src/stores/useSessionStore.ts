@@ -18,7 +18,7 @@ export interface Total {
     date: string;
     comment: string;
     value: number;
-    order_index: number;
+    order_index?: number;
 }
 
 export interface Session {
@@ -50,6 +50,10 @@ export interface SessionStore {
     addComment: (sessionIndex: number, comment: string) => void;
     deleteComment: (sessionIndex: number, commentId: string) => void;
     setComment: (sessionIndex: number, commentIndex: number, comment: string) => void;
+
+    // Custom Rows/Totals
+    addCustomRow: (sessionIndex: number, customRow: Total) => void;
+    setCustomRow: (sessionIndex: number, totalIndex: number, customRow: Total) => void;
 }
 
 
@@ -63,6 +67,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
     // Adjustment Values
     addAdjustmentValue: (sessionId, adjustmentType, adjustmentValue) => set((state) => ({ sessions: state.sessions.map(s => s.invoiceId === sessionId ? { ...s, adjustmentValues: [...s.adjustmentValues, {type: adjustmentType, value: adjustmentValue }] } : s) })),
     
+    
+    //Comments
     addComment: (sessionIndex: number, comment: string) => set((state) => ({
         sessions: state.sessions.map((s, idx) =>
             idx === sessionIndex
@@ -84,6 +90,23 @@ export const useSessionStore = create<SessionStore>((set) => ({
         sessions: state.sessions.map((s, idx) =>
             idx === sessionIndex
                 ? { ...s, comments: (s.comments || []).map((c, cidx) => cidx === commentIndex ? { ...c, comment } : c) }
+                : s
+        ),
+    })),
+
+    // Totals
+    addCustomRow: (sessionIndex, customRow) => set((state) => ({
+        sessions: state.sessions.map((s, idx) =>
+            idx === sessionIndex
+                ? { ...s, total: [...(s.total || []), customRow] }
+                : s
+        ),
+    })),
+
+    setCustomRow: (sessionIndex, totalIndex, customRow) => set((state) => ({
+        sessions: state.sessions.map((s, idx) =>
+            idx === sessionIndex
+                ? { ...s, total: (s.total || []).map((t, tidx) => tidx === totalIndex ? customRow : t) }
                 : s
         ),
     })),
