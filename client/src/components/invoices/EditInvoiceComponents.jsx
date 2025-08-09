@@ -64,6 +64,7 @@ import {
   SummaryFeeAdjustmentSideBar,
 } from "./RoomFeeAdjustmentSideBar";
 import { useSessionStore } from "../../stores/useSessionStore";
+import { useSummaryStore } from "../../stores/useSummaryStore";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -286,8 +287,9 @@ const StatementComments = ({
   setSubtotal,
   deletedIds,
   setDeletedIds,
-  summary = [],
+  // summary = [],
 }) => {
+  const { summary, setSummary } = useSummaryStore();
   const { backend } = useBackendContext();
   const [activeRowId, setActiveRowId] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -300,7 +302,18 @@ const StatementComments = ({
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
 
-  const { sessions, setSessions, addSession, deleteSession, addComment, setComment, deleteComment, addCustomRow, setCustomRow, deleteCustomRow } = useSessionStore();
+  const { sessions, 
+          setSessions, 
+          addSession, 
+          deleteSession, 
+          addComment, 
+          setComment, 
+          deleteComment, 
+          addCustomRow, 
+          setCustomRow, 
+          deleteCustomRow 
+        } = useSessionStore();
+
   const formatDateForInput = (value) => {
     if (!value) return "";
     if (typeof value === "string") return value.split("T")[0];
@@ -348,61 +361,61 @@ const StatementComments = ({
     }
   }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount]);
 
-  useEffect(() => {
-    // Recalculate subtotal whenever sessions change
-    if (sessions && sessions.length > 0) {
-      const newSubtotal = calculateSubtotal(sessions);
-      setSubtotal(newSubtotal);
-    }
-  }, [sessions]);
+  // useEffect(() => {
+  //   // Recalculate subtotal whenever sessions change
+  //   if (sessions && sessions.length > 0) {
+  //     const newSubtotal = calculateSubtotal(sessions);
+  //     setSubtotal(newSubtotal);
+  //   }
+  // }, [sessions]);
 
-  useEffect(() => {
-    if (sessions?.length > 0) {
-      // Store original rates for each session if not already stored
-      sessions.forEach((session) => {
-        if (
-          session.name &&
-          originalSessionRatesRef.current[session.name] === undefined
-        ) {
-          originalSessionRatesRef.current[session.name] = session.rate;
-        }
-      });
-    }
-  }, [sessions]);
+  // useEffect(() => {
+  //   if (sessions?.length > 0) {
+  //     // Store original rates for each session if not already stored
+  //     sessions.forEach((session) => {
+  //       if (
+  //         session.name &&
+  //         originalSessionRatesRef.current[session.name] === undefined
+  //       ) {
+  //         originalSessionRatesRef.current[session.name] = session.rate;
+  //       }
+  //     });
+  //   }
+  // }, [sessions]);
 
-  useEffect(() => {
-    if (!summary || sessions.length === 0) return;
+  // useEffect(() => {
+  //   if (!summary || sessions.length === 0) return;
 
-    const updatedSessions = sessions.map((session) => {
-      // Skip sessions without names (custom rows) or missing original rates
-      if (
-        !session.name ||
-        originalSessionRatesRef.current[session.name] === undefined
-      ) {
-        return session;
-      }
+  //   const updatedSessions = sessions.map((session) => {
+  //     // Skip sessions without names (custom rows) or missing original rates
+  //     if (
+  //       !session.name ||
+  //       originalSessionRatesRef.current[session.name] === undefined
+  //     ) {
+  //       return session;
+  //     }
 
-      const originalRate = originalSessionRatesRef.current[session.name];
+  //     const originalRate = originalSessionRatesRef.current[session.name];
 
-      if (!summary[0]?.adjustmentValues) return session;
+  //     if (!summary[0]?.adjustmentValues) return session;
 
-      const adjustedRate = calculateTotalBookingRow(
-        originalRate,
-        summary[0].adjustmentValues
-      );
+  //     const adjustedRate = calculateTotalBookingRow(
+  //       originalRate,
+  //       summary[0].adjustmentValues
+  //     );
 
-      if (session.rate !== adjustedRate) {
-        return {
-          ...session,
-          rate: adjustedRate,
-        };
-      }
+  //     if (session.rate !== adjustedRate) {
+  //       return {
+  //         ...session,
+  //         rate: adjustedRate,
+  //       };
+  //     }
 
-      return session;
-    });
+  //     return session;
+  //   });
 
-    setSessions(updatedSessions);
-  }, [summary]);
+  //   setSessions(updatedSessions);
+  // }, [summary]);
 
   const calculateTotalBookingRow = (
     startTime,
@@ -453,48 +466,48 @@ const StatementComments = ({
     return total.toFixed(2);
   };
 
-  const calculateSubtotal = (sessions) => {
-    if (!sessions || sessions.length === 0) return "0.00";
+  // const calculateSubtotal = (sessions) => {
+  //   if (!sessions || sessions.length === 0) return "0.00";
 
-    const adjSum = sessions.reduce((acc, session) => {
-      // Check if session has adjustmentValues and it's not empty
-      if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
-        // Calculate without adjustments
-        const total = parseFloat(
-          calculateTotalBookingRow(
-            session.startTime,
-            session.endTime,
-            session.rate,
-            []
-          )
-        );
-        return acc + total;
-      }
+  //   const adjSum = sessions.reduce((acc, session) => {
+  //     // Check if session has adjustmentValues and it's not empty
+  //     if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
+  //       // Calculate without adjustments
+  //       const total = parseFloat(
+  //         calculateTotalBookingRow(
+  //           session.startTime,
+  //           session.endTime,
+  //           session.rate,
+  //           []
+  //         )
+  //       );
+  //       return acc + total;
+  //     }
 
-      const total = parseFloat(
-        calculateTotalBookingRow(
-          session.startTime,
-          session.endTime,
-          session.rate,
-          session.adjustmentValues
-        )
-      );
-      return acc + total;
-    }, 0);
+  //     const total = parseFloat(
+  //       calculateTotalBookingRow(
+  //         session.startTime,
+  //         session.endTime,
+  //         session.rate,
+  //         session.adjustmentValues
+  //       )
+  //     );
+  //     return acc + total;
+  //   }, 0);
 
-    const totalSum = sessions.reduce((acc, session) => {
-      const total = parseFloat(
-        session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
-      );
-      return acc + total;
-    }, 0);
+  //   const totalSum = sessions.reduce((acc, session) => {
+  //     const total = parseFloat(
+  //       session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
+  //     );
+  //     return acc + total;
+  //   }, 0);
 
-    const finalTotal = adjSum + totalSum;
+  //   const finalTotal = adjSum + totalSum;
 
-    const total = finalTotal.toFixed(2);
-    setSubtotal(Number(total));
-    return total;
-  };
+  //   const total = finalTotal.toFixed(2);
+  //   setSubtotal(Number(total));
+  //   return total;
+  // };
 
   const formatTimeString = (timeStr) => {
     if (!timeStr) {
@@ -633,7 +646,6 @@ const StatementComments = ({
   };
 
   const handleSaveCustomRow = (sessionIndex, totalIndex) => {
-    console.log(editCustomDate, editCustomText, editCustomAmount);
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
     setCustomRow(sessionIndex, totalIndex, {
@@ -651,6 +663,12 @@ const StatementComments = ({
   const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
     deleteCustomRow(sessionIndex, totalIndex);
 
+    // Reset editing state
+    setEditingCustomRow(null);
+    setEditCustomDate(new Date().toISOString().split("T")[0]);
+    setEditCustomText("");
+    setEditCustomAmount("");
+
     // If the total item had an ID, add it to deletedIds
     const totalItem = sessions[sessionIndex]?.total[totalIndex];
     if (totalItem?.id) {
@@ -658,9 +676,6 @@ const StatementComments = ({
     }
   };
 
-  useEffect(() => {
-    console.log(sessions);
-  }, [sessions]);
 
   return (
     <Flex
@@ -933,9 +948,8 @@ const StatementComments = ({
                     })
                   )} */}
 
-                {sessions && sessions.length > 0 ? (
-                  sessions
-                    .filter((session) => session.name.length > 0)
+                {Array.isArray(sessions) && sessions.length > 0 ? (
+                  sessions.filter((session) => session?.name?.length > 0)
                     .map((session, index) => {
                       // For regular sessions, use the existing code
                       return (
@@ -1035,7 +1049,7 @@ const StatementComments = ({
                               py={compactView ? 0 : 4}
                               fontSize={compactView ? "6.38" : "sm"}
                               borderBottom={
-                                session.comments.length > 0 ? "none" : undefined
+                                session?.comments?.length > 0 ? "none" : undefined
                               }
                             >
                               {/* Adjust Button  */}
@@ -1135,7 +1149,6 @@ const StatementComments = ({
                               <RoomFeeAdjustmentSideBar
                                 isOpen={activeRowId === index}
                                 onClose={() => setActiveRowId(null)}
-                                invoice={invoice[0]}
                                 userId={userId}
                                 session={session}
                                 sessions={sessions}
@@ -1299,6 +1312,7 @@ const StatementComments = ({
                                 colSpan={6}
                                 py={2}
                               >
+                                <Flex alignItems="center" gap={4}>
                                 <Input
                                   placeholder="Add your comment here..."
                                   value={commentText}
@@ -1323,7 +1337,16 @@ const StatementComments = ({
                                     },
                                   }}
                                 />
+                                <IconButton
+                                  icon={<CloseIcon boxSize={3} />}
+                                  size="xs"
+                                  variant="ghost"
+                                  colorScheme="gray"
+                                  onClick={() => setActiveCommentId(null)}
+                                />
+                                </Flex>
                               </Td>
+                              
                             </Tr>
                           )}
 
@@ -1337,8 +1360,8 @@ const StatementComments = ({
                                   >
                                     <Flex
                                       gap={4}
-                                      alignItems="flex-end"
-                                    >
+                                      alignItems="center"
+                                    > 
                                       <Input
                                         type="date"
                                         value={editCustomDate}
@@ -1368,6 +1391,13 @@ const StatementComments = ({
                                         onKeyDown={(e) =>
                                           handleCustomRowKeyDown(e, index, totalIndex)
                                         }
+                                        onBlur={(e) => {
+                                          if (editCustomText.trim() === "") {
+                                            handleDeleteCustomRow(index, totalIndex)
+                                          } else {
+                                            handleSaveCustomRow(index, totalIndex)
+                                          }
+                                        }}
                                       />
                                       <InputGroup
                                         size="sm"
@@ -1388,8 +1418,16 @@ const StatementComments = ({
                                           onKeyDown={(e) =>
                                             handleCustomRowKeyDown(e, index, totalIndex)
                                           }
+                                          ml={2}
                                         />
                                       </InputGroup>
+                                      <IconButton
+                                          icon={<CloseIcon boxSize={3} />}
+                                          size="xs"
+                                          variant="ghost"
+                                          colorScheme="gray"
+                                          onClick={() => handleDeleteCustomRow(index, totalIndex)}
+                                        />
                                     </Flex>
                                   </Td>
                                 </Tr>
@@ -1440,7 +1478,7 @@ const StatementComments = ({
                                       >
                                         ${" "}
                                         {Number(
-                                          session.total[totalIndex].value || 0
+                                          session?.total?.[totalIndex]?.value || 0
                                         ).toFixed(2)}
                                       </Text>
                                       <IconButton
@@ -1498,7 +1536,7 @@ const StatementComments = ({
                     textAlign="center"
                     fontSize={compactView ? "6.38" : "sm"}
                   >
-                    {`$ ${calculateSubtotal(sessions)}`}
+                    {/* {`$ ${calculateSubtotal(sessions)}`} */}
                   </Td>
                 </Tr>
               </Tbody>
@@ -1517,15 +1555,26 @@ const InvoiceSummary = ({
   room,
   setRoom,
   compactView = false,
-  sessions = [],
-  setSessions,
-  summary = [],
-  setSummary,
+  // sessions = [],
+  // setSessions,
+  // summary = [],
+  // setSummary,
   deletedIds,
   setDeletedIds,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
+  const { sessions, 
+          setSessions, 
+          addSession, 
+          deleteSession, 
+          addComment, 
+          setComment, 
+          deleteComment, 
+          addCustomRow, 
+          setCustomRow, 
+          deleteCustomRow 
+        } = useSessionStore();
+  const { summary, setSummary } = useSummaryStore();
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
 
@@ -1547,56 +1596,56 @@ const InvoiceSummary = ({
   };
 
   // Store original rates for each session
-  const originalSessionRatesRef = useRef({});
+  // const originalSessionRatesRef = useRef({});
 
-  useEffect(() => {
-    if (sessions?.length > 0) {
-      // Store original rates for each session if not already stored
-      sessions.forEach((session) => {
-        if (
-          session.name &&
-          originalSessionRatesRef.current[session.name] === undefined
-        ) {
-          originalSessionRatesRef.current[session.name] = session.rate;
-        }
-      });
-    }
-  }, [sessions]);
+  // useEffect(() => {
+  //   if (sessions?.length > 0) {
+  //     // Store original rates for each session if not already stored
+  //     sessions.forEach((session) => {
+  //       if (
+  //         session.name &&
+  //         originalSessionRatesRef.current[session.name] === undefined
+  //       ) {
+  //         originalSessionRatesRef.current[session.name] = session.rate;
+  //       }
+  //     });
+  //   }
+  // }, [sessions]);
 
-  useEffect(() => {
-    if (!summary || sessions.length === 0) return;
+  // useEffect(() => {
+  //   if (!summary || sessions.length === 0) return;
 
-    const updatedSessions = sessions.map((session) => {
-      // Skip sessions without names (custom rows) or missing original rates
-      if (
-        !session.name ||
-        originalSessionRatesRef.current[session.name] === undefined
-      ) {
-        return session;
-      }
+  //   const updatedSessions = sessions.map((session) => {
+  //     // Skip sessions without names (custom rows) or missing original rates
+  //     if (
+  //       !session.name ||
+  //       originalSessionRatesRef.current[session.name] === undefined
+  //     ) {
+  //       return session;
+  //     }
 
-      const originalRate = originalSessionRatesRef.current[session.name];
-      const currentSummary = summary[0];
+  //     const originalRate = originalSessionRatesRef.current[session.name];
+  //     const currentSummary = summary[0];
 
-      if (!currentSummary?.adjustmentValues) return session;
+  //     if (!currentSummary?.adjustmentValues) return session;
 
-      const adjustedRate = calculateTotalBookingRow(
-        originalRate,
-        currentSummary.adjustmentValues
-      );
+  //     const adjustedRate = calculateTotalBookingRow(
+  //       originalRate,
+  //       currentSummary.adjustmentValues
+  //     );
 
-      if (session.rate !== adjustedRate) {
-        return {
-          ...session,
-          rate: adjustedRate,
-        };
-      }
+  //     if (session.rate !== adjustedRate) {
+  //       return {
+  //         ...session,
+  //         rate: adjustedRate,
+  //       };
+  //     }
 
-      return session;
-    });
+  //     return session;
+  //   });
 
-    setSessions(updatedSessions);
-  }, [summary]);
+  //   setSessions(updatedSessions);
+  // }, [summary]);
 
   return (
     <Flex
@@ -1721,7 +1770,7 @@ const InvoiceSummary = ({
 
               {/* Custom rows don't have room names, so that's why we filter them out to avoid showing custom rows in the summary */}
               {Object.values(
-                (sessions || [])
+                (Array.isArray(sessions) ? sessions : [])
                   .filter(
                     (session) =>
                       session.name?.length > 0 &&
@@ -1897,14 +1946,9 @@ const InvoiceSummary = ({
           <SummaryFeeAdjustmentSideBar
             isOpen={isOpen}
             onClose={onClose}
-            summary={summary[0]}
-            setSummary={setSummary}
             sessionIndex={0}
             subtotal={subtotal}
             session={sessions[0]}
-            deletedIds={deletedIds}
-            setDeletedIds={setDeletedIds}
-            sessions={sessions}
           />
         </Box>
       </Flex>

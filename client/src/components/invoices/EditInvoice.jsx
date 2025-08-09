@@ -38,6 +38,7 @@ import {
 import { getCurrentUser } from "../../utils/auth/firebase";
 import { useSessionStore } from "../../stores/useSessionStore";
 import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
+import { useDeletedIdsStore } from "../../stores/useDeletedIdsStore";
 
 const InvoiceNavBar = ({
   onBack,
@@ -148,7 +149,7 @@ export const EditInvoice = () => {
   const [editedSubtotal, setEditedSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
-  const [deletedIds, setDeletedIds] = useState([]);
+  const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
   const [userId, setUserId] = useState(null);
   const [editedFields, setEditedFields] = useState({
     comments: [],

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useDeletedIdsStore } from './useDeletedIdsStore';
 
 export interface AdjustmentValue {
     id?: string;
@@ -45,7 +46,8 @@ export interface SessionStore {
 
     // Adjustment Values
     addAdjustmentValue: (sessionId: number, adjustmentType: string, adjustmentValue: number) => void;
-
+    setAdjustmentValue: (sessionIndex: number, adjustmentValues: AdjustmentValue[]) => void;
+    
     // Comments
     addComment: (sessionIndex: number, comment: string) => void;
     deleteComment: (sessionIndex: number, commentId: string) => void;
@@ -58,7 +60,6 @@ export interface SessionStore {
 }
 
 
-
 export const useSessionStore = create<SessionStore>((set) => ({
     sessions: [],
     setSessions: (sessions) => set(() => ({ sessions })),
@@ -67,7 +68,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
 
     // Adjustment Values
     addAdjustmentValue: (sessionId, adjustmentType, adjustmentValue) => set((state) => ({ sessions: state.sessions.map(s => s.invoiceId === sessionId ? { ...s, adjustmentValues: [...s.adjustmentValues, {type: adjustmentType, value: adjustmentValue }] } : s) })),
-    
+    setAdjustmentValue: (sessionIndex, adjustmentValues) => set((state) => ({ sessions: state.sessions.map((s, idx) => idx === sessionIndex ? { ...s, adjustmentValues } : s) })),
     
     //Comments
     addComment: (sessionIndex: number, comment: string) => set((state) => ({
@@ -77,16 +78,28 @@ export const useSessionStore = create<SessionStore>((set) => ({
                 : s
         ),
     })),
-    deleteComment: (sessionIndex, commentIndex) => set((state) => ({
-        sessions: state.sessions.map((s, idx) =>
-            idx === sessionIndex
-                ? { 
-                    ...s, 
-                    comments: (s.comments || []).filter((c, cidx) => cidx !== Number(commentIndex))
-                  }
-                : s
-        ),
-    })),
+    deleteComment: (sessionIndex, commentIndex) => set((state) => {
+        const session = state.sessions[sessionIndex];
+        const commentToDelete = session?.comments?.[Number(commentIndex)];
+        
+        // Add the comment ID to deletedIdsStore if it exists
+        if (commentToDelete?.id) {
+            const deletedIdsStore = useDeletedIdsStore.getState() as { addDeletedId: (id: string) => void };
+            deletedIdsStore.addDeletedId(commentToDelete.id);
+        }
+        
+        return {
+            sessions: state.sessions.map((s, idx) => {
+                if (idx === sessionIndex) {
+                    return { 
+                        ...s, 
+                        comments: (s.comments || []).filter((c, cidx) => cidx !== Number(commentIndex))
+                    }
+                }
+                return s;
+            })
+        };
+    }),
     setComment: (sessionIndex, commentIndex, comment) => set((state) => ({
         sessions: state.sessions.map((s, idx) =>
             idx === sessionIndex
@@ -113,10 +126,18 @@ export const useSessionStore = create<SessionStore>((set) => ({
     })),
 
     deleteCustomRow: (sessionIndex, totalIndex) => set((state) => ({
-        sessions: state.sessions.map((s, idx) =>
-            idx === sessionIndex
-                ? { ...s, total: (s.total || []).filter((t, tidx) => tidx !== totalIndex) }
-                : s
+        sessions: state.sessions.map((s, idx) => {
+            const totalToDelete = s.total?.[totalIndex];
+            if (totalToDelete?.id) {
+                const deletedIdsStore = useDeletedIdsStore.getState() as { addDeletedId: (id: string) => void };
+                deletedIdsStore.addDeletedId(totalToDelete.id);
+            }
+            if (idx === sessionIndex) {
+                return { ...s, total: (s.total || []).filter((t, tidx) => tidx !== totalIndex) }
+            }
+            return s;
+        }
         ),
     })),
 }))
+

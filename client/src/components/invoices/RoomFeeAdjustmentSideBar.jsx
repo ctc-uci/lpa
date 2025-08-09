@@ -34,6 +34,9 @@ import { MinusOutlineIcon } from "../../assets/MinusOutlineIcon";
 import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
 import { PlusOutlineIcon } from "../../assets/PlusOutlineIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useDeletedIdsStore } from "../../stores/useDeletedIdsStore";
+import { useSummaryStore } from "../../stores/useSummaryStore";
+import { useSessionStore } from "../../stores/useSessionStore";
 
 const RoomFeeAdjustmentSideBar = ({
   isOpen,
@@ -43,63 +46,63 @@ const RoomFeeAdjustmentSideBar = ({
   sessionIndex,
   subtotal = 0.0,
   sessions = [],
-  deletedIds,
-  setDeletedIds,
 }) => {
   const { backend } = useBackendContext();
   const [tempSession, setTempSession] = useState(session || {});
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const cancelRef = useRef();
+  const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
+  const { setAdjustmentValue } = useSessionStore();
 
-  useEffect(() => {
-    if (session) {
-      setTempSession(JSON.parse(JSON.stringify(session)));
-    }
-  }, [session, isOpen]);
+  // useEffect(() => {
+  //   if (session) {
+  //     setTempSession(JSON.parse(JSON.stringify(session)));
+  //   }
+  // }, [session, isOpen]);
 
-  const calculateNewRate = () => {
-    let newRate = Number(session.rate || 0);
+  // const calculateNewRate = () => {
+  //   let newRate = Number(session.rate || 0);
 
-    if (!tempSession.adjustmentValues) return newRate;
+  //   if (!tempSession.adjustmentValues) return newRate;
 
-    tempSession.adjustmentValues.forEach((adj) => {
-      if (!adj.value) return;
+  //   tempSession.adjustmentValues.forEach((adj) => {
+  //     if (!adj.value) return;
 
-      const val = Number(adj.value);
-      let adjustmentAmount = 0;
+  //     const val = Number(adj.value);
+  //     let adjustmentAmount = 0;
 
-      if (adj.type === "rate_flat") {
-        adjustmentAmount = val;
-      } else if (adj.type === "rate_percent") {
-        adjustmentAmount = (val / 100) * Number(newRate || 0);
-      }
+  //     if (adj.type === "rate_flat") {
+  //       adjustmentAmount = val;
+  //     } else if (adj.type === "rate_percent") {
+  //       adjustmentAmount = (val / 100) * Number(newRate || 0);
+  //     }
 
-      if (val < 0) {
-        newRate -= Math.abs(adjustmentAmount);
-      } else {
-        newRate += adjustmentAmount;
-      }
-    });
+  //     if (val < 0) {
+  //       newRate -= Math.abs(adjustmentAmount);
+  //     } else {
+  //       newRate += adjustmentAmount;
+  //     }
+  //   });
 
-    return newRate;
-  };
+  //   return newRate;
+  // };
 
-  const calculateSessionTotal = () => {
-    if (tempSession && tempSession.startTime && tempSession.endTime) {
-      const timeToMinutes = (timeStr) => {
-        const [hours, minutes] = timeStr.split(":").map(Number);
-        return hours * 60 + minutes;
-      };
+  // const calculateSessionTotal = () => {
+  //   if (tempSession && tempSession.startTime && tempSession.endTime) {
+  //     const timeToMinutes = (timeStr) => {
+  //       const [hours, minutes] = timeStr.split(":").map(Number);
+  //       return hours * 60 + minutes;
+  //     };
 
-      const newRate = calculateNewRate();
-      const rawStart = timeToMinutes(tempSession.startTime.substring(0, 5));
-      const rawEnd = timeToMinutes(tempSession.endTime.substring(0, 5));
-      const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
-      const durationInHours = (endAdjusted - rawStart) / 60;
+  //     const newRate = calculateNewRate();
+  //     const rawStart = timeToMinutes(tempSession.startTime.substring(0, 5));
+  //     const rawEnd = timeToMinutes(tempSession.endTime.substring(0, 5));
+  //     const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
+  //     const durationInHours = (endAdjusted - rawStart) / 60;
 
-      return newRate * durationInHours;
-    }
-  };
+  //     return newRate * durationInHours;
+  //   }
+  // };
 
   const handleNegativeClick = (index) => {
     setTempSession((prev) => {
@@ -164,23 +167,27 @@ const RoomFeeAdjustmentSideBar = ({
   };
 
   const handleRemoveAdjustment = (index) => {
+    if (tempSession.adjustmentValues[index].id) {
+      addDeletedId(tempSession.adjustmentValues[index].id);
+    }
     setTempSession((prev) => ({
       ...prev,
       adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index),
     }));
-    if (tempSession.adjustmentValues[index].id) {
-      setDeletedIds((prevDeletedIds) => [
-        ...prevDeletedIds,
-        tempSession.adjustmentValues[index].id,
-      ]);
-    }
   };
 
   const handleClearAll = () => {
+    if (tempSession.adjustmentValues) {
+      for (const adj of tempSession.adjustmentValues) {
+        addDeletedId(adj.id);
+      }
+    }
+
     setTempSession((prev) => ({
       ...prev,
       adjustmentValues: [],
     }));
+
   };
 
   const handleClose = () => {
@@ -197,16 +204,9 @@ const RoomFeeAdjustmentSideBar = ({
   };
 
   const handleApply = () => {
-    setSessions((prevSessions) => {
-      const newSessions = [...prevSessions];
-      newSessions[sessionIndex] = tempSession;
-      return newSessions;
-    });
-
+    setAdjustmentValue(sessionIndex, tempSession.adjustmentValues);
     onClose();
   };
-
-  // console.log("tempSession", tempSession);
 
   return (
     <>
@@ -229,24 +229,26 @@ const RoomFeeAdjustmentSideBar = ({
               gap="26px"
               alignSelf="stretch"
               whiteSpace="nowrap"
+              justifyContent="space-between"
             >
-              <IconButton
-                onClick={handleClose}
-                variant="ghost"
-                size="sm"
-                p={0}
-                minW="auto"
-                icon={<Icon as={CancelIcon} />}
-              />
-              <Text
-                fontWeight="500"
-                color="#4A5568"
-                fontSize="14px"
-                whiteSpace="nowrap"
-              >
-                Room Fee Adjustment
-              </Text>
-
+              <Flex alignItems="center" gap="20px">
+                <IconButton
+                  onClick={handleClose}
+                  variant="ghost"
+                  size="sm"
+                  p={0}
+                  minW="auto"
+                  icon={<Icon as={CancelIcon} />}
+                />
+                <Text
+                  fontWeight="500"
+                  color="#4A5568"
+                  fontSize="14px"
+                  whiteSpace="nowrap"
+                >
+                  Room Fee Adjustment
+                </Text>
+              </Flex>
               <AdjustmentTypeSelector
                 onSelect={(type) => {
                   setTempSession((prev) => {
@@ -418,7 +420,7 @@ const RoomFeeAdjustmentSideBar = ({
                   {JSON.stringify(tempSession.adjustmentValues) !== JSON.stringify(session.adjustmentValues) ? `NEW` : `CURRENT`} ROOM FEE
                 </Heading>
 
-                <Heading size="md">${calculateNewRate().toFixed(2)}/hr</Heading>
+                {/* <Heading size="md">${calculateNewRate().toFixed(2)}/hr</Heading> */}
               </Flex>
               <Flex
                 justifyContent="right"
@@ -435,7 +437,7 @@ const RoomFeeAdjustmentSideBar = ({
                 </Heading>
                 <Heading size="md">
                   {" "}
-                  ${calculateSessionTotal().toFixed(2)}
+                  {/* ${calculateSessionTotal().toFixed(2)} */}
                 </Heading>
               </Flex>
               <Flex
@@ -510,20 +512,23 @@ const RoomFeeAdjustmentSideBar = ({
 const SummaryFeeAdjustmentSideBar = ({
   isOpen,
   onClose,
-  summary,
-  setSummary,
+  // summary,
+  // setSummary,
   sessionIndex,
   subtotal = 0.0,
   session,
-  deletedIds,
-  setDeletedIds,
-  sessions
+  // deletedIds,
+  // setDeletedIds,
+  // sessions
 }) => {
+  const { sessions, setSessions } = useSessionStore();
+  const { summary, setSummary } = useSummaryStore();
   const { backend } = useBackendContext();
   const [tempSummary, setTempSummary] = useState(summary || {});
   const originalRate = useRef(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const cancelRef = useRef();
+  const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
 
   useEffect(() => {
     if (session && originalRate.current === null) {
@@ -649,19 +654,21 @@ const SummaryFeeAdjustmentSideBar = ({
   };
 
   const handleRemoveAdjustment = (index) => {
+    if (tempSummary.adjustmentValues[index].id) {
+      addDeletedId(tempSummary.adjustmentValues[index].id);
+    }
     setTempSummary((prev) => ({
       ...prev,
       adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index),
     }));
-    if (tempSummary.adjustmentValues[index].id) {
-      setDeletedIds((prevDeletedIds) => [
-        ...prevDeletedIds,
-        tempSummary.adjustmentValues[index].id,
-      ]);
-    }
   };
 
   const handleClearAll = () => {
+    if (tempSummary.adjustmentValues) {
+      for (const adj of tempSummary.adjustmentValues) {
+        addDeletedId(adj.id);
+      }
+    }
     setTempSummary((prev) => ({
       ...prev,
       adjustmentValues: [],
@@ -682,15 +689,9 @@ const SummaryFeeAdjustmentSideBar = ({
   };
 
   const handleApply = () => {
-    setSummary((prevSummary) => {
-      const newSummary = [...prevSummary];
-      newSummary[sessionIndex] = tempSummary;
-      return newSummary;
-    });
+    setAdjustmentValue(sessionIndex, tempSummary.adjustmentValues);
     onClose();
   };
-
-  // console.log("summary", summary);
 
   return (
     <>
@@ -713,23 +714,26 @@ const SummaryFeeAdjustmentSideBar = ({
               gap="26px"
               alignSelf="stretch"
               whiteSpace="nowrap"
+              justifyContent="space-between"
             >
-              <IconButton
-                onClick={handleClose}
-                variant="ghost"
-                size="sm"
-                p={0}
-                minW="auto"
-                icon={<Icon as={CancelIcon} />}
-              />
-              <Text
-                fontWeight="500"
-                color="#4A5568"
-                fontSize="14px"
-                whiteSpace="nowrap"
-              >
-                Room Fee Adjustment
-              </Text>
+              <Flex alignItems="center" gap="20px">
+                <IconButton
+                  onClick={handleClose}
+                  variant="ghost"
+                  size="sm"
+                  p={0}
+                  minW="auto"
+                  icon={<Icon as={CancelIcon} />}
+                  />
+                <Text
+                  fontWeight="500"
+                  color="#4A5568"
+                  fontSize="14px"
+                  whiteSpace="nowrap"
+                  >
+                  Room Fee Adjustment
+                </Text>
+              </Flex>
 
               <AdjustmentTypeSelector
                 onSelect={(type) => {
