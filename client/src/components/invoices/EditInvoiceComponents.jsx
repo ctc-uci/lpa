@@ -302,17 +302,17 @@ const StatementComments = ({
   const [editCustomAmount, setEditCustomAmount] = useState("");
   const editRowRef = useRef(null);
 
-  const { sessions, 
-          setSessions, 
-          addSession, 
-          deleteSession, 
-          addComment, 
-          setComment, 
-          deleteComment, 
-          addCustomRow, 
-          setCustomRow, 
-          deleteCustomRow 
-        } = useSessionStore();
+  const { sessions,
+    setSessions,
+    addSession,
+    deleteSession,
+    addComment,
+    setComment,
+    deleteComment,
+    addCustomRow,
+    setCustomRow,
+    deleteCustomRow
+  } = useSessionStore();
 
   const formatDateForInput = (value) => {
     if (!value) return "";
@@ -638,7 +638,7 @@ const StatementComments = ({
     setEditingCustomRow(`${index}-${totalIndex}`);
 
     const date = new Date(session.datetime);
-    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());  
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
 
     setEditCustomDate(formatDateForInput(session.total[totalIndex].date));
     setEditCustomText(session.total[totalIndex]?.comment || "");
@@ -797,7 +797,7 @@ const StatementComments = ({
                   </Th>
                 </Tr>
               </Thead>
-              
+
               <Tbody color="#2D3748">
                 {/* I lowkey don't remember what this was for */}
                 {/* {sessions
@@ -1313,40 +1313,40 @@ const StatementComments = ({
                                 py={2}
                               >
                                 <Flex alignItems="center" gap={4}>
-                                <Input
-                                  placeholder="Add your comment here..."
-                                  value={commentText}
-                                  onChange={(e) =>
-                                    setCommentText(e.target.value)
-                                  }
-                                  onKeyDown={(e) => handleKeyDown(e, index)}
-                                  onBlur={(e) => handleBlur(e, index)}
-                                  size="sm"
-                                  autoFocus
-                                  borderColor="#A0AEC0"
-                                  height="40px"
-                                  _hover={{ borderColor: "#A0AEC0" }}
-                                  _focus={{
-                                    borderColor: "#A0AEC0",
-                                    boxShadow: "none",
-                                  }}
-                                  rounded="lg"
-                                  sx={{
-                                    "&": {
-                                      paddingY: "8",
-                                    },
-                                  }}
-                                />
-                                <IconButton
-                                  icon={<CloseIcon boxSize={3} />}
-                                  size="xs"
-                                  variant="ghost"
-                                  colorScheme="gray"
-                                  onClick={() => setActiveCommentId(null)}
-                                />
+                                  <Input
+                                    placeholder="Add your comment here..."
+                                    value={commentText}
+                                    onChange={(e) =>
+                                      setCommentText(e.target.value)
+                                    }
+                                    onKeyDown={(e) => handleKeyDown(e, index)}
+                                    onBlur={(e) => handleBlur(e, index)}
+                                    size="sm"
+                                    autoFocus
+                                    borderColor="#A0AEC0"
+                                    height="40px"
+                                    _hover={{ borderColor: "#A0AEC0" }}
+                                    _focus={{
+                                      borderColor: "#A0AEC0",
+                                      boxShadow: "none",
+                                    }}
+                                    rounded="lg"
+                                    sx={{
+                                      "&": {
+                                        paddingY: "8",
+                                      },
+                                    }}
+                                  />
+                                  <IconButton
+                                    icon={<CloseIcon boxSize={3} />}
+                                    size="xs"
+                                    variant="ghost"
+                                    colorScheme="gray"
+                                    onClick={() => setActiveCommentId(null)}
+                                  />
                                 </Flex>
                               </Td>
-                              
+
                             </Tr>
                           )}
 
@@ -1361,7 +1361,7 @@ const StatementComments = ({
                                     <Flex
                                       gap={4}
                                       alignItems="center"
-                                    > 
+                                    >
                                       <Input
                                         type="date"
                                         value={editCustomDate}
@@ -1404,7 +1404,7 @@ const StatementComments = ({
                                         width="fit-content"
                                         alignItems="center"
                                       >
-                                        <Text>$</Text>
+                                        <Text mr={2}>$</Text>
                                         <Input
                                           type="number"
                                           value={editCustomAmount}
@@ -1418,16 +1418,15 @@ const StatementComments = ({
                                           onKeyDown={(e) =>
                                             handleCustomRowKeyDown(e, index, totalIndex)
                                           }
-                                          ml={2}
                                         />
                                       </InputGroup>
                                       <IconButton
-                                          icon={<CloseIcon boxSize={3} />}
-                                          size="xs"
-                                          variant="ghost"
-                                          colorScheme="gray"
-                                          onClick={() => handleDeleteCustomRow(index, totalIndex)}
-                                        />
+                                        icon={<CloseIcon boxSize={3} />}
+                                        size="xs"
+                                        variant="ghost"
+                                        colorScheme="gray"
+                                        onClick={() => handleDeleteCustomRow(index, totalIndex)}
+                                      />
                                     </Flex>
                                   </Td>
                                 </Tr>
@@ -1470,37 +1469,36 @@ const StatementComments = ({
                                     textAlign="right"
                                     position="relative"
                                   >
-                                    <Flex
-                                      justifyContent="flex-end"
-                                      alignItems="center"
-                                    >
-                                      <Text
+                                      <Flex
+                                        justifyContent="flex-end"
+                                        alignItems="center"
                                       >
-                                        ${" "}
-                                        {Number(
-                                          session?.total?.[totalIndex]?.value || 0
-                                        ).toFixed(2)}
-                                      </Text>
-                                      <IconButton
-                                        icon={<CloseIcon boxSize={3} />}
-                                        size="xs"
-                                        variant="ghost"
-                                        colorScheme="gray"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteCustomRow(
-                                            index,
-                                            totalIndex
-                                          );
-                                        }}
-                                        opacity="0"
-                                        _groupHover={{ opacity: 1 }}
-                                        aria-label="Delete custom row"
-                                        ml={2}
-                                        minW="20px"
-                                        height="20px"
-                                      />
-                                    </Flex>
+                                        <Text mr={1}>$</Text>
+                                        <Text
+                                        >
+                                          {Number(
+                                            session?.total?.[totalIndex]?.value || 0
+                                          ).toFixed(2)}
+                                        </Text>
+                                        <IconButton
+                                          icon={<CloseIcon boxSize={3} />}
+                                          size="xs"
+                                          variant="ghost"
+                                          colorScheme="gray"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteCustomRow(
+                                              index,
+                                              totalIndex
+                                            );
+                                          }}
+                                          display="none"
+                                          _groupHover={{ display: "inline-flex", width: "20px" }}
+                                          aria-label="Delete custom row"
+                                          ml={2}
+                                        />
+                                      </Flex>
+
                                   </Td>
                                 </Tr>
                               );
@@ -1563,17 +1561,17 @@ const InvoiceSummary = ({
   setDeletedIds,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { sessions, 
-          setSessions, 
-          addSession, 
-          deleteSession, 
-          addComment, 
-          setComment, 
-          deleteComment, 
-          addCustomRow, 
-          setCustomRow, 
-          deleteCustomRow 
-        } = useSessionStore();
+  const { sessions,
+    setSessions,
+    addSession,
+    deleteSession,
+    addComment,
+    setComment,
+    deleteComment,
+    addCustomRow,
+    setCustomRow,
+    deleteCustomRow
+  } = useSessionStore();
   const { summary, setSummary } = useSummaryStore();
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
