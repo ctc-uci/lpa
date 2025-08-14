@@ -9,6 +9,7 @@ import { Button, Flex, Icon, useDisclosure } from "@chakra-ui/react";
 import { IoCloseOutline } from "react-icons/io5";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
+import { IconButton } from "@chakra-ui/react";
 
 import { SessionsRightIcon } from "../../assets/SessionsRightIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
