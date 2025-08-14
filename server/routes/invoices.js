@@ -359,17 +359,23 @@ invoicesRouter.get("/total/:id", async (req, res) => {
       "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id IS NULL AND invoice_id = $1",
       [id]
     );
+    console.log("comments");
+    console.log(comments);
 
     const bookings = await db.query(
       "SELECT * FROM bookings WHERE event_id = $1 AND date BETWEEN $2 AND $3",
       [event.id, invoice.start_date, invoice.end_date]
     );
+    console.log("bookings");
+    console.log(bookings);
 
     // I made a change here for invoice_id
     const totalAdjustments = await db.query(
       "SELECT * FROM comments WHERE adjustment_type = 'total' AND invoice_id = $1",
       [id]
     );
+    console.log("totalAdjustments");
+    console.log(totalAdjustments)
 
     const bookingCosts = await Promise.all(
       bookings.map(async (booking) => {
