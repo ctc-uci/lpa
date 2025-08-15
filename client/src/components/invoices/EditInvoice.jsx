@@ -558,7 +558,7 @@ export const EditInvoice = () => {
           }
         }
       }
-      // navigate(`/invoices/savededits/${id}`);
+      navigate(`/invoices/savededits/${id}`);
     } catch (error) {
       console.error("Error saving invoice:", error);
     } finally {

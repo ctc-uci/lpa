@@ -725,7 +725,7 @@ const StatementComments = ({
                     py={compactView ? "4" : "8"}
                   >
                     <Flex align="center">
-                      <CalendarIcon width={compactView && "8"} />
+                      <CalendarIcon width={compactView ? "8" : undefined} />
                       <Text
                         marginLeft="4px"
                         fontSize={compactView ? "6" : "sm"}
@@ -739,7 +739,7 @@ const StatementComments = ({
                     <Flex align="center">
                       <LocationIcon
                         width={compactView ? "8" : "12"}
-                        height={compactView && "10"}
+                        height={compactView ? "10" : undefined}
                       />
                       <Text
                         marginLeft="4px"
@@ -771,7 +771,7 @@ const StatementComments = ({
                     <Flex align="center">
                       <EditDocumentIcon
                         width={compactView ? "8" : "16"}
-                        height={compactView && "10"}
+                        height={compactView ? "10" : undefined}
                       />
                       <Text
                         marginLeft="4px"
@@ -1563,12 +1563,6 @@ const InvoiceSummary = ({
   room,
   setRoom,
   compactView = false,
-  // sessions = [],
-  // setSessions,
-  // summary = [],
-  // setSummary,
-  deletedIds,
-  setDeletedIds,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { sessions,
@@ -1719,7 +1713,7 @@ const InvoiceSummary = ({
                   >
                     <EditDocumentIcon
                       width={compactView ? "8" : "16"}
-                      height={compactView && "10"}
+                      height={compactView ? "10" : undefined}
                     />
                     <Text
                       fontSize={compactView ? "6.38px" : "sm"}
