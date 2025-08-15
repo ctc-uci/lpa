@@ -984,8 +984,10 @@ const StatementComments = ({
                     })
                   )} */}
 
+                {console.log("sessions", sessions)}
                 {Array.isArray(sessions) && sessions.length > 0 ? (
                   sessions.filter((session) => session?.name?.length > 0)
+                  .sort((a, b) => new Date(a.datetime) - new Date(b.datetime))
                     .map((session, index) => {
                       // For regular sessions, use the existing code
                       return (
