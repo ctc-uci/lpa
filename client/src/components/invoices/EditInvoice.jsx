@@ -368,7 +368,6 @@ export const EditInvoice = () => {
 
   const postComments = async (id, bookingId, comment, datetime, invoiceId) => {
     const commentData = {
-      id: id,
       user_id: userId,
       booking_id: bookingId,
       invoice_id: invoiceId,
@@ -379,7 +378,7 @@ export const EditInvoice = () => {
     };
 
     try {
-      const existingComment = comments.find((c) => c.id === commentData.id);
+      const existingComment = comments.find((c) => c.id === id);
       if (existingComment) {
         // console.log("existingComment updated", existingComment);
         await backend.put(
@@ -398,7 +397,6 @@ export const EditInvoice = () => {
 
   const postAdjustments = async (id, userId, bookingId, invoiceId, datetime, comment, type, value) => {
     const adjustmentData = {
-      id: id,
       user_id: userId,
       booking_id: bookingId,
       invoice_id: invoiceId,
@@ -409,7 +407,7 @@ export const EditInvoice = () => {
     };
 
     try {
-      const existingAdjustment = comments.find((c) => c.id === adjustmentData.id);
+      const existingAdjustment = comments.find((c) => c.id === id);
       if (existingAdjustment) {
         await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
         // console.log("existingAdjustment updated", existingAdjustment);
@@ -426,7 +424,6 @@ export const EditInvoice = () => {
   const postTotal = async (id, userId, bookingId, invoiceId, datetime, comment, value) => {
     try {
       const totalData = {
-        id: id,
         user_id: userId,
         booking_id: bookingId,
         invoice_id: invoiceId,
@@ -455,7 +452,6 @@ export const EditInvoice = () => {
 
   const postSummaryAdjustments = async (id, userId, invoiceId, datetime, type, value) => {
     const summaryData = {
-      id: id,
       user_id: userId,
       booking_id: null,
       invoice_id: invoiceId,
@@ -465,13 +461,16 @@ export const EditInvoice = () => {
       adjustment_value: value,
     };
 
+
     try {
-      const existingSummary = comments.find((c) => c.id === summaryData.id);
+      const existingSummary = comments.find((c) => c.id === id);
       if (existingSummary) {
         // console.log("existingSummary updated", existingSummary);
+        console.log("this exists")
         await backend.put(`/comments/${existingSummary.id}`, summaryData);
       } else {
         // console.log("newSummary created", summaryData);
+        console.log("this new")
         await backend.post(`/comments`, summaryData);
       }
     } catch (error) {
@@ -537,25 +536,11 @@ export const EditInvoice = () => {
             }
           }
         }
-
-        // Process summary adjustments
-        if (summary && summary.length > 0) {
-          for (const summaryItem of summary) {
-            if (
-              summaryItem.adjustmentValues &&
-              summaryItem.adjustmentValues.length > 0
-            ) {
-              for (const adjustmentValue of summaryItem.adjustmentValues) {
-                // Skip invalid adjustment values
-                if (
-                  isNaN(adjustmentValue.value) ||
-                  adjustmentValue.value === undefined
-                )
-                  continue;
-                postSummaryAdjustments(adjustmentValue.id, userId, id, adjustmentValue.datetime, adjustmentValue.type, adjustmentValue.value);
-              }
-            }
-          }
+      }
+      // Process summary adjustments
+      if (summary && summary.length > 0 && summary[0].adjustmentValues && summary[0].adjustmentValues.length > 0) {
+        for (const adjustmentValue of summary[0].adjustmentValues) {
+          postSummaryAdjustments(adjustmentValue.id, userId, id, adjustmentValue.datetime, adjustmentValue.type, adjustmentValue.value);
         }
       }
       navigate(`/invoices/savededits/${id}`);
