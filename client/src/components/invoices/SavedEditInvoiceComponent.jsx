@@ -269,7 +269,7 @@ const SavedStatementComments = ({
                   py={compactView ? "4" : "8"}
                 >
                   <Flex align="center">
-                    <CalendarIcon width={compactView && "8"} />
+                    <CalendarIcon width={compactView ? "8" : undefined} />
                     <Text
                       marginLeft="4px"
                       fontSize={compactView ? "6" : "sm"}
