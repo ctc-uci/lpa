@@ -466,11 +466,9 @@ export const EditInvoice = () => {
       const existingSummary = comments.find((c) => c.id === id);
       if (existingSummary) {
         // console.log("existingSummary updated", existingSummary);
-        console.log("this exists")
         await backend.put(`/comments/${existingSummary.id}`, summaryData);
       } else {
         // console.log("newSummary created", summaryData);
-        console.log("this new")
         await backend.post(`/comments`, summaryData);
       }
     } catch (error) {

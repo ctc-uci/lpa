@@ -252,7 +252,8 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
                 FROM comments
                 WHERE comments.invoice_id = $1 
                 AND (comments.adjustment_type = 'rate_percent' or comments.adjustment_type = 'rate_flat')
-                AND comments.booking_id IS NULL`;
+                AND comments.booking_id IS NULL
+                ORDER BY comments.id`;
     const queryParams = [id];
 
     const data = await db.query(query, queryParams);
