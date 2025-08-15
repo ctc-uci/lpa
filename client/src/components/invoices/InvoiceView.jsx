@@ -24,8 +24,6 @@ const InvoiceView = ({
   instructors = [],
   invoice,
   programName,
-  sessions = [],
-  setSessions,
   summary = [],
   compactView = false,
 }) => {
@@ -59,7 +57,6 @@ const InvoiceView = ({
         />
         <SavedStatementComments
           comments={comments}
-          sessions={sessions}
           booking={booking}
           subtotal={subtotal}
           setSubtotal={setSubtotal}
@@ -68,8 +65,6 @@ const InvoiceView = ({
           compactView={compactView}
         />
         <SavedInvoiceSummary
-          sessions={sessions}
-          setSessions={setSessions}
           comments={comments}
           summary={summary}
           subtotal={subtotal}

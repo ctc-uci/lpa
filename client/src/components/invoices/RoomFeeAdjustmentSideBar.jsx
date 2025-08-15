@@ -512,28 +512,23 @@ const RoomFeeAdjustmentSideBar = ({
 const SummaryFeeAdjustmentSideBar = ({
   isOpen,
   onClose,
-  // summary,
-  // setSummary,
-  sessionIndex,
   subtotal = 0.0,
   session,
-  // deletedIds,
-  // setDeletedIds,
-  // sessions
+  summary,
+  setSummary,
 }) => {
-  const { sessions, setSessions } = useSessionStore();
-  const { summary, setSummary } = useSummaryStore();
-  const { backend } = useBackendContext();
-  const [tempSummary, setTempSummary] = useState(summary || {});
   const originalRate = useRef(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const cancelRef = useRef();
   const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
+  const { setAdjustmentValue } = useSummaryStore();
+  const [tempSummary, setTempSummary] = useState(summary);  
 
   useEffect(() => {
     if (session && originalRate.current === null) {
       const baseRate = Number(session.rate);
       const existingAdjustments = summary?.adjustmentValues || [];
+      // const existingAdjustments = tempSummary?.adjustmentValues || [];
 
       let originalValue = baseRate;
       existingAdjustments.forEach((adj) => {
@@ -558,12 +553,6 @@ const SummaryFeeAdjustmentSideBar = ({
       originalRate.current = originalValue;
     }
   }, [session, summary]);
-
-  useEffect(() => {
-    if (summary) {
-      setTempSummary(JSON.parse(JSON.stringify(summary)));
-    }
-  }, [summary, isOpen]);
 
   const calculateTempRate = () => {
     if (originalRate.current === null) return 0;
@@ -689,7 +678,7 @@ const SummaryFeeAdjustmentSideBar = ({
   };
 
   const handleApply = () => {
-    setAdjustmentValue(sessionIndex, tempSummary.adjustmentValues);
+    setAdjustmentValue(tempSummary.adjustmentValues, 0);
     onClose();
   };
 
@@ -783,7 +772,7 @@ const SummaryFeeAdjustmentSideBar = ({
                     };
                   });
                 }}
-                sessionIndex={sessionIndex}
+                sessionIndex={0}
               />
             </Flex>
 
@@ -792,8 +781,8 @@ const SummaryFeeAdjustmentSideBar = ({
               overflowY="auto"
               flex="1"
             >
-              {tempSummary.adjustmentValues &&
-                tempSummary.adjustmentValues.map((adj, index) => (
+              {tempSummary?.adjustmentValues &&
+                tempSummary?.adjustmentValues.map((adj, index) => (
                   <Box
                     key={index}
                     borderBottom="1px solid #E2E8F0"
@@ -904,7 +893,7 @@ const SummaryFeeAdjustmentSideBar = ({
                   color="#718096"
                   marginRight="15px"
                 >
-                  {JSON.stringify(tempSummary.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} ROOM FEE
+                  {JSON.stringify(tempSummary?.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} ROOM FEE
                 </Heading>
                 <Heading size="md">
                   ${calculateTempRate().toFixed(2)}/hr
@@ -921,7 +910,7 @@ const SummaryFeeAdjustmentSideBar = ({
                   color="#718096"
                   marginRight="15px"
                 >
-                  {JSON.stringify(tempSummary.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} SESSION TOTAL
+                  {JSON.stringify(tempSummary?.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} SESSION TOTAL
                 </Heading>
                 <Heading size="md">
                   {" "}

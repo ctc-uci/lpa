@@ -33,6 +33,8 @@ import {
 } from "./InvoiceComponents";
 import { InvoiceView } from "./InvoiceView";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+import { useSessionStore } from "../../stores/useSessionStore";
+import { useSummaryStore } from "../../stores/useSummaryStore";
 
 export const SingleInvoice = () => {
   const { id } = useParams();
@@ -67,8 +69,10 @@ export const SingleInvoice = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [actionToContinue, setActionToContinue] = useState(null);
-  const [summary, setSummary] = useState([]);
-  const [sessions, setSessions] = useState([]);
+  // const [summary, setSummary] = useState([]);
+  // const [sessions, setSessions] = useState([]);
+  const { summary, setSummary } = useSummaryStore();
+  const { sessions, setSessions } = useSessionStore();
   const invoicePaymentsRef = useRef(null);
 
   useEffect(() => {
@@ -444,8 +448,6 @@ export const SingleInvoice = () => {
                   remainingBalance={remainingBalance}
                 ></InvoiceStats>
                 <InvoicePayments
-                  sessions={sessions}
-                  setSessions={setSessions}
                   comments={comments}
                   setComments={setComments}
                   setHasUnsavedChanges={setHasUnsavedChanges}
@@ -484,8 +486,6 @@ export const SingleInvoice = () => {
                     >
                       <InvoiceView
                         comments={comments}
-                        sessions={sessions}
-                        setSessions={setSessions}
                         summary={summary}
                         booking={booking}
                         room={room}

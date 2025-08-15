@@ -30,13 +30,15 @@ import {
   LocationIcon,
 } from "../../assets/EditInvoiceIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useSessionStore } from "../../stores/useSessionStore";
 
 const SavedStatementComments = ({
   subtotal,
   setSubtotal,
-  sessions = [],
   compactView = false,
 }) => {
+
+  const { sessions, setSessions } = useSessionStore();
   const calculateTotalBookingRow = (
     startTime,
     endTime,
@@ -693,13 +695,12 @@ const SavedStatementComments = ({
 };
 
 const SavedInvoiceSummary = ({
-  sessions = [],
-  setSessions,
   subtotal = 0.0,
   pastDue,
   summary = [],
   compactView = false,
 }) => {
+  const { sessions, setSessions } = useSessionStore();
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
 

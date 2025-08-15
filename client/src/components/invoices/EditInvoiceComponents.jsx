@@ -65,6 +65,7 @@ import {
 } from "./RoomFeeAdjustmentSideBar";
 import { useSessionStore } from "../../stores/useSessionStore";
 import { useSummaryStore } from "../../stores/useSummaryStore";
+import { useDeletedIdsStore } from "../../stores/useDeletedIdsStore";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -285,11 +286,8 @@ const StatementComments = ({
   invoice,
   compactView = false,
   setSubtotal,
-  deletedIds,
-  setDeletedIds,
   // summary = [],
 }) => {
-  const { summary, setSummary } = useSummaryStore();
   const { backend } = useBackendContext();
   const [activeRowId, setActiveRowId] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -300,7 +298,9 @@ const StatementComments = ({
   const [editCustomDate, setEditCustomDate] = useState("");
   const [editCustomText, setEditCustomText] = useState("");
   const [editCustomAmount, setEditCustomAmount] = useState("");
+  const [editCustomId, setEditCustomId] = useState(null);
   const editRowRef = useRef(null);
+  const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
 
   const { sessions,
     setSessions,
@@ -359,7 +359,7 @@ const StatementComments = ({
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount]);
+  }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount, editCustomId]);
 
   // useEffect(() => {
   //   // Recalculate subtotal whenever sessions change
@@ -614,7 +614,10 @@ const StatementComments = ({
   const handleDeleteComment = (sessionIndex, commentIndex) => {
     const comment = sessions?.[sessionIndex]?.comments?.[commentIndex];
     deleteComment(sessionIndex, commentIndex);
-    setDeletedIds((prev) => [...prev, comment.id]);
+    // Only add to deletedIds if the comment has a valid ID (exists in backend)
+    if (comment && comment.id) {
+      addDeletedId(comment.id);
+    }
   };
 
   const handleAddCustomRow = (index) => {
@@ -630,6 +633,7 @@ const StatementComments = ({
     setEditCustomDate(new Date().toISOString().split("T")[0]);
     setEditCustomText("");
     setEditCustomAmount("0");
+    setEditCustomId(null); // Reset ID for new rows
   };
 
   const handleEditCustomRow = (session, index, totalIndex) => {
@@ -643,12 +647,16 @@ const StatementComments = ({
     setEditCustomDate(formatDateForInput(session.total[totalIndex].date));
     setEditCustomText(session.total[totalIndex]?.comment || "");
     setEditCustomAmount(session.total[totalIndex].value.toString());
+    
+    // Store the ID of the row being edited to preserve it
+    setEditCustomId(session.total[totalIndex]?.id || null);
   };
 
   const handleSaveCustomRow = (sessionIndex, totalIndex) => {
     if (!editCustomDate || !editCustomText || !editCustomAmount) return;
 
     setCustomRow(sessionIndex, totalIndex, {
+      id: editCustomId, // Preserve the original ID
       date: editCustomDate,
       value: editCustomAmount,
       comment: editCustomText,
@@ -658,21 +666,23 @@ const StatementComments = ({
     setEditCustomDate(new Date().toISOString().split("T")[0]);
     setEditCustomText("");
     setEditCustomAmount("");
+    setEditCustomId(null); // Reset the ID
   };
 
   const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
     deleteCustomRow(sessionIndex, totalIndex);
-
+    
     // Reset editing state
     setEditingCustomRow(null);
     setEditCustomDate(new Date().toISOString().split("T")[0]);
     setEditCustomText("");
     setEditCustomAmount("");
+    setEditCustomId(null); // Reset the ID
 
     // If the total item had an ID, add it to deletedIds
     const totalItem = sessions[sessionIndex]?.total[totalIndex];
     if (totalItem?.id) {
-      setDeletedIds((prevDeletedIds) => [...prevDeletedIds, totalItem.id]);
+      addDeletedId(totalItem.id);
     }
   };
 
@@ -1573,6 +1583,7 @@ const InvoiceSummary = ({
     deleteCustomRow
   } = useSessionStore();
   const { summary, setSummary } = useSummaryStore();
+
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
 
@@ -1755,6 +1766,16 @@ const InvoiceSummary = ({
                   >
                     Adjust
                   </Button>
+                  {summary?.[0] && (
+                    <SummaryFeeAdjustmentSideBar
+                      isOpen={isOpen}
+                      onClose={onClose}
+                      summary={summary?.[0]}
+                      // setSummary={setSummary}
+                      subtotal={subtotal}
+                      session={sessions[0]}
+                    />
+                  )}
                   <Tooltip
                     label="Room fee adjustments in Summary will be apply to all Sessions."
                     placement="top"
@@ -1941,13 +1962,6 @@ const InvoiceSummary = ({
               </Tr>
             </Tbody>
           </Table>
-          <SummaryFeeAdjustmentSideBar
-            isOpen={isOpen}
-            onClose={onClose}
-            sessionIndex={0}
-            subtotal={subtotal}
-            session={sessions[0]}
-          />
         </Box>
       </Flex>
     </Flex>
