@@ -314,6 +314,9 @@ const StatementComments = ({
     deleteCustomRow
   } = useSessionStore();
 
+
+  const { summary, setSummary, summaryTotal, setSummaryTotal } = useSummaryStore();
+
   const formatDateForInput = (value) => {
     if (!value) return "";
     if (typeof value === "string") return value.split("T")[0];
@@ -326,7 +329,7 @@ const StatementComments = ({
 
 
   // Store original rates for each session
-  const originalSessionRatesRef = useRef({});
+  // const originalSessionRatesRef = useRef({});
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -360,6 +363,29 @@ const StatementComments = ({
       };
     }
   }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount, editCustomId]);
+
+  const calculateSummaryTotal = (rate, adjustmentValues) => {
+    if (!rate) return "0.00";
+
+    const baseRate = Number(rate);
+    if (isNaN(baseRate)) return "0.00";
+
+    const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+      if (isNaN(val.value)) return acc;
+
+      if (val.type === "rate_percent") {
+        const factor = 1 + val.value / 100;
+        return acc * factor;
+      } else {
+        return acc + Number(val.value);
+      }
+    }, baseRate);
+
+    return Number(adjustedTotal).toFixed(2);
+  };
+
+  // TODO Replace [0]
+  // console.log("summaryTotal", calculateSummaryTotal(sessions[0]?.rate, summary[0]?.adjustmentValues))
 
   // useEffect(() => {
   //   // Recalculate subtotal whenever sessions change
@@ -423,7 +449,7 @@ const StatementComments = ({
     rate,
     adjustmentValues
   ) => {
-    if (!startTime || !endTime || !rate) return "0.00";
+    if (!rate) return "0.00";
 
     // Make sure we're working with a valid array of adjustment values
     const currentAdjustmentValues = Array.isArray(adjustmentValues)
@@ -466,48 +492,48 @@ const StatementComments = ({
     return total.toFixed(2);
   };
 
-  // const calculateSubtotal = (sessions) => {
-  //   if (!sessions || sessions.length === 0) return "0.00";
+  const calculateSubtotal = (sessions) => {
+    if (!sessions || sessions.length === 0) return "0.00";
 
-  //   const adjSum = sessions.reduce((acc, session) => {
-  //     // Check if session has adjustmentValues and it's not empty
-  //     if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
-  //       // Calculate without adjustments
-  //       const total = parseFloat(
-  //         calculateTotalBookingRow(
-  //           session.startTime,
-  //           session.endTime,
-  //           session.rate,
-  //           []
-  //         )
-  //       );
-  //       return acc + total;
-  //     }
+    const adjSum = sessions.reduce((acc, session) => {
+      // Check if session has adjustmentValues and it's not empty
+      if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
+        // Calculate without adjustments
+        const total = parseFloat(
+          calculateTotalBookingRow(
+            session.startTime,
+            session.endTime,
+            calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
+            []
+          )
+        );
+        return acc + total;
+      }
 
-  //     const total = parseFloat(
-  //       calculateTotalBookingRow(
-  //         session.startTime,
-  //         session.endTime,
-  //         session.rate,
-  //         session.adjustmentValues
-  //       )
-  //     );
-  //     return acc + total;
-  //   }, 0);
+      const total = parseFloat(
+        calculateTotalBookingRow(
+          session.startTime,
+          session.endTime,
+          calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
+          session.adjustmentValues
+        )
+      );
+      return acc + total;
+    }, 0);
 
-  //   const totalSum = sessions.reduce((acc, session) => {
-  //     const total = parseFloat(
-  //       session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
-  //     );
-  //     return acc + total;
-  //   }, 0);
+    const totalSum = sessions.reduce((acc, session) => {
+      const total = parseFloat(
+        session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
+      );
+      return acc + total;
+    }, 0);
 
-  //   const finalTotal = adjSum + totalSum;
+    const finalTotal = adjSum + totalSum;
 
-  //   const total = finalTotal.toFixed(2);
-  //   setSubtotal(Number(total));
-  //   return total;
-  // };
+    const total = finalTotal.toFixed(2);
+    setSubtotal(Number(total));
+    return total;
+  };
 
   const formatTimeString = (timeStr) => {
     if (!timeStr) {
@@ -525,31 +551,32 @@ const StatementComments = ({
   };
 
   // Room Fee Per Hour After Adjustments
-  const calculateNewRate = (session) => {
-    let newRate = Number(session.rate || 0);
+  // const calculateNewRate = (session) => {
+  //   if (summary.length === 0) return 0;
 
-    session.adjustmentValues.forEach((adj) => {
-      const val = Number(adj.value);
-      const isNegative = val < 0;
-      const numericPart = Math.abs(val);
+  //   let newRate = Number(session.rate || 0);
 
-      let adjustmentAmount = 0;
+  //   session.adjustmentValues.forEach((adj) => {
+  //     const val = Number(adj.value);
+  //     const isNegative = val < 0;
+  //     const numericPart = Math.abs(val);
 
-      if (adj.type === "rate_flat") {
-        adjustmentAmount = numericPart;
-      } else if (adj.type === "rate_percent") {
-        adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
-      }
+  //     let adjustmentAmount = 0;
 
-      if (isNegative) {
-        newRate -= adjustmentAmount;
-      } else {
-        newRate += adjustmentAmount;
-      }
-    });
+  //     if (adj.type === "rate_flat") {
+  //       adjustmentAmount = numericPart;
+  //     } else if (adj.type === "rate_percent") {
+  //       adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
+  //     }
 
-    return newRate;
-  };
+  //     if (isNegative) {
+  //       newRate -= adjustmentAmount;
+  //     } else {
+  //       newRate += adjustmentAmount;
+  //     }
+  //   });
+  //   return newRate;
+  // };
 
   const saveComment = (index, commentIndex = null) => {
     if (!commentText.trim()) {
@@ -685,8 +712,7 @@ const StatementComments = ({
       addDeletedId(totalItem.id);
     }
   };
-
-
+  
   return (
     <Flex
       direction="column"
@@ -963,6 +989,7 @@ const StatementComments = ({
                     .map((session, index) => {
                       // For regular sessions, use the existing code
                       return (
+                        
                         <React.Fragment key={index}>
                           <Tr
                             position="relative"
@@ -1164,12 +1191,15 @@ const StatementComments = ({
                                 sessions={sessions}
                                 setSessions={setSessions}
                                 sessionIndex={index}
-                                subtotal={calculateTotalBookingRow(
-                                  session.startTime,
-                                  session.endTime,
-                                  session.rate,
-                                  session.adjustmentValues
-                                )}
+                                subtotal={
+                                //   calculateTotalBookingRow(
+                                //   session.startTime,
+                                //   session.endTime,
+                                //   session.rate,
+                                //   session.adjustmentValues
+                                // )
+                                0
+                              }
                                 deletedIds={deletedIds}
                                 setDeletedIds={setDeletedIds}
                               />
@@ -1189,7 +1219,12 @@ const StatementComments = ({
                                 display="flex"
                                 alignItems="center"
                               >
-                                ${calculateNewRate(session).toFixed(2)}/hr
+                                ${calculateTotalBookingRow(
+                                  "00:00:00+00",
+                                  "01:00:00+00",
+                                  calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
+                                  session.adjustmentValues
+                                )}/hr
                               </Text>
                             </Td>
 
@@ -1208,12 +1243,14 @@ const StatementComments = ({
                               >
                                 <Text>$</Text>
                                 <Text textAlign="center">
-                                  {calculateTotalBookingRow(
+                                  {
+                                  calculateTotalBookingRow(
                                     session.startTime,
                                     session.endTime,
-                                    session.rate,
+                                    calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
                                     session.adjustmentValues
-                                  )}
+                                  )
+                                  }
                                 </Text>
                               </Flex>
                             </Td>
@@ -1544,7 +1581,7 @@ const StatementComments = ({
                     textAlign="center"
                     fontSize={compactView ? "6.38" : "sm"}
                   >
-                    {/* {`$ ${calculateSubtotal(sessions)}`} */}
+                    {`$ ${calculateSubtotal(sessions)}`}
                   </Td>
                 </Tr>
               </Tbody>
@@ -1576,7 +1613,7 @@ const InvoiceSummary = ({
     setCustomRow,
     deleteCustomRow
   } = useSessionStore();
-  const { summary, setSummary } = useSummaryStore();
+  const { summary, setSummary, summaryTotal, setSummaryTotal } = useSummaryStore();
 
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
@@ -1597,6 +1634,13 @@ const InvoiceSummary = ({
 
     return Number(adjustedTotal).toFixed(2);
   };
+
+  // const [summaryTotal, setSummaryTotal] = useState(calculateTotalBookingRow(sessions[0]?.rate, summary[0]?.adjustmentValues));
+  
+  // useEffect(() => {
+  //   setSummaryTotal(calculateTotalBookingRow(sessions[0]?.rate, summary[0]?.adjustmentValues));
+  // }, [summary])
+
 
   // Store original rates for each session
   // const originalSessionRatesRef = useRef({});
@@ -1880,7 +1924,7 @@ const InvoiceSummary = ({
                     <HStack spacing={1} justify="end">
                       <Box as="span">$</Box>
                       <Input
-                        value={parseFloat(session.rate).toFixed(2)}
+                        value={calculateTotalBookingRow(session.rate, summary[0]?.adjustmentValues)}
                         readOnly={true}
                         w="8ch"
                         textAlign="center"

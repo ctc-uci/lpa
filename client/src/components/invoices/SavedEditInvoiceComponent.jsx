@@ -31,14 +31,19 @@ import {
 } from "../../assets/EditInvoiceIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useSessionStore } from "../../stores/useSessionStore";
+import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
+import { useParams } from "react-router-dom";
 
 const SavedStatementComments = ({
   subtotal,
   setSubtotal,
   compactView = false,
 }) => {
-
+  
+  const { id } = useParams();
+  useInvoiceSessions(id);
   const { sessions, setSessions } = useSessionStore();
+
   const calculateTotalBookingRow = (
     startTime,
     endTime,
@@ -283,7 +288,7 @@ const SavedStatementComments = ({
                   <Flex align="center">
                     <LocationIcon
                       width={compactView ? "8" : "12"}
-                      height={compactView && "10"}
+                      height={compactView ? "10" : undefined}
                     />
                     <Text
                       marginLeft="4px"
@@ -315,7 +320,7 @@ const SavedStatementComments = ({
                   <Flex align="center">
                     <EditDocumentIcon
                       width={compactView ? "8" : "16"}
-                      height={compactView && "10"}
+                      height={compactView ? "10" : undefined}
                     />
                     <Text
                       marginLeft="4px"
@@ -834,7 +839,7 @@ const SavedInvoiceSummary = ({
                   >
                     <EditDocumentIcon
                       width={compactView ? "8" : "16"}
-                      height={compactView && "10"}
+                      height={compactView ? "10" : undefined}
                     />
                     <Text
                       fontSize={compactView ? "6.38px" : "sm"}

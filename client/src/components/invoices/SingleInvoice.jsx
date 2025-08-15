@@ -197,6 +197,8 @@ export const SingleInvoice = () => {
         const sessionResponse = await backend.get(
           `comments/invoice/sessions/${id}`
         );
+
+        // console.log("sessionResponse", sessionResponse.data)
         setSessions(sessionResponse.data);
 
         const summaryResponse = await backend.get(

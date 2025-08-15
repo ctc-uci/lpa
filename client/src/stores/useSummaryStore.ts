@@ -25,12 +25,17 @@ export interface SummaryStore {
   summary: Summary[];
   setSummary: (summary: Summary[]) => void;
   setAdjustmentValue: (adjustmentValues: AdjustmentValue[], sessionIndex: number) => void;
+  summaryTotal: number;
+  setSummaryTotal: (summaryTotal: number) => void;
 }
 
 export const useSummaryStore = create<SummaryStore>((set) => ({
   summary: [],
   setSummary: (summary) => set(() => ({ summary })),
 
+  // Adjustment Values
   setAdjustmentValue: (adjustmentValues, sessionIndex) => set((state) => ({ summary: state.summary.map((s, idx) => idx === sessionIndex ? { ...s, adjustmentValues } : s) })),
-    
+  
+  summaryTotal: 0,
+  setSummaryTotal: (summaryTotal) => set(() => ({ summaryTotal }))
 }));

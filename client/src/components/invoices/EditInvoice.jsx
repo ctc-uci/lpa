@@ -552,7 +552,7 @@ export const EditInvoice = () => {
                   adjustmentValue.value === undefined
                 )
                   continue;
-                postSummaryAdjustments(adjustmentValue.id, userId, id, new Date().toISOString(), adjustmentValue.type, adjustmentValue.value);
+                postSummaryAdjustments(adjustmentValue.id, userId, id, adjustmentValue.datetime, adjustmentValue.type, adjustmentValue.value);
               }
             }
           }

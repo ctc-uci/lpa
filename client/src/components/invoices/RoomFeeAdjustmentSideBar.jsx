@@ -53,56 +53,77 @@ const RoomFeeAdjustmentSideBar = ({
   const cancelRef = useRef();
   const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
   const { setAdjustmentValue } = useSessionStore();
+  const { summary, setSummary, summaryTotal, setSummaryTotal } = useSummaryStore();
 
-  // useEffect(() => {
-  //   if (session) {
-  //     setTempSession(JSON.parse(JSON.stringify(session)));
-  //   }
-  // }, [session, isOpen]);
+  const calculateSummaryTotal = (rate, adjustmentValues) => {
+    if (!rate) return "0.00";
 
-  // const calculateNewRate = () => {
-  //   let newRate = Number(session.rate || 0);
+    const baseRate = Number(rate);
+    if (isNaN(baseRate)) return "0.00";
 
-  //   if (!tempSession.adjustmentValues) return newRate;
+    const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+      if (isNaN(val.value)) return acc;
 
-  //   tempSession.adjustmentValues.forEach((adj) => {
-  //     if (!adj.value) return;
+      if (val.type === "rate_percent") {
+        const factor = 1 + val.value / 100;
+        return acc * factor;
+      } else {
+        return acc + Number(val.value);
+      }
+    }, baseRate);
 
-  //     const val = Number(adj.value);
-  //     let adjustmentAmount = 0;
+    return Number(adjustedTotal).toFixed(2);
+  };
 
-  //     if (adj.type === "rate_flat") {
-  //       adjustmentAmount = val;
-  //     } else if (adj.type === "rate_percent") {
-  //       adjustmentAmount = (val / 100) * Number(newRate || 0);
-  //     }
 
-  //     if (val < 0) {
-  //       newRate -= Math.abs(adjustmentAmount);
-  //     } else {
-  //       newRate += adjustmentAmount;
-  //     }
-  //   });
+  const calculateTotalBookingRow = (
+    startTime,
+    endTime,
+    rate,
+    adjustmentValues
+  ) => {
+    if (!startTime || !endTime || !rate) return "0.00";
 
-  //   return newRate;
-  // };
+    // Make sure we're working with a valid array of adjustment values
+    const currentAdjustmentValues = Array.isArray(adjustmentValues)
+      ? adjustmentValues.filter((adj) => adj && adj.type)
+      : [];
 
-  // const calculateSessionTotal = () => {
-  //   if (tempSession && tempSession.startTime && tempSession.endTime) {
-  //     const timeToMinutes = (timeStr) => {
-  //       const [hours, minutes] = timeStr.split(":").map(Number);
-  //       return hours * 60 + minutes;
-  //     };
+    const timeToMinutes = (timeStr) => {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
 
-  //     const newRate = calculateNewRate();
-  //     const rawStart = timeToMinutes(tempSession.startTime.substring(0, 5));
-  //     const rawEnd = timeToMinutes(tempSession.endTime.substring(0, 5));
-  //     const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
-  //     const durationInHours = (endAdjusted - rawStart) / 60;
+    const rawStart = timeToMinutes(startTime.substring(0, 5));
+    const rawEnd = timeToMinutes(endTime.substring(0, 5));
+    const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
+    const durationInHours = (endAdjusted - rawStart) / 60;
 
-  //     return newRate * durationInHours;
-  //   }
-  // };
+    const baseRate = Number(rate);
+
+    const adjustedRate = currentAdjustmentValues.reduce((currentRate, adj) => {
+      if (!adj || !adj.type || adj.value === undefined) return currentRate;
+
+      const numericValue = Number(adj.value);
+      if (isNaN(numericValue)) return currentRate;
+
+      const numericPart = Math.abs(numericValue);
+      let adjustmentAmount = 0;
+
+      if (adj.type === "rate_flat") {
+        adjustmentAmount = numericPart;
+      } else if (adj.type === "rate_percent") {
+        adjustmentAmount = (numericPart / 100) * currentRate;
+      }
+
+      return numericValue < 0
+        ? currentRate - adjustmentAmount
+        : currentRate + adjustmentAmount;
+    }, baseRate);
+
+    const total = adjustedRate * durationInHours;
+    return Number(total).toFixed(2);
+  };
 
   const handleNegativeClick = (index) => {
     setTempSession((prev) => {
@@ -207,6 +228,7 @@ const RoomFeeAdjustmentSideBar = ({
     setAdjustmentValue(sessionIndex, tempSession.adjustmentValues);
     onClose();
   };
+
 
   return (
     <>
@@ -420,7 +442,7 @@ const RoomFeeAdjustmentSideBar = ({
                   {JSON.stringify(tempSession.adjustmentValues) !== JSON.stringify(session.adjustmentValues) ? `NEW` : `CURRENT`} ROOM FEE
                 </Heading>
 
-                {/* <Heading size="md">${calculateNewRate().toFixed(2)}/hr</Heading> */}
+                <Heading size="md">${calculateTotalBookingRow("00:00:00+00", "01:00:00+00", calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues), tempSession?.adjustmentValues)}/hr</Heading>
               </Flex>
               <Flex
                 justifyContent="right"
@@ -437,7 +459,7 @@ const RoomFeeAdjustmentSideBar = ({
                 </Heading>
                 <Heading size="md">
                   {" "}
-                  {/* ${calculateSessionTotal().toFixed(2)} */}
+                  ${calculateTotalBookingRow(session.startTime, session.endTime, calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues), tempSession?.adjustmentValues)}
                 </Heading>
               </Flex>
               <Flex
@@ -523,64 +545,30 @@ const SummaryFeeAdjustmentSideBar = ({
   const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
   const { setAdjustmentValue } = useSummaryStore();
   const [tempSummary, setTempSummary] = useState(summary);  
+  const [tempSummaryTotal, setTempSummaryTotal] = useState(0);
+
+  const calculateTempRate = (rate, adjustmentValues) => {
+    if (!rate) return "0.00";
+    
+    const baseRate = Number(rate);
+    if (isNaN(baseRate)) return "0.00";
+
+    const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+      if (isNaN(val.value)) return acc;
+      if (val.type === "rate_percent") {
+        const factor = 1 + val.value / 100;
+        return acc * factor;
+      } else {
+        return acc + Number(val.value);
+      }
+    }, baseRate);
+
+    return Number(adjustedTotal).toFixed(2);
+  };
 
   useEffect(() => {
-    if (session && originalRate.current === null) {
-      const baseRate = Number(session.rate);
-      const existingAdjustments = summary?.adjustmentValues || [];
-      // const existingAdjustments = tempSummary?.adjustmentValues || [];
-
-      let originalValue = baseRate;
-      existingAdjustments.forEach((adj) => {
-        if (!adj.value) return;
-
-        const val = Number(adj.value);
-        let adjustmentAmount = 0;
-
-        if (adj.type === "rate_flat") {
-          adjustmentAmount = val;
-        } else if (adj.type === "rate_percent") {
-          adjustmentAmount = (val / 100) * originalValue;
-        }
-
-        if (val < 0) {
-          originalValue += Math.abs(adjustmentAmount);
-        } else {
-          originalValue -= adjustmentAmount;
-        }
-      });
-
-      originalRate.current = originalValue;
-    }
-  }, [session, summary]);
-
-  const calculateTempRate = () => {
-    if (originalRate.current === null) return 0;
-
-    let newRate = originalRate.current;
-
-    if (tempSummary?.adjustmentValues) {
-      tempSummary.adjustmentValues.forEach((adj) => {
-        if (!adj.value) return;
-
-        const val = Number(adj.value);
-        let adjustmentAmount = 0;
-
-        if (adj.type === "rate_flat") {
-          adjustmentAmount = val;
-        } else if (adj.type === "rate_percent") {
-          adjustmentAmount = (val / 100) * Number(newRate || 0);
-        }
-
-        if (val < 0) {
-          newRate -= Math.abs(adjustmentAmount);
-        } else {
-          newRate += adjustmentAmount;
-        }
-      });
-    }
-    return newRate;
-  };
+    setTempSummaryTotal(calculateTempRate(session?.rate, tempSummary?.adjustmentValues));
+  }, [tempSummary, session]);
 
   const handleNegativeClick = (index) => {
     setTempSummary((prev) => {
@@ -896,7 +884,7 @@ const SummaryFeeAdjustmentSideBar = ({
                   {JSON.stringify(tempSummary?.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} ROOM FEE
                 </Heading>
                 <Heading size="md">
-                  ${calculateTempRate().toFixed(2)}/hr
+                  ${Number(tempSummaryTotal).toFixed(2)}/hr
                 </Heading>
               </Flex>
               <Flex
@@ -914,7 +902,7 @@ const SummaryFeeAdjustmentSideBar = ({
                 </Heading>
                 <Heading size="md">
                   {" "}
-                  ${Number(subtotal || 0).toFixed(2)}
+                  ${Number(tempSummaryTotal).toFixed(2)}
                 </Heading>
               </Flex>
               <Flex
