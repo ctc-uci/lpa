@@ -17,7 +17,8 @@ export const useInvoiceSessions = (invoiceId?: string) => {
       try {
         const response = await backend.get(`comments/invoice/sessions/${invoiceId}`);
         const data: Session[] = response.data ?? [];
-        setSessions(data);
+        const sortedData = data.slice().sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+        setSessions(sortedData);
       } catch (error) {
         console.error("Error fetching sessions:", error);
         setSessions([]);
