@@ -20,20 +20,20 @@ export const useInvoiceSessions = (invoiceId?: string) => {
         
         // Sort sessions by datetime
         const sortedSessions = data.slice().sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
-        
+
         // Sort adjustment values within each session by order_index
-        const sessionsWithSortedAdjustments = sortedSessions.map(session => ({
-          ...session,
-          adjustmentValues: session.adjustmentValues
-            .slice()
-            .sort((a, b) => {
-              const aOrderIndex = a.order_index ?? 0;
-              const bOrderIndex = b.order_index ?? 0;
-              return aOrderIndex - bOrderIndex;
-            })
-        }));
-        console.log("sessionsWithSortedAdjustments", sessionsWithSortedAdjustments)
-        setSessions(sessionsWithSortedAdjustments);
+        // const sessionsWithSortedAdjustments = sortedSessions.map(session => ({
+        //   ...session,
+        //   adjustmentValues: session.adjustmentValues
+        //     .slice()
+        //     .sort((a, b) => {
+        //       const aOrderIndex = a.order_index ?? 0;
+        //       const bOrderIndex = b.order_index ?? 0;
+        //       return aOrderIndex - bOrderIndex;
+        //     })
+        // }));
+
+        setSessions(sortedSessions);
       } catch (error) {
         console.error("Error fetching sessions:", error);
         setSessions([]);

@@ -1,3 +1,11 @@
+// Polyfills for Node.js APIs in browser environment
+import { Buffer } from 'buffer';
+import process from 'process';
+
+// Make Buffer and process available globally
+window.Buffer = Buffer;
+window.process = process;
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 

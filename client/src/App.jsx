@@ -269,14 +269,14 @@ const App = () => {
                   }
                 />
 
-                {/* <Route
+                <Route
                   path="/pdftest"
                   element={
                     <ProtectedRoute
-                      element={<TestPDFViewer />}
+                      element={<TestPDFViewer id={24} />}
                     />
                   }
-                /> */}
+                />
               </Routes>
             </Router>
           </RoleProvider>

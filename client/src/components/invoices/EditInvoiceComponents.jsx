@@ -327,10 +327,6 @@ const StatementComments = ({
     }
   };
 
-
-  // Store original rates for each session
-  // const originalSessionRatesRef = useRef({});
-
   useEffect(() => {
     const fetchUserId = async () => {
       const currentFirebaseUser = await getCurrentUser();
@@ -383,65 +379,6 @@ const StatementComments = ({
 
     return Number(adjustedTotal).toFixed(2);
   };
-
-  // TODO Replace [0]
-  // console.log("summaryTotal", calculateSummaryTotal(sessions[0]?.rate, summary[0]?.adjustmentValues))
-
-  // useEffect(() => {
-  //   // Recalculate subtotal whenever sessions change
-  //   if (sessions && sessions.length > 0) {
-  //     const newSubtotal = calculateSubtotal(sessions);
-  //     setSubtotal(newSubtotal);
-  //   }
-  // }, [sessions]);
-
-  // useEffect(() => {
-  //   if (sessions?.length > 0) {
-  //     // Store original rates for each session if not already stored
-  //     sessions.forEach((session) => {
-  //       if (
-  //         session.name &&
-  //         originalSessionRatesRef.current[session.name] === undefined
-  //       ) {
-  //         originalSessionRatesRef.current[session.name] = session.rate;
-  //       }
-  //     });
-  //   }
-  // }, [sessions]);
-
-  // useEffect(() => {
-  //   if (!summary || sessions.length === 0) return;
-
-  //   const updatedSessions = sessions.map((session) => {
-  //     // Skip sessions without names (custom rows) or missing original rates
-  //     if (
-  //       !session.name ||
-  //       originalSessionRatesRef.current[session.name] === undefined
-  //     ) {
-  //       return session;
-  //     }
-
-  //     const originalRate = originalSessionRatesRef.current[session.name];
-
-  //     if (!summary[0]?.adjustmentValues) return session;
-
-  //     const adjustedRate = calculateTotalBookingRow(
-  //       originalRate,
-  //       summary[0].adjustmentValues
-  //     );
-
-  //     if (session.rate !== adjustedRate) {
-  //       return {
-  //         ...session,
-  //         rate: adjustedRate,
-  //       };
-  //     }
-
-  //     return session;
-  //   });
-
-  //   setSessions(updatedSessions);
-  // }, [summary]);
 
   const calculateTotalBookingRow = (
     startTime,
@@ -550,34 +487,6 @@ const StatementComments = ({
     return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
 
-  // Room Fee Per Hour After Adjustments
-  // const calculateNewRate = (session) => {
-  //   if (summary.length === 0) return 0;
-
-  //   let newRate = Number(session.rate || 0);
-
-  //   session.adjustmentValues.forEach((adj) => {
-  //     const val = Number(adj.value);
-  //     const isNegative = val < 0;
-  //     const numericPart = Math.abs(val);
-
-  //     let adjustmentAmount = 0;
-
-  //     if (adj.type === "rate_flat") {
-  //       adjustmentAmount = numericPart;
-  //     } else if (adj.type === "rate_percent") {
-  //       adjustmentAmount = (numericPart / 100) * Number(newRate || 0);
-  //     }
-
-  //     if (isNegative) {
-  //       newRate -= adjustmentAmount;
-  //     } else {
-  //       newRate += adjustmentAmount;
-  //     }
-  //   });
-  //   return newRate;
-  // };
-
   const saveComment = (index, commentIndex = null) => {
     if (!commentText.trim()) {
       setActiveCommentId(null);
@@ -608,8 +517,6 @@ const StatementComments = ({
   const handleEditComment = (sessionIndex, commentIndex) => {
     setComment(sessionIndex, commentIndex, commentText);
 
-    // const session = sessions[sessionIndex];
-    // setCommentText(session?.comments[commentIndex]?.comment || "");
     setActiveCommentId(`${sessionIndex}-${commentIndex}`);
   };
 
@@ -835,158 +742,8 @@ const StatementComments = ({
               </Thead>
 
               <Tbody color="#2D3748">
-                {/* I lowkey don't remember what this was for */}
-                {/* {sessions
-                  .filter((session) => session.name.length === 0)
-                  .map((session, index) =>
-                    session.total?.map((total, totalIndex) => {
-                      if (editingCustomRow === `${index}-${totalIndex}`) {
-                        return (
-                          <Tr ref={editRowRef} >
-                            <Td
-                              colSpan={6}
-                              py={2}
-                            >
-                              <Flex
-                                gap={4}
-                                alignItems="flex-end"
-                              >
-                                <Input
-                                  type="date"
-                                  value={editCustomDate}
-                                  onChange={(e) =>
-                                    setEditCustomDate(e.target.value)
-                                  }
-                                  size="sm"
-                                  width="fit-content"
-                                  py="6"
-                                  rounded="md"
-                                  textAlign="center"
-                                  onKeyDown={(e) =>
-                                    handleCustomRowKeyDown(e, index, totalIndex)
-                                  }
-                                />
-                                <Input
-                                  placeholder="Description"
-                                  value={editCustomText}
-                                  onChange={(e) =>
-                                    setEditCustomText(e.target.value)
-                                  }
-                                  size="sm"
-                                  flex={1}
-                                  py="6"
-                                  rounded="md"
-                                  border="none"
-                                  onKeyDown={(e) =>
-                                    handleCustomRowKeyDown(e, index, totalIndex)
-                                  }
-                                />
-                                <InputGroup
-                                  size="sm"
-                                  width="fit-content"
-                                  alignItems="center"
-                                >
-                                  <Text>$</Text>
-                                  <Input
-                                    type="number"
-                                    value={editCustomAmount}
-                                    onChange={(e) =>
-                                      setEditCustomAmount(e.target.value)
-                                    }
-                                    width="9ch"
-                                    py="6"
-                                    rounded="md"
-                                    textAlign="center"
-                                    onKeyDown={(e) =>
-                                      handleCustomRowKeyDown(e, index, totalIndex)
-                                    }
-                                  />
-                                </InputGroup>
-                              </Flex>
-                            </Td>
-                          </Tr>
-                        );
-                      } else {
-                        return (
-                          <Tr
-                            position="relative"
-                            cursor="pointer"
-                            _hover={{ bg: "gray.50" }}
-                            role="group"
-                          >
-                            <Td
-                              py="6"
-                            // onClick={() =>
-                            //   handleEditCustomRow(session, index, totalIndex)
-                            // }
-                            >
-                              {(() => {
-                                const date = new Date(
-                                  session.total[totalIndex].date
-                                );
-                                date.setMinutes(
-                                  date.getMinutes() + date.getTimezoneOffset()
-                                );
-                                return format(date, "EEE. M/d/yy");
-                              })()}
-                            </Td>
-                            <Td
-                              colSpan={4}
-                              onClick={() =>
-                                handleEditCustomRow(session, index, totalIndex)
-                              }
-                            >
-                              {session.total[totalIndex]?.comment}
-                            </Td>
-                            <Td
-                              textAlign="right"
-                              position="relative"
-                            >
-                              <Flex
-                                justifyContent="flex-end"
-                                alignItems="center"
-                              >
-                                <Text
-                                  onClick={() =>
-                                    handleEditCustomRow(
-                                      session,
-                                      index,
-                                      totalIndex
-                                    )
-                                  }
-                                >
-                                  ${" "}
-                                  {Number(
-                                    session.total[totalIndex].value || 0
-                                  ).toFixed(2)}
-                                </Text>
-                                <IconButton
-                                  icon={<CloseIcon boxSize={3} />}
-                                  size="xs"
-                                  variant="ghost"
-                                  colorScheme="gray"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    // handleDeleteCustomRow(index, totalIndex);
-                                  }}
-                                  opacity="0"
-                                  _groupHover={{ opacity: 1 }}
-                                  aria-label="Delete custom row"
-                                  ml={2}
-                                  minW="20px"
-                                  height="20px"
-                                />
-                              </Flex>
-                            </Td>
-                          </Tr>
-                        );
-                      }
-                    })
-                  )} */}
-
                 {Array.isArray(sessions) && sessions.length > 0 ? (
                   sessions.filter((session) => session?.name?.length > 0)
-                  .sort((a, b) => new Date(a.datetime) - new Date(b.datetime))
                     .map((session, index) => {
                       // For regular sessions, use the existing code
                       return (
