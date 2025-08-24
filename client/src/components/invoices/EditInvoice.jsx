@@ -251,6 +251,7 @@ export const EditInvoice = () => {
           0
         );
         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        
         setPastDue(remainingBalance);
 
         // Initialize the edited fields with current data

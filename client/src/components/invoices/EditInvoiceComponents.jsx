@@ -286,7 +286,6 @@ const StatementComments = ({
   invoice,
   compactView = false,
   setSubtotal,
-  // summary = [],
 }) => {
   const { backend } = useBackendContext();
   const [activeRowId, setActiveRowId] = useState(null);

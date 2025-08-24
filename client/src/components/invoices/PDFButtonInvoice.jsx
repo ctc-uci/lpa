@@ -30,7 +30,6 @@ const PDFButtonInvoice = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [invoice, setInvoice] = useState(null);
-  const [invoiceData, setInvoiceData] = useState({});
 
   useInvoiceSessions(id);
   const { sessions } = useSessionStore();
@@ -79,14 +78,13 @@ const PDFButtonInvoice = ({
 
     const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
-    setInvoiceData({
+    return {
       instructors: instructorResponse.data,
       programName: programNameResponse.data[0].name,
       payees: payeesResponse.data,
       remainingBalance: remainingBalance,
       summary: summaryResponse.data[0],
-    });
-
+    }
 
   };
 
@@ -112,16 +110,12 @@ const PDFButtonInvoice = ({
     return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
   };
 
-  useEffect(() => {
-    if (id) {
-      fetchInvoiceData();
-    }
-  }, [id]);
-
   const handleDownload = async () => {
     try {
       setLoading(true);
-
+      const invoiceData = await fetchInvoiceData();
+      
+      
       const blob = await pdf(
         <InvoicePDFDocument
               sessions={sessions}
@@ -258,27 +252,26 @@ const TestPDFViewer = ({ id }) => {
 
     const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
-    setInvoiceData({
+
+    return {
       instructors: instructorResponse.data,
       programName: programNameResponse.data[0].name,
       payees: payeesResponse.data,
       remainingBalance: remainingBalance,
       summary: summaryResponse.data[0],
-    });
+    }
 
 
   };
 
   useEffect(() => {
-      fetchInvoiceData();
-  }, [id]);
-
-  useEffect(() => {
-    if (sessions.length > 0 && Object.keys(invoiceData).length > 0) {
-      setLoading(false);
+    const fetchData = async () => {
+      const invoiceData = await fetchInvoiceData();
+      setInvoiceData(invoiceData);
     }
-  }, [sessions, invoiceData]);
-
+    fetchData();
+  }, [id]);
+  
   return (
     <Box>
       {loading ? (

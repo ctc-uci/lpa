@@ -147,13 +147,47 @@ export const SingleInvoice = () => {
         // setRemainingBalance(remainingBalanceCalculated);
         // setPastDue(remainingBalance);
 
-        const paidTotalResponse = await backend.get(`/invoices/paid/${id}`);
-        const paidTotal = paidTotalResponse.data.total;
+        // const paidTotalResponse = await backend.get(`/invoices/paid/${id}`);
+        // const paidTotal = paidTotalResponse.data.total;
 
-        const remainingBalanceCalculated =
-          total - paidTotal > 0 ? total - paidTotal : 0;
-        setRemainingBalance(remainingBalanceCalculated);
-        setPastDue(remainingBalanceCalculated);
+        // const remainingBalanceCalculated =
+        //   total - paidTotal > 0 ? total - paidTotal : 0;
+        // setRemainingBalance(remainingBalanceCalculated);
+        // setPastDue(remainingBalanceCalculated);
+
+         // ==== PAST DUE CALCULATION ====
+         const unpaidInvoicesResponse = await backend.get(
+          "/events/remaining/" + currentInvoice.eventId
+        );
+
+        // calculate sum of unpaid/remaining invoices
+        const unpaidTotals = await Promise.all(
+          unpaidInvoicesResponse.data.map((invoice) =>
+            backend.get(`/invoices/total/${invoice.id}`)
+          )
+        );
+        
+        const partiallyPaidTotals = await Promise.all(
+          unpaidInvoicesResponse.data.map((invoice) =>
+            backend.get(`/invoices/paid/${invoice.id}`)
+          )
+        );
+
+        const unpaidTotal = unpaidTotals.reduce(
+          (sum, res) => sum + res.data.total,
+          0
+        );
+        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+          (sum, res) => {
+            return sum + Number(res.data.total); // Had to change to number because was causing NaN
+          },
+          0
+        );
+
+        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        setPastDue(remainingBalance);
+
+        // ==== END OF PAST DUE CALCULATION ====
 
         // get program name
         const programNameResponse = await backend.get(
@@ -213,6 +247,7 @@ export const SingleInvoice = () => {
 
     fetchData();
   }, [backend, id]);
+
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -493,7 +528,7 @@ export const SingleInvoice = () => {
                         room={room}
                         subtotal={subtotal}
                         setSubtotal={setSubtotal}
-                        pastDue={currentPastDue.current}
+                        pastDue={pastDue}
                         payees={payees}
                         programName={programName}
                         instructors={instructors}

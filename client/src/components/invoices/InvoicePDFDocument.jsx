@@ -403,6 +403,26 @@ const calculateTotalBookingRow = (
   return total.toFixed(2);
 };
 
+const calculateTotalBookingRowSummary = (rate, adjustmentValues) => {
+  if (!rate) return "0.00";
+
+  const baseRate = Number(rate);
+  if (isNaN(baseRate)) return "0.00";
+
+  const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+    if (isNaN(val.value)) return acc;
+
+    if (val.type === "rate_percent") {
+      const factor = 1 + val.value / 100;
+      return acc * factor;
+    } else {
+      return acc + Number(val.value);
+    }
+  }, baseRate);
+
+  return Number(adjustedTotal).toFixed(2);
+};
+
 const calculateSummaryTotal = (rate, adjustmentValues) => {
   if (!rate) return "0.00";
 
@@ -1054,10 +1074,7 @@ const SummaryTable = ({
                 }}
               >
                 <Text style={{ fontSize: 7 }}>
-                  $ {calculateTotalBookingRow({
-                    rate: Number(session.rate),
-                    adjustmentValues: summary?.adjustmentValues || [],
-                  })}/hr
+                  $ {calculateTotalBookingRowSummary(session.rate, summary?.adjustmentValues)}/hr
                 </Text>
               </View>
             </View>
