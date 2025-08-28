@@ -163,8 +163,6 @@ export const EditInvoice = () => {
   const { sessions, setSessions } = useSessionStore();
   const { summary, setSummary } = useSummaryStore();
 
-  console.log("summary", summary);
-
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = React.useRef();
 

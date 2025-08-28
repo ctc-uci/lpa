@@ -192,43 +192,44 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
     // }
 
 
-    const totalQuery = `SELECT comments.id as comment_id,
-                   comments.user_id,
-                   comments.invoice_id,
-                   comments.datetime,
-                   comments.comment,
-                   comments.adjustment_type,
-                   comments.adjustment_value,
-                   invoices.start_date
-                FROM comments
-                JOIN invoices ON comments.invoice_id = invoices.id
-                WHERE comments.invoice_id = $1 AND comments.adjustment_type = 'total' AND comments.booking_id IS NULL`;
-    const total = await db.query(totalQuery, queryParams);
-    const totalComments = keysToCamel(total);
+    // const totalQuery = `SELECT comments.id as comment_id,
+    //                comments.user_id,
+    //                comments.invoice_id,
+    //                comments.datetime,
+    //                comments.comment,
+    //                comments.adjustment_type,
+    //                comments.adjustment_value,
+    //                invoices.start_date
+    //             FROM comments
+    //             JOIN invoices ON comments.invoice_id = invoices.id
+    //             WHERE comments.invoice_id = $1 AND comments.adjustment_type = 'total' AND comments.booking_id IS NULL`;
+    // const total = await db.query(totalQuery, queryParams);
+    // const totalComments = keysToCamel(total);
+    // console.log("totalComments", totalComments);
     
-    for (const comment of totalComments) {
-      groupedComments[`total-${comment.commentId}`] = {
-        comments: [],
-        userId: comment.userId,
-        bookingId: null,
-        invoiceId: comment.invoiceId,
-        datetime: comment.datetime,
-        bookingDate: comment.startDate,
-        adjustmentValues: [],
-        startTime: '00:00:00+00',
-        endTime: '01:00:00+00',
-        name: "",
-        rate: 0,
-        total: [{
-          id: comment.commentId,
-          value: comment.adjustmentValue,
-          comment: comment.comment,
-          date: comment.datetime
-        }],
+    // for (const comment of totalComments) {
+    //   groupedComments[`total-${comment.commentId}`] = {
+    //     comments: [],
+    //     userId: comment.userId,
+    //     bookingId: null,
+    //     invoiceId: comment.invoiceId,
+    //     datetime: comment.datetime,
+    //     bookingDate: comment.startDate,
+    //     adjustmentValues: [],
+    //     startTime: '00:00:00+00',
+    //     endTime: '01:00:00+00',
+    //     name: "",
+    //     rate: 0,
+    //     total: [{
+    //       id: comment.commentId,
+    //       value: comment.adjustmentValue,
+    //       comment: comment.comment,
+    //       date: comment.datetime
+    //     }],
         
-      };
+    //   };
       
-    }
+    // }
     
     res.status(200).json(Object.values(groupedComments));
   } catch (err) {
@@ -251,7 +252,7 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
                    comments.adjustment_value
                 FROM comments
                 WHERE comments.invoice_id = $1 
-                AND (comments.adjustment_type = 'rate_percent' or comments.adjustment_type = 'rate_flat')
+                AND (comments.adjustment_type = 'rate_percent' or comments.adjustment_type = 'rate_flat' or comments.adjustment_type = 'total')
                 AND comments.booking_id IS NULL
                 ORDER BY comments.id`;
     const queryParams = [id];
@@ -262,30 +263,33 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
 
     comments.forEach((comment) => {
       // Skip comments with adjustment type "none" or "total" for the main summary
-      if (comment.adjustmentType === "none" || comment.adjustmentType === "total") {
+      // if (comment.adjustmentType === "none" || comment.adjustmentType === "total") {
         // For "total" adjustments, still create a separate entry
-        if (comment.adjustmentType === "total") {
-          const totalKey = `summary-total-${comment.commentId}`;
-          groupedComments[totalKey] = {
-            ...comment,
-            comments: comment.comment ? [comment.comment] : [],
-            adjustmentValues: [{
-              id: comment.commentId,
-              type: comment.adjustmentType,
-              value: comment.adjustmentValue
-            }]
-          };
-          
-          // Clean up unnecessary fields
-          delete groupedComments[totalKey].adjustmentType;
-          delete groupedComments[totalKey].adjustmentValue;
-          delete groupedComments[totalKey].comment;
-          delete groupedComments[totalKey].commentId;
-        }
         
-        // Skip further processing for both "none" and "total"
-        return;
-      }
+        
+        // if (comment.adjustmentType === "total") {
+        //   const totalKey = `summary-total-${comment.commentId}`;
+        //   groupedComments[totalKey] = {
+        //     ...comment,
+        //     comments: comment.comment ? [comment.comment] : [],
+        //     adjustmentValues: [{
+        //       id: comment.commentId,
+        //       type: comment.adjustmentType,
+        //       value: comment.adjustmentValue
+        //     }]
+        //   };
+          
+        //   // Clean up unnecessary fields
+        //   delete groupedComments[totalKey].adjustmentType;
+        //   delete groupedComments[totalKey].adjustmentValue;
+        //   delete groupedComments[totalKey].comment;
+        //   delete groupedComments[totalKey].commentId;
+        // }
+        
+      //   // Skip further processing for both "none" and "total"
+      //   return;
+      // }
+
       
       const bookingId = comment.bookingId || 'summary';
       
@@ -297,12 +301,18 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
           adjustmentValues: [{
             id: comment.commentId,
             type: comment.adjustmentType,
-            value: comment.adjustmentValue
-          }]
+            value: comment.adjustmentValue,
+          }],
+          total: comment.adjustmentType === "total" ? [{
+            id: comment.commentId,
+            value: comment.adjustmentValue,
+            comment: comment.comment,
+            date: comment.datetime
+          }] : []
         };
       } else {
         // Add comment if it's not empty
-        if (comment.comment) {
+        if (comment.comment && comment.adjustmentType !== "total") {
           groupedComments[bookingId].comments.push(comment.comment);
         }
 
@@ -313,12 +323,21 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
                  adj.value === comment.adjustmentValue)
         );
         
-        if (!adjustmentExists) {
+        if (!adjustmentExists && comment.adjustmentType !== "total") {
           groupedComments[bookingId].adjustmentValues.push({
             id: comment.commentId,
             type: comment.adjustmentType,
             value: comment.adjustmentValue
           });
+        }
+
+        if(comment.adjustmentType === "total"){
+          groupedComments[bookingId].total.push({
+            id: comment.commentId,
+            value: comment.adjustmentValue,
+            comment: comment.comment,
+            date: comment.datetime
+          })
         }
       }
 

@@ -313,8 +313,16 @@ const StatementComments = ({
     deleteCustomRow
   } = useSessionStore();
 
+  useEffect(() => {
+    console.log("sessions", sessions);
+  }, [sessions]);
+
 
   const { summary, setSummary, summaryTotal, setSummaryTotal } = useSummaryStore();
+
+  useEffect(() => {
+    console.log("summary", summary);
+  }, [summary]);
 
   const formatDateForInput = (value) => {
     if (!value) return "";
@@ -580,7 +588,7 @@ const StatementComments = ({
     setEditCustomDate(formatDateForInput(session.total[totalIndex].date));
     setEditCustomText(session.total[totalIndex]?.comment || "");
     setEditCustomAmount(session.total[totalIndex].value.toString());
-    
+
     // Store the ID of the row being edited to preserve it
     setEditCustomId(session.total[totalIndex]?.id || null);
   };
@@ -604,7 +612,7 @@ const StatementComments = ({
 
   const handleDeleteCustomRow = (sessionIndex, totalIndex) => {
     deleteCustomRow(sessionIndex, totalIndex);
-    
+
     // Reset editing state
     setEditingCustomRow(null);
     setEditCustomDate(new Date().toISOString().split("T")[0]);
@@ -614,11 +622,12 @@ const StatementComments = ({
 
     // If the total item had an ID, add it to deletedIds
     const totalItem = sessions[sessionIndex]?.total[totalIndex];
+    
     if (totalItem?.id) {
       addDeletedId(totalItem.id);
     }
   };
-  
+
   return (
     <Flex
       direction="column"
@@ -746,7 +755,7 @@ const StatementComments = ({
                     .map((session, index) => {
                       // For regular sessions, use the existing code
                       return (
-                        
+
                         <React.Fragment key={index}>
                           <Tr
                             position="relative"
@@ -949,14 +958,14 @@ const StatementComments = ({
                                 setSessions={setSessions}
                                 sessionIndex={index}
                                 subtotal={
-                                //   calculateTotalBookingRow(
-                                //   session.startTime,
-                                //   session.endTime,
-                                //   session.rate,
-                                //   session.adjustmentValues
-                                // )
-                                0
-                              }
+                                  //   calculateTotalBookingRow(
+                                  //   session.startTime,
+                                  //   session.endTime,
+                                  //   session.rate,
+                                  //   session.adjustmentValues
+                                  // )
+                                  0
+                                }
                                 deletedIds={deletedIds}
                                 setDeletedIds={setDeletedIds}
                               />
@@ -1001,12 +1010,12 @@ const StatementComments = ({
                                 <Text>$</Text>
                                 <Text textAlign="center">
                                   {
-                                  calculateTotalBookingRow(
-                                    session.startTime,
-                                    session.endTime,
-                                    calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
-                                    session.adjustmentValues
-                                  )
+                                    calculateTotalBookingRow(
+                                      session.startTime,
+                                      session.endTime,
+                                      calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
+                                      session.adjustmentValues
+                                    )
                                   }
                                 </Text>
                               </Flex>
@@ -1273,35 +1282,35 @@ const StatementComments = ({
                                     textAlign="right"
                                     position="relative"
                                   >
-                                      <Flex
-                                        justifyContent="flex-end"
-                                        alignItems="center"
+                                    <Flex
+                                      justifyContent="flex-end"
+                                      alignItems="center"
+                                    >
+                                      <Text mr={1}>$</Text>
+                                      <Text
                                       >
-                                        <Text mr={1}>$</Text>
-                                        <Text
-                                        >
-                                          {Number(
-                                            session?.total?.[totalIndex]?.value || 0
-                                          ).toFixed(2)}
-                                        </Text>
-                                        <IconButton
-                                          icon={<CloseIcon boxSize={3} />}
-                                          size="xs"
-                                          variant="ghost"
-                                          colorScheme="gray"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteCustomRow(
-                                              index,
-                                              totalIndex
-                                            );
-                                          }}
-                                          display="none"
-                                          _groupHover={{ display: "inline-flex", width: "20px" }}
-                                          aria-label="Delete custom row"
-                                          ml={2}
-                                        />
-                                      </Flex>
+                                        {Number(
+                                          session?.total?.[totalIndex]?.value || 0
+                                        ).toFixed(2)}
+                                      </Text>
+                                      <IconButton
+                                        icon={<CloseIcon boxSize={3} />}
+                                        size="xs"
+                                        variant="ghost"
+                                        colorScheme="gray"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteCustomRow(
+                                            index,
+                                            totalIndex
+                                          );
+                                        }}
+                                        display="none"
+                                        _groupHover={{ display: "inline-flex", width: "20px" }}
+                                        aria-label="Delete custom row"
+                                        ml={2}
+                                      />
+                                    </Flex>
 
                                   </Td>
                                 </Tr>
@@ -1368,9 +1377,16 @@ const InvoiceSummary = ({
     deleteComment,
     addCustomRow,
     setCustomRow,
-    deleteCustomRow
+    deleteCustomRow,
   } = useSessionStore();
-  const { summary, setSummary, summaryTotal, setSummaryTotal } = useSummaryStore();
+  const { summary, setSummary, summaryTotal, setSummaryTotal, addTotal, setTotal, deleteTotal } = useSummaryStore();
+  const { addDeletedId, deletedIds } = useDeletedIdsStore();
+  const [editingCustomRow, setEditingCustomRow] = useState(null);
+  const [editCustomDate, setEditCustomDate] = useState("");
+  const [editCustomText, setEditCustomText] = useState("");
+  const [editCustomAmount, setEditCustomAmount] = useState("");
+  const [editCustomId, setEditCustomId] = useState(null);
+  const editRowRef = useRef(null);
 
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
@@ -1392,64 +1408,98 @@ const InvoiceSummary = ({
     return Number(adjustedTotal).toFixed(2);
   };
 
-  // const [summaryTotal, setSummaryTotal] = useState(calculateTotalBookingRow(sessions[0]?.rate, summary[0]?.adjustmentValues));
-  
-  // useEffect(() => {
-  //   setSummaryTotal(calculateTotalBookingRow(sessions[0]?.rate, summary[0]?.adjustmentValues));
-  // }, [summary])
+  const handleEditCustomRow = (session, index, totalIndex) => {
+    if (editingCustomRow !== null) return;
+
+    setEditingCustomRow(`summary-total-${totalIndex}`);
+
+    console.log(summary[0].total[totalIndex])
+
+    const date = new Date(summary[0].total[totalIndex].date);
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+
+    setEditCustomDate(formatDateForInput(summary[0].total[totalIndex].date));
+    setEditCustomText(summary[0].total[totalIndex]?.comment || "");
+    setEditCustomAmount(summary[0].total[totalIndex].value.toString());
+
+    // Store the ID of the row being edited to preserve it
+    setEditCustomId(summary[0].total[totalIndex]?.id || null);
+  };
+
+  const formatDateForInput = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value.split("T")[0];
+    try {
+      return new Date(value).toISOString().split("T")[0];
+    } catch {
+      return "";
+    }
+  };
+
+  const handleSaveCustomRow = (totalIndex) => {
+    if (!editCustomDate || !editCustomText || !editCustomAmount) return;
+    
+    setTotal({
+      id: editCustomId, // Preserve the original ID
+      date: editCustomDate,
+      value: editCustomAmount,
+      comment: editCustomText,
+    }, totalIndex);
+
+    setEditingCustomRow(null);
+    setEditCustomDate(new Date().toISOString().split("T")[0]);
+    setEditCustomText("");
+    setEditCustomAmount("");
+    setEditCustomId(null); // Reset the ID
+  };
+
+  const handleCustomRowKeyDown = (e, totalIndex) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      handleSaveCustomRow(totalIndex);
+    }
+  };
+
+  const handleDeleteCustomRow = (totalIndex) => {
+    deleteTotal(summary[0].total[totalIndex].id);
+
+    // Reset editing state
+    setEditingCustomRow(null);
+    setEditCustomDate(new Date().toISOString().split("T")[0]);
+    setEditCustomText("");
+    setEditCustomAmount("");
+    setEditCustomId(null); // Reset the ID
+
+    // If the total item had an ID, add it to deletedIds
+    const totalItem = summary[0]?.total[totalIndex];
+    if (totalItem?.id && !isNaN(totalItem.id)) {
+      addDeletedId(totalItem.id);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (editRowRef.current && !editRowRef.current.contains(event.target)) {
+        if (editingCustomRow !== null) {
+          const [sessionIndex, totalIndex] = editingCustomRow.split("-");
+          handleSaveCustomRow(
+            parseInt(sessionIndex),
+            parseInt(totalIndex)
+          );
+        }
+      }
+    };
+
+    if (editingCustomRow !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [editingCustomRow, editCustomDate, editCustomText, editCustomAmount, editCustomId]);
 
 
-  // Store original rates for each session
-  // const originalSessionRatesRef = useRef({});
-
-  // useEffect(() => {
-  //   if (sessions?.length > 0) {
-  //     // Store original rates for each session if not already stored
-  //     sessions.forEach((session) => {
-  //       if (
-  //         session.name &&
-  //         originalSessionRatesRef.current[session.name] === undefined
-  //       ) {
-  //         originalSessionRatesRef.current[session.name] = session.rate;
-  //       }
-  //     });
-  //   }
-  // }, [sessions]);
-
-  // useEffect(() => {
-  //   if (!summary || sessions.length === 0) return;
-
-  //   const updatedSessions = sessions.map((session) => {
-  //     // Skip sessions without names (custom rows) or missing original rates
-  //     if (
-  //       !session.name ||
-  //       originalSessionRatesRef.current[session.name] === undefined
-  //     ) {
-  //       return session;
-  //     }
-
-  //     const originalRate = originalSessionRatesRef.current[session.name];
-  //     const currentSummary = summary[0];
-
-  //     if (!currentSummary?.adjustmentValues) return session;
-
-  //     const adjustedRate = calculateTotalBookingRow(
-  //       originalRate,
-  //       currentSummary.adjustmentValues
-  //     );
-
-  //     if (session.rate !== adjustedRate) {
-  //       return {
-  //         ...session,
-  //         rate: adjustedRate,
-  //       };
-  //     }
-
-  //     return session;
-  //   });
-
-  //   setSessions(updatedSessions);
-  // }, [summary]);
 
   return (
     <Flex
@@ -1548,36 +1598,58 @@ const InvoiceSummary = ({
                   Room Fee
                 </Td>
                 <Td borderBottom="none">
-                  <Button
-                    // onClose={() => setActiveRowId(null)}
-                    leftIcon={<PencilIcon color="black" />}
-                    colorScheme="gray"
-                    borderRadius="md"
-                    px="3"
-                    py="2"
-                    fontSize="small"
-                    height="32px"
-                    onClick={onOpen}
-                  >
-                    Adjust
-                  </Button>
-                  {summary?.[0] && (
-                    <SummaryFeeAdjustmentSideBar
-                      isOpen={isOpen}
-                      onClose={onClose}
-                      summary={summary?.[0]}
-                      // setSummary={setSummary}
-                      subtotal={subtotal}
-                      session={sessions[0]}
-                    />
-                  )}
-                  <Tooltip
-                    label="Room fee adjustments in Summary will be apply to all Sessions."
-                    placement="top"
-                    bg="gray"
-                  >
-                    <InfoOutlineIcon ml={2} />
-                  </Tooltip>
+                  <Flex gap={2} align="center">
+                    <Button
+                      // onClose={() => setActiveRowId(null)}
+                      leftIcon={<PencilIcon color="black" />}
+                      colorScheme="gray"
+                      borderRadius="md"
+                      px="3"
+                      py="2"
+                      fontSize="small"
+                      height="32px"
+                      onClick={onOpen}
+                    >
+                      Adjust
+                    </Button>
+                    <Button
+                      // onClose={() => setActiveRowId(null)}
+                      leftIcon={<AddIcon color="black" />}
+                      colorScheme="gray"
+                      borderRadius="md"
+                      px="3"
+                      py="2"
+                      fontSize="small"
+                      height="32px"
+                      onClick={() => {
+                        addTotal({
+                          id: `summary-total-${summary[0].total.length}`,
+                          value: "0.00",
+                          comment: "Custom Row",
+                          date: new Date().toISOString()
+                        });
+                      }}
+                    >
+                      Add Custom Row
+                    </Button>
+                    {summary?.[0] && (
+                      <SummaryFeeAdjustmentSideBar
+                        isOpen={isOpen}
+                        onClose={onClose}
+                        summary={summary?.[0]}
+                        // setSummary={setSummary}
+                        subtotal={subtotal}
+                        session={sessions[0]}
+                      />
+                    )}
+                    <Tooltip
+                      label="Room fee adjustments in Summary will be apply to all Sessions."
+                      placement="top"
+                      bg="gray"
+                    >
+                      <InfoOutlineIcon ml={2} />
+                    </Tooltip>
+                  </Flex>
                 </Td>
               </Tr>
               {/* Room Fee Body Row */}
@@ -1693,6 +1765,158 @@ const InvoiceSummary = ({
                 </Tr>
               ))}
               {/* past due balance row */}
+
+              {summary[0]?.total?.map((total, totalIndex) => {
+                if (editingCustomRow === `summary-total-${totalIndex}`) {
+                  return (
+                    <Tr key={totalIndex} ref={editRowRef}>
+                      <Td
+                        colSpan={6}
+                        py={2}
+                      >
+                        <Flex
+                          gap={4}
+                          alignItems="center"
+                        >
+                          <Input
+                            type="date"
+                            value={editCustomDate}  
+                            onChange={(e) =>
+                              setEditCustomDate(e.target.value)
+                            }
+                            size="sm"
+                            width="fit-content"
+                            py="6"
+                            rounded="md"
+                            textAlign="center"
+                            onKeyDown={(e) =>
+                              handleCustomRowKeyDown(e, totalIndex)
+                            }
+                          />
+                          <Input
+                            placeholder="Description"
+                            value={editCustomText}
+                            onChange={(e) =>
+                              setEditCustomText(e.target.value)
+                            }
+                            size="sm"
+                            flex={1}
+                            py="6"
+                            rounded="md"
+                            border="none"
+                            onKeyDown={(e) =>
+                              handleCustomRowKeyDown(e, 0, totalIndex)
+                            }
+                            onBlur={(e) => {
+                              if (editCustomText.trim() === "") {
+                                handleDeleteCustomRow(totalIndex)
+                              } else {
+                                handleSaveCustomRow(totalIndex)
+                              }
+                            }}
+                          />
+                          <InputGroup
+                            size="sm"
+                            width="fit-content"
+                            alignItems="center"
+                          >
+                            <Text mr={2}>$</Text>
+                            <Input
+                              type="number"
+                              value={editCustomAmount}
+                              onChange={(e) =>
+                                setEditCustomAmount(e.target.value)
+                              }
+                              width="9ch"
+                              py="6"
+                              rounded="md"
+                              textAlign="center"
+                              onKeyDown={(e) =>
+                                handleCustomRowKeyDown(e, totalIndex)
+                              }
+                            />
+                          </InputGroup>
+                          <IconButton
+                            icon={<CloseIcon boxSize={3} />}
+                            size="xs"
+                            variant="ghost"
+                            colorScheme="gray"
+                            onClick={() => handleDeleteCustomRow(totalIndex)}
+                          />
+                        </Flex>
+                      </Td>
+                    </Tr>
+                  );
+                } else {
+                  return (
+                    <Tr
+                      position="relative"
+                      cursor="pointer"
+                      _hover={{ bg: "gray.50" }}
+                      role="group"
+                      onClick={() =>
+                        handleEditCustomRow(
+                          summary[0],
+                          0,
+                          totalIndex
+                        )
+                      }
+                    >
+                      <Td
+                        py="6"
+                      >
+                        {(() => {
+                          const date = new Date(
+                            summary[0]?.total[totalIndex].date
+                          );
+                          date.setMinutes(
+                            date.getMinutes() +
+                            date.getTimezoneOffset()
+                          );
+                          return format(date, "EEE. M/d/yy");
+                        })()}
+                      </Td>
+                      <Td
+                        colSpan={4}
+                      >
+                        {summary[0]?.total[totalIndex]?.comment}
+                      </Td>
+                      <Td
+                        textAlign="right"
+                        position="relative"
+                      >
+                        <Flex
+                          justifyContent="flex-end"
+                          alignItems="center"
+                        >
+                          <Text mr={1}>$</Text>
+                          <Text
+                          >
+                            {Number(
+                              summary[0]?.total?.[totalIndex]?.value || 0
+                            ).toFixed(2)}
+                          </Text>
+                          <IconButton
+                            icon={<CloseIcon boxSize={3} />}
+                            size="xs"
+                            variant="ghost"
+                            colorScheme="gray"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCustomRow(totalIndex)
+                            }}
+                            display="none"
+                            _groupHover={{ display: "inline-flex", width: "20px" }}
+                            aria-label="Delete custom row"
+                            ml={2}
+                          />
+                        </Flex>
+
+                      </Td>
+                    </Tr>
+                  );
+                }
+              })}
 
               <Tr>
                 <Td
