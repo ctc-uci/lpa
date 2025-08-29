@@ -542,6 +542,15 @@ export const EditInvoice = () => {
           postSummaryAdjustments(adjustmentValue.id, userId, id, adjustmentValue.datetime, adjustmentValue.type, adjustmentValue.value);
         }
       }
+
+      if(summary && summary.length > 0 && summary[0].total && summary[0].total.length > 0) {
+        for (const totalItem of summary[0].total) {
+          postTotal(totalItem.id, userId, null, id, totalItem.date, totalItem.comment, totalItem.value);
+        }
+      }
+
+      
+
       navigate(`/invoices/savededits/${id}`);
     } catch (error) {
       console.error("Error saving invoice:", error);

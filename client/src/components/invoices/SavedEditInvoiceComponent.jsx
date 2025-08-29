@@ -994,6 +994,54 @@ const SavedInvoiceSummary = ({
               ))}
               {/* past due balance row */}
 
+              {summary[0]?.total?.map((total, totalIndex) => {
+                return (
+                  <Tr
+                  position="relative"
+                  cursor="pointer"
+                  _hover={{ bg: "gray.50" }}
+                  role="group"
+                >
+                  <Td
+                    py="6"
+                  >
+                    {(() => {
+                      const date = new Date(
+                        summary[0]?.total[totalIndex].date
+                      );
+                      date.setMinutes(
+                        date.getMinutes() +
+                        date.getTimezoneOffset()
+                      );
+                      return format(date, "EEE. M/d/yy");
+                    })()}
+                  </Td>
+                  <Td
+                    colSpan={4}
+                  >
+                    {summary[0]?.total[totalIndex]?.comment}
+                  </Td>
+                  <Td
+                    textAlign="right"
+                    position="relative"
+                  >
+                    <Flex
+                      justifyContent="flex-end"
+                      alignItems="center"
+                    >
+                      <Text mr={1}>$</Text>
+                      <Text
+                      >
+                        {Number(
+                          summary[0]?.total?.[totalIndex]?.value || 0
+                        ).toFixed(2)}
+                      </Text>
+                    </Flex>
+                  </Td>
+                </Tr>
+                );
+              })}
+
               <Tr>
                 <Td
                   colSpan={4}
