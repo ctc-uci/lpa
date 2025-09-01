@@ -142,84 +142,86 @@ export const EditRecurringSessions = () => {
   };
 
   const handleChangeSessionField = (type, index, field, value) => {
-    setNewSessions((prev) => ({
-      // const updatedNewSessions = {
-      ...prev,
-      [type]: prev[type]?.map((session, i) =>
-        i === index ? { ...session, [field]: value } : session
-      ),
-    }));
+    setNewSessions((prev) => {
+      const updatedNewSessions = {
+        ...prev,
+        [type]: prev[type]?.map((session, i) =>
+          i === index ? { ...session, [field]: value } : session
+        ),
+      };
 
-    setAllSessions((allPrev) => {
-      let updatedSessions = [...allPrev];
+      // Update allSessions immediately with the updated state
+      setAllSessions((allPrev) => {
+        let updatedSessions = [...allPrev];
 
-      if (type === "recurring") {
-        const recurringSession = {
-          ...newSessions.recurring[index],
-          [field]: value,
-        };
-
-        // Remove all sessions with this recurringId
-        updatedSessions = updatedSessions.filter(
-          (s) => s.recurringId !== recurringSession.id
-        );
-
-        if (Object.values(recurringSession).every((val) => val !== "")) {
-          const currentTimezoneDate = new Date(
-            startDate.replace(/-/g, "/").replace(/T.+/, "")
-          );
-          const generatedSessions = generateRecurringSessions(
-            {
-              ...recurringSession,
-            },
-            startDate,
-            endDate
-          );
-
-          updatedSessions = [
-            ...updatedSessions,
-            ...generatedSessions.map((s) => ({
-              ...s,
-              recurringId: recurringSession.id,
-              isNew: true,
-            })),
-          ];
-        }
-      } else if (type === "single") {
-        const singleSession = {
-          ...newSessions.single[index],
-          [field]: value,
-          id: index,
-        };
-
-        // Find and update the existing session or add a new one
-        const existingIndex = updatedSessions.findIndex(
-          (s) =>
-            s.id === singleSession.id ||
-            (s.date === singleSession.date &&
-              s.startTime === singleSession.startTime)
-        );
-
-        if (existingIndex !== -1) {
-          updatedSessions[existingIndex] = {
-            ...updatedSessions[existingIndex],
-            ...singleSession,
-            isNew: true,
+        if (type === "recurring") {
+          const recurringSession = {
+            ...updatedNewSessions.recurring[index], // Use the updated state
+            [field]: value,
           };
-        } else if (Object.values(singleSession).every((val) => val !== "")) {
-          updatedSessions.push({
-            ...singleSession,
-            id: singleSession.id,
-            isNew: true,
-          });
+
+          // Remove all sessions with this recurringId
+          updatedSessions = updatedSessions.filter(
+            (s) => s.recurringId !== recurringSession.id
+          );
+
+          if (Object.values(recurringSession).every((val) => val !== "")) {
+            const currentTimezoneDate = new Date(
+              startDate.replace(/-/g, "/").replace(/T.+/, "")
+            );
+            const generatedSessions = generateRecurringSessions(
+              {
+                ...recurringSession,
+              },
+              startDate,
+              endDate
+            );
+
+            updatedSessions = [
+              ...updatedSessions,
+              ...generatedSessions.map((s) => ({
+                ...s,
+                recurringId: recurringSession.id,
+                isNew: true,
+              })),
+            ];
+          }
+        } else if (type === "single") {
+          const singleSession = {
+            ...updatedNewSessions.single[index], // Use the updated state
+            [field]: value,
+            id: index,
+          };
+
+          // Find and update the existing session or add a new one
+          const existingIndex = updatedSessions.findIndex(
+            (s) =>
+              s.id === singleSession.id ||
+              (s.date === singleSession.date &&
+                s.startTime === singleSession.startTime)
+          );
+
+          if (existingIndex !== -1) {
+            updatedSessions[existingIndex] = {
+              ...updatedSessions[existingIndex],
+              ...singleSession,
+              isNew: true,
+            };
+          } else if (Object.values(singleSession).every((val) => val !== "")) {
+            updatedSessions.push({
+              ...singleSession,
+              id: singleSession.id,
+              isNew: true,
+            });
+          }
         }
-      }
 
-      setIsChanged(true);
-      return updatedSessions;
+        setIsChanged(true);
+        return updatedSessions;
+      });
+
+      return updatedNewSessions;
     });
-
-    // });
   };
 
   const handleDeleteRow = (type, index) => {
