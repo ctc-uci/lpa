@@ -14,6 +14,7 @@ import {
   useToast,
   HStack,
   ButtonGroup,
+  Tooltip,
 } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router-dom";
@@ -354,15 +355,31 @@ const InvoicesDashboard = () => {
               spacing={3}
               colorScheme="purple"
             >
-              <RoundedButton
-                onClick={() => {
-                  setRelevantInvoices(!relevantInvoices); 
-                  handleRelevantInvoicesToggle(!relevantInvoices);
-                }}
-                isActive={relevantInvoices}
+              <Tooltip
+                label={relevantInvoices 
+                  ? "Currently showing invoices from current month or past due." 
+                  : "Currently showing all invoices."
+                }
+                hasArrow
+                placement="top"
+                bgColor="#718096"
+                padding="8px"
+                borderRadius="6px"
+                maxWidth="300px"
+                textAlign="center"
               >
-                {relevantInvoices ? "Showing Relevant" : "Showing All"}
-              </RoundedButton>
+                <Box>
+                  <RoundedButton
+                    onClick={() => {
+                      setRelevantInvoices(!relevantInvoices); 
+                      handleRelevantInvoicesToggle(!relevantInvoices);
+                    }}
+                    isActive={relevantInvoices}
+                  >
+                    {relevantInvoices ? "Showing Relevant" : "Showing All"}
+                  </RoundedButton>
+                </Box>
+              </Tooltip>
             </ButtonGroup>
           </HStack>
           <Box flex="1" />
