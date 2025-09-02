@@ -236,6 +236,7 @@ export const EditRecurringSessions = () => {
       setAllSessions((prev) =>
         prev.filter((session) => session.recurringId !== recurringId)
       );
+      handleDeleteSession(recurringId);
     } else if (type === "single") {
       // Remove the specific single session
       const sessionToDelete = newSessions.single[index];
@@ -250,6 +251,7 @@ export const EditRecurringSessions = () => {
             )
         )
       );
+      handleDeleteSession(sessionToDelete.id);
     }
   };
 
@@ -300,6 +302,7 @@ export const EditRecurringSessions = () => {
   const handleDeleteSession = (sessionId) => {
     setAllSessions((prevSessions) => {
       const sessionToDelete = prevSessions.find((s) => s.id === sessionId);
+      console.log("sessionToDelete TEST", sessionToDelete);
       if (sessionToDelete) {
         // If it's a new session, remove it entirely
         if (sessionToDelete.isNew) {
