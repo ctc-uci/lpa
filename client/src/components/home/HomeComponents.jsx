@@ -328,6 +328,8 @@ export const ProgramsTable = () => {
             ? "Active"
             : "Past";
 
+        console.log(`PROGRAM TEST ${program.eventName}`, program);
+
         return {
           id: program.id,
           name: program.eventName,
