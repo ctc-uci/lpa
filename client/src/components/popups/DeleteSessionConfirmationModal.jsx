@@ -31,14 +31,6 @@ export const DeleteSessionConfirmationModal = ({
         console.log("ID is: " + id);
         setPrograms((prev) => prev.map((p) => p.id === id ? { ...p, isDeleted: true } : p));
       }
-      toast({
-        title: "Booking deleted",
-        description:
-          "The booking and all related records have been successfully deleted.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     } catch (error) {
       console.error("Failed to delete booking:", error);
       toast({
