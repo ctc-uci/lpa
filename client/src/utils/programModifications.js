@@ -1,5 +1,5 @@
 import { getCurrentUser } from "./auth/firebase";
-import { batchDeleteBookings } from "./calendar";
+import { batchDeleteBookings, batchUpdateBookings } from "./calendar";
 
 export const archiveProgram = async (backend, programId, cancelReason) => {
   // Get the current user
@@ -12,6 +12,9 @@ export const archiveProgram = async (backend, programId, cancelReason) => {
 
   // Get all bookings
   const bookings = await backend.get(`/bookings/event/${programId}`);
+  const event = await backend.get(`/events/${programId}`);
+  const eventName = event.data[0].name;
+  const eventDescription = event.data[0].description;
 
   // Archive the program
   //   This also adds a fee to the current invoice
@@ -31,11 +34,18 @@ export const archiveProgram = async (backend, programId, cancelReason) => {
   // Create google calendar booking objects
   const googleBookings = bookings.data.map((booking) => {
     return {
-      backendId: booking.id
+      backendId: booking.id,
+      name: `[ARCHIVED] ${eventName}`,
+      description: `[ARCHIVED] ${eventDescription ?? ''}`,
+      visibility: "private",
+      date: booking.date,
+      startTime: booking.startTime.slice(0, 5),
+      endTime: booking.endTime.slice(0, 5),
+      location: booking.location,
+      roomId: booking.roomId,
     };
   });
-  // Delete all google calendar bookings
-  await batchDeleteBookings(googleBookings);
+  await batchUpdateBookings(googleBookings);
 };
 
 export const deleteProgram = async (backend, programId) => {

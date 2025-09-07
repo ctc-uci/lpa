@@ -427,7 +427,7 @@ export const updateSessions = async (updatedSessions, id, backend) => {
   // Get event name and description
   const gcalFormat = updatedSessions.map((s) => ({
     backendId: s.id,
-    name: s.archived ? `[ARCHIVED] ${eventName}` : eventName, // Add visual indicator
+    name: s.archived ? `[ARCHIVED] ${eventName}` : eventName,
     date: s.date,
     startTime: s.startTime.slice(0, 5),
     endTime: s.endTime.slice(0, 5),
