@@ -427,16 +427,19 @@ export const updateSessions = async (updatedSessions, id, backend) => {
   // Get event name and description
   const gcalFormat = updatedSessions.map((s) => ({
     backendId: s.id,
-    name: eventName,
+    name: s.archived ? `[ARCHIVED] ${eventName}` : eventName, // Add visual indicator
     date: s.date,
     startTime: s.startTime.slice(0, 5),
     endTime: s.endTime.slice(0, 5),
     location: roomNameMap[s.roomId],
-    description: eventDescription,
+    description: s.archived ? `[ARCHIVED] ${eventDescription ?? ''}` : eventDescription,
     roomId: s.roomId,
+    visibility: s.archived ? "private" : "default"
   }));
-
-  await batchUpdateBookings(gcalFormat);
+  console.log("gcalFormat: ", gcalFormat);
+  if (gcalFormat.length > 0) {
+    await batchUpdateBookings(gcalFormat);
+  }
 };
 
 export const deleteSessions = async (deletedSessions, backend) => {
