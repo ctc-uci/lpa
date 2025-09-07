@@ -108,6 +108,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
+import { deleteSessions } from "./utils";
 
 const formatNamesList = (list = [], maxCharsPerLine) => {
   if (!Array.isArray(list) || list.length === 0) return "None";
@@ -1125,7 +1126,10 @@ export const Sessions = ({
   };
 
   const deleteSingleSession = async () => {
-    await backend.delete("/bookings/" + selectedSingleSession);
+    // console.log("selectedSingleSession: ", selectedSingleSession);
+    // // return;
+    // // await backend.delete("/bookings/" + selectedSingleSession);
+    await deleteSessions([{id: selectedSingleSession}], backend);
     refreshSessions();
   };
 

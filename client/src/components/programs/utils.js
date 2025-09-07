@@ -455,8 +455,8 @@ export const deleteSessions = async (deletedSessions, backend) => {
   const gcalFormat = deletedSessions.map((s) => ({
     backendId: s.id,
     date: s.date,
-    startTime: s.startTime.slice(0, 5),
-    endTime: s.endTime.slice(0, 5),
+    startTime: s.startTime?.slice(0, 5),
+    endTime: s.endTime?.slice(0, 5),
     roomId: s.roomId,
   }));
 
