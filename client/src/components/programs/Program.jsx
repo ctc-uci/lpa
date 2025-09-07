@@ -93,7 +93,7 @@ export const Program = () => {
         payees: [],
       };
 
-      const nextSession = sessions?.find((session) => !session.archived);
+      const nextSession = sessions?.find((session) => (!session.archived || isArchived));
 
       if (!nextSession) {
         console.log("No upcoming sessions found");
@@ -121,7 +121,7 @@ export const Program = () => {
 
       // Only get activeSessions
       const activeSessions = sessionsData.filter(
-        (session) => session.archived === false
+        (session) => session.archived === false || isArchived
       );
       setSessions(activeSessions);
 

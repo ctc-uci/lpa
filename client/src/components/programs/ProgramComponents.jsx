@@ -174,7 +174,7 @@ export const ProgramSummary = ({
   const getFilteredAndSortedSessions = () => {
     if (!sessions || sessions.length === 0) return [];
 
-    const filteredSessions = sessions.filter((session) => !session.archived);
+    const filteredSessions = sessions.filter((session) => (!session.archived || isArchived));
 
     const sortedSessions = [...filteredSessions].sort((a, b) => {
       const dateA = new Date(a.date);
