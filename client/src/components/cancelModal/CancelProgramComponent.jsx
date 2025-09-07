@@ -86,6 +86,7 @@ export const CancelProgram = ({
         duration: 3000,
         isClosable: true,
       });
+      window.location.reload();
     } catch (error) {
       console.log("Couldn't archive", error);
       toast({

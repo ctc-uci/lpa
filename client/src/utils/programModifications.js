@@ -48,6 +48,48 @@ export const archiveProgram = async (backend, programId, cancelReason) => {
   await batchUpdateBookings(googleBookings);
 };
 
+export const reactivateProgram = async (backend, programId) => {
+  // Get the program
+  const program = await backend.get(`/events/${programId}`);
+  const programName = program.data[0].name;
+  const programDescription = program.data[0].description;
+
+  // Get all bookings
+  const bookings = await backend.get(`/bookings/event/${programId}`);
+  
+  // Reactivate the program
+  const programResult = await backend.put(`/events/${programId}`, {
+    archived: false
+  });
+  
+  if (programResult.status !== 200) {
+    throw new Error("Failed to reactivate program");
+  }
+
+  // Reactivate the bookings through loop
+  for (const booking of bookings.data) {
+    await backend.put(`/bookings/${booking.id}`, {
+      archived: false
+    });
+  }
+
+  // Create google calendar booking objects
+  const googleBookings = bookings.data.map((booking) => {
+    return {
+      backendId: booking.id,
+      name: programName,
+      description: programDescription,
+      visibility: "default",
+      date: booking.date,
+      startTime: booking.startTime.slice(0, 5),
+      endTime: booking.endTime.slice(0, 5),
+      location: booking.location,
+      roomId: booking.roomId,
+    };
+  });
+  await batchUpdateBookings(googleBookings);
+}
+
 export const deleteProgram = async (backend, programId) => {
   // Get all bookings
   const bookings = await backend.get(`/bookings/event/${programId}`);
