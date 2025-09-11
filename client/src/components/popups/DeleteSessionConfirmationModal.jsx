@@ -20,7 +20,7 @@ export const DeleteSessionConfirmationModal = ({
   isNewSession,
   id,
   setPrograms,
-  programs,
+  programs
 }) => {
   const toast = useToast();
   const { backend } = useBackendContext();
@@ -29,16 +29,8 @@ export const DeleteSessionConfirmationModal = ({
     try {
       if (setPrograms) {
         console.log("ID is: " + id);
-        setPrograms((prev) => prev.filter((p) => p.id !== id));
+        setPrograms((prev) => prev.map((p) => p.id === id ? { ...p, isDeleted: true } : p));
       }
-      toast({
-        title: "Booking deleted",
-        description:
-          "The booking and all related records have been successfully deleted.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     } catch (error) {
       console.error("Failed to delete booking:", error);
       toast({

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { SearchIcon } from "@chakra-ui/icons";
 import {
   Box,
+  Button,
   Flex,
   Heading,
   Image,
@@ -11,6 +12,9 @@ import {
   InputRightElement,
   Text,
   useToast,
+  HStack,
+  ButtonGroup,
+  Tooltip,
 } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router-dom";
@@ -18,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import AlertIcon from "../../assets/alertIcon.svg";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoiceFilter } from "../filters/InvoicesFilter";
+import { RoundedButton } from "../filters/FilterComponents";
 import Navbar from "../navbar/Navbar";
 import { PaginationComponent } from "../PaginationComponent";
 import { SearchBar } from "../searchBar/SearchBar";
@@ -34,6 +39,7 @@ const InvoicesDashboard = () => {
   const hasShownToast = useRef(false);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [filterComponentResults, setFilterComponentResults] = useState([]);
+  const [relevantInvoices, setRelevantInvoices] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -207,6 +213,7 @@ const InvoicesDashboard = () => {
         setInvoices(invoices);
         setFilteredInvoices(invoices);
         setFilterComponentResults(invoices);
+        handleRelevantInvoicesToggle(relevantInvoices);
       } catch (err) {
         console.log(err);
       }
@@ -217,12 +224,13 @@ const InvoicesDashboard = () => {
   const handleSearch = (value) => {
     setQuery(value);
     if (value === "") {
-      setFilteredInvoices(invoices);
+      setFilteredInvoices(filterComponentResults);
+      handleRelevantInvoicesToggle(relevantInvoices);
       return;
     }
 
     const searchValue = value.toLowerCase();
-    const filtered = invoices.filter((invoice) => {
+    const filtered = filteredInvoices.filter((invoice) => {
       return (
         (invoice.eventName &&
           invoice.eventName.toLowerCase().includes(searchValue)) ||
@@ -234,6 +242,32 @@ const InvoicesDashboard = () => {
     });
 
     setFilteredInvoices(filtered);
+  };
+
+  const handleRelevantInvoicesToggle = (forceValue = null) => {
+    const newValue = forceValue !== null ? forceValue : !relevantInvoices;
+    console.log("relevantInvoices", newValue);
+
+    if (newValue) {
+      // Show relevant invoices (current month or past due)
+      const relevantFiltered = filterComponentResults.filter((invoice) => {
+        // Check if invoice is for current month
+        const invoiceDate = new Date(invoice.endDate);
+        const currentDate = new Date();
+        const isCurrentMonth = 
+          invoiceDate.getMonth() === currentDate.getMonth() &&
+          invoiceDate.getFullYear() === currentDate.getFullYear();
+        
+        // Check if invoice is past due
+        const isPastDue = invoice.paymentStatus === "Past Due";
+
+        return isCurrentMonth || isPastDue;
+      });
+      setFilteredInvoices(relevantFiltered);
+    } else {
+      // Show all invoices
+      setFilteredInvoices(filterComponentResults);
+    }
   };
 
   useEffect(() => {
@@ -277,6 +311,32 @@ const InvoicesDashboard = () => {
     getUnpaidInvoices();
   }, [invoices]);
 
+  // Add this useEffect to handle the filtering logic
+  useEffect(() => {
+    if (filterComponentResults.length > 0) {
+      if (relevantInvoices) {
+        // Show relevant invoices (current month or past due)
+        const relevantFiltered = filterComponentResults.filter((invoice) => {
+          // Check if invoice is for current month
+          const invoiceDate = new Date(invoice.endDate);
+          const currentDate = new Date();
+          const isCurrentMonth = 
+            invoiceDate.getMonth() === currentDate.getMonth() &&
+            invoiceDate.getFullYear() === currentDate.getFullYear();
+          
+          // Check if invoice is past due
+          const isPastDue = invoice.paymentStatus === "Past Due";
+
+          return isCurrentMonth || isPastDue;
+        });
+        setFilteredInvoices(relevantFiltered);
+      } else {
+        // Show all invoices
+        setFilteredInvoices(filterComponentResults);
+      }
+    }
+  }, [relevantInvoices, filterComponentResults]);
+
   return (
     <Navbar>
       {/* <Box className="home-inner"> */}
@@ -289,6 +349,39 @@ const InvoicesDashboard = () => {
               setFilteredInvoices(results);
             }}
           />
+          <HStack alignItems="center" spacing={3}>
+            <ButtonGroup
+              variant="outline"
+              spacing={3}
+              colorScheme="purple"
+            >
+              <Tooltip
+                label={relevantInvoices 
+                  ? "Currently showing invoices from current month or past due." 
+                  : "Currently showing all invoices."
+                }
+                hasArrow
+                placement="top"
+                bgColor="#718096"
+                padding="8px"
+                borderRadius="6px"
+                maxWidth="300px"
+                textAlign="center"
+              >
+                <Box>
+                  <RoundedButton
+                    onClick={() => {
+                      setRelevantInvoices(!relevantInvoices); 
+                      handleRelevantInvoicesToggle(!relevantInvoices);
+                    }}
+                    isActive={relevantInvoices}
+                  >
+                    {relevantInvoices ? "Showing Relevant" : "Showing All"}
+                  </RoundedButton>
+                </Box>
+              </Tooltip>
+            </ButtonGroup>
+          </HStack>
           <Box flex="1" />
           <SearchBar
             handleSearch={handleSearch}

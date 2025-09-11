@@ -23,7 +23,7 @@ programsRouter.get("/", async (req, res) => {
           COALESCE(string_agg(DISTINCT CASE WHEN a.role = 'payee' THEN c.name END, ', '), 'N/A') AS payee_name
         FROM events AS e
          LEFT JOIN assignments AS a ON e.id = a.event_id
-         LEFT JOIN bookings AS b ON e.id = b.event_id
+         LEFT JOIN bookings AS b ON e.id = b.event_id AND b.archived = FALSE
          LEFT JOIN rooms AS r ON r.id = b.room_id
          LEFT JOIN clients AS c ON a.client_id = c.id
         GROUP BY e.id, e.name, e.archived, b.date, b.start_time, b.end_time, r.name

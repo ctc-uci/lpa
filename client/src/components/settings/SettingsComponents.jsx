@@ -7,6 +7,7 @@ import {
   Flex,
   Heading,
   Icon,
+  IconButton,
   Input,
   Modal,
   ModalBody,
@@ -44,6 +45,9 @@ import { PlusIcon } from "../../assets/PlusIcon";
 import { UserIcon } from "../../assets/UserIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { GoogleCalendar } from "./GoogleCalendar";
+import { DeleteIcon } from "../../assets/DeleteIcon";
+import { useAuthContext } from "../../contexts/hooks/useAuthContext";
+
 const GeneralSettings = ({ selectedComponent, setSelectedComponent }) => {
   const componentMap = {
     general: (
@@ -134,6 +138,8 @@ const AdminSettings = () => {
   const { backend } = useBackendContext();
   const [generalUsers, setGeneralUsers] = useState(null);
   const [adminUsers, setAdminUsers] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const { currentUser } = useAuthContext();
 
   const getAllUsers = async () => {
     try {
@@ -148,6 +154,10 @@ const AdminSettings = () => {
           admin.push(user);
         } else {
           general.push(user);
+        }
+
+        if (user.firebaseUid === currentUser.uid) {
+          setCurrentUserId(user.id);
         }
       }
 
@@ -180,6 +190,15 @@ const AdminSettings = () => {
 
   const removeAdminAccess = async (userId) => {
     try {
+      console.log("removeAdminAccess TEST", userId);
+      console.log("currentUser TEST", currentUser);
+      console.log("currentUserId TEST", currentUserId);
+
+      if (userId === currentUserId) {
+        console.log("Cannot remove admin access for current user");
+        return;
+      }
+
       const userResponse = await backend.get(`/users/${userId}`);
       const userData = userResponse.data;
 
@@ -465,12 +484,19 @@ const AdminSettings = () => {
                         <Td width="30%">
                           <Flex
                             justifyContent="right"
-                            marginRight="4px"
+                            marginRight="15px"
                           >
-                            <Checkbox
-                              isChecked={false}
-                              onChange={() => removeAdminAccess(admin.id)}
-                            />
+                            {admin.id !== currentUserId && (
+                              <IconButton
+                                aria-label="Remove admin access"
+                                icon={<DeleteIcon />}
+                                onClick={() => removeAdminAccess(admin.id)}
+                                variant="ghost"
+                                size="sm"
+                                colorScheme="red"
+                                _hover={{ bg: "#FED7D7" }}
+                              />
+                            )}
                           </Flex>
                         </Td>
                       </Tr>

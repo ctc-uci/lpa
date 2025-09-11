@@ -5,6 +5,42 @@ import { keysToCamel } from "../common/utils";
 const bookingsRouter = Router();
 bookingsRouter.use(express.json());
 
+
+const ensureInvoiceExists = async (bookingDate, eventId) => {
+  // Ensure that there is an invoice for the month of a given booking
+  // Safe to call every time you create or modify a booking to ensure there is always an invoice
+  //   for the month of the booking
+
+  // NOTE: Invoices will not be created for past months
+  const invoice = await db.query(`
+    -- Create a temp table with the start and end date of the month of the booking
+    with date_calculations as (
+      select 
+        date_trunc('month', $1::date) as start_date,
+        (date_trunc('month', $1::date) + INTERVAL '1 month - 1 day')::date as end_date
+    )
+
+    -- Insert the invoice if it doesn't exist
+    insert into invoices (event_id, start_date, end_date, is_sent, payment_status)
+    select $2, start_date, end_date, false, 'none'
+    from date_calculations
+    where not exists (
+      -- Check if the invoice already exists
+      select 1 from invoices 
+        where event_id = $2
+        AND start_date = (select start_date from date_calculations)
+        AND end_date = (select end_date from date_calculations)
+    )
+    -- Dont create invoices for past months
+    AND (select start_date from date_calculations) >= date_trunc('month', CURRENT_DATE);
+    `, [bookingDate, eventId]);
+  if (invoice.length === 0) {
+    return false;
+  }
+  return true;
+};
+
+
 bookingsRouter.get("/", async (req, res) => {
   try {
     const { start, end } = req.query;
@@ -200,6 +236,8 @@ bookingsRouter.post("/", async (req, res) => {
         [ event_id, room_id, start_time, end_time, date, archived ]
       );
 
+    await ensureInvoiceExists(date, event_id);
+
     res.status(200).json(keysToCamel(data));
   } catch (err) {
     res.status(500).send(err.message);
@@ -224,6 +262,7 @@ bookingsRouter.post("/batch", async (req, res) => {
         `INSERT INTO bookings (event_id, room_id, start_time, end_time, date, archived) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
         [ event_id, room_id, start_time, end_time, date, archived ]
       );
+      await ensureInvoiceExists(date, event_id);
       ids.push(data[0].id);
     }
 
@@ -294,6 +333,7 @@ bookingsRouter.put("/batch", async (req, res) => {
         RETURNING *`,
         [event_id, room_id, start_time, end_time, date, archived, id]
       );
+      await ensureInvoiceExists(date, event_id);
       updatedIds.push(data[0].id);
     }
 
@@ -327,7 +367,9 @@ bookingsRouter.put("/:id", async (req, res) => {
         RETURNING *;
         `,
         [event_id, room_id, start_time, end_time, date, archived, id]
-    );
+      );
+
+      await ensureInvoiceExists(date, event_id);
 
       res.status(200).json(keysToCamel(data));
     } catch (err) {
@@ -348,7 +390,7 @@ bookingsRouter.put("/event/:id", async (req, res) => {
         RETURNING *;
         `,
         [event_id, description]
-    );
+      );
 
       const data = await db.query(
         `
@@ -363,7 +405,9 @@ bookingsRouter.put("/event/:id", async (req, res) => {
         RETURNING *;
         `,
         [room_id, start_time, end_time, date, archived, id]
-    );
+      );
+
+      await ensureInvoiceExists(date, event_id);
 
       res.status(200).json(keysToCamel(data));
     } catch (err) {
@@ -383,7 +427,6 @@ bookingsRouter.get("/event/:id", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-
 
 bookingsRouter.delete("/:id", async (req, res) => {
     try {
