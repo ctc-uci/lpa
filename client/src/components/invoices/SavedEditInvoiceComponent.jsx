@@ -812,6 +812,10 @@ const SavedInvoiceSummary = ({
   //   setSessions(updatedSessions);
   // }, [summary]);
 
+  const totalCustomRow = summary[0]?.total?.reduce((acc, total) => {
+    return acc + Number(total.value);
+  }, 0) || 0;
+
   return (
     <Flex
       direction="column"
@@ -1078,7 +1082,7 @@ const SavedInvoiceSummary = ({
                   py={compactView ? 0 : 4}
                   fontSize={compactView ? "6.38px" : "sm"}
                 >
-                  {`$ ${subtotal.toFixed(2)}`}
+                  {`$ ${Number(subtotal + totalCustomRow).toFixed(2)}`}
                 </Td>
               </Tr>
 
@@ -1100,7 +1104,7 @@ const SavedInvoiceSummary = ({
                   fontSize={compactView ? "6.38px" : "2xl"}
                   py={compactView ? 0 : 8}
                 >
-                  {`$ ${(parseFloat(pastDue) + parseFloat(subtotal)).toFixed(2)}`}
+                  {`$ ${(parseFloat(pastDue) + parseFloat(subtotal) + parseFloat(totalCustomRow)).toFixed(2)}`}
                 </Td>
               </Tr>
             </Tbody>

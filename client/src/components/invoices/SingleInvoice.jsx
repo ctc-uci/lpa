@@ -233,6 +233,7 @@ export const SingleInvoice = () => {
         );
 
         // console.log("sessionResponse", sessionResponse.data)
+        // console.log("sessionResponse", sessionResponse.data)
         setSessions(sessionResponse.data);
 
         const summaryResponse = await backend.get(

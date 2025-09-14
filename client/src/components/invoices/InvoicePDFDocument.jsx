@@ -65,7 +65,7 @@ const getGeneratedDate = (sessions = [], includeDay = true) => {
     return "No Date Found";
   }
 
-  const latestSession = sessions.slice().sort(  
+  const latestSession = sessions.slice().sort(
     (a, b) => new Date(b.datetime) - new Date(a.datetime)
   )[0];
 
@@ -74,7 +74,7 @@ const getGeneratedDate = (sessions = [], includeDay = true) => {
   latestDate.setMinutes(
     latestDate.getMinutes() + latestDate.getTimezoneOffset()
   );
-  
+
   const month = latestDate.toLocaleString("default", { month: "long" });
   const day = latestDate.getDate();
   const year = latestDate.getFullYear();
@@ -459,7 +459,7 @@ const calculateSubtotal = (sessions, summary) => {
       return acc + total;
     }
 
-    
+
     const total = parseFloat(
       calculateTotalBookingRow(
         session.startTime,
@@ -481,8 +481,7 @@ const calculateSubtotal = (sessions, summary) => {
 
   const finalTotal = adjSum + totalSum;
 
-  const total = finalTotal.toFixed(2);
-  return total;
+  return Number(finalTotal);
 };
 
 const InvoiceTable = ({ sessions, summary }) => {
@@ -727,17 +726,17 @@ const InvoiceTable = ({ sessions, summary }) => {
                   <Text style={{ fontSize: 7 }}>
                     {session.adjustmentValues
                       .filter((adj) => adj.type !== "total").length > 0 ? session.adjustmentValues
-                      .filter((adj) => adj.type !== "total")
-                      .map((adj) => {
-                        const value = Number(adj.value);
-                        const sign = value >= 0 ? "+" : "-";
-                        const isFlat = adj.type === "rate_flat";
-                        const absValue = Math.abs(value);
-                        return isFlat
-                          ? `${sign}$${absValue}`
-                          : `${sign}${absValue}%`;
-                      })
-                      .join(", ") : "None"}
+                        .filter((adj) => adj.type !== "total")
+                        .map((adj) => {
+                          const value = Number(adj.value);
+                          const sign = value >= 0 ? "+" : "-";
+                          const isFlat = adj.type === "rate_flat";
+                          const absValue = Math.abs(value);
+                          return isFlat
+                            ? `${sign}$${absValue}`
+                            : `${sign}${absValue}%`;
+                        })
+                        .join(", ") : "None"}
                   </Text>
                 </View>
                 <View style={{ ...tableStyles.tableCol }}>
@@ -862,7 +861,7 @@ const InvoiceTable = ({ sessions, summary }) => {
             }}
           >
             <Text style={{ fontSize: 7 }}>
-              $ {calculateSubtotal(sessions, summary)}
+              $ {calculateSubtotal(sessions, summary).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -919,6 +918,7 @@ const SummaryTable = ({
   pastDue,
   sessions,
   summary,
+  totalCustomRow,
 }) => {
   return (
     <View>
@@ -999,7 +999,7 @@ const SummaryTable = ({
             }}
           >
             <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
-              Total 
+              Total
             </Text>
           </View>
         </View>
@@ -1081,6 +1081,39 @@ const SummaryTable = ({
           );
         })}
 
+        {summary && summary?.total && summary?.total?.map((total, totalIndex) => {
+          return (
+            <View style={{ ...summaryTableStyles.tableRow, width: "100%" }} key={`total-${totalIndex}`}>
+              <View style={summaryTableStyles.tableCol}>
+                <Text style={{ fontSize: 7 }}>
+                  {format(new Date(new Date(total.date).getTime() + new Date(total.date).getTimezoneOffset() * 60000), "EEE. M/d/yy")}
+                </Text>
+              </View>
+              <View
+                style={{
+                  ...summaryTableStyles.tableCol,
+                  flex: 1,
+                }}
+              >
+                <Text style={{ fontSize: 7 }}>
+                  {total.comment || "Custom adjustment"}
+                </Text>
+              </View>
+              <View
+                style={{
+                  ...summaryTableStyles.tableCol,
+                  alignItems: "flex-end",
+                  paddingRight: 20,
+                }}
+              >
+                <Text style={{ fontSize: 7 }}>
+                  $ {Number(total.value || 0).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          );
+        })}
+
         {/* Data Rows */}
         <View style={{ ...summaryTableStyles.tableRow, width: "100%" }}>
           <View style={summaryTableStyles.tableCol}>
@@ -1100,6 +1133,7 @@ const SummaryTable = ({
           </View>
         </View>
 
+
         <View style={{ ...summaryTableStyles.tableRow, width: "100%" }}>
           <View style={summaryTableStyles.tableCol}>
             <Text style={{ fontSize: 7 }}>Current Statement Subtotal</Text>
@@ -1113,7 +1147,7 @@ const SummaryTable = ({
             }}
           >
             <Text style={{ fontSize: 7 }}>
-              $ {calculateSubtotal(sessions, summary)}
+              $ {calculateSubtotal(sessions, summary).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -1134,9 +1168,10 @@ const SummaryTable = ({
             <View>
               <Text style={{ fontWeight: "bold", fontSize: 12 }}>
                 $
-                {(
-                  remainingBalance +
-                  Number(calculateSubtotal(sessions, summary))
+                {Number(
+                  Number(remainingBalance || 0) +
+                  calculateSubtotal(sessions, summary) +
+                  Number(totalCustomRow || 0)
                 ).toFixed(2)}
               </Text>
             </View>
@@ -1234,8 +1269,9 @@ const InvoicePDFDocument = ({
   remainingBalance,
   subtotalSum,
   summary,
+  totalCustomRow,
 }) => {
-  
+
 
   return (
     <Document>
@@ -1243,7 +1279,8 @@ const InvoicePDFDocument = ({
         size="A4"
         style={styles.page}
       >
-        <View style={{ flex: 1, flexGrow: 1 }}>
+        {/* Main content area with bottom margin to prevent footer overlap */}
+        <View style={{ flex: 1, marginBottom: 120 }}>
           <Image src={InvoiceHeader} />
           <View style={{ marginHorizontal: 16, gap: 16 }}>
             <EditInvoiceTitle
@@ -1267,14 +1304,32 @@ const InvoicePDFDocument = ({
               subtotalSum={subtotalSum}
               summary={summary}
               sessions={sessions}
+              totalCustomRow={totalCustomRow}
             />
-
-            <Footer />
           </View>
         </View>
+
+        {/* Footer positioned at bottom */}
+        <View style={{ 
+          position: 'absolute', 
+          bottom: 50, 
+          left: 0, 
+          right: 0,
+          paddingHorizontal: 16,
+          paddingBottom: 16
+        }}>
+          <Footer />
+        </View>
+
+        {/* Footer background image */}
         <Image
           src={InvoiceFooter}
-          style={{ width: "100%" }}
+          style={{ 
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: "100%" 
+          }}
         />
       </Page>
     </Document>

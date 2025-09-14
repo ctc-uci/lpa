@@ -76,7 +76,12 @@ const PDFButtonInvoice = ({
       return res.data.total ? sum + Number(res.data.total) : sum;
     }, 0);
 
-    const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+    const totalCustomRow = summaryResponse.data[0]?.total?.reduce((acc, total) => {
+      return acc + Number(total.value);
+    }, 0);
+
+
+    const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal + totalCustomRow;
 
     return {
       instructors: instructorResponse.data,
@@ -252,13 +257,18 @@ const TestPDFViewer = ({ id }) => {
 
     const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
+    const totalCustomRow = summaryResponse.data[0]?.total?.reduce((acc, total) => {
+      return acc + Number(total.value);
+    }, 0);
 
+    // setLoading(false);
     return {
       instructors: instructorResponse.data,
       programName: programNameResponse.data[0].name,
       payees: payeesResponse.data,
       remainingBalance: remainingBalance,
       summary: summaryResponse.data[0],
+      totalCustomRow: totalCustomRow,
     }
 
 
