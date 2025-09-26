@@ -1036,9 +1036,7 @@ const InvoicePayments = forwardRef(
   }
 );
 
-function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
-  const [sortKey, setSortKey] = useState("title");
-  const [sortOrder, setSortOrder] = useState("asc");
+function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, sortOrder, onSortChange }) {
 
   const navigate = useNavigate();
   const toast = useToast();
@@ -1188,47 +1186,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   // }, [filteredInvoices, toast]);
   
 
-  const handleSortChange = useCallback((key, order) => {
-    setSortKey(key);
-    setSortOrder(order);
-  }, []);
-
-  const sortedPrograms = useMemo(() => {
-    if (!filteredInvoices.length) return [];
-
-    const sorted = [...filteredInvoices];
-    if (sortKey === "title") {
-      sorted.sort((a, b) =>
-        sortOrder === "asc"
-          ? a.eventName.localeCompare(b.eventName)
-          : b.eventName.localeCompare(a.eventName)
-      );
-    } else if (sortKey === "date") {
-      sorted.sort((a, b) => {
-        const aInvalid = !a.endDate || a.endDate === "N/A";
-        const bInvalid = !b.endDate || b.endDate === "N/A";
-        if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1;
-        if (bInvalid) return -1;
-        const dateA = new Date(a.endDate);
-        const dateB = new Date(b.endDate);
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-      });
-    } else if (sortKey === "status") {
-      sorted.sort((a, b) => {
-        const priority = {
-          "Past Due": 0,
-          "Not Paid": 1,
-          Paid: 2,
-        };
-        return sortOrder === "asc"
-          ? priority[b.isPaid] - priority[a.isPaid]
-          : priority[a.isPaid] - priority[b.isPaid];
-      });
-    }
-    return sorted;
-  }, [filteredInvoices, sortKey, sortOrder]);
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date
@@ -1241,8 +1198,8 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       .replace(/,/g, ".");
   };
 
-  // Get current page data
-  const currentInvoices = sortedPrograms;
+  // Use the filtered invoices directly since sorting is now done in parent
+  const currentInvoices = filteredInvoices;
 
   const handleEdit = useCallback(
     (id, e) => {
@@ -1277,7 +1234,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>STATUS</Text>
-                    <StatusSortingModal onSortChange={handleSortChange} />
+                    <StatusSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th
@@ -1296,7 +1253,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>PROGRAM</Text>
-                    <ProgramSortingModal onSortChange={handleSortChange} />
+                    <ProgramSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th
@@ -1314,7 +1271,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>DEADLINE</Text>
-                    <DateSortingModal onSortChange={handleSortChange} />
+                    <DateSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th paddingRight="8px">
