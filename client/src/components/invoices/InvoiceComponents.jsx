@@ -1394,7 +1394,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       </Flex>
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
-                      {invoice.eventName}
+                      {invoice.eventName.length > 30 
+                        ? `${invoice.eventName.substring(0, 30)}...` 
+                        : invoice.eventName}
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       {validPayers.length > 1
