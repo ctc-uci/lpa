@@ -93,6 +93,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusSortingModal from "../sorting/StatusFilter";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+import { getAllDue } from "../../utils/pastDueCalc";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -431,16 +432,18 @@ const InvoicePayments = forwardRef(
     // Update comments state with new data
     setComments(commentsResponse.data);
 
-    // Calculate new remaining balance using updated comments
-    const paidTotal = commentsResponse.data.reduce((acc, comment) => {
-      if (comment.adjustmentType === "paid") {
-        return acc + parseFloat(comment.adjustmentValue);
-      }
-      return acc;
-    }, 0);
+    // // Calculate new remaining balance using updated comments
+    // const paidTotal = commentsResponse.data.reduce((acc, comment) => {
+    //   if (comment.adjustmentType === "paid") {
+    //     return acc + parseFloat(comment.adjustmentValue);
+    //   }
+    //   return acc;
+    // }, 0);
+
+    const paidTotal = await getAllDue(backend, id);
     
-    const remainingBalanceCalculated = (amountDue - paidTotal) > 0 ? (amountDue - paidTotal) : 0.00;
-    setRemainingBalance(remainingBalanceCalculated);
+    // const remainingBalanceCalculated = (amountDue - paidTotal) > 0 ? (amountDue - paidTotal) : 0.00;
+    setRemainingBalance(paidTotal);
   }
 
   const handleDeleteComment = async () => {
