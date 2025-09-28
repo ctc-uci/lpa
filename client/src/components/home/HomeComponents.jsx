@@ -45,6 +45,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusTooltip from "./StatusIcon";
 import { ArchivesIcon } from "../../assets/icons/ArchivesIcon";
+import { RoundedButton } from "../filters/FilterComponents";
 
 import "./Home.css";
 
@@ -247,7 +248,7 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
 ));
 
 export const ProgramsTable = () => {
-  const [sortKey, setSortKey] = useState("title");
+  const [sortKey, setSortKey] = useState("default");
   const [sortOrder, setSortOrder] = useState("asc");
   const [programs, setPrograms] = useState([]);
   const [filteredPrograms, setFilteredPrograms] = useState([]);
@@ -452,7 +453,7 @@ export const ProgramsTable = () => {
           ? a.name.localeCompare(b.name)
           : b.name.localeCompare(a.name)
       );
-    } else if (sortKey === "date") {
+    } if (sortKey === "date") {
       sorted.sort((a, b) => {
         const aInvalid = !a.date || a.date === "N/A";
         const bInvalid = !b.date || b.date === "N/A";
@@ -462,6 +463,29 @@ export const ProgramsTable = () => {
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    } else if (sortKey === "default") {
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+        
+        const aIsFuture = dateA >= today;
+        const bIsFuture = dateB >= today;
+        
+        // If one is future and one is past, future comes first
+        if (aIsFuture && !bIsFuture) return -1;
+        if (!aIsFuture && bIsFuture) return 1;
+        
+        // If both are in the same section (both future or both past)
+        if (aIsFuture && bIsFuture) {
+          // Future dates: most recent to most distant (ascending order)
+          return dateA - dateB;
+        } else {
+          // Past dates: most recent to most distant in the past (descending order)
+          return dateB - dateA;
+        }
       });
     }
     return sorted;
@@ -578,6 +602,19 @@ export const ProgramsTable = () => {
             programs={programs}
             setFilteredPrograms={setFilteredPrograms}
           />
+          {sortKey !== "default" && (
+          <>
+            <Box ml="20px" />
+            <RoundedButton
+              onClick={() => {
+                setSortKey("default");
+              }}
+              isActive={false}
+            >
+              Reset Sorting
+            </RoundedButton>
+          </>
+          )}
           <Box flex="1" />
           <SearchBar
             handleSearch={handleSearchChange}

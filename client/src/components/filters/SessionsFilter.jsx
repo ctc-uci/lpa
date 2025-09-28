@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FilterContainer } from "./FilterContainer";
 import { DateFilter, DayFilter, RoomFilter, SessionStatusFilter, TimeFilter } from "./FilterComponents";
 
-export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
+export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived=false }) => {
 
     const [filters, setFilters] = useState({
       status: "all",
@@ -169,10 +169,12 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms }) => {
         onReset={resetFilter}
         pageName="Session"
       >
-        <SessionStatusFilter
-          value={filters.status}
-          onChange={updateFilter}
-        />
+        {!isArchived && (
+          <SessionStatusFilter
+            value={filters.status}
+            onChange={updateFilter}
+          />
+        )}
         <DayFilter
           value={filters.days}
           onChange={updateFilter}/>

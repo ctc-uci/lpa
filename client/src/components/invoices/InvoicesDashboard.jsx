@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 
 import { SearchIcon } from "@chakra-ui/icons";
 import {
@@ -40,6 +40,8 @@ const InvoicesDashboard = () => {
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [filterComponentResults, setFilterComponentResults] = useState([]);
   const [relevantInvoices, setRelevantInvoices] = useState(true);
+  const [sortKey, setSortKey] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -68,16 +70,53 @@ const InvoicesDashboard = () => {
     setCurrentPage(pageNumber);
   };
 
-  const totalInvoices = filteredInvoices?.length || 0;
+  // Sort the filtered invoices
+  const sortedInvoices = useMemo(() => {
+    if (!filteredInvoices.length) return [];
+
+    const sorted = [...filteredInvoices];
+    if (sortKey === "title") {
+      sorted.sort((a, b) =>
+        sortOrder === "asc"
+          ? a.eventName.localeCompare(b.eventName)
+          : b.eventName.localeCompare(a.eventName)
+      );
+    } else if (sortKey === "date") {
+      sorted.sort((a, b) => {
+        const aInvalid = !a.endDate || a.endDate === "N/A";
+        const bInvalid = !b.endDate || b.endDate === "N/A";
+        if (aInvalid && bInvalid) return 0;
+        if (aInvalid) return 1;
+        if (bInvalid) return -1;
+        const dateA = new Date(a.endDate);
+        const dateB = new Date(b.endDate);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    } else if (sortKey === "status") {
+      sorted.sort((a, b) => {
+        const priority = {
+          "Past Due": 0,
+          "Not Paid": 1,
+          Paid: 2,
+        };
+        return sortOrder === "asc"
+          ? priority[b.isPaid] - priority[a.isPaid]
+          : priority[a.isPaid] - priority[b.isPaid];
+      });
+    }
+    return sorted;
+  }, [filteredInvoices, sortKey, sortOrder]);
+
+  const totalInvoices = sortedInvoices?.length || 0;
   const totalPages = Math.ceil(totalInvoices / itemsPerPage);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
-  const currentPageInvoices = filteredInvoices.slice(startIndex, endIndex);
+  const currentPageInvoices = sortedInvoices.slice(startIndex, endIndex);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filteredInvoices]);
+  }, [filteredInvoices, sortKey, sortOrder]);
 
   useEffect(() => {
     const calculateRowsPerPage = () => {
@@ -389,9 +428,15 @@ const InvoicesDashboard = () => {
           />
         </Flex>
         <InvoicesTable
-          filteredInvoices={filteredInvoices}
+          filteredInvoices={currentPageInvoices}
           isPaidColor={isPaidColor}
           seasonColor={seasonColor}
+          sortKey={sortKey}
+          sortOrder={sortOrder}
+          onSortChange={(key, order) => {
+            setSortKey(key);
+            setSortOrder(order);
+          }}
         />
       </Box>
       <PaginationComponent

@@ -93,6 +93,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusSortingModal from "../sorting/StatusFilter";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+import { getAllDue } from "../../utils/pastDueCalc";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -170,6 +171,7 @@ const InvoiceStats = ({
 }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
+  const toast = useToast();
   const navigate = useNavigate();
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
@@ -183,6 +185,17 @@ const InvoiceStats = ({
     const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
     const eventId = currentInvoiceResponse.data[0].eventId;
     const previousInvoices = await backend.get(`/invoices/previousInvoices/${id}?event_id=${eventId}`);
+    if (previousInvoices.data.length === 0) {
+      toast({
+        title: "No previous invoices",
+        description: "There are no previous invoices for this event",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+      return;
+    }
     const previousInvoiceId = previousInvoices.data[0].id;
     navigate(`/invoices/${previousInvoiceId}`);
   };
@@ -419,16 +432,18 @@ const InvoicePayments = forwardRef(
     // Update comments state with new data
     setComments(commentsResponse.data);
 
-    // Calculate new remaining balance using updated comments
-    const paidTotal = commentsResponse.data.reduce((acc, comment) => {
-      if (comment.adjustmentType === "paid") {
-        return acc + parseFloat(comment.adjustmentValue);
-      }
-      return acc;
-    }, 0);
+    // // Calculate new remaining balance using updated comments
+    // const paidTotal = commentsResponse.data.reduce((acc, comment) => {
+    //   if (comment.adjustmentType === "paid") {
+    //     return acc + parseFloat(comment.adjustmentValue);
+    //   }
+    //   return acc;
+    // }, 0);
+
+    const paidTotal = await getAllDue(backend, id);
     
-    const remainingBalanceCalculated = (amountDue - paidTotal) > 0 ? (amountDue - paidTotal) : 0.00;
-    setRemainingBalance(remainingBalanceCalculated);
+    // const remainingBalanceCalculated = (amountDue - paidTotal) > 0 ? (amountDue - paidTotal) : 0.00;
+    setRemainingBalance(paidTotal);
   }
 
   const handleDeleteComment = async () => {
@@ -1036,9 +1051,7 @@ const InvoicePayments = forwardRef(
   }
 );
 
-function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
-  const [sortKey, setSortKey] = useState("title");
-  const [sortOrder, setSortOrder] = useState("asc");
+function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, sortOrder, onSortChange }) {
 
   const navigate = useNavigate();
   const toast = useToast();
@@ -1188,47 +1201,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   // }, [filteredInvoices, toast]);
   
 
-  const handleSortChange = useCallback((key, order) => {
-    setSortKey(key);
-    setSortOrder(order);
-  }, []);
-
-  const sortedPrograms = useMemo(() => {
-    if (!filteredInvoices.length) return [];
-
-    const sorted = [...filteredInvoices];
-    if (sortKey === "title") {
-      sorted.sort((a, b) =>
-        sortOrder === "asc"
-          ? a.eventName.localeCompare(b.eventName)
-          : b.eventName.localeCompare(a.eventName)
-      );
-    } else if (sortKey === "date") {
-      sorted.sort((a, b) => {
-        const aInvalid = !a.endDate || a.endDate === "N/A";
-        const bInvalid = !b.endDate || b.endDate === "N/A";
-        if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1;
-        if (bInvalid) return -1;
-        const dateA = new Date(a.endDate);
-        const dateB = new Date(b.endDate);
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-      });
-    } else if (sortKey === "status") {
-      sorted.sort((a, b) => {
-        const priority = {
-          "Past Due": 0,
-          "Not Paid": 1,
-          Paid: 2,
-        };
-        return sortOrder === "asc"
-          ? priority[b.isPaid] - priority[a.isPaid]
-          : priority[a.isPaid] - priority[b.isPaid];
-      });
-    }
-    return sorted;
-  }, [filteredInvoices, sortKey, sortOrder]);
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date
@@ -1241,8 +1213,8 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       .replace(/,/g, ".");
   };
 
-  // Get current page data
-  const currentInvoices = sortedPrograms;
+  // Use the filtered invoices directly since sorting is now done in parent
+  const currentInvoices = filteredInvoices;
 
   const handleEdit = useCallback(
     (id, e) => {
@@ -1277,7 +1249,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>STATUS</Text>
-                    <StatusSortingModal onSortChange={handleSortChange} />
+                    <StatusSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th
@@ -1296,7 +1268,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>PROGRAM</Text>
-                    <ProgramSortingModal onSortChange={handleSortChange} />
+                    <ProgramSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th
@@ -1314,7 +1286,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>DEADLINE</Text>
-                    <DateSortingModal onSortChange={handleSortChange} />
+                    <DateSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th paddingRight="8px">
@@ -1394,7 +1366,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                       </Flex>
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
-                      {invoice.eventName}
+                      {invoice.eventName.length > 30 
+                        ? `${invoice.eventName.substring(0, 30)}...` 
+                        : invoice.eventName}
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       {validPayers.length > 1
