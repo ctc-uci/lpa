@@ -17,6 +17,7 @@ import {
   useDisclosure,
   useToast,
   VStack,
+  Spinner,
 } from "@chakra-ui/react";
 
 import { useNavigate, useParams } from "react-router-dom";
@@ -165,10 +166,12 @@ export const EditInvoice = () => {
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = React.useRef();
+  const [isLoading, setIsLoading] = useState(false);
 
 
 
   useEffect(() => {
+    setIsLoading(true);
     const fetchData = async () => {
       try {
         const currentInvoiceResponse = await backend.get("/invoices/" + id);
@@ -275,6 +278,9 @@ export const EditInvoice = () => {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+      }
+      finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -487,11 +493,10 @@ export const EditInvoice = () => {
       for (const session of sessions) {
         if (
           session.comments &&
-          session.comments.length > 0 &&
-          session.adjustmentValues[0]?.type !== "total"
+          session.comments.length > 0
         ) {
           for (const comment of session.comments) {
-            postComments(comment.id, session.bookingId, comment.comment, session.datetime, id);
+              postComments(comment.id, session.bookingId, comment.comment, session.datetime, id);
           }
         }
 
@@ -530,8 +535,7 @@ export const EditInvoice = () => {
         if (sessions && sessions.length > 0) {
           if (session.total && session.total.length > 0) {
             for (const totalItem of session.total) {
-              // console.log("totalItem", totalItem);
-              postTotal(totalItem.id, userId, session.bookingId, id, totalItem.date, totalItem.comment, totalItem.value);
+                postTotal(totalItem.id, userId, session.bookingId, id, totalItem.date, totalItem.comment, totalItem.value);
             }
           }
         }
@@ -577,6 +581,10 @@ export const EditInvoice = () => {
       subtotal: newSubtotal,
     });
   };
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <Navbar>

@@ -74,6 +74,7 @@ export const SingleInvoice = () => {
   const { summary, setSummary } = useSummaryStore();
   const { sessions, setSessions } = useSessionStore();
   const invoicePaymentsRef = useRef(null);
+  
 
   useEffect(() => {
     const fetchData = async () => {

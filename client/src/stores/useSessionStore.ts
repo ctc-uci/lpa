@@ -127,11 +127,6 @@ export const useSessionStore = create<SessionStore>((set) => ({
 
     deleteCustomRow: (sessionIndex, totalIndex) => set((state) => ({
         sessions: state.sessions.map((s, idx) => {
-            const totalToDelete = s.total?.[totalIndex];
-            if (totalToDelete?.id) {
-                const deletedIdsStore = useDeletedIdsStore.getState() as { addDeletedId: (id: string) => void };
-                deletedIdsStore.addDeletedId(totalToDelete.id);
-            }
             if (idx === sessionIndex) {
                 return { ...s, total: (s.total || []).filter((t, tidx) => tidx !== totalIndex) }
             }

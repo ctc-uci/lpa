@@ -76,6 +76,8 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
                 WHERE invoices.id = $1 
                 AND bookings.date BETWEEN invoices.start_date AND invoices.end_date
                 ORDER BY bookings.id, comments.id`;
+
+    
     const queryParams = [id];
 
     const data = await db.query(query, queryParams);
@@ -93,13 +95,18 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
 
         groupedComments[bookingId] = {
           ...comment,
-          comments: comment.comment ? [{
-            id: comment.commentId,
-            comment: comment.comment,
-          }] : [],
+          comments: [],
           adjustmentValues: [],
           total : []
         };
+
+        if (comment.commentId && comment.comment && comment.adjustmentType === "none") {
+          groupedComments[bookingId].comments.push({
+            id: comment.commentId,
+            comment: comment.comment,
+          });
+
+        }
         
         // Only add adjustment value if type is not "none" and comment exists
         if (comment.commentId && comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
@@ -126,6 +133,7 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
             id: comment.commentId,
             comment: comment.comment,
           });
+
         }
 
         // Add adjustment value if not already included and type is not "none"
