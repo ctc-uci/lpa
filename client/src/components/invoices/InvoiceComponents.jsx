@@ -170,6 +170,7 @@ const InvoiceStats = ({
 }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
+  const toast = useToast();
   const navigate = useNavigate();
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
@@ -183,6 +184,17 @@ const InvoiceStats = ({
     const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
     const eventId = currentInvoiceResponse.data[0].eventId;
     const previousInvoices = await backend.get(`/invoices/previousInvoices/${id}?event_id=${eventId}`);
+    if (previousInvoices.data.length === 0) {
+      toast({
+        title: "No previous invoices",
+        description: "There are no previous invoices for this event",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+      return;
+    }
     const previousInvoiceId = previousInvoices.data[0].id;
     navigate(`/invoices/${previousInvoiceId}`);
   };
