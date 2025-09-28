@@ -494,13 +494,13 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
         >
           All
         </RoundedButton>
-        {Array.from(roomMap.values()).map((roomName) => (
+        {Array.from(roomMap.values()).map((room) => (
           <RoundedButton
-            key={roomName}
-            onClick={() => handleRoomChange(roomName)}
-            isActive={localRoom === roomName}
+            key={room.name}
+            onClick={() => handleRoomChange(room.name)}
+            isActive={localRoom === room.name}
           >
-            {roomName}
+            {room.name}
           </RoundedButton>
         ))}
       </HStack>

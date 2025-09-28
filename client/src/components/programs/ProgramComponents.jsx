@@ -795,7 +795,6 @@ export const ProgramSummary = ({
                       )}
                     </Box>
                   </Box>
-
                   <Box>
                     <Heading
                       size="md"
