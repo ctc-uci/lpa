@@ -197,7 +197,8 @@ export const SessionStatusFilter = ({ value, onChange }) => {
 
   return (
     <FormControl>
-      <FormLabel color="#718096">Status</FormLabel>
+      <FormLabel color="#718096" marginBottom="1px">Status</FormLabel>
+      <Text color="#718096" paddingBottom="15px" fontSize="14px">Archived sessions are hidden, except in "Revise Sessions"</Text>
       <HStack alignItems="center">
         <ButtonGroup
           variant="outline"
@@ -239,7 +240,7 @@ export const SessionStatusFilter = ({ value, onChange }) => {
             />
             <Text ml="2">Past</Text>
           </RoundedButton>
-          <RoundedButton
+          {/* <RoundedButton
             onClick={() => handleStatusChange("archived")}
             isActive={localStatus === "archived"}
           >
@@ -250,7 +251,7 @@ export const SessionStatusFilter = ({ value, onChange }) => {
               boxSize="20px"
             />
             <Text ml="2">Archived</Text>
-          </RoundedButton>
+          </RoundedButton> */}
         </ButtonGroup>
       </HStack>
     </FormControl>
