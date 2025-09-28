@@ -430,7 +430,7 @@ const calculateSummaryTotal = (rate, adjustmentValues) => {
   if (isNaN(baseRate)) return "0.00";
 
   const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
-    if (isNaN(val.value)) return acc;
+    if (isNaN(val.value) || val.type === "total") return acc;
 
     if (val.type === "rate_percent") {
       const factor = 1 + val.value / 100;
@@ -1147,7 +1147,7 @@ const SummaryTable = ({
             }}
           >
             <Text style={{ fontSize: 7 }}>
-              $ {calculateSubtotal(sessions, summary).toFixed(2)}
+              $ {(calculateSubtotal(sessions, summary) + parseFloat(totalCustomRow)).toFixed(2)}
             </Text>
           </View>
         </View>

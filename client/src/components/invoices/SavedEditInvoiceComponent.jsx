@@ -54,7 +54,7 @@ const SavedStatementComments = ({
     if (isNaN(baseRate)) return "0.00";
 
     const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
-      if (isNaN(val.value)) return acc;
+      if (isNaN(val.value) || val.type === "total") return acc;
 
       if (val.type === "rate_percent") {
         const factor = 1 + val.value / 100;
@@ -1001,13 +1001,15 @@ const SavedInvoiceSummary = ({
               {summary[0]?.total?.map((total, totalIndex) => {
                 return (
                   <Tr
+                  fontSize={compactView ? "6.38px" : "sm"}
                   position="relative"
                   cursor="pointer"
                   _hover={{ bg: "gray.50" }}
                   role="group"
                 >
                   <Td
-                    py="6"
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 6}
                   >
                     {(() => {
                       const date = new Date(
@@ -1022,12 +1024,16 @@ const SavedInvoiceSummary = ({
                   </Td>
                   <Td
                     colSpan={4}
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 4}
                   >
                     {summary[0]?.total[totalIndex]?.comment}
                   </Td>
                   <Td
                     textAlign="right"
                     position="relative"
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 4}
                   >
                     <Flex
                       justifyContent="flex-end"
@@ -1035,6 +1041,7 @@ const SavedInvoiceSummary = ({
                     >
                       <Text mr={1}>$</Text>
                       <Text
+                        fontSize={compactView ? "6.38px" : "sm"}
                       >
                         {Number(
                           summary[0]?.total?.[totalIndex]?.value || 0

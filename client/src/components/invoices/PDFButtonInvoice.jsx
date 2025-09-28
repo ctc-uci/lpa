@@ -89,6 +89,7 @@ const PDFButtonInvoice = ({
       payees: payeesResponse.data,
       remainingBalance: remainingBalance,
       summary: summaryResponse.data[0],
+      totalCustomRow: totalCustomRow,
     }
 
   };
@@ -119,8 +120,7 @@ const PDFButtonInvoice = ({
     try {
       setLoading(true);
       const invoiceData = await fetchInvoiceData();
-      
-      
+
       const blob = await pdf(
         <InvoicePDFDocument
               sessions={sessions}

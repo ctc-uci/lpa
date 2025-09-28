@@ -62,7 +62,7 @@ const RoomFeeAdjustmentSideBar = ({
     if (isNaN(baseRate)) return "0.00";
 
     const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
-      if (isNaN(val.value)) return acc;
+      if (isNaN(val.value) || val.type === "total") return acc;
 
       if (val.type === "rate_percent") {
         const factor = 1 + val.value / 100;

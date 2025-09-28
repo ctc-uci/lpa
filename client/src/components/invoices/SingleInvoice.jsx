@@ -300,7 +300,6 @@ export const SingleInvoice = () => {
 
   const handlePreviewClick = () => {
     navigate(`/invoices/savededits/${id}`);
-    console.log("Preview clicked");
   };
 
   const handleSaveChanges = () => {
@@ -441,13 +440,11 @@ export const SingleInvoice = () => {
                 gap={"4px"}
                 padding={"0px 16px"}
                 onClick={() => {
-                  console.log(hasUnsavedChanges);
                   if (hasUnsavedChanges) {
                     openModal();
                     setPendingNavigation(
                       () => () => navigate(`/invoices/savededits/${id}`)
                     );
-                    console.log("has unsaved changes");
                   } else {
                     handlePreviewClick();
                   }

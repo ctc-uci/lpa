@@ -313,16 +313,7 @@ const StatementComments = ({
     deleteCustomRow
   } = useSessionStore();
 
-  useEffect(() => {
-    console.log("sessions", sessions);
-  }, [sessions]);
-
-
   const { summary, setSummary, summaryTotal, setSummaryTotal } = useSummaryStore();
-
-  useEffect(() => {
-    console.log("summary", summary);
-  }, [summary]);
 
   const formatDateForInput = (value) => {
     if (!value) return "";
@@ -374,7 +365,7 @@ const StatementComments = ({
     if (isNaN(baseRate)) return "0.00";
 
     const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
-      if (isNaN(val.value)) return acc;
+      if (isNaN(val.value) || val.type === "total") return acc;
 
       if (val.type === "rate_percent") {
         const factor = 1 + val.value / 100;
@@ -1413,8 +1404,6 @@ const InvoiceSummary = ({
 
     setEditingCustomRow(`summary-total-${totalIndex}`);
 
-    console.log(summary[0].total[totalIndex])
-
     const date = new Date(summary[0].total[totalIndex].date);
     date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
 
@@ -1956,7 +1945,7 @@ const InvoiceSummary = ({
                   py={compactView ? 0 : 4}
                   fontSize={compactView ? "6.38px" : "sm"}
                 >
-                  {`$ ${Number(subtotal + totalCustomRow).toFixed(2)}`}
+                  {`$ ${(Number(subtotal) + Number(totalCustomRow)).toFixed(2)}`}
                 </Td>
               </Tr>
 
