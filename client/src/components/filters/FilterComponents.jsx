@@ -465,6 +465,8 @@ export const TimeFilter = ({ startTime, endTime, onChange }) => {
 export const RoomFilter = ({ roomMap, onChange, room }) => {
   const [localRoom, setLocalRoom] = useState(room);
 
+  console.log("roomMap in RoomFilter:", roomMap);
+
   useEffect(() => {
     setLocalRoom(room);
   }, [room]);
@@ -473,6 +475,10 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
     setLocalRoom(newRoom);
     onChange("room", newRoom);
   };
+
+  if (!roomMap || roomMap.size === 0) {
+    return null; // or a loading indicator
+  }
 
   return (
     <FormControl>
@@ -497,11 +503,11 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
         </RoundedButton>
         {Array.from(roomMap.values()).map((room) => (
           <RoundedButton
-            key={room.name}
-            onClick={() => handleRoomChange(room.name)}
-            isActive={localRoom === room.name}
+            key={room}
+            onClick={() => handleRoomChange(room)}
+            isActive={localRoom === room}
           >
-            {room.name}
+            {room}
           </RoundedButton>
         ))}
       </HStack>
