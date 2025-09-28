@@ -446,6 +446,26 @@ invoicesRouter.get("/total/:id", async (req, res) => {
   }
 });
 
+invoicesRouter.get("/previousInvoices/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const previousInvoices = await db.query(`
+      SELECT * FROM invoices
+      WHERE start_date < (
+        SELECT start_date FROM invoices
+        WHERE id = $1
+      )
+      AND event_id = (
+        SELECT event_id FROM invoices
+        WHERE id = $1
+      )`, [id]);
+
+    res.status(200).json(keysToCamel(previousInvoices));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 invoicesRouter.post("/", async (req, res) => {
   try {
     const invoiceData = req.body;
