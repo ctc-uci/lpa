@@ -405,7 +405,7 @@ invoicesRouter.get("/total/:id", async (req, res) => {
 
     // I made a change here for invoice_id
     const totalAdjustments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type = 'total' AND invoice_id = $1",
+      "SELECT * FROM comments WHERE adjustment_type = 'total' AND invoice_id = $1 AND booking_id IS NOT NULL",
       [id]
     );
 

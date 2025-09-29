@@ -1616,7 +1616,7 @@ const InvoiceSummary = ({
                       height="32px"
                       onClick={() => {
                         addTotal({
-                          id: `summary-total-${summary[0].total.length}`,
+                          id: `summary-total-${summary[0]?.total?.length || 0}`,
                           value: "0.00",
                           comment: "Custom Row",
                           date: new Date().toISOString()

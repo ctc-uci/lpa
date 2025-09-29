@@ -55,21 +55,21 @@ export const useSummaryStore = create<SummaryStore>((set) => ({
     set((state) => ({
       summary: state.summary.map((s, idx) =>
         idx === 0
-          ? { ...s, total: s.total.map((t) => (t.id === total.id ? total : t)) }
+          ? { ...s, total: (s.total || []).map((t) => (t.id === total.id ? total : t)) }
           : s
       ),
     })),
   addTotal: (total: Total) =>
     set((state) => ({
       summary: state.summary.map((s, idx) =>
-        idx === 0 ? { ...s, total: [...s.total, total] } : s
+        idx === 0 ? { ...s, total: [...(s.total || []), total] } : s
       ),
     })),
   deleteTotal: (totalId: string) =>
     set((state) => ({
       summary: state.summary.map((s, idx) =>
         idx === 0
-          ? { ...s, total: s.total.filter((t) => t.id !== totalId) }
+          ? { ...s, total: (s.total || []).filter((t) => t.id !== totalId) }
           : s
       ),
     })),
