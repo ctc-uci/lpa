@@ -39,7 +39,8 @@ export const Program = () => {
       const programData = programResponse.data;
       setProgram(programData); // programData should have what Events table in DB model contains
       setIsArchived(programData[0].archived);
-    } catch {
+      return programData; // Return the data so it can be used in the chain
+    } catch (error) {
       console.log("From getProgram: ", error);
     } finally {
       setInfoLoaded((prev) => ({
@@ -83,7 +84,7 @@ export const Program = () => {
     setPayees(newPayees);
   };
 
-  const getNextBookingInfo = async () => {
+  const getNextBookingInfo = async (archivedStatus = isArchived) => {
     try {
       const nextBooking = {
         nextSession: {},
@@ -93,7 +94,7 @@ export const Program = () => {
         payees: [],
       };
 
-      const nextSession = sessions?.find((session) => !session.archived);
+      const nextSession = sessions?.find((session) => (!session.archived || archivedStatus));
 
       if (!nextSession) {
         console.log("No upcoming sessions found");
@@ -114,14 +115,14 @@ export const Program = () => {
     }
   };
 
-  const getSessions = async () => {
+  const getSessions = async (archivedStatus = isArchived) => {
     try {
       const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
 
       // Only get activeSessions
       const activeSessions = sessionsData.filter(
-        (session) => session.archived === false
+        (session) => session.archived === false || archivedStatus
       );
       setSessions(activeSessions);
 
@@ -160,12 +161,12 @@ export const Program = () => {
   };
   useEffect(() => {
     const getData = async () => {
-      await getProgram().then(() => {
+      await getProgram().then((programData) => {
         console.log("Program data refreshed");
         setInfoLoaded((prev) => ({ ...prev, program: true }));
-      });
-
-      await getSessions().then(() => {
+        // Pass the archived status directly to getSessions
+        return getSessions(programData[0].archived);
+      }).then(() => {
         console.log("Sessions data refreshed");
         setInfoLoaded((prev) => ({ ...prev, bookings: true }));
       });

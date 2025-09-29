@@ -479,15 +479,6 @@ export const EditSingleSession = () => {
                     </Box>
                   </Td>
                   <Td>
-                    <Icon
-                      boxSize="7"
-                      padding="5px"
-                      borderRadius="6px"
-                      backgroundColor="#EDF2F7"
-                      color="black"
-                    >
-                      <EllipsisIcon />
-                    </Icon>
                   </Td>
                 </Tr>
               ))}

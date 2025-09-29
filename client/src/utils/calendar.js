@@ -318,8 +318,9 @@ export const batchUpdateBookings = async (bookings) => {
   }
 
   const batch = gapi.client.newBatch();
+  let addedCount = 0;
 
-  bookings.forEach((booking, index) => {
+  for (const [index, booking] of bookings.entries()) {
     const date = booking.date.split("T")[0];
     const start = booking.startTime.split('+')[0].trim();
     const end = booking.endTime.split('+')[0].trim();
@@ -329,31 +330,51 @@ export const batchUpdateBookings = async (bookings) => {
     const location = booking.location || "";
     const description = booking.description || "";
 
-    console.log("UPDATED EVENT ID: ", eventId);
-
-    const resource = {
-      summary: booking.name,
-      start: {
-        dateTime: startDateTime,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      },
-      end: {
-        dateTime: endDateTime,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      },
-      location: location,
-      description: description,
-    };
-
-    batch.add(
-      gapi.client.calendar.events.patch({
+    // Check if the event exists
+    try {
+      const eventExists = await gapi.client.calendar.events.get({
         calendarId,
-        eventId: eventId,
-        resource: resource
-      }), 
-      { id: `update_${index}` }
-    );
-  });
+        eventId: eventId
+      });
+      if (eventExists.result) {
+        const resource = {
+          summary: booking.name,
+          start: {
+            dateTime: startDateTime,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          },
+          end: {
+            dateTime: endDateTime,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          },
+          location: location,
+          description: description,
+        };
+
+        batch.add(
+          gapi.client.calendar.events.patch({
+            calendarId,
+            eventId: eventId,
+            resource: resource
+          }), 
+          { id: `update_${index}` }
+        );
+        addedCount++;
+      }
+    } catch (error) {
+      console.log("EVENT DOES NOT EXIST: ", eventId);
+      // Skip this booking if event doesn't exist
+    }
+  }
+
+  if (addedCount === 0) {
+    return {
+      total: 0,
+      successCount: 0,
+      failCount: 0,
+      addedCount: 0
+    };
+  }
 
   return new Promise((resolve) => {
     batch.execute(responseMap => {
@@ -374,7 +395,7 @@ export const batchUpdateBookings = async (bookings) => {
         successCount, 
         failCount,
         errors,
-        // Include the full response map in case we need to process individual results
+        addedCount,
         responseMap 
       });
     });
@@ -394,18 +415,40 @@ export const batchDeleteBookings = async (bookings) => {
   }
 
   const batch = gapi.client.newBatch();
+  let addedCount = 0;
 
-  bookings.forEach((booking, index) => {
+  for (const [index, booking] of bookings.entries()) {
     const eventId = generateEventId(booking, booking.backendId);
     
-    batch.add(
-      gapi.client.calendar.events.delete({
+    // Check if the event exists
+    try {
+      const eventExists = await gapi.client.calendar.events.get({
         calendarId,
         eventId: eventId
-      }), 
-      { id: `delete_${index}` }
-    );
-  });
+      });
+      if (eventExists.result) {
+        batch.add(
+          gapi.client.calendar.events.delete({
+            calendarId,
+            eventId: eventId
+          }), 
+          { id: `delete_${index}` }
+        );
+        addedCount++;
+      }
+    } catch (error) {
+      // Skip this booking if event doesn't exist
+    }
+  }
+
+  if (addedCount === 0) {
+    return {
+      total: 0,
+      successCount: 0,
+      failCount: 0,
+      addedCount: 0
+    };
+  }
 
   return new Promise((resolve) => {
     batch.execute(responseMap => {
@@ -428,7 +471,7 @@ export const batchDeleteBookings = async (bookings) => {
         successCount, 
         failCount,
         errors,
-        // Include the full response map in case we need to process individual results
+        addedCount,
         responseMap 
       });
     });

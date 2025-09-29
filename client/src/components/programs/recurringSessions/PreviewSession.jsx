@@ -349,11 +349,7 @@ export const PreviewSession = ({
                                   formatDate(session.date).split(" ")[1]
                                 );
                                 setDeleteSessionId(session.id);
-                                if (session.isNew) {
-                                  onDeleteSessionModalOpen();
-                                } else {
-                                  onCancelProgramModalOpen();
-                                }
+                                onDeleteSessionModalOpen();
                                 setIsChanged(true);
                               }}
                               display="flex"

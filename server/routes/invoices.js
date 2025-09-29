@@ -289,6 +289,44 @@ invoicesRouter.get("/payees/:id", async (req, res) => {
   }
 });
 
+invoicesRouter.get("/payees/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const data = await db.query(
+      `SELECT clients.*
+      FROM clients
+      JOIN assignments ON assignments.client_id = clients.id
+      JOIN invoices ON assignments.event_id = invoices.event_id
+      WHERE invoices.id = $1 AND assignments.role = 'payee';`,
+      [id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+invoicesRouter.get("/instructors/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const data = await db.query(
+      `SELECT clients.*
+      FROM clients
+      JOIN assignments ON assignments.client_id = clients.id
+      JOIN invoices ON assignments.event_id = invoices.event_id
+      WHERE invoices.id = $1 AND assignments.role = 'instructor';`,
+      [id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 // GET event that relates to an invoice
 invoicesRouter.get("/invoiceEvent/:id", async (req, res) => {
   try {
@@ -441,6 +479,26 @@ invoicesRouter.get("/total/:id", async (req, res) => {
     };
 
     res.status(200).json(keysToCamel(result));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+invoicesRouter.get("/previousInvoices/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const previousInvoices = await db.query(`
+      SELECT * FROM invoices
+      WHERE start_date < (
+        SELECT start_date FROM invoices
+        WHERE id = $1
+      )
+      AND event_id = (
+        SELECT event_id FROM invoices
+        WHERE id = $1
+      )`, [id]);
+
+    res.status(200).json(keysToCamel(previousInvoices));
   } catch (err) {
     res.status(500).send(err.message);
   }

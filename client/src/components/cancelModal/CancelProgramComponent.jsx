@@ -27,6 +27,7 @@ import { CancelArchiveIcon } from "../../assets/CancelArchiveIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
 import { archiveProgram, deleteProgram } from "../../utils/programModifications";
+import { useNavigate } from "react-router-dom";
 
 export const CancelProgram = ({
   id,
@@ -46,9 +47,12 @@ export const CancelProgram = ({
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const { backend } = useBackendContext();
   const toast = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // get event description
+    console.log("id: ", id);
+    if (!id) return;
     const fetchData = async () => {
       const request = await backend.get(`events/${id}`);
       setEventDescription(request.data[0].description);
@@ -57,7 +61,11 @@ export const CancelProgram = ({
         console.log("event description: ", request.data[0].description);
       }
     };
-    fetchData();
+    try {
+      fetchData();
+    } catch (error) {
+      console.log("Error fetching event description: ", error);
+    }
   }, [backend, id]);
 
   const handleSelect = useCallback((action, iconSrc) => {
@@ -78,6 +86,7 @@ export const CancelProgram = ({
         duration: 3000,
         isClosable: true,
       });
+      window.location.reload();
     } catch (error) {
       console.log("Couldn't archive", error);
       toast({
@@ -129,6 +138,7 @@ export const CancelProgram = ({
         duration: 3000,
         isClosable: true,
       });
+      navigate(`/programs`);
     } catch (error) {
       console.error("Failed to delete program:", error);
       toast({

@@ -108,6 +108,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
+import { deleteSessions } from "./utils";
 
 const formatNamesList = (list = [], maxCharsPerLine) => {
   if (!Array.isArray(list) || list.length === 0) return "None";
@@ -173,7 +174,7 @@ export const ProgramSummary = ({
   const getFilteredAndSortedSessions = () => {
     if (!sessions || sessions.length === 0) return [];
 
-    const filteredSessions = sessions.filter((session) => !session.archived);
+    const filteredSessions = sessions.filter((session) => (!session.archived || isArchived));
 
     const sortedSessions = [...filteredSessions].sort((a, b) => {
       const dateA = new Date(a.date);
@@ -794,7 +795,6 @@ export const ProgramSummary = ({
                       )}
                     </Box>
                   </Box>
-
                   <Box>
                     <Heading
                       size="md"
@@ -932,7 +932,7 @@ export const Sessions = ({
   const [selectedRoom, setSelectedRoom] = useState("All");
 
   const [sortKey, setSortKey] = useState("date");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
     []
   );
@@ -1009,11 +1009,11 @@ export const Sessions = ({
   };
 
   useEffect(() => {
-    if (!sessions || !rooms) return;
+    if (!filteredSessions || !rooms) return;
 
     const newSessionMap = {};
 
-    const filtered = sessions.filter((session) => {
+    const filtered = filteredSessions.filter((session) => {
       const sessionDate = new Date(session.date);
       const sessionStartTime = session.startTime;
       const sessionEndTime = session.endTime;
@@ -1061,7 +1061,7 @@ export const Sessions = ({
     timeRange,
     status,
     selectedRoom,
-    sessions,
+    filteredSessions,
     rooms,
     sortKey,
     sortOrder,
@@ -1125,7 +1125,10 @@ export const Sessions = ({
   };
 
   const deleteSingleSession = async () => {
-    await backend.delete("/bookings/" + selectedSingleSession);
+    // console.log("selectedSingleSession: ", selectedSingleSession);
+    // // return;
+    // // await backend.delete("/bookings/" + selectedSingleSession);
+    await deleteSessions([{id: selectedSingleSession}], backend);
     refreshSessions();
   };
 
@@ -1366,6 +1369,7 @@ export const Sessions = ({
                           sessions={sessions}
                           setFilteredSessions={setFilteredSessions}
                           rooms={rooms}
+                          isArchived={isArchived}
                         />
                       </Box>
                     </Button>

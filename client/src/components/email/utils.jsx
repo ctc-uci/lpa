@@ -31,7 +31,9 @@ export const sendSaveEmail = async (
     bccEmails
   );
   await saveEmail(backend, blob, pdf_title, id);
+
   setisConfirmModalOpen(true);
+  setLoading(false);
 };
 
 const makeBlob = async (invoice, invoiceData) => {

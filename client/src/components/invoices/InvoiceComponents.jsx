@@ -93,6 +93,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusSortingModal from "../sorting/StatusFilter";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+import { getAllDue } from "../../utils/pastDueCalc";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -170,6 +171,7 @@ const InvoiceStats = ({
 }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
+  const toast = useToast();
   const navigate = useNavigate();
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
@@ -183,6 +185,17 @@ const InvoiceStats = ({
     const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
     const eventId = currentInvoiceResponse.data[0].eventId;
     const previousInvoices = await backend.get(`/invoices/previousInvoices/${id}?event_id=${eventId}`);
+    if (previousInvoices.data.length === 0) {
+      toast({
+        title: "No previous invoices",
+        description: "There are no previous invoices for this event",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+      return;
+    }
     const previousInvoiceId = previousInvoices.data[0].id;
     navigate(`/invoices/${previousInvoiceId}`);
   };
@@ -353,7 +366,11 @@ const InvoicePayments = forwardRef(
     const [programName, setProgramName] = useState("");
     const [invoiceMonth, setInvoiceMonth] = useState("");
     const [invoiceYear, setInvoiceYear] = useState("");
+    const [editDate, setEditDate] = useState("");
+    const [isProcessing, setIsProcessing] = useState(false);
     const toast = useToast();
+
+    comments = comments.filter(comment => comment.adjustmentType === "paid");
 
     useEffect(() => {
       const fetchUid = async () => {
@@ -395,11 +412,13 @@ const InvoicePayments = forwardRef(
     }));
 
     const handleCancelNewComment = () => {
+      setIsProcessing(false);
       setShowInputRow(false);
       setAdjustValue("--.--");
       setValueEntered(false);
       setHasUnsavedChanges(false);
       onCancelNewCommentClose();
+      setIsProcessing(false);
     };
 
   const currentPageComments = comments ?? [];
@@ -413,19 +432,22 @@ const InvoicePayments = forwardRef(
     // Update comments state with new data
     setComments(commentsResponse.data);
 
-    // Calculate new remaining balance using updated comments
-    const paidTotal = commentsResponse.data.reduce((acc, comment) => {
-      if (comment.adjustmentType === "paid") {
-        return acc + parseFloat(comment.adjustmentValue);
-      }
-      return acc;
-    }, 0);
+    // // Calculate new remaining balance using updated comments
+    // const paidTotal = commentsResponse.data.reduce((acc, comment) => {
+    //   if (comment.adjustmentType === "paid") {
+    //     return acc + parseFloat(comment.adjustmentValue);
+    //   }
+    //   return acc;
+    // }, 0);
+
+    const paidTotal = await getAllDue(backend, id);
     
-    const remainingBalanceCalculated = (amountDue - paidTotal) > 0 ? (amountDue - paidTotal) : 0.00;
-    setRemainingBalance(remainingBalanceCalculated);
+    // const remainingBalanceCalculated = (amountDue - paidTotal) > 0 ? (amountDue - paidTotal) : 0.00;
+    setRemainingBalance(paidTotal);
   }
 
   const handleDeleteComment = async () => {
+    setIsProcessing(true);
     try {
       await backend.delete("/comments/" + deleteID);
       const commentsResponse = await backend.get(
@@ -438,6 +460,7 @@ const InvoicePayments = forwardRef(
     }
     finally {
       updateRemainingBalance();
+      setIsProcessing(false);
     }
   };
   
@@ -472,6 +495,7 @@ const InvoicePayments = forwardRef(
       } else {
         setEditID(edit);
         setShowEditRow(true);
+        setAdjustValue(adjustmentValue);
         setHasUnsavedChanges(true);
       }
     } catch (error) {
@@ -480,6 +504,7 @@ const InvoicePayments = forwardRef(
   };
 
     const handleSaveComment = async () => {
+      setIsProcessing(true);
       const editDateObj = new Date(editDate);
       editDateObj.setMinutes(editDateObj.getMinutes() + editDateObj.getTimezoneOffset());
     
@@ -493,7 +518,7 @@ const InvoicePayments = forwardRef(
           datetime: editDateObj.toISOString(),
           comment: "",
           adjustment_type: "paid",
-          adjustment_value: Number(adjustValue),
+          adjustment_value: Number(adjustmentValue),
         };
 
         if (showEditRow) {
@@ -607,6 +632,7 @@ const InvoicePayments = forwardRef(
       setShowEditRow(false);
       setShowInputRow(false);
       setHasUnsavedChanges(false);
+      setIsProcessing(false);
       setAdjustValue("--.--");
     }  
   //   } catch (error) {
@@ -672,6 +698,7 @@ const InvoicePayments = forwardRef(
             </Button>
           ) : (
             <Button
+              isLoading={isProcessing}
               onClick={handleSaveComment}
               disabled={!valueEntered}
             >
@@ -728,18 +755,21 @@ const InvoicePayments = forwardRef(
                             $
                           </Text>
                           <Input
-                            type="text"
+                            type="number"
                             placeholder="__.__"
-                            value={adjustValue}
+                            value={Number(adjustValue).toFixed(2)}
                             w="60px"
-                            color="#0C824D"
-                            fontWeight="700"
+                            textAlign="left"
+                            padding="0px 0px 0px 5px"
+                            margin="0px 0px 0px 5px"
                             fontSize="14px"
-                            variant="unstyled"
+                            color="#0C824D"
+                            fontWeight="400"
                             onChange={(e) => {
                               const value = e.target.value;
                               if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
                                 setAdjustValue(value);
+                                setEditDate(new Date());
                                 setValueEntered(true);
                               }
                             }}
@@ -763,16 +793,15 @@ const InvoicePayments = forwardRef(
                       paddingInlineStart="4px"
                       paddingInlineEnd="4px"
                     >
-                      <Menu>
+                      <Menu
+                       placement="bottom-end"
+                      >
                         <MenuButton
                           as={IconButton}
-                          minWidth="24px"
-                          height="24px"
-                          borderRadius={6}
-                          backgroundColor="#EDF2F7"
-                          icon={<Icon as={sessionsEllipsis} />}
+                          className="ellipsis-action-button"
+                          icon={<Icon as={EllipsisIcon} />}
                         />
-                        <MenuList minWidth={"149px"} maxWidth={"149px"}>
+                        <MenuList minWidth={"152px"} maxWidth={"152px"}>
                             <MenuItem
                               onClick={() => handleEditComment(comment.id, comment.datetime, comment.adjustmentValue)}
                               width={"149px"}
@@ -808,7 +837,9 @@ const InvoicePayments = forwardRef(
                   ))
               ) : (
                 <Tr>
-                  <Td colSpan={3}>No comments available.</Td>
+                  {!showInputRow && (
+                    <Td colSpan={3}>No comments available.</Td>
+                  )}
                 </Tr>
               )}
 
@@ -858,6 +889,7 @@ const InvoicePayments = forwardRef(
                       mr={3}
                       ml={"12px"}
                       _hover={{ backgroundColor: "#71060C" }}
+                      isLoading={isProcessing}
                       backgroundColor={"#90080F"}
                       fontFamily={"Inter"}
                       fontSize={"14px"}
@@ -881,10 +913,18 @@ const InvoicePayments = forwardRef(
                 >
                   <Td
                     fontSize="14px"
-                    paddingInlineStart="8px"
+                    paddingInlineStart="3px"
                     paddingInlineEnd="8px"
                   >
-                    {format(new Date(), "EEE. M/d/yy")}
+                    <Input
+                      type="date"
+                      fontSize="14px"
+                      margin="0px 0px 0px 0px"
+                      padding="5px"
+                      width="95px"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                    />
                   </Td>
                   <Td
                     fontSize="14px"
@@ -905,11 +945,25 @@ const InvoicePayments = forwardRef(
                         placeholder="__.__"
                         value={adjustValue}
                         w="60px"
+                        textAlign="left"
+                        padding="0px 0px 0px 5px"
+                        margin="0px 0px 0px 5px"
                         fontSize="14px"
                         color="#0C824D"
                         fontWeight="400"
-                        variant="unstyled"
-                        onChange={(e) => setAdjustValue(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                            setAdjustValue(value);
+                            setValueEntered(true);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value) {
+                            const formattedValue = Number(e.target.value).toFixed(2);
+                            setAdjustValue(formattedValue);
+                          }
+                        }}
                       ></Input>
                     </Flex>
                   </Td>
@@ -978,131 +1032,26 @@ const InvoicePayments = forwardRef(
                       justifyContent: "flex-end",
                     }}
                   >
-                  <Button>
+                  <Button
+                    isLoading={isProcessing}
+                    onClick={() => {
+                      handleCancelNewComment();
+                    }}
+                  >
                     Confirm
                   </Button>
                 </ModalFooter>
               </ModalContent>
             </Modal>
-            {showInputRow && (
-              <Tr
-                alignItems="center"
-                alignSelf="stretch"
-                gap="12px"
-              >
-                <Td
-                  fontSize="14px"
-                  paddingInlineStart="8px"
-                  paddingInlineEnd="8px"
-                >
-                  <Input
-                    type="date"
-                    value={editDate}
-                    width="fit-content"
-                    onChange={(e) => setEditDate(e.target.value)}
-                  />
-                </Td>
-                <Td
-                  fontSize="14px"
-                  color="#0C824D"
-                  fontWeight="700"
-                  paddingInlineStart="8px"
-                  paddingInlineEnd="8px"
-                >
-                  <Flex alignItems="center">
-                    <Text
-                      color="#0C824D"
-                      fontWeight="bold"
-                    >
-                      $
-                    </Text>
-                    <Input
-                      type="text"
-                      placeholder="0.00"
-                      value={adjustValue}
-                      w="60px"
-                      color="#0C824D"
-                      fontWeight="700"
-                      fontSize="14px"
-                      variant="unstyled"
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
-                          setAdjustValue(value);
-                          setValueEntered(true);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (e.target.value) {
-                          const formattedValue = Number(e.target.value).toFixed(2);
-                          setAdjustValue(formattedValue);
-                        }
-                      }}
-                    ></Input>
-                  </Flex>
-                </Td>
-                <Td
-                  textAlign="right"
-                  width="1%"
-                  paddingInlineStart="4px"
-                  paddingInlineEnd="4px"
-                >
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      minWidth="24px"
-                      height="24px"
-                      borderRadius={6}
-                      backgroundColor="#EDF2F7"
-                      icon={<Icon as={sessionsEllipsis} />}
-                    />
-                  </Menu>
-                </Td>
-              </Tr>
-            )}
           </Tbody>
         </Table>
-                    {/* <Button
-                      variant="ghost"
-                      onClick={onCancelNewCommentClose}
-                      fontFamily={"Inter"}
-                      backgroundColor={"#EDF2F7"}
-                      fontSize={"14px"}
-                      fontWeight={"500"}
-                    >
-                      Exit
-                    </Button>
-                    <Button
-                      mr={3}
-                      ml={"12px"}
-                      _hover={{ backgroundColor: "#71060C" }}
-                      backgroundColor={"#90080F"}
-                      fontFamily={"Inter"}
-                      fontSize={"14px"}
-                      fontWeight={"500"}
-                      borderRadius={"6px"}
-                      color={"white"}
-                      onClick={() => {
-                        handleCancelNewComment();
-                      }}
-                    >
-                      Confirm
-                    </Button>
-                  </ModalFooter>
-                </ModalContent>
-              </Modal>
-            </Tbody>
-          </Table>
-        </Flex> */}
       </Flex>
       </Flex>
     );
   }
 );
 
-function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
-  const [sortKey, setSortKey] = useState("title");
-  const [sortOrder, setSortOrder] = useState("asc");
+function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, sortOrder, onSortChange }) {
 
   const navigate = useNavigate();
   const toast = useToast();
@@ -1252,47 +1201,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
   // }, [filteredInvoices, toast]);
   
 
-  const handleSortChange = useCallback((key, order) => {
-    setSortKey(key);
-    setSortOrder(order);
-  }, []);
-
-  const sortedPrograms = useMemo(() => {
-    if (!filteredInvoices.length) return [];
-
-    const sorted = [...filteredInvoices];
-    if (sortKey === "title") {
-      sorted.sort((a, b) =>
-        sortOrder === "asc"
-          ? a.eventName.localeCompare(b.eventName)
-          : b.eventName.localeCompare(a.eventName)
-      );
-    } else if (sortKey === "date") {
-      sorted.sort((a, b) => {
-        const aInvalid = !a.endDate || a.endDate === "N/A";
-        const bInvalid = !b.endDate || b.endDate === "N/A";
-        if (aInvalid && bInvalid) return 0;
-        if (aInvalid) return 1;
-        if (bInvalid) return -1;
-        const dateA = new Date(a.endDate);
-        const dateB = new Date(b.endDate);
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-      });
-    } else if (sortKey === "status") {
-      sorted.sort((a, b) => {
-        const priority = {
-          "Past Due": 0,
-          "Not Paid": 1,
-          Paid: 2,
-        };
-        return sortOrder === "asc"
-          ? priority[b.isPaid] - priority[a.isPaid]
-          : priority[a.isPaid] - priority[b.isPaid];
-      });
-    }
-    return sorted;
-  }, [filteredInvoices, sortKey, sortOrder]);
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date
@@ -1305,8 +1213,8 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
       .replace(/,/g, ".");
   };
 
-  // Get current page data
-  const currentInvoices = sortedPrograms;
+  // Use the filtered invoices directly since sorting is now done in parent
+  const currentInvoices = filteredInvoices;
 
   const handleEdit = useCallback(
     (id, e) => {
@@ -1341,7 +1249,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>STATUS</Text>
-                    <StatusSortingModal onSortChange={handleSortChange} />
+                    <StatusSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th
@@ -1360,7 +1268,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>PROGRAM</Text>
-                    <ProgramSortingModal onSortChange={handleSortChange} />
+                    <ProgramSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th
@@ -1378,7 +1286,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                     paddingRight="8px"
                   >
                     <Text>DEADLINE</Text>
-                    <DateSortingModal onSortChange={handleSortChange} />
+                    <DateSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
                 <Th paddingRight="8px">
@@ -1457,8 +1365,10 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor }) {
                         )}
                       </Flex>
                     </Td>
-                    <Td onClick={() => handleRowClick(invoice.id)} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                      {invoice.eventName}
+                    <Td onClick={() => handleRowClick(invoice.id)}>
+                      {invoice.eventName.length > 30 
+                        ? `${invoice.eventName.substring(0, 30)}...` 
+                        : invoice.eventName}
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       {validPayers.length > 1
