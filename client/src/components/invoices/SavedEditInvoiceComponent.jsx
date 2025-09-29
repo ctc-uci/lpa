@@ -513,7 +513,7 @@ const SavedStatementComments = ({
                           session.adjustmentValues.filter(
                             (adj) =>
                               adj.value !== 0 &&
-                              adj.value !== -0 &&
+                              !Object.is(adj.value, -0) &&
                               Number(adj.value) !== 0
                           ).length === 0 ? (
                             "None"
@@ -521,7 +521,7 @@ const SavedStatementComments = ({
                             <Box display="inline-block">
                               <Tooltip
                                 label={session.adjustmentValues
-                                  .filter((adj) => adj.type !== "total" && adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
+                                  .filter((adj) => adj.type !== "total" && adj.value !== 0 && !Object.is(adj.value, -0) && Number(adj.value) !== 0)
                                   .map((adj) => {
                                     const value = Number(adj.value);
                                     const sign = value >= 0 ? "+" : "-";
@@ -538,7 +538,7 @@ const SavedStatementComments = ({
                               >
                                 <Text>
                                   {session.adjustmentValues
-                                    .filter((adj) => adj.type !== "total" && adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
+                                    .filter((adj) => adj.type !== "total" && adj.value !== 0 && !Object.is(adj.value, -0) && Number(adj.value) !== 0)
                                     .slice(0, 3)
                                     .map((adj) => {
                                       const value = Number(adj.value);
@@ -551,7 +551,7 @@ const SavedStatementComments = ({
                                     })
                                     .join(", ")}
                                   {session.adjustmentValues.filter(
-                                    (adj) => adj.type !== "total" && adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0
+                                    (adj) => adj.type !== "total" && adj.value !== 0 && !Object.is(adj.value, -0) && Number(adj.value) !== 0
                                   ).length > 3
                                     ? ", ..."
                                     : ""}
@@ -945,7 +945,7 @@ const SavedInvoiceSummary = ({
                     {summary[0]?.adjustmentValues.filter(
                       (adj) =>
                         adj.value !== 0 &&
-                        adj.value !== -0 &&
+                        !Object.is(adj.value, -0) &&
                         Number(adj.value) !== 0
                     ).length === 0 ? (
                       "None"
@@ -953,7 +953,7 @@ const SavedInvoiceSummary = ({
                       <Box display="inline-block">
                         <Tooltip
                           label={summary[0]?.adjustmentValues
-                            .filter((adj) => adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
+                            .filter((adj) => adj.value !== 0 && !Object.is(adj.value, -0) && Number(adj.value) !== 0)
                             .map((adj) => {
                               const value = Number(adj.value);
                               const sign = value >= 0 ? "+" : "-";
@@ -970,7 +970,7 @@ const SavedInvoiceSummary = ({
                         >
                           <Text textOverflow="ellipsis" overflow="hidden">
                             {summary[0]?.adjustmentValues
-                              .filter((adj) => adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
+                              .filter((adj) => adj.value !== 0 && !Object.is(adj.value, -0) && Number(adj.value) !== 0)
                               .map((adj) => {
                                 const value = Number(adj.value);
                                 const sign = value >= 0 ? "+" : "-";

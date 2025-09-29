@@ -875,7 +875,7 @@ const StatementComments = ({
                               {session.adjustmentValues.filter(
                                 (adj) =>
                                   adj.value !== 0 &&
-                                  adj.value !== -0
+                                  !Object.is(adj.value, -0)
                               ).length === 0 ? (
                                 <Box
                                   display="inline-block"
@@ -894,7 +894,7 @@ const StatementComments = ({
                                         (adj) =>
                                           adj.type !== "total" &&
                                           adj.value !== 0 &&
-                                          adj.value !== -0
+                                          !Object.is(adj.value, -0)
                                       )
                                       .map((adj) => {
                                         const value = Number(adj.value);
@@ -915,7 +915,7 @@ const StatementComments = ({
                                         .filter(
                                           (adj) =>
                                             adj.value !== 0 &&
-                                            adj.value !== -0
+                                            !Object.is(adj.value, -0)
                                         )
                                         .slice(0, 3)
                                         .map((adj) => {
@@ -932,7 +932,7 @@ const StatementComments = ({
                                       {session.adjustmentValues.filter(
                                         (adj) =>
                                           adj.value !== 0 &&
-                                          adj.value !== -0
+                                          !Object.is(adj.value, -0)
                                       ).length > 3
                                         ? ", ..."
                                         : ""}
@@ -1685,7 +1685,7 @@ const InvoiceSummary = ({
                     {!summary || summary[0]?.adjustmentValues.filter(
                       (adj) =>
                         adj.value !== 0 &&
-                        adj.value !== -0 &&
+                        !Object.is(adj.value, -0) &&
                         Number(adj.value) !== 0
                     ).length === 0 ? (
                       "None"
@@ -1695,7 +1695,7 @@ const InvoiceSummary = ({
                           label={summary[0]?.adjustmentValues.filter(
                             (adj) =>
                               adj.value !== 0 &&
-                              adj.value !== -0 &&
+                              !Object.is(adj.value, -0) &&
                               Number(adj.value) !== 0
                           ).length > 0
                             ? summary[0]?.adjustmentValues
@@ -1718,11 +1718,11 @@ const InvoiceSummary = ({
                             {summary[0]?.adjustmentValues.filter(
                               (adj) =>
                                 adj.value !== 0 &&
-                                adj.value !== -0 &&
+                                !Object.is(adj.value, -0) &&
                                 Number(adj.value) !== 0
                             ).length > 0
                               ? summary[0]?.adjustmentValues
-                                .filter((adj) => adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
+                                .filter((adj) => adj.value !== 0 && !Object.is(adj.value, -0) && Number(adj.value) !== 0)
                                 .map((adj) => {
                                   const sign = adj.value < 0 ? "-" : "+";
                                   const isFlat = adj.type === "rate_flat";

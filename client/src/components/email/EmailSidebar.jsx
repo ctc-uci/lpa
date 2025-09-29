@@ -528,8 +528,8 @@ export const EmailSidebar = ({
         closeDrawer={onClose}
         title={title}
         emails={selectedInstructors.map((user) => user.email)}
-        ccEmails={ccEmails.map((user) => user.email)}
-        bccEmails={bccEmails.map((user) => user.email)}
+        ccEmails={ccEmails.filter((user) => user).map((user) => user?.email)}
+        bccEmails={bccEmails.filter((user) => user).map((user) => user?.email)}
       />
       <Button
         ref={btnRef}
@@ -627,7 +627,7 @@ export const EmailSidebar = ({
               >
                 {selectedInstructors &&
                   selectedInstructors.length > 0 &&
-                  selectedInstructors.map(
+                  selectedInstructors.filter((user) => user).map(
                     (user, index) => (
                         <Tag
                           key={`user-${index}`}
@@ -688,7 +688,7 @@ export const EmailSidebar = ({
                 flexWrap="wrap"
               >
                 {/* Display regular cc emails */}
-                {ccEmails.map((email, index) => (
+                {ccEmails.filter((user) => user).map((email, index) => (
                   <Tag
                     key={`string-${index}`}
                     size="lg"
@@ -781,7 +781,7 @@ export const EmailSidebar = ({
                 flexWrap="wrap"
               >
                 {/* Display regular bcc emails */}
-                {bccEmails.map((email, index) => (
+                {bccEmails.filter((user) => user).map((email, index) => (
                   <Tag
                     key={`string-${index}`}
                     size="lg"
