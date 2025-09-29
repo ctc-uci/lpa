@@ -14,6 +14,7 @@ import InvoiceFooter from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeader from "../../assets/background/InvoiceHeader.png";
 import logo from "../../assets/logo/logo.png";
 
+
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -59,33 +60,30 @@ const styles = StyleSheet.create({
   },
 });
 
-const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
-  if (comments.length > 0) {
-    const latestComment = comments.sort(
-      (a, b) => new Date(b.datetime) - new Date(a.datetime)
-    )[0];
-
-    const latestDate = new Date(latestComment.datetime);
-    const month = latestDate.toLocaleString("default", { month: "long" });
-    const day = latestDate.getDate();
-    const year = latestDate.getFullYear();
-
-    return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
-  } else if (invoice) {
-    const invoiceDateSplit = invoice[0]?.startDate?.split("T")[0];
-    const invoiceDate = new Date(invoiceDateSplit);
-    invoiceDate.setMinutes(
-      invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset()
-    );
-    const month = invoiceDate.toLocaleString("default", { month: "long" });
-    const year = invoiceDate.getFullYear();
-    return `${month} ${year}`;
-  } else {
+const getGeneratedDate = (sessions = [], includeDay = true) => {
+  if (sessions.length === 0) {
     return "No Date Found";
   }
+
+  const latestSession = sessions.slice().sort(
+    (a, b) => new Date(b.datetime) - new Date(a.datetime)
+  )[0];
+
+  // Create date and adjust for timezone using the same pattern as EditInvoice.jsx
+  const latestDate = new Date(latestSession.datetime);
+  latestDate.setMinutes(
+    latestDate.getMinutes() + latestDate.getTimezoneOffset()
+  );
+
+  const month = latestDate.toLocaleString("default", { month: "long" });
+  const day = latestDate.getDate();
+  const year = latestDate.getFullYear();
+
+  return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
 };
 
-const EditInvoiceTitle = ({ comments, invoice }) => {
+const EditInvoiceTitle = ({ sessions }) => {
+
   return (
     <View style={{ marginTop: 16 }}>
       <View
@@ -106,7 +104,7 @@ const EditInvoiceTitle = ({ comments, invoice }) => {
             INVOICE
           </Text>
           <Text style={{ color: "#718096", fontSize: "12px" }}>
-            Generated on {getGeneratedDate(comments, invoice.data, true)}
+            Generated on {getGeneratedDate(sessions, true)}
           </Text>
         </View>
 
@@ -147,8 +145,8 @@ const EditInvoiceDetailsPDF = ({
   instructors,
   programName,
   payees,
-  comments,
   invoice,
+  sessions
 }) => {
   return (
     <View
@@ -176,7 +174,7 @@ const EditInvoiceDetailsPDF = ({
             fontWeight: 500,
           }}
         >
-          {getGeneratedDate([], invoice.data, false)}
+          {getGeneratedDate(sessions, false)}
         </Text>
       </View>
 
@@ -312,7 +310,7 @@ const calculateNewRate = (session, summary) => {
   let newRate = Number(session.rate || 0);
 
   // Apply summary adjustments first
-  summary[0]?.adjustmentValues?.forEach((adj) => {
+  summary?.adjustmentValues?.forEach((adj) => {
     const val = Number(adj.value);
     const isNegative = val < 0;
     const numericPart = Math.abs(val);
@@ -356,20 +354,18 @@ const calculateNewRate = (session, summary) => {
   return newRate;
 };
 
-const calculateTotalBookingRow = ({
-  startTime = "00:00:00+00",
-  endTime = "01:00:00+00",
-  rate = 0,
-  adjustmentValues = [],
-  totalArray = [],
-}) => {
-  if (!startTime || !endTime || !rate) return "0.00";
+const calculateTotalBookingRow = (
+  startTime,
+  endTime,
+  rate,
+  adjustmentValues
+) => {
+  if (!rate) return "0.00";
 
-  // Make sure we're working with valid arrays
+  // Make sure we're working with a valid array of adjustment values
   const currentAdjustmentValues = Array.isArray(adjustmentValues)
     ? adjustmentValues.filter((adj) => adj && adj.type)
     : [];
-  const currentTotalArray = Array.isArray(totalArray) ? totalArray : [];
 
   const timeToMinutes = (timeStr) => {
     const [hours, minutes] = timeStr.split(":").map(Number);
@@ -383,7 +379,6 @@ const calculateTotalBookingRow = ({
 
   const baseRate = Number(rate);
 
-  // Calculate adjustments to the rate
   const adjustedRate = currentAdjustmentValues.reduce((currentRate, adj) => {
     if (!adj || !adj.type || adj.value === undefined) return currentRate;
 
@@ -404,51 +399,76 @@ const calculateTotalBookingRow = ({
       : currentRate + adjustmentAmount;
   }, baseRate);
 
-  // Calculate the base total with adjusted rate
-  const baseTotal = adjustedRate * durationInHours;
-
-  // Add any "total" type adjustments
-  const totalAdjustments = currentAdjustmentValues
-    .filter((adj) => adj && adj.type === "total")
-    .reduce((sum, adj) => sum + Number(adj.value || 0), 0);
-
-  // Add all values from the total array
-  const totalArraySum = currentTotalArray.reduce((sum, item) => {
-    const value = Number(item.value);
-    return sum + (isNaN(value) ? 0 : value);
-  }, 0);
-
-  // Combine all totals
-  const finalTotal = baseTotal + totalAdjustments + totalArraySum;
-  return finalTotal.toFixed(2);
+  const total = adjustedRate * durationInHours;
+  return total.toFixed(2);
 };
 
-const calculateSubtotal = (sessions) => {
+const calculateTotalBookingRowSummary = (rate, adjustmentValues) => {
+  if (!rate) return "0.00";
+
+  const baseRate = Number(rate);
+  if (isNaN(baseRate)) return "0.00";
+
+  const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+    if (isNaN(val.value)) return acc;
+
+    if (val.type === "rate_percent") {
+      const factor = 1 + val.value / 100;
+      return acc * factor;
+    } else {
+      return acc + Number(val.value);
+    }
+  }, baseRate);
+
+  return Number(adjustedTotal).toFixed(2);
+};
+
+const calculateSummaryTotal = (rate, adjustmentValues) => {
+  if (!rate) return "0.00";
+
+  const baseRate = Number(rate);
+  if (isNaN(baseRate)) return "0.00";
+
+  const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+    if (isNaN(val.value) || val.type === "total") return acc;
+
+    if (val.type === "rate_percent") {
+      const factor = 1 + val.value / 100;
+      return acc * factor;
+    } else {
+      return acc + Number(val.value);
+    }
+  }, baseRate);
+
+  return Number(adjustedTotal).toFixed(2);
+};
+
+const calculateSubtotal = (sessions, summary) => {
   if (!sessions || sessions.length === 0) return "0.00";
 
   const adjSum = sessions.reduce((acc, session) => {
-    // Check if session has adjustmentValues and it's not empty
     if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
-      // Calculate without adjustments
       const total = parseFloat(
         calculateTotalBookingRow(
           session.startTime,
           session.endTime,
-          session.rate,
+          calculateSummaryTotal(session?.rate, summary?.adjustmentValues),
           []
         )
       );
       return acc + total;
     }
 
+
     const total = parseFloat(
       calculateTotalBookingRow(
         session.startTime,
         session.endTime,
-        session.rate,
+        calculateSummaryTotal(session?.rate, summary?.adjustmentValues),
         session.adjustmentValues
       )
     );
+
     return acc + total;
   }, 0);
 
@@ -461,8 +481,7 @@ const calculateSubtotal = (sessions) => {
 
   const finalTotal = adjSum + totalSum;
 
-  const total = finalTotal.toFixed(2);
-  return total;
+  return Number(finalTotal);
 };
 
 const InvoiceTable = ({ sessions, summary }) => {
@@ -627,8 +646,7 @@ const InvoiceTable = ({ sessions, summary }) => {
         </View>
 
         {/* Data Rows */}
-        {sessions
-          .filter((session) => session.name.length === 0)
+        {/* {sessions.filter((session) => session?.name?.length > 0)
           .map((session, index) =>
             session.total?.map((total, totalIndex) => {
               return (
@@ -666,7 +684,7 @@ const InvoiceTable = ({ sessions, summary }) => {
                 </View>
               );
             })
-          )}
+          )} */}
 
         {sessions
           ?.filter((session) => session.name.length > 0)
@@ -708,17 +726,17 @@ const InvoiceTable = ({ sessions, summary }) => {
                   <Text style={{ fontSize: 7 }}>
                     {session.adjustmentValues
                       .filter((adj) => adj.type !== "total").length > 0 ? session.adjustmentValues
-                      .filter((adj) => adj.type !== "total")
-                      .map((adj) => {
-                        const value = Number(adj.value);
-                        const sign = value >= 0 ? "+" : "-";
-                        const isFlat = adj.type === "rate_flat";
-                        const absValue = Math.abs(value);
-                        return isFlat
-                          ? `${sign}$${absValue}`
-                          : `${sign}${absValue}%`;
-                      })
-                      .join(", ") : "None"}
+                        .filter((adj) => adj.type !== "total")
+                        .map((adj) => {
+                          const value = Number(adj.value);
+                          const sign = value >= 0 ? "+" : "-";
+                          const isFlat = adj.type === "rate_flat";
+                          const absValue = Math.abs(value);
+                          return isFlat
+                            ? `${sign}$${absValue}`
+                            : `${sign}${absValue}%`;
+                        })
+                        .join(", ") : "None"}
                   </Text>
                 </View>
                 <View style={{ ...tableStyles.tableCol }}>
@@ -729,7 +747,7 @@ const InvoiceTable = ({ sessions, summary }) => {
                       paddingRight: 20,
                     }}
                   >
-                    $ {calculateNewRate(session, summary).toFixed(2)}/hr
+                    $ {calculateNewRate(session, summary).toFixed(2) || 0}/hr
                   </Text>
                 </View>
                 <View
@@ -741,16 +759,12 @@ const InvoiceTable = ({ sessions, summary }) => {
                 >
                   <Text style={{ fontSize: 7 }}>
                     ${" "}
-                    {calculateTotalBookingRow({
-                      startTime: session.startTime,
-                      endTime: session.endTime,
-                      rate: session.rate,
-                      adjustmentValues: [
-                        ...(summary[0]?.adjustmentValues || []),
-                        ...(session.adjustmentValues || []),
-                      ],
-                      totalArray: [],
-                    })}
+                    {calculateTotalBookingRow(
+                      session.startTime,
+                      session.endTime,
+                      calculateSummaryTotal(session?.rate, summary?.adjustmentValues),
+                      session.adjustmentValues
+                    )}/hr
                   </Text>
                 </View>
               </View>
@@ -790,7 +804,7 @@ const InvoiceTable = ({ sessions, summary }) => {
                   <View style={tableStyles.tableRow}>
                     <View style={tableStyles.tableCol}>
                       <Text style={{ fontSize: 7 }}>
-                        {format(new Date(total.date), "EEE. M/d/yy")}
+                        {format(new Date(new Date(total.date).getTime() + new Date(total.date).getTimezoneOffset() * 60000), "EEE. M/d/yy")}
                       </Text>
                     </View>
                     <View
@@ -847,7 +861,7 @@ const InvoiceTable = ({ sessions, summary }) => {
             }}
           >
             <Text style={{ fontSize: 7 }}>
-              $ {calculateSubtotal(sessions, summary)}
+              $ {calculateSubtotal(sessions, summary).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -904,6 +918,7 @@ const SummaryTable = ({
   pastDue,
   sessions,
   summary,
+  totalCustomRow,
 }) => {
   return (
     <View>
@@ -1038,7 +1053,7 @@ const SummaryTable = ({
                 }}
               >
                 <Text style={{ fontSize: 7 }}>
-                  {summary.length > 0 && summary[0]?.adjustmentValues?.length > 0 ? summary[0]?.adjustmentValues?.map((adj, index) => {
+                  {summary?.adjustmentValues?.length > 0 ? summary?.adjustmentValues?.map((adj, index) => {
                     const value = Number(adj.value);
                     const sign = value >= 0 ? "+" : "-";
                     const isFlat = adj.type === "rate_flat";
@@ -1059,10 +1074,40 @@ const SummaryTable = ({
                 }}
               >
                 <Text style={{ fontSize: 7 }}>
-                  $ {calculateTotalBookingRow({
-                    rate: Number(session.rate),
-                    adjustmentValues: summary.length > 0 ? summary[0].adjustmentValues : [],
-                  })}/hr
+                  $ {calculateTotalBookingRowSummary(session.rate, summary?.adjustmentValues)}/hr
+                </Text>
+              </View>
+            </View>
+          );
+        })}
+
+        {summary && summary?.total && summary?.total?.map((total, totalIndex) => {
+          return (
+            <View style={{ ...summaryTableStyles.tableRow, width: "100%" }} key={`total-${totalIndex}`}>
+              <View style={summaryTableStyles.tableCol}>
+                <Text style={{ fontSize: 7 }}>
+                  {format(new Date(new Date(total.date).getTime() + new Date(total.date).getTimezoneOffset() * 60000), "EEE. M/d/yy")}
+                </Text>
+              </View>
+              <View
+                style={{
+                  ...summaryTableStyles.tableCol,
+                  flex: 1,
+                }}
+              >
+                <Text style={{ fontSize: 7 }}>
+                  {total.comment || "Custom adjustment"}
+                </Text>
+              </View>
+              <View
+                style={{
+                  ...summaryTableStyles.tableCol,
+                  alignItems: "flex-end",
+                  paddingRight: 20,
+                }}
+              >
+                <Text style={{ fontSize: 7 }}>
+                  $ {Number(total.value || 0).toFixed(2)}
                 </Text>
               </View>
             </View>
@@ -1088,6 +1133,7 @@ const SummaryTable = ({
           </View>
         </View>
 
+
         <View style={{ ...summaryTableStyles.tableRow, width: "100%" }}>
           <View style={summaryTableStyles.tableCol}>
             <Text style={{ fontSize: 7 }}>Current Statement Subtotal</Text>
@@ -1101,7 +1147,7 @@ const SummaryTable = ({
             }}
           >
             <Text style={{ fontSize: 7 }}>
-              $ {calculateSubtotal(sessions, summary)}
+              $ {(calculateSubtotal(sessions, summary) + parseFloat(totalCustomRow)).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -1122,9 +1168,10 @@ const SummaryTable = ({
             <View>
               <Text style={{ fontWeight: "bold", fontSize: 12 }}>
                 $
-                {(
-                  remainingBalance +
-                  Number(calculateSubtotal(sessions, summary))
+                {Number(
+                  Number(remainingBalance || 0) +
+                  calculateSubtotal(sessions, summary) +
+                  Number(totalCustomRow || 0)
                 ).toFixed(2)}
               </Text>
             </View>
@@ -1212,41 +1259,39 @@ const Footer = () => {
 };
 
 const InvoicePDFDocument = ({
+  sessions,
   invoice,
   instructors,
   programName,
   payees,
-  comments,
   room,
   booking,
   remainingBalance,
   subtotalSum,
-  sessions,
   summary,
+  totalCustomRow,
 }) => {
+
+
   return (
     <Document>
       <Page
         size="A4"
         style={styles.page}
       >
-        <View style={{ flex: 1, flexGrow: 1 }}>
+        {/* Main content area with bottom margin to prevent footer overlap */}
+        <View style={{ flex: 1, marginBottom: 120 }}>
           <Image src={InvoiceHeader} />
           <View style={{ marginHorizontal: 16, gap: 16 }}>
             <EditInvoiceTitle
-              invoice={invoice}
-              instructors={instructors}
-              programName={programName}
-              payees={payees}
-              comments={comments}
+              sessions={sessions}
             />
             <EditInvoiceDetailsPDF
+              sessions={sessions}
               invoice={invoice}
               instructors={instructors}
               programName={programName}
               payees={payees}
-              comments={comments}
-              room={room}
             />
 
             <InvoiceTable
@@ -1259,14 +1304,32 @@ const InvoicePDFDocument = ({
               subtotalSum={subtotalSum}
               summary={summary}
               sessions={sessions}
+              totalCustomRow={totalCustomRow}
             />
-
-            <Footer />
           </View>
         </View>
+
+        {/* Footer positioned at bottom */}
+        <View style={{ 
+          position: 'absolute', 
+          bottom: 50, 
+          left: 0, 
+          right: 0,
+          paddingHorizontal: 16,
+          paddingBottom: 16
+        }}>
+          <Footer />
+        </View>
+
+        {/* Footer background image */}
         <Image
           src={InvoiceFooter}
-          style={{ width: "100%" }}
+          style={{ 
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: "100%" 
+          }}
         />
       </Page>
     </Document>

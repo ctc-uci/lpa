@@ -54,29 +54,30 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // First, get regular session comments
-    const query = `SELECT comments.id as comment_id,
-                   comments.user_id,
-                   comments.booking_id,
-                   comments.invoice_id,
-                   comments.datetime,
-                   comments.comment,
-                   comments.adjustment_type,
-                   comments.adjustment_value,
+    // First, get all sessions for the invoice (with or without comments)
+    const query = `SELECT 
+                   COALESCE(comments.id, 0) as comment_id,
+                   COALESCE(comments.user_id, 0) as user_id,
+                   bookings.id as booking_id,
+                   invoices.id as invoice_id,
+                   COALESCE(comments.datetime, bookings.date) as datetime,
+                   COALESCE(comments.comment, '') as comment,
+                   COALESCE(comments.adjustment_type, 'none') as adjustment_type,
+                   COALESCE(comments.adjustment_value, 0) as adjustment_value,
                    bookings.start_time,
                    bookings.end_time,
                    bookings.date as booking_date,
                    rooms.name,
                    rooms.rate
-                FROM comments
-                JOIN invoices ON comments.invoice_id = invoices.id
-                LEFT JOIN bookings ON comments.booking_id = bookings.id
-                LEFT JOIN rooms ON bookings.room_id = rooms.id
-                WHERE comments.invoice_id = $1 
-                AND comments.booking_id IS NOT NULL
+                FROM invoices
+                JOIN bookings ON bookings.event_id = invoices.event_id
+                JOIN rooms ON bookings.room_id = rooms.id
+                LEFT JOIN comments ON comments.booking_id = bookings.id AND comments.invoice_id = invoices.id
+                WHERE invoices.id = $1 
                 AND bookings.date BETWEEN invoices.start_date AND invoices.end_date
-                AND bookings.event_id = invoices.event_id
-                ORDER BY comments.id`;
+                ORDER BY bookings.id, comments.id`;
+
+    
     const queryParams = [id];
 
     const data = await db.query(query, queryParams);
@@ -94,16 +95,21 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
 
         groupedComments[bookingId] = {
           ...comment,
-          comments: comment.comment ? [{
-            id: comment.commentId,
-            comment: comment.comment,
-          }] : [],
+          comments: [],
           adjustmentValues: [],
           total : []
         };
+
+        if (comment.commentId && comment.comment && comment.adjustmentType === "none") {
+          groupedComments[bookingId].comments.push({
+            id: comment.commentId,
+            comment: comment.comment,
+          });
+
+        }
         
-        // Only add adjustment value if type is not "none"
-        if (comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
+        // Only add adjustment value if type is not "none" and comment exists
+        if (comment.commentId && comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
           groupedComments[bookingId].adjustmentValues.push({
             id: comment.commentId,
             type: comment.adjustmentType,
@@ -111,7 +117,7 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
           });
         }
 
-        if(comment.adjustmentType === "total"){
+        if(comment.commentId && comment.adjustmentType === "total"){
           groupedComments[bookingId].total.push({
             id: comment.commentId,
             value: comment.adjustmentValue,
@@ -121,16 +127,17 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
         }
         
       } else {
-        // Add comment if it's not empty
-        if (comment.comment && comment.adjustmentType === "none") {
+        // Add comment if it's not empty and has a valid commentId
+        if (comment.commentId && comment.comment && comment.adjustmentType === "none") {
           groupedComments[bookingId].comments.push({
             id: comment.commentId,
             comment: comment.comment,
           });
+
         }
 
         // Add adjustment value if not already included and type is not "none"
-        if (comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
+        if (comment.commentId && comment.adjustmentType !== "none" && comment.adjustmentType !== "total") {
           const adjustmentExists = groupedComments[bookingId].adjustmentValues.some(
             adj => adj.id === comment.commentId || 
                   (adj.type === comment.adjustmentType && 
@@ -146,7 +153,7 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
           }
         }
 
-        if(comment.adjustmentType === "total"){
+        if(comment.commentId && comment.adjustmentType === "total"){
           groupedComments[bookingId].total.push({
             id: comment.commentId,
             value: comment.adjustmentValue,
@@ -163,74 +170,75 @@ commentsRouter.get("/invoice/sessions/:id", async (req, res) => {
       delete groupedComments[bookingId].commentId;
     });
 
-    if(Object.keys(groupedComments).length === 0){
-      const query = `SELECT bookings.id as booking_id, 
-                    invoices.id as invoice_id, 
-                    rooms.id as room_id, 
-                    rooms.name, rooms.rate, bookings.date as booking_date, bookings.start_time as start_time, bookings.end_time as end_time
-                    FROM bookings, invoices, rooms 
-                    WHERE bookings.event_id = invoices.event_id 
-                    AND invoices.id = $1 
-                    AND bookings.date BETWEEN invoices.start_date 
-                    AND invoices.end_date 
-                    AND bookings.room_id = rooms.id`;
-      const data = await db.query(query, [id]);
-      const bookings = keysToCamel(data);
+    // if(Object.keys(groupedComments).length === 0){
+    //   const query = `SELECT bookings.id as booking_id, 
+    //                 invoices.id as invoice_id, 
+    //                 rooms.id as room_id, 
+    //                 rooms.name, rooms.rate, bookings.date as booking_date, bookings.start_time as start_time, bookings.end_time as end_time
+    //                 FROM bookings, invoices, rooms 
+    //                 WHERE bookings.event_id = invoices.event_id 
+    //                 AND invoices.id = $1 
+    //                 AND bookings.date BETWEEN invoices.start_date 
+    //                 AND invoices.end_date 
+    //                 AND bookings.room_id = rooms.id`;
+    //   const data = await db.query(query, [id]);
+    //   const bookings = keysToCamel(data);
 
-      for(const booking of bookings){
-        groupedComments[booking.bookingId] = {
-          adjustmentValues: [],
-          comments: [],
-          bookingId: booking.bookingId,
-          bookingDate: booking.bookingDate,
-          endTime: booking.endTime,
-          startTime: booking.startTime,
-          name: booking.name,
-          rate: booking.rate,
-          total : []
-        };
-      }
-      console.log("groupedComments", groupedComments);
-    }
+    //   for(const booking of bookings){
+    //     groupedComments[booking.bookingId] = {
+    //       adjustmentValues: [],
+    //       comments: [],
+    //       bookingId: booking.bookingId,
+    //       bookingDate: booking.bookingDate,
+    //       endTime: booking.endTime,
+    //       startTime: booking.startTime,
+    //       name: booking.name,
+    //       rate: booking.rate,
+    //       total : []
+    //     };
+    //   }
+    // }
 
 
-    const totalQuery = `SELECT comments.id as comment_id,
-                   comments.user_id,
-                   comments.invoice_id,
-                   comments.datetime,
-                   comments.comment,
-                   comments.adjustment_type,
-                   comments.adjustment_value,
-                   invoices.start_date
-                FROM comments
-                JOIN invoices ON comments.invoice_id = invoices.id
-                WHERE comments.invoice_id = $1 AND comments.adjustment_type = 'total' AND comments.booking_id IS NULL`;
-    const total = await db.query(totalQuery, queryParams);
-    const totalComments = keysToCamel(total);
+    // const totalQuery = `SELECT comments.id as comment_id,
+    //                comments.user_id,
+    //                comments.invoice_id,
+    //                comments.datetime,
+    //                comments.comment,
+    //                comments.adjustment_type,
+    //                comments.adjustment_value,
+    //                invoices.start_date
+    //             FROM comments
+    //             JOIN invoices ON comments.invoice_id = invoices.id
+    //             WHERE comments.invoice_id = $1 AND comments.adjustment_type = 'total' AND comments.booking_id IS NULL`;
+    // const total = await db.query(totalQuery, queryParams);
+    // const totalComments = keysToCamel(total);
+    // console.log("totalComments", totalComments);
     
-    for (const comment of totalComments) {
-      groupedComments[`total-${comment.commentId}`] = {
-        comments: [],
-        userId: comment.userId,
-        bookingId: null,
-        invoiceId: comment.invoiceId,
-        datetime: comment.datetime,
-        bookingDate: comment.startDate,
-        adjustmentValues: [],
-        startTime: '00:00:00+00',
-        endTime: '01:00:00+00',
-        name: "",
-        rate: 0,
-        total: [{
-          id: comment.commentId,
-          value: comment.adjustmentValue,
-          comment: comment.comment,
-          date: comment.datetime
-        }],
+    // for (const comment of totalComments) {
+    //   groupedComments[`total-${comment.commentId}`] = {
+    //     comments: [],
+    //     userId: comment.userId,
+    //     bookingId: null,
+    //     invoiceId: comment.invoiceId,
+    //     datetime: comment.datetime,
+    //     bookingDate: comment.startDate,
+    //     adjustmentValues: [],
+    //     startTime: '00:00:00+00',
+    //     endTime: '01:00:00+00',
+    //     name: "",
+    //     rate: 0,
+    //     total: [{
+    //       id: comment.commentId,
+    //       value: comment.adjustmentValue,
+    //       comment: comment.comment,
+    //       date: comment.datetime
+    //     }],
         
-      };
+    //   };
       
-    }
+    // }
+    
     res.status(200).json(Object.values(groupedComments));
   } catch (err) {
     res.status(500).send(err.message);
@@ -252,8 +260,9 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
                    comments.adjustment_value
                 FROM comments
                 WHERE comments.invoice_id = $1 
-                AND (comments.adjustment_type = 'rate_percent' or comments.adjustment_type = 'rate_flat')
-                AND comments.booking_id IS NULL`;
+                AND (comments.adjustment_type = 'rate_percent' or comments.adjustment_type = 'rate_flat' or comments.adjustment_type = 'total')
+                AND comments.booking_id IS NULL
+                ORDER BY comments.id`;
     const queryParams = [id];
 
     const data = await db.query(query, queryParams);
@@ -262,30 +271,33 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
 
     comments.forEach((comment) => {
       // Skip comments with adjustment type "none" or "total" for the main summary
-      if (comment.adjustmentType === "none" || comment.adjustmentType === "total") {
+      // if (comment.adjustmentType === "none" || comment.adjustmentType === "total") {
         // For "total" adjustments, still create a separate entry
-        if (comment.adjustmentType === "total") {
-          const totalKey = `summary-total-${comment.commentId}`;
-          groupedComments[totalKey] = {
-            ...comment,
-            comments: comment.comment ? [comment.comment] : [],
-            adjustmentValues: [{
-              id: comment.commentId,
-              type: comment.adjustmentType,
-              value: comment.adjustmentValue
-            }]
-          };
-          
-          // Clean up unnecessary fields
-          delete groupedComments[totalKey].adjustmentType;
-          delete groupedComments[totalKey].adjustmentValue;
-          delete groupedComments[totalKey].comment;
-          delete groupedComments[totalKey].commentId;
-        }
         
-        // Skip further processing for both "none" and "total"
-        return;
-      }
+        
+        // if (comment.adjustmentType === "total") {
+        //   const totalKey = `summary-total-${comment.commentId}`;
+        //   groupedComments[totalKey] = {
+        //     ...comment,
+        //     comments: comment.comment ? [comment.comment] : [],
+        //     adjustmentValues: [{
+        //       id: comment.commentId,
+        //       type: comment.adjustmentType,
+        //       value: comment.adjustmentValue
+        //     }]
+        //   };
+          
+        //   // Clean up unnecessary fields
+        //   delete groupedComments[totalKey].adjustmentType;
+        //   delete groupedComments[totalKey].adjustmentValue;
+        //   delete groupedComments[totalKey].comment;
+        //   delete groupedComments[totalKey].commentId;
+        // }
+        
+      //   // Skip further processing for both "none" and "total"
+      //   return;
+      // }
+
       
       const bookingId = comment.bookingId || 'summary';
       
@@ -297,12 +309,18 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
           adjustmentValues: [{
             id: comment.commentId,
             type: comment.adjustmentType,
-            value: comment.adjustmentValue
-          }]
+            value: comment.adjustmentValue,
+          }],
+          total: comment.adjustmentType === "total" ? [{
+            id: comment.commentId,
+            value: comment.adjustmentValue,
+            comment: comment.comment,
+            date: comment.datetime
+          }] : []
         };
       } else {
         // Add comment if it's not empty
-        if (comment.comment) {
+        if (comment.comment && comment.adjustmentType !== "total") {
           groupedComments[bookingId].comments.push(comment.comment);
         }
 
@@ -313,12 +331,21 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
                  adj.value === comment.adjustmentValue)
         );
         
-        if (!adjustmentExists) {
+        if (!adjustmentExists && comment.adjustmentType !== "total") {
           groupedComments[bookingId].adjustmentValues.push({
             id: comment.commentId,
             type: comment.adjustmentType,
             value: comment.adjustmentValue
           });
+        }
+
+        if(comment.adjustmentType === "total"){
+          groupedComments[bookingId].total.push({
+            id: comment.commentId,
+            value: comment.adjustmentValue,
+            comment: comment.comment,
+            date: comment.datetime
+          })
         }
       }
 
@@ -328,7 +355,7 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
       delete groupedComments[bookingId].comment;
       delete groupedComments[bookingId].commentId;
     });
-
+    
     res.status(200).json(Object.values(groupedComments));
   } catch (err) {
     res.status(500).send(err.message);

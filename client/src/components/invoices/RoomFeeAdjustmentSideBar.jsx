@@ -34,6 +34,9 @@ import { MinusOutlineIcon } from "../../assets/MinusOutlineIcon";
 import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
 import { PlusOutlineIcon } from "../../assets/PlusOutlineIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useDeletedIdsStore } from "../../stores/useDeletedIdsStore";
+import { useSummaryStore } from "../../stores/useSummaryStore";
+import { useSessionStore } from "../../stores/useSessionStore";
 
 const RoomFeeAdjustmentSideBar = ({
   isOpen,
@@ -43,75 +46,102 @@ const RoomFeeAdjustmentSideBar = ({
   sessionIndex,
   subtotal = 0.0,
   sessions = [],
-  deletedIds,
-  setDeletedIds,
 }) => {
   const { backend } = useBackendContext();
   const [tempSession, setTempSession] = useState(session || {});
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const cancelRef = useRef();
+  const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
+  const { setAdjustmentValue } = useSessionStore();
+  const { summary, setSummary, summaryTotal, setSummaryTotal } = useSummaryStore();
 
-  useEffect(() => {
-    if (session) {
-      setTempSession(JSON.parse(JSON.stringify(session)));
-    }
-  }, [session, isOpen]);
+  const calculateSummaryTotal = (rate, adjustmentValues) => {
+    if (!rate) return "0.00";
 
-  const calculateNewRate = () => {
-    let newRate = Number(session.rate || 0);
+    const baseRate = Number(rate);
+    if (isNaN(baseRate)) return "0.00";
 
-    if (!tempSession.adjustmentValues) return newRate;
+    const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+      if (isNaN(val.value) || val.type === "total") return acc;
 
-    tempSession.adjustmentValues.forEach((adj) => {
-      if (!adj.value) return;
+      if (val.type === "rate_percent") {
+        const factor = 1 + val.value / 100;
+        return acc * factor;
+      } else {
+        return acc + Number(val.value);
+      }
+    }, baseRate);
 
-      const val = Number(adj.value);
+    return Number(adjustedTotal).toFixed(2);
+  };
+
+
+  const calculateTotalBookingRow = (
+    startTime,
+    endTime,
+    rate,
+    adjustmentValues
+  ) => {
+    if (!startTime || !endTime || !rate) return "0.00";
+
+    // Make sure we're working with a valid array of adjustment values
+    const currentAdjustmentValues = Array.isArray(adjustmentValues)
+      ? adjustmentValues.filter((adj) => adj && adj.type)
+      : [];
+
+    const timeToMinutes = (timeStr) => {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const rawStart = timeToMinutes(startTime.substring(0, 5));
+    const rawEnd = timeToMinutes(endTime.substring(0, 5));
+    const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
+    const durationInHours = (endAdjusted - rawStart) / 60;
+
+    const baseRate = Number(rate);
+
+    const adjustedRate = currentAdjustmentValues.reduce((currentRate, adj) => {
+      if (!adj || !adj.type || adj.value === undefined) return currentRate;
+
+      const numericValue = Number(adj.value);
+      if (isNaN(numericValue)) return currentRate;
+
+      const numericPart = Math.abs(numericValue);
       let adjustmentAmount = 0;
 
       if (adj.type === "rate_flat") {
-        adjustmentAmount = val;
+        adjustmentAmount = numericPart;
       } else if (adj.type === "rate_percent") {
-        adjustmentAmount = (val / 100) * Number(newRate || 0);
+        adjustmentAmount = (numericPart / 100) * currentRate;
       }
 
-      if (val < 0) {
-        newRate -= Math.abs(adjustmentAmount);
-      } else {
-        newRate += adjustmentAmount;
-      }
-    });
+      return numericValue < 0
+        ? currentRate - adjustmentAmount
+        : currentRate + adjustmentAmount;
+    }, baseRate);
 
-    return newRate;
-  };
-
-  const calculateSessionTotal = () => {
-    if (tempSession && tempSession.startTime && tempSession.endTime) {
-      const timeToMinutes = (timeStr) => {
-        const [hours, minutes] = timeStr.split(":").map(Number);
-        return hours * 60 + minutes;
-      };
-
-      const newRate = calculateNewRate();
-      const rawStart = timeToMinutes(tempSession.startTime.substring(0, 5));
-      const rawEnd = timeToMinutes(tempSession.endTime.substring(0, 5));
-      const endAdjusted = rawEnd <= rawStart ? rawEnd + 24 * 60 : rawEnd;
-      const durationInHours = (endAdjusted - rawStart) / 60;
-
-      return newRate * durationInHours;
-    }
+    const total = adjustedRate * durationInHours;
+    return Number(total).toFixed(2);
   };
 
   const handleNegativeClick = (index) => {
     setTempSession((prev) => {
       const newSession = JSON.parse(JSON.stringify(prev));
-      if (!newSession.adjustmentValues || !newSession.adjustmentValues[index])
+      if (!newSession.adjustmentValues || !newSession.adjustmentValues[index]){
         return prev;
+      }
 
       const currentValue = newSession.adjustmentValues[index].value;
       const valueWithoutSign = String(currentValue).replace(/^[+-]/, "");
-      newSession.adjustmentValues[index].value = -Math.abs(
-        Number(valueWithoutSign)
-      );
+      // For 0 values, set to negative, otherwise keep the same logic
+      if (Number(valueWithoutSign) === 0) {
+        newSession.adjustmentValues[index].value = -0;
+      } else {
+        newSession.adjustmentValues[index].value = -Math.abs(
+          Number(valueWithoutSign)
+        );
+      }
       return newSession;
     });
   };
@@ -124,9 +154,14 @@ const RoomFeeAdjustmentSideBar = ({
 
       const currentValue = newSession.adjustmentValues[index].value;
       const valueWithoutSign = String(currentValue).replace(/^[+-]/, "");
-      newSession.adjustmentValues[index].value = Math.abs(
-        Number(valueWithoutSign)
-      );
+      // For 0 values, set to positive, otherwise keep the same logic
+      if (Number(valueWithoutSign) === 0) {
+        newSession.adjustmentValues[index].value = 0;
+      } else {
+        newSession.adjustmentValues[index].value = Math.abs(
+          Number(valueWithoutSign)
+        );
+      }
       return newSession;
     });
   };
@@ -138,7 +173,7 @@ const RoomFeeAdjustmentSideBar = ({
         return prev;
 
       const currentValue = newSession.adjustmentValues[index].value;
-      const isNegative = Number(currentValue) < 0;
+      const isNegative = Number(currentValue) < 0 || Object.is(currentValue, -0);
       const numericValue = Math.abs(parseFloat(newValue)) || 0;
 
       newSession.adjustmentValues[index].id = prev.adjustmentValues[index].id;
@@ -153,23 +188,27 @@ const RoomFeeAdjustmentSideBar = ({
   };
 
   const handleRemoveAdjustment = (index) => {
+    if (tempSession.adjustmentValues[index].id) {
+      addDeletedId(tempSession.adjustmentValues[index].id);
+    }
     setTempSession((prev) => ({
       ...prev,
       adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index),
     }));
-    if (tempSession.adjustmentValues[index].id) {
-      setDeletedIds((prevDeletedIds) => [
-        ...prevDeletedIds,
-        tempSession.adjustmentValues[index].id,
-      ]);
-    }
   };
 
   const handleClearAll = () => {
+    if (tempSession.adjustmentValues) {
+      for (const adj of tempSession.adjustmentValues) {
+        addDeletedId(adj.id);
+      }
+    }
+
     setTempSession((prev) => ({
       ...prev,
       adjustmentValues: [],
     }));
+
   };
 
   const handleClose = () => {
@@ -186,16 +225,10 @@ const RoomFeeAdjustmentSideBar = ({
   };
 
   const handleApply = () => {
-    setSessions((prevSessions) => {
-      const newSessions = [...prevSessions];
-      newSessions[sessionIndex] = tempSession;
-      return newSessions;
-    });
-
+    setAdjustmentValue(sessionIndex, tempSession.adjustmentValues);
     onClose();
   };
 
-  // console.log("tempSession", tempSession);
 
   return (
     <>
@@ -218,27 +251,26 @@ const RoomFeeAdjustmentSideBar = ({
               gap="26px"
               alignSelf="stretch"
               whiteSpace="nowrap"
+              justifyContent="space-between"
             >
-              <IconButton
-                onClick={handleClose}
-                variant="ghost"
-                size="sm"
-                p={0}
-                minW="auto"
-                icon={<Icon as={CancelIcon} />}
-              />
-              <Text
-                fontWeight="500"
-                color="#4A5568"
-                fontSize="14px"
-                whiteSpace="nowrap"
-              >
-                {session.datetime
-                  ? format(new Date(session.datetime), "M/d/yy")
-                  : "N/A"}{" "}
-                Room Fee Adjustment
-              </Text>
-
+              <Flex alignItems="center" gap="20px">
+                <IconButton
+                  onClick={handleClose}
+                  variant="ghost"
+                  size="sm"
+                  p={0}
+                  minW="auto"
+                  icon={<Icon as={CancelIcon} />}
+                />
+                <Text
+                  fontWeight="500"
+                  color="#4A5568"
+                  fontSize="14px"
+                  whiteSpace="nowrap"
+                >
+                  Room Fee Adjustment
+                </Text>
+              </Flex>
               <AdjustmentTypeSelector
                 onSelect={(type) => {
                   setTempSession((prev) => {
@@ -322,7 +354,7 @@ const RoomFeeAdjustmentSideBar = ({
                         <IconButton
                           aria-label="Negative sign"
                           icon={
-                            Number(adj.value) < 0 ? (
+                            Number(adj.value) < 0 || Object.is(adj.value, -0) ? (
                               <MinusFilledIcon />
                             ) : (
                               <MinusOutlineIcon size="16" />
@@ -360,11 +392,10 @@ const RoomFeeAdjustmentSideBar = ({
                             <Text>%</Text>
                           </>
                         )}
-
                         <IconButton
                           aria-label="Plus sign"
                           icon={
-                            Number(adj.value) >= 0 ? (
+                            Number(adj.value) > 0 || (Number(adj.value) === 0 && !Object.is(adj.value, -0)) ? (
                               <PlusFilledIcon
                                 color="#4441C8"
                                 size="20"
@@ -393,7 +424,6 @@ const RoomFeeAdjustmentSideBar = ({
                   </Box>
                 ))}
             </Box>
-
             <Box
               mt={4}
               p={2}
@@ -403,14 +433,16 @@ const RoomFeeAdjustmentSideBar = ({
                 alignItems="center"
                 gap="10px"
               >
+                
                 <Heading
                   size="xs"
                   color="#718096"
                   marginRight="15px"
                 >
-                  NEW ROOM FEE
+                  {JSON.stringify(tempSession.adjustmentValues) !== JSON.stringify(session.adjustmentValues) ? `NEW` : `CURRENT`} ROOM FEE
                 </Heading>
-                <Heading size="md">${calculateNewRate().toFixed(2)}/hr</Heading>
+
+                <Heading size="md">${calculateTotalBookingRow("00:00:00+00", "01:00:00+00", calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues), tempSession?.adjustmentValues)}/hr</Heading>
               </Flex>
               <Flex
                 justifyContent="right"
@@ -423,11 +455,11 @@ const RoomFeeAdjustmentSideBar = ({
                   color="#718096"
                   marginRight="15px"
                 >
-                  NEW SESSION TOTAL
+                  {JSON.stringify(tempSession.adjustmentValues) !== JSON.stringify(session.adjustmentValues) ? `NEW` : `CURRENT`} SESSION TOTAL
                 </Heading>
                 <Heading size="md">
                   {" "}
-                  ${calculateSessionTotal().toFixed(2)}
+                  ${calculateTotalBookingRow(session.startTime, session.endTime, calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues), tempSession?.adjustmentValues)}
                 </Heading>
               </Flex>
               <Flex
@@ -502,83 +534,41 @@ const RoomFeeAdjustmentSideBar = ({
 const SummaryFeeAdjustmentSideBar = ({
   isOpen,
   onClose,
-  summary,
-  setSummary,
-  sessionIndex,
   subtotal = 0.0,
   session,
-  deletedIds,
-  setDeletedIds,
-  sessions
+  summary,
+  setSummary,
 }) => {
-  const { backend } = useBackendContext();
-  const [tempSummary, setTempSummary] = useState(summary || {});
   const originalRate = useRef(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const cancelRef = useRef();
+  const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
+  const { setAdjustmentValue } = useSummaryStore();
+  const [tempSummary, setTempSummary] = useState(summary);  
+  const [tempSummaryTotal, setTempSummaryTotal] = useState(0);
 
-  useEffect(() => {
-    if (session && originalRate.current === null) {
-      const baseRate = Number(session.rate);
-      const existingAdjustments = summary?.adjustmentValues || [];
+  const calculateTempRate = (rate, adjustmentValues) => {
+    if (!rate) return "0.00";
+    
+    const baseRate = Number(rate);
+    if (isNaN(baseRate)) return "0.00";
 
-      let originalValue = baseRate;
-      existingAdjustments.forEach((adj) => {
-        if (!adj.value) return;
+    const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+      if (isNaN(val.value)) return acc;
+      if (val.type === "rate_percent") {
+        const factor = 1 + val.value / 100;
+        return acc * factor;
+      } else {
+        return acc + Number(val.value);
+      }
+    }, baseRate);
 
-        const val = Number(adj.value);
-        let adjustmentAmount = 0;
-
-        if (adj.type === "rate_flat") {
-          adjustmentAmount = val;
-        } else if (adj.type === "rate_percent") {
-          adjustmentAmount = (val / 100) * originalValue;
-        }
-
-        if (val < 0) {
-          originalValue += Math.abs(adjustmentAmount);
-        } else {
-          originalValue -= adjustmentAmount;
-        }
-      });
-
-      originalRate.current = originalValue;
-    }
-  }, [session, summary]);
-
-  useEffect(() => {
-    if (summary) {
-      setTempSummary(JSON.parse(JSON.stringify(summary)));
-    }
-  }, [summary, isOpen]);
-
-  const calculateTempRate = () => {
-    if (originalRate.current === null) return 0;
-
-    let newRate = originalRate.current;
-
-    if (tempSummary?.adjustmentValues) {
-      tempSummary.adjustmentValues.forEach((adj) => {
-        if (!adj.value) return;
-
-        const val = Number(adj.value);
-        let adjustmentAmount = 0;
-
-        if (adj.type === "rate_flat") {
-          adjustmentAmount = val;
-        } else if (adj.type === "rate_percent") {
-          adjustmentAmount = (val / 100) * Number(newRate || 0);
-        }
-
-        if (val < 0) {
-          newRate -= Math.abs(adjustmentAmount);
-        } else {
-          newRate += adjustmentAmount;
-        }
-      });
-    }
-    return newRate;
+    return Number(adjustedTotal).toFixed(2);
   };
+
+  useEffect(() => {
+    setTempSummaryTotal(calculateTempRate(session?.rate, tempSummary?.adjustmentValues));
+  }, [tempSummary, session]);
 
   const handleNegativeClick = (index) => {
     setTempSummary((prev) => {
@@ -588,9 +578,14 @@ const SummaryFeeAdjustmentSideBar = ({
 
       const currentValue = newSummary.adjustmentValues[index].value;
       const valueWithoutSign = String(currentValue).replace(/^[+-]/, "");
-      newSummary.adjustmentValues[index].value = -Math.abs(
-        Number(valueWithoutSign)
-      );
+      // For 0 values, set to negative, otherwise keep the same logic
+      if (Number(valueWithoutSign) === 0) {
+        newSummary.adjustmentValues[index].value = -0;
+      } else {
+        newSummary.adjustmentValues[index].value = -Math.abs(
+          Number(valueWithoutSign)
+        );
+      }
       return newSummary;
     });
   };
@@ -603,9 +598,14 @@ const SummaryFeeAdjustmentSideBar = ({
 
       const currentValue = newSummary.adjustmentValues[index].value;
       const valueWithoutSign = String(currentValue).replace(/^[+-]/, "");
-      newSummary.adjustmentValues[index].value = Math.abs(
-        Number(valueWithoutSign)
-      );
+      // For 0 values, set to positive, otherwise keep the same logic
+      if (Number(valueWithoutSign) === 0) {
+        newSummary.adjustmentValues[index].value = 0;
+      } else {
+        newSummary.adjustmentValues[index].value = Math.abs(
+          Number(valueWithoutSign)
+        );
+      }
       return newSummary;
     });
   };
@@ -617,7 +617,7 @@ const SummaryFeeAdjustmentSideBar = ({
         return prev;
 
       const currentValue = newSummary.adjustmentValues[index].value;
-      const isNegative = Number(currentValue) < 0;
+      const isNegative = Number(currentValue) < 0 || Object.is(currentValue, -0);
       const numericValue = Math.abs(parseFloat(newValue)) || 0;
 
       newSummary.adjustmentValues[index].value = isNegative
@@ -631,19 +631,21 @@ const SummaryFeeAdjustmentSideBar = ({
   };
 
   const handleRemoveAdjustment = (index) => {
+    if (tempSummary.adjustmentValues[index].id) {
+      addDeletedId(tempSummary.adjustmentValues[index].id);
+    }
     setTempSummary((prev) => ({
       ...prev,
       adjustmentValues: prev.adjustmentValues.filter((_, i) => i !== index),
     }));
-    if (tempSummary.adjustmentValues[index].id) {
-      setDeletedIds((prevDeletedIds) => [
-        ...prevDeletedIds,
-        tempSummary.adjustmentValues[index].id,
-      ]);
-    }
   };
 
   const handleClearAll = () => {
+    if (tempSummary.adjustmentValues) {
+      for (const adj of tempSummary.adjustmentValues) {
+        addDeletedId(adj.id);
+      }
+    }
     setTempSummary((prev) => ({
       ...prev,
       adjustmentValues: [],
@@ -664,15 +666,9 @@ const SummaryFeeAdjustmentSideBar = ({
   };
 
   const handleApply = () => {
-    setSummary((prevSummary) => {
-      const newSummary = [...prevSummary];
-      newSummary[sessionIndex] = tempSummary;
-      return newSummary;
-    });
+    setAdjustmentValue(tempSummary.adjustmentValues, 0);
     onClose();
   };
-
-  // console.log("summary", summary);
 
   return (
     <>
@@ -695,26 +691,26 @@ const SummaryFeeAdjustmentSideBar = ({
               gap="26px"
               alignSelf="stretch"
               whiteSpace="nowrap"
+              justifyContent="space-between"
             >
-              <IconButton
-                onClick={handleClose}
-                variant="ghost"
-                size="sm"
-                p={0}
-                minW="auto"
-                icon={<Icon as={CancelIcon} />}
-              />
-              <Text
-                fontWeight="500"
-                color="#4A5568"
-                fontSize="14px"
-                whiteSpace="nowrap"
-              >
-                {summary?.datetime
-                  ? format(new Date(summary?.datetime), "M/d/yy")
-                  : "N/A"}{" "}
-                Room Fee Adjustment
-              </Text>
+              <Flex alignItems="center" gap="20px">
+                <IconButton
+                  onClick={handleClose}
+                  variant="ghost"
+                  size="sm"
+                  p={0}
+                  minW="auto"
+                  icon={<Icon as={CancelIcon} />}
+                  />
+                <Text
+                  fontWeight="500"
+                  color="#4A5568"
+                  fontSize="14px"
+                  whiteSpace="nowrap"
+                  >
+                  Room Fee Adjustment
+                </Text>
+              </Flex>
 
               <AdjustmentTypeSelector
                 onSelect={(type) => {
@@ -764,7 +760,7 @@ const SummaryFeeAdjustmentSideBar = ({
                     };
                   });
                 }}
-                sessionIndex={sessionIndex}
+                sessionIndex={0}
               />
             </Flex>
 
@@ -773,8 +769,8 @@ const SummaryFeeAdjustmentSideBar = ({
               overflowY="auto"
               flex="1"
             >
-              {tempSummary.adjustmentValues &&
-                tempSummary.adjustmentValues.map((adj, index) => (
+              {tempSummary?.adjustmentValues &&
+                tempSummary?.adjustmentValues.map((adj, index) => (
                   <Box
                     key={index}
                     borderBottom="1px solid #E2E8F0"
@@ -801,7 +797,7 @@ const SummaryFeeAdjustmentSideBar = ({
                         <IconButton
                           aria-label="Negative sign"
                           icon={
-                            Number(adj.value) < 0 ? (
+                            Number(adj.value) < 0 || Object.is(adj.value, -0) ? (
                               <MinusFilledIcon />
                             ) : (
                               <MinusOutlineIcon size="16" />
@@ -842,7 +838,7 @@ const SummaryFeeAdjustmentSideBar = ({
                         <IconButton
                           aria-label="Plus sign"
                           icon={
-                            Number(adj.value) >= 0 ? (
+                            Number(adj.value) > 0 || (Number(adj.value) === 0 && !Object.is(adj.value, -0)) ? (
                               <PlusFilledIcon
                                 color="#4441C8"
                                 size="20"
@@ -885,10 +881,10 @@ const SummaryFeeAdjustmentSideBar = ({
                   color="#718096"
                   marginRight="15px"
                 >
-                  NEW ROOM FEE
+                  {JSON.stringify(tempSummary?.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} ROOM FEE
                 </Heading>
                 <Heading size="md">
-                  ${calculateTempRate().toFixed(2)}/hr
+                  ${Number(tempSummaryTotal).toFixed(2)}/hr
                 </Heading>
               </Flex>
               <Flex
@@ -902,11 +898,11 @@ const SummaryFeeAdjustmentSideBar = ({
                   color="#718096"
                   marginRight="15px"
                 >
-                  NEW SESSION TOTAL
+                  {JSON.stringify(tempSummary?.adjustmentValues) === JSON.stringify(summary?.adjustmentValues) ? `CURRENT` : `NEW`} SESSION TOTAL
                 </Heading>
                 <Heading size="md">
                   {" "}
-                  ${Number(subtotal || 0).toFixed(2)}
+                  ${Number(tempSummaryTotal).toFixed(2)}
                 </Heading>
               </Flex>
               <Flex

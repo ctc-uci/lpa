@@ -24,11 +24,10 @@ const InvoiceView = ({
   instructors = [],
   invoice,
   programName,
-  sessions = [],
-  setSessions,
   summary = [],
   compactView = false,
 }) => {
+  
 
   return (
     <Flex
@@ -59,17 +58,15 @@ const InvoiceView = ({
         />
         <SavedStatementComments
           comments={comments}
-          sessions={sessions}
           booking={booking}
           subtotal={subtotal}
           setSubtotal={setSubtotal}
           // session={sessions}
           summary={summary}
           compactView={compactView}
+          pastDue={pastDue}
         />
         <SavedInvoiceSummary
-          sessions={sessions}
-          setSessions={setSessions}
           comments={comments}
           summary={summary}
           subtotal={subtotal}

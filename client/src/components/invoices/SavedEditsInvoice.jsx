@@ -12,6 +12,7 @@ import {
   Text,
   useDisclosure,
   VStack,
+  Spinner,
 } from "@chakra-ui/react";
 
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -119,23 +120,18 @@ export const SavedEdit = () => {
 
   const [sessions, setSessions] = useState([]);
   const [summary, setSummary] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      // setIsLoading(true);
       try {
+        // First fetch: Get invoice data
         const currentInvoiceResponse = await backend.get("/invoices/" + id);
         setInvoice(currentInvoiceResponse);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    fetchData();
-  }, [backend, id]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (!invoice.data || invoice.status === 404) {
+        // Second fetch: Get all dependent data after invoice is loaded
+        if (!currentInvoiceResponse.data || currentInvoiceResponse.status === 404) {
           setComments([]);
           setInstructors([]);
           setProgramName("");
@@ -145,7 +141,7 @@ export const SavedEdit = () => {
         }
 
         const instructorResponse = await backend.get(
-          "/assignments/instructors/" + invoice.data[0].eventId
+          "/assignments/instructors/" + currentInvoiceResponse.data[0].eventId
         );
         setInstructors(instructorResponse.data);
 
@@ -153,7 +149,7 @@ export const SavedEdit = () => {
         setComments(commentsResponse.data);
 
         const programNameResponse = await backend.get(
-          "/events/" + invoice.data[0].eventId
+          "/events/" + currentInvoiceResponse.data[0].eventId
         );
         setProgramName(programNameResponse.data[0].name);
 
@@ -165,7 +161,7 @@ export const SavedEdit = () => {
 
         // ==== PAST DUE CALCULATION ====
         const unpaidInvoicesResponse = await backend.get(
-          "/events/remaining/" + invoice.data[0]["eventId"]
+          "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
         );
 
         // calculate sum of unpaid/remaining invoices
@@ -206,13 +202,19 @@ export const SavedEdit = () => {
       } catch (error) {
         console.error("Error fetching data:", error);
       }
+      finally {
+        setIsLoading(false);
+      }
     };
     fetchData();
-  }, [invoice]);
+  }, [backend, id]);
 
   const handleBack = () => {
     navigate(`/invoices/${id}`);
   };
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <Navbar>

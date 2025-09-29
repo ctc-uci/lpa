@@ -30,13 +30,43 @@ import {
   LocationIcon,
 } from "../../assets/EditInvoiceIcons";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { useSessionStore } from "../../stores/useSessionStore";
+import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
+import { useParams } from "react-router-dom";
+import { useSummaryStore } from "../../stores/useSummaryStore";
 
 const SavedStatementComments = ({
   subtotal,
   setSubtotal,
-  sessions = [],
   compactView = false,
+  summary = [],
+  pastDue,
 }) => {
+  
+  const { id } = useParams();
+  useInvoiceSessions(id);
+  const { sessions, setSessions } = useSessionStore();
+
+  const calculateSummaryTotal = (rate, adjustmentValues) => {
+    if (!rate) return "0.00";
+
+    const baseRate = Number(rate);
+    if (isNaN(baseRate)) return "0.00";
+
+    const adjustedTotal = (adjustmentValues || []).reduce((acc, val) => {
+      if (isNaN(val.value) || val.type === "total") return acc;
+
+      if (val.type === "rate_percent") {
+        const factor = 1 + val.value / 100;
+        return acc * factor;
+      } else {
+        return acc + Number(val.value);
+      }
+    }, baseRate);
+
+    return Number(adjustedTotal).toFixed(2);
+  };
+
   const calculateTotalBookingRow = (
     startTime,
     endTime,
@@ -118,7 +148,7 @@ const SavedStatementComments = ({
             calculateTotalBookingRow(
               session.startTime,
               session.endTime,
-              session.rate,
+              calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
               []
             )
           );
@@ -129,7 +159,7 @@ const SavedStatementComments = ({
           calculateTotalBookingRow(
             session.startTime,
             session.endTime,
-            session.rate,
+            calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
             session.adjustmentValues
           )
         );
@@ -155,12 +185,14 @@ const SavedStatementComments = ({
     if (!sessions || sessions.length === 0) return "0.00";
 
     const adjSum = sessions.reduce((acc, session) => {
+      // Check if session has adjustmentValues and it's not empty
       if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
+        // Calculate without adjustments
         const total = parseFloat(
           calculateTotalBookingRow(
             session.startTime,
             session.endTime,
-            session.rate,
+            calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
             []
           )
         );
@@ -171,7 +203,7 @@ const SavedStatementComments = ({
         calculateTotalBookingRow(
           session.startTime,
           session.endTime,
-          session.rate,
+          calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
           session.adjustmentValues
         )
       );
@@ -186,7 +218,10 @@ const SavedStatementComments = ({
     }, 0);
 
     const finalTotal = adjSum + totalSum;
-    return finalTotal.toFixed(2);
+
+    const total = finalTotal.toFixed(2);
+    setSubtotal(Number(total));
+    return total;
   };
 
   const formatTimeString = (timeStr) => {
@@ -267,7 +302,7 @@ const SavedStatementComments = ({
                   py={compactView ? "4" : "8"}
                 >
                   <Flex align="center">
-                    <CalendarIcon width={compactView && "8"} />
+                    <CalendarIcon width={compactView ? "8" : undefined} />
                     <Text
                       marginLeft="4px"
                       fontSize={compactView ? "6" : "sm"}
@@ -281,7 +316,7 @@ const SavedStatementComments = ({
                   <Flex align="center">
                     <LocationIcon
                       width={compactView ? "8" : "12"}
-                      height={compactView && "10"}
+                      height={compactView ? "10" : undefined}
                     />
                     <Text
                       marginLeft="4px"
@@ -313,7 +348,7 @@ const SavedStatementComments = ({
                   <Flex align="center">
                     <EditDocumentIcon
                       width={compactView ? "8" : "16"}
-                      height={compactView && "10"}
+                      height={compactView ? "10" : undefined}
                     />
                     <Text
                       marginLeft="4px"
@@ -475,13 +510,18 @@ const SavedStatementComments = ({
                           }
                         >
                           {session.adjustmentValues &&
-                          session.adjustmentValues.length === 0 ? (
+                          session.adjustmentValues.filter(
+                            (adj) =>
+                              adj.value !== 0 &&
+                              adj.value !== -0 &&
+                              Number(adj.value) !== 0
+                          ).length === 0 ? (
                             "None"
                           ) : (
                             <Box display="inline-block">
                               <Tooltip
                                 label={session.adjustmentValues
-                                  .filter((adj) => adj.type !== "total")
+                                  .filter((adj) => adj.type !== "total" && adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
                                   .map((adj) => {
                                     const value = Number(adj.value);
                                     const sign = value >= 0 ? "+" : "-";
@@ -498,7 +538,7 @@ const SavedStatementComments = ({
                               >
                                 <Text>
                                   {session.adjustmentValues
-                                    .filter((adj) => adj.type !== "total")
+                                    .filter((adj) => adj.type !== "total" && adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
                                     .slice(0, 3)
                                     .map((adj) => {
                                       const value = Number(adj.value);
@@ -511,7 +551,7 @@ const SavedStatementComments = ({
                                     })
                                     .join(", ")}
                                   {session.adjustmentValues.filter(
-                                    (adj) => adj.type !== "total"
+                                    (adj) => adj.type !== "total" && adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0
                                   ).length > 3
                                     ? ", ..."
                                     : ""}
@@ -537,7 +577,12 @@ const SavedStatementComments = ({
                             display="flex"
                             alignItems="center"
                           >
-                            ${calculateNewRate(session).toFixed(2)}/hr
+                            ${calculateTotalBookingRow(
+                                  "00:00:00+00",
+                                  "01:00:00+00",
+                                  calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
+                                  session.adjustmentValues
+                                )}/hr
                           </Text>
                         </Td>
 
@@ -561,7 +606,7 @@ const SavedStatementComments = ({
                               {calculateTotalBookingRow(
                                 session.startTime,
                                 session.endTime,
-                                session.rate,
+                                calculateSummaryTotal(session?.rate, summary[0]?.adjustmentValues),
                                 session.adjustmentValues
                               )}
                             </Text>
@@ -603,7 +648,7 @@ const SavedStatementComments = ({
                             role="group"
                           >
                             <Td
-                              fontSize={compactView ? "6" : "12px"}
+                              fontSize={compactView ? "6" : "sm"}
                               py={compactView ? "0" : "6"}
                             >
                               {(() => {
@@ -618,7 +663,7 @@ const SavedStatementComments = ({
                             </Td>
                             <Td
                               colSpan={4}
-                              fontSize={compactView ? "6" : "12px"}
+                              fontSize={compactView ? "6" : "sm"}
                               py={compactView ? "0" : "6"}
                             >
                               {session.total[totalIndex]?.comment ||
@@ -633,7 +678,7 @@ const SavedStatementComments = ({
                                 alignItems="center"
                               >
                                 <Text
-                                  fontSize={compactView ? "6" : "12px"}
+                                  fontSize={compactView ? "6.38px" : "sm"}
                                   py={compactView ? "0" : "6"}
                                 >
                                   ${" "}
@@ -688,13 +733,13 @@ const SavedStatementComments = ({
 };
 
 const SavedInvoiceSummary = ({
-  sessions = [],
-  setSessions,
   subtotal = 0.0,
   pastDue,
-  summary = [],
   compactView = false,
+  summary = [],
 }) => {
+  const { sessions, setSessions } = useSessionStore();
+
   const calculateTotalBookingRow = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
 
@@ -714,57 +759,62 @@ const SavedInvoiceSummary = ({
 
     return Number(adjustedTotal).toFixed(2);
   };
+  
 
   // Summary Sidebar total calculations
-  const originalSessionRateRef = useRef({});
+  // const originalSessionRateRef = useRef({});
 
-  useEffect(() => {
-    if (sessions?.length > 0) {
-      sessions.forEach((session) => {
-        if (
-          session.name &&
-          originalSessionRateRef.current[session.name] === undefined
-        ) {
-          originalSessionRateRef.current[session.name] = session.rate;
-        }
-      });
-    }
-  }, [sessions]);
+  // useEffect(() => {
+  //   if (sessions?.length > 0) {
+  //     sessions.forEach((session) => {
+  //       if (
+  //         session.name &&
+  //         originalSessionRateRef.current[session.name] === undefined
+  //       ) {
+  //         originalSessionRateRef.current[session.name] = session.rate;
+  //       }
+  //     });
+  //   }
+  // }, [sessions]);
 
-  useEffect(() => {
-    if (
-      !summary?.[0]?.adjustmentValues ||
-      sessions.length === 0 ||
-      originalSessionRateRef.current === null
-    )
-      return;
+  // useEffect(() => {
+  //   if (
+  //     !summary?.[0]?.adjustmentValues ||
+  //     sessions.length === 0 ||
+  //     originalSessionRateRef.current === null
+  //   )
+  //     return;
 
-    const updatedSessions = sessions.map((session) => {
-      if (
-        !session.name ||
-        originalSessionRateRef.current[session.name] === undefined
-      ) {
-        return session;
-      }
+  //   const updatedSessions = sessions.map((session) => {
+  //     if (
+  //       !session.name ||
+  //       originalSessionRateRef.current[session.name] === undefined
+  //     ) {
+  //       return session;
+  //     }
 
-      const originalSessionRate = originalSessionRateRef.current[session.name];
-      const adjustedRate = calculateTotalBookingRow(
-        originalSessionRate,
-        summary[0]?.adjustmentValues
-      );
+  //     const originalSessionRate = originalSessionRateRef.current[session.name];
+  //     const adjustedRate = calculateTotalBookingRow(
+  //       originalSessionRate,
+  //       summary[0]?.adjustmentValues
+  //     );
 
-      if (session.rate !== adjustedRate) {
-        return {
-          ...session,
-          rate: adjustedRate,
-        };
-      }
+  //     if (session.rate !== adjustedRate) {
+  //       return {
+  //         ...session,
+  //         rate: adjustedRate,
+  //       };
+  //     }
 
-      return session;
-    });
+  //     return session;
+  //   });
 
-    setSessions(updatedSessions);
-  }, [summary]);
+  //   setSessions(updatedSessions);
+  // }, [summary]);
+
+  const totalCustomRow = summary[0]?.total?.reduce((acc, total) => {
+    return acc + Number(total.value);
+  }, 0) || 0;
 
   return (
     <Flex
@@ -828,7 +878,7 @@ const SavedInvoiceSummary = ({
                   >
                     <EditDocumentIcon
                       width={compactView ? "8" : "16"}
-                      height={compactView && "10"}
+                      height={compactView ? "10" : undefined}
                     />
                     <Text
                       fontSize={compactView ? "6.38px" : "sm"}
@@ -892,12 +942,18 @@ const SavedInvoiceSummary = ({
                     py={compactView ? 2 : 4}
                     borderBottom={key === array.length - 1 ? undefined : "none"}
                   >
-                    {summary.length === 0 || summary[0]?.adjustmentValues.length === 0 ? (
+                    {summary[0]?.adjustmentValues.filter(
+                      (adj) =>
+                        adj.value !== 0 &&
+                        adj.value !== -0 &&
+                        Number(adj.value) !== 0
+                    ).length === 0 ? (
                       "None"
                     ) : (
                       <Box display="inline-block">
                         <Tooltip
                           label={summary[0]?.adjustmentValues
+                            .filter((adj) => adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
                             .map((adj) => {
                               const value = Number(adj.value);
                               const sign = value >= 0 ? "+" : "-";
@@ -914,6 +970,7 @@ const SavedInvoiceSummary = ({
                         >
                           <Text textOverflow="ellipsis" overflow="hidden">
                             {summary[0]?.adjustmentValues
+                              .filter((adj) => adj.value !== 0 && adj.value !== -0 && Number(adj.value) !== 0)
                               .map((adj) => {
                                 const value = Number(adj.value);
                                 const sign = value >= 0 ? "+" : "-";
@@ -935,11 +992,66 @@ const SavedInvoiceSummary = ({
                     fontSize={compactView ? "6.38px" : "sm"}
                     borderBottom={key === array.length - 1 ? undefined : "none"}
                   >
-                    ${session.rate}/hr
+                    ${calculateTotalBookingRow(session.rate, summary[0]?.adjustmentValues)}/hr
                   </Td>
                 </Tr>
               ))}
               {/* past due balance row */}
+
+              {summary[0]?.total?.map((total, totalIndex) => {
+                return (
+                  <Tr
+                  fontSize={compactView ? "6.38px" : "sm"}
+                  position="relative"
+                  cursor="pointer"
+                  _hover={{ bg: "gray.50" }}
+                  role="group"
+                >
+                  <Td
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 6}
+                  >
+                    {(() => {
+                      const date = new Date(
+                        summary[0]?.total[totalIndex].date
+                      );
+                      date.setMinutes(
+                        date.getMinutes() +
+                        date.getTimezoneOffset()
+                      );
+                      return format(date, "EEE. M/d/yy");
+                    })()}
+                  </Td>
+                  <Td
+                    colSpan={4}
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 4}
+                  >
+                    {summary[0]?.total[totalIndex]?.comment}
+                  </Td>
+                  <Td
+                    textAlign="right"
+                    position="relative"
+                    fontSize={compactView ? "6.38px" : "sm"}
+                    py={compactView ? 2 : 4}
+                  >
+                    <Flex
+                      justifyContent="flex-end"
+                      alignItems="center"
+                    >
+                      <Text mr={1}>$</Text>
+                      <Text
+                        fontSize={compactView ? "6.38px" : "sm"}
+                      >
+                        {Number(
+                          summary[0]?.total?.[totalIndex]?.value || 0
+                        ).toFixed(2)}
+                      </Text>
+                    </Flex>
+                  </Td>
+                </Tr>
+                );
+              })}
 
               <Tr>
                 <Td
@@ -977,7 +1089,7 @@ const SavedInvoiceSummary = ({
                   py={compactView ? 0 : 4}
                   fontSize={compactView ? "6.38px" : "sm"}
                 >
-                  {`$ ${subtotal.toFixed(2)}`}
+                  {`$ ${Number(subtotal + totalCustomRow).toFixed(2)}`}
                 </Td>
               </Tr>
 
@@ -999,7 +1111,7 @@ const SavedInvoiceSummary = ({
                   fontSize={compactView ? "6.38px" : "2xl"}
                   py={compactView ? 0 : 8}
                 >
-                  {`$ ${(parseFloat(pastDue) + parseFloat(subtotal)).toFixed(2)}`}
+                  {`$ ${(parseFloat(pastDue) + parseFloat(subtotal) + parseFloat(totalCustomRow)).toFixed(2)}`}
                 </Td>
               </Tr>
             </Tbody>

@@ -17,6 +17,7 @@ import {
   useDisclosure,
   useToast,
   VStack,
+  Spinner,
 } from "@chakra-ui/react";
 
 import { useNavigate, useParams } from "react-router-dom";
@@ -36,6 +37,10 @@ import {
   StatementComments,
 } from "./EditInvoiceComponents";
 import { getCurrentUser } from "../../utils/auth/firebase";
+import { useSessionStore } from "../../stores/useSessionStore";
+import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
+import { useDeletedIdsStore } from "../../stores/useDeletedIdsStore";
+import { useSummaryStore } from "../../stores/useSummaryStore";
 
 const InvoiceNavBar = ({
   onBack,
@@ -146,7 +151,7 @@ export const EditInvoice = () => {
   const [editedSubtotal, setEditedSubtotal] = useState(0);
   const [pastDue, setPastDue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
-  const [deletedIds, setDeletedIds] = useState([]);
+  const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
   const [userId, setUserId] = useState(null);
   const [editedFields, setEditedFields] = useState({
     comments: [],
@@ -156,14 +161,17 @@ export const EditInvoice = () => {
 
   const [subtotalValue, setSubtotalValue] = useState(0);
 
-  const [sessions, setSessions] = useState([]);
-  const [summary, setSummary] = useState([]);
+  const { sessions, setSessions } = useSessionStore();
+  const { summary, setSummary } = useSummaryStore();
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = React.useRef();
+  const [isLoading, setIsLoading] = useState(false);
+
 
 
   useEffect(() => {
+    setIsLoading(true);
     const fetchData = async () => {
       try {
         const currentInvoiceResponse = await backend.get("/invoices/" + id);
@@ -192,6 +200,7 @@ export const EditInvoice = () => {
           setProgramName("");
           setPayees(null);
           setPastDue(0);
+          setSessions([]);
           return;
         }
 
@@ -243,6 +252,7 @@ export const EditInvoice = () => {
           0
         );
         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        
         setPastDue(remainingBalance);
 
         // Initialize the edited fields with current data
@@ -253,21 +263,31 @@ export const EditInvoice = () => {
           pastDue: remainingBalance,
         });
 
-        const sessionResponse = await backend.get(
-          `comments/invoice/sessions/${id}`
-        );
-        setSessions(sessionResponse.data);
-
         const summaryResponse = await backend.get(
           `comments/invoice/summary/${id}`
         );
-        setSummary(summaryResponse.data);
+        if (summaryResponse.data && summaryResponse.data.length === 0) {
+          setSummary([{
+            adjustmentValues: [],
+            comments: [],
+            datetime: new Date().toISOString(),
+            invoiceId: 0
+          }]);
+        } else {
+          setSummary(summaryResponse.data);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
+      }
+      finally {
+        setIsLoading(false);
       }
     };
     fetchData();
   }, [invoice]);
+
+  // Fetch sessions via hook into the store
+  useInvoiceSessions(id);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -339,79 +359,147 @@ export const EditInvoice = () => {
     await handleSave();
   };
 
+  // TODO: fix bug where it deletes comments twice
+  const deleteCommentIds = async () => {
+    if (deletedIds && deletedIds.length > 0) {
+      const deletionPromises = deletedIds.map( async (id) =>
+        backend.delete(`/comments/${id}`).catch((error) => {
+          console.error(`Error deleting comment with ID ${id}:`, error);
+          return null;
+        })
+      );
+      await Promise.all(deletionPromises);
+      setDeletedIds([]);
+    }
+  };
+
+  const postComments = async (id, bookingId, comment, datetime, invoiceId) => {
+    const commentData = {
+      user_id: userId,
+      booking_id: bookingId,
+      invoice_id: invoiceId,
+      datetime: datetime,
+      comment: comment,
+      adjustment_type: "none",
+      adjustment_value: 0,
+    };
+
+    try {
+      const existingComment = comments.find((c) => c.id === id);
+      if (existingComment) {
+        // console.log("existingComment updated", existingComment);
+        await backend.put(
+            `/comments/${existingComment.id}`,
+            commentData
+          );
+      } else {
+        // console.log("newComment created", commentData);
+        await backend.post(`/comments`, commentData);
+      }
+    } catch (error) {
+      console.error(`Error posting comment:`, error);
+      throw error;
+    }
+  };
+
+  const postAdjustments = async (id, userId, bookingId, invoiceId, datetime, comment, type, value) => {
+    const adjustmentData = {
+      user_id: userId,
+      booking_id: bookingId,
+      invoice_id: invoiceId,
+      datetime: datetime,
+      comment: comment,
+      adjustment_type: type,
+      adjustment_value: value,
+    };
+
+    try {
+      const existingAdjustment = comments.find((c) => c.id === id);
+      if (existingAdjustment) {
+        await backend.put(`/comments/${existingAdjustment.id}`, adjustmentData);
+        // console.log("existingAdjustment updated", existingAdjustment);
+      } else {
+        await backend.post(`/comments`, adjustmentData);
+        // console.log("newAdjustment created", adjustmentData);
+      }
+    } catch (error) {
+      console.error(`Error posting adjustment:`, error);
+      throw error;
+    }
+  }
+
+  const postTotal = async (id, userId, bookingId, invoiceId, datetime, comment, value) => {
+    try {
+      const totalData = {
+        user_id: userId,
+        booking_id: bookingId,
+        invoice_id: invoiceId,
+        datetime: datetime,
+        comment: comment,
+        adjustment_type: "total",
+        adjustment_value: value,
+      };
+
+      const existingTotal = comments.find((c) => c.id === id);
+      if (existingTotal) {
+        // Update existing total
+        await backend.put(`/comments/${id}`, totalData);
+        // console.log("existing totalData updated", totalData);
+      } else {
+        // Create new total
+        await backend.post(`/comments`, totalData);
+        // console.log("new totalData created", totalData);
+      }
+    } catch (error) {
+      console.error(`Error posting total:`, error);
+      throw error;
+    }
+  }
+
+
+  const postSummaryAdjustments = async (id, userId, invoiceId, datetime, type, value) => {
+    const summaryData = {
+      user_id: userId,
+      booking_id: null,
+      invoice_id: invoiceId,
+      datetime: datetime,
+      comment: "",
+      adjustment_type: type,
+      adjustment_value: value,
+    };
+
+
+    try {
+      const existingSummary = comments.find((c) => c.id === id);
+      if (existingSummary) {
+        // console.log("existingSummary updated", existingSummary);
+        await backend.put(`/comments/${existingSummary.id}`, summaryData);
+      } else {
+        // console.log("newSummary created", summaryData);
+        await backend.post(`/comments`, summaryData);
+      }
+    } catch (error) {
+      console.error(`Error posting summary adjustment:`, error);
+      throw error;
+    }
+  }
+  
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // First, delete all comments that are in deletedIds
-      if (deletedIds && deletedIds.length > 0) {
-        // Process deletions in parallel
-        const deletionPromises = deletedIds.map((id) =>
-          backend.delete(`/comments/${id}`).catch((error) => {
-            console.error(`Error deleting comment with ID ${id}:`, error);
-            // Continue with other deletions even if one fails
-            return null;
-          })
-        );
+      await deleteCommentIds();
 
-        // Wait for all deletions to complete
-        await Promise.all(deletionPromises);
-
-        // Clear the deletedIds array after successful deletion
-        setDeletedIds([]);
-      }
-
-      // Process all sessions
       for (const session of sessions) {
-        // Handle comments for each session
         if (
           session.comments &&
-          session.comments.length > 0 &&
-          session.adjustmentValues[0]?.type !== "total"
+          session.comments.length > 0
         ) {
-          for (let i = 0; i < session.comments.length; i++) {
-            const commentText = session.comments[i].comment;
-
-            // Prepare comment data
-
-            const commentData = {
-              id: session.comments[i].id,
-              user_id: userId, // Will be set by the server if null
-              booking_id: session.bookingId || null,
-              invoice_id: id,
-              datetime: session.datetime,
-              comment: commentText,
-              adjustment_type: "none",
-              adjustment_value: 0,
-            };
-
-            try {
-              // For regular sessions, check if this comment already exists
-              const existingComment = comments.find(
-                (c) =>
-                  c.bookingId === commentData.booking_id &&
-                  c.comment === commentData.comment
-              );
-
-              if (existingComment) {
-                // Update existing comment
-                // console.log("existingComment", existingComment);
-                await backend.put(
-                  `/comments/${existingComment.id}`,
-                  commentData
-                );
-              } else {
-                // Create new comment
-                // console.log("newComment", commentData);
-                await backend.post(`/comments`, commentData);
-              }
-            } catch (error) {
-              console.error(`Error saving comment:`, error);
-              throw error;
-            }
+          for (const comment of session.comments) {
+              postComments(comment.id, session.bookingId, comment.comment, session.datetime, id);
           }
         }
 
-        // Handle adjustments for each session
         if (
           session.adjustmentValues &&
           session.adjustmentValues.length > 0 &&
@@ -421,139 +509,52 @@ export const EditInvoice = () => {
             // Skip invalid adjustment values
             if (
               isNaN(adjustmentValue.value) ||
-              adjustmentValue.value === undefined
+              adjustmentValue.value === undefined ||
+              Object.is(adjustmentValue.value, -0) ||
+              adjustmentValue.value === 0
             )
               continue;
 
-            const adjustmentData = {
-              id: adjustmentValue.id,
-              user_id: userId,
-              booking_id: session.bookingId || null,
-              invoice_id: id,
-              datetime: session.datetime,
-              comment:
-                session?.comments &&
+            const adjComment = session?.comments &&
                 session?.comments.length > 0 &&
                 session.adjustmentValues[0]?.type === "total"
                   ? session?.comments[0]?.comment
-                  : "",
-              adjustment_type: adjustmentValue.type,
-              adjustment_value: adjustmentValue.value,
-            };
+                  : "";
 
-            try {
-              // Check if this adjustment already exists
-              const existingAdjustment = comments.find(
-                (c) => c.id === adjustmentValue.id
-              );
+            postAdjustments(adjustmentValue.id, userId, session.bookingId || null, 
+              id, 
+              session.datetime, 
+              adjComment, 
+              adjustmentValue.type, 
+              adjustmentValue.value
+            );
 
-              if (existingAdjustment) {
-                // Update existing adjustment
-                // console.log("existingAdjustmentData", existingAdjustment);
-                const existingAdjustmentResponse = await backend.put(
-                  `/comments/${existingAdjustment.id}`,
-                  adjustmentData
-                );
-                // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
-              } else {
-                // Create new adjustment
-                // console.log("newAdjustmentData", adjustmentData);
-                const newAdjustmentResponse = await backend.post(
-                  `/comments`,
-                  adjustmentData
-                );
-                // console.log("newAdjustmentResponse", newAdjustmentResponse);
-              }
-            } catch (error) {
-              console.error(`Error saving adjustment:`, error);
-              throw error;
-            }
           }
         }
 
         if (sessions && sessions.length > 0) {
           if (session.total && session.total.length > 0) {
             for (const totalItem of session.total) {
-              try {
-                if (totalItem.id) {
-                  await backend.put(`/comments/${totalItem.id}`, totalItem);
-                } else {
-                  const totalData = {
-                    user_id: session.userId,
-                    booking_id: session.bookingId,
-                    invoice_id: session.invoiceId,
-                    datetime: totalItem.date,
-                    comment: totalItem.comment,
-                    adjustment_type: "total",
-                    adjustment_value: totalItem.value,
-                  };
-
-                  await backend.post(`/comments`, totalData);
-                }
-              } catch (error) {
-                console.error(`Error saving total item:`, error);
-                throw error;
-              }
-            }
-          }
-        }
-        // Process summary adjustments
-        if (summary && summary.length > 0) {
-          for (const summaryItem of summary) {
-            if (
-              summaryItem.adjustmentValues &&
-              summaryItem.adjustmentValues.length > 0
-            ) {
-              for (const adjustmentValue of summaryItem.adjustmentValues) {
-                // Skip invalid adjustment values
-                if (
-                  isNaN(adjustmentValue.value) ||
-                  adjustmentValue.value === undefined
-                )
-                  continue;
-
-                const adjustmentData = {
-                  user_id: userId,
-                  booking_id: null, // Summary adjustments don't have booking_id
-                  invoice_id: id,
-                  datetime: new Date().toISOString(),
-                  comment: "",
-                  adjustment_type: adjustmentValue.type,
-                  adjustment_value: adjustmentValue.value,
-                };
-
-                try {
-                  // Check if this summary adjustment already exists
-                  const existingAdjustment = comments.find(
-                    (c) => c.id === adjustmentValue.id
-                  );
-
-                  if (existingAdjustment) {
-                    // Update existing adjustment
-                    // console.log("Summary existingAdjustment", existingAdjustment);
-                    const existingAdjustmentResponse = await backend.put(
-                      `/comments/${existingAdjustment.id}`,
-                      adjustmentData
-                    );
-                    // console.log("existingAdjustmentResponse", existingAdjustmentResponse);
-                  } else {
-                    // Create new adjustment
-                    // console.log("Summary newAdjustment", adjustmentData);
-                    const newAdjustmentResponse = await backend.post(
-                      `/comments`,
-                      adjustmentData
-                    );
-                    // console.log("newAdjustmentResponse", newAdjustmentResponse);
-                  }
-                } catch (error) {
-                  console.error(`Error saving summary adjustment:`, error);
-                  throw error;
-                }
-              }
+                postTotal(totalItem.id, userId, session.bookingId, id, totalItem.date, totalItem.comment, totalItem.value);
             }
           }
         }
       }
+      // Process summary adjustments
+      if (summary && summary.length > 0 && summary[0].adjustmentValues && summary[0].adjustmentValues.length > 0) {
+        for (const adjustmentValue of summary[0].adjustmentValues) {
+          postSummaryAdjustments(adjustmentValue.id, userId, id, adjustmentValue.datetime, adjustmentValue.type, adjustmentValue.value);
+        }
+      }
+
+      if(summary && summary.length > 0 && summary[0].total && summary[0].total.length > 0) {
+        for (const totalItem of summary[0].total) {
+          postTotal(totalItem.id, userId, null, id, totalItem.date, totalItem.comment, totalItem.value);
+        }
+      }
+
+      
+
       navigate(`/invoices/savededits/${id}`);
     } catch (error) {
       console.error("Error saving invoice:", error);
@@ -580,6 +581,10 @@ export const EditInvoice = () => {
       subtotal: newSubtotal,
     });
   };
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <Navbar>
@@ -665,8 +670,6 @@ export const EditInvoice = () => {
               setSubtotal={setEditedSubtotal}
               sessions={sessions}
               setSessions={setSessions}
-              deletedIds={deletedIds}
-              setDeletedIds={setDeletedIds}
               summary={summary}
             />
             <InvoiceSummary

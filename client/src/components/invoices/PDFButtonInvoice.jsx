@@ -17,29 +17,10 @@ import {
 import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
-import { DownloadInvoiceIcon } from "../../assets/DownloadInvoiceIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoicePDFDocument } from "./InvoicePDFDocument";
-
-// TODO FIX ENDPOINTS TO FIX CALCULATIONS
-const handleSubtotalSum = (startTime, endTime, rate) => {
-  if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
-
-  const timeToMinutes = (timeStr) => {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return hours * 60 + minutes;
-  };
-
-  const startMinutes = timeToMinutes(startTime.substring(0, 5));
-  const endMinutes = timeToMinutes(endTime.substring(0, 5));
-  const diff = endMinutes - startMinutes;
-
-  const totalHours = Math.ceil(diff / 60);
-
-  const total = (totalHours * rate).toFixed(2);
-
-  return total;
-};
+import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
+import { useSessionStore } from "../../stores/useSessionStore";
 
 const PDFButtonInvoice = ({
   id,
@@ -47,55 +28,34 @@ const PDFButtonInvoice = ({
   hasUnsavedChanges,
   handleOtherButtonClick,
 }) => {
-  // // get comments for the invoice, all relevant db data here
-  const { backend } = useBackendContext();
   const [loading, setLoading] = useState(false);
-  const [programName, setProgramName] = useState(null);
-  const [invoiceDate, setInvoiceDate] = useState("");
-  const toast = useToast();
+  const [invoice, setInvoice] = useState(null);
+
+  useInvoiceSessions(id);
+  const { sessions } = useSessionStore();
+  const { backend } = useBackendContext();
+
   const downloadToast = useToast();
 
-  const fetchInvoiceData = async (invoice, backend, id) => {
-    const eventId = invoice?.data[0]?.eventId;
+  const fetchInvoiceData = async () => {
+    const invoiceResponse = await backend.get(`/invoices/${id}`);
+    setInvoice(invoiceResponse.data[0]);
+
+    const eventId = invoiceResponse.data[0]?.eventId;
 
     const [
       instructorResponse,
-      commentsResponse,
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
-      sessionResponse,
-      summaryResponse,
+      summaryResponse
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
-      backend.get(`/comments/invoice/${id}`),
       backend.get(`/events/${eventId}`),
       backend.get(`/invoices/payees/${id}`),
       backend.get(`/events/remaining/${eventId}`),
-      backend.get(`/comments/invoice/sessions/${id}`),
-      backend.get(`/comments/invoice/summary/${id}`),
+      backend.get(`/comments/invoice/summary/${id}`)
     ]);
-
-    const comments = commentsResponse.data;
-    const sessions = sessionResponse.data;
-    const summary = summaryResponse.data;
-
-    setProgramName(
-      programNameResponse.data[0].name.trim().split(" ").slice(0, 3).join("_")
-    );
-
-    let booking = {};
-    let room = [];
-
-    if (comments.length > 0 && comments[0].bookingId) {
-      const bookingResponse = await backend.get(
-        `/bookings/${comments[0].bookingId}`
-      );
-      booking = bookingResponse.data[0];
-
-      const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
-      room = roomResponse.data;
-    }
 
     const unpaidTotals = await Promise.all(
       unpaidInvoicesResponse.data.map((invoice) =>
@@ -116,79 +76,67 @@ const PDFButtonInvoice = ({
       return res.data.total ? sum + Number(res.data.total) : sum;
     }, 0);
 
-    const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+    const totalCustomRow = summaryResponse.data[0]?.total?.reduce((acc, total) => {
+      return acc + Number(total.value);
+    }, 0);
 
-    let subtotalSum = 0;
-    if (
-      comments.length &&
-      booking.startTime &&
-      booking.endTime &&
-      room[0]?.rate
-    ) {
-      const total = handleSubtotalSum(
-        booking.startTime,
-        booking.endTime,
-        room[0].rate
-      );
-      subtotalSum = parseFloat(total) * comments.length;
-    }
+
+    const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal + totalCustomRow;
 
     return {
       instructors: instructorResponse.data,
       programName: programNameResponse.data[0].name,
       payees: payeesResponse.data,
-      comments,
-      booking,
-      room,
-      remainingBalance,
-      subtotalSum,
-      id,
-      sessions,
-      summary,
-    };
+      remainingBalance: remainingBalance,
+      summary: summaryResponse.data[0],
+      totalCustomRow: totalCustomRow,
+    }
+
   };
 
-  const getGeneratedDate = (comments, invoice) => {
-    if (comments.length > 0) {
-      const latestComment = comments?.sort(
-        (a, b) => new Date(b.datetime) - new Date(a.datetime)
-      )[0];
-
-      const latestDate = new Date(latestComment.datetime);
-      const month = latestDate.toLocaleString("default", { month: "long" });
-
-      const year = latestDate.getFullYear();
-
-      if (month && year) {
-        return `${month} ${year}`;
-      } else {
-        return "No Date Found";
-      }
+  const getGeneratedDate = (sessions = [], includeDay = true) => {
+    if (sessions.length === 0) {
+      return "No Date Found";
     }
+  
+    const latestSession = sessions.slice().sort(  
+      (a, b) => new Date(b.datetime) - new Date(a.datetime)
+    )[0];
+  
+
+    const latestDate = new Date(latestSession.datetime);
+    latestDate.setMinutes(
+      latestDate.getMinutes() + latestDate.getTimezoneOffset()
+    );
+    
+    const month = latestDate.toLocaleString("default", { month: "long" });
+    const day = latestDate.getDate();
+    const year = latestDate.getFullYear();
+  
+    return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
   };
 
   const handleDownload = async () => {
     try {
       setLoading(true);
-      const invoiceResponse = await backend.get(`/invoices/${id}`);
-      const invoice = invoiceResponse.data;
-      const invoiceData = await fetchInvoiceData(invoiceResponse, backend, id);
-      setProgramName(invoiceData.programName);
+      const invoiceData = await fetchInvoiceData();
 
       const blob = await pdf(
         <InvoicePDFDocument
-          invoice={invoice}
-          {...invoiceData}
-        />
+              sessions={sessions}
+              invoice={invoice}
+              {...invoiceData}
+            />
       ).toBlob();
+
 
       saveAs(
         blob,
-        `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
+        `${invoiceData?.programName?.split(" ").slice(0, 3).join(" ").trim()}, ${getGeneratedDate(sessions, false)} Invoice`
       );
       downloadToast({
         title: "Invoice Downloaded",
-        description: `${invoiceData.programName.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(invoiceData.comments, invoice, false)}`,
+        description: `${invoiceData?.programName?.split(" ").slice(0, 3).join(" ").trim()}_${getGeneratedDate(sessions, false)}`,
         status: "success",
         duration: 6000,
         position: "bottom-right",
@@ -201,74 +149,6 @@ const PDFButtonInvoice = ({
       setLoading(false);
     }
   };
-
-  //   const date = new Date(invoice[0].startDate);
-  //   const month = date.toLocaleString("default", { month: "long" });
-  //   const year = date.getFullYear();
-
-  //   const blob = pdf(
-  //     <InvoicePDFDocument
-  //       invoice={invoice}
-  //       {...invoiceData}
-  //     />
-  //   ).toBlob();
-
-  //   saveAs(
-  //     blob,
-  //     `${programName}, ${getGeneratedDate(invoiceData.comments, invoice, false)} Invoice`
-  //   );
-
-  //   toast({
-  //     position: "bottom-right",
-  //     duration: 3000,
-  //     status: "success",
-  //     render: () => (
-  //       <HStack
-  //         bg="green.100"
-  //         p={4}
-  //         borderRadius="md"
-  //         boxShadow="md"
-  //         borderLeft="6px solid"
-  //         borderColor="green.500"
-  //         spacing={3}
-  //         align="center"
-  //       >
-  //         <Icon
-  //           as={CheckCircleIcon}
-  //           color="green.600"
-  //           boxSize={5}
-  //         />
-  //         <VStack
-  //           align="left"
-  //           spacing={0}
-  //         >
-  //           <ChakraText
-  //             color="#2D3748"
-  //             fontFamily="Inter"
-  //             fontSize="16px"
-  //             fontStyle="normal"
-  //             fontWeight={700}
-  //             lineHeight="normal"
-  //             letterSpacing="0.08px"
-  //           >
-  //             Invoice Downloaded
-  //           </ChakraText>
-  //           {month && year && (
-  //             <ChakraText
-  //               fontSize="sm"
-  //             >
-  //               {programName}_{month} {year}
-  //             </ChakraText>
-  //           )}
-  //         </VStack>
-  //       </HStack>
-  //     ),
-  //   });
-  // } catch (err) {
-  //   console.error("Error generating PDF:", err);
-  // } finally {
-  //   setLoading(false);
-  // }
 
   return (
     <Box>
@@ -325,48 +205,36 @@ const PDFButtonInvoice = ({
   );
 };
 
-const TestPDFViewer = () => {
-  const { backend } = useBackendContext();
+const TestPDFViewer = ({ id }) => {
+  const [loading, setLoading] = useState(false);
   const [invoice, setInvoice] = useState(null);
-  const [invoiceData, setInvoiceData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [invoiceData, setInvoiceData] = useState({});
 
-  const fetchInvoiceData = async (invoice, backend, id) => {
-    const eventId = invoice?.data[0]?.eventId;
+  useInvoiceSessions(id);
+  const { sessions } = useSessionStore();
+
+  const { backend } = useBackendContext();
+
+
+  const fetchInvoiceData = async () => {
+    const invoiceResponse = await backend.get(`/invoices/${id}`);
+    setInvoice(invoiceResponse.data[0]);
+
+    const eventId = invoiceResponse.data[0]?.eventId;
 
     const [
       instructorResponse,
-      commentsResponse,
       programNameResponse,
       payeesResponse,
       unpaidInvoicesResponse,
-      sessionResponse,
-      summaryResponse,
+      summaryResponse
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
-      backend.get(`/comments/invoice/${id}`),
       backend.get(`/events/${eventId}`),
       backend.get(`/invoices/payees/${id}`),
       backend.get(`/events/remaining/${eventId}`),
-      backend.get(`/comments/invoice/sessions/${id}`),
-      backend.get(`/comments/invoice/summary/${id}`),
+      backend.get(`/comments/invoice/summary/${id}`)
     ]);
-
-    const comments = commentsResponse.data;
-    const sessions = sessionResponse.data;
-    const summary = summaryResponse.data;
-    let booking = {};
-    let room = [];
-
-    if (comments.length > 0 && comments[0].bookingId) {
-      const bookingResponse = await backend.get(
-        `/bookings/${comments[0].bookingId}`
-      );
-      booking = bookingResponse.data[0];
-
-      const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
-      room = roomResponse.data;
-    }
 
     const unpaidTotals = await Promise.all(
       unpaidInvoicesResponse.data.map((invoice) =>
@@ -389,53 +257,31 @@ const TestPDFViewer = () => {
 
     const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
-    let subtotalSum = 0;
-    if (
-      comments.length &&
-      booking.startTime &&
-      booking.endTime &&
-      room[0]?.rate
-    ) {
-      const total = handleSubtotalSum(
-        booking.startTime,
-        booking.endTime,
-        room[0].rate
-      );
-      subtotalSum = parseFloat(total) * comments.length;
-    }
+    const totalCustomRow = summaryResponse.data[0]?.total?.reduce((acc, total) => {
+      return acc + Number(total.value);
+    }, 0);
 
+    // setLoading(false);
     return {
       instructors: instructorResponse.data,
       programName: programNameResponse.data[0].name,
       payees: payeesResponse.data,
-      comments,
-      booking,
-      room,
-      remainingBalance,
-      subtotalSum,
-      id,
-      sessions,
-      summary,
-    };
-  };
-
-  const fetchData = async () => {
-    try {
-      const response = await backend.get("/invoices/24");
-      setInvoice(response.data);
-
-      const invoiceDataResponse = await fetchInvoiceData(response, backend, 40);
-      setInvoiceData(invoiceDataResponse);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching invoice data:", err);
+      remainingBalance: remainingBalance,
+      summary: summaryResponse.data[0],
+      totalCustomRow: totalCustomRow,
     }
+
+
   };
 
   useEffect(() => {
+    const fetchData = async () => {
+      const invoiceData = await fetchInvoiceData();
+      setInvoiceData(invoiceData);
+    }
     fetchData();
-  }, []);
-
+  }, [id]);
+  
   return (
     <Box>
       {loading ? (
@@ -456,6 +302,7 @@ const TestPDFViewer = () => {
             height="100%"
           >
             <InvoicePDFDocument
+              sessions={sessions}
               invoice={invoice}
               {...invoiceData}
             />

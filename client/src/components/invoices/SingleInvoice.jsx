@@ -33,6 +33,8 @@ import {
 } from "./InvoiceComponents";
 import { InvoiceView } from "./InvoiceView";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
+import { useSessionStore } from "../../stores/useSessionStore";
+import { useSummaryStore } from "../../stores/useSummaryStore";
 import { getAllDue } from "../../utils/pastDueCalc";
 
 export const SingleInvoice = () => {
@@ -68,9 +70,12 @@ export const SingleInvoice = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [actionToContinue, setActionToContinue] = useState(null);
-  const [summary, setSummary] = useState([]);
-  const [sessions, setSessions] = useState([]);
+  // const [summary, setSummary] = useState([]);
+  // const [sessions, setSessions] = useState([]);
+  const { summary, setSummary } = useSummaryStore();
+  const { sessions, setSessions } = useSessionStore();
   const invoicePaymentsRef = useRef(null);
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -149,11 +154,50 @@ export const SingleInvoice = () => {
 
         // const remainingBalanceCalculated =
         //   total - paidTotal > 0 ? total - paidTotal : 0;
+// <<<<<<< 191-for-brendan
+//         // setRemainingBalance(remainingBalanceCalculated);
+//         // setPastDue(remainingBalanceCalculated);
+
+//          // ==== PAST DUE CALCULATION ====
+//          const unpaidInvoicesResponse = await backend.get(
+//           "/events/remaining/" + currentInvoice.eventId
+//         );
+
+//         // calculate sum of unpaid/remaining invoices
+//         const unpaidTotals = await Promise.all(
+//           unpaidInvoicesResponse.data.map((invoice) =>
+//             backend.get(`/invoices/total/${invoice.id}`)
+//           )
+//         );
+        
+//         const partiallyPaidTotals = await Promise.all(
+//           unpaidInvoicesResponse.data.map((invoice) =>
+//             backend.get(`/invoices/paid/${invoice.id}`)
+//           )
+//         );
+
+//         const unpaidTotal = unpaidTotals.reduce(
+//           (sum, res) => sum + res.data.total,
+//           0
+//         );
+//         const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+//           (sum, res) => {
+//             return sum + Number(res.data.total); // Had to change to number because was causing NaN
+//           },
+//           0
+//         );
+
+//         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+//         setPastDue(remainingBalance);
+
+//         // ==== END OF PAST DUE CALCULATION ====
+// =======
 
         const paidTotal = await getAllDue(backend, id);
 
         setRemainingBalance(paidTotal);
         setPastDue(paidTotal);
+// >>>>>>> main
 
         // get program name
         const programNameResponse = await backend.get(
@@ -197,6 +241,9 @@ export const SingleInvoice = () => {
         const sessionResponse = await backend.get(
           `comments/invoice/sessions/${id}`
         );
+
+        // console.log("sessionResponse", sessionResponse.data)
+        // console.log("sessionResponse", sessionResponse.data)
         setSessions(sessionResponse.data);
 
         const summaryResponse = await backend.get(
@@ -211,6 +258,7 @@ export const SingleInvoice = () => {
 
     fetchData();
   }, [backend, id]);
+
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -262,7 +310,6 @@ export const SingleInvoice = () => {
 
   const handlePreviewClick = () => {
     navigate(`/invoices/savededits/${id}`);
-    console.log("Preview clicked");
   };
 
   const handleSaveChanges = () => {
@@ -403,13 +450,11 @@ export const SingleInvoice = () => {
                 gap={"4px"}
                 padding={"0px 16px"}
                 onClick={() => {
-                  console.log(hasUnsavedChanges);
                   if (hasUnsavedChanges) {
                     openModal();
                     setPendingNavigation(
                       () => () => navigate(`/invoices/savededits/${id}`)
                     );
-                    console.log("has unsaved changes");
                   } else {
                     handlePreviewClick();
                   }
@@ -448,8 +493,6 @@ export const SingleInvoice = () => {
                   remainingBalance={remainingBalance}
                 ></InvoiceStats>
                 <InvoicePayments
-                  sessions={sessions}
-                  setSessions={setSessions}
                   comments={comments}
                   setComments={setComments}
                   setHasUnsavedChanges={setHasUnsavedChanges}
@@ -488,14 +531,12 @@ export const SingleInvoice = () => {
                     >
                       <InvoiceView
                         comments={comments}
-                        sessions={sessions}
-                        setSessions={setSessions}
                         summary={summary}
                         booking={booking}
                         room={room}
                         subtotal={subtotal}
                         setSubtotal={setSubtotal}
-                        pastDue={currentPastDue.current}
+                        pastDue={pastDue}
                         payees={payees}
                         programName={programName}
                         instructors={instructors}
