@@ -30,6 +30,8 @@ import {
   TooltipIcon,
 } from "../../assets/icons/ProgramIcons";
 import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
+import { reactivateProgram } from "../../utils/programModifications";
+import { createNewSessions } from "../programs/utils";
 
 const ActionsIcon = React.memo(() => (
   <Icon
@@ -71,19 +73,25 @@ export const ArchivedDropdown = ({
       console.log("New event created:", newEvent.data.id);
 
       // Create copies of sessions for the new program
+      const newBookings = [];
       for (const session of originalSessions.data) {
         const newSessionData = {
           event_id: newEvent.data.id,
-          room_id: session.roomId,
-          start_time: session.startTime,
-          end_time: session.endTime,
+          roomId: session.roomId,
+          startTime: session.startTime,
+          endTime: session.endTime,
           date: session.date,
           archived: false,
         };
-        const newBooking = await backend.post("/bookings", newSessionData);
+        // const newBooking = await backend.post("/bookings", newSessionData);
         console.log("New booking", newSessionData);
-        console.log(newBooking);
+        // console.log(newBooking);
+        // newBookings.push({...newSessionData, id: newBooking.data[0].id});
+        newBookings.push(newSessionData);
       }
+
+      // Add new bookings to gcal
+      await createNewSessions(newBookings, newEvent.data.id, backend);
 
       // Create copies of assignments for the new program
       for (const assignment of originalAssignments.data) {
@@ -121,9 +129,8 @@ export const ArchivedDropdown = ({
 
   const reactivateArchivedProgram = async (programId) => {
     try {
-      await backend.put(`/events/${programId}`, {
-        archived: false,
-      });
+      await reactivateProgram(backend, programId);
+      window.location.reload();
     } catch (error) {
       console.log("Couldn't reactivate", error);
     }

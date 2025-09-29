@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import {
   Button,
@@ -102,7 +102,7 @@ export const EmailSidebar = ({
     const fetchData = async () => {
       try {
         const payeesResponse = await backend.get("/invoices/payees/" + id);
-        const instructorResponse = await backend.get("/clients/");
+        const instructorResponse = await backend.get("/invoices/instructors/" + id);
         const userList = [...payeesResponse.data, ...instructorResponse.data];
         const uniqueUsers = userList.filter(
           (user, index, self) =>
@@ -113,17 +113,29 @@ export const EmailSidebar = ({
         const payeeEmails = payeesResponse.data.map((payee) => payee.email);
 
         const instructorEmails = instructorResponse.data.map(
-          (instructor) => instructor.email
+          (instructor) => (instructor.email && !payeeEmails.includes(instructor.email)) ? instructor.email : null
         );
 
         setEmails((prevEmails) => {
           const newEmails = [...prevEmails];
-          [...payeeEmails, ...instructorEmails].forEach((email) => {
+          [...payeeEmails].forEach((email) => {
             if (!newEmails.includes(email)) {
               newEmails.push(email);
             }
           });
           return newEmails;
+        });
+
+        setSelectedInstructors(payeesResponse.data);
+
+        setCcEmails((prevCcEmails) => {
+          const newCcEmails = [...prevCcEmails];
+          instructorEmails.forEach((email) => {
+            if (!newCcEmails.includes(email)) {
+              newCcEmails.push(email);
+            }
+          });
+          return newCcEmails;
         });
 
         setOriginalEmails([...payeeEmails, ...instructorEmails]);
@@ -133,7 +145,7 @@ export const EmailSidebar = ({
     };
 
     fetchData();
-  }, []);
+  }, [id]);
 
   // const getInstructorResults = async ({ searchTerm, setSearchedResults, selectedUsers }) => {
   //   try {
@@ -158,39 +170,36 @@ export const EmailSidebar = ({
   //   }
   // };
 
+
   const getInstructorResults = async (search, setSearched, selectedUser) => {
     try {
       // Make sure search is a string to avoid TypeErrors
       const searchString = typeof search === "string" ? search : "";
 
-      if (searchString !== "") {
-        const instructorResponse = await backend.get("/clients/search", {
-          params: {
-            searchTerm: searchString,
-          },
-        });
-        const payeesResponse = await backend.get("/invoices/payees/" + id);
+      const instructorResponse = await backend.get("/clients/search", {
+        params: {
+          searchTerm: searchString,
+          columns: ["email"]
+        },
+      });
+      const payeesResponse = await backend.get("/invoices/payees/" + id);
 
-        // Make sure selectedUser is an array
-        const safeSelectedUser = Array.isArray(selectedUser)
-          ? selectedUser
-          : [];
+      // Make sure selectedUser is an array
+      const safeSelectedUser = Array.isArray(selectedUser)
+        ? selectedUser
+        : [];
 
-        filterSelectedInstructorsFromSearch(
-          instructorResponse.data,
-          payeesResponse.data,
-          setSearched,
-          safeSelectedUser
-        );
-      } else {
-        if (typeof setSearched === "function") {
-          setSearched([]);
-        }
-      }
+      filterSelectedInstructorsFromSearch(
+        instructorResponse.data,
+        payeesResponse.data,
+        setSearched,
+        safeSelectedUser
+      );
     } catch (error) {
       console.error("Error getting instructors:", error);
     }
   };
+
   // const filterSelectedInstructorsFromSearch = (instructorData, payeeData, setSearched, selectedUser) => {
   //   const filteredInstructors = instructorData.filter(
   //     (instructor) =>
@@ -482,11 +491,11 @@ export const EmailSidebar = ({
       invoice,
       pdf_title,
       invoiceData,
-      emails,
+      selectedInstructors.map((user) => user.email),
       title,
       message,
-      ccEmails,
-      bccEmails,
+      selectedCc.map((user) => user.email),
+      selectedBcc.map((user) => user.email),
       backend,
       id
     );
@@ -495,9 +504,6 @@ export const EmailSidebar = ({
   const HandleEmailSearch = (email) => {
     backend
       .get(`/users/email/${email}`)
-      .then((res) => {
-        console.log(res.data);
-      })
       .catch((err) => {
         console.error("User not found");
       });
@@ -521,9 +527,9 @@ export const EmailSidebar = ({
         }}
         closeDrawer={onClose}
         title={title}
-        emails={emails}
-        ccEmails={ccEmails}
-        bccEmails={bccEmails}
+        emails={selectedInstructors.map((user) => user.email)}
+        ccEmails={ccEmails.map((user) => user.email)}
+        bccEmails={bccEmails.map((user) => user.email)}
       />
       <Button
         ref={btnRef}
@@ -595,6 +601,7 @@ export const EmailSidebar = ({
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
+                gap="4"
               >
                 <Text
                   color="#474849"
@@ -615,14 +622,13 @@ export const EmailSidebar = ({
               {/* Display selected To: emails */}
               <Flex
                 gap="4"
-                justifyContent="end"
+                justifyContent="start"
+                flexWrap="wrap"
               >
                 {selectedInstructors &&
                   selectedInstructors.length > 0 &&
                   selectedInstructors.map(
-                    (user, index) =>
-                      user &&
-                      user.email && (
+                    (user, index) => (
                         <Tag
                           key={`user-${index}`}
                           size="lg"
@@ -633,13 +639,14 @@ export const EmailSidebar = ({
                           borderColor={"#E2E8F0"}
                           textColor={"#080A0E"}
                           fontWeight={"normal"}
+                          py={2}
                         >
                           <TagLabel>{user.email}</TagLabel>
                           <TagCloseButton
                             onClick={() => {
                               setSelectedInstructors((prevUsers) =>
                                 prevUsers.filter(
-                                  (item) => item && item.id !== user.id
+                                  (item) => item && item.email !== user.email
                                 )
                               );
                             }}
@@ -651,13 +658,13 @@ export const EmailSidebar = ({
                             textColor={"white"}
                           />
                         </Tag>
-                      )
-                  )}
+                      ))}
               </Flex>
               {/* For the "Cc:" section */}
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
+                gap="4"
               >
                 <Text
                   color="#474849"
@@ -678,7 +685,7 @@ export const EmailSidebar = ({
               {/* Display selected Cc: emails */}
               <Flex
                 gap="4"
-                justifyContent="end"
+                flexWrap="wrap"
               >
                 {/* Display regular cc emails */}
                 {ccEmails.map((email, index) => (
@@ -731,7 +738,7 @@ export const EmailSidebar = ({
                             onClick={() => {
                               setSelectedCc((prevUsers) =>
                                 prevUsers.filter(
-                                  (item) => item && item.id !== user.id
+                                  (item) => item && item.email !== user.email
                                 )
                               );
                             }}
@@ -750,6 +757,7 @@ export const EmailSidebar = ({
               <Flex
                 justifyContent="space-between"
                 alignItems="center"
+                gap="4"
               >
                 <Text
                   color="#474849"
@@ -770,7 +778,7 @@ export const EmailSidebar = ({
               {/* Display selected Bcc: emails */}
               <Flex
                 gap="4"
-                justifyContent="end"
+                flexWrap="wrap"
               >
                 {/* Display regular bcc emails */}
                 {bccEmails.map((email, index) => (
@@ -823,7 +831,7 @@ export const EmailSidebar = ({
                             onClick={() => {
                               setSelectedBcc((prevUsers) =>
                                 prevUsers.filter(
-                                  (item) => item && item.id !== user.id
+                                  (item) => item && item.email !== user.email
                                 )
                               );
                             }}

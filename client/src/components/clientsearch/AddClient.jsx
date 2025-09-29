@@ -15,6 +15,7 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, onUpdate, preFillName,
   const { backend } = useBackendContext();
 
   useEffect(() => {
+    console.log("preFillEmail", preFillEmail)
     if (preFillName) {
       setFirstName(preFillName.split(" ")[0]);
       setLastName(preFillName.split(" ").slice(1).join(" "));
@@ -30,9 +31,9 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, onUpdate, preFillName,
   useEffect(() => {
     setError(null);
     setProceedDelete(false);
-    if (mode !== "Edit") {
-      setEmailEntry("");
-    }
+    // if (mode !== "Edit") {
+    //   setEmailEntry("");
+    // }
   }, [isOpen]);
 
   const deleteClient = async () => {

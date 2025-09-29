@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
-import { Box, Flex, Icon, Input, Tag, TagLabel, InputGroup, InputRightElement } from "@chakra-ui/react";
-import { CloseFilledIcon } from "../../assets/CloseFilledIcon";
+import { useEffect, useRef, useState } from "react";
+import {
+  Box,
+  Input,
+  InputGroup,
+  InputRightElement,
+} from "@chakra-ui/react";
 import { PlusFilledIcon } from "../../assets/PlusFilledIcon";
 
 export const EmailDropdown = ({
@@ -13,22 +17,29 @@ export const EmailDropdown = ({
   setSearchTerm,
 }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest("#emailContainer")) {
-        setDropdownVisible(true);
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setDropdownVisible(false);
       }
     };
-
-    document.addEventListener("click", handleClickOutside);
+  
+    document.addEventListener("mousedown", handleClickOutside); // 👈 not "click"
     return () => {
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
+  useEffect(() => {
+    console.log("selectedUsers", selectedUsers)
+  }, [selectedUsers])
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   return (
-    <Box w="70%" id="emailContainer">
+    <Box w="100%" position="relative" ref={containerRef}>
       <InputGroup size="md" justifyContent="center">
         <Input
           placeholder="Email(s)"
@@ -37,8 +48,8 @@ export const EmailDropdown = ({
             setSearchTerm(e.target.value);
             setDropdownVisible(true);
           }}
+          onFocus={() => setDropdownVisible(true)}
           value={searchTerm}
-          id="emailInput"
           autoComplete="off"
           pr="2.5rem"
         />
@@ -47,77 +58,111 @@ export const EmailDropdown = ({
             as="button"
             onClick={() => {
               if (searchTerm && searchTerm.trim() !== "") {
-                const user = searchedUser && searchedUser.find(
-                  (u) => u && u.email && u.email.toLowerCase() === searchTerm.toLowerCase()
-                );
-                if (user && selectedUsers && !selectedUsers.some((u) => u.id === user.id)) {
+                const user =
+                  searchedUser &&
+                  searchedUser.find(
+                    (u) =>
+                      u &&
+                      u.email &&
+                      u.email.toLowerCase() === searchTerm.toLowerCase()
+                  );
+                if (
+                  user &&
+                  selectedUsers &&
+                  !selectedUsers.some((u) => u.id === user.id)
+                ) {
                   setSelectedUsers((prevItems) => [...(prevItems || []), user]);
+                }
+                else {
+                  setSelectedUsers((prevItems) => [...(prevItems || []), {email: searchTerm}]);
                 }
                 setSearchTerm("");
                 setSearchedUsers([]);
                 getUserResults("");
               }
+              
             }}
             disabled={
-              !searchTerm || searchTerm.trim() === "" ||
-              !searchedUser || !searchedUser.some(
-                (u) => u && u.email && u.email.toLowerCase() === searchTerm.toLowerCase()
-              )
+              !searchTerm || !emailRegex.test(searchTerm.trim())
             }
             cursor={
-              !searchTerm || searchTerm.trim() === "" ||
-              !searchedUser || !searchedUser.some(
-                (u) => u && u.email && u.email.toLowerCase() === searchTerm.toLowerCase()
-              )
-                ? "not-allowed" : "pointer"
+              !searchTerm ||
+              searchTerm.trim() === "" 
+              // !searchedUser ||
+              // !searchedUser.some(
+              //   (u) =>
+              //     u &&
+              //     u.email &&
+              //     u.email.toLowerCase() === searchTerm.toLowerCase()
+              // )
+                ? "not-allowed"
+                : "pointer"
             }
           >
             <PlusFilledIcon
               color={
-                searchTerm && searchTerm.trim() !== "" &&
-                searchedUser && searchedUser.some(
-                  (u) => u && u.email && u.email.toLowerCase() === searchTerm.toLowerCase()
-                )
-                  ? "#4441C8" : "#718096"
+                searchTerm &&
+                searchTerm.trim() !== ""
+                // searchedUser &&
+                // searchedUser.some(
+                //   (u) =>
+                //     u &&
+                //     u.email &&
+                //     u.email.toLowerCase() === searchTerm.toLowerCase()
+                // )
+                  ? "#4441C8"
+                  : "#718096"
               }
             />
           </Box>
         </InputRightElement>
       </InputGroup>
 
-      {dropdownVisible && searchedUser && searchedUser.length > 0 && searchTerm && searchTerm.length > 0 && (
+      {dropdownVisible && (
         <Box
-          id="emailDropdown"
+          position="absolute"  // ✅ absolute positioning
+          top="100%"            // ✅ directly below input
+          left="0"
           w="100%"
-          position="absolute"
-          zIndex="10"
+          zIndex="20"
           bg="white"
           boxShadow="md"
           borderRadius="md"
-          mt="1"
+          maxHeight="200px"
+          overflowY="auto"
         >
-          {searchedUser.map(
-            (user) => user && user.email && (
-              <Box
-                key={user.id}
-                onClick={() => {
-                  if (selectedUsers && !selectedUsers.some((u) => u.id === user.id)) {
-                    setSelectedUsers((prevItems) => [...(prevItems || []), user]);
-                  }
-                  setSearchTerm("");
-                  setDropdownVisible(false);
-                  setSearchedUsers([]);
-                }}
-                p="10px"
-                fontSize="16px"
-                cursor="pointer"
-                transition="0.2s"
-                bg="#F6F6F6"
-                _hover={{ bg: "#D9D9D9" }}
-              >
-                {user.email}
-              </Box>
-            )
+          {searchedUser.filter(
+              (user) =>
+                user &&
+                user.email &&
+                !selectedUsers.some((u) => u.id === user.id) // 👈 filter here
+            ).map(
+            (user) =>
+              user &&
+              user.email && (
+                <Box
+                  key={user.id}
+                  onClick={() => {
+                    if (
+                      selectedUsers &&
+                      !selectedUsers.some((u) => u.id === user.id)
+                    ) {
+                      setSelectedUsers((prevItems) => [...(prevItems || []), user]);
+                    }
+                    setSearchTerm("");
+                    // setSearchedUsers([]);   // clear dropdown instead of filtering
+                    setDropdownVisible(false); // also close the dropdown
+                  }}
+                  p="10px"
+                  fontSize="16px"
+                  cursor="pointer"
+                  transition="0.2s"
+                  bg="#F6F6F6"
+                  _hover={{ bg: "#D9D9D9" }}
+                >
+                  {user.email}
+                </Box>
+              )
           )}
         </Box>
       )}

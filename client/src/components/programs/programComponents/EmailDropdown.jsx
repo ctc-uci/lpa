@@ -142,9 +142,10 @@ export const EmailDropdown = ({emailSearchTerm, searchedEmails, selectedEmails, 
                         if (!email) {
                           // use addclient modal
                           setAddClientModalOpen(true);
+                        } else {
+                          setEmailSearchTerm("");
                         }
 
-                        setEmailSearchTerm("");
                         setSearchedEmails([]);
                         getEmailResults(")")
                       }

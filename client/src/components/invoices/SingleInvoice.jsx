@@ -35,6 +35,7 @@ import { InvoiceView } from "./InvoiceView";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
 import { useSessionStore } from "../../stores/useSessionStore";
 import { useSummaryStore } from "../../stores/useSummaryStore";
+import { getAllDue } from "../../utils/pastDueCalc";
 
 export const SingleInvoice = () => {
   const { id } = useParams();
@@ -153,42 +154,50 @@ export const SingleInvoice = () => {
 
         // const remainingBalanceCalculated =
         //   total - paidTotal > 0 ? total - paidTotal : 0;
-        // setRemainingBalance(remainingBalanceCalculated);
-        // setPastDue(remainingBalanceCalculated);
+// <<<<<<< 191-for-brendan
+//         // setRemainingBalance(remainingBalanceCalculated);
+//         // setPastDue(remainingBalanceCalculated);
 
-         // ==== PAST DUE CALCULATION ====
-         const unpaidInvoicesResponse = await backend.get(
-          "/events/remaining/" + currentInvoice.eventId
-        );
+//          // ==== PAST DUE CALCULATION ====
+//          const unpaidInvoicesResponse = await backend.get(
+//           "/events/remaining/" + currentInvoice.eventId
+//         );
 
-        // calculate sum of unpaid/remaining invoices
-        const unpaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/total/${invoice.id}`)
-          )
-        );
+//         // calculate sum of unpaid/remaining invoices
+//         const unpaidTotals = await Promise.all(
+//           unpaidInvoicesResponse.data.map((invoice) =>
+//             backend.get(`/invoices/total/${invoice.id}`)
+//           )
+//         );
         
-        const partiallyPaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/paid/${invoice.id}`)
-          )
-        );
+//         const partiallyPaidTotals = await Promise.all(
+//           unpaidInvoicesResponse.data.map((invoice) =>
+//             backend.get(`/invoices/paid/${invoice.id}`)
+//           )
+//         );
 
-        const unpaidTotal = unpaidTotals.reduce(
-          (sum, res) => sum + res.data.total,
-          0
-        );
-        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-          (sum, res) => {
-            return sum + Number(res.data.total); // Had to change to number because was causing NaN
-          },
-          0
-        );
+//         const unpaidTotal = unpaidTotals.reduce(
+//           (sum, res) => sum + res.data.total,
+//           0
+//         );
+//         const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+//           (sum, res) => {
+//             return sum + Number(res.data.total); // Had to change to number because was causing NaN
+//           },
+//           0
+//         );
 
-        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
-        setPastDue(remainingBalance);
+//         const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+//         setPastDue(remainingBalance);
 
-        // ==== END OF PAST DUE CALCULATION ====
+//         // ==== END OF PAST DUE CALCULATION ====
+// =======
+
+        const paidTotal = await getAllDue(backend, id);
+
+        setRemainingBalance(paidTotal);
+        setPastDue(paidTotal);
+// >>>>>>> main
 
         // get program name
         const programNameResponse = await backend.get(

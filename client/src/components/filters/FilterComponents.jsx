@@ -197,7 +197,8 @@ export const SessionStatusFilter = ({ value, onChange }) => {
 
   return (
     <FormControl>
-      <FormLabel color="#718096">Status</FormLabel>
+      <FormLabel color="#718096" marginBottom="1px">Status</FormLabel>
+      <Text color="#718096" paddingBottom="15px" fontSize="14px">Archived sessions are hidden, except in "Revise Sessions"</Text>
       <HStack alignItems="center">
         <ButtonGroup
           variant="outline"
@@ -239,7 +240,7 @@ export const SessionStatusFilter = ({ value, onChange }) => {
             />
             <Text ml="2">Past</Text>
           </RoundedButton>
-          <RoundedButton
+          {/* <RoundedButton
             onClick={() => handleStatusChange("archived")}
             isActive={localStatus === "archived"}
           >
@@ -250,7 +251,7 @@ export const SessionStatusFilter = ({ value, onChange }) => {
               boxSize="20px"
             />
             <Text ml="2">Archived</Text>
-          </RoundedButton>
+          </RoundedButton> */}
         </ButtonGroup>
       </HStack>
     </FormControl>
@@ -464,6 +465,8 @@ export const TimeFilter = ({ startTime, endTime, onChange }) => {
 export const RoomFilter = ({ roomMap, onChange, room }) => {
   const [localRoom, setLocalRoom] = useState(room);
 
+  console.log("roomMap in RoomFilter:", roomMap);
+
   useEffect(() => {
     setLocalRoom(room);
   }, [room]);
@@ -472,6 +475,10 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
     setLocalRoom(newRoom);
     onChange("room", newRoom);
   };
+
+  if (!roomMap || roomMap.size === 0) {
+    return null; // or a loading indicator
+  }
 
   return (
     <FormControl>
@@ -494,13 +501,13 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
         >
           All
         </RoundedButton>
-        {Array.from(roomMap.values()).map((roomName) => (
+        {Array.from(roomMap.values()).map((room) => (
           <RoundedButton
-            key={roomName}
-            onClick={() => handleRoomChange(roomName)}
-            isActive={localRoom === roomName}
+            key={room}
+            onClick={() => handleRoomChange(room)}
+            isActive={localRoom === room}
           >
-            {roomName}
+            {room}
           </RoundedButton>
         ))}
       </HStack>
