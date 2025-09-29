@@ -37,9 +37,11 @@ const generateWhereClause = (search, columns) => {
 clientsRouter.get("/search", async (req, res) => {
   try {
     const { searchTerm, columns } = req.query;
-    console.log("searchTerm", searchTerm);
     const search = searchTerm.split("+").join(" ");
-    const { searchWhereClause } = generateWhereClause(search, columns);
+    let searchWhereClause = '';
+    if (searchTerm !== '' && searchTerm !== ' ') {
+      ({ searchWhereClause } = generateWhereClause(search, columns));
+    }
 
     const query = `
       SELECT DISTINCT *
