@@ -51,7 +51,7 @@ export const useSummaryStore = create<SummaryStore>((set) => ({
   setSummaryTotal: (summaryTotal) => set(() => ({ summaryTotal })),
 
   // Total
-  setTotal: (total: Total, totalIndex: number) =>
+  setTotal: (total: Total) =>
     set((state) => ({
       summary: state.summary.map((s, idx) =>
         idx === 0

@@ -93,7 +93,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
                 if (idx === sessionIndex) {
                     return { 
                         ...s, 
-                        comments: (s.comments || []).filter((c, cidx) => cidx !== Number(commentIndex))
+                        comments: (s.comments || []).filter((_, cidx) => cidx !== Number(commentIndex))
                     }
                 }
                 return s;
@@ -128,7 +128,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     deleteCustomRow: (sessionIndex, totalIndex) => set((state) => ({
         sessions: state.sessions.map((s, idx) => {
             if (idx === sessionIndex) {
-                return { ...s, total: (s.total || []).filter((t, tidx) => tidx !== totalIndex) }
+                return { ...s, total: (s.total || []).filter((_, tidx) => tidx !== totalIndex) }
             }
             return s;
         }
