@@ -305,24 +305,32 @@ commentsRouter.get("/invoice/summary/:id", async (req, res) => {
       if (!groupedComments[bookingId]) {
         groupedComments[bookingId] = {
           ...comment,
-          comments: comment.comment ? [comment.comment] : [],
-          adjustmentValues: [{
+          comments: [],
+          adjustmentValues: [],
+          total: []
+        };
+
+        if (comment.adjustmentType !== "total") {
+          groupedComments[bookingId].adjustmentValues.push({
             id: comment.commentId,
             type: comment.adjustmentType,
-            value: comment.adjustmentValue,
-          }],
-          total: comment.adjustmentType === "total" ? [{
+            value: comment.adjustmentValue
+          });
+        }
+
+        if(comment.adjustmentType === "total"){
+          groupedComments[bookingId].total.push({
             id: comment.commentId,
             value: comment.adjustmentValue,
             comment: comment.comment,
             date: comment.datetime
-          }] : []
-        };
+          })
+        }
       } else {
         // Add comment if it's not empty
-        if (comment.comment && comment.adjustmentType !== "total") {
-          groupedComments[bookingId].comments.push(comment.comment);
-        }
+        // if (comment.comment && comment.adjustmentType !== "total") {
+        //   groupedComments[bookingId].comments.push(comment.comment);
+        // }
 
         // Add adjustment value if not already included
         const adjustmentExists = groupedComments[bookingId].adjustmentValues.some(
