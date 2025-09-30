@@ -350,6 +350,33 @@ export const ProgramSummary = ({
 
   const { nextSession, nextRoom } = safeBookingInfo;
 
+  const [invoiceId, setInvoiceId] = useState(null);
+  const [isLoadingInvoiceId, setIsLoadingInvoiceId] = useState(true);
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const invoiceResponse = await backend.get(`/invoices/event/${id}`)
+        // Get the invoice with the most recent start_date
+        if (invoiceResponse.data && invoiceResponse.data.length > 0) {
+          const mostRecentInvoice = invoiceResponse.data.reduce((latest, current) => {
+            const latestDate = new Date(latest.startDate);
+            const currentDate = new Date(current.startDate);
+            return currentDate > latestDate ? current : latest;
+          });
+          
+          setInvoiceId(mostRecentInvoice.id);
+        }
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+      } finally {
+        setIsLoadingInvoiceId(false);
+      }
+    };
+    fetchData();
+  }, [id]);
+
   return (
     <Box
       minH="10vh"
@@ -400,12 +427,10 @@ export const ProgramSummary = ({
                 align="center"
                 gap={2}
               >
-                <PDFButton
-                  leftIcon={<Icon as={DownloadIcon} />}
-                  fontWeight={"700"}
-                >
-                  Invoice
-                </PDFButton>
+                  <PDFButtonInvoice
+                    id={invoiceId}
+                    onlyIcon={true}
+                  />
                 {!isArchived ? (
                   <EditCancelPopup
                     handleEdit={handleEdit}
@@ -2246,40 +2271,43 @@ const MyDocument = ({ bookingData }) => {
   );
 };
 
-const PDFButton = () => {
-  const { backend } = useBackendContext();
-  // const [bookingData, setBookingData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { id } = useParams();
+// const PDFButton = () => {
+//   const { backend } = useBackendContext();
+//   const [invoiceId, setInvoiceId] = useState(null);
+//   // const [isLoading, setIsLoading] = useState(true);
+//   const { id } = useParams();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // const response = await backend.get("/bookings");
-        // setBookingData(Array.isArray(response.data) ? response.data : []);
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         const invoiceResponse = await backend.get(`/invoices/event/${id}`)
+        
+//         // Get the invoice with the most recent start_date
+//         if (invoiceResponse.data && invoiceResponse.data.length > 0) {
+//           const mostRecentInvoice = invoiceResponse.data.reduce((latest, current) => {
+//             const latestDate = new Date(latest.start_date);
+//             const currentDate = new Date(current.start_date);
+//             return currentDate > latestDate ? current : latest;
+//           });
+          
+//           setInvoiceId(mostRecentInvoice.id);
+//         }
+//       } catch (err) {
+//         console.error("Error fetching bookings:", err);
+//       }
+//     };
+//     fetchData();
+//   }, [backend, id]);
 
-        // console.log("id", id)
-        const eventsResponse = await backend.get(`/events/${id}`)
-        console.log("eventsResponse", eventsResponse);
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, [backend]);
-
-  // if (isLoading) return <div>Loading...</div>;
+//   // if (isLoading) return <div>Loading...</div>;
 
 
 
-  return (
-    <div>
-      {/* <PDFButtonInvoice
-        id={id}
-        onlyIcon={true}
-      /> */}
-    </div>
-  );
-};
+//   return (
+//     <div>
+//       <PDFButtonInvoice
+//         id={invoiceId}
+//       />
+//     </div>
+//   );
+// };

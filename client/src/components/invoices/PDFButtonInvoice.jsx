@@ -26,8 +26,6 @@ import { getPastDue } from "../../utils/pastDueCalc"
 const PDFButtonInvoice = ({
   id,
   onlyIcon = false,
-  hasUnsavedChanges = null,
-  handleOtherButtonClick = null,
 }) => {
   const [loading, setLoading] = useState(false);
   const [invoice, setInvoice] = useState(null);
@@ -158,16 +156,7 @@ const PDFButtonInvoice = ({
     <Box>
       {onlyIcon ? (
         <IconButton
-          onClick={(e) => {
-            e.stopPropagation();
-            if (hasUnsavedChanges) {
-              handleOtherButtonClick(() => {
-                handleDownload();
-              });
-            } else {
-              handleDownload();
-            }
-          }}
+          onClick={handleDownload}
           bg="transparent"
           icon={
             loading ? <Spinner size="sm" /> : <DownloadIcon boxSize="20px" />

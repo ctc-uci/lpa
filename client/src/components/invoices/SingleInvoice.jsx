@@ -438,8 +438,6 @@ export const SingleInvoice = () => {
             >
               <PDFButtonInvoice
                 id={id}
-                hasUnsavedChanges={hasUnsavedChanges}
-                handleOtherButtonClick={handleOtherButtonClick}
               />
               <Button
                 height={"40px"}
