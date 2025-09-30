@@ -24,6 +24,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { EmailSidebar } from "../email/EmailSidebar.jsx";
 import Navbar from "../navbar/Navbar";
 import { InvoiceView } from "./InvoiceView";
+import { getPastDue } from "../../utils/pastDueCalc";
 
 const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -160,32 +161,33 @@ export const SavedEdit = () => {
         // setSubtotal(subtotalResponse.data.total);
 
         // ==== PAST DUE CALCULATION ====
-        const unpaidInvoicesResponse = await backend.get(
-          "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
-        );
+        // const unpaidInvoicesResponse = await backend.get(
+        //   "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
+        // );
 
-        // calculate sum of unpaid/remaining invoices
-        const unpaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/total/${invoice.id}`)
-          )
-        );
-        const partiallyPaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/paid/${invoice.id}`)
-          )
-        );
-        const unpaidTotal = unpaidTotals.reduce(
-          (sum, res) => sum + res.data.total,
-          0
-        );
-        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-          (sum, res) => {
-            return sum + Number(res.data.total); // Had to change to number because was causing NaN
-          },
-          0
-        );
-        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        // // calculate sum of unpaid/remaining invoices
+        // const unpaidTotals = await Promise.all(
+        //   unpaidInvoicesResponse.data.map((invoice) =>
+        //     backend.get(`/invoices/total/${invoice.id}`)
+        //   )
+        // );
+        // const partiallyPaidTotals = await Promise.all(
+        //   unpaidInvoicesResponse.data.map((invoice) =>
+        //     backend.get(`/invoices/paid/${invoice.id}`)
+        //   )
+        // );
+        // const unpaidTotal = unpaidTotals.reduce(
+        //   (sum, res) => sum + res.data.total,
+        //   0
+        // );
+        // const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+        //   (sum, res) => {
+        //     return sum + Number(res.data.total); // Had to change to number because was causing NaN
+        //   },
+        //   0
+        // );
+        // const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        const remainingBalance = await getPastDue(backend, id);
         setPastDue(remainingBalance);
 
         // ==== END OF PAST DUE CALCULATION ====

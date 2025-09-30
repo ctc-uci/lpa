@@ -21,12 +21,13 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoicePDFDocument } from "./InvoicePDFDocument";
 import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
 import { useSessionStore } from "../../stores/useSessionStore";
+import { getPastDue } from "../../utils/pastDueCalc"
 
 const PDFButtonInvoice = ({
   id,
   onlyIcon = false,
-  hasUnsavedChanges,
-  handleOtherButtonClick,
+  hasUnsavedChanges = null,
+  handleOtherButtonClick = null,
 }) => {
   const [loading, setLoading] = useState(false);
   const [invoice, setInvoice] = useState(null);
@@ -57,31 +58,34 @@ const PDFButtonInvoice = ({
       backend.get(`/comments/invoice/summary/${id}`)
     ]);
 
-    const unpaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map((invoice) =>
-        backend.get(`/invoices/total/${invoice.id}`)
-      )
-    );
-    const partiallyPaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map((invoice) =>
-        backend.get(`/invoices/paid/${invoice.id}`)
-      )
-    );
+    // const unpaidTotals = await Promise.all(
+    //   unpaidInvoicesResponse.data.map((invoice) =>
+    //     backend.get(`/invoices/total/${invoice.id}`)
+    //   )
+    // );
+    // const partiallyPaidTotals = await Promise.all(
+    //   unpaidInvoicesResponse.data.map((invoice) =>
+    //     backend.get(`/invoices/paid/${invoice.id}`)
+    //   )
+    // );
 
-    const unpaidTotal = unpaidTotals.reduce(
-      (sum, res) => sum + res.data.total,
-      0
-    );
-    const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
-      return res.data.total ? sum + Number(res.data.total) : sum;
-    }, 0);
+    // const unpaidTotal = unpaidTotals.reduce(
+    //   (sum, res) => sum + res.data.total,
+    //   0
+    // );
+    // const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
+    //   return res.data.total ? sum + Number(res.data.total) : sum;
+    // }, 0);
 
     const totalCustomRow = summaryResponse.data[0]?.total?.reduce((acc, total) => {
       return acc + Number(total.value);
     }, 0);
 
 
-    const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal + totalCustomRow;
+    // const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal + totalCustomRow;
+
+    const remainingBalance = await getPastDue(backend, id);
+
 
     return {
       instructors: instructorResponse.data,

@@ -64,7 +64,7 @@ export const WeeklyRepeatingSchedule = ({ sessions }) => {
     }
   }
 
-  console.log(sessionsByDay);
+  // console.log(sessionsByDay);
   const finalSessionsByDay = {};
   for (const day in sessionsByDay) {
     const dayList = sessionsByDay[day];
@@ -76,7 +76,7 @@ export const WeeklyRepeatingSchedule = ({ sessions }) => {
     }
     finalSessionsByDay[day] = finalDayList;
   }
-  console.log(finalSessionsByDay);
+  // console.log(finalSessionsByDay);
 
   // Order days of week
   const daysOrder = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

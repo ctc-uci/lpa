@@ -11,6 +11,7 @@ import {
 import { Admin } from "./components/admin/Admin";
 import { EditBooking } from "./components/bookings/EditBooking";
 import { CatchAll } from "./components/CatchAll";
+import { NotFound } from "./components/NotFound";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { ForgotPassword } from "./components/forgotpassword/ForgotPassword";
 import { ForgotPasswordSent } from "./components/forgotpassword/ForgotPasswordSent";
@@ -242,6 +243,10 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/404"
+                  element={<NotFound />}
+                />
+                <Route
                   path="*"
                   element={
                     <ProtectedRoute
@@ -269,14 +274,14 @@ const App = () => {
                   }
                 />
 
-                {/* <Route
+                <Route
                   path="/pdftest"
                   element={
                     <ProtectedRoute
                       element={<TestPDFViewer id={45} />}
                     />
                   }
-                /> */}
+                />
               </Routes>
             </Router>
           </RoleProvider>

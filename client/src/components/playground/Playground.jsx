@@ -1,6 +1,6 @@
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import { getPastDue } from "../../utils/pastDueCalc";
+import { getPastDue, getAllDue } from "../../utils/pastDueCalc";
 import { Button } from "@chakra-ui/react";
 import { ClientsFilter } from "../filters/FilterComponents";
 import React from "react";
@@ -16,15 +16,18 @@ export const Playground = () => {
   const [selectedPayees, setSelectedPayees] = useState([]);
 
   const getDue = async () => {
-    const pastDue = await getPastDue(backend, 23);
-    console.log(pastDue);
+    const pastDue = await getPastDue(backend, 72);
+    window.alert(pastDue);
+  };
+  const getAll = async () => {
+    const allDue = await getAllDue(backend, 72);
+    window.alert(allDue);
   };
 
   return (
     <Navbar>
       <Button onClick={getDue}>Get Due</Button>
-      <ClientsFilter clientsList={[{name: 'one'}, {name: 'two'}, {name: 'three'}]} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} type={'email'} />
-      {/* <EmailDropdown emailSearchTerm={emailSearchTerm} searchedEmails={searchedEmails} selectedEmails={selectedEmails} setEmailSearchTerm={setEmailSearchTerm} setSelectedEmails={setSelectedEmails} setSearchedEmails={setSearchedEmails} setSelectedPayees={setSelectedPayees} freeEntryMode={true} /> */}
+      <Button onClick={getAll}>Get All Due</Button>
     </Navbar>
   );
 };

@@ -35,7 +35,7 @@ import { InvoiceView } from "./InvoiceView";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
 import { useSessionStore } from "../../stores/useSessionStore";
 import { useSummaryStore } from "../../stores/useSummaryStore";
-import { getAllDue } from "../../utils/pastDueCalc";
+import { getPastDue, getAllDue } from "../../utils/pastDueCalc";
 
 export const SingleInvoice = () => {
   const { id } = useParams();
@@ -106,10 +106,12 @@ export const SingleInvoice = () => {
         const currentInvoice = currentInvoiceResponse.data[0];
 
         // get invoice total
-        const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
-        const total = invoiceTotalResponse.data.total;
+        // const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
+        // const total = invoiceTotalResponse.data.total;
+        const total = await getPastDue(backend, id);
         setTotal(total);
         setSubtotal(total);
+        setPastDue(total);
 
         // // calculate sum of unpaid/remaining invoices
         // const unpaidInvoicesResponse = await backend.get(
@@ -196,7 +198,6 @@ export const SingleInvoice = () => {
         const paidTotal = await getAllDue(backend, id);
 
         setRemainingBalance(paidTotal);
-        setPastDue(paidTotal);
 // >>>>>>> main
 
         // get program name

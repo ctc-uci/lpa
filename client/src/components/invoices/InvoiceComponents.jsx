@@ -261,7 +261,7 @@ const InvoiceStats = ({
             fontSize="14px"
             fontWeight="500"
           >
-            {amountDue ? `$${Number(amountDue).toFixed(2)}` : "N/A"}
+            {amountDue ? `$${Number(amountDue).toFixed(2)}` : "$0.00"}
           </Text>
         </Box>
 
@@ -1292,12 +1292,12 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                 <Th paddingRight="8px">
                   <Text>SEASON</Text>
                 </Th>
-                <Th
+                {/* <Th
                   paddingLeft="8px"
                   paddingRight="8px"
                 >
                   <Text>DOWNLOADS</Text>
-                </Th>
+                </Th> */}
                 <Th>{/* Blank for edit button dropdown */}</Th>
               </Tr>
             </Thead>
@@ -1389,11 +1389,11 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                         {invoice.season}
                       </Tag>
                     </Td>
-                    <Td>
+                    {/* <Td>
                       <Flex ml="18px">
                         <PDFButtonInvoice onlyIcon={true} id={invoice.id} invoiceMonth={invoice.month} invoiceYear={invoice.year} programName={invoice.eventName} />
                       </Flex>
-                    </Td>
+                    </Td> */}
                     <td>
                       <Flex
                         width="100%"

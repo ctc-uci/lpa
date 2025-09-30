@@ -65,7 +65,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import { Edit, EllipsisIcon, FileTextIcon, Info } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import "./Program.css";
 
@@ -109,6 +109,7 @@ import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 import { deleteSessions } from "./utils";
+import { PDFButtonInvoice } from "../invoices/PDFButtonInvoice"
 
 const formatNamesList = (list = [], maxCharsPerLine) => {
   if (!Array.isArray(list) || list.length === 0) return "None";
@@ -2247,14 +2248,19 @@ const MyDocument = ({ bookingData }) => {
 
 const PDFButton = () => {
   const { backend } = useBackendContext();
-  const [bookingData, setBookingData] = useState(null);
+  // const [bookingData, setBookingData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { id } = useParams();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await backend.get("/bookings");
-        setBookingData(Array.isArray(response.data) ? response.data : []);
+        // const response = await backend.get("/bookings");
+        // setBookingData(Array.isArray(response.data) ? response.data : []);
+
+        // console.log("id", id)
+        const eventsResponse = await backend.get(`/events/${id}`)
+        console.log("eventsResponse", eventsResponse);
       } catch (err) {
         console.error("Error fetching bookings:", err);
       } finally {
@@ -2264,28 +2270,16 @@ const PDFButton = () => {
     fetchData();
   }, [backend]);
 
-  if (isLoading) return <div>Loading...</div>;
+  // if (isLoading) return <div>Loading...</div>;
+
+
 
   return (
     <div>
-      <PDFDownloadLink
-        document={<MyDocument bookingData={bookingData} />}
-        fileName="bookingdata.pdf"
-      >
-        <Button
-          leftIcon={<Icon as={DownloadIcon} />}
-          colorScheme="purple"
-          size="sm"
-          display="flex"
-          height="40px"
-          padding="0px 16px"
-          borderRadius="6px"
-          background={"var(--Primary-5-Default, #4441C8)"}
-          _hover={{ bg: "#312E8A" }}
-        >
-          Invoice
-        </Button>
-      </PDFDownloadLink>
+      {/* <PDFButtonInvoice
+        id={id}
+        onlyIcon={true}
+      /> */}
     </div>
   );
 };

@@ -41,6 +41,7 @@ import { useSessionStore } from "../../stores/useSessionStore";
 import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
 import { useDeletedIdsStore } from "../../stores/useDeletedIdsStore";
 import { useSummaryStore } from "../../stores/useSummaryStore";
+import { getPastDue } from "../../utils/pastDueCalc";
 
 const InvoiceNavBar = ({
   onBack,
@@ -226,32 +227,34 @@ export const EditInvoice = () => {
         setEditedSubtotal(subtotalResponse.data.total);
 
         // get the unpaid/remaining invoices
-        const unpaidInvoicesResponse = await backend.get(
-          "/events/remaining/" + invoice.data[0]["eventId"]
-        );
+        // const unpaidInvoicesResponse = await backend.get(
+        //   "/events/remaining/" + invoice.data[0]["eventId"]
+        // );
 
-        // calculate sum of unpaid/remaining invoices
-        const unpaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/total/${invoice.id}`)
-          )
-        );
-        const partiallyPaidTotals = await Promise.all(
-          unpaidInvoicesResponse.data.map((invoice) =>
-            backend.get(`/invoices/paid/${invoice.id}`)
-          )
-        );
-        const unpaidTotal = unpaidTotals.reduce(
-          (sum, res) => sum + res.data.total,
-          0
-        );
-        const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
-          (sum, res) => {
-            return sum + Number(res.data.total);
-          },
-          0
-        );
-        const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+        // // calculate sum of unpaid/remaining invoices
+        // const unpaidTotals = await Promise.all(
+        //   unpaidInvoicesResponse.data.map((invoice) =>
+        //     backend.get(`/invoices/total/${invoice.id}`)
+        //   )
+        // );
+        // const partiallyPaidTotals = await Promise.all(
+        //   unpaidInvoicesResponse.data.map((invoice) =>
+        //     backend.get(`/invoices/paid/${invoice.id}`)
+        //   )
+        // );
+        // const unpaidTotal = unpaidTotals.reduce(
+        //   (sum, res) => sum + res.data.total,
+        //   0
+        // );
+        // const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce(
+        //   (sum, res) => {
+        //     return sum + Number(res.data.total);
+        //   },
+        //   0
+        // );
+        // const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+
+        const remainingBalance = await getPastDue(backend, id);
         
         setPastDue(remainingBalance);
 

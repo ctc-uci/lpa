@@ -104,7 +104,11 @@ const EditInvoiceTitle = ({ sessions }) => {
             INVOICE
           </Text>
           <Text style={{ color: "#718096", fontSize: "12px" }}>
-            Generated on {getGeneratedDate(sessions, true)}
+            Generated on {(new Date()).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
           </Text>
         </View>
 

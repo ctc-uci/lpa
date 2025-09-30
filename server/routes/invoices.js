@@ -409,6 +409,11 @@ invoicesRouter.get("/total/:id", async (req, res) => {
       [id]
     );
 
+    const invoiceTotalAdjustments = await db.query(
+      "SELECT * FROM comments WHERE adjustment_type = 'total' AND invoice_id = $1 AND booking_id IS NULL",
+      [id]
+    );
+
     const bookingCosts = await Promise.all(
       bookings.map(async (booking) => {
         const roomRateBooking = await db.query(
@@ -473,6 +478,8 @@ invoicesRouter.get("/total/:id", async (req, res) => {
         totalCost += Number(comment.adjustment_value);
       }
     });
+
+    totalCost += invoiceTotalAdjustments.reduce((acc, comment) => acc + Number(comment.adjustment_value), 0);
 
     const result = {
       total: totalCost,
