@@ -309,6 +309,35 @@ export const ProgramSummary = ({
     ...(bookingInfo || {}),
   };
 
+  const { nextSession, nextRoom } = safeBookingInfo;
+
+  const [invoiceId, setInvoiceId] = useState(null);
+  const [isLoadingInvoiceId, setIsLoadingInvoiceId] = useState(true);
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const invoiceResponse = await backend.get(`/invoices/event/${id}`)
+        // Get the invoice with the most recent start_date
+        if (invoiceResponse.data && invoiceResponse.data.length > 0) {
+          const mostRecentInvoice = invoiceResponse.data.reduce((latest, current) => {
+            const latestDate = new Date(latest.startDate);
+            const currentDate = new Date(current.startDate);
+            return currentDate > latestDate ? current : latest;
+          });
+          
+          setInvoiceId(mostRecentInvoice.id);
+        }
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+      } finally {
+        setIsLoadingInvoiceId(false);
+      }
+    };
+    fetchData();
+  }, [id]);
+
   // Make sure program data is fetched before rendering
   if (!program || program.length === 0) {
     return (
@@ -347,35 +376,6 @@ export const ProgramSummary = ({
       </Box>
     );
   }
-
-  const { nextSession, nextRoom } = safeBookingInfo;
-
-  const [invoiceId, setInvoiceId] = useState(null);
-  const [isLoadingInvoiceId, setIsLoadingInvoiceId] = useState(true);
-  const { id } = useParams();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const invoiceResponse = await backend.get(`/invoices/event/${id}`)
-        // Get the invoice with the most recent start_date
-        if (invoiceResponse.data && invoiceResponse.data.length > 0) {
-          const mostRecentInvoice = invoiceResponse.data.reduce((latest, current) => {
-            const latestDate = new Date(latest.startDate);
-            const currentDate = new Date(current.startDate);
-            return currentDate > latestDate ? current : latest;
-          });
-          
-          setInvoiceId(mostRecentInvoice.id);
-        }
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-      } finally {
-        setIsLoadingInvoiceId(false);
-      }
-    };
-    fetchData();
-  }, [id]);
 
   return (
     <Box
