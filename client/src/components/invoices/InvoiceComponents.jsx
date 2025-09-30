@@ -119,7 +119,7 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
         fontWeight="bold"
         marginRight="0.5rem"
       >
-        {title}
+        {title && title.length > 40 ? title.substring(0, 40) + "..." : title}
       </Text>
 
       <Flex gap={2}>
