@@ -32,10 +32,6 @@ export const EmailDropdown = ({
     };
   }, []);
 
-  useEffect(() => {
-    console.log("selectedUsers", selectedUsers)
-  }, [selectedUsers])
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   return (

@@ -33,6 +33,8 @@ import { ConfirmEmailModal } from "./ConfirmEmailModal";
 import { DiscardEmailModal } from "./DiscardEmailModal";
 import { EmailInput } from "./EmailInput.jsx";
 import { sendSaveEmail } from "./utils.jsx";
+import { useSessionStore } from "../../stores/useSessionStore";
+import { getPastDue } from "../../utils/pastDueCalc";
 
 export const EmailSidebar = ({
   isOpen,
@@ -43,6 +45,7 @@ export const EmailSidebar = ({
 }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
+  const { sessions } = useSessionStore();
   const [title, setTitle] = useState(pdf_title);
   const [toInput, setToInput] = useState("");
   const [ccInput, setCcInput] = useState("");
@@ -394,110 +397,79 @@ export const EmailSidebar = ({
     return total;
   };
 
-  const fetchInvoiceData = async (invoice, backend, id) => {
-    const eventId = invoice?.data[0]?.eventId;
+  const getGeneratedDate = (sessions = [], includeDay = true) => {
+    if (sessions.length === 0) {
+      return "No Date Found";
+    }
+  
+    const latestSession = sessions.slice().sort(
+      (a, b) => new Date(b.datetime) - new Date(a.datetime)
+    )[0];
+  
+    // Create date and adjust for timezone using the same pattern as EditInvoice.jsx
+    const latestDate = new Date(latestSession.datetime);
+    latestDate.setMinutes(
+      latestDate.getMinutes() + latestDate.getTimezoneOffset()
+    );
+  
+    const month = latestDate.toLocaleString("default", { month: "long" });
+    const day = latestDate.getDate();
+    const year = latestDate.getFullYear();
+  
+    return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
+  };
+
+  const fetchInvoiceData = async () => {
+    const eventId = invoice.data[0].eventId;
 
     const [
       instructorResponse,
-      commentsResponse,
       programNameResponse,
       payeesResponse,
-      unpaidInvoicesResponse,
-      sessionResponse,
-      summaryResponse,
+      summaryResponse
     ] = await Promise.all([
       backend.get(`/assignments/instructors/${eventId}`),
-      backend.get(`/comments/invoice/${id}`),
       backend.get(`/events/${eventId}`),
       backend.get(`/invoices/payees/${id}`),
-      backend.get(`/events/remaining/${eventId}`),
-      backend.get(`/comments/invoice/sessions/${id}`),
-      backend.get(`/comments/invoice/summary/${id}`),
+      backend.get(`/comments/invoice/summary/${id}`)
     ]);
 
-    const comments = commentsResponse.data;
-    const sessions = sessionResponse.data;
-    const summary = summaryResponse.data;
 
-    let booking = {};
-    let room = [];
-
-    if (comments.length > 0 && comments[0].bookingId) {
-      const bookingResponse = await backend.get(
-        `/bookings/${comments[0].bookingId}`
-      );
-      booking = bookingResponse.data[0];
-
-      const roomResponse = await backend.get(`/rooms/${booking.roomId}`);
-      room = roomResponse.data;
-    }
-
-    const unpaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map((invoice) =>
-        backend.get(`/invoices/total/${invoice.id}`)
-      )
-    );
-    const partiallyPaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map((invoice) =>
-        backend.get(`/invoices/paid/${invoice.id}`)
-      )
-    );
-
-    const unpaidTotal = unpaidTotals.reduce(
-      (sum, res) => sum + res.data.total,
-      0
-    );
-    const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
-      return res.data.total ? sum + Number(res.data.total) : sum;
+    const totalCustomRow = summaryResponse.data[0]?.total?.reduce((acc, total) => {
+      return acc + Number(total.value);
     }, 0);
 
-    const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
 
-    let subtotalSum = 0;
-    if (
-      comments.length &&
-      booking.startTime &&
-      booking.endTime &&
-      room[0]?.rate
-    ) {
-      const total = handleSubtotalSum(
-        booking.startTime,
-        booking.endTime,
-        room[0].rate
-      );
-      subtotalSum = parseFloat(total) * comments.length;
-    }
+    const remainingBalance = await getPastDue(backend, id);
 
     return {
       instructors: instructorResponse.data,
       programName: programNameResponse.data[0].name,
       payees: payeesResponse.data,
-      comments,
-      booking,
-      room,
-      remainingBalance,
-      subtotalSum,
-      id,
-      sessions,
-      summary,
-    };
+      remainingBalance: remainingBalance,
+      summary: summaryResponse.data[0],
+      totalCustomRow: totalCustomRow,
+    }
+
   };
 
   const handleEmailClick = async () => {
-    const invoiceData = await fetchInvoiceData(invoice, backend, id);
-    sendSaveEmail(
+    const invoiceData = await fetchInvoiceData();
+
+    await sendSaveEmail(
       setLoading,
       setisConfirmModalOpen,
       invoice,
-      pdf_title,
       invoiceData,
+      sessions,
       selectedInstructors.map((user) => user.email),
       title,
       message,
       selectedCc.map((user) => user.email),
       selectedBcc.map((user) => user.email),
       backend,
-      id
+      id,
+      pdf_title
     );
   };
 

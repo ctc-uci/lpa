@@ -1,54 +1,59 @@
 import { pdf } from "@react-pdf/renderer";
 
 import { InvoicePDFDocument } from "../invoices/InvoicePDFDocument.jsx";
+import { getPastDue } from "../../utils/pastDueCalc";
+
 
 export const sendSaveEmail = async (
   setLoading,
   setisConfirmModalOpen,
   invoice,
-  pdf_title,
   invoiceData,
+  sessions,
   emails,
   title,
   message,
   ccEmails,
   bccEmails,
   backend,
-  id
+  id,
+  pdf_title
 ) => {
-  setLoading(true);
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  const blob = await makeBlob(invoice, invoiceData);
-  await sendEmail(
-    backend,
-    blob,
-    pdf_title,
-    setLoading,
-    emails,
-    title,
-    message,
-    ccEmails,
-    bccEmails
-  );
-  await saveEmail(backend, blob, pdf_title, id);
+  try {
+    setLoading(true);
+    
+    const safeSessions = Array.isArray(sessions) ? sessions : [];
 
-  setisConfirmModalOpen(true);
-  setLoading(false);
+    const blob = await pdf(
+      <InvoicePDFDocument
+            sessions={safeSessions}
+            invoice={invoice}
+            {...invoiceData}
+          />
+    ).toBlob();
+
+    await sendEmail(
+      backend,
+      blob,
+      pdf_title,
+      setLoading,
+      emails,
+      title,
+      message,
+      ccEmails,
+      bccEmails
+    );
+    await saveEmail(backend, blob, pdf_title, id);
+   
+    setisConfirmModalOpen(true);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  } finally {
+    setLoading(false);
+  }
 };
 
-const makeBlob = async (invoice, invoiceData) => {
-  const pdfDocument = (
-    <InvoicePDFDocument
-      invoice={invoice}
-      {...invoiceData}
-    />
-  );
-
-  const blob = await pdf(pdfDocument).toBlob();
-  return blob;
-};
-
-const sendEmail = async (
+export const sendEmail = async (
   backend,
   blob,
   pdf_title,
@@ -72,7 +77,6 @@ const sendEmail = async (
 
       const response = await backend.post("/email/send", formData);
 
-      // console.log("Email sent successfully!", response.data);
     }
   } catch (error) {
     console.error("Error sending email:", error);
@@ -81,7 +85,7 @@ const sendEmail = async (
   }
 };
 
-const saveEmail = async (backend, blob, pdf_title, id) => {
+export const saveEmail = async (backend, blob, pdf_title, id) => {
   try {
     if (blob) {
       const formData = new FormData();

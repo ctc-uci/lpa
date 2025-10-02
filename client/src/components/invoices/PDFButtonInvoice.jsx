@@ -56,34 +56,13 @@ const PDFButtonInvoice = ({
       backend.get(`/comments/invoice/summary/${id}`)
     ]);
 
-    // const unpaidTotals = await Promise.all(
-    //   unpaidInvoicesResponse.data.map((invoice) =>
-    //     backend.get(`/invoices/total/${invoice.id}`)
-    //   )
-    // );
-    // const partiallyPaidTotals = await Promise.all(
-    //   unpaidInvoicesResponse.data.map((invoice) =>
-    //     backend.get(`/invoices/paid/${invoice.id}`)
-    //   )
-    // );
-
-    // const unpaidTotal = unpaidTotals.reduce(
-    //   (sum, res) => sum + res.data.total,
-    //   0
-    // );
-    // const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
-    //   return res.data.total ? sum + Number(res.data.total) : sum;
-    // }, 0);
 
     const totalCustomRow = summaryResponse.data[0]?.total?.reduce((acc, total) => {
       return acc + Number(total.value);
     }, 0);
 
 
-    // const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal + totalCustomRow;
-
     const remainingBalance = await getPastDue(backend, id);
-
 
     return {
       instructors: instructorResponse.data,
@@ -229,26 +208,7 @@ const TestPDFViewer = ({ id }) => {
       backend.get(`/comments/invoice/summary/${id}`)
     ]);
 
-    const unpaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map((invoice) =>
-        backend.get(`/invoices/total/${invoice.id}`)
-      )
-    );
-    const partiallyPaidTotals = await Promise.all(
-      unpaidInvoicesResponse.data.map((invoice) =>
-        backend.get(`/invoices/paid/${invoice.id}`)
-      )
-    );
-
-    const unpaidTotal = unpaidTotals.reduce(
-      (sum, res) => sum + res.data.total,
-      0
-    );
-    const unpaidPartiallyPaidTotal = partiallyPaidTotals.reduce((sum, res) => {
-      return res.data.total ? sum + Number(res.data.total) : sum;
-    }, 0);
-
-    const remainingBalance = unpaidTotal - unpaidPartiallyPaidTotal;
+    const remainingBalance = await getPastDue(backend, id);
 
     const totalCustomRow = summaryResponse.data[0]?.total?.reduce((acc, total) => {
       return acc + Number(total.value);
