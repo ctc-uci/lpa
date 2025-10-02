@@ -612,6 +612,7 @@ invoicesRouter.post(
 
     // Upload an invoice PDF to S3, returning the viewable URL
     try {
+      console.error('REACHED BACKEND')
       const file = req.file;
       const { id } = req.params;
       const { comment } = req.body;
@@ -621,7 +622,6 @@ invoicesRouter.post(
       }
 
       // Upload to S3
-      console.log('Uploading PDF to S3');
       const fileURL = await uploadPDF(file);
 
       // Store the file URL in the database
