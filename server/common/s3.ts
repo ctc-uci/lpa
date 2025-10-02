@@ -26,14 +26,16 @@ const s3 = new aws.S3({
 });
 
 const getS3UploadURL = async () => {
-  // generate a unique name for image
-  const fileName = crypto.randomBytes(16).toString("hex");
+  // generate a unique name for PDF
+  const fileName = crypto.randomBytes(16).toString("hex") + ".pdf";
 
-  // set up s3 params
+  // set up s3 params with proper content type and method
   const params = {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: fileName,
     Expires: 60,
+    ContentType: 'application/pdf',
+    ACL: 'public-read'
   };
 
   // get a s3 upload url
@@ -42,28 +44,34 @@ const getS3UploadURL = async () => {
   return uploadURL;
 };
 
-const uploadPDF = async (file: Buffer) => {
-  const uploadURL = await getS3UploadURL();
+const uploadPDF = async (file) => {
+  try {
+    // Generate a unique filename
+    const fileName = crypto.randomBytes(16).toString("hex") + ".pdf";
+    
+    console.log('Uploading PDF to S3:', {
+      bucket: process.env.S3_BUCKET_NAME,
+      key: fileName,
+      fileSize: file.buffer.length,
+      environment: process.env.NODE_ENV
+    });
 
-  const response = await fetch(uploadURL, {
-    method: 'PUT',
-    body: file.buffer,
-    headers: {
-      'Content-Type': 'application/pdf'
-    }
-  });
+    // Upload directly using AWS SDK
+    const uploadParams = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: fileName,
+      Body: file.buffer,
+      ContentType: 'application/pdf',
+      ACL: 'public-read'
+    };
 
-  let fileURL = ""
-  console.error('Response:', response);
-  if (response.ok) {
-    // The URL where your PDF is now accessible (remove the query parameters)
-    fileURL = uploadURL.split('?')[0] || "";
-    console.log('PDF uploaded successfully to:', fileURL);
-  } else {
-    console.error('Failed to upload PDF:', response.statusText);
-    throw new Error('Failed to upload PDF');
+    const result = await s3.upload(uploadParams).promise();
+    console.log('PDF uploaded successfully to:', result.Location);
+    return result.Location;
+  } catch (error) {
+    console.error('S3 upload error:', error);
+    throw new Error(`Failed to upload PDF: ${error.message}`);
   }
-  return fileURL;
 }
 
 export { s3, uploadPDF };
