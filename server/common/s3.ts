@@ -44,37 +44,40 @@ const getS3UploadURL = async () => {
   return uploadURL;
 };
 
-const uploadPDF = async (file: Buffer) => {
+const uploadPDF = async (file) => {
   try {
-    const uploadURL = await getS3UploadURL();
-    console.log('Generated upload URL:', uploadURL);
-
-    const response = await fetch(uploadURL, {
-      method: 'PUT',
-      body: file.buffer,
-      headers: {
-        'Content-Type': 'application/pdf'
-      }
+    // Generate a unique filename
+    const fileName = crypto.randomBytes(16).toString("hex") + ".pdf";
+    
+    console.log('S3 Configuration:', {
+      region: region,
+      bucket: process.env.S3_BUCKET_NAME,
+      hasAccessKey: !!accessKeyId,
+      hasSecretKey: !!secretAccessKey
     });
 
-    console.log('S3 Response status:', response.status);
-    console.log('S3 Response statusText:', response.statusText);
+    // Upload directly using AWS SDK
+    const uploadParams = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: fileName,
+      Body: file.buffer,
+      ContentType: 'application/pdf',
+      ACL: 'public-read'
+    };
 
-    let fileURL = ""
-    if (response.ok) {
-      // The URL where your PDF is now accessible (remove the query parameters)
-      fileURL = uploadURL.split('?')[0] || "";
-      console.log('PDF uploaded successfully to:', fileURL);
-    } else {
-      const errorText = await response.text();
-      console.error('Failed to upload PDF:', response.statusText);
-      console.error('Error response body:', errorText);
-      throw new Error(`Failed to upload PDF: ${response.statusText} - ${errorText}`);
-    }
-    return fileURL;
+    console.log('Uploading to S3 with params:', {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: fileName,
+      ContentType: 'application/pdf',
+      BodySize: file.buffer.length
+    });
+
+    const result = await s3.upload(uploadParams).promise();
+    console.log('PDF uploaded successfully to:', result.Location);
+    return result.Location;
   } catch (error) {
-    console.error('Upload error:', error);
-    throw error;
+    console.error('S3 upload error:', error);
+    throw new Error(`Failed to upload PDF: ${error.message}`);
   }
 }
 
