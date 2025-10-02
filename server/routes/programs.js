@@ -138,9 +138,9 @@ programsRouter.post("/archive/:eventId", async (req, res) => {
     const { eventId } = req.params;
     const { reason, firebaseUid } = req.body;
 
-    if (reason === null || reason === undefined) {
-      reason = "";
-    }
+    // if (reason === null || reason === undefined) {
+    //   reason = "";
+    // }
 
     // Calculate the total cost of the program
     const totalCost = await cancelProgramFeeCalculation(db, eventId);
