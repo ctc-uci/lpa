@@ -17,6 +17,18 @@ const secretAccessKey =
     ? process.env.DEV_SECRET_ACCESS_KEY
     : process.env.PROD_S3_SECRET_ACCESS_KEY;
 
+// Set AWS SDK to load config from environment
+process.env.AWS_SDK_LOAD_CONFIG = "1";
+
+// Verify credentials are available
+if (!accessKeyId || !secretAccessKey) {
+  console.error('AWS credentials missing:', {
+    accessKeyId: !!accessKeyId,
+    secretAccessKey: !!secretAccessKey,
+    environment: process.env.NODE_ENV
+  });
+}
+
 // initialize a S3 instance
 const s3 = new aws.S3({
   region,
@@ -46,6 +58,15 @@ const getS3UploadURL = async () => {
 
 const uploadPDF = async (file) => {
   try {
+    // Check credentials before attempting upload
+    if (!accessKeyId || !secretAccessKey) {
+      throw new Error('AWS credentials not configured. Please check environment variables.');
+    }
+
+    if (!process.env.S3_BUCKET_NAME) {
+      throw new Error('S3 bucket name not configured.');
+    }
+
     // Generate a unique filename
     const fileName = crypto.randomBytes(16).toString("hex") + ".pdf";
     
@@ -53,7 +74,8 @@ const uploadPDF = async (file) => {
       region: region,
       bucket: process.env.S3_BUCKET_NAME,
       hasAccessKey: !!accessKeyId,
-      hasSecretKey: !!secretAccessKey
+      hasSecretKey: !!secretAccessKey,
+      environment: process.env.NODE_ENV
     });
 
     // Upload directly using AWS SDK
@@ -77,7 +99,17 @@ const uploadPDF = async (file) => {
     return result.Location;
   } catch (error) {
     console.error('S3 upload error:', error);
-    throw new Error(`Failed to upload PDF: ${error.message}`);
+    
+    // Provide more specific error messages
+    if (error.code === 'CredentialsError') {
+      throw new Error('AWS credentials are invalid or expired. Please check your environment variables.');
+    } else if (error.code === 'NoSuchBucket') {
+      throw new Error(`S3 bucket '${process.env.S3_BUCKET_NAME}' does not exist.`);
+    } else if (error.code === 'AccessDenied') {
+      throw new Error('Access denied to S3 bucket. Please check your AWS permissions.');
+    } else {
+      throw new Error(`Failed to upload PDF: ${error.message}`);
+    }
   }
 }
 
