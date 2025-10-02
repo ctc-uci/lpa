@@ -172,10 +172,10 @@ export const EditProgram = () => {
 
   const saveEvent = async () => {
     try {
-      console.log("Newly added event name:", eventName);
-      console.log("Newly added Description:", generalInformation);
-      console.log("Newly added Selected Instructors:", selectedInstructors);
-      console.log("Newly added Selected Payees:", selectedPayees);
+      // console.log("Newly added event name:", eventName);
+      // console.log("Newly added Description:", generalInformation);
+      // console.log("Newly added Selected Instructors:", selectedInstructors);
+      // console.log("Newly added Selected Payees:", selectedPayees);
 
       await backend.put("/events/" + id, {
         name: eventName,
@@ -184,9 +184,9 @@ export const EditProgram = () => {
       });
 
       await deleteAllAssignments();
-      console.log("Selected instructors: ", selectedInstructors);
-      console.log("Selected payees: ", selectedPayees);
-      console.log("Assigning instructors...");
+      // console.log("Selected instructors: ", selectedInstructors);
+      // console.log("Selected payees: ", selectedPayees);
+      // console.log("Assigning instructors...");
       for (const instructor of selectedInstructors) {
         await backend.post("/assignments", {
           eventId: id,
@@ -202,7 +202,7 @@ export const EditProgram = () => {
           role: "payee",
         });
       }
-      console.log("Save complete, navigating away...");
+      // console.log("Save complete, navigating away...");
     } catch (error) {
       console.error("Error updating sessions", error);
     }

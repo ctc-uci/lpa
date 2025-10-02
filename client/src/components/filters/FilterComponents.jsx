@@ -465,7 +465,7 @@ export const TimeFilter = ({ startTime, endTime, onChange }) => {
 export const RoomFilter = ({ roomMap, onChange, room }) => {
   const [localRoom, setLocalRoom] = useState(room);
 
-  console.log("roomMap in RoomFilter:", roomMap);
+  // console.log("roomMap in RoomFilter:", roomMap);
 
   useEffect(() => {
     setLocalRoom(room);
@@ -544,7 +544,7 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
       newSelectedInstructors = selectedInstructors.filter((a) => a !== artist);
     } else {
       newSelectedInstructors = [...selectedInstructors, artist];
-      console.log("new selected:", newSelectedInstructors);
+      // console.log("new selected:", newSelectedInstructors);
     }
     setSelectedInstructors(newSelectedInstructors);
     if (type === "lead") {
@@ -664,17 +664,17 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                         (instr) => instr.id === instructor.id
                       )
                     ) {
-                      console.log("instructor", instructor);
+                      // console.log("instructor", instructor);
                       setSelectedInstructors((prevItems) => [
                         ...prevItems,
                         instructor,
                       ]);
                       handleLeadArtistChange(instructor);
                     }
-                    console.log(
-                      "Selected Instructors is now",
-                      selectedInstructors
-                    );
+                    // console.log(
+                    //   "Selected Instructors is now",
+                    //   selectedInstructors
+                    // );
                     setInstructorSearchTerm(""); // reset search
                     // Don't reset searched instructors, just refresh them without selected ones
                     const availableClients = clientsList.filter(
@@ -696,10 +696,10 @@ export const ClientsFilter = ({ clientsList, value, onChange, type }) => {
                         (instr) => instr.id === instructor.id
                       )
                     ) {
-                      console.log(
-                        "Adding first instructor from list:",
-                        instructor
-                      );
+                      // console.log(
+                      //   "Adding first instructor from list:",
+                      //   instructor
+                      // );
                       setSelectedInstructors((prevItems) => [
                         ...prevItems,
                         instructor,

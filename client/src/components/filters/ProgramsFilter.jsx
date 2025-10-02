@@ -159,7 +159,7 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         filtered = filtered.filter(program => {
           if (program.upcomingTime !== "N/A") {
             const [start] = program.upcomingTime.split(" - ");
-            console.log("Comparing start:", start, "with", filters.startTime);
+            // console.log("Comparing start:", start, "with", filters.startTime);
             return isTimeAfter(start, filters.startTime) || compareTimeStrings(start, filters.startTime) === 0;
           }
           return false;
@@ -171,7 +171,7 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         filtered = filtered.filter(program => {
           if (program.upcomingTime !== "N/A") {
             const [, end] = program.upcomingTime.split(" - ");
-            console.log("Comparing end:", end, "with", filters.endTime);
+            // console.log("Comparing end:", end, "with", filters.endTime);
             return isTimeBefore(end, filters.endTime) || compareTimeStrings(end, filters.endTime) === 0;
           }
           return false;
@@ -212,7 +212,7 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       }
 
       setFilteredPrograms(filtered);
-      console.log("Filtered Programs: ", filtered);
+      // console.log("Filtered Programs: ", filtered);
     };
 
     const resetFilter = (type, value) => {

@@ -5,7 +5,7 @@ export const generateRecurringSessions = (
   startDate,
   endDate
 ) => {
-  console.log("recurringSession GEN GEN ERATE: ", recurringSession);
+  // console.log("recurringSession GEN GEN ERATE: ", recurringSession);
 
   const sessions = [];
   const currentTimezoneDate = new Date(
@@ -64,7 +64,7 @@ export const generateRecurringSessions = (
       year = currentTimezoneDate.getFullYear();
       month = currentTimezoneDate.getMonth(); // 0-11
 
-      console.log("month date");
+      // console.log("month date");
 
       while (true) {
         // Construct candidate date in UTC
@@ -139,7 +139,7 @@ export const generateRecurringSessions = (
       // recurringSession.dayOfWeek: 1 (Sun) to 7 (Sat). JS Date: 0 (Sun) to 6 (Sat).
       const targetJsDayOfWeek = recurringSession.dayOfWeek - 1;
 
-      console.log("month weekday");
+      // console.log("month weekday");
       year = currentTimezoneDate.getFullYear();
       month = currentTimezoneDate.getMonth(); // 0-11
 
@@ -436,7 +436,7 @@ export const updateSessions = async (updatedSessions, id, backend) => {
     roomId: s.roomId,
     visibility: s.archived ? "private" : "default"
   }));
-  console.log("gcalFormat: ", gcalFormat);
+  // console.log("gcalFormat: ", gcalFormat);
   if (gcalFormat.length > 0) {
     await batchUpdateBookings(gcalFormat);
   }

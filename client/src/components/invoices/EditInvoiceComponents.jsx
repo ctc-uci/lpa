@@ -546,7 +546,7 @@ const StatementComments = ({
 
   const handleDeleteComment = (sessionIndex, commentIndex) => {
     const comment = sessions?.[sessionIndex]?.comments?.[commentIndex];
-    console.log("delete comment", comment);
+    // console.log("delete comment", comment);
     deleteComment(sessionIndex, commentIndex);
     // Only add to deletedIds if the comment has a valid ID (exists in backend)
     if (comment && comment.id) {

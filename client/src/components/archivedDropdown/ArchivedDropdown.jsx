@@ -70,7 +70,7 @@ export const ArchivedDropdown = ({
       newEventData.description = `${originalEvent.data[0].description}`;
       newEventData.archived = false; // Ensure the new event is not archived
       const newEvent = await backend.post("/events", newEventData);
-      console.log("New event created:", newEvent.data.id);
+      // console.log("New event created:", newEvent.data.id);
 
       // Create copies of sessions for the new program
       const newBookings = [];
@@ -84,7 +84,7 @@ export const ArchivedDropdown = ({
           archived: false,
         };
         // const newBooking = await backend.post("/bookings", newSessionData);
-        console.log("New booking", newSessionData);
+        // console.log("New booking", newSessionData);
         // console.log(newBooking);
         // newBookings.push({...newSessionData, id: newBooking.data[0].id});
         newBookings.push(newSessionData);
@@ -100,14 +100,14 @@ export const ArchivedDropdown = ({
           clientId: assignment.clientId, // Ensure clientId is a number
           role: assignment.role,
         };
-        console.log(newAssignmentData);
+        // console.log(newAssignmentData);
         const newAssignment = await backend.post(
           "/assignments",
           newAssignmentData
         );
       }
 
-      console.log("new event data (new id): ", newEvent.data.id);
+      // console.log("new event data (new id): ", newEvent.data.id);
       // Return the new program data
       return newEvent.data.id;
     } catch (error) {
@@ -118,7 +118,7 @@ export const ArchivedDropdown = ({
   const handleDuplicate = async (programId, programName) => {
     try {
       const newProgramId = await duplicateArchivedProgram(programId);
-      console.log("newProgramId: ", newProgramId);
+      // console.log("newProgramId: ", newProgramId);
       navigate(`/programs/edit/${newProgramId}`, {
         state: { duplicated: true, programName },
       });

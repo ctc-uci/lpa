@@ -100,7 +100,7 @@ export const Signup = () => {
     }
   };
 
-  console.log(emailInUseError)
+  // console.log(emailInUseError)
 
   useEffect(() => {
     handleRedirectResult(backend, navigate, toast);

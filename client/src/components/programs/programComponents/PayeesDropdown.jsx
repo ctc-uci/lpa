@@ -114,13 +114,13 @@ export const PayeesDropdown = ( {payeeSearchTerm, searchedPayees, selectedPayees
   };
 
   function addNewClient(newClient) {
-    console.log("new", newClient);
+    // console.log("new", newClient);
     resetState();
     setPayeeSearchTerm(newClient.name);
   }
 
   function updateClient(updatedClient) {
-    console.log("updated", updatedClient);
+    // console.log("updated", updatedClient);
     resetState();
     setPayeeSearchTerm(updatedClient.name);
     searchPayees(updatedClient.name);

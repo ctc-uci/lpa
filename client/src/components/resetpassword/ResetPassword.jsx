@@ -45,7 +45,7 @@ export const ResetPassword = () => {
 
   const onSubmit = (data) => {
     // Reset password functionality can be added here.
-    console.log("Reset password data:", data);
+    // console.log("Reset password data:", data);
     navigate("/resetpassword/success");
   };
 

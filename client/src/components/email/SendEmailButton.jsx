@@ -33,7 +33,7 @@ const SendEmailButton = () => {
             html: "<h1>This is a test email.</h1>"
         });
 
-        console.log(response.data);
+        // console.log(response.data);
     };
 
     return (

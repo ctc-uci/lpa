@@ -51,14 +51,14 @@ export const CancelProgram = ({
 
   useEffect(() => {
     // get event description
-    console.log("id: ", id);
+    // console.log("id: ", id);
     if (!id) return;
     const fetchData = async () => {
       const request = await backend.get(`events/${id}`);
       setEventDescription(request.data[0].description);
       if (request.data[0].description) {
         setEventDescription(request.data[0].description);
-        console.log("event description: ", request.data[0].description);
+        // console.log("event description: ", request.data[0].description);
       }
     };
     try {
@@ -254,7 +254,7 @@ export const CancelProgram = ({
                   borderRadius="md"
                   onChange={(e) => {
                     setCancelReason(e.target.value);
-                    console.log(cancelReason);
+                    // console.log(cancelReason);
                     }}
                 />
               </>

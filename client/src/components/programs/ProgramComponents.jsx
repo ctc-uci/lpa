@@ -828,7 +828,7 @@ export const ProgramSummary = ({
                       fontSize="16px"
                       fontStyle="normal"
                       fontWeight="700"
-                      onClick={() => console.log(program[0]?.description)}
+                      // onClick={() => console.log(program[0]?.description)}
                     >
                       Program Information
                     </Heading>
@@ -922,7 +922,7 @@ export const Sessions = ({
       });
 
       if (response.data.result === "success") {
-        console.log(`Successfully archived ${sessionIds.length} sessions`);
+        // console.log(`Successfully archived ${sessionIds.length} sessions`);
         setSelectedSessions([]);
         setIsSelected(false);
       } else {
@@ -940,7 +940,7 @@ export const Sessions = ({
       });
 
       if (response.data.result === "success") {
-        console.log(`Successfully deleted ${sessionIds.length} sessions`);
+        // console.log(`Successfully deleted ${sessionIds.length} sessions`);
         setSelectedSessions([]);
         setIsSelected(false);
       } else {

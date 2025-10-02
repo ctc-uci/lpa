@@ -378,7 +378,7 @@ export const ArchivedPrograms = () => {
   };
 
   const handleDelete = async (programId) => {
-    console.log(programId);
+    // console.log(programId);
     try {
       await deleteArchivedProgram(programId);
 

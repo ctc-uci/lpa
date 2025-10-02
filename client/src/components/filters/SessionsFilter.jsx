@@ -15,14 +15,14 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived
     });
 
     const updateFilter = (type, value) => {
-      console.log(`Updating filter: ${type} with value:`, value);
+      // console.log(`Updating filter: ${type} with value:`, value);
       setFilters((prev) => ({ ...prev, [type]: value }));
     };
 
     // Apply the filters to the sessions page
     const applyFilters = () => {
-      console.log("Applying filters:", filters);
-      console.log("Original sessions:", sessions);
+      // console.log("Applying filters:", filters);
+      // console.log("Original sessions:", sessions);
       let filtered = sessions;
 
       // Update based on status filter
@@ -41,8 +41,8 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived
           }
         });
       }
-      console.log("filtered:", filtered);
-      console.log("roomsList", rooms);
+      // console.log("filtered:", filtered);
+      // console.log("roomsList", rooms);
 
       if (filters.room !== "all") {
         filtered = filtered.filter(session => rooms.get(session.roomId) === filters.room);
@@ -102,7 +102,7 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived
       filtered = filtered.filter(session => {
         // Convert both times to comparable format and then compare
         const sessionStartTime = session.startTime; // Assuming this is a string
-        console.log("Comparing session start:", sessionStartTime, "with filter:", filters.startTime);
+        // console.log("Comparing session start:", sessionStartTime, "with filter:", filters.startTime);
         return compareTimeStrings(sessionStartTime, filters.startTime) >= 0;
       });
     }
@@ -111,7 +111,7 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived
       filtered = filtered.filter(session => {
         // Convert both times to comparable format and then compare
         const sessionEndTime = session.endTime; // Assuming this is a string
-        console.log("Comparing session end:", sessionEndTime, "with filter:", filters.endTime);
+        // console.log("Comparing session end:", sessionEndTime, "with filter:", filters.endTime);
         return compareTimeStrings(sessionEndTime, filters.endTime) <= 0;
       });
     }

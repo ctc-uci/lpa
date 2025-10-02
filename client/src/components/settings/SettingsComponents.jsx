@@ -190,9 +190,9 @@ const AdminSettings = () => {
 
   const removeAdminAccess = async (userId) => {
     try {
-      console.log("removeAdminAccess TEST", userId);
-      console.log("currentUser TEST", currentUser);
-      console.log("currentUserId TEST", currentUserId);
+      // console.log("removeAdminAccess TEST", userId);
+      // console.log("currentUser TEST", currentUser);
+      // console.log("currentUserId TEST", currentUserId);
 
       if (userId === currentUserId) {
         console.log("Cannot remove admin access for current user");

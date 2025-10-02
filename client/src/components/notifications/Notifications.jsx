@@ -189,7 +189,7 @@ export const Notifications = () => {
           endpoints.map((endpoint) => backend.get(endpoint))
         );
 
-        console.log("responses", responses);
+        // console.log("responses", responses);
 
         // Create a map of endpoint to status
         const endpointToStatus = {
@@ -216,9 +216,9 @@ export const Notifications = () => {
                 backend.get(`/events/${invoice.eventId}`),
               ]);
 
-              console.log("totalRes", totalRes);
-              console.log("paidRes", paidRes);
-              console.log("eventRes", eventRes);
+              // console.log("totalRes", totalRes);
+              // console.log("paidRes", paidRes);
+              // console.log("eventRes", eventRes);
 
               const eventId = eventRes.data[0]?.id;
               const payersRes = await backend.get(

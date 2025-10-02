@@ -275,7 +275,7 @@ export const batchInsertBookings = async (bookings) => {
     const location = booking.location || "";
     const description = booking.description || "";
 
-    console.log("NEW EVENT ID: ", eventId);
+    // console.log("NEW EVENT ID: ", eventId);
 
     const resource = {
       summary: booking.name,

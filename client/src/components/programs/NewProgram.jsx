@@ -80,10 +80,10 @@ export const NewProgram = () => {
 
   const saveEvent = async () => {
     try {
-      console.log("Newly added name:", eventName);
-      console.log("Newly added Description:", generalInformation);
-      console.log("Newly added Instructors:", selectedInstructors);
-      console.log("Newly added Payees:", selectedPayees);
+      // console.log("Newly added name:", eventName);
+      // console.log("Newly added Description:", generalInformation);
+      // console.log("Newly added Instructors:", selectedInstructors);
+      // console.log("Newly added Payees:", selectedPayees);
 
       const response = await backend.post("/events/", {
         name: eventName,
@@ -93,10 +93,10 @@ export const NewProgram = () => {
 
       const newEventId = response.data.id;
 
-      console.log("Assigning instructors...");
-      console.log("Instructor object:", selectedInstructors);
+      // console.log("Assigning instructors...");
+      // console.log("Instructor object:", selectedInstructors);
       for (const instructor of selectedInstructors) {
-        console.log("Assigning instructor:", instructor);
+        // console.log("Assigning instructor:", instructor);
         await backend.post("/assignments", {
           eventId: newEventId,
           clientId: instructor.id,
@@ -111,7 +111,7 @@ export const NewProgram = () => {
           role: "payee",
         });
       }
-      console.log("Save complete, navigating away...");
+      // console.log("Save complete, navigating away...");
       toast({
         title: 'Program "' + eventName + '" created.',
         description: "We've created your program for you.",

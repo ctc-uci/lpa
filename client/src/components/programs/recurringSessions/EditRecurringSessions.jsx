@@ -302,7 +302,7 @@ export const EditRecurringSessions = () => {
   const handleDeleteSession = (sessionId) => {
     setAllSessions((prevSessions) => {
       const sessionToDelete = prevSessions.find((s) => s.id === sessionId);
-      console.log("sessionToDelete TEST", sessionToDelete);
+      // console.log("sessionToDelete TEST", sessionToDelete);
       if (sessionToDelete) {
         // If it's a new session, remove it entirely
         if (sessionToDelete.isNew) {
@@ -320,16 +320,16 @@ export const EditRecurringSessions = () => {
   const saveChanges = async () => {
     try {
       // await backend.delete("bookings/event/" + id);
-      console.log("allSessions: ", allSessions);
+      // console.log("allSessions: ", allSessions);
 
       // Handle new sessions
       const newSessions = allSessions.filter((s) => s.isNew);
       const updatedSessions = allSessions.filter((s) => s.isUpdated);
       const deletedSessions = allSessions.filter((s) => s.isDeleted);
 
-      console.log("newSessions: ", newSessions);
-      console.log("updatedSessions: ", updatedSessions);
-      console.log("deletedSessions: ", deletedSessions);
+      // console.log("newSessions: ", newSessions);
+      // console.log("updatedSessions: ", updatedSessions);
+      // console.log("deletedSessions: ", deletedSessions);
 
       // Create new sessions
       await createNewSessions(newSessions, id, backend);

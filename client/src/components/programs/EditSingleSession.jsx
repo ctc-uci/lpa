@@ -141,7 +141,7 @@ export const EditSingleSession = () => {
     try {
       const response = await backend.get('/rooms/');
       const data = response.data;
-      console.log("All rooms:", data);
+      // console.log("All rooms:", data);
       setAllRooms(data);
     } catch (error) {
       console.error("Error fetching all rooms:", error);
@@ -153,7 +153,7 @@ export const EditSingleSession = () => {
       // Fetch single session
       const singleSessionResponse = await backend.get(`/bookings/${id}`);
       const singleSessionData = singleSessionResponse.data;
-      console.log("Single session:", singleSessionData);
+      // console.log("Single session:", singleSessionData);
 
       setDate(normalizeDate(singleSessionData[0].date));
       setStartTime(normalizeTime(singleSessionData[0].startTime));
@@ -165,14 +165,14 @@ export const EditSingleSession = () => {
       try {
         const allSessionsResponse = await backend.get(`/bookings/byEvent/${singleSessionData[0].eventId}`);
         const allSessionsData = allSessionsResponse.data;
-        console.log("All sessions:", allSessionsData);
+        // console.log("All sessions:", allSessionsData);
         setAllSessions(allSessionsData);
 
         // Fetch program name
         try {
           const programResponse = await backend.get(`/events/${singleSessionData[0].eventId}`);
           const programData = programResponse.data;
-          console.log("Program:", programData);
+          // console.log("Program:", programData);
           setProgramName(programData[0].name);
         } catch (programError) {
           console.error("Error fetching program name:", programError);

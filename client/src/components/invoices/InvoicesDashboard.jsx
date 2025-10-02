@@ -282,7 +282,7 @@ const InvoicesDashboard = () => {
 
   const handleRelevantInvoicesToggle = (forceValue = null) => {
     const newValue = forceValue !== null ? forceValue : !relevantInvoices;
-    console.log("relevantInvoices", newValue);
+    // console.log("relevantInvoices", newValue);
 
     if (newValue) {
       // Show relevant invoices (current month or past due)

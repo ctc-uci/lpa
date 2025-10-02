@@ -15,7 +15,7 @@ export const AddClient = ({ isOpen, onClose, type, onAdd, onUpdate, preFillName,
   const { backend } = useBackendContext();
 
   useEffect(() => {
-    console.log("preFillEmail", preFillEmail)
+    // console.log("preFillEmail", preFillEmail)
     if (preFillName) {
       setFirstName(preFillName.split(" ")[0]);
       setLastName(preFillName.split(" ").slice(1).join(" "));

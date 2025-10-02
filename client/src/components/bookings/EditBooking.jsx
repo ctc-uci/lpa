@@ -113,8 +113,8 @@ export const EditBooking = () => {
   }, []);
 
   useEffect(() => {
-    console.log("initialState", initialState)
-    console.log("infoLoaded", infoLoaded);
+    // console.log("initialState", initialState)
+    // console.log("infoLoaded", infoLoaded);
     if (initialState === null && Object.values(infoLoaded).every(Boolean)) {
       setInitialState(JSON.stringify({
         selectedLocationId,
@@ -130,9 +130,9 @@ export const EditBooking = () => {
   };
 
   const getInitialEventData = async () => {
-    console.log("the id is: ", id)
+    // console.log("the id is: ", id)
     const eventResponse = await backend.get(`/bookings/displayData/${id}`);
-    console.log("eventresponse: ", eventResponse)
+    // console.log("eventresponse: ", eventResponse)
     setEventId(eventResponse.data[0].eventId);
     setEventName(eventResponse.data[0].eventname);
     setGeneralInformation(eventResponse.data[0].eventdescription);
@@ -223,7 +223,7 @@ export const EditBooking = () => {
       };
 
       await backend.put("/bookings/" + id, bookingsData);
-      console.log("bookingsData in edit: ", bookingsData);
+      // console.log("bookingsData in edit: ", bookingsData);
 
       exit();
     } catch (error) {

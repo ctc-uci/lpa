@@ -79,7 +79,7 @@ export const AddClassModal = ({ isOpen, onClose }) => {
           date: date,
         };
         const bookingsResponse = await backend.post("/bookings", bookingData);
-        console.log("Created booking:", bookingsResponse.data);
+        // console.log("Created booking:", bookingsResponse.data);
       }
     } catch (error) {
       console.error("Error submitting form:", error);

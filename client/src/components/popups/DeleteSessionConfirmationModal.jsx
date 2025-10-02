@@ -28,7 +28,7 @@ export const DeleteSessionConfirmationModal = ({
   const onDelete = useCallback(async () => {
     try {
       if (setPrograms) {
-        console.log("ID is: " + id);
+        // console.log("ID is: " + id);
         setPrograms((prev) => prev.map((p) => p.id === id ? { ...p, isDeleted: true } : p));
       }
     } catch (error) {

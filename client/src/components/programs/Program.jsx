@@ -162,17 +162,17 @@ export const Program = () => {
   useEffect(() => {
     const getData = async () => {
       await getProgram().then((programData) => {
-        console.log("Program data refreshed");
+        // console.log("Program data refreshed");
         setInfoLoaded((prev) => ({ ...prev, program: true }));
         // Pass the archived status directly to getSessions
         return getSessions(programData[0].archived);
       }).then(() => {
-        console.log("Sessions data refreshed");
+        // console.log("Sessions data refreshed");
         setInfoLoaded((prev) => ({ ...prev, bookings: true }));
       });
 
       await getAssignments().then(() => {
-        console.log("Assignments data refreshed: ", instructors);
+        // console.log("Assignments data refreshed: ", instructors);
         setInfoLoaded((prev) => ({ ...prev, assignments: true }));
       });
     };
