@@ -92,7 +92,8 @@ export const saveEmail = async (backend, blob, pdf_title, id) => {
       formData.append("file", blob, `${pdf_title}.pdf`);
       formData.append("comment", "");
 
-      await backend.post(`invoices/backupInvoice/` + id, formData);
+      console.log("Saving email to database");
+      await backend.post(`/invoices/backupInvoice/` + id, formData);
     } 
   } catch (error) {
     console.error("Error saving email to database:", error);

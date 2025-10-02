@@ -621,6 +621,7 @@ invoicesRouter.post(
       }
 
       // Upload to S3
+      console.log('Uploading PDF to S3');
       const fileURL = await uploadPDF(file);
 
       // Store the file URL in the database
