@@ -178,7 +178,7 @@
 }
 
 /* Sorting icons positioning */
-.invoices-table__table th:first-child .chakra-stack,
+.invoices-table__table th:first-of-type .chakra-stack,
 .invoices-table__table th:nth-child(3) .chakra-stack,
 .invoices-table__table th:nth-child(5) .chakra-stack {
   width: 100% !important;

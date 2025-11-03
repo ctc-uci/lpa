@@ -97,7 +97,7 @@ export const Program = () => {
       const nextSession = sessions?.find((session) => (!session.archived || archivedStatus));
 
       if (!nextSession) {
-        console.log("No upcoming sessions found");
+        // console.log("No upcoming sessions found");
         return;
       }
 

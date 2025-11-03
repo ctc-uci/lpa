@@ -38,7 +38,7 @@
   padding-left: 0!important;
 }
 
-.td:first-child, .th:first-child {
+.td:first-of-type, .th:first-of-type {
   padding-left: 0!important;
   /* display: flex;
   justify-content: flex-start; */

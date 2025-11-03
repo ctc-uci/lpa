@@ -359,7 +359,13 @@ const AdminSettings = () => {
                         </Td>
                       </Tr>
                     ))
-                  : "No admin requests"}
+                  : (
+                    <Tr>
+                      <Td colSpan={3} textAlign="center" color="#718096">
+                        No admin requests
+                      </Td>
+                    </Tr>
+                  )}
               </Tbody>
             </Table>
           </TableContainer>
@@ -501,7 +507,13 @@ const AdminSettings = () => {
                         </Td>
                       </Tr>
                     ))
-                  : "No admin"}
+                  : (
+                    <Tr>
+                      <Td colSpan={3} textAlign="center" color="#718096">
+                        No admin
+                      </Td>
+                    </Tr>
+                  )}
               </Tbody>
             </Table>
           </TableContainer>

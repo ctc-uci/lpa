@@ -209,8 +209,8 @@ body,
 }
 
 /* Column width specifications with proper gaps */
-.programs-table__table th:first-child,
-.programs-table__table td:first-child {
+.programs-table__table th:first-of-type,
+.programs-table__table td:first-of-type {
   width: 325px !important;
 }
 
@@ -268,7 +268,7 @@ body,
 }
 
 /* Align program names with header */
-.programs-table__table td:first-child > div {
+.programs-table__table td:first-of-type > div {
   padding-left: 8px !important;
 }
 
@@ -343,7 +343,7 @@ body,
 }
 
 /* Sorting icons positioning */
-.programs-table__table th:first-child .chakra-stack {
+.programs-table__table th:first-of-type .chakra-stack {
   width: 100%;
   justify-content: space-between;
 }

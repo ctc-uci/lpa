@@ -467,9 +467,14 @@ const StatementComments = ({
     const finalTotal = adjSum + totalSum;
 
     const total = finalTotal.toFixed(2);
-    setSubtotal(Number(total));
     return total;
   };
+
+  // Update parent subtotal when dependencies change, not during render
+  useEffect(() => {
+    const total = calculateSubtotal(sessions);
+    setSubtotal(Number(total));
+  }, [sessions, summary]);
 
   const formatTimeString = (timeStr) => {
     if (!timeStr) {
@@ -746,10 +751,14 @@ const StatementComments = ({
                 {Array.isArray(sessions) && sessions.length > 0 ? (
                   sessions.filter((session) => session?.name?.length > 0)
                     .map((session, index) => {
+                      const sessionKey =
+                        session.bookingId ??
+                        session.invoiceId ??
+                        `${session.bookingDate}-${session.name}-${session.startTime}-${session.endTime}-${index}`;
                       // For regular sessions, use the existing code
                       return (
 
-                        <React.Fragment key={index}>
+                        <React.Fragment key={sessionKey}>
                           <Tr
                             position="relative"
                             onMouseEnter={() => setHoveredRowIndex(index)}
@@ -1017,10 +1026,10 @@ const StatementComments = ({
 
                           {/* Display all comments */}
                           {session.comments?.map((comment, commentIndex) => (
-                            <React.Fragment key={`comment-${commentIndex}`}>
+                            <React.Fragment key={`comment-${comment?.id ?? commentIndex}`}> 
                               {activeCommentId ===
                                 `${index}-${commentIndex}` ? (
-                                <Tr>
+                                <Tr key={`comment-edit-${comment?.id ?? commentIndex}`}>
                                   <Td
                                     colSpan={6}
                                     py={2}
@@ -1056,7 +1065,7 @@ const StatementComments = ({
                                   </Td>
                                 </Tr>
                               ) : (
-                                <Tr>
+                                <Tr key={`comment-view-${comment?.id ?? commentIndex}`}>
                                   <Td
                                     colSpan={6}
                                     py={2}
@@ -1113,7 +1122,7 @@ const StatementComments = ({
 
                           {/* New comment input */}
                           {activeCommentId === index && (
-                            <Tr>
+                            <Tr key={`new-comment-row-${sessionKey}`}>
                               <Td
                                 colSpan={6}
                                 py={2}
@@ -1159,7 +1168,7 @@ const StatementComments = ({
                           {session?.total?.map((total, totalIndex) => {
                             if (editingCustomRow === `${index}-${totalIndex}`) {
                               return (
-                                <Tr ref={editRowRef}>
+                                <Tr key={`total-edit-${total?.id ?? totalIndex}`} ref={editRowRef}>
                                   <Td
                                     colSpan={6}
                                     py={2}
@@ -1240,6 +1249,7 @@ const StatementComments = ({
                             } else {
                               return (
                                 <Tr
+                                  key={`total-view-${total?.id ?? totalIndex}`}
                                   position="relative"
                                   cursor="pointer"
                                   _hover={{ bg: "gray.50" }}
@@ -1667,7 +1677,7 @@ const InvoiceSummary = ({
                     return acc;
                   }, {})
               ).map((session, key, array) => (
-                <Tr key={key}>
+                <Tr key={`summary-room-${session.name}`}>
                   <Td
                     pl="16"
                     fontSize={compactView ? "6.38px" : "sm"}
@@ -1762,7 +1772,7 @@ const InvoiceSummary = ({
               {summary[0]?.total?.map((total, totalIndex) => {
                 if (editingCustomRow === `summary-total-${totalIndex}`) {
                   return (
-                    <Tr key={totalIndex} ref={editRowRef}>
+                    <Tr key={`summary-total-edit-${total?.id ?? totalIndex}`} ref={editRowRef}>
                       <Td
                         colSpan={6}
                         py={2}
@@ -1843,6 +1853,7 @@ const InvoiceSummary = ({
                 } else {
                   return (
                     <Tr
+                      key={`summary-total-view-${total?.id ?? totalIndex}`}
                       position="relative"
                       cursor="pointer"
                       _hover={{ bg: "gray.50" }}

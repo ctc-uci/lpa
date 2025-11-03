@@ -1324,7 +1324,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                     key={index}
                     cursor="pointer"
                     sx={{
-                      "& td:not(:first-child)": {
+                      "& td:not(:first-of-type)": {
                         color: "#474849",
                         fontFamily: "Inter",
                         fontSize: "14px",

@@ -556,7 +556,7 @@ export const ProgramSummary = ({
                   gap={2}
                 >
                   <ArtistIcon />
-                  <Text
+                  <Box
                     color="#2D3748"
                     fontWeight="500"
                     fontSize={"14px"}
@@ -588,7 +588,7 @@ export const ProgramSummary = ({
                     ) : (
                       "No instructors"
                     )}
-                  </Text>
+                  </Box>
                 </Flex>
 
                 <Flex
@@ -600,7 +600,7 @@ export const ProgramSummary = ({
                     gap={2}
                   >
                     <PersonIcon />
-                    <Text
+                    <Box
                       color="#2D3748"
                       fontWeight="500"
                       fontSize={"14px"}
@@ -633,7 +633,7 @@ export const ProgramSummary = ({
                       ) : (
                         "No payees"
                       )}
-                    </Text>
+                    </Box>
                   </Flex>
                 </Flex>
 

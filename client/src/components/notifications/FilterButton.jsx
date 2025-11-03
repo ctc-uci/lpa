@@ -99,14 +99,14 @@ export const FilterButton = ({ setFilterType, currentFilter, onApply, onClear })
           fill="#2b3746"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M5.33301 5.33366C5.33301 4.96547 5.63148 4.66699 5.99967 4.66699H9.99967C10.3679 4.66699 10.6663 4.96547 10.6663 5.33366C10.6663 5.70185 10.3679 6.00033 9.99967 6.00033H5.99967C5.63148 6.00033 5.33301 5.70185 5.33301 5.33366Z"
           fill="#2b3746"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M10.667 10.6667C10.667 10.2985 10.9655 10 11.3337 10H15.3337C15.7018 10 16.0003 10.2985 16.0003 10.6667C16.0003 11.0349 15.7018 11.3333 15.3337 11.3333H11.3337C10.9655 11.3333 10.667 11.0349 10.667 10.6667Z"
           fill="#2b3746"
         />

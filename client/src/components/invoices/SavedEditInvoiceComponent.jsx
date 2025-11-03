@@ -1002,6 +1002,7 @@ const SavedInvoiceSummary = ({
               {summary[0]?.total?.map((total, totalIndex) => {
                 return (
                   <Tr
+                  key={`summary-total-${total?.date || ''}-${totalIndex}`}
                   fontSize={compactView ? "6.38px" : "sm"}
                   position="relative"
                   cursor="pointer"
