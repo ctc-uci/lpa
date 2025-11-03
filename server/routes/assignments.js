@@ -145,8 +145,8 @@ assignmentsRouter.put("/:id", async (req, res) => {
 assignmentsRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await db.query("DELETE FROM assignments WHERE id = $1", [id]);
-    if (data.length === 0) {
+    const data = await db.query("DELETE FROM assignments WHERE id = $1 RETURNING *", [id]);
+    if (!data || data.length === 0) {
       return res
         .status(404)
         .json({ result: "error", message: "Assignment not found" });
@@ -160,10 +160,10 @@ assignmentsRouter.delete("/:id", async (req, res) => {
 assignmentsRouter.delete("/event/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await db.query("DELETE FROM assignments WHERE event_id = $1", [
+    const data = await db.query("DELETE FROM assignments WHERE event_id = $1 RETURNING *", [
       id,
     ]);
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       return res
         .status(404)
         .json({ result: "error", message: "Assignment not found" });
