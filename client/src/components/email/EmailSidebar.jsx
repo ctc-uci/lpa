@@ -865,7 +865,7 @@ export const EmailSidebar = ({
                 }
                 bgColor="#4441C8"
                 onClick={handleEmailClick}
-                isDisabled={!title || emails.length === 0}
+                isDisabled={!title || selectedInstructors.length === 0}
                 width={"45px"}
                 height={"30px"}
                 borderRadius={"10px"}
