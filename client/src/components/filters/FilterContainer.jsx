@@ -42,6 +42,7 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
   return (
     <>
       <Button
+        as="div"
         onClick={onOpen}
         leftIcon={<Icon as={FilterIcon} />}
         display="flex"
