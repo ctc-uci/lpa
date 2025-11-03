@@ -501,15 +501,18 @@ export const RoomFilter = ({ roomMap, onChange, room }) => {
         >
           All
         </RoundedButton>
-        {Array.from(roomMap.values()).map((room) => (
-          <RoundedButton
-            key={room}
-            onClick={() => handleRoomChange(room)}
-            isActive={localRoom === room}
-          >
-            {room}
-          </RoundedButton>
-        ))}
+        {Array.from(roomMap.values()).map((room) => {
+          const displayName = typeof room === "string" ? room : room?.name || "";
+          return (
+            <RoundedButton
+              key={displayName}
+              onClick={() => handleRoomChange(displayName)}
+              isActive={localRoom === displayName}
+            >
+              {displayName}
+            </RoundedButton>
+          );
+        })}
       </HStack>
     </FormControl>
   );
