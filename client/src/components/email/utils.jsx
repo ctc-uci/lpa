@@ -1,8 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 
-import { InvoicePDFDocument } from "../invoices/InvoicePDFDocument.jsx";
 import { getPastDue } from "../../utils/pastDueCalc";
-
+import { InvoicePDFDocument } from "../invoices/InvoicePDFDocument.jsx";
 
 export const sendSaveEmail = async (
   setLoading,
@@ -21,15 +20,17 @@ export const sendSaveEmail = async (
 ) => {
   try {
     setLoading(true);
-    
+    // Yield to the browser to render the loading state before heavy PDF work
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     const safeSessions = Array.isArray(sessions) ? sessions : [];
 
     const blob = await pdf(
       <InvoicePDFDocument
-            sessions={safeSessions}
-            invoice={invoice}
-            {...invoiceData}
-          />
+        sessions={safeSessions}
+        invoice={invoice}
+        {...invoiceData}
+      />
     ).toBlob();
 
     await sendEmail(
@@ -44,7 +45,7 @@ export const sendSaveEmail = async (
       bccEmails
     );
     await saveEmail(backend, blob, pdf_title, id);
-   
+
     setisConfirmModalOpen(true);
   } catch (error) {
     console.error("Error sending email:", error);
@@ -70,13 +71,13 @@ export const sendEmail = async (
       formData.append("pdfFile", blob, `${pdf_title}.pdf`);
       const toString = Array.isArray(emails)
         ? emails.filter(Boolean).join(",")
-        : (emails || "");
+        : emails || "";
       const ccString = Array.isArray(ccEmails)
         ? ccEmails.filter(Boolean).join(",")
-        : (ccEmails || "");
+        : ccEmails || "";
       const bccString = Array.isArray(bccEmails)
         ? bccEmails.filter(Boolean).join(",")
-        : (bccEmails || "");
+        : bccEmails || "";
 
       formData.append("to", toString);
       formData.append("subject", title);
@@ -86,7 +87,6 @@ export const sendEmail = async (
       formData.append("bcc", bccString);
 
       const response = await backend.post("/email/send", formData);
-
     }
   } catch (error) {
     console.error("Error sending email:", error);
@@ -104,7 +104,7 @@ export const saveEmail = async (backend, blob, pdf_title, id) => {
 
       console.log("Saving email to database");
       await backend.post(`/invoices/backupInvoice/` + id, formData);
-    } 
+    }
   } catch (error) {
     console.error("Error saving email to database:", error);
   }
