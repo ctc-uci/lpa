@@ -68,12 +68,22 @@ export const sendEmail = async (
     if (blob) {
       const formData = new FormData();
       formData.append("pdfFile", blob, `${pdf_title}.pdf`);
-      formData.append("to", emails);
+      const toString = Array.isArray(emails)
+        ? emails.filter(Boolean).join(",")
+        : (emails || "");
+      const ccString = Array.isArray(ccEmails)
+        ? ccEmails.filter(Boolean).join(",")
+        : (ccEmails || "");
+      const bccString = Array.isArray(bccEmails)
+        ? bccEmails.filter(Boolean).join(",")
+        : (bccEmails || "");
+
+      formData.append("to", toString);
       formData.append("subject", title);
       formData.append("text", message);
       formData.append("html", `<p>${message.replace(/\n/g, "<br />")}</p>`);
-      formData.append("cc", ccEmails);
-      formData.append("bcc", bccEmails);
+      formData.append("cc", ccString);
+      formData.append("bcc", bccString);
 
       const response = await backend.post("/email/send", formData);
 
@@ -81,7 +91,7 @@ export const sendEmail = async (
   } catch (error) {
     console.error("Error sending email:", error);
   } finally {
-    setLoading(false);
+    if (typeof setLoading === "function") setLoading(false);
   }
 };
 

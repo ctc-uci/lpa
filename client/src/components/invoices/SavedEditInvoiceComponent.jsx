@@ -220,7 +220,6 @@ const SavedStatementComments = ({
     const finalTotal = adjSum + totalSum;
 
     const total = finalTotal.toFixed(2);
-    setSubtotal(Number(total));
     return total;
   };
 
@@ -392,6 +391,7 @@ const SavedStatementComments = ({
                   session.total?.map((total, totalIndex) => {
                     return (
                       <Tr
+                        key={`custom-${session.id || index}-${totalIndex}`}
                         position="relative"
                         cursor="pointer"
                         _hover={{ bg: "gray.50" }}
@@ -642,6 +642,7 @@ const SavedStatementComments = ({
                       session?.total?.map((total, totalIndex) => {
                         return (
                           <Tr
+                            key={`total-${session.id || index}-${totalIndex}`}
                             position="relative"
                             cursor="pointer"
                             _hover={{ bg: "gray.50" }}

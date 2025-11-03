@@ -219,7 +219,7 @@ const EditInvoiceDetailsPDF = ({
           {payees && payees.length > 0 ? (
             payees.map((payee, index) => (
               <Text
-                key={index}
+                key={`payee-${payee?.id || payee?.email || index}`}
                 style={{ fontSize: 8, marginBottom: 2 }}
               >
                 {payee.name} - {payee.email}
@@ -245,7 +245,7 @@ const EditInvoiceDetailsPDF = ({
           {instructors && instructors.length > 0 ? (
             instructors.map((instructor, index) => (
               <Text
-                key={index}
+                key={`instr-${instructor?.id || instructor?.email || index}`}
                 style={{ fontSize: 8, marginBottom: 2 }}
               >
                 {instructor.name} - {instructor.email}
@@ -781,7 +781,7 @@ const InvoiceTable = ({ sessions, summary }) => {
               session.comments?.map((line, textIndex) => {
                 return (
                   <View
-                    key={`comment-${textIndex}`}
+                    key={`comment-${session.id || index}-${textIndex}`}
                     style={tableStyles.tableRow}
                   >
                     <View
@@ -805,7 +805,7 @@ const InvoiceTable = ({ sessions, summary }) => {
             const totalRow =
               session?.total?.map((total, totalIndex) => {
                 return (
-                  <View style={tableStyles.tableRow}>
+                  <View style={tableStyles.tableRow} key={`total-${session.id || index}-${totalIndex}`}>
                     <View style={tableStyles.tableCol}>
                       <Text style={{ fontSize: 7 }}>
                         {format(new Date(new Date(total.date).getTime() + new Date(total.date).getTimezoneOffset() * 60000), "EEE. M/d/yy")}
@@ -1034,6 +1034,7 @@ const SummaryTable = ({
             : summaryTableStyles.roomFeeRow;
           return (
             <View
+              key={`roomfee-${session?.id || session?.name || index}`}
               style={{
                 ...rowStyle,
                 width: "100%",
