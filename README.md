@@ -4,11 +4,6 @@
 
 This project is from the [Commit The Change](https://ctc-uci.com/) 2024-2025 Cohort and is currently deployed for use by [La Peña](https://lapena.org/).
 
-**Design Lead**: Jessica (Jay) Sotelo<br>
-**Technical Leads (2)**: Jessie He, Nathan Luca Pietrantonio<br>
-**Designers (4)**: Cortney Ngo, Darian Woolley, Tiffany Jiang Yan, Winston Lee<br>
-**Developers (12)**: Anthony Suh, Aston Chan, Brendan Lieu, Cole Thompson, Daiki Narimoto, Kaitlin Leung, Lana Ramadan, Margaret Galvez, Priska Kunaidy, Sindhuja Gorti, Yihong Yu, Zion Mateo
-
 ## Who is La Peña?
 Over time, La Peña has evolved into more than a physical space. It is a hub for BIPOC communities across the globe. Through music, art, and education, La Peña has fostered social justice initiatives and cultural understanding, creating an inclusive environment where marginalized voices can thrive. As it continues to engage with issues of cultural resistance, social equity, and political action, La Peña remains an enduring symbol of the power of community and solidarity.
 
