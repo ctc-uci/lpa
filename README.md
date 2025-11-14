@@ -1,4 +1,48 @@
-# NPO Template Merged
+# La Peña Reservations Portal
+
+<img width="1400" height="1098" alt="image" src="https://github.com/user-attachments/assets/6667036c-2ab5-424e-a2e0-fcbda4f7ea53" />
+
+This project is from the [Commit The Change](https://ctc-uci.com/) 2024-2025 Cohort and is currently deployed for use by [La Peña](https://lapena.org/).
+
+## Who is La Peña?
+Over time, La Peña has evolved into more than a physical space. It is a hub for BIPOC communities across the globe. Through music, art, and education, La Peña has fostered social justice initiatives and cultural understanding, creating an inclusive environment where marginalized voices can thrive. As it continues to engage with issues of cultural resistance, social equity, and political action, La Peña remains an enduring symbol of the power of community and solidarity.
+
+## Current Problem
+As we conducted research, our key findings were:
+
+- Iterative schedules are difficult to track of, leading to error cases with double-booking venues.
+- Invoice system is nonexistent, so program coordinators experience frustration with handling all their finances in a spreadsheet.
+- There is a backlog of overdue payments, and manually creating invoices can be unreliable if the event schedule changed.
+
+## Our Solution
+To improve La Peña’s workflow, Commit the Change created a customizable administrative portal with the following features:
+
+Event Scheduling System
+
+Administrators can create recurring programs and one-time sessions and edit them anytime in the platform. Each program and session stores contact information about the client paying for the event, lead artists, and location data. This alleviates cognitive load and streamlines the scheduling process.
+
+Google Calendar Synchronization
+
+Every program automatically syncs with the administrative Google Calendar, allowing collective communication with staff and external members. All parties will have the same date and time reflected on the shared calendar.
+
+Automated Invoices
+
+Each program will automatically generate a monthly invoice to send to the client and lead artists associated with the event. This will significantly reduce labor costs, time, and allow for staff to focus on higher-priority tasks.
+
+The product’s data is synced across different sections. For instance, when updates are made to a program (such as changing dates or locations) those changes are automatically reflected in the financial system. This integration reduces the risk of human error and ensures that financial documents are reliable.
+
+Payment Notifications
+
+Payment notifications alert admins about upcoming and overdue payments, showing exactly how late a payment is. This allows the team to act quickly and avoid miscommunications.
+
+## Learn More
+To learn more about this project, please read our [Project Overview](https://medium.com/@committhechange.uci/project-overview-la-peña-cultural-center-53f2fa5ddb34) on Medium!
+
+## Project setup steps from NPO Project Template:
+<details>
+  <summary>Project setup</summary>
+
+  
 
 A simple React, Vite, and Node.js monorepo built with Yarn workspaces. Uses Firebase for authentication, Chakra UI for components, and your choice of database (i.e. Postgres).
 
@@ -70,3 +114,4 @@ Start the development server by running this command:
 ```shell
   yarn run dev
 ```
+</details>
