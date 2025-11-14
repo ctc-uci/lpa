@@ -356,7 +356,7 @@ export const createNewSessions = async (newSessions, id, backend) => {
   }));
 
   if (formattedNewSessions.length < 1) {
-    return;
+    return false;
   }
 
   const response = await backend.post("/bookings/batch", {
@@ -364,7 +364,7 @@ export const createNewSessions = async (newSessions, id, backend) => {
   });
 
   if (response.status !== 200) {
-    return;
+    return false;
   }
 
   const backendIds = response.data.data;
@@ -388,7 +388,16 @@ export const createNewSessions = async (newSessions, id, backend) => {
     roomId: s.roomId,
   }));
 
-  await batchInsertBookings(gcalFormat);
+  // Sync to Google Calendar if available
+  try {
+    const result = await batchInsertBookings(gcalFormat);
+    return result?.syncSkipped || false;
+  } catch (error) {
+    // Log error but don't fail the entire operation
+    // The sessions are already created in the backend
+    console.error("Failed to sync sessions to Google Calendar:", error);
+    return false;
+  }
 };
 
 // id = event id, backend = backend context
@@ -409,7 +418,7 @@ export const updateSessions = async (updatedSessions, id, backend) => {
   }));
 
   if (formattedUpdatedSessions.length < 1) {
-    return;
+    return false;
   }
 
   await backend.put("/bookings/batch", {
@@ -438,15 +447,22 @@ export const updateSessions = async (updatedSessions, id, backend) => {
   }));
   // console.log("gcalFormat: ", gcalFormat);
   if (gcalFormat.length > 0) {
-    await batchUpdateBookings(gcalFormat);
+    try {
+      const result = await batchUpdateBookings(gcalFormat);
+      return result?.syncSkipped || false;
+    } catch (error) {
+      console.error("Failed to sync session updates to Google Calendar:", error);
+      return false;
+    }
   }
+  return false;
 };
 
 export const deleteSessions = async (deletedSessions, backend) => {
   const formattedDeletedSessions = deletedSessions.map((s) => s.id);
 
   if (formattedDeletedSessions.length < 1) {
-    return;
+    return false;
   }
 
   await backend.delete("/bookings/batch", {
@@ -463,5 +479,11 @@ export const deleteSessions = async (deletedSessions, backend) => {
     roomId: s.roomId,
   }));
 
-  await batchDeleteBookings(gcalFormat);
+  try {
+    const result = await batchDeleteBookings(gcalFormat);
+    return result?.syncSkipped || false;
+  } catch (error) {
+    console.error("Failed to sync session deletions to Google Calendar:", error);
+    return false;
+  }
 };

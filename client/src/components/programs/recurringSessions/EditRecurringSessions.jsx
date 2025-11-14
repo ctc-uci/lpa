@@ -22,6 +22,7 @@ import {
   Tabs,
   Text,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 
 import { AiOutlinePlus } from "react-icons/ai";
@@ -47,6 +48,7 @@ export const EditRecurringSessions = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const toast = useToast();
   const [sortOrder, setSortOrder] = useState("asc");
   const [deleteSessionDate, setDeleteSessionDate] = useState("");
   const [deleteSessionId, setDeleteSessionId] = useState("");
@@ -331,14 +333,36 @@ export const EditRecurringSessions = () => {
       // console.log("updatedSessions: ", updatedSessions);
       // console.log("deletedSessions: ", deletedSessions);
 
+      let syncSkipped = false;
+
       // Create new sessions
-      await createNewSessions(newSessions, id, backend);
+      if (newSessions.length > 0) {
+        const skipped = await createNewSessions(newSessions, id, backend);
+        syncSkipped = syncSkipped || skipped;
+      }
 
       // Update existing sessions
-      await updateSessions(updatedSessions, id, backend);
+      if (updatedSessions.length > 0) {
+        const skipped = await updateSessions(updatedSessions, id, backend);
+        syncSkipped = syncSkipped || skipped;
+      }
 
       // Delete sessions
-      await deleteSessions(deletedSessions, backend);
+      if (deletedSessions.length > 0) {
+        const skipped = await deleteSessions(deletedSessions, backend);
+        syncSkipped = syncSkipped || skipped;
+      }
+
+      // Show toast if Google Calendar sync was skipped
+      if (syncSkipped) {
+        toast({
+          title: "Google Calendar Not Synced",
+          description: "Sessions were saved, but Google Calendar sync was skipped because you're not signed in. Sign in to Google Calendar in Settings to enable sync.",
+          status: "warning",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     } catch (error) {
       console.error("Error saving changes:", error);
     }

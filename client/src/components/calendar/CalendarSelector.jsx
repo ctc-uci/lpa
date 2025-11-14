@@ -19,8 +19,9 @@ import {
   Tag,
 } from '@chakra-ui/react';
 import { FaCalendarAlt, FaCheckCircle } from 'react-icons/fa';
-import { getAvailableCalendars, initializeGoogleCalendar, signIn } from '../../utils/calendar';
+import { getAvailableCalendars, initializeGoogleCalendar } from '../../utils/calendar';
 import { useSelectedCalendar, isSignedIn } from '../../utils/calendar';
+import GoogleAuthModal from './GoogleAuthModal';
 
 /**
  * Component that displays available calendars and allows selection
@@ -31,13 +32,15 @@ const CalendarSelector = () => {
   const [error, setError] = useState(null);
   const [selectedCalendar, setSelectedCalendar] = useSelectedCalendar();
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const toast = useToast();
 
   // Initialize Google Calendar API
   useEffect(() => {
     const initApi = async () => {
       try {
-        await initializeGoogleCalendar();
+        // Initialize without triggering silent auth to prevent auto-redirect
+        await initializeGoogleCalendar({ skipSilentAuth: true });
         setIsInitialized(true);
       } catch (err) {
         console.error('Failed to initialize Google Calendar API:', err);
@@ -58,10 +61,11 @@ const CalendarSelector = () => {
         setLoading(true);
         setError(null);
 
-        // Check if user is signed in
-        const auth2 = gapi.auth2.getAuthInstance();
-        if (!auth2?.isSignedIn.get()) {
-          await signIn();
+        // Check if user is signed in - only show modal if not signed in
+        // Don't auto-open modal, let user choose to sign in
+        if (!isSignedIn()) {
+          setLoading(false);
+          return;
         }
 
         const availableCalendars = await getAvailableCalendars();
@@ -100,7 +104,35 @@ const CalendarSelector = () => {
     };
 
     fetchCalendars();
-  }, [isInitialized, selectedCalendar, toast]);
+  }, [isInitialized, selectedCalendar, toast, setSelectedCalendar]);
+
+  // Refetch calendars after successful sign in
+  const handleSignInSuccess = async () => {
+    try {
+      setLoading(true);
+      const availableCalendars = await getAvailableCalendars();
+      setCalendars(availableCalendars);
+      
+      // If no calendar is selected yet, select the primary calendar
+      if (!selectedCalendar && availableCalendars.length > 0) {
+        const primaryCalendar = availableCalendars.find(cal => cal.primary) || availableCalendars[0];
+        setSelectedCalendar(primaryCalendar);
+        toast({
+          title: "Calendar Selected",
+          description: `Primary calendar "${primaryCalendar.summary}" has been selected.`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching calendars after sign in:', err);
+      setError('Failed to load calendars. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isInitialized) {
     return (
@@ -115,11 +147,30 @@ const CalendarSelector = () => {
 
   if (!isSignedIn()) {
     return (
-      <Flex justify="center" align="center" p={8}>
-        <VStack spacing={4}>
-          <Text color="#474849" fontSize="16px" fontWeight="500">Please sign in to Google to use this feature.</Text>
-        </VStack>
-      </Flex>
+      <>
+        <GoogleAuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)}
+          onSignInSuccess={handleSignInSuccess}
+        />
+        <Flex justify="center" align="center" p={8}>
+          <VStack spacing={4}>
+            <Text color="#474849" fontSize="16px" fontWeight="500">Please sign in to Google to use this feature.</Text>
+            <Button
+              onClick={() => setShowAuthModal(true)}
+              backgroundColor="#4E4AE7"
+              color="white"
+              _hover={{ backgroundColor: "#3B3AC7" }}
+              fontFamily="Inter"
+              fontSize="14px"
+              fontWeight="500"
+              padding="8px 16px"
+            >
+              Sign In to Google Calendar
+            </Button>
+          </VStack>
+        </Flex>
+      </>
     );
   }
 
@@ -168,16 +219,22 @@ const CalendarSelector = () => {
   });
 
   return (
-    <Box maxW="1000px" mx="auto">
-      <VStack spacing={6} align="stretch">
-        <Heading
-          fontSize="clamp(1rem, 1.5rem, 2rem)"
-          color="#2D3748"
-          fontWeight="bold"
-          fontFamily="Inter"
-        >
-          Calendar Selection
-        </Heading>
+    <>
+      <GoogleAuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)}
+        onSignInSuccess={handleSignInSuccess}
+      />
+      <Box maxW="1000px" mx="auto">
+        <VStack spacing={6} align="stretch">
+          <Heading
+            fontSize="clamp(1rem, 1.5rem, 2rem)"
+            color="#2D3748"
+            fontWeight="bold"
+            fontFamily="Inter"
+          >
+            Calendar Selection
+          </Heading>
 
         <Box
           borderRadius="15px"
@@ -267,6 +324,7 @@ const CalendarSelector = () => {
         </Box>
       </VStack>
     </Box>
+    </>
   );
 };
 

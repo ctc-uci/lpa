@@ -23,7 +23,9 @@ import {
   batchInsertBookings,
   batchUpdateBookings,
   batchDeleteBookings,
-  getAvailableCalendars
+  getAvailableCalendars,
+  isSignedIn as checkIsSignedIn,
+  onSignInStatusChange
 } from "../../utils/calendar";
 
 export const Test = () => {
@@ -40,12 +42,11 @@ export const Test = () => {
 
   // Initialize Google Calendar on component mount
   useEffect(() => {
-    initializeGoogleCalendar()
-      .then(auth2 => {
-        setIsSignedIn(auth2.isSignedIn.get());
-        auth2.isSignedIn.listen(setIsSignedIn);
-      })
-      .catch(error => {
+    const initialize = async () => {
+      try {
+        await initializeGoogleCalendar();
+        setIsSignedIn(checkIsSignedIn());
+      } catch (error) {
         console.error("Failed to initialize Google Calendar:", error);
         toast({
           title: "Initialization Error",
@@ -54,8 +55,20 @@ export const Test = () => {
           duration: 5000,
           isClosable: true,
         });
-      });
-  }, []);
+      }
+    };
+
+    initialize();
+
+    // Listen for sign-in status changes
+    const unsubscribe = onSignInStatusChange((isSignedInStatus) => {
+      setIsSignedIn(isSignedInStatus);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [toast]);
 
   // Load events when signed in
   useEffect(() => {
@@ -93,8 +106,19 @@ export const Test = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    setIsSignedIn(false);
+    try {
+      await signOut();
+      setIsSignedIn(false);
+    } catch (error) {
+      console.error("Sign out error:", error);
+      toast({
+        title: "Sign out failed",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const fetchNewBookings = async () => {

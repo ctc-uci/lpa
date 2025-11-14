@@ -1,139 +1,386 @@
-import { gapi } from "gapi-script";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
-// Environment variables
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+const GOOGLE_CALENDAR_SCOPES = [
+  "openid",
+  "profile",
+  "email",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.readonly",
+].join(" ");
 
-// Local storage key for the selected calendar
-export const SELECTED_CALENDAR_KEY = 'lpa_selected_calendar';
+export const SELECTED_CALENDAR_KEY = "lpa_selected_calendar";
+export const EVENT_ID_PREFIX = "lpa";
+export const EVENT_ID_SEPARATOR = "";
 
-export const EVENT_ID_PREFIX = 'lpa';
-export const EVENT_ID_SEPARATOR = '';
+const TOKEN_EXPIRY_SKEW_MS = 60_000; // refresh token one minute before expiry
+const isBrowser = typeof window !== "undefined";
 
-/**
- * @typedef {Object} BookingEvent
- * @property {number} backendId - The unique identifier
- * @property {string} name - The name/title of the event
- * @property {string} start - The start time in ISO 8601 format 
- * @property {string} end - The end time in ISO 8601 format
- * @property {string} [location] - Optional location/room of the event
- * @property {string} [description] - Optional description of the event
- * @property {number} [roomId] - Optional room ID from our backend
- */
+// LocalStorage keys for persisting auth state
+const ACCESS_TOKEN_KEY = "lpa_google_calendar_access_token";
+const TOKEN_EXPIRES_AT_KEY = "lpa_google_calendar_token_expires_at";
 
-/**
- * @typedef {Object} GoogleCalendarEvent
- * @property {string} id - The Google Calendar event ID
- * @property {string} summary - The name/title of the event
- * @property {Object} start - The start time of the event
- * @property {string} start.dateTime - ISO 8601 datetime string
- * @property {string} start.timeZone - IANA timezone string
- * @property {Object} end - The end time of the event
- * @property {string} end.dateTime - ISO 8601 datetime string
- * @property {string} end.timeZone - IANA timezone string
- * @property {string} [location] - Optional location of the event
- * @property {string} [description] - Optional description of the event
- */
+let tokenClient = null;
+let accessToken = null;
+let tokenExpiresAt = 0;
+let initializationPromise = null;
+let pendingTokenRequest = null;
+const authListeners = new Set();
 
-/**
- * @typedef {Object} BatchOperationResult
- * @property {number} total - Total number of operations attempted
- * @property {number} successCount - Number of successful operations
- * @property {number} failCount - Number of failed operations
- * @property {Array<{bookingIndex: number, error: Object}>} errors - Details of any errors that occurred
- * @property {Object} responseMap - Raw response from Google Calendar API
- */
+// Load token from localStorage on module initialization
+const loadTokenFromStorage = () => {
+  if (!isBrowser) return;
+  try {
+    const storedToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+    const storedExpiresAt = localStorage.getItem(TOKEN_EXPIRES_AT_KEY);
+    
+    if (storedToken && storedExpiresAt) {
+      const expiresAt = Number(storedExpiresAt);
+      // Only restore if token hasn't expired
+      if (Date.now() < expiresAt) {
+        accessToken = storedToken;
+        tokenExpiresAt = expiresAt;
+      } else {
+        // Token expired, clear storage
+        clearTokenStorage();
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load token from storage:", error);
+    clearTokenStorage();
+  }
+};
 
-/**
- * IDs for events must be unique and between 5 - 1024 characters
- * Our session IDs do not meet this requirement, so we need to generate a new ID
- */
+// Save token to localStorage
+const saveTokenToStorage = (token, expiresAt) => {
+  if (!isBrowser) return;
+  try {
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    localStorage.setItem(TOKEN_EXPIRES_AT_KEY, expiresAt.toString());
+  } catch (error) {
+    console.error("Failed to save token to storage:", error);
+  }
+};
 
-/**
- * Generate a unique Google Calendar event ID from backend event data
- * Format: lpa_[backendId]_[hash]
- * The hash is generated from event properties to ensure uniqueness
- * 
- * @param {BookingEvent} event - Event object containing backend event data
- * @param {number} backendId - The backend event ID
- * @returns {string} A unique Google Calendar event ID
- */
-export const generateEventId = (event, backendId) => {
-  // Create a string of unique event properties that should make this event unique
-  const uniqueProps = [
-    backendId.toString()
-  ].join('|');
+// Clear token from localStorage
+const clearTokenStorage = () => {
+  if (!isBrowser) return;
+  try {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(TOKEN_EXPIRES_AT_KEY);
+  } catch (error) {
+    console.error("Failed to clear token from storage:", error);
+  }
+};
 
-  // Generate a simple hash of the unique properties
-  // Using a simple hash function that will give us a consistent output
-  let hash = 0;
-  for (let i = 0; i < uniqueProps.length; i++) {
-    const char = uniqueProps.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+// Load token on module initialization
+loadTokenFromStorage();
+
+// Define isSignedIn early so it can be used in notifyAuthListeners
+const isSignedInImpl = () =>
+  Boolean(accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt);
+
+const notifyAuthListeners = () => {
+  const signedIn = isSignedInImpl();
+  authListeners.forEach((listener) => {
+    try {
+      listener(signedIn);
+    } catch (error) {
+      console.error("Auth listener failed", error);
+    }
+  });
+};
+
+const clearAccessToken = () => {
+  accessToken = null;
+  tokenExpiresAt = 0;
+  clearTokenStorage();
+};
+
+const isAuthError = (error) => {
+  if (!error) return false;
+  if (error.__auth === true) return true;
+  const message = typeof error === "string" ? error : error.message || "";
+  return (
+    message.includes("interaction") ||
+    message.includes("prompt") ||
+    message.includes("consent") ||
+    message.includes("access_denied") ||
+    message.includes("User closed the popup")
+  );
+};
+
+const markAuthError = (error) => {
+  if (error && typeof error === "object") {
+    error.__auth = true;
+  }
+  return error;
+};
+
+const loadGoogleIdentityScript = () => {
+  if (!isBrowser) {
+    throw new Error("Google Identity Services requires a browser environment.");
   }
 
-  // Convert to positive hex string and take first 8 chars
-  const hashStr = Math.abs(hash).toString(16).padStart(8, '0').slice(0, 8);
-  
-  // Combine prefix, backend ID, and hash
-  return `${EVENT_ID_PREFIX}${backendId}${EVENT_ID_SEPARATOR}${hashStr}`;
-};
+  if (window.google?.accounts?.oauth2) {
+    return Promise.resolve();
+  }
 
-/**
- * Initialize the Google API client and load the calendar API
- * @returns {Promise<void>}
- */
-export const initializeGoogleCalendar = async () => {
   return new Promise((resolve, reject) => {
-    function start() {
-      gapi.client
-        .init({
-          apiKey: GOOGLE_API_KEY,
-          clientId: GOOGLE_CLIENT_ID,
-          scope: "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
-          prompt: 'select_account'  // This will force the account selector to appear every time
-        })
-        .then(() => gapi.client.load("calendar", "v3"))
-        .then(() => {
-          const auth2 = gapi.auth2.getAuthInstance();
-          if (auth2) {
-            resolve(auth2);
-          } else {
-            reject(new Error("Failed to initialize Google Auth"));
-          }
-        })
-        .catch(reject);
+    let script = document.querySelector(
+      'script[data-google-identity="true"]'
+    );
+
+    if (!script) {
+      script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.dataset.googleIdentity = "true";
+      script.onload = () => resolve();
+      script.onerror = () =>
+        reject(new Error("Failed to load Google Identity Services script"));
+      document.head.appendChild(script);
+    } else if (script.dataset.loaded === "true") {
+      resolve();
+    } else {
+      script.addEventListener("load", resolve, { once: true });
+      script.addEventListener(
+        "error",
+        () =>
+          reject(new Error("Failed to load Google Identity Services script")),
+        { once: true }
+      );
     }
-    gapi.load("client:auth2", start);
   });
 };
 
-/**
- * Handle Google sign in
- * @returns {Promise<void>}
- */
+const initTokenClient = () => {
+  if (tokenClient) return;
+  if (!isBrowser || !window.google?.accounts?.oauth2) {
+    throw new Error("Google Identity Services is not available");
+  }
+  if (!GOOGLE_CLIENT_ID) {
+    throw new Error(
+      "Missing Google OAuth client ID. Set VITE_GOOGLE_CLIENT_ID in your environment."
+    );
+  }
+
+  tokenClient = window.google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GOOGLE_CALENDAR_SCOPES,
+    callback: () => {
+      /* placeholder; real callback injected per request */
+    },
+  });
+};
+
+const requestAccessToken = (interactive) => {
+  if (!tokenClient) {
+    throw new Error("Token client not initialized");
+  }
+
+  if (pendingTokenRequest) {
+    return pendingTokenRequest;
+  }
+
+  pendingTokenRequest = new Promise((resolve, reject) => {
+    const options = interactive ? { prompt: "consent" } : {};
+
+    tokenClient.callback = (response) => {
+      pendingTokenRequest = null;
+      if (response.error) {
+        reject(markAuthError(new Error(response.error)));
+        return;
+      }
+
+      accessToken = response.access_token;
+      if (response.expires_in) {
+        tokenExpiresAt =
+          Date.now() + Number(response.expires_in) * 1000 - TOKEN_EXPIRY_SKEW_MS;
+      } else {
+        tokenExpiresAt = Date.now() + 55 * 60 * 1000;
+      }
+      // Persist token to localStorage
+      saveTokenToStorage(accessToken, tokenExpiresAt);
+      notifyAuthListeners();
+      resolve(accessToken);
+    };
+
+    try {
+      tokenClient.requestAccessToken(options);
+    } catch (error) {
+      pendingTokenRequest = null;
+      reject(markAuthError(error));
+    }
+  });
+
+  return pendingTokenRequest;
+};
+
+const ensureAccessToken = async ({ interactive = false } = {}) => {
+  if (
+    accessToken &&
+    tokenExpiresAt &&
+    Date.now() < tokenExpiresAt - TOKEN_EXPIRY_SKEW_MS / 2
+  ) {
+    return accessToken;
+  }
+
+  try {
+    return await requestAccessToken(interactive);
+  } catch (error) {
+    if (isAuthError(error)) {
+      markAuthError(error);
+    }
+    throw error;
+  }
+};
+
+const googleApiRequest = async (
+  input,
+  {
+    method = "GET",
+    body,
+    headers = {},
+    interactiveFallback = true,
+    retry = true,
+  } = {}
+) => {
+  const makeRequest = async () => {
+    const token = await ensureAccessToken({ interactive: false });
+
+    const response = await fetch(input, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (response.status === 204) {
+      return null;
+    }
+
+    const responseText = await response.text();
+    const data = responseText ? JSON.parse(responseText) : null;
+
+    if (!response.ok) {
+      if (response.status === 401 && retry) {
+        clearAccessToken();
+        return makeRequest();
+      }
+      const error = new Error(
+        data?.error?.message ||
+          data?.error_description ||
+          `Google API request failed with status ${response.status}`
+      );
+      error.status = response.status;
+      error.details = data?.error || data;
+      throw error;
+    }
+
+    return data;
+  };
+
+  try {
+    return await makeRequest();
+  } catch (error) {
+    if (isAuthError(error) || error.status === 401) {
+      clearAccessToken();
+      if (!interactiveFallback) {
+        throw markAuthError(
+          new Error("Google authorization required for this action.")
+        );
+      }
+      await ensureAccessToken({ interactive: true });
+      return makeRequest();
+    }
+    throw error;
+  }
+};
+
+export const initializeGoogleCalendar = async (options = {}) => {
+  const { skipSilentAuth = false } = options;
+  
+  if (initializationPromise) {
+    return initializationPromise;
+  }
+
+  if (!isBrowser) {
+    throw new Error(
+      "Google Calendar integration is only available in a browser environment."
+    );
+  }
+
+  initializationPromise = (async () => {
+    await loadGoogleIdentityScript();
+    initTokenClient();
+
+    // Only try silent auth if not explicitly skipped
+    // This prevents auto-redirects when just initializing the API
+    if (!skipSilentAuth) {
+      try {
+        await ensureAccessToken({ interactive: false });
+      } catch (error) {
+        if (!isAuthError(error)) {
+          console.error("Silent Google sign-in failed", error);
+        }
+      }
+    }
+  })();
+
+  await initializationPromise;
+  return tokenClient;
+};
+
 export const signIn = async () => {
   await initializeGoogleCalendar();
-  return gapi.auth2.getAuthInstance()?.signIn({
-    prompt: 'select_account'
-  });
+  try {
+    await ensureAccessToken({ interactive: true });
+    return true;
+  } catch (error) {
+    if (isAuthError(error)) {
+      throw new Error(
+        "Google authorization was cancelled or denied. Please try again."
+      );
+    }
+    throw error;
+  }
 };
 
-/**
- * Handle Google sign out
- * @returns {Promise<void>}
- */
 export const signOut = async () => {
-  await initializeGoogleCalendar();
-  return gapi.auth2.getAuthInstance()?.signOut();
+  if (!accessToken) {
+    return;
+  }
+
+  try {
+    await fetch("https://oauth2.googleapis.com/revoke", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `token=${accessToken}`,
+    });
+  } catch (error) {
+    console.warn("Failed to revoke Google token", error);
+  } finally {
+    clearAccessToken();
+    notifyAuthListeners();
+  }
 };
 
-/**
- * Get the currently selected calendar ID
- * @returns {string} The selected calendar ID or null if none selected
- */
+export const onSignInStatusChange = (listener) => {
+  authListeners.add(listener);
+  return () => authListeners.delete(listener);
+};
+
+export const isCalendarApiReady = () => tokenClient !== null;
+
+export const isSignedIn = isSignedInImpl;
+
 export const getSelectedCalendarId = () => {
   const saved = localStorage.getItem(SELECTED_CALENDAR_KEY);
   if (!saved) return null;
@@ -145,411 +392,470 @@ export const getSelectedCalendarId = () => {
   }
 };
 
-/**
- * Fetch all events from Google Calendar
- * @returns {Promise<GoogleCalendarEvent[]>} Array of calendar events
- */
+export const generateEventId = (event, backendId) => {
+  const effectiveId = backendId ?? event?.backendId;
+  if (!effectiveId) {
+    throw new Error("A backendId is required to generate a Google event ID.");
+  }
+
+  const uniqueProps = [effectiveId.toString()].join("|");
+
+  let hash = 0;
+  for (let i = 0; i < uniqueProps.length; i += 1) {
+    const char = uniqueProps.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+
+  const hashStr = Math.abs(hash).toString(16).padStart(8, "0").slice(0, 8);
+  return `${EVENT_ID_PREFIX}${effectiveId}${EVENT_ID_SEPARATOR}${hashStr}`;
+};
+
+const toDateTime = (value) => {
+  if (!value) return new Date().toISOString();
+  if (typeof value === "string") return new Date(value).toISOString();
+  if (typeof value === "object" && value.dateTime) {
+    return new Date(value.dateTime).toISOString();
+  }
+  return new Date(value).toISOString();
+};
+
+const buildEventResourceFromBooking = (booking, eventId) => {
+  const summary = booking.summary || booking.name || "";
+  if (!summary) {
+    throw new Error("Event summary is required.");
+  }
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const startDateTime = toDateTime(booking.start);
+  const endDateTime = toDateTime(booking.end);
+
+  return {
+    id: eventId,
+    summary,
+    description: booking.description || "",
+    location: booking.room || booking.location || "",
+    start: {
+      dateTime: startDateTime,
+      timeZone: timezone,
+    },
+    end: {
+      dateTime: endDateTime,
+      timeZone: timezone,
+    },
+  };
+};
+
+const buildEventResourceFromSchedule = (booking, eventId) => {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const summary = booking.summary || booking.name || "";
+  if (!summary) {
+    throw new Error("Event summary is required.");
+  }
+
+  const date = booking.date.split("T")[0];
+  const startTime = booking.startTime.split("+")[0].trim();
+  const endTime = booking.endTime.split("+")[0].trim();
+  const startDateTime = new Date(`${date}T${startTime}`).toISOString();
+  const endDateTime = new Date(`${date}T${endTime}`).toISOString();
+
+  return {
+    id: eventId,
+    summary,
+    description: booking.description || "",
+    location: booking.location || "",
+    start: {
+      dateTime: startDateTime,
+      timeZone: timezone,
+    },
+    end: {
+      dateTime: endDateTime,
+      timeZone: timezone,
+    },
+  };
+};
+
+const getCalendarBaseUrl = (calendarId) =>
+  `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
+    calendarId
+  )}`;
+
 export const fetchEvents = async () => {
   await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
-    throw new Error('No calendar selected');
+    throw new Error("No calendar selected");
   }
 
-  const response = await gapi.client.calendar.events.list({
-    calendarId,
+  const params = new URLSearchParams({
     timeMin: new Date().toISOString(),
-    showDeleted: false,
-    singleEvents: true,
+    showDeleted: "false",
+    singleEvents: "true",
     orderBy: "startTime",
   });
-  return response.result.items || [];
+
+  const data = await googleApiRequest(
+    `${getCalendarBaseUrl(calendarId)}/events?${params.toString()}`,
+    { interactiveFallback: false }
+  );
+
+  return data?.items ?? [];
 };
 
-/**
- * Create a new event in Google Calendar
- * @param {BookingEvent} event - Event object containing summary, start, end, etc.
- * @returns {Promise<GoogleCalendarEvent>} Created event
- */
-export const createEvent = async (event) => {
+export const createEvent = async (event, backendIdOverride) => {
   await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
-    throw new Error('No calendar selected');
+    throw new Error("No calendar selected");
   }
 
-  const eventId = generateEventId(event, event.backendId);
-  const response = await gapi.client.calendar.events.insert({
-    calendarId,
-    resource: {
-      id: eventId,
+  const eventId = generateEventId(event, backendIdOverride);
+  const resource = buildEventResourceFromBooking(
+    {
       ...event,
-      start: {
-        dateTime: new Date(event.start).toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      end: {
-        dateTime: new Date(event.end).toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      description: event.description || "",
-      location: event.room || "",
+      room: event.room,
+      location: event.location,
     },
+    eventId
+  );
+
+  return googleApiRequest(`${getCalendarBaseUrl(calendarId)}/events`, {
+    method: "POST",
+    body: resource,
   });
-  return response.result;
 };
 
-/**
- * Update an existing event in Google Calendar
- * @param {BookingEvent} updatedEvent - Updated event object
- * @returns {Promise<GoogleCalendarEvent>} Updated event
- */
-export const updateEvent = async (updatedEvent) => {
+export const updateEvent = async (eventIdOrBooking, updatedEvent) => {
   await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
-    throw new Error('No calendar selected');
+    throw new Error("No calendar selected");
   }
 
-  const eventId = generateEventId(updatedEvent, updatedEvent.backendId);
-  const response = await gapi.client.calendar.events.patch({
-    calendarId,
-    eventId,
-    resource: {
-      ...updatedEvent,
-      start: {
-        dateTime: new Date(updatedEvent.start).toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      end: {
-        dateTime: new Date(updatedEvent.end).toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      description: updatedEvent.description || "",
-      location: updatedEvent.room || "",
+  const isIdOnly = typeof eventIdOrBooking === "string";
+  const eventId = isIdOnly
+    ? eventIdOrBooking
+    : generateEventId(eventIdOrBooking, eventIdOrBooking.backendId);
+  const eventData = isIdOnly ? updatedEvent : eventIdOrBooking;
+
+  const resource = buildEventResourceFromBooking(
+    {
+      ...eventData,
+      start: eventData.start,
+      end: eventData.end,
     },
+    eventId
+  );
+
+  return googleApiRequest(`${getCalendarBaseUrl(calendarId)}/events/${eventId}`, {
+    method: "PATCH",
+    body: resource,
   });
-  return response.result;
 };
 
-/**
- * Delete an event from Google Calendar
- * @param {BookingEvent} event - Event object containing backend event data
- * @returns {Promise<void>}
- */
-export const deleteEvent = async (event) => {
+export const deleteEvent = async (eventOrId, backendIdOverride) => {
   await initializeGoogleCalendar();
   const calendarId = getSelectedCalendarId();
   if (!calendarId) {
-    throw new Error('No calendar selected');
+    throw new Error("No calendar selected");
   }
 
-  const eventId = generateEventId(event, event.backendId);
-  await gapi.client.calendar.events.delete({
-    calendarId,
-    eventId,
+  const eventId =
+    typeof eventOrId === "string"
+      ? eventOrId
+      : generateEventId(eventOrId, backendIdOverride);
+
+  await googleApiRequest(`${getCalendarBaseUrl(calendarId)}/events/${eventId}`, {
+    method: "DELETE",
   });
 };
 
-/**
- * Batch insert multiple bookings into Google Calendar
- * @param {BookingEvent[]} bookings - Array of booking objects to insert
- * @returns {Promise<BatchOperationResult>} Result of batch operation
- */
+const ensureCalendarSelected = () => {
+  const calendarId = getSelectedCalendarId();
+  if (!calendarId) {
+    throw new Error("No calendar selected");
+  }
+  return calendarId;
+};
+
+const executeBatch = async (items, operation) => {
+  const results = await Promise.allSettled(
+    items.map(async (item, index) => {
+      await operation(item, index);
+    })
+  );
+
+  let successCount = 0;
+  const errors = [];
+
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled") {
+      successCount += 1;
+    } else {
+      errors.push({
+        bookingIndex: index,
+        error: result.reason,
+      });
+    }
+  });
+
+  return {
+    total: items.length,
+    successCount,
+    failCount: items.length - successCount,
+    errors,
+  };
+};
+
 export const batchInsertBookings = async (bookings) => {
-  await initializeGoogleCalendar();
-  const calendarId = getSelectedCalendarId();
-  if (!calendarId) {
-    throw new Error('No calendar selected');
+  // Check if user is signed in before attempting sync
+  if (!isSignedIn()) {
+    console.log("User not signed in to Google Calendar, skipping sync");
+    return {
+      total: bookings.length,
+      successCount: 0,
+      failCount: bookings.length,
+      errors: bookings.map((_, index) => ({
+        bookingIndex: index,
+        error: new Error("Not signed in to Google Calendar"),
+      })),
+      syncSkipped: true, // Flag to indicate sync was skipped
+    };
   }
 
-  const batch = gapi.client.newBatch();
+  await initializeGoogleCalendar({ skipSilentAuth: true });
+  const calendarId = ensureCalendarSelected();
 
-  bookings.forEach((booking, index) => {
-    const date = booking.date.split("T")[0];
-    const start = booking.startTime.split('+')[0].trim();
-    const end = booking.endTime.split('+')[0].trim();
-    const startDateTime = new Date(`${date}T${start}`).toISOString();
-    const endDateTime = new Date(`${date}T${end}`).toISOString();
-    const eventId = generateEventId(booking, booking.backendId);
-    const location = booking.location || "";
-    const description = booking.description || "";
-
-    // console.log("NEW EVENT ID: ", eventId);
-
-    const resource = {
-      summary: booking.name,
-      id: eventId,
-      start: {
-        dateTime: startDateTime,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      },
-      end: {
-        dateTime: endDateTime,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      },
-      location: location,
-      description: description,
+  if (!Array.isArray(bookings) || bookings.length === 0) {
+    return {
+      total: 0,
+      successCount: 0,
+      failCount: 0,
+      errors: [],
     };
+  }
 
-    batch.add(gapi.client.calendar.events.insert({ calendarId, resource }), { id: `req${index}` });
-  });
+  const result = await executeBatch(bookings, async (booking) => {
+    const eventId = generateEventId(booking, booking.backendId);
+    const resource = buildEventResourceFromSchedule(booking, eventId);
 
-  return new Promise((resolve) => {
-    batch.execute(responseMap => {
-      const total = bookings.length;
-      const successCount = Object.values(responseMap).filter(r => !r.error).length;
-      const failCount = total - successCount;
-      resolve({ total, successCount, failCount });
+    await googleApiRequest(`${getCalendarBaseUrl(calendarId)}/events`, {
+      method: "POST",
+      body: resource,
+      interactiveFallback: false, // Don't trigger popup if not signed in
     });
   });
+
+  return {
+    ...result,
+    syncSkipped: false, // Sync was attempted
+  };
 };
 
-/**
- * Batch update multiple bookings in Google Calendar
- * @param {BookingEvent[]} bookings - Array of booking objects to update
- * @returns {Promise<BatchOperationResult>} Result of batch operation
- */
 export const batchUpdateBookings = async (bookings) => {
-  await initializeGoogleCalendar();
-  const calendarId = getSelectedCalendarId();
-  if (!calendarId) {
-    throw new Error('No calendar selected');
+  // Check if user is signed in before attempting sync
+  if (!isSignedIn()) {
+    console.log("User not signed in to Google Calendar, skipping sync");
+    return {
+      total: bookings.length,
+      successCount: 0,
+      failCount: bookings.length,
+      errors: bookings.map((_, index) => ({
+        bookingIndex: index,
+        error: new Error("Not signed in to Google Calendar"),
+      })),
+      addedCount: 0,
+      syncSkipped: true, // Flag to indicate sync was skipped
+    };
   }
 
-  const batch = gapi.client.newBatch();
-  let addedCount = 0;
+  await initializeGoogleCalendar({ skipSilentAuth: true });
+  const calendarId = ensureCalendarSelected();
 
-  for (const [index, booking] of bookings.entries()) {
-    const date = booking.date.split("T")[0];
-    const start = booking.startTime.split('+')[0].trim();
-    const end = booking.endTime.split('+')[0].trim();
-    const startDateTime = new Date(`${date}T${start}`).toISOString();
-    const endDateTime = new Date(`${date}T${end}`).toISOString();
-    const eventId = generateEventId(booking, booking.backendId);
-    const location = booking.location || "";
-    const description = booking.description || "";
-
-    // Check if the event exists
-    try {
-      const eventExists = await gapi.client.calendar.events.get({
-        calendarId,
-        eventId: eventId
-      });
-      if (eventExists.result) {
-        const resource = {
-          summary: booking.name,
-          start: {
-            dateTime: startDateTime,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-          },
-          end: {
-            dateTime: endDateTime,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-          },
-          location: location,
-          description: description,
-        };
-
-        batch.add(
-          gapi.client.calendar.events.patch({
-            calendarId,
-            eventId: eventId,
-            resource: resource
-          }), 
-          { id: `update_${index}` }
-        );
-        addedCount++;
-      }
-    } catch (error) {
-      console.log("EVENT DOES NOT EXIST: ", eventId);
-      // Skip this booking if event doesn't exist
-    }
-  }
-
-  if (addedCount === 0) {
+  if (!Array.isArray(bookings) || bookings.length === 0) {
     return {
       total: 0,
       successCount: 0,
       failCount: 0,
-      addedCount: 0
+      errors: [],
+      addedCount: 0,
     };
   }
 
-  return new Promise((resolve) => {
-    batch.execute(responseMap => {
-      const total = bookings.length;
-      const successCount = Object.values(responseMap).filter(r => !r.error).length;
-      const failCount = total - successCount;
-      
-      // Collect any errors for reporting
-      const errors = Object.entries(responseMap)
-        .filter(([_, response]) => response.error)
-        .map(([id, response]) => ({
-          bookingIndex: parseInt(id.split('_')[1]),
-          error: response.error
-        }));
+  const bookingsWithExistingEvents = [];
 
-      resolve({ 
-        total, 
-        successCount, 
-        failCount,
-        errors,
-        addedCount,
-        responseMap 
+  for (const booking of bookings) {
+    const eventId = generateEventId(booking, booking.backendId);
+
+    try {
+      await googleApiRequest(
+        `${getCalendarBaseUrl(calendarId)}/events/${eventId}`,
+        {
+          interactiveFallback: false,
+        }
+      );
+      bookingsWithExistingEvents.push({ booking, eventId });
+    } catch (error) {
+      if (error.status === 404) {
+        console.warn("Event not found when updating:", eventId);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  if (bookingsWithExistingEvents.length === 0) {
+    return {
+      total: 0,
+      successCount: 0,
+      failCount: 0,
+      errors: [],
+      addedCount: 0,
+    };
+  }
+
+  const result = await executeBatch(
+    bookingsWithExistingEvents,
+    async ({ booking, eventId }) => {
+      const resource = buildEventResourceFromSchedule(booking, eventId);
+
+      await googleApiRequest(`${getCalendarBaseUrl(calendarId)}/events/${eventId}`, {
+        method: "PATCH",
+        body: resource,
+        interactiveFallback: false, // Don't trigger popup if not signed in
       });
-    });
-  });
+    }
+  );
+
+  return {
+    ...result,
+    addedCount: bookingsWithExistingEvents.length,
+    syncSkipped: false, // Sync was attempted
+  };
 };
 
-/**
- * Batch delete multiple bookings from Google Calendar
- * @param {BookingEvent[]} bookings - Array of booking objects to delete
- * @returns {Promise<BatchOperationResult>} Result of batch operation
- */
 export const batchDeleteBookings = async (bookings) => {
-  await initializeGoogleCalendar();
-  const calendarId = getSelectedCalendarId();
-  if (!calendarId) {
-    throw new Error('No calendar selected');
+  // Check if user is signed in before attempting sync
+  if (!isSignedIn()) {
+    console.log("User not signed in to Google Calendar, skipping sync");
+    return {
+      total: bookings.length,
+      successCount: 0,
+      failCount: bookings.length,
+      errors: bookings.map((_, index) => ({
+        bookingIndex: index,
+        error: new Error("Not signed in to Google Calendar"),
+      })),
+      addedCount: 0,
+      syncSkipped: true, // Flag to indicate sync was skipped
+    };
   }
 
-  const batch = gapi.client.newBatch();
-  let addedCount = 0;
+  await initializeGoogleCalendar({ skipSilentAuth: true });
+  const calendarId = ensureCalendarSelected();
 
-  for (const [index, booking] of bookings.entries()) {
-    const eventId = generateEventId(booking, booking.backendId);
-    
-    // Check if the event exists
-    try {
-      const eventExists = await gapi.client.calendar.events.get({
-        calendarId,
-        eventId: eventId
-      });
-      if (eventExists.result) {
-        batch.add(
-          gapi.client.calendar.events.delete({
-            calendarId,
-            eventId: eventId
-          }), 
-          { id: `delete_${index}` }
-        );
-        addedCount++;
-      }
-    } catch (error) {
-      // Skip this booking if event doesn't exist
-    }
-  }
-
-  if (addedCount === 0) {
+  if (!Array.isArray(bookings) || bookings.length === 0) {
     return {
       total: 0,
       successCount: 0,
       failCount: 0,
-      addedCount: 0
+      errors: [],
+      addedCount: 0,
     };
   }
 
-  return new Promise((resolve) => {
-    batch.execute(responseMap => {
-      const total = bookings.length;
-      // For delete operations, a 204 status code means success
-      // and no response body is returned, so we check for absence of error
-      const successCount = Object.values(responseMap).filter(r => !r.error).length;
-      const failCount = total - successCount;
-      
-      // Collect any errors for reporting
-      const errors = Object.entries(responseMap)
-        .filter(([_, response]) => response.error)
-        .map(([id, response]) => ({
-          bookingIndex: parseInt(id.split('_')[1]),
-          error: response.error
-        }));
+  const bookingsWithExistingEvents = [];
 
-      resolve({ 
-        total, 
-        successCount, 
-        failCount,
-        errors,
-        addedCount,
-        responseMap 
-      });
-    });
-  });
-};
-
-/**
- * Check if the Google Calendar API is initialized and ready
- * @returns {boolean} True if the API is ready to use
- */
-export const isCalendarApiReady = () => {
-  return gapi.client?.calendar !== undefined;
-};
-
-/**
- * Check if the user is currently signed into their Google account
- * @returns {boolean} True if the user is signed in, false otherwise
- */
-export const isSignedIn = () => {
-  if (!isCalendarApiReady()) {
-    return false;
+  for (const booking of bookings) {
+    const eventId = generateEventId(booking, booking.backendId);
+    try {
+      await googleApiRequest(
+        `${getCalendarBaseUrl(calendarId)}/events/${eventId}`,
+        {
+          interactiveFallback: false,
+        }
+      );
+      bookingsWithExistingEvents.push({ booking, eventId });
+    } catch (error) {
+      if (error.status === 404) {
+        console.warn("Event not found when deleting:", eventId);
+      } else {
+        throw error;
+      }
+    }
   }
 
-  const auth2 = gapi.auth2.getAuthInstance();
-  if (!auth2) return false;
-  return auth2.isSignedIn.get();
+  if (bookingsWithExistingEvents.length === 0) {
+    return {
+      total: 0,
+      successCount: 0,
+      failCount: 0,
+      errors: [],
+      addedCount: 0,
+    };
+  }
+
+  const result = await executeBatch(
+    bookingsWithExistingEvents,
+    async ({ eventId }) => {
+      await googleApiRequest(
+        `${getCalendarBaseUrl(calendarId)}/events/${eventId}`,
+        {
+          method: "DELETE",
+          interactiveFallback: false, // Don't trigger popup if not signed in
+        }
+      );
+    }
+  );
+
+  return {
+    ...result,
+    addedCount: bookingsWithExistingEvents.length,
+    syncSkipped: false, // Sync was attempted
+  };
 };
 
-/**
- * Get the user's Google Calendar email address
- * @returns {Promise<string>} The user's Google Calendar email address
- */
 export const getCalendarEmail = async () => {
-  await initializeGoogleCalendar();
   const calendars = await getAvailableCalendars();
-  const primaryCalendar = calendars.find(calendar => calendar.primary);
-  return primaryCalendar.id;
+  const primaryCalendar = calendars.find((calendar) => calendar.primary);
+  return primaryCalendar?.id;
 };
 
-/**
- * Hook to manage the selected calendar in local storage
- */
 export const useSelectedCalendar = () => {
   const [selectedCalendar, setSelectedCalendar] = useState(() => {
     const saved = localStorage.getItem(SELECTED_CALENDAR_KEY);
     return saved ? JSON.parse(saved) : null;
   });
 
-  const updateSelectedCalendar = (calendar) => {
-    setSelectedCalendar(calendar);
-    localStorage.setItem(SELECTED_CALENDAR_KEY, JSON.stringify(calendar));
-  };
+  const updateSelectedCalendar = useCallback(
+    (calendar) => {
+      setSelectedCalendar(calendar);
+      localStorage.setItem(SELECTED_CALENDAR_KEY, JSON.stringify(calendar));
+    },
+    [setSelectedCalendar]
+  );
 
   return [selectedCalendar, updateSelectedCalendar];
 };
 
-/**
- * Get all available calendars for the authenticated user
- * @returns {Promise<Array<{id: string, summary: string, description?: string, primary?: boolean}>>} 
- * Array of calendar objects containing id, name (summary), and optional description and primary status
- */
 export const getAvailableCalendars = async () => {
   await initializeGoogleCalendar();
-  if (!isCalendarApiReady()) {
-    throw new Error('Google Calendar API is not initialized. Please wait for initialization to complete.');
+
+  const data = await googleApiRequest(
+    "https://www.googleapis.com/calendar/v3/users/me/calendarList",
+    {
+      interactiveFallback: false,
+    }
+  );
+
+  if (!data?.items) {
+    return [];
   }
 
-  const response = await gapi.client.calendar.calendarList.list({
-    showHidden: false,
-    showDeleted: false,
-  });
-
-  const result = response.result.items.map(calendar => ({
+  return data.items.map((calendar) => ({
     id: calendar.id,
     summary: calendar.summary,
     description: calendar.description,
     primary: calendar.primary,
   }));
-
-  return result;
 };

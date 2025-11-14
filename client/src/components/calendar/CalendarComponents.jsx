@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Button, useToast } from "@chakra-ui/react";
-import { signIn, signOut, initializeGoogleCalendar } from "../../utils/calendar";
+import { 
+  signIn, 
+  signOut, 
+  initializeGoogleCalendar, 
+  isSignedIn, 
+  onSignInStatusChange 
+} from "../../utils/calendar";
 
 export const GcalAuthButton = ({ signedIn, setSignedIn }) => {
   const [isLoading, setIsLoading] = useState(true);
   const toast = useToast();
 
   useEffect(() => {
-    initializeGoogleCalendar()
-      .then(auth2 => {
-        setSignedIn(auth2.isSignedIn.get());
-        auth2.isSignedIn.listen(setSignedIn);
-      })
-      .catch(error => {
+    const initialize = async () => {
+      try {
+        // Initialize without triggering silent auth to prevent auto-redirect
+        await initializeGoogleCalendar({ skipSilentAuth: true });
+        setSignedIn(isSignedIn());
+        setIsLoading(false);
+      } catch (error) {
         console.error("Failed to initialize Google Calendar:", error);
         toast({
           title: "Initialization Error",
@@ -21,15 +28,40 @@ export const GcalAuthButton = ({ signedIn, setSignedIn }) => {
           duration: 5000,
           isClosable: true,
         });
-      });
-    setIsLoading(false);
-  }, []);
+        setIsLoading(false);
+      }
+    };
+
+    initialize();
+
+    // Listen for sign-in status changes
+    const unsubscribe = onSignInStatusChange((isSignedInStatus) => {
+      setSignedIn(isSignedInStatus);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [toast, setSignedIn]);
 
   const handleAuthClick = async () => {
-    if (signedIn) {
-      await signOut();
-    } else {
-      await signIn();
+    try {
+      if (signedIn) {
+        await signOut();
+        setSignedIn(false);
+      } else {
+        await signIn();
+        setSignedIn(true);
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+      toast({
+        title: "Authentication Error",
+        description: error.message || "Failed to authenticate with Google",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 

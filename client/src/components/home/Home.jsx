@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-import { Box } from "@chakra-ui/react";
-
 import Navbar from "../navbar/Navbar";
 import { HeaderRowComponent } from "./HeaderRowComponent";
 import { ProgramsTable } from "./HomeComponents";
@@ -14,34 +12,28 @@ export const Home = () => {
   const [showGcalPrompt, setShowGcalPrompt] = useState(false);
 
   useEffect(() => {
-
-    const checkApiAndSignIn = () => {
+    const checkApiAndSignIn = async () => {
+      // Initialize Google Calendar API without triggering silent auth
       if (!isCalendarApiReady()) {
-        initializeGoogleCalendar();
-        return false; // Return false to continue polling
+        try {
+          await initializeGoogleCalendar({ skipSilentAuth: true });
+        } catch (error) {
+          console.error("Failed to initialize Google Calendar:", error);
+          return;
+        }
       }
       
-      // Check after 1 second if the user is signed into GCal
+      // Wait a bit for initialization to complete, then check sign-in status
+      // Show the GcalPrompt modal if not signed in (user can choose to go to settings)
       setTimeout(() => {
-        if (!isSignedIn()) {
+        if (isCalendarApiReady() && !isSignedIn()) {
+          // Show the existing GcalPrompt modal instead of auto-redirecting
           setShowGcalPrompt(true);
         }
-      }, 1000);
-      
-      return true; // Return true to stop polling
+      }, 500);
     };
 
-    // Check if the API is ready and the user is signed in every second
-    if (!checkApiAndSignIn()) {
-      const interval = setInterval(() => {
-        if (checkApiAndSignIn()) {
-          // Stop polling once the API is ready
-          clearInterval(interval);
-        }
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
+    checkApiAndSignIn();
   }, []);
 
   return (
