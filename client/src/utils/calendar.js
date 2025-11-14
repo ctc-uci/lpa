@@ -610,7 +610,6 @@ const executeBatch = async (items, operation) => {
 export const batchInsertBookings = async (bookings) => {
   // Check if user is signed in before attempting sync
   if (!isSignedIn()) {
-    console.log("User not signed in to Google Calendar, skipping sync");
     return {
       total: bookings.length,
       successCount: 0,
@@ -655,7 +654,6 @@ export const batchInsertBookings = async (bookings) => {
 export const batchUpdateBookings = async (bookings) => {
   // Check if user is signed in before attempting sync
   if (!isSignedIn()) {
-    console.log("User not signed in to Google Calendar, skipping sync");
     return {
       total: bookings.length,
       successCount: 0,
@@ -737,7 +735,6 @@ export const batchUpdateBookings = async (bookings) => {
 export const batchDeleteBookings = async (bookings) => {
   // Check if user is signed in before attempting sync
   if (!isSignedIn()) {
-    console.log("User not signed in to Google Calendar, skipping sync");
     return {
       total: bookings.length,
       successCount: 0,

@@ -98,6 +98,18 @@ const PDFButtonInvoice = ({
   };
 
   const handleDownload = async () => {
+    if (!id || id === 'null' || id === 'undefined') {
+      downloadToast({
+        title: "Error",
+        description: "No Invoices Found. Cannot generate PDF.",
+        status: "error",
+        duration: 5000,
+        position: "bottom-right",
+        variant: "left-accent",
+        isClosable: true,
+      });
+      return;
+    }
     try {
       setLoading(true);
       const invoiceData = await fetchInvoiceData();
@@ -126,6 +138,15 @@ const PDFButtonInvoice = ({
       });
     } catch (err) {
       console.error("Error generating PDF:", err);
+      downloadToast({
+        title: "Error generating PDF",
+        description: err.response?.data || err.message || "An error occurred while generating the PDF.",
+        status: "error",
+        duration: 6000,
+        position: "bottom-right",
+        variant: "left-accent",
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }

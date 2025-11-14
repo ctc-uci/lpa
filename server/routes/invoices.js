@@ -162,6 +162,11 @@ invoicesRouter.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate that id is a valid integer
+    if (!id || id === 'null' || id === 'undefined' || isNaN(parseInt(id, 10))) {
+      return res.status(400).json({ error: "Invalid invoice ID" });
+    }
+
     const invoice = await db.query("SELECT * FROM invoices WHERE id = $1", [
       id,
     ]);
