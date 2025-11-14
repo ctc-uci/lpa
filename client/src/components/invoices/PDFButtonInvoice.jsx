@@ -14,7 +14,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 
-import { pdf, PDFViewer, Text } from "@react-pdf/renderer";
+import { Document, Page, pdf, PDFViewer, Text, View } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
@@ -116,12 +116,11 @@ const PDFButtonInvoice = ({
 
       const blob = await pdf(
         <InvoicePDFDocument
-              sessions={sessions}
-              invoice={invoice}
-              {...invoiceData}
-            />
+          sessions={sessions}
+          invoice={invoice}
+          {...invoiceData}
+        />
       ).toBlob();
-
 
       saveAs(
         blob,

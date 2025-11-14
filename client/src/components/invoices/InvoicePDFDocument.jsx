@@ -15,50 +15,6 @@ import InvoiceHeader from "../../assets/background/InvoiceHeader.png";
 import logo from "../../assets/logo/logo.png";
 
 
-const styles = StyleSheet.create({
-  page: {
-    padding: 30,
-    backgroundColor: "#ffffff",
-    flexDirection: "column",
-  },
-  section: {
-    margin: 10,
-    padding: 20,
-    borderRadius: 5,
-    backgroundColor: "#f8f9fa",
-    borderBottom: "1px solid #eee",
-  },
-  header: {
-    fontSize: 14,
-    fontWeight: 600,
-    marginBottom: 10,
-    color: "#2c3e50",
-  },
-  row: {
-    flexDirection: "row",
-    marginBottom: 8,
-    alignItems: "center",
-  },
-  label: {
-    width: 100,
-    fontSize: 12,
-    color: "#666",
-    marginRight: 10,
-  },
-  value: {
-    flex: 1,
-    fontSize: 12,
-    color: "#333",
-  },
-  dateTime: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  timeBlock: {
-    flex: 1,
-  },
-});
 
 const getGeneratedDate = (sessions = [], includeDay = true) => {
   if (sessions.length === 0) {
@@ -649,46 +605,6 @@ const InvoiceTable = ({ sessions, summary }) => {
           </View>
         </View>
 
-        {/* Data Rows */}
-        {/* {sessions.filter((session) => session?.name?.length > 0)
-          .map((session, index) =>
-            session.total?.map((total, totalIndex) => {
-              return (
-                <View
-                  key={`total-${index}-${totalIndex}`}
-                  style={tableStyles.tableRow}
-                >
-                  <View style={tableStyles.tableCol}>
-                    <Text style={{ fontSize: 7 }}>
-                      {(() => {
-                        const date = new Date(total.date);
-                        date.setMinutes(
-                          date.getMinutes() + date.getTimezoneOffset()
-                        );
-                        return format(date, "EEE. M/d/yy");
-                      })()}
-                    </Text>
-                  </View>
-                  <View style={{ ...tableStyles.tableCol, flex: 4 }}>
-                    <Text style={{ fontSize: 7 }}>
-                      {total.comment || "Custom adjustment"}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      ...tableStyles.tableCol,
-                      alignItems: "flex-end",
-                      paddingRight: 20,
-                    }}
-                  >
-                    <Text style={{ fontSize: 7 }}>
-                      $ {Number(total.value || 0).toFixed(2)}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })
-          )} */}
 
         {sessions
           ?.filter((session) => session.name.length > 0)
@@ -1151,8 +1067,14 @@ const SummaryTable = ({
               paddingRight: 20,
             }}
           >
+            {/* <Text style={{ fontSize: 7 }}>
+              $ Calculated Subtotal: {calculateSubtotal(sessions, summary)}
+            </Text>
             <Text style={{ fontSize: 7 }}>
-              $ {(calculateSubtotal(sessions, summary) + parseFloat(totalCustomRow)).toFixed(2)}
+              $ Total Custom Row: {totalCustomRow || 0}
+            </Text> */}
+            <Text style={{ fontSize: 7 }}>
+              $ {(Number(calculateSubtotal(sessions, summary)) + Number(totalCustomRow || 0)).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -1282,12 +1204,12 @@ const InvoicePDFDocument = ({
     <Document>
       <Page
         size="A4"
-        style={styles.page}
+        style={{ backgroundColor: "#ffffff" }}
       >
         {/* Main content area with bottom margin to prevent footer overlap */}
         <View style={{ flex: 1, marginBottom: 120 }}>
           <Image src={InvoiceHeader} />
-          <View style={{ marginHorizontal: 16, gap: 16 }}>
+          <View style={{ marginHorizontal: 16, gap: 16, paddingHorizontal: 30 }}>
             <EditInvoiceTitle
               sessions={sessions}
             />
@@ -1321,7 +1243,7 @@ const InvoicePDFDocument = ({
           left: 0, 
           right: 0,
           paddingHorizontal: 16,
-          paddingBottom: 16
+          paddingBottom: 32
         }}>
           <Footer />
         </View>
