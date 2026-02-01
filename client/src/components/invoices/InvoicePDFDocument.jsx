@@ -404,7 +404,7 @@ const calculateSummaryTotal = (rate, adjustmentValues) => {
 };
 
 const calculateSubtotal = (sessions, summary) => {
-  if (!sessions || sessions.length === 0) return "0.00";
+  if (!sessions || sessions.length === 0) return 0;
 
   const adjSum = sessions.reduce((acc, session) => {
     if (!session.adjustmentValues || session.adjustmentValues.length === 0) {
@@ -416,7 +416,7 @@ const calculateSubtotal = (sessions, summary) => {
           []
         )
       );
-      return acc + total;
+      return acc + (isNaN(total) ? 0 : total);
     }
 
 
@@ -429,19 +429,20 @@ const calculateSubtotal = (sessions, summary) => {
       )
     );
 
-    return acc + total;
+    return acc + (isNaN(total) ? 0 : total);
   }, 0);
 
   const totalSum = sessions.reduce((acc, session) => {
+    if (!session.total || !Array.isArray(session.total)) return acc;
     const total = parseFloat(
       session.total.reduce((sum, item) => sum + Number(item.value || 0), 0)
     );
-    return acc + total;
+    return acc + (isNaN(total) ? 0 : total);
   }, 0);
 
   const finalTotal = adjSum + totalSum;
 
-  return Number(finalTotal);
+  return isNaN(finalTotal) ? 0 : Number(finalTotal);
 };
 
 const InvoiceTable = ({ sessions, summary }) => {
