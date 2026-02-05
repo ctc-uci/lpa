@@ -43,7 +43,7 @@ export const generateRecurringSessions = (
       const daysUntilFirst = (weekdayIndex - startDayOfWeek + 7) % 7;
 
       if (daysUntilFirst > 0) {
-        startingDate.setDate(startingDate.getDate() + daysUntilFirst);
+        startingDate.setUTCDate(startingDate.getUTCDate() + daysUntilFirst);
       }
 
       while (startingDate <= endingDate) {
@@ -56,7 +56,7 @@ export const generateRecurringSessions = (
           id: Date.now() + Math.random(),
         });
 
-        startingDate.setDate(startingDate.getDate() + 7);
+        startingDate.setUTCDate(startingDate.getUTCDate() + 7);
       }
       break; }
 
