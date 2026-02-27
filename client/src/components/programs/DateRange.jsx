@@ -1,17 +1,22 @@
 import { Flex, Text } from "@chakra-ui/react";
 
+import { parseSessionDate } from "./utils";
+
 export const DateRange = ({ sessions }) => {
   if (!sessions || sessions.length === 0) {
     return <Text color="gray.600">No dates available</Text>;
   }
 
   const sortedSessions = [...sessions].sort((a, b) => {
-    return new Date(a.date) - new Date(b.date);
+    const tA = parseSessionDate(a.date)?.getTime() ?? 0;
+    const tB = parseSessionDate(b.date)?.getTime() ?? 0;
+    return tA - tB;
   });
 
-  // Format date for display
+  // Format date for display (parseSessionDate keeps calendar day correct in user TZ)
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    const date = parseSessionDate(dateString);
+    if (!date) return "";
     const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "short" });
     const month = date.toLocaleDateString("en-US", { month: "numeric" });
     const day = date.toLocaleDateString("en-US", { day: "numeric" });

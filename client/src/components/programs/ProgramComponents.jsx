@@ -108,7 +108,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
-import { deleteSessions } from "./utils";
+import { deleteSessions, parseSessionDate } from "./utils";
 import { PDFButtonInvoice } from "../invoices/PDFButtonInvoice"
 
 const formatNamesList = (list = [], maxCharsPerLine) => {
@@ -178,8 +178,8 @@ export const ProgramSummary = ({
     const filteredSessions = sessions.filter((session) => (!session.archived || isArchived));
 
     const sortedSessions = [...filteredSessions].sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
+      const dateA = parseSessionDate(a.date)?.getTime() ?? 0;
+      const dateB = parseSessionDate(b.date)?.getTime() ?? 0;
       return dateA - dateB;
     });
 
@@ -1040,7 +1040,8 @@ export const Sessions = ({
     const newSessionMap = {};
 
     const filtered = filteredSessions.filter((session) => {
-      const sessionDate = new Date(session.date);
+      const sessionDate = parseSessionDate(session.date);
+      if (!sessionDate) return false;
       const sessionStartTime = session.startTime;
       const sessionEndTime = session.endTime;
       newSessionMap[session.id] = session;
@@ -1073,8 +1074,8 @@ export const Sessions = ({
         if (aInvalid) return 1;
         if (bInvalid) return -1;
 
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
+        const dateA = parseSessionDate(a.date)?.getTime() ?? 0;
+        const dateB = parseSessionDate(b.date)?.getTime() ?? 0;
 
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       });
@@ -1106,18 +1107,16 @@ export const Sessions = ({
   };
 
   const formatDate = (isoString) => {
-    const localDateString = isoString.includes("T")
-      ? isoString
-      : `${isoString}T12:00:00`;
-    const date = new Date(localDateString);
-  
+    const date = parseSessionDate(isoString);
+    if (!date) return "";
+
     const options = {
       weekday: "short",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
     };
-  
+
     let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
     formattedDate = formattedDate.replace(",", ".");
     return formattedDate;

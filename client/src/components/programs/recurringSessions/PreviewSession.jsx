@@ -34,14 +34,12 @@ import {
 import { MdFeaturedPlayList } from "../../../assets/MdFeaturedPlayList";
 import { ReactivateIcon } from "../../../assets/ReactivateIcon";
 import DateSortingModal from "../../sorting/DateFilter";
+import { parseSessionDate } from "../utils";
 
-// Function to format date
-// to "Mon. 01.01.2023"
+// Format date for display (uses parseSessionDate so UTC dates show correct day in user TZ)
 const formatDate = (isoString) => {
-  const localDateString = isoString.includes("T")
-    ? isoString
-    : `${isoString}T12:00:00`;
-  const date = new Date(localDateString);
+  const date = parseSessionDate(isoString);
+  if (!date) return "";
 
   const options = {
     weekday: "short",
@@ -102,11 +100,11 @@ export const PreviewSession = ({
   useEffect(() => {
     const sorted = [...allSessions]
       .filter((session) => !session.isDeleted)
-      .sort((a, b) =>
-        sortOrder === "asc"
-          ? new Date(a.date) - new Date(b.date)
-          : new Date(b.date) - new Date(a.date)
-      );
+      .sort((a, b) => {
+        const tA = parseSessionDate(a.date)?.getTime() ?? 0;
+        const tB = parseSessionDate(b.date)?.getTime() ?? 0;
+        return sortOrder === "asc" ? tA - tB : tB - tA;
+      });
 
     setSortedSessions(sorted);
   }, [allSessions, sortOrder]);

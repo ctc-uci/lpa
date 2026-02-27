@@ -1,5 +1,18 @@
 import { batchInsertBookings, batchUpdateBookings, batchDeleteBookings } from "../../utils/calendar";
 
+/**
+ * Parses a session date so the calendar day is correct in the user's timezone.
+ * API/DB may return date-only ("2025-03-02") or UTC midnight ("2025-03-02T00:00:00.000Z");
+ * both are treated as that calendar day in local time (e.g. Sunday stays Sunday in PST).
+ */
+export const parseSessionDate = (dateString) => {
+  if (!dateString) return null;
+  const s = String(dateString).trim();
+  if (!s) return null;
+  const dateOnly = s.includes("T") ? s.split("T")[0] : s;
+  return new Date(`${dateOnly}T12:00:00`);
+};
+
 export const generateRecurringSessions = (
   recurringSession,
   startDate,

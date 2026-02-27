@@ -23,6 +23,7 @@ import { ArchiveIcon } from '../../assets/ArchiveIcon';
 import { DeleteIcon } from '../../assets/DeleteIcon';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
+import { parseSessionDate } from "./utils";
 
 
 export const CancelSessionModal = ({
@@ -163,9 +164,10 @@ export const CancelSessionModal = ({
     onClose();
   };
 
-  // Format the date from ISO string
+  // Format the date (parseSessionDate keeps calendar day correct in user TZ)
   const formatDate = (isoString) => {
-    const date = new Date(isoString);
+    const date = parseSessionDate(isoString);
+    if (!date) return "";
     return date.toLocaleDateString('en-US', {
       month: "2-digit",
       day: "2-digit",
@@ -175,13 +177,15 @@ export const CancelSessionModal = ({
 
   // Get day of week
   const getDayOfWeek = (isoString) => {
-    const date = new Date(isoString);
+    const date = parseSessionDate(isoString);
+    if (!date) return "";
     return date.toLocaleDateString('en-US', { weekday: 'long' });
   };
 
   // Determine if a session is past the cancellation deadline (2 weeks prior)
   const isPastDeadline = (isoString) => {
-    const sessionDate = new Date(isoString);
+    const sessionDate = parseSessionDate(isoString);
+    if (!sessionDate) return false;
     const today = new Date();
     const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000;
     const deadlineDate = new Date(sessionDate.getTime() - twoWeeksInMs);

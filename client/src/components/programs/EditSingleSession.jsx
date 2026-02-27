@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { updateSessions } from "./utils";
+import { updateSessions, parseSessionDate } from "./utils";
 
 import {
   Box,
@@ -71,10 +71,10 @@ export const EditSingleSession = () => {
     return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
   };
 
-  // Function to format date
-  // to "Mon. 01.01.2023"
+  // Function to format date (parseSessionDate keeps calendar day correct in user TZ)
   const formatDate = (isoString) => {
-    const date = new Date(isoString);
+    const date = parseSessionDate(isoString);
+    if (!date) return "";
 
     const options = {
       weekday: "short",

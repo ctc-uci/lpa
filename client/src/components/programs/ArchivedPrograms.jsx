@@ -55,6 +55,7 @@ import Navbar from "../navbar/Navbar";
 import { SearchBar } from "../searchBar/SearchBar";
 import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
+import { parseSessionDate } from "./utils";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -158,9 +159,9 @@ export const ArchivedPrograms = () => {
             sessions.forEach((session) => allRoomIds.add(session.roomId));
 
             mostRecentSession = sessions.reduce((latest, current) => {
-              return new Date(current.date) > new Date(latest.date)
-                ? current
-                : latest;
+              const currentT = parseSessionDate(current.date)?.getTime() ?? 0;
+              const latestT = parseSessionDate(latest.date)?.getTime() ?? 0;
+              return currentT > latestT ? current : latest;
             }, sessions[0]);
 
             // get room name
@@ -237,7 +238,8 @@ export const ArchivedPrograms = () => {
   }, [uniqueRooms]);
 
   const formatDate = (isoString) => {
-    const date = new Date(isoString);
+    const date = parseSessionDate(isoString);
+    if (!date) return "";
 
     // Format the date to "Mon 01/17/2025"
     const options = {
@@ -332,8 +334,8 @@ export const ArchivedPrograms = () => {
       );
     } else if (sortKey === "date") {
       sorted.sort((a, b) => {
-        const dateA = a.sessionDate !== "N/A" ? new Date(a.sessionDate) : null;
-        const dateB = b.sessionDate !== "N/A" ? new Date(b.sessionDate) : null;
+        const dateA = a.sessionDate !== "N/A" ? parseSessionDate(a.sessionDate) : null;
+        const dateB = b.sessionDate !== "N/A" ? parseSessionDate(b.sessionDate) : null;
         // If both are null, they are equal.
         if (!dateA && !dateB) return 0;
         // If one is null, push it to the end.

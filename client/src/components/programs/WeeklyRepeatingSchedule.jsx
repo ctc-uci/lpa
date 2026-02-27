@@ -2,6 +2,8 @@ import { React } from "react";
 
 import { Box, Flex, Text } from "@chakra-ui/react";
 
+import { parseSessionDate } from "./utils";
+
 export const WeeklyRepeatingSchedule = ({ sessions }) => {
   if (!sessions || sessions.length === 0) {
     return <Text>No sessions scheduled</Text>;
@@ -32,7 +34,8 @@ export const WeeklyRepeatingSchedule = ({ sessions }) => {
   let maxCount = 0;
 
   for (const session of validSessions) {
-    const sessionDate = new Date(session.date);
+    const sessionDate = parseSessionDate(session.date);
+    if (!sessionDate) continue;
     const dayOfWeek = sessionDate.toLocaleDateString("en-US", {
       weekday: "short",
     });
