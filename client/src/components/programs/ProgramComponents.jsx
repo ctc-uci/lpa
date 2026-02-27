@@ -1106,14 +1106,18 @@ export const Sessions = ({
   };
 
   const formatDate = (isoString) => {
-    const date = new Date(isoString);
-
+    const localDateString = isoString.includes("T")
+      ? isoString
+      : `${isoString}T12:00:00`;
+    const date = new Date(localDateString);
+  
     const options = {
       weekday: "short",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
     };
+  
     let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
     formattedDate = formattedDate.replace(",", ".");
     return formattedDate;
