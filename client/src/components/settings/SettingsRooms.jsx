@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 
 import {
-  Box,
   Button,
-  Checkbox,
   Flex,
-  Heading,
   Icon,
   IconButton,
   Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Modal,
   ModalBody,
   ModalContent,
@@ -18,34 +19,22 @@ import {
   NumberInput,
   NumberInputField,
   StackDivider,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
   Text,
   Textarea,
-  Th,
-  Thead,
-  Tr,
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router-dom";
 
-import {
-  EmailIcon,
-  PersonIcon,
-  UpDownArrowIcon,
-} from "../../assets/AdminSettingsIcons";
-import { EllipsisIcon } from "../../assets/EllipsisIcon";
-import { GoogleCalendarIcon } from "../../assets/GoogleCalendarIcon";
+import { DeleteIconRed } from "../../assets/DeleteIconRed";
+import { EditIcon } from "../../assets/EditIcon";
 import { LeftIcon } from "../../assets/LeftIcon";
 import { LocationPinIcon } from "../../assets/LocationPinIcon";
 import { PlusIcon } from "../../assets/PlusIcon";
-import { UserIcon } from "../../assets/UserIcon";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
+import { FiMoreHorizontal } from "react-icons/fi";
 
 const ConfirmationModal = ({
   isOpen,
@@ -84,6 +73,7 @@ const RoomSettings = ({
   isInitiallyEditing = false,
   onSave,
   onCancel,
+  onDelete,
 }) => {
   const { backend } = useBackendContext();
 
@@ -111,6 +101,11 @@ const RoomSettings = ({
     isOpen: isSaveModalOpen,
     onOpen: onSaveModalOpen,
     onClose: onSaveModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: onDeleteModalOpen,
+    onClose: onDeleteModalClose,
   } = useDisclosure();
 
   const handleRoomNameEdit = (e) => {
@@ -175,6 +170,16 @@ const RoomSettings = ({
     }
     onSaveModalClose();
     setIsEditing(false);
+  };
+
+  const handleDelete = async () => {
+    if (room.id) {
+      await backend.delete("/rooms/" + room.id);
+      if (onDelete) {
+        onDelete(room.id);
+      }
+    }
+    onDeleteModalClose();
   };
 
   useEffect(() => {
@@ -280,14 +285,72 @@ const RoomSettings = ({
             </Button>
           </>
         ) : (
-          <Button
-            marginLeft="auto"
-            onClick={() => {
-              setIsEditing(true);
-            }}
-          >
-            <EllipsisIcon></EllipsisIcon>
-          </Button>
+          <Menu placement="bottom-end">
+            <MenuButton
+              as={IconButton}
+              aria-label="Options"
+              icon={<FiMoreHorizontal />}
+              variant="ghost"
+              marginLeft="auto"
+            />
+            <MenuList
+              style={{
+                display: "flex",
+                padding: "4px",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                gap: "10px",
+                borderRadius: "6px",
+                border: "1px solid var(--Secondary-3, #E2E8F0)",
+                background: "#FFF",
+                boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
+                width: "139px",
+                minWidth: "139px",
+                maxWidth: "139px"
+              }}
+            >
+              <MenuItem
+                onClick={() => setIsEditing(true)}
+                style={{
+                  display: "flex",
+                  width: "131px",
+                  padding: "6px 8px",
+                  alignItems: "center",
+                  gap: "10px",
+                  borderRadius: "4px",
+                  background: "#FFF"
+                }}
+              >
+                <Icon as={EditIcon} boxSize="20px" />
+                <Text
+                  color="#2D3748"
+                  fontWeight={"400"}
+                >
+                  Edit
+                </Text>
+              </MenuItem>
+              <MenuItem
+                onClick={onDeleteModalOpen}
+                style={{
+                  display: "flex",
+                  width: "131px",
+                  padding: "6px 8px",
+                  alignItems: "center",
+                  gap: "10px",
+                  borderRadius: "4px",
+                  background: "#FFF"
+                }}
+              >
+                <Icon as={DeleteIconRed} boxSize="20px" />
+                <Text
+                  fontWeight={"400"}
+                  color={"#90080F"}
+                >
+                  Delete
+                </Text>
+              </MenuItem>
+            </MenuList>
+          </Menu>
         )}
         <ConfirmationModal
           isOpen={isCancelModalOpen}
@@ -298,14 +361,24 @@ const RoomSettings = ({
           primaryButtonBackgroundColor="#90080F"
         />
         {room.id && (
-          <ConfirmationModal
-            isOpen={isSaveModalOpen}
-            onClose={onSaveModalClose}
-            title={`Save changes to ${roomName || "new"} room?`}
-            body="Editing this room will affect all upcoming sessions, programs, and invoices that have not been generated yet."
-            onConfirm={handleSave}
-            primaryButtonBackgroundColor="#4441C8"
-          />
+          <>
+            <ConfirmationModal
+              isOpen={isSaveModalOpen}
+              onClose={onSaveModalClose}
+              title={`Save changes to ${roomName || "new"} room?`}
+              body="Editing this room will affect all upcoming sessions, programs, and invoices that have not been generated yet."
+              onConfirm={handleSave}
+              primaryButtonBackgroundColor="#4441C8"
+            />
+            <ConfirmationModal
+              isOpen={isDeleteModalOpen}
+              onClose={onDeleteModalClose}
+              title={`Delete ${originalRoomName} room?`}
+              body="Deleting this room will permanently remove it. This action cannot be undone."
+              onConfirm={handleDelete}
+              primaryButtonBackgroundColor="#90080F"
+            />
+          </>
         )}
       </Flex>
       {isEditing ? (
@@ -359,6 +432,10 @@ export const RoomsSettings = () => {
       return [...prevRooms, updatedRoom];
     });
     setNewRoom(null);
+  };
+
+  const handleDeleteRoom = (roomId) => {
+    setRooms((prevRooms) => prevRooms.filter((r) => r.id !== roomId));
   };
 
   return (
@@ -420,6 +497,7 @@ export const RoomsSettings = () => {
                   key={room.id}
                   room={room}
                   onSave={handleSaveOrUpdateRoom}
+                  onDelete={handleDeleteRoom}
                 />
               ))}
               {newRoom && (
