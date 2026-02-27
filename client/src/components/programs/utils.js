@@ -25,8 +25,12 @@ export const generateRecurringSessions = (
   let month;
 
   switch (frequency) {
-    case "week":
-      { const weekdays = [
+    case "week": {
+      // Use local date arithmetic so the stored session dates display as the
+      // correct weekday in the user's timezone (e.g. Sunday 9:30 stays Sunday
+      // after save). Previously we mixed getDay() (local) with UTC date math,
+      // so Sunday 00:00 UTC appeared as Saturday in US timezones.
+      const weekdays = [
         "sunday",
         "monday",
         "tuesday",
@@ -42,23 +46,29 @@ export const generateRecurringSessions = (
       const startDayOfWeek = currentTimezoneDate.getDay();
       const daysUntilFirst = (weekdayIndex - startDayOfWeek + 7) % 7;
 
-      if (daysUntilFirst > 0) {
-        startingDate.setUTCDate(startingDate.getUTCDate() + daysUntilFirst);
-      }
+      const localEnd = new Date(
+        endDate.replace(/-/g, "/").replace(/T.+/, "")
+      );
+      const cursor = new Date(currentTimezoneDate);
+      cursor.setDate(cursor.getDate() + daysUntilFirst);
 
-      while (startingDate <= endingDate) {
+      while (cursor <= localEnd) {
+        const y = cursor.getFullYear();
+        const m = cursor.getMonth();
+        const d = cursor.getDate();
+        const atNoonLocal = new Date(y, m, d, 12, 0, 0);
         sessions.push({
-          date: startingDate.toISOString(),
+          date: atNoonLocal.toISOString(),
           startTime: recurringSession.startTime,
           endTime: recurringSession.endTime,
           roomId: recurringSession.roomId,
           archived: false,
           id: Date.now() + Math.random(),
         });
-
-        startingDate.setUTCDate(startingDate.getUTCDate() + 7);
+        cursor.setDate(cursor.getDate() + 7);
       }
-      break; }
+      break;
+    }
 
     case "monthDate":
       year = currentTimezoneDate.getFullYear();
