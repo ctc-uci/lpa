@@ -28,12 +28,13 @@ import {
   DollarSignIcon,
   EditDocumentIcon,
   LocationIcon,
-} from "../../assets/EditInvoiceIcons";
+} from "../../assets/EditInvoiceIcons"
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { useSessionStore } from "../../stores/useSessionStore";
 import { useInvoiceSessions } from "../../contexts/hooks/useInvoiceSessions";
 import { useParams } from "react-router-dom";
 import { useSummaryStore } from "../../stores/useSummaryStore";
+import { parseSessionDate } from "../programs/utils";
 
 const SavedStatementComments = ({
   subtotal,
@@ -401,15 +402,13 @@ const SavedStatementComments = ({
                           fontSize={compactView ? "6" : "12px"}
                           py={compactView ? "0" : "6"}
                         >
-                          {(() => {
-                            const date = new Date(
-                              session.total[totalIndex].date
-                            );
-                            date.setMinutes(
-                              date.getMinutes() + date.getTimezoneOffset()
-                            );
-                            return format(date, "EEE. M/d/yy");
-                          })()}
+                           {(() => {
+                              const date = parseSessionDate(
+                                session.total[totalIndex].date
+                              );
+                              if (!date) return "";
+                              return format(date, "EEE. M/d/yy");
+                            })()}
                         </Td>
                         <Td
                           colSpan={4}
@@ -461,7 +460,7 @@ const SavedStatementComments = ({
                               : undefined
                           }
                         >
-                          {format(new Date(session.bookingDate), "EEE. M/d/yy")}
+                          {format(parseSessionDate(session.bookingDate), "EEE. M/d/yy")}
                         </Td>
 
                         {/* Classroom */}
@@ -652,15 +651,13 @@ const SavedStatementComments = ({
                               fontSize={compactView ? "6" : "sm"}
                               py={compactView ? "0" : "6"}
                             >
-                              {(() => {
-                                const date = new Date(
-                                  session.total[totalIndex].date
-                                );
-                                date.setMinutes(
-                                  date.getMinutes() + date.getTimezoneOffset()
-                                );
-                                return format(date, "EEE. M/d/yy");
-                              })()}
+                               {(() => {
+                                  const date = parseSessionDate(
+                                    session.total[totalIndex].date
+                                  );
+                                  if (!date) return "";
+                                  return format(date, "EEE. M/d/yy");
+                                })()}
                             </Td>
                             <Td
                               colSpan={4}
@@ -1014,7 +1011,7 @@ const SavedInvoiceSummary = ({
                     py={compactView ? 2 : 6}
                   >
                     {(() => {
-                      const date = new Date(
+                      const date = parseSessionDate(
                         summary[0]?.total[totalIndex].date
                       );
                       date.setMinutes(

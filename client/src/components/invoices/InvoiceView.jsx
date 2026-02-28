@@ -45,7 +45,7 @@ const InvoiceView = ({
       <Box px={compactView && "10"}>
         <EditInvoiceTitle
           comments={comments}
-          invoice={invoice?.data}
+          invoice={invoice}
           compactView={compactView}
         />
         <EditInvoiceDetails

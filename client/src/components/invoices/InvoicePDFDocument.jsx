@@ -13,20 +13,34 @@ import { format } from "date-fns";
 import InvoiceFooter from "../../assets/background/InvoiceFooter.png";
 import InvoiceHeader from "../../assets/background/InvoiceHeader.png";
 import logo from "../../assets/logo/logo.png";
+import { parseSessionDate } from "../programs/utils";
 
-
+/** Format a session date string for PDF; returns fallback if invalid to avoid RangeError: Invalid time value */
+const formatSessionDateSafe = (dateString, fmt = "EEE. M/d/yy") => {
+  const date = parseSessionDate(dateString);
+  if (!date || Number.isNaN(date.getTime())) return "—";
+  return format(date, fmt);
+};
 
 const getGeneratedDate = (sessions = [], includeDay = true) => {
-  if (sessions.length === 0) {
+  if (!sessions?.length) {
     return "No Date Found";
   }
 
   const latestSession = sessions.slice().sort(
-    (a, b) => new Date(b.datetime) - new Date(a.datetime)
+    (a, b) => new Date(b.datetime || 0).getTime() - new Date(a.datetime || 0).getTime()
   )[0];
 
-  // Create date and adjust for timezone using the same pattern as EditInvoice.jsx
-  const latestDate = new Date(latestSession.datetime);
+  const rawDate = latestSession?.datetime;
+  if (rawDate === null || rawDate === undefined || rawDate === "") {
+    return "No Date Found";
+  }
+
+  const latestDate = new Date(rawDate);
+  if (Number.isNaN(latestDate.getTime())) {
+    return "No Date Found";
+  }
+
   latestDate.setMinutes(
     latestDate.getMinutes() + latestDate.getTimezoneOffset()
   );
@@ -60,11 +74,7 @@ const EditInvoiceTitle = ({ sessions }) => {
             INVOICE
           </Text>
           <Text style={{ color: "#718096", fontSize: "12px" }}>
-            Generated on {(new Date()).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
+            Generated on {format(new Date(), "MMMM yyyy")}
           </Text>
         </View>
 
@@ -617,7 +627,7 @@ const InvoiceTable = ({ sessions, summary }) => {
               >
                 <View style={tableStyles.tableCol}>
                   <Text style={{ fontSize: 7 }}>
-                    {format(new Date(session.bookingDate), "EEE. M/d/yy")}
+                    {formatSessionDateSafe(session.bookingDate)}
                   </Text>
                 </View>
                 <View style={tableStyles.tableCol}>
@@ -725,7 +735,7 @@ const InvoiceTable = ({ sessions, summary }) => {
                   <View style={tableStyles.tableRow} key={`total-${session.id || index}-${totalIndex}`}>
                     <View style={tableStyles.tableCol}>
                       <Text style={{ fontSize: 7 }}>
-                        {format(new Date(new Date(total.date).getTime() + new Date(total.date).getTimezoneOffset() * 60000), "EEE. M/d/yy")}
+                        {formatSessionDateSafe(total.date)}
                       </Text>
                     </View>
                     <View
@@ -1008,7 +1018,7 @@ const SummaryTable = ({
             <View style={{ ...summaryTableStyles.tableRow, width: "100%" }} key={`total-${totalIndex}`}>
               <View style={summaryTableStyles.tableCol}>
                 <Text style={{ fontSize: 7 }}>
-                  {format(new Date(new Date(total.date).getTime() + new Date(total.date).getTimezoneOffset() * 60000), "EEE. M/d/yy")}
+                  {formatSessionDateSafe(total.date)}
                 </Text>
               </View>
               <View

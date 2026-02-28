@@ -43,6 +43,7 @@ import {
 
 import { format } from "date-fns";
 
+import { parseSessionDate } from "../programs/utils";
 import {
   BookWithBookmarkIcon,
   CalendarIcon,
@@ -73,7 +74,7 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
       (a, b) => new Date(b.datetime) - new Date(a.datetime)
     )[0];
 
-    const latestDate = new Date(latestComment.datetime);
+    const latestDate = parseSessionDate(latestComment.datetime);
     const month = latestDate.toLocaleString("default", { month: "long" });
     const day = latestDate.getDate();
     const year = latestDate.getFullYear();
@@ -81,10 +82,7 @@ const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
     return includeDay ? `${month} ${day}, ${year}` : `${month} ${year}`;
   } else if (invoice) {
     const invoiceDateSplit = invoice[0]?.startDate?.split("T")[0];
-    const invoiceDate = new Date(invoiceDateSplit);
-    invoiceDate.setMinutes(
-      invoiceDate.getMinutes() + invoiceDate.getTimezoneOffset()
-    );
+    const invoiceDate = parseSessionDate(invoiceDateSplit);
     const month = invoiceDate.toLocaleString("default", { month: "long" });
     const year = invoiceDate.getFullYear();
     return `${month} ${year}`;
@@ -812,7 +810,7 @@ const StatementComments = ({
                                 </Button>
                               </VStack>
                               {format(
-                                new Date(session.bookingDate),
+                                parseSessionDate(session.bookingDate),
                                 "EEE. M/d/yy"
                               )}
                             </Td>
@@ -1266,13 +1264,10 @@ const StatementComments = ({
                                     py="6"
                                   >
                                     {(() => {
-                                      const date = new Date(
+                                      const date = parseSessionDate(
                                         session.total[totalIndex].date
                                       );
-                                      date.setMinutes(
-                                        date.getMinutes() +
-                                        date.getTimezoneOffset()
-                                      );
+                                      if (!date) return "";
                                       return format(date, "EEE. M/d/yy");
                                     })()}
                                   </Td>
@@ -1870,13 +1865,10 @@ const InvoiceSummary = ({
                         py="6"
                       >
                         {(() => {
-                          const date = new Date(
+                          const date = parseSessionDate(
                             summary[0]?.total[totalIndex].date
                           );
-                          date.setMinutes(
-                            date.getMinutes() +
-                            date.getTimezoneOffset()
-                          );
+                          if (!date) return "";
                           return format(date, "EEE. M/d/yy");
                         })()}
                       </Td>
