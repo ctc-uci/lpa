@@ -454,7 +454,7 @@ export const EditRecurringSessions = () => {
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          width="137px"
+          width="fit-content"
           color={startDate ? "#2D3748" : "#CBD5E0"}
         />
         <Text
@@ -467,7 +467,7 @@ export const EditRecurringSessions = () => {
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
-          width="137px"
+          width="fit-content"
           color={endDate ? "#2D3748" : "#CBD5E0"}
         />
       </Flex>
@@ -571,7 +571,7 @@ export const EditRecurringSessions = () => {
           >
             <Text>On</Text>
             <Input
-              width="137px"
+              width="fit-content"
               minWidth="137px"
               type="date"
               value={session.date}
@@ -587,7 +587,7 @@ export const EditRecurringSessions = () => {
             />
             <Text>from</Text>
             <Input
-              width="96px"
+              width="fit-content"
               minWidth="96px"
               type="time"
               value={session.startTime || "00:00"}
@@ -603,7 +603,7 @@ export const EditRecurringSessions = () => {
             />
             <Text>to</Text>
             <Input
-              width="96px"
+              width="fit-content"
               minWidth="96px"
               type="time"
               value={session.endTime || "00:00"}
