@@ -18,6 +18,7 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
+import { formatSessionDateWithWeekday } from "../programs/utils";
 
 import { useNavigate } from "react-router-dom";
 
@@ -273,15 +274,7 @@ export const ProgramsTable = () => {
 
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "No bookings";
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/,/g, ".");
+    return formatSessionDateWithWeekday(dateString);
   }, []);
 
   const formatTime = useCallback((startTime, endTime) => {

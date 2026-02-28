@@ -108,7 +108,7 @@ import DateSortingModal from "../sorting/DateFilter";
 import { CancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
-import { deleteSessions, parseSessionDate } from "./utils";
+import { deleteSessions, parseSessionDate, formatSessionDateWithWeekday } from "./utils";
 import { PDFButtonInvoice } from "../invoices/PDFButtonInvoice"
 
 const formatNamesList = (list = [], maxCharsPerLine) => {
@@ -1106,22 +1106,6 @@ export const Sessions = ({
     setSortOrder(order);
   };
 
-  const formatDate = (isoString) => {
-    const date = parseSessionDate(isoString);
-    if (!date) return "";
-
-    const options = {
-      weekday: "short",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    };
-
-    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
-    formattedDate = formattedDate.replace(",", ".");
-    return formattedDate;
-  };
-
   const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(":").map(Number);
 
@@ -1605,7 +1589,7 @@ export const Sessions = ({
                             fontSize={"14px"}
                             fontFamily={"Inter"}
                           >
-                            {formatDate(session.date)}
+                            {formatSessionDateWithWeekday(session.date)}
                           </Box>
                         </Td>
                         <Td>

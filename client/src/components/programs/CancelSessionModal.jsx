@@ -23,7 +23,7 @@ import { ArchiveIcon } from '../../assets/ArchiveIcon';
 import { DeleteIcon } from '../../assets/DeleteIcon';
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
-import { parseSessionDate } from "./utils";
+import { parseSessionDate, formatSessionDateShort, getSessionDayOfWeekLong } from "./utils";
 
 
 export const CancelSessionModal = ({
@@ -139,7 +139,7 @@ export const CancelSessionModal = ({
           session_id: session.id,
           invoice_id: invoice.id,
           datetime: new Date(),
-          comment: `Cancellation adjustment for ${formatDate(session.date)}. ${cancellationReason}`,
+          comment: `Cancellation adjustment for ${formatSessionDateShort(session.date)}. ${cancellationReason}`,
           adjustment_type: "total",
           adjustment_value: finalCost,
         };
@@ -162,24 +162,6 @@ export const CancelSessionModal = ({
     // Set selectedSessions back to 0
     setSelectedSessions([]);
     onClose();
-  };
-
-  // Format the date (parseSessionDate keeps calendar day correct in user TZ)
-  const formatDate = (isoString) => {
-    const date = parseSessionDate(isoString);
-    if (!date) return "";
-    return date.toLocaleDateString('en-US', {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric"
-    });
-  };
-
-  // Get day of week
-  const getDayOfWeek = (isoString) => {
-    const date = parseSessionDate(isoString);
-    if (!date) return "";
-    return date.toLocaleDateString('en-US', { weekday: 'long' });
   };
 
   // Determine if a session is past the cancellation deadline (2 weeks prior)
@@ -238,7 +220,7 @@ export const CancelSessionModal = ({
                     return (
                       <Flex key={session.id} justify="space-between" align="center" mb={2} px={2}>
                         <Text color={!pastDeadline || waivedFees[session.id] ? "gray.500" : "black"}>
-                          {getDayOfWeek(session.date)} {formatDate(session.date)}
+                          {getSessionDayOfWeekLong(session.date)} {formatSessionDateShort(session.date)}
                         </Text>
 
                         <Checkbox
@@ -340,7 +322,7 @@ export const CancelSessionModal = ({
             <ModalBody>
               {selectedSessions.length > 0 && (
                 <Text mb={4}>
-                  The cancellation fee deadline for this {eventType.toLowerCase()} is {formatDate(selectedSessions[0].date)}.
+                  The cancellation fee deadline for this {eventType.toLowerCase()} is {formatSessionDateShort(selectedSessions[0].date)}.
                 </Text>
               )}
 

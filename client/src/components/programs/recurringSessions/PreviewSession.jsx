@@ -34,24 +34,7 @@ import {
 import { MdFeaturedPlayList } from "../../../assets/MdFeaturedPlayList";
 import { ReactivateIcon } from "../../../assets/ReactivateIcon";
 import DateSortingModal from "../../sorting/DateFilter";
-import { parseSessionDate } from "../utils";
-
-// Format date for display (uses parseSessionDate so UTC dates show correct day in user TZ)
-const formatDate = (isoString) => {
-  const date = parseSessionDate(isoString);
-  if (!date) return "";
-
-  const options = {
-    weekday: "short",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-
-  let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
-  formattedDate = formattedDate.replace(",", ".");
-  return formattedDate;
-};
+import { parseSessionDate, formatSessionDateWithWeekday } from "../utils";
 
 // Function to format time
 // to "12:00 a.m." or "12:00 p.m."
@@ -262,7 +245,7 @@ export const PreviewSession = ({
                             fontSize="16px"
                             fontStyle="normal"
                           >
-                            {formatDate(session.date)}
+                            {formatSessionDateWithWeekday(session.date)}
                           </Text>
                         </Box>
                       </Td>
@@ -343,7 +326,7 @@ export const PreviewSession = ({
                             <MenuItem
                               onClick={() => {
                                 setDeleteSessionDate(
-                                  formatDate(session.date).split(" ")[1]
+                                  formatSessionDateWithWeekday(session.date).split(" ")[1]
                                 );
                                 setDeleteSessionId(session.id);
                                 onDeleteSessionModalOpen();

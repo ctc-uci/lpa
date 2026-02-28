@@ -55,7 +55,7 @@ import Navbar from "../navbar/Navbar";
 import { SearchBar } from "../searchBar/SearchBar";
 import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
-import { parseSessionDate } from "./utils";
+import { parseSessionDate, formatSessionDateWithWeekday } from "./utils";
 
 export const ArchivedPrograms = () => {
   const { backend } = useBackendContext();
@@ -236,22 +236,6 @@ export const ArchivedPrograms = () => {
       getRoomNames(uniqueRooms);
     }
   }, [uniqueRooms]);
-
-  const formatDate = (isoString) => {
-    const date = parseSessionDate(isoString);
-    if (!date) return "";
-
-    // Format the date to "Mon 01/17/2025"
-    const options = {
-      weekday: "short", // "Mon"
-      year: "numeric", // "2025"
-      month: "2-digit", // "01"
-      day: "2-digit",
-    };
-    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
-    formattedDate = formattedDate.replace(",", ".");
-    return formattedDate;
-  };
 
   const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(":").map(Number);
@@ -678,7 +662,7 @@ export const ArchivedPrograms = () => {
                           fontFamily={"Inter"}
                         >
                           {programSession.sessionDate !== "N/A"
-                            ? formatDate(programSession.sessionDate)
+                            ? formatSessionDateWithWeekday(programSession.sessionDate)
                             : "N/A"}
                         </Td>
                         <Td

@@ -94,6 +94,7 @@ import ProgramSortingModal from "../sorting/ProgramFilter";
 import StatusSortingModal from "../sorting/StatusFilter";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
 import { getAllDue } from "../../utils/pastDueCalc";
+import { parseSessionDate, formatSessionDateShort, formatSessionDateWithWeekday } from "../programs/utils";
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
@@ -174,7 +175,7 @@ const InvoiceStats = ({
   const toast = useToast();
   const navigate = useNavigate();
   const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
+    const date = parseSessionDate(isoDate);
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -654,16 +655,6 @@ const InvoicePayments = forwardRef(
     const handleButtonWhileUnsaved = (onContinue) => {
       handleOtherButtonClick(onContinue);
     };
-    const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      return date
-        .toLocaleDateString("en-US", {
-          month: "2-digit",
-          day: "2-digit",
-          year: "numeric",
-        })
-        .replace(/,/g, ".");
-    };
 
     return (
       <Flex
@@ -858,7 +849,7 @@ const InvoicePayments = forwardRef(
                   >
                     Delete Payment for{" "}
                     {selectedComment
-                      ? formatDate(selectedComment.datetime)
+                      ? formatSessionDateShort(selectedComment.datetime)
                       : ""}
                     ?
                   </ModalHeader>
@@ -1201,18 +1192,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
   // }, [filteredInvoices, toast]);
   
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/,/g, ".");
-  };
-
   // Use the filtered invoices directly since sorting is now done in parent
   const currentInvoices = filteredInvoices;
 
@@ -1378,7 +1357,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                           : "N/A"}
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
-                      {formatDate(invoice.endDate)}
+                      {formatSessionDateWithWeekday(invoice.endDate)}
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       <Tag

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
-import { updateSessions, parseSessionDate } from "./utils";
+import { updateSessions, formatSessionDateWithWeekday } from "./utils";
 
 import {
   Box,
@@ -69,22 +69,6 @@ export const EditSingleSession = () => {
     if (!timeString) return "";
     const parts = timeString.split(":");
     return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
-  };
-
-  // Function to format date (parseSessionDate keeps calendar day correct in user TZ)
-  const formatDate = (isoString) => {
-    const date = parseSessionDate(isoString);
-    if (!date) return "";
-
-    const options = {
-      weekday: "short",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    };
-    let formattedDate = new Intl.DateTimeFormat("en-US", options).format(date);
-    formattedDate = formattedDate.replace(",", ".");
-    return formattedDate;
   };
 
   // Function to format time
@@ -443,7 +427,7 @@ export const EditSingleSession = () => {
                         fontSize="16px"
                         fontStyle="normal"
                       >
-                        {formatDate(session.date)}
+                        {formatSessionDateWithWeekday(session.date)}
                       </Text>
                     </Box>
                   </Td>

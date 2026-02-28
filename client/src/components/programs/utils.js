@@ -13,6 +13,48 @@ export const parseSessionDate = (dateString) => {
   return new Date(`${dateOnly}T12:00:00`);
 };
 
+/**
+ * Format a session date string as MM/DD/YYYY (commas replaced with dots).
+ * Uses parseSessionDate so the calendar day is correct in the user's timezone.
+ */
+export const formatSessionDateShort = (dateString) => {
+  const date = parseSessionDate(dateString);
+  if (!date) return "";
+  return date
+    .toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    })
+    .replace(/,/g, ".");
+};
+
+/**
+ * Format a session date string as "Mon 01/17/2025" (weekday short + MM/DD/YYYY, comma → dot).
+ * Uses parseSessionDate so the calendar day is correct in the user's timezone.
+ */
+export const formatSessionDateWithWeekday = (dateString) => {
+  const date = parseSessionDate(dateString);
+  if (!date) return "";
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+  return formatted.replace(",", ".");
+};
+
+/**
+ * Get the day of week (long form, e.g. "Monday") for a session date string.
+ * Uses parseSessionDate so the calendar day is correct in the user's timezone.
+ */
+export const getSessionDayOfWeekLong = (dateString) => {
+  const date = parseSessionDate(dateString);
+  if (!date) return "";
+  return date.toLocaleDateString("en-US", { weekday: "long" });
+};
+
 export const generateRecurringSessions = (
   recurringSession,
   startDate,
