@@ -56,15 +56,26 @@ export const Notifications = () => {
     setSortOrder(order);
   };
 
+    // Parse date-only strings (e.g. "2026-03-15") as local date so we don't show the previous day in timezones behind UTC
+  const parseEndDate = (dateValue) => {
+    if (!dateValue) return null;
+    const s = String(dateValue).trim();
+    if (!s) return null;
+    const dateOnly = s.includes("T") ? s.split("T")[0] : s;
+    return new Date(`${dateOnly}T12:00:00`);
+  };
+
   const getDueTime = (endDate) => {
+    const date = endDate instanceof Date ? endDate : parseEndDate(endDate);
+    if (!date || Number.isNaN(date.getTime())) return "—";
     const now = new Date();
     const msInDay = 1000 * 60 * 60 * 24;
-    const daysDiff = (endDate - now) / msInDay;
+    const daysDiff = (date - now) / msInDay;
 
     if (daysDiff >= 0 && daysDiff <= 7) {
-      return formatDistanceToNow(endDate, { addSuffix: true });
+      return formatDistanceToNow(date, { addSuffix: true });
     } else {
-      return endDate
+      return date
         .toLocaleDateString("en-US", {
           weekday: "short",
           month: "numeric",
@@ -225,7 +236,7 @@ export const Notifications = () => {
                 `/assignments/event/${eventId}`
               );
 
-              const endDate = new Date(invoice.endDate);
+              const endDate = parseEndDate(invoice.endDate);
               const dueTime = getDueTime(endDate);
 
               return {
