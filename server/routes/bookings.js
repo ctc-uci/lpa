@@ -40,6 +40,29 @@ const ensureInvoiceExists = async (bookingDate, eventId) => {
   return true;
 };
 
+/**
+ * If the event has no (non-archived) bookings left in the given month,
+ * delete the invoice for that event+month from the invoices table.
+ * Used when editing recurring schedule so invoices outside the new range are removed.
+ */
+const deleteOrphanedInvoicesForEventMonth = async (eventId, dateInMonth) => {
+  await db.query(
+    `
+    DELETE FROM invoices i
+    WHERE i.event_id = $1
+      AND i.start_date = date_trunc('month', $2::date)::date
+      AND i.end_date = (date_trunc('month', $2::date) + INTERVAL '1 month - 1 day')::date
+      AND NOT EXISTS (
+        SELECT 1 FROM bookings b
+        WHERE b.event_id = $1
+          AND b.archived = false
+          AND b.date >= date_trunc('month', $2::date)::date
+          AND b.date <= (date_trunc('month', $2::date) + INTERVAL '1 month - 1 day')::date
+      );
+    `,
+    [eventId, dateInMonth]
+  );
+};
 
 bookingsRouter.get("/", async (req, res) => {
   try {
@@ -287,12 +310,20 @@ bookingsRouter.delete("/batch", async (req, res) => {
     }
 
     const deletedIds = [];
+    const deletedEventMonths = [];
     for (const id of ids) {
       const data = await db.query(
-        `DELETE FROM bookings WHERE id = $1 RETURNING *`,
+        `DELETE FROM bookings WHERE id = $1 RETURNING id, event_id, date`,
         [ id ]
       );
-      deletedIds.push(data[0].id);
+      if (data.length > 0) {
+        deletedIds.push(data[0].id);
+        deletedEventMonths.push({ eventId: data[0].event_id, date: data[0].date });
+      }
+    }
+
+    for (const { eventId, date } of deletedEventMonths) {
+      await deleteOrphanedInvoicesForEventMonth(eventId, date);
     }
 
     res.status(200).json({
@@ -321,6 +352,13 @@ bookingsRouter.put("/batch", async (req, res) => {
     const updatedIds = [];
     for (const booking of bookings) {
       const { id, event_id, room_id, start_time, end_time, date, archived } = booking;
+      const existing = await db.query(
+        "SELECT event_id, date FROM bookings WHERE id = $1",
+        [ id ]
+      );
+      const oldDate = existing.length > 0 ? existing[0].date : null;
+      const oldEventId = existing.length > 0 ? existing[0].event_id : null;
+
       const data = await db.query(
         `UPDATE bookings SET 
             event_id = COALESCE($1, event_id),
@@ -333,7 +371,12 @@ bookingsRouter.put("/batch", async (req, res) => {
         RETURNING *`,
         [event_id, room_id, start_time, end_time, date, archived, id]
       );
-      await ensureInvoiceExists(date, event_id);
+      const newDate = data[0]?.date;
+      const newEventId = data[0]?.event_id;
+      await ensureInvoiceExists(newDate, newEventId);
+      if (oldDate && (String(oldDate) !== String(newDate) || oldEventId !== newEventId)) {
+        await deleteOrphanedInvoicesForEventMonth(oldEventId, oldDate);
+      }
       updatedIds.push(data[0].id);
     }
 
@@ -353,6 +396,13 @@ bookingsRouter.put("/:id", async (req, res) => {
 
       const { event_id, room_id, start_time, end_time, date, archived } = req.body;
 
+      const existing = await db.query(
+        "SELECT event_id, date FROM bookings WHERE id = $1",
+        [ id ]
+      );
+      const oldDate = existing.length > 0 ? existing[0].date : null;
+      const oldEventId = existing.length > 0 ? existing[0].event_id : null;
+
       const data = await db.query(
         `
         UPDATE bookings
@@ -369,7 +419,13 @@ bookingsRouter.put("/:id", async (req, res) => {
         [event_id, room_id, start_time, end_time, date, archived, id]
       );
 
-      await ensureInvoiceExists(date, event_id);
+      const newDate = data[0]?.date;
+      const newEventId = data[0]?.event_id;
+      await ensureInvoiceExists(newDate, newEventId);
+
+      if (oldDate && (oldDate !== newDate || oldEventId !== newEventId)) {
+        await deleteOrphanedInvoicesForEventMonth(oldEventId, oldDate);
+      }
 
       res.status(200).json(keysToCamel(data));
     } catch (err) {
@@ -432,14 +488,18 @@ bookingsRouter.delete("/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
-      const data = await db.query("DELETE FROM bookings WHERE id = $1 RETURNING *",
-        [ id ]);
+      const data = await db.query(
+        "DELETE FROM bookings WHERE id = $1 RETURNING id, event_id, date",
+        [ id ]
+      );
 
-      if (!data) {
-        return res.status(404).json({result: 'error'});
+      if (!data || data.length === 0) {
+        return res.status(404).json({ result: 'error' });
       }
 
-      res.status(200).json({result: 'success'});
+      await deleteOrphanedInvoicesForEventMonth(data[0].event_id, data[0].date);
+
+      res.status(200).json({ result: 'success' });
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -501,8 +561,6 @@ bookingsRouter.delete("/batch/delete", async (req, res) => {
   try {
     const { sessionIds } = req.body;
 
-    console.log("session IDS from bookings router", sessionIds);
-
     if (!sessionIds || !Array.isArray(sessionIds) || sessionIds.length === 0) {
       return res.status(400).json({
         result: 'error',
@@ -510,13 +568,14 @@ bookingsRouter.delete("/batch/delete", async (req, res) => {
       });
     }
 
-    // Create a parameterized query with multiple placeholders
     const placeholders = sessionIds.map((_, index) => `$${index + 1}`).join(',');
-
-    // Delete all specified bookings in a single query
-    const query = `DELETE FROM bookings WHERE id IN (${placeholders}) RETURNING *`;
+    const query = `DELETE FROM bookings WHERE id IN (${placeholders}) RETURNING id, event_id, date`;
 
     const data = await db.query(query, sessionIds);
+
+    for (const row of data) {
+      await deleteOrphanedInvoicesForEventMonth(row.event_id, row.date);
+    }
 
     res.status(200).json({
       result: 'success',
