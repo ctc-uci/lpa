@@ -587,12 +587,11 @@ invoicesRouter.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Delete booking from database
-    const data = db.query("DELETE FROM invoices WHERE id = $1 RETURNING *", [
+    const data = await db.query("DELETE FROM invoices WHERE id = $1 RETURNING *", [
       id,
     ]);
 
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       return res.status(404).json({ result: "error" });
     }
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 
 import { SearchIcon } from "@chakra-ui/icons";
 import {
@@ -215,46 +215,55 @@ const InvoicesDashboard = () => {
     });
   };
 
-  useEffect(() => {
-    const fetchInvoicesData = async () => {
-      try {
-        const invoicesResponse = await backend.get("/invoicesAssignments/");
-        const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
-          const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
-          if (invoice.role === "instructor") return acc;
-          if (!acc[key]) {
-            // Create a new entry with a payers array
-            acc[key] = {
-              ...invoice,
-              payers: [invoice.name], // Store payers in an array
-            };
-          } else {
-            // Append the payer only if it's not already in the list (avoid duplicates)
-            if (!acc[key].payers.includes(invoice.name)) {
-              acc[key].payers.push(invoice.name);
-            }
+  const refetchInvoices = useCallback(async () => {
+    try {
+      const invoicesResponse = await backend.get("/invoicesAssignments/");
+      const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
+        const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
+        if (invoice.role === "instructor") return acc;
+        if (!acc[key]) {
+          acc[key] = {
+            ...invoice,
+            payers: [invoice.name],
+          };
+        } else {
+          if (!acc[key].payers.includes(invoice.name)) {
+            acc[key].payers.push(invoice.name);
           }
+        }
+        return acc;
+      }, {});
 
-          return acc;
-        }, {});
+      const invoices = Object.values(groupedInvoices).map((invoice) => ({
+        ...invoice,
+        season: getSeason(invoice),
+        isPaid: isPaid(invoice),
+        paymentStatus: isPaid(invoice),
+      }));
 
-        const invoices = Object.values(groupedInvoices).map((invoice) => ({
-          ...invoice,
-          season: getSeason(invoice),
-          isPaid: isPaid(invoice),
-          paymentStatus: isPaid(invoice),
-        }));
-
-
-        setInvoices(invoices);
+      setInvoices(invoices);
+      setFilterComponentResults(invoices);
+      if (relevantInvoices) {
+        const relevantFiltered = invoices.filter((invoice) => {
+          const invoiceDate = new Date(invoice.endDate);
+          const currentDate = new Date();
+          const isCurrentMonth =
+            invoiceDate.getMonth() === currentDate.getMonth() &&
+            invoiceDate.getFullYear() === currentDate.getFullYear();
+          const isPastDue = invoice.paymentStatus === "Past Due";
+          return isCurrentMonth || isPastDue;
+        });
+        setFilteredInvoices(relevantFiltered);
+      } else {
         setFilteredInvoices(invoices);
-        setFilterComponentResults(invoices);
-        handleRelevantInvoicesToggle(relevantInvoices);
-      } catch (err) {
-        console.log(err);
       }
-    };
-    fetchInvoicesData();
+    } catch (err) {
+      console.log(err);
+    }
+  }, [backend, relevantInvoices]);
+
+  useEffect(() => {
+    refetchInvoices();
   }, [backend, navigate, toast]);
   
   const handleSearch = (value) => {
@@ -434,6 +443,7 @@ const InvoicesDashboard = () => {
             setSortKey(key);
             setSortOrder(order);
           }}
+          onInvoiceDeleted={refetchInvoices}
         />
       </Box>
       <PaginationComponent

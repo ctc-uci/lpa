@@ -16,6 +16,12 @@ import React, {
 } from "react";
 
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   Box,
   Button,
   Divider,
@@ -1042,10 +1048,53 @@ const InvoicePayments = forwardRef(
   }
 );
 
-function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, sortOrder, onSortChange }) {
+function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, sortOrder, onSortChange, onInvoiceDeleted }) {
 
   const navigate = useNavigate();
   const toast = useToast();
+  const { backend } = useBackendContext();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const [invoiceToDeleteId, setInvoiceToDeleteId] = useState(null);
+  const cancelDeleteRef = React.useRef();
+
+  const handleDeleteClick = useCallback(
+    (id, e) => {
+      e?.stopPropagation();
+      setInvoiceToDeleteId(id);
+      onDeleteOpen();
+    },
+    [onDeleteOpen]
+  );
+
+  const handleConfirmDelete = useCallback(
+    async () => {
+      if (!invoiceToDeleteId || !onInvoiceDeleted) return;
+      try {
+        await backend.delete(`/invoices/${invoiceToDeleteId}`);
+        toast({
+          title: "Invoice deleted",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+        onInvoiceDeleted();
+      } catch (err) {
+        toast({
+          title: "Failed to delete invoice",
+          description: err.response?.data?.message || err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+      } finally {
+        setInvoiceToDeleteId(null);
+        onDeleteClose();
+      }
+    },
+    [invoiceToDeleteId, onInvoiceDeleted, backend, toast, onDeleteClose]
+  );
 
   const handleRowClick = useCallback(
     (id) => {
@@ -1205,6 +1254,30 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
 
   return (
     <>
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelDeleteRef}
+        onClose={onDeleteClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete invoice
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              Are you sure you want to delete this invoice? This action cannot be undone.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelDeleteRef} onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleConfirmDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
       <Box
         className="invoices-table__container"
         width="100%"
@@ -1377,9 +1450,11 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                       <Flex
                         width="100%"
                         justify="center"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <EditOnlyPopup
                           handleEdit={handleEdit}
+                          onDelete={onInvoiceDeleted ? handleDeleteClick : undefined}
                           id={invoice.id}
                         />
                       </Flex>

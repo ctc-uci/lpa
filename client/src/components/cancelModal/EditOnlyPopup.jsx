@@ -9,6 +9,7 @@ import {
   MenuList,
   Text,
 } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 import { EditIcon } from "../../assets/EditIcon";
 import { MenuOptionsIcon } from "../../assets/MenuOptionsIcon";
@@ -29,9 +30,9 @@ const EditPencilIcon = React.memo(() => (
   />
 ));
 
-export const EditOnlyPopup = ({ handleEdit, id }) => {
+export const EditOnlyPopup = ({ handleEdit, onDelete, id }) => {
   return (
-    <Menu>
+    <Menu strategy="fixed" placement="bottom-end">
       <MenuButton
         as={IconButton}
         aria-label="Options"
@@ -75,6 +76,28 @@ export const EditOnlyPopup = ({ handleEdit, id }) => {
             Edit
           </Text>
         </MenuItem>
+        {onDelete && (
+          <MenuItem
+            onClick={(e) => onDelete(id, e)}
+            style={{
+              display: "flex",
+              width: "131px",
+              padding: "6px 8px",
+              alignItems: "center",
+              gap: "10px",
+              borderRadius: "4px",
+              background: "#FFF"
+            }}
+          >
+            <Icon as={DeleteIcon} color="red.700" boxSize="20px" />
+            <Text
+              color="#90080F"
+              fontWeight={"400"}
+            >
+              Delete
+            </Text>
+          </MenuItem>
+        )}
       </MenuList>
     </Menu>
   );
