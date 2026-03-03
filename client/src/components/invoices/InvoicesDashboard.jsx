@@ -218,18 +218,20 @@ const InvoicesDashboard = () => {
   const refetchInvoices = useCallback(async () => {
     try {
       const invoicesResponse = await backend.get("/invoicesAssignments/");
-      const groupedInvoices = invoicesResponse.data.reduce((acc, invoice) => {
-        const key = `${invoice.eventName}-${invoice.endDate}-${invoice.isSent}`;
-        if (invoice.role === "instructor") return acc;
+      const groupedInvoices = invoicesResponse.data.reduce((acc, row) => {
+        const key = `${row.eventName}-${row.endDate}-${row.isSent}`;
         if (!acc[key]) {
           acc[key] = {
-            ...invoice,
-            payers: [invoice.name],
+            ...row,
+            payers: [],
+            instructors: [],
           };
-        } else {
-          if (!acc[key].payers.includes(invoice.name)) {
-            acc[key].payers.push(invoice.name);
-          }
+        }
+        if (row.role === "payee" && row.name && !acc[key].payers.includes(row.name)) {
+          acc[key].payers.push(row.name);
+        }
+        if (row.role === "instructor" && row.name && !acc[key].instructors.includes(row.name)) {
+          acc[key].instructors.push(row.name);
         }
         return acc;
       }, {});

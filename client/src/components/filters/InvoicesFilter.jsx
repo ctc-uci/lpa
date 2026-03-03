@@ -41,39 +41,22 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
     setFilters((prev) => ({ ...prev, [type]: value }));
   };
 
-  // Apply the filters to the programs page
+  // Apply the filters to the invoices
   const applyFilters = () => {
     let filtered = invoices;
 
-    if (filters.startDate) {
-      filtered = filtered.filter(
-        (invoice) => invoice.endDate && invoice.endDate >= filters.startDate
-      );
-    }
-
-    if (filters.endDate) {
-      filtered = filtered.filter((program) => {
-        if (!program.date) return false;
-
-        // Create date objects using year, month, day only to remove time component
-        const programDate = new Date(program.date);
-        const endDate = new Date(filters.endDate);
-
-        // Set both dates to midnight to compare date only
-        const programDateOnly = new Date(
-          programDate.getFullYear(),
-          programDate.getMonth(),
-          programDate.getDate()
-        );
-
-        const endDateOnly = new Date(
-          endDate.getFullYear(),
-          endDate.getMonth(),
-          endDate.getDate() + 1
-        );
-
-        // Include programs up to and including the end date
-        return programDateOnly <= endDateOnly;
+    // Date filter: use invoice.endDate (billing period end), compare as YYYY-MM-DD
+    if (filters.startDate || filters.endDate) {
+      filtered = filtered.filter((invoice) => {
+        if (!invoice.endDate) return false;
+        const invoiceDateOnly =
+          typeof invoice.endDate === "string" && invoice.endDate.includes("T")
+            ? invoice.endDate.split("T")[0]
+            : String(invoice.endDate).slice(0, 10);
+        if (filters.startDate && invoiceDateOnly < filters.startDate)
+          return false;
+        if (filters.endDate && invoiceDateOnly > filters.endDate) return false;
+        return true;
       });
     }
 
@@ -97,10 +80,9 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
 
     // Filter for payee
     if (filters.payee.length > 0) {
-      filtered = filtered.filter((program) => {
-        if (program.payers && program.payers.length > 0) {
-          // Check if any string in program.payers matches the name property of any object in filters.payee
-          return program.payers.some((payerName) =>
+      filtered = filtered.filter((invoice) => {
+        if (invoice.payers && invoice.payers.length > 0) {
+          return invoice.payers.some((payerName) =>
             filters.payee.some((payeeObj) => payeeObj.name === payerName)
           );
         }
@@ -108,11 +90,11 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       });
     }
 
-    // Filter for instructor
+    // Filter for lead artists (instructors)
     if (filters.instructor.length > 0) {
-      filtered = filtered.filter((program) => {
-        if (program.instructors && program.instructors.length > 0) {
-          return program.instructors.some((instructorName) =>
+      filtered = filtered.filter((invoice) => {
+        if (invoice.instructors && invoice.instructors.length > 0) {
+          return invoice.instructors.some((instructorName) =>
             filters.instructor.some(
               (instructorObj) => instructorObj.name === instructorName
             )
@@ -168,15 +150,15 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       />
       <ClientsFilter
         clientsList={clients}
-        value={filters.instructor}
-        onChange={updateFilter}
-        type="lead"
-      />
-      <ClientsFilter
-        clientsList={clients}
         value={filters.payee}
         onChange={updateFilter}
         type="payee"
+      />
+      <ClientsFilter
+        clientsList={clients}
+        value={filters.instructor}
+        onChange={updateFilter}
+        type="lead"
       />
     </FilterContainer>
   );
