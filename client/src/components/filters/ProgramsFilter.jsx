@@ -2,6 +2,7 @@ import { React, useState, useEffect } from "react";
 import { FilterContainer } from "./FilterContainer";
 import { DateFilter, DayFilter, ProgramStatusFilter, TimeFilter, RoomFilter, ClientsFilter } from "./FilterComponents";
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
+import { parseSessionDate } from "../programs/utils";
 
 export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
     const { backend } = useBackendContext();
@@ -72,11 +73,13 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         );
       }
 
-      // Day
+      // Day (use parseSessionDate so the calendar day is correct in the user's timezone)
       if (filters.days.length > 0) {
         filtered = filtered.filter(program => {
           if (program.date) {
-            const programDay = new Date(program.date).toLocaleString('en-US', { weekday: 'short' });
+            const date = parseSessionDate(program.date);
+            if (!date) return false;
+            const programDay = date.toLocaleDateString('en-US', { weekday: 'short' });
             return filters.days.includes(programDay);
           }
           return false;
@@ -84,32 +87,22 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
       }
 
       if (filters.startDate) {
-        filtered = filtered.filter(program => program.date && new Date(program.date) >= new Date(filters.startDate));
+        const startDateParsed = parseSessionDate(filters.startDate);
+        filtered = filtered.filter(program => {
+          if (!program.date) return false;
+          const programDate = parseSessionDate(program.date);
+          if (programDate === null || startDateParsed === null) return false;
+          return programDate >= startDateParsed;
+        });
       }
 
       if (filters.endDate) {
+        const endDateParsed = parseSessionDate(filters.endDate);
         filtered = filtered.filter(program => {
           if (!program.date) return false;
-          
-          // Create date objects using year, month, day only to remove time component
-          const programDate = new Date(program.date);
-          const endDate = new Date(filters.endDate);
-          
-          // Set both dates to midnight to compare date only
-          const programDateOnly = new Date(
-            programDate.getFullYear(),
-            programDate.getMonth(),
-            programDate.getDate()
-          );
-          
-          const endDateOnly = new Date(
-            endDate.getFullYear(),
-            endDate.getMonth(),
-            endDate.getDate()+1
-          );
-          
-          // Include programs up to and including the end date
-          return programDateOnly <= endDateOnly;
+          const programDate = parseSessionDate(program.date);
+          if (programDate === null || endDateParsed === null) return false;
+          return programDate <= endDateParsed;
         });
       }
 
