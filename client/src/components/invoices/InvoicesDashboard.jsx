@@ -40,8 +40,8 @@ const InvoicesDashboard = () => {
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [filterComponentResults, setFilterComponentResults] = useState([]);
   const [relevantInvoices, setRelevantInvoices] = useState(true);
-  const [sortKey, setSortKey] = useState("date");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortKey, setSortKey] = useState("title");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -76,11 +76,18 @@ const InvoicesDashboard = () => {
 
     const sorted = [...filteredInvoices];
     if (sortKey === "title") {
-      sorted.sort((a, b) =>
-        sortOrder === "asc"
+      sorted.sort((a, b) => {
+        const nameCompare = sortOrder === "asc"
           ? a.eventName.localeCompare(b.eventName)
-          : b.eventName.localeCompare(a.eventName)
-      );
+          : b.eventName.localeCompare(a.eventName);
+        if (nameCompare !== 0) return nameCompare;
+        const aInvalid = !a.endDate || a.endDate === "N/A";
+        const bInvalid = !b.endDate || b.endDate === "N/A";
+        if (aInvalid && bInvalid) return 0;
+        if (aInvalid) return 1;
+        if (bInvalid) return -1;
+        return new Date(a.endDate) - new Date(b.endDate);
+      });
     } else if (sortKey === "date") {
       sorted.sort((a, b) => {
         const aInvalid = !a.endDate || a.endDate === "N/A";

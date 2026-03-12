@@ -249,7 +249,7 @@ const TableHeaders = React.memo(({ handleSortChange, sortOrder }) => (
 ));
 
 export const ProgramsTable = () => {
-  const [sortKey, setSortKey] = useState("default");
+  const [sortKey, setSortKey] = useState("title");
   const [sortOrder, setSortOrder] = useState("asc");
   const [programs, setPrograms] = useState([]);
   const [filteredPrograms, setFilteredPrograms] = useState([]);
@@ -595,12 +595,13 @@ export const ProgramsTable = () => {
             programs={programs}
             setFilteredPrograms={setFilteredPrograms}
           />
-          {sortKey !== "default" && (
+          {(sortKey !== "title" || sortOrder !== "asc") && (
           <>
             <Box ml="20px" />
             <RoundedButton
               onClick={() => {
-                setSortKey("default");
+                setSortKey("title");
+                setSortOrder("asc");
               }}
               isActive={false}
             >
