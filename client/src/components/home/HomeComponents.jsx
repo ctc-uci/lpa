@@ -1,12 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   Box,
-  Button,
   Flex,
   HStack,
   Icon,
+  Spinner,
   Table,
   TableContainer,
   Tbody,
@@ -16,7 +15,6 @@ import {
   Thead,
   Tr,
   useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
 import { formatSessionDateWithWeekday } from "../programs/utils";
 
@@ -40,7 +38,6 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
 import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import { ProgramFilter } from "../filters/ProgramsFilter";
-import { PaginationComponent } from "../PaginationComponent";
 import { SearchBar } from "../searchBar/SearchBar";
 import DateSortingModal from "../sorting/DateFilter";
 import ProgramSortingModal from "../sorting/ProgramFilter";
@@ -265,8 +262,9 @@ export const ProgramsTable = () => {
     payee: "all",
   });
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef(null);
 
   const { backend } = useBackendContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -337,7 +335,7 @@ export const ProgramsTable = () => {
 
       setPrograms(programsData);
       setFilteredPrograms(programsData);
-      setCurrentPage(1);
+      setVisibleCount(PAGE_SIZE);
     } catch (error) {
       console.error("Failed to fetch programs:", error);
     }
@@ -433,7 +431,7 @@ export const ProgramsTable = () => {
   useEffect(() => {
     const filteredResults = applyFilters();
     setFilteredPrograms(filteredResults);
-    setCurrentPage(1);
+    setVisibleCount(PAGE_SIZE);
   }, [applyFilters]);
 
   const sortedPrograms = useMemo(() => {
@@ -484,29 +482,25 @@ export const ProgramsTable = () => {
     return sorted;
   }, [filteredPrograms, sortKey, sortOrder]);
 
-  const totalPrograms = sortedPrograms.length;
-  const totalPages = Math.ceil(totalPrograms / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, totalPrograms);
+  const visiblePrograms = sortedPrograms.slice(0, visibleCount);
+  const hasMore = visibleCount < sortedPrograms.length;
 
-  // Get current page data
-  const currentPagePrograms = sortedPrograms.slice(startIndex, endIndex);
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
 
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setVisibleCount((prev) => prev + PAGE_SIZE);
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const goToPage = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
   const handleApplyFilters = useCallback((newFilters) => {
     setFilters(newFilters);
@@ -546,26 +540,6 @@ export const ProgramsTable = () => {
   };
 
 
-  useEffect(() => {
-    const calculateRowsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const rowHeight = 35;
-      const availableHeight = viewportHeight * 0.4;
-      return Math.max(5, Math.floor(availableHeight / rowHeight));
-    };
-
-    setItemsPerPage(calculateRowsPerPage());
-
-    const handleResize = () => {
-      setItemsPerPage(calculateRowsPerPage());
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
   return (
     <Box>
       <CancelProgram
@@ -620,6 +594,8 @@ export const ProgramsTable = () => {
           className="programs-table__container"
           width="100%"
           padding="0"
+          overflowY="auto"
+          maxHeight="60vh"
         >
           <Table
             variant="simple"
@@ -632,7 +608,7 @@ export const ProgramsTable = () => {
               sortOrder={sortOrder}
             />
             <Tbody>
-              {currentPagePrograms.length === 0 ? (
+              {visiblePrograms.length === 0 ? (
                 <Tr>
                   <Td
                     colSpan={8}
@@ -642,7 +618,7 @@ export const ProgramsTable = () => {
                   </Td>
                 </Tr>
               ) : (
-                currentPagePrograms.map((program) => (
+                visiblePrograms.map((program) => (
                   <TableRow
                     key={program.id}
                     program={program}
@@ -656,17 +632,22 @@ export const ProgramsTable = () => {
                   />
                 ))
               )}
+              {hasMore && (
+                <Tr ref={sentinelRef}>
+                  <Td colSpan={8} textAlign="center" py={4}>
+                    <Spinner size="sm" />
+                  </Td>
+                </Tr>
+              )}
+              {!hasMore && visiblePrograms.length > 0 && (
+                <Tr ref={sentinelRef}>
+                  <Td colSpan={8} />
+                </Tr>
+              )}
             </Tbody>
           </Table>
         </TableContainer>
       </Box>
-
-      <PaginationComponent
-        totalPages={totalPages}
-        goToNextPage={goToNextPage}
-        goToPreviousPage={goToPreviousPage}
-        currentPage={currentPage}
-      />
     </Box>
   );
 };

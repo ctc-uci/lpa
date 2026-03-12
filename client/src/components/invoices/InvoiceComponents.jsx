@@ -12,6 +12,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -49,6 +50,7 @@ import {
   PopoverTrigger,
   Select,
   Spacer,
+  Spinner,
   Table,
   TableContainer,
   Tag,
@@ -1241,8 +1243,31 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
   // }, [filteredInvoices, toast]);
   
 
-  // Use the filtered invoices directly since sorting is now done in parent
-  const currentInvoices = filteredInvoices;
+  const PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef(null);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filteredInvoices]);
+
+  const currentInvoices = filteredInvoices.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredInvoices.length;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setVisibleCount((prev) => prev + PAGE_SIZE);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
   const handleEdit = useCallback(
     (id, e) => {
@@ -1282,7 +1307,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
         className="invoices-table__container"
         width="100%"
       >
-        <TableContainer padding="0">
+        <TableContainer padding="0" overflowY="auto" maxHeight="60vh" sx={{ "& thead th": { position: "sticky", top: 0, zIndex: 1, bg: "white" } }}>
           <Table
             className="invoices-table__table"
             width="100%"
@@ -1471,6 +1496,17 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                   >
                     No invoices found
                   </Td>
+                </Tr>
+              )}
+              {hasMore ? (
+                <Tr ref={sentinelRef}>
+                  <Td colSpan={7} textAlign="center" py={4}>
+                    <Spinner size="sm" />
+                  </Td>
+                </Tr>
+              ) : (
+                <Tr ref={sentinelRef}>
+                  <Td colSpan={7} />
                 </Tr>
               )}
             </Tbody>

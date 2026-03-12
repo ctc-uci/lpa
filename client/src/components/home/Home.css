@@ -193,6 +193,13 @@ body,
   padding: 0;
 }
 
+.programs-table__container thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #fff;
+}
+
 .programs-table__table {
   border-spacing: 0 !important;
   border-collapse: separate !important;

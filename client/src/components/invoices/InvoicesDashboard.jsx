@@ -24,7 +24,6 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { InvoiceFilter } from "../filters/InvoicesFilter";
 import { RoundedButton } from "../filters/FilterComponents";
 import Navbar from "../navbar/Navbar";
-import { PaginationComponent } from "../PaginationComponent";
 import { SearchBar } from "../searchBar/SearchBar";
 import { InvoicesFilter, InvoicesTable } from "./InvoiceComponents";
 
@@ -43,9 +42,6 @@ const InvoicesDashboard = () => {
   const [sortKey, setSortKey] = useState("title");
   const [sortOrder, setSortOrder] = useState("asc");
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-
   const [filter, setFilter] = useState({
     startDate: "",
     endDate: "",
@@ -53,22 +49,6 @@ const InvoicesDashboard = () => {
     instructor: "all",
     payee: "all",
   });
-
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const goToPage = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
 
   // Sort the filtered invoices
   const sortedInvoices = useMemo(() => {
@@ -113,35 +93,6 @@ const InvoicesDashboard = () => {
     }
     return sorted;
   }, [filteredInvoices, sortKey, sortOrder]);
-
-  const totalInvoices = sortedInvoices?.length || 0;
-  const totalPages = Math.ceil(totalInvoices / itemsPerPage);
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, totalInvoices);
-  const currentPageInvoices = sortedInvoices.slice(startIndex, endIndex);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filteredInvoices, sortKey, sortOrder]);
-
-  useEffect(() => {
-    const calculateRowsPerPage = () => {
-      // Always return 12 rows per page for invoices
-      return 12;
-    };
-
-    setItemsPerPage(calculateRowsPerPage());
-
-    const handleResize = () => {
-      setItemsPerPage(calculateRowsPerPage());
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   const isPaidColor = (invoice) => {
     const paidStatus = isPaid(invoice);
@@ -443,7 +394,7 @@ const InvoicesDashboard = () => {
           />
         </Flex>
         <InvoicesTable
-          filteredInvoices={currentPageInvoices}
+          filteredInvoices={sortedInvoices}
           isPaidColor={isPaidColor}
           seasonColor={seasonColor}
           sortKey={sortKey}
@@ -455,12 +406,6 @@ const InvoicesDashboard = () => {
           onInvoiceDeleted={refetchInvoices}
         />
       </Box>
-      <PaginationComponent
-        totalPages={totalPages}
-        goToNextPage={goToNextPage}
-        goToPreviousPage={goToPreviousPage}
-        currentPage={currentPage}
-      />
     </Navbar>
   );
 };
