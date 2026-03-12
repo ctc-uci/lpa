@@ -110,30 +110,6 @@ const InvoicesDashboard = () => {
     }
   };
 
-  const seasonColor = (invoice) => {
-    if (invoice.season === "Winter") {
-      return ["#EBF8FF", "#3182CE"];
-    } else if (invoice.season === "Summer") {
-      return ["#FFF5F7", "#D53F8C"];
-    } else if (invoice.season === "Fall") {
-      return ["#FFFAF0", "#DD6B20"];
-    } else {
-      return ["#e6f7ec", "#008000"];
-    }
-  };
-
-  const getSeason = (invoice) => {
-    const month = new Date(invoice.endDate).getMonth();
-    if (month >= 1 && month <= 4) {
-      return "Winter";
-    } else if (month >= 5 && month <= 8) {
-      return "Summer";
-    } else if (month >= 9 && month <= 12) {
-      return "Fall";
-    } else {
-      return "N/A";
-    }
-  };
 
   const isPaid = (invoice) => {
     const endDate = new Date(invoice.endDate);
@@ -196,7 +172,6 @@ const InvoicesDashboard = () => {
 
       const invoices = Object.values(groupedInvoices).map((invoice) => ({
         ...invoice,
-        season: getSeason(invoice),
         isPaid: isPaid(invoice),
         paymentStatus: isPaid(invoice),
       }));
@@ -396,7 +371,6 @@ const InvoicesDashboard = () => {
         <InvoicesTable
           filteredInvoices={sortedInvoices}
           isPaidColor={isPaidColor}
-          seasonColor={seasonColor}
           sortKey={sortKey}
           sortOrder={sortOrder}
           onSortChange={(key, order) => {

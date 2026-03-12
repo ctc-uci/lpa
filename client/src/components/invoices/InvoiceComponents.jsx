@@ -53,7 +53,6 @@ import {
   Spinner,
   Table,
   TableContainer,
-  Tag,
   Tbody,
   Td,
   Text,
@@ -1050,7 +1049,7 @@ const InvoicePayments = forwardRef(
   }
 );
 
-function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, sortOrder, onSortChange, onInvoiceDeleted }) {
+function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSortChange, onInvoiceDeleted }) {
 
   const navigate = useNavigate();
   const toast = useToast();
@@ -1366,9 +1365,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                     <DateSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
-                <Th paddingRight="8px">
-                  <Text>SEASON</Text>
-                </Th>
                 {/* <Th
                   paddingLeft="8px"
                   paddingRight="8px"
@@ -1385,7 +1381,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                     (payer) => payer && typeof payer === "string"
                   )
                   : [];
-                const [tagBgColor, tagTextColor] = seasonColor(invoice);
 
                 let statusClass = "";
                 if (invoice.isPaid === "Paid") {
@@ -1457,15 +1452,6 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       {formatSessionDateWithWeekday(invoice.endDate)}
                     </Td>
-                    <Td onClick={() => handleRowClick(invoice.id)}>
-                      <Tag
-                        size="md"
-                        bg={tagBgColor}
-                        color={tagTextColor}
-                      >
-                        {invoice.season}
-                      </Tag>
-                    </Td>
                     {/* <Td>
                       <Flex ml="18px">
                         <PDFButtonInvoice onlyIcon={true} id={invoice.id} />
@@ -1490,7 +1476,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
               {currentInvoices.length === 0 && (
                 <Tr>
                   <Td
-                    colSpan={7}
+                    colSpan={6}
                     textAlign="center"
                     py={4}
                   >
@@ -1500,13 +1486,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, seasonColor, sortKey, so
               )}
               {hasMore ? (
                 <Tr ref={sentinelRef}>
-                  <Td colSpan={7} textAlign="center" py={4}>
+                  <Td colSpan={6} textAlign="center" py={4}>
                     <Spinner size="sm" />
                   </Td>
                 </Tr>
               ) : (
                 <Tr ref={sentinelRef}>
-                  <Td colSpan={7} />
+                  <Td colSpan={6} />
                 </Tr>
               )}
             </Tbody>
