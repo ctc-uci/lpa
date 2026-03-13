@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import {
   AlertDialog,
@@ -169,7 +169,17 @@ export const EditInvoice = () => {
   const cancelRef = React.useRef();
   const [isLoading, setIsLoading] = useState(false);
 
+  const initialSessionsRef = useRef(null);
+  const initialSummaryRef = useRef(null);
 
+  // Clear stale store data on mount so snapshots are always taken from fresh fetched data
+  useEffect(() => {
+    setSessions([]);
+    setSummary([]);
+    setDeletedIds([]);
+    initialSessionsRef.current = null;
+    initialSummaryRef.current = null;
+  }, [id]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -269,15 +279,13 @@ export const EditInvoice = () => {
         const summaryResponse = await backend.get(
           `comments/invoice/summary/${id}`
         );
-        if (summaryResponse.data && summaryResponse.data.length === 0) {
-          setSummary([{
-            adjustmentValues: [],
-            comments: [],
-            datetime: new Date().toISOString(),
-            invoiceId: 0
-          }]);
-        } else {
-          setSummary(summaryResponse.data);
+        const summaryData = summaryResponse.data && summaryResponse.data.length === 0
+          ? [{ adjustmentValues: [], comments: [], datetime: "", invoiceId: 0 }]
+          : summaryResponse.data;
+        setSummary(summaryData);
+        // Capture snapshot here so re-runs of this effect don't cause false positives
+        if (initialSummaryRef.current === null) {
+          initialSummaryRef.current = JSON.stringify(summaryData);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -291,6 +299,13 @@ export const EditInvoice = () => {
 
   // Fetch sessions via hook into the store
   useInvoiceSessions(id);
+
+  // Capture initial snapshots once data is loaded
+  useEffect(() => {
+    if (sessions.length > 0 && initialSessionsRef.current === null) {
+      initialSessionsRef.current = JSON.stringify(sessions);
+    }
+  }, [sessions]);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -350,7 +365,19 @@ export const EditInvoice = () => {
   }, [invoice, backend]);
 
   const handleBack = () => {
-    setIsAlertOpen(true);
+    const sessionsChanged =
+      initialSessionsRef.current !== null &&
+      JSON.stringify(sessions) !== initialSessionsRef.current;
+    const summaryChanged =
+      initialSummaryRef.current !== null &&
+      JSON.stringify(summary) !== initialSummaryRef.current;
+    const hasChanges = deletedIds.length > 0 || sessionsChanged || summaryChanged;
+
+    if (hasChanges) {
+      setIsAlertOpen(true);
+    } else {
+      navigate(`/invoices/${id}`);
+    }
   };
 
   const handleCancelBack = () => {
