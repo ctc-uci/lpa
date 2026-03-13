@@ -91,6 +91,7 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { ProgramEmailIcon } from "../../assets/ProgramEmailIcon";
 import { ProgramsCalendarIcon } from "../../assets/ProgramsCalendarIcon";
 import redCancelIcon from "../../assets/redCancelIcon";
+import { DeleteIconRed } from "../../assets/DeleteIconRed";
 import { SessionsBookmark } from "../../assets/SessionsBookmark";
 import { ArchivedDropdown } from "../archivedDropdown/ArchivedDropdown";
 import { CancelProgram } from "../cancelModal/CancelProgramComponent";
@@ -316,7 +317,7 @@ const InvoiceStats = ({
       </Grid>
 
       {/* room rate section */}
-      <Flex
+      {/* <Flex
         gap={3}
         alignItems="center"
       >
@@ -327,7 +328,7 @@ const InvoiceStats = ({
         >
           {roomRate ? `${Number(roomRate).toFixed(2)} / hour` : "N/A"}
         </Text>
-      </Flex>
+      </Flex> */}
     </Flex>
   );
 };
@@ -353,6 +354,8 @@ const InvoicePayments = forwardRef(
     const [showInputRow, setShowInputRow] = useState(false);
     const [showEditRow, setShowEditRow] = useState(false);
     const [valueEntered, setValueEntered] = useState(false);
+    const [rowValues, setRowValues] = useState({});
+    const [rowDates, setRowDates] = useState({});
     const {
       isOpen: isOpen,
       onOpen: onOpen,
@@ -366,7 +369,6 @@ const InvoicePayments = forwardRef(
     } = useDisclosure();
 
     const [selectedComment, setSelectedComment] = useState(null);
-    const [editID, setEditID] = useState(null);
     const [deleteID, setDeleteID] = useState(null);
 
     const { currentUser } = useAuthContext();
@@ -490,21 +492,27 @@ const InvoicePayments = forwardRef(
     }
   };
 
-  const handleEditComment = (edit, datetime, adjustmentValue) => {
+  const handleEditComment = () => {
+    const doEdit = () => {
+      const initialRowValues = {};
+      const initialRowDates = {};
+      comments.forEach((comment) => {
+        initialRowValues[comment.id] = comment.adjustmentValue
+          ? Number(comment.adjustmentValue).toFixed(2)
+          : "";
+        initialRowDates[comment.id] = comment.datetime;
+      });
+      setRowValues(initialRowValues);
+      setRowDates(initialRowDates);
+      setShowEditRow(true);
+      setValueEntered(true);
+      setHasUnsavedChanges(true);
+    };
     try {
       if (hasUnsavedChanges) {
-        handleButtonWhileUnsaved(() => {
-          setEditID(edit);
-          setEditDate(datetime);
-          setAdjustValue(adjustmentValue);
-          setShowEditRow(true);
-          setHasUnsavedChanges(true);
-        });
+        handleButtonWhileUnsaved(doEdit);
       } else {
-        setEditID(edit);
-        setShowEditRow(true);
-        setAdjustValue(adjustmentValue);
-        setHasUnsavedChanges(true);
+        doEdit();
       }
     } catch (error) {
       console.error("Error editing:", error);
@@ -513,24 +521,29 @@ const InvoicePayments = forwardRef(
 
     const handleSaveComment = async () => {
       setIsProcessing(true);
-      const editDateObj = new Date(editDate);
-      editDateObj.setMinutes(editDateObj.getMinutes() + editDateObj.getTimezoneOffset());
-    
-      try {
-        const adjustmentValue = parseFloat(adjustValue);
-        
-        const commentsData = {
-          user_id: uid,
-          invoice_id: id,
-          booking_id: null,
-          datetime: editDateObj.toISOString(),
-          comment: "",
-          adjustment_type: "paid",
-          adjustment_value: Number(adjustmentValue),
-        };
 
+      try {
         if (showEditRow) {
-          await backend.put("/comments/" + editID, commentsData);
+          await Promise.all(
+            Object.entries(rowValues).map(async ([commentId, value]) => {
+              const numId = parseInt(commentId);
+              const originalComment = comments.find((c) => c.id === numId);
+              if (!originalComment) return;
+              const newValue = parseFloat(value);
+              if (isNaN(newValue)) return;
+              const dateObj = new Date(rowDates[commentId] || originalComment.datetime);
+              dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+              await backend.put("/comments/" + commentId, {
+                user_id: uid,
+                invoice_id: id,
+                booking_id: null,
+                datetime: dateObj.toISOString(),
+                comment: "",
+                adjustment_type: "paid",
+                adjustment_value: newValue,
+              });
+            })
+          );
           toast({
             position: "bottom-right",
             duration: 3000,
@@ -576,7 +589,18 @@ const InvoicePayments = forwardRef(
             ),
           });
         } else {
-          await backend.post("/comments/", commentsData);
+          const editDateObj = new Date(editDate);
+          editDateObj.setMinutes(editDateObj.getMinutes() + editDateObj.getTimezoneOffset());
+          const adjustmentValue = parseFloat(adjustValue);
+          await backend.post("/comments/", {
+            user_id: uid,
+            invoice_id: id,
+            booking_id: null,
+            datetime: editDateObj.toISOString(),
+            comment: "",
+            adjustment_type: "paid",
+            adjustment_value: Number(adjustmentValue),
+          });
           toast({
             position: "bottom-right",
             duration: 3000,
@@ -630,10 +654,12 @@ const InvoicePayments = forwardRef(
         setShowInputRow(false);
         setHasUnsavedChanges(false);
         setAdjustValue("--.--");
+        setRowValues({});
+        setRowDates({});
       } catch (error) {
         console.error("Error saving:", error);
       }
-      
+
       updateRemainingBalance();
 
       // Reset UI state
@@ -642,6 +668,8 @@ const InvoicePayments = forwardRef(
       setHasUnsavedChanges(false);
       setIsProcessing(false);
       setAdjustValue("--.--");
+      setRowValues({});
+      setRowDates({});
     }  
   //   } catch (error) {
   //     console.error("Error saving:", error);
@@ -655,7 +683,7 @@ const InvoicePayments = forwardRef(
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
     setEditDate(formattedDate);
-    setAdjustValue("0.00");
+    setAdjustValue("");
     setEditID(null);
   };
 
@@ -684,16 +712,29 @@ const InvoicePayments = forwardRef(
             Payments
           </Text>
           {!showInputRow && !showEditRow ? (
-            <Button
-              onClick={handleAddComment}
-              leftIcon={<DarkPlusIcon />}
-              fontSize={"14px"}
-              fontWeight={"700"}
-              height={"40px"}
-              padding={"0px 16px"}
-            >
-              Add
-            </Button>
+            <Flex gap="8px">
+              <Button
+                onClick={handleEditComment}
+                leftIcon={<Icon as={editBlackIcon} />}
+                fontSize={"14px"}
+                fontWeight={"700"}
+                height={"40px"}
+                padding={"0px 16px"}
+                isDisabled={!comments || comments.length === 0}
+              >
+                Edit
+              </Button>
+              <Button
+                onClick={handleAddComment}
+                leftIcon={<DarkPlusIcon />}
+                fontSize={"14px"}
+                fontWeight={"700"}
+                height={"40px"}
+                padding={"0px 16px"}
+              >
+                Add
+              </Button>
+            </Flex>
           ) : (
             <Button
               isLoading={isProcessing}
@@ -744,7 +785,7 @@ const InvoicePayments = forwardRef(
                       paddingInlineStart="8px"
                       paddingInlineEnd="8px"
                     >
-                      {showEditRow && comment.id === editID ? (
+                      {showEditRow ? (
                         <Flex alignItems="center">
                           <Text
                             color="#0C824D"
@@ -753,9 +794,10 @@ const InvoicePayments = forwardRef(
                             $
                           </Text>
                           <Input
-                            type="number"
-                            placeholder="__.__"
-                            value={Number(adjustValue).toFixed(2)}
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="0.00"
+                            value={rowValues[comment.id] ?? ""}
                             w="60px"
                             textAlign="left"
                             padding="0px 0px 0px 5px"
@@ -763,19 +805,17 @@ const InvoicePayments = forwardRef(
                             fontSize="14px"
                             color="#0C824D"
                             fontWeight="400"
+                            onFocus={(e) => e.target.select()}
                             onChange={(e) => {
                               const value = e.target.value;
-                              if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
-                                setAdjustValue(value);
-                                setEditDate(new Date());
+                              if (value === '' || /^-?\d*\.?\d{0,2}$/.test(value)) {
+                                setRowValues((prev) => ({ ...prev, [comment.id]: value }));
                                 setValueEntered(true);
                               }
                             }}
                             onBlur={(e) => {
-                              if (e.target.value) {
-                                const formattedValue = Number(e.target.value).toFixed(2);
-                                setAdjustValue(formattedValue);
-                              }
+                              const num = parseFloat(e.target.value);
+                              setRowValues((prev) => ({ ...prev, [comment.id]: isNaN(num) ? '' : num.toFixed(2) }));
                             }}
                           />
                         </Flex>
@@ -801,20 +841,6 @@ const InvoicePayments = forwardRef(
                         />
                         <MenuList minWidth={"152px"} maxWidth={"152px"}>
                             <MenuItem
-                              onClick={() => handleEditComment(comment.id, comment.datetime, comment.adjustmentValue)}
-                              width={"149px"}
-                              _hover={{ bg: "#E2E8F0" }}
-                            >
-                              <Box
-                                display="flex"
-                                alignItems="center"
-                                gap="8px"
-                              >
-                                <Icon as={editBlackIcon} />
-                                <Text color="#2D3748">Edit</Text>
-                              </Box>
-                            </MenuItem>
-                            <MenuItem
                               onClick={() => handleShowDelete(comment)}
                               width={"149px"}
                               _hover={{ bg: "#E2E8F0" }}
@@ -824,8 +850,8 @@ const InvoicePayments = forwardRef(
                                 alignItems="center"
                                 gap="8px"
                               >
-                                <Icon as={redCancelIcon} />
-                                <Text color="#90080F">Cancel</Text>
+                                <DeleteIconRed />
+                                <Text color="#90080F">Delete</Text>
                               </Box>
                             </MenuItem>
                           </MenuList>
@@ -939,8 +965,9 @@ const InvoicePayments = forwardRef(
                         $
                       </Text>
                       <Input
-                        type="number"
-                        placeholder="__.__"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0.00"
                         value={adjustValue}
                         w="60px"
                         textAlign="left"
@@ -949,20 +976,19 @@ const InvoicePayments = forwardRef(
                         fontSize="14px"
                         color="#0C824D"
                         fontWeight="400"
+                        onFocus={(e) => e.target.select()}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                          if (value === '' || /^-?\d*\.?\d{0,2}$/.test(value)) {
                             setAdjustValue(value);
                             setValueEntered(true);
                           }
                         }}
                         onBlur={(e) => {
-                          if (e.target.value) {
-                            const formattedValue = Number(e.target.value).toFixed(2);
-                            setAdjustValue(formattedValue);
-                          }
+                          const num = parseFloat(e.target.value);
+                          setAdjustValue(isNaN(num) ? '' : num.toFixed(2));
                         }}
-                      ></Input>
+                      />
                     </Flex>
                   </Td>
                   <Td
@@ -991,8 +1017,8 @@ const InvoicePayments = forwardRef(
                             alignItems="center"
                             gap="8px"
                           >
-                            <Icon as={redCancelIcon} />
-                            <Text color="#90080F">Cancel</Text>
+                            <DeleteIconRed />
+                            <Text color="#90080F">Delete</Text>
                           </Box>
                         </MenuItem>
                       </MenuList>
