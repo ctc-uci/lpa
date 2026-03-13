@@ -928,7 +928,7 @@ export const EditRecurringSessions = () => {
             borderRadius="6px"
             background="#EDF2F7"
             onClick={() => {
-              if (isChanged) {
+              if (hasSessionChanges) {
                 onUnsavedSessionModalOpen();
               } else {
                 navigate(`/programs/edit/${id}`);
@@ -994,7 +994,7 @@ export const EditRecurringSessions = () => {
           programName={programName}
         />
 
-        {isChanged && (
+        {hasSessionChanges && (
           <UnsavedChangesModal
             isOpen={isUnsavedSessionModalOpen}
             onClose={onUnsavedSessionModalClose}
