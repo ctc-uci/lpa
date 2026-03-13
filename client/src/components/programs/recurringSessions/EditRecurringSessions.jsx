@@ -44,6 +44,19 @@ import { PreviewSession } from "./PreviewSession";
 import { RecurringSessionRow } from "./RecurringSessionRow";
 import { generateRecurringSessions, createNewSessions, updateSessions, deleteSessions } from "../utils";
 
+const isNthWeekdayOfMonth = (date, nth, weekday) => {
+  const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const targetDay = weekdays.indexOf(weekday.toLowerCase());
+  if (targetDay === -1 || date.getDay() !== targetDay) return false;
+  if (nth === "Last") {
+    const nextWeek = new Date(date);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    return nextWeek.getMonth() !== date.getMonth();
+  }
+  const nthNum = parseInt(nth);
+  return Math.ceil(date.getDate() / 7) === nthNum;
+};
+
 export const EditRecurringSessions = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
@@ -138,6 +151,7 @@ export const EditRecurringSessions = () => {
           endTime: "",
           roomId: "",
           archived: false,
+          exceptions: [],
         },
       ],
     }));
@@ -168,21 +182,22 @@ export const EditRecurringSessions = () => {
             (s) => s.recurringId !== recurringSession.id
           );
 
-          if (Object.values(recurringSession).every((val) => val !== "")) {
-            const currentTimezoneDate = new Date(
-              startDate.replace(/-/g, "/").replace(/T.+/, "")
-            );
+          const { weekday, startTime, endTime, roomId } = recurringSession;
+          if (startDate && endDate && weekday && startTime && endTime && roomId) {
             const generatedSessions = generateRecurringSessions(
-              {
-                ...recurringSession,
-              },
+              { ...recurringSession },
               startDate,
               endDate
             );
-
+            const filteredSessions = generatedSessions.filter((s) => {
+              const d = new Date(s.date);
+              return !(recurringSession.exceptions || []).some(
+                (exc) => exc.nth && exc.weekday && isNthWeekdayOfMonth(d, exc.nth, exc.weekday)
+              );
+            });
             updatedSessions = [
               ...updatedSessions,
-              ...generatedSessions.map((s) => ({
+              ...filteredSessions.map((s) => ({
                 ...s,
                 recurringId: recurringSession.id,
                 isNew: true,
@@ -288,6 +303,58 @@ export const EditRecurringSessions = () => {
     handleAddSingleRow();
     handleAddRecurringRow();
     setIsChanged(true);
+  };
+
+  const handleExceptionChange = (rowIndex, updater) => {
+    setNewSessions((prev) => {
+      const updatedRecurring = prev.recurring.map((session, i) =>
+        i === rowIndex ? updater(session) : session
+      );
+      const recurringSession = updatedRecurring[rowIndex];
+      const { weekday, startTime, endTime, roomId } = recurringSession;
+      setAllSessions((allPrev) => {
+        let updatedSessions = allPrev.filter((s) => s.recurringId !== recurringSession.id);
+        if (startDate && endDate && weekday && startTime && endTime && roomId) {
+          const generated = generateRecurringSessions({ ...recurringSession }, startDate, endDate);
+          const filtered = generated.filter((s) => {
+            const d = new Date(s.date);
+            return !(recurringSession.exceptions || []).some(
+              (exc) => exc.nth && exc.weekday && isNthWeekdayOfMonth(d, exc.nth, exc.weekday)
+            );
+          });
+          updatedSessions = [
+            ...updatedSessions,
+            ...filtered.map((s) => ({ ...s, recurringId: recurringSession.id, isNew: true })),
+          ];
+        }
+        setIsChanged(true);
+        return updatedSessions;
+      });
+      return { ...prev, recurring: updatedRecurring };
+    });
+  };
+
+  const handleAddException = (rowIndex) => {
+    handleExceptionChange(rowIndex, (session) => ({
+      ...session,
+      exceptions: [...(session.exceptions || []), { nth: "", weekday: "" }],
+    }));
+  };
+
+  const handleChangeException = (rowIndex, excIndex, field, value) => {
+    handleExceptionChange(rowIndex, (session) => ({
+      ...session,
+      exceptions: (session.exceptions || []).map((exc, j) =>
+        j === excIndex ? { ...exc, [field]: value } : exc
+      ),
+    }));
+  };
+
+  const handleRemoveException = (rowIndex, excIndex) => {
+    handleExceptionChange(rowIndex, (session) => ({
+      ...session,
+      exceptions: (session.exceptions || []).filter((_, j) => j !== excIndex),
+    }));
   };
 
   const handleUndo = () => {
@@ -577,6 +644,9 @@ export const EditRecurringSessions = () => {
           setRowToDelete={setRowToDelete}
           isRecurring={isRecurring}
           recurringFrequency={recurringFrequency}
+          handleAddException={handleAddException}
+          handleChangeException={handleChangeException}
+          handleRemoveException={handleRemoveException}
         />
       ))}
       <Button
