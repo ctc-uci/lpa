@@ -24,7 +24,7 @@ import {
   Tr,
 } from "@chakra-ui/react";
 
-import { EllipsisIcon } from "lucide-react";
+import { EllipsisIcon, RotateCcwIcon } from "lucide-react";
 
 import { DeleteIconRed } from "../../../assets/DeleteIconRed";
 import { FilledOutCalendar } from "../../../assets/FilledOutCalendar";
@@ -192,13 +192,35 @@ export const PreviewSession = ({
                       </Text>
                     </MenuItem>
                     <MenuItem
-                      onClick={handleDeleteSelected}
+                      onClick={
+                        selectedSessions.every(
+                          (id) => sortedSessions.find((s) => s.id === id)?.isDeleted
+                        )
+                          ? () => {
+                              selectedSessions.forEach((id) => handleRestoreSession(id));
+                              setSelectedSessions([]);
+                              setIsSelected(false);
+                              setIsChanged(true);
+                            }
+                          : handleDeleteSelected
+                      }
                       display="flex"
                       alignItems="center"
                       gap="8px"
                     >
-                      <Icon as={DeleteIconRed} boxSize="4" />
-                      <Text color="#90080F" fontSize="14px">Delete</Text>
+                      {selectedSessions.every(
+                        (id) => sortedSessions.find((s) => s.id === id)?.isDeleted
+                      ) ? (
+                        <>
+                          <Icon as={RotateCcwIcon} boxSize="4" color="#0C824D" />
+                          <Text color="#0C824D" fontSize="14px">Restore</Text>
+                        </>
+                      ) : (
+                        <>
+                          <Icon as={DeleteIconRed} boxSize="4" />
+                          <Text color="#90080F" fontSize="14px">Delete</Text>
+                        </>
+                      )}
                     </MenuItem>
                   </MenuList>
                 </Menu>
