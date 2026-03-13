@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FilterContainer } from "./FilterContainer";
 import { DateFilter, DayFilter, RoomFilter, SessionStatusFilter, TimeFilter } from "./FilterComponents";
 
-export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived=false }) => {
+export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived=false, showPast=false, onStatusChange }) => {
 
     const [filters, setFilters] = useState({
-      status: "all",
+      status: showPast ? "past" : "active",
       days: [],
       startTime: null,
       endTime: null,
@@ -13,6 +13,10 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived
       endDate: null,
       room: "all",
     });
+
+    useEffect(() => {
+      setFilters((prev) => ({ ...prev, status: showPast ? "past" : "active" }));
+    }, [showPast]);
 
     const updateFilter = (type, value) => {
       // console.log(`Updating filter: ${type} with value:`, value);
@@ -148,11 +152,12 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived
       }
 
       setFilteredSessions(filtered);
+      onStatusChange?.(filters.status);
     };
 
     const resetFilter = (type, value) => {
       setFilters({
-        status: "all",
+        status: showPast ? "past" : "active",
         days: [],
         startTime: null,
         endTime: null,
@@ -161,6 +166,7 @@ export const SessionFilter = ({ sessions, setFilteredSessions, rooms, isArchived
         room: "all",
       });
       setFilteredSessions(sessions);
+      onStatusChange?.(showPast ? "past" : "active");
     }
 
     return (

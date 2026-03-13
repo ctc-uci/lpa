@@ -62,6 +62,7 @@ export const FilterContainer = ({ onApply, onReset, pageName, children }) => {
         fontWeight="700"
         lineHeight="normal"
         letterSpacing="0.07px"
+        cursor="pointer"
         _hover={{
           borderRadius: "6px",
           background: "var(--Secondary-3, #E2E8F0)"

@@ -958,7 +958,9 @@ export const Sessions = ({
   const [selectedRoom, setSelectedRoom] = useState("All");
 
   const [sortKey, setSortKey] = useState("date");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [showPast, setShowPast] = useState(false);
+  const [isStatusAll, setIsStatusAll] = useState(false);
   const [filteredAndSortedSessions, setFilteredAndSortedSessions] = useState(
     []
   );
@@ -1039,6 +1041,9 @@ export const Sessions = ({
 
     const newSessionMap = {};
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const filtered = filteredSessions.filter((session) => {
       const sessionDate = parseSessionDate(session.date);
       if (!sessionDate) return false;
@@ -1058,8 +1063,9 @@ export const Sessions = ({
         (status === "Past" && hasTimePassed(session.date));
       const isRoomMatch =
         selectedRoom === "All" || rooms.get(session.roomId) === selectedRoom;
+      const isPastMatch = isStatusAll || (showPast ? sessionDate < today : sessionDate >= today);
 
-      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch;
+      return isDateInRange && isTimeInRange && isStatusMatch && isRoomMatch && isPastMatch;
     });
     setSessionMap(newSessionMap); // set sessionMap
 
@@ -1092,6 +1098,8 @@ export const Sessions = ({
     rooms,
     sortKey,
     sortOrder,
+    showPast,
+    isStatusAll,
   ]);
 
   useEffect(() => {
@@ -1359,7 +1367,49 @@ export const Sessions = ({
                   setFilteredSessions={setFilteredSessions}
                   rooms={rooms}
                   isArchived={isArchived}
+                  showPast={showPast}
+                  onStatusChange={(status) => {
+                    if (status === "all") {
+                      setIsStatusAll(true);
+                      setShowPast(false);
+                    } else {
+                      setIsStatusAll(false);
+                    }
+                  }}
                 />
+                <Button
+                  height="40px"
+                  padding="0px 16px"
+                  borderRadius="6px"
+                  backgroundColor="var(--Secondary-2-Default, #EDF2F7)"
+                  color="#000000"
+                  fontFamily="Inter"
+                  fontSize="14px"
+                  fontWeight="700"
+                  lineHeight="normal"
+                  letterSpacing="0.07px"
+                  _hover={{ bg: "#E2E8F0" }}
+                  onClick={() => {
+                    if (showPast || isStatusAll) {
+                      setShowPast(false);
+                      setIsStatusAll(false);
+                      setSortOrder("asc");
+                    } else {
+                      setShowPast(true);
+                      setSortOrder("desc");
+                    }
+                  }}
+                >
+                  <Box
+                    height="10px"
+                    width="10px"
+                    borderRadius="50%"
+                    bg={(showPast || isStatusAll) ? "#0C824D" : "#DAB434"}
+                    mr="6px"
+                    flexShrink={0}
+                  />
+                  {(showPast || isStatusAll) ? "Show Current" : "Show Past"}
+                </Button>
               </Flex>
 
               <Flex alignItems="flex-end">
