@@ -373,8 +373,8 @@ export const EmailSidebar = ({
 
     Best Regards,
 
-    Rocío Cancel
-    Programs Coordinator
+    La Peña Team
+    classes@lapena.com
     La Peña Cultural Center
     3105 Shattuck Ave., Berkeley, CA 94705
     lapena.org`;
