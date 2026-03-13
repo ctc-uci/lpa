@@ -74,7 +74,7 @@ const EditInvoiceTitle = ({ sessions }) => {
             INVOICE
           </Text>
           <Text style={{ color: "#718096", fontSize: "12px" }}>
-            Generated on {format(new Date(), "MMMM yyyy")}
+            Generated on {getGeneratedDate(sessions, false)}
           </Text>
         </View>
 
