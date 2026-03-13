@@ -7,6 +7,7 @@ import {
   ChevronRightIcon,
   DeleteIcon,
   DownloadIcon,
+  ExternalLinkIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -427,10 +428,15 @@ export const ProgramSummary = ({
                 align="center"
                 gap={2}
               >
-                  <PDFButtonInvoice
-                    id={invoiceId}
-                    onlyIcon={true}
-                  />
+                  {invoiceId && (
+                    <Button
+                      leftIcon={<ExternalLinkIcon />}
+                      aria-label="View invoice"
+                      onClick={() => navigate(`/invoices/${invoiceId}`)}
+                    >
+                      View Invoice
+                    </Button>
+                  )}
                 {!isArchived ? (
                   <EditCancelPopup
                     handleEdit={handleEdit}
