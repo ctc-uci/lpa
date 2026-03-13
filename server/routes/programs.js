@@ -27,7 +27,10 @@ programsRouter.get("/", async (req, res) => {
          LEFT JOIN rooms AS r ON r.id = b.room_id
          LEFT JOIN clients AS c ON a.client_id = c.id
         GROUP BY e.id, e.name, e.archived, b.date, b.start_time, b.end_time, r.name
-        ORDER BY e.id, b.date DESC, b.start_time DESC;
+        ORDER BY e.id,
+          CASE WHEN b.date >= CURRENT_DATE THEN b.date ELSE '9999-12-31'::date END ASC,
+          b.date DESC,
+          b.start_time DESC;
     `);
 
     if (programs.length === 0) {
