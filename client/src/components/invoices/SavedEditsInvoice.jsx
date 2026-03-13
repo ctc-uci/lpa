@@ -215,7 +215,23 @@ export const SavedEdit = () => {
     navigate(`/invoices/${id}`);
   };
   if (isLoading) {
-    return <Spinner />;
+    return (
+      <Navbar>
+        <Flex
+          height="80vh"
+          width="100%"
+          alignItems="center"
+          justifyContent="center"
+          flexDirection="column"
+          gap="16px"
+        >
+          <Spinner size="xl" color="#4441C8" thickness="4px" speed="0.65s" />
+          <Text fontFamily="Inter" fontSize="16px" color="#767778">
+            Loading invoice...
+          </Text>
+        </Flex>
+      </Navbar>
+    );
   }
 
   return (

@@ -10,6 +10,8 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Spinner,
+  Text,
   useDisclosure,
 } from "@chakra-ui/react";
 
@@ -75,7 +77,7 @@ export const SingleInvoice = () => {
   const { summary, setSummary } = useSummaryStore();
   const { sessions, setSessions } = useSessionStore();
   const invoicePaymentsRef = useRef(null);
-  
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -254,6 +256,8 @@ export const SingleInvoice = () => {
       } catch (error) {
         // Invoice/field does not exist
         console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -338,6 +342,26 @@ export const SingleInvoice = () => {
     setActionToContinue(() => onContinueAction);
     openModal();
   }, []);
+
+  if (isLoading) {
+    return (
+      <Navbar>
+        <Flex
+          height="80vh"
+          width="100%"
+          alignItems="center"
+          justifyContent="center"
+          flexDirection="column"
+          gap="16px"
+        >
+          <Spinner size="xl" color="#4441C8" thickness="4px" speed="0.65s" />
+          <Text fontFamily="Inter" fontSize="16px" color="#767778">
+            Loading invoice...
+          </Text>
+        </Flex>
+      </Navbar>
+    );
+  }
 
   return (
     <Navbar

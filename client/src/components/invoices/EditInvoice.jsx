@@ -167,7 +167,7 @@ export const EditInvoice = () => {
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = React.useRef();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const initialSessionsRef = useRef(null);
   const initialSummaryRef = useRef(null);
@@ -182,7 +182,6 @@ export const EditInvoice = () => {
   }, [id]);
 
   useEffect(() => {
-    setIsLoading(true);
     const fetchData = async () => {
       try {
         const currentInvoiceResponse = await backend.get("/invoices/" + id);
@@ -613,7 +612,23 @@ export const EditInvoice = () => {
   };
 
   if (isLoading) {
-    return <Spinner />;
+    return (
+      <Navbar>
+        <Flex
+          height="80vh"
+          width="100%"
+          alignItems="center"
+          justifyContent="center"
+          flexDirection="column"
+          gap="16px"
+        >
+          <Spinner size="xl" color="#4441C8" thickness="4px" speed="0.65s" />
+          <Text fontFamily="Inter" fontSize="16px" color="#767778">
+            Loading invoice...
+          </Text>
+        </Flex>
+      </Navbar>
+    );
   }
 
   return (
