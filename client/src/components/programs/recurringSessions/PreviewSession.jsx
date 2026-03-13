@@ -96,7 +96,17 @@ export const PreviewSession = ({
   };
 
   const handleArchiveSelected = () => {
-    selectedSessions.forEach((id) => handleArchiveSession(id));
+    const allArchived = selectedSessions.every(
+      (id) => sortedSessions.find((s) => s.id === id)?.archived
+    );
+    selectedSessions.forEach((id) => {
+      const session = sortedSessions.find((s) => s.id === id);
+      if (!session) return;
+      // If archiving: only act on unarchived rows. If unarchiving: only act on archived rows.
+      if (allArchived ? session.archived : !session.archived) {
+        handleArchiveSession(id);
+      }
+    });
     setSelectedSessions([]);
     setIsSelected(false);
     setIsChanged(true);
@@ -175,7 +185,11 @@ export const PreviewSession = ({
                       gap="8px"
                     >
                       <Icon as={ReactivateIcon} boxSize="4" />
-                      <Text color="#2D3748" fontSize="14px">Archive</Text>
+                      <Text color="#2D3748" fontSize="14px">
+                        {selectedSessions.every(
+                          (id) => sortedSessions.find((s) => s.id === id)?.archived
+                        ) ? "Unarchive" : "Archive"}
+                      </Text>
                     </MenuItem>
                     <MenuItem
                       onClick={handleDeleteSelected}
