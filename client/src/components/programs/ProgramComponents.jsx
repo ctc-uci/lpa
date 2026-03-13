@@ -1311,8 +1311,8 @@ export const Sessions = ({
                   >
                     <SessionsCancelIcon />
                     {selectedSessions.length === filteredAndSortedSessions?.length && filteredAndSortedSessions?.length > 0
-                      ? "Cancel All"
-                      : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
+                      ? "Cancel All Sessions"
+                      : `Cancel${selectedSessions.length > 0 ? ` (${selectedSessions.length})` : ""}`}
                   </button>
                 )}
                 <Button
@@ -1709,12 +1709,12 @@ export const Sessions = ({
                                   deleteModalOnOpen();
                                 }}
                               >
-                                <Icon as={CancelIcon} />
+                                <DeleteIconRed />
                                 <Text
                                   color="#90080F"
                                   fontSize="14px"
                                 >
-                                  Cancel
+                                  Delete
                                 </Text>
                               </MenuItem>
                             </MenuList>
@@ -1796,7 +1796,7 @@ export const Sessions = ({
               .filter(Boolean)}
             setSelectedSessions={setSelectedSessions}
             onConfirm={handleConfirmCancel}
-            eventType={selectedSessions.length === 1 ? "Workshops" : "Sessions"}
+            eventType={selectedSessions.length === 1 ? "Session" : "Sessions"}
             refreshSessions={refreshSessions}
           />
         </CardBody>
