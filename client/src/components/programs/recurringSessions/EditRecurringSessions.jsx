@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ChevronDownIcon, ChevronLeftIcon } from "@chakra-ui/icons";
 import {
@@ -106,6 +106,7 @@ export const EditRecurringSessions = () => {
   // States for general information
   const [allRooms, setAllRooms] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
+  const originalSessionsRef = useRef(null);
   const [programName, setProgramName] = useState("");
   const [changeMade, setChangeMade] = useState(false);
 
@@ -257,12 +258,20 @@ export const EditRecurringSessions = () => {
     }
   };
 
-  const handleResetSessions = () => {
-    // Clear all sessions
+  const handleResetSessions = (upcomingOnly = true) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     setAllSessions((prevSessions) =>
-      prevSessions.map((session) => 
-        session.id ? { ...session, isDeleted: true } : null
-      )
+      prevSessions.map((session) => {
+        if (!session.id) return null;
+        if (upcomingOnly) {
+          const sessionDate = new Date(session.date);
+          sessionDate.setHours(0, 0, 0, 0);
+          if (sessionDate < today) return session;
+        }
+        return { ...session, isDeleted: true };
+      })
     );
 
     // Remove all null values
@@ -281,20 +290,27 @@ export const EditRecurringSessions = () => {
     setIsChanged(true);
   };
 
+  const handleUndo = () => {
+    if (originalSessionsRef.current) {
+      setAllSessions(originalSessionsRef.current.map((s) => ({ ...s })));
+      setNewSessions({ single: [], recurring: [] });
+      setIsChanged(false);
+      handleAddSingleRow();
+      handleAddRecurringRow();
+    }
+  };
+
   const handleArchiveSession = (sessionId) => {
     setAllSessions((prevSessions) =>
       prevSessions.map((session) => {
         if (session.id === sessionId) {
-          // If it's a new session, just toggle the archived status
           if (session.isNew) {
             return { ...session, archived: !session.archived };
           }
-          // If it's an original session, mark it for update
-          return {
-            ...session,
-            archived: !session.archived,
-            isUpdated: true,
-          };
+          const newArchived = !session.archived;
+          const original = originalSessionsRef.current?.find((s) => s.id === sessionId);
+          const isUpdated = original ? newArchived !== original.archived : true;
+          return { ...session, archived: newArchived, isUpdated };
         }
         return session;
       })
@@ -317,6 +333,14 @@ export const EditRecurringSessions = () => {
       }
       return prevSessions;
     });
+  };
+
+  const handleRestoreSession = (sessionId) => {
+    setAllSessions((prevSessions) =>
+      prevSessions.map((s) =>
+        s.id === sessionId ? { ...s, isDeleted: false } : s
+      )
+    );
   };
 
   const saveChanges = async () => {
@@ -396,7 +420,11 @@ export const EditRecurringSessions = () => {
         const newSessions = allSessionsData.filter(
           (session) => !existingSessionIds.has(session.id)
         );
-        return [...prevSessions, ...newSessions];
+        const merged = [...prevSessions, ...newSessions];
+        if (originalSessionsRef.current === null) {
+          originalSessionsRef.current = merged.map((s) => ({ ...s }));
+        }
+        return merged;
       });
       // Fetch program name
       try {
@@ -422,6 +450,10 @@ export const EditRecurringSessions = () => {
   const isFormValid = () => {
     return allSessions.length !== 0 && isChanged === true;
   };
+
+  const hasSessionChanges = allSessions.some(
+    (s) => s.isDeleted || s.isUpdated || s.isNew
+  );
 
   const frequencyOptions = [
     { value: "week", label: "Every Week" },
@@ -745,13 +777,24 @@ export const EditRecurringSessions = () => {
                     Single
                   </Tab>
                 </TabList>
-                <Button
-                  onClick={handleResetSessions}
-                  color="#EDF2F7"
-                  textColor="#2D3748"
-                >
-                  Reset All Sessions
-                </Button>
+                <Menu placement="bottom-end">
+                  <MenuButton
+                    as={Button}
+                    rightIcon={<ChevronDownIcon />}
+                    color="#EDF2F7"
+                    textColor="#2D3748"
+                  >
+                    Reset Sessions
+                  </MenuButton>
+                  <MenuList minWidth="200px">
+                    <MenuItem onClick={() => handleResetSessions(true)}>
+                      Reset Upcoming Sessions
+                    </MenuItem>
+                    <MenuItem onClick={() => handleResetSessions(false)}>
+                      Reset All Sessions
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
               </Flex>
               <TabPanels>
                 <TabPanel padding={4}>{addRecurring}</TabPanel>
@@ -845,6 +888,9 @@ export const EditRecurringSessions = () => {
           onDeleteSessionModalOpen={onDeleteSessionModalOpen}
           setDeleteSessionDate={setDeleteSessionDate}
           setDeleteSessionId={setDeleteSessionId}
+          handleUndo={handleUndo}
+          isChanged={hasSessionChanges}
+          handleRestoreSession={handleRestoreSession}
         />
 
         <DeleteRowModal

@@ -1187,52 +1187,6 @@ export const Sessions = ({
                 gap="8px"
                 alignSelf="stretch"
               >
-                <Checkbox
-                  isChecked={
-                    filteredAndSortedSessions?.length > 0 &&
-                    filteredAndSortedSessions.every((s) =>
-                      selectedSessions.includes(s.id)
-                    )
-                  }
-                  isIndeterminate={
-                    selectedSessions.length > 0 &&
-                    !filteredAndSortedSessions?.every((s) =>
-                      selectedSessions.includes(s.id)
-                    )
-                  }
-                  onChange={() => {
-                    if (!isSelected) {
-                      // Enter selection mode and select all
-                      setIsSelected(true);
-                      setSelectedSessions(
-                        filteredAndSortedSessions?.map((s) => s.id) || []
-                      );
-                    } else if (selectedSessions.length === 0) {
-                      // Nothing selected — exit selection mode
-                      setIsSelected(false);
-                    } else {
-                      // Some or all selected — deselect all, stay in mode
-                      setSelectedSessions([]);
-                    }
-                  }}
-                  sx={{
-                    "& .chakra-checkbox__control": {
-                      width: "18px",
-                      height: "18px",
-                      _checked: {
-                        backgroundColor: "#90080F",
-                        borderColor: "#90080F",
-                      },
-                      _indeterminate: {
-                        backgroundColor: "#90080F",
-                        borderColor: "#90080F",
-                      },
-                    },
-                  }}
-                  ml="22px"
-                  mr="12px"
-                />
-
                 <SessionFilter
                   sessions={sessions}
                   setFilteredSessions={setFilteredSessions}
@@ -1355,7 +1309,42 @@ export const Sessions = ({
                   color="#D2D2D2"
                 >
                   <Tr>
-                    {isSelected && <Th />}
+                    <Th width="1%" px="16px">
+                      <Checkbox
+                        isChecked={
+                          filteredAndSortedSessions?.length > 0 &&
+                          filteredAndSortedSessions.every((s) =>
+                            selectedSessions.includes(s.id)
+                          )
+                        }
+                        isIndeterminate={
+                          selectedSessions.length > 0 &&
+                          !filteredAndSortedSessions?.every((s) =>
+                            selectedSessions.includes(s.id)
+                          )
+                        }
+                        onChange={() => {
+                          if (!isSelected) {
+                            setIsSelected(true);
+                            setSelectedSessions(
+                              filteredAndSortedSessions?.map((s) => s.id) || []
+                            );
+                          } else if (selectedSessions.length === 0) {
+                            setIsSelected(false);
+                          } else {
+                            setSelectedSessions([]);
+                          }
+                        }}
+                        sx={{
+                          "& .chakra-checkbox__control": {
+                            width: "18px",
+                            height: "18px",
+                            _checked: { backgroundColor: "#90080F", borderColor: "#90080F" },
+                            _indeterminate: { backgroundColor: "#90080F", borderColor: "#90080F" },
+                          },
+                        }}
+                      />
+                    </Th>
                     {!isArchived ? (
                       <Th>
                         <Text
@@ -1492,7 +1481,7 @@ export const Sessions = ({
                     currentPageSessions.map((session) => (
                       <Tr key={session.id}>
                         {isSelected && (
-                          <Td width="70px" mr="24px">
+                          <Td width="1%" px="17px">
                             <Checkbox
                               isChecked={selectedSessions.includes(session.id)}
                               onChange={() =>

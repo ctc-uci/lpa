@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 
-import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
   Card,
   CardBody,
+  Checkbox,
   Flex,
   Icon,
   IconButton,
@@ -57,8 +58,13 @@ export const PreviewSession = ({
   setIsChanged,
   setDeleteSessionDate,
   setDeleteSessionId,
+  handleUndo,
+  isChanged,
+  handleRestoreSession,
 }) => {
   const [sortedSessions, setSortedSessions] = useState([]);
+  const [isSelected, setIsSelected] = useState(false);
+  const [selectedSessions, setSelectedSessions] = useState([]);
 
   // pagination controls
   const itemsPerPage = 5;
@@ -80,9 +86,24 @@ export const PreviewSession = ({
     }
   };
 
+  const handleDeleteSelected = () => {
+    selectedSessions
+      .filter((id) => !sortedSessions.find((s) => s.id === id)?.isDeleted)
+      .forEach((id) => handleDeleteSession(id));
+    setSelectedSessions([]);
+    setIsSelected(false);
+    setIsChanged(true);
+  };
+
+  const handleArchiveSelected = () => {
+    selectedSessions.forEach((id) => handleArchiveSession(id));
+    setSelectedSessions([]);
+    setIsSelected(false);
+    setIsChanged(true);
+  };
+
   useEffect(() => {
     const sorted = [...allSessions]
-      .filter((session) => !session.isDeleted)
       .sort((a, b) => {
         const tA = parseSessionDate(a.date)?.getTime() ?? 0;
         const tB = parseSessionDate(b.date)?.getTime() ?? 0;
@@ -133,13 +154,56 @@ export const PreviewSession = ({
                 Preview
               </Text>
             </Flex>
-            <Button
-              backgroundColor="#4441C8"
-              onClick={onSaveSessionModalOpen}
-              // isDisabled={sortedSessions.length === 0}
-            >
-              <Text color="#FFFFFF">Save Changes</Text>
-            </Button>
+            <Flex gap="8px" alignItems="center">
+              {isSelected && selectedSessions.length > 0 && (
+                <Menu placement="bottom-end">
+                  <MenuButton
+                    as={Button}
+                    rightIcon={<ChevronDownIcon />}
+                    backgroundColor="#EDF2F7"
+                    color="#2D3748"
+                    _hover={{ bg: "#E2E8F0" }}
+                    _active={{ bg: "#E2E8F0" }}
+                  >
+                    Selected ({selectedSessions.length})
+                  </MenuButton>
+                  <MenuList minWidth="160px">
+                    <MenuItem
+                      onClick={handleArchiveSelected}
+                      display="flex"
+                      alignItems="center"
+                      gap="8px"
+                    >
+                      <Icon as={ReactivateIcon} boxSize="4" />
+                      <Text color="#2D3748" fontSize="14px">Archive</Text>
+                    </MenuItem>
+                    <MenuItem
+                      onClick={handleDeleteSelected}
+                      display="flex"
+                      alignItems="center"
+                      gap="8px"
+                    >
+                      <Icon as={DeleteIconRed} boxSize="4" />
+                      <Text color="#90080F" fontSize="14px">Delete</Text>
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              )}
+              {isChanged && (
+                <Button
+                  variant="outline"
+                  onClick={handleUndo}
+                >
+                  Undo Changes
+                </Button>
+              )}
+              <Button
+                backgroundColor="#4441C8"
+                onClick={onSaveSessionModalOpen}
+              >
+                <Text color="#FFFFFF">Save Changes</Text>
+              </Button>
+            </Flex>
           </Box>
 
           <TableContainer>
@@ -149,6 +213,36 @@ export const PreviewSession = ({
                 color="#D2D2D2"
               >
                 <Tr>
+                  <Th width="1%" paddingInlineStart="8px" paddingInlineEnd="4px">
+                    <Checkbox
+                      isChecked={
+                        sortedSessions.length > 0 &&
+                        sortedSessions.every((s) => selectedSessions.includes(s.id))
+                      }
+                      isIndeterminate={
+                        selectedSessions.length > 0 &&
+                        !sortedSessions.every((s) => selectedSessions.includes(s.id))
+                      }
+                      onChange={() => {
+                        if (!isSelected) {
+                          setIsSelected(true);
+                          setSelectedSessions(sortedSessions.map((s) => s.id));
+                        } else if (selectedSessions.length === 0) {
+                          setIsSelected(false);
+                        } else {
+                          setSelectedSessions([]);
+                        }
+                      }}
+                      sx={{
+                        "& .chakra-checkbox__control": {
+                          width: "18px",
+                          height: "18px",
+                          _checked: { backgroundColor: "#90080F", borderColor: "#90080F" },
+                          _indeterminate: { backgroundColor: "#90080F", borderColor: "#90080F" },
+                        },
+                      }}
+                    />
+                  </Th>
                   <Th>
                     <Box
                       display="flex"
@@ -224,17 +318,38 @@ export const PreviewSession = ({
               </Thead>
               <Tbody>
                 {currentPageSessions
-                  .filter((session) => !session.isDeleted)
                   .map((session) => (
                     <Tr
                       key={session.id + session.date}
                       textColor={
-                        session.archived === true ? "#A0AEC0" : "#2D3748"
+                        session.isDeleted ? "#90080F" : session.archived === true ? "#A0AEC0" : "#2D3748"
                       }
                       backgroundColor={
-                        session.isNew || session.isUpdated ? "#F8F8FF" : "white"
+                        session.isDeleted ? "#FFF5F5" : session.isNew || session.isUpdated ? "#F8F8FF" : "white"
                       }
+                      height="60.5px"
                     >
+                      <Td width="1%" paddingInlineStart="8px" paddingInlineEnd="4px">
+                        {isSelected && (
+                          <Checkbox
+                            isChecked={selectedSessions.includes(session.id)}
+                            onChange={() => {
+                              setSelectedSessions((prev) =>
+                                prev.includes(session.id)
+                                  ? prev.filter((id) => id !== session.id)
+                                  : [...prev, session.id]
+                              );
+                            }}
+                            sx={{
+                              "& .chakra-checkbox__control": {
+                                width: "18px",
+                                height: "18px",
+                                _checked: { backgroundColor: "#90080F", borderColor: "#90080F" },
+                              },
+                            }}
+                          />
+                        )}
+                      </Td>
                       <Td>
                         <Box
                           display="flex"
@@ -281,7 +396,7 @@ export const PreviewSession = ({
                         </Box>
                       </Td>
                       <Td>
-                        <Menu>
+                        {!isSelected && <Menu>
                           <MenuButton
                             as={IconButton}
                             boxSize="7"
@@ -298,63 +413,93 @@ export const PreviewSession = ({
                             padding="4px"
                             minWidth="139px"
                           >
-                            <MenuItem
-                              onClick={() => {
-                                handleArchiveSession(session.id);
-                                setIsChanged(true);
-                              }}
-                              display="flex"
-                              padding="6px 8px"
-                              alignItems="center"
-                              gap="8px"
-                              width="131px"
-                              height="32px"
-                              variant="ghost"
-                            >
-                              <Icon
-                                as={ReactivateIcon}
-                                boxSize="4"
-                              />
-                              <Text
-                                color="#2D3748"
-                                fontSize="14px"
+                            {!session.isDeleted && (
+                              <MenuItem
+                                onClick={() => {
+                                  handleArchiveSession(session.id);
+                                  setIsChanged(true);
+                                }}
+                                display="flex"
+                                padding="6px 8px"
+                                alignItems="center"
+                                gap="8px"
+                                width="131px"
+                                height="32px"
+                                variant="ghost"
                               >
-                                {session.archived ? "Unarchive" : "Archive"}
-                              </Text>
-                            </MenuItem>
+                                <Icon
+                                  as={ReactivateIcon}
+                                  boxSize="4"
+                                />
+                                <Text
+                                  color="#2D3748"
+                                  fontSize="14px"
+                                >
+                                  {session.archived ? "Unarchive" : "Archive"}
+                                </Text>
+                              </MenuItem>
+                            )}
 
-                            <MenuItem
-                              onClick={() => {
-                                setDeleteSessionDate(
-                                  formatSessionDateWithWeekday(session.date).split(" ")[1]
-                                );
-                                setDeleteSessionId(session.id);
-                                onDeleteSessionModalOpen();
-                                setIsChanged(true);
-                              }}
-                              display="flex"
-                              padding="6px 8px"
-                              alignItems="center"
-                              gap="8px"
-                              width="131px"
-                              height="32px"
-                              variant="ghost"
-                            >
-                              <Icon
-                                as={DeleteIconRed}
-                                boxSize="4"
-                              />
-                              <Text
-                                color="#90080F"
-                                fontSize="14px"
+                            {session.isDeleted ? (
+                              <MenuItem
+                                onClick={() => {
+                                  handleRestoreSession(session.id);
+                                  setIsChanged(true);
+                                }}
+                                display="flex"
+                                padding="6px 8px"
+                                alignItems="center"
+                                gap="8px"
+                                width="131px"
+                                height="32px"
+                                variant="ghost"
                               >
-                                Delete
-                              </Text>
-                            </MenuItem>
+                                <Icon
+                                  as={ReactivateIcon}
+                                  boxSize="4"
+                                />
+                                <Text
+                                  color="#2D3748"
+                                  fontSize="14px"
+                                >
+                                  Undo Delete
+                                </Text>
+                              </MenuItem>
+                            ) : (
+                              <MenuItem
+                                onClick={() => {
+                                  setDeleteSessionDate(
+                                    formatSessionDateWithWeekday(session.date).split(" ")[1]
+                                  );
+                                  setDeleteSessionId(session.id);
+                                  onDeleteSessionModalOpen();
+                                  setIsChanged(true);
+                                }}
+                                display="flex"
+                                padding="6px 8px"
+                                alignItems="center"
+                                gap="8px"
+                                width="131px"
+                                height="32px"
+                                variant="ghost"
+                              >
+                                <Icon
+                                  as={DeleteIconRed}
+                                  boxSize="4"
+                                />
+                                <Text
+                                  color="#90080F"
+                                  fontSize="14px"
+                                >
+                                  Delete
+                                </Text>
+                              </MenuItem>
+                            )}
                           </MenuList>
-                        </Menu>
+                        </Menu>}
                       </Td>
                     </Tr>
+
                   ))}
               </Tbody>
             </Table>
