@@ -983,8 +983,6 @@ export const Sessions = ({
   const currentPageSessions =
     filteredAndSortedSessions?.slice(startIndex, endIndex) || [];
 
-  const [selectMenuOpen, setSelectMenuOpen] = useState(false);
-  const [selectOption, setSelectOption] = useState("Select");
   const [selectedSessions, setSelectedSessions] = useState([]);
   const [selectedSingleSession, setSelectedSingleSession] = useState(null);
 
@@ -996,28 +994,6 @@ export const Sessions = ({
         return [...prev, sessionId];
       }
     });
-  };
-
-  const handleSelectOption = (option) => {
-    const originalOption = option;
-    setSelectOption(option);
-    setSelectMenuOpen(false);
-
-    if (option === "Select all") {
-      setSelectedSessions(currentPageSessions.map((session) => session.id));
-    } else if (originalOption === "Deselect") {
-      // Deselect all sessions
-      setSelectedSessions([]);
-      setSelectOption("Select");
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectedSessions.length === currentPageSessions.length) {
-      setSelectedSessions([]);
-    } else {
-      setSelectedSessions(currentPageSessions.map((session) => session.id));
-    }
   };
 
   const goToNextPage = () => {
@@ -1201,166 +1177,53 @@ export const Sessions = ({
               flex="1 0 0"
             >
               <Flex
-                alignItems="flex-start"
+                alignItems="center"
                 gap="8px"
                 alignSelf="stretch"
               >
-                <Box position="relative">
-                  <Button
-                    height="40px"
-                    width="85px"
-                    padding="0px 16px"
-                    justifyContent="center"
-                    alignItems="center"
-                    gap="4px"
-                    flex="1 0 0"
-                    borderRadius="6px"
-                    backgroundColor="var(--Secondary-2-Default, #EDF2F7)"
-                    color={isSelected ? "#4441C8" : "#000000"}
-                    fontFamily="Inter"
-                    fontSize="14px"
-                    fontStyle="normal"
-                    fontWeight="700"
-                    lineHeight="normal"
-                    letterSpacing="0.07px"
-                    _hover={{
-                      backgroundColor: "#E2E8F0", // <-- Add your desired hover color here
-                    }}
-                    onClick={() => {
-                      setSelectMenuOpen(!selectMenuOpen);
+                <Checkbox
+                  isChecked={
+                    filteredAndSortedSessions?.length > 0 &&
+                    filteredAndSortedSessions.every((s) =>
+                      selectedSessions.includes(s.id)
+                    )
+                  }
+                  isIndeterminate={
+                    selectedSessions.length > 0 &&
+                    !filteredAndSortedSessions?.every((s) =>
+                      selectedSessions.includes(s.id)
+                    )
+                  }
+                  onChange={() => {
+                    if (!isSelected) {
+                      // Enter selection mode and select all
                       setIsSelected(true);
-                    }}
-                    data-select-menu="true"
-                  >
-                    {selectOption}
-                  </Button>
-                  {selectMenuOpen && (
-                    <Box
-                      position="absolute"
-                      top="45px"
-                      left="0"
-                      display="flex"
-                      width="85px"
-                      padding="4px"
-                      flexDirection="column"
-                      alignItems="flex-start"
-                      gap="10px"
-                      borderRadius="4px"
-                      border="1px solid var(--Secondary-3, #E2E8F0)"
-                      background="#FFF"
-                      boxShadow="0px 1px 2px 0px rgba(0, 0, 0, 0.05)"
-                      zIndex="10"
-                    >
-                      <Stack
-                        spacing="0"
-                        width="100%"
-                      >
-                        <Button
-                          justifyContent="flex-start"
-                          fontWeight="normal"
-                          bg="white"
-                          _hover={{ bg: "#f2f6fb" }}
-                          onClick={() => handleSelectOption("Select")}
-                          borderRadius="2px"
-                          height="30px"
-                          width="100%"
-                          padding="4px 8px"
-                          fontSize="14px"
-                        >
-                          Select
-                        </Button>
-                        <Button
-                          justifyContent="flex-start"
-                          fontWeight="normal"
-                          bg="white"
-                          _hover={{ bg: "#f2f6fb" }}
-                          onClick={() => handleSelectOption("Select all")}
-                          borderRadius="2px"
-                          height="30px"
-                          width="100%"
-                          padding="4px 8px"
-                          fontSize="14px"
-                          letterSpacing={
-                            selectOption === "Select all" ? "0.07px" : "normal"
-                          }
-                        >
-                          Select all
-                        </Button>
-                        <Button
-                          justifyContent="flex-start"
-                          fontWeight="normal"
-                          bg="white"
-                          _hover={{ bg: "#f2f6fb" }}
-                          onClick={() => {
-                            setSelectOption(false);
-                            handleSelectOption("Deselect");
-                            setIsSelected(false);
-                          }}
-                          borderRadius="2px"
-                          height="30px"
-                          width="100%"
-                          padding="4px 8px"
-                          fontSize="14px"
-                          color={
-                            selectOption === "Deselect"
-                              ? "var(--Primary-5-Default, #4441C8)"
-                              : "inherit"
-                          }
-                          letterSpacing={
-                            selectOption === "Deselect" ? "0.07px" : "normal"
-                          }
-                        >
-                          Deselect
-                        </Button>
-                      </Stack>
-                    </Box>
-                  )}
-                </Box>
-
-                {/* Cancel button - only shows when isSelected is true */}
-                {isSelected && (
-                  <button
-                    style={{
-                      display: "flex",
-                      height: "40px",
-                      padding: "0px 16px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "4px",
-                      borderRadius: "6px",
-                      background: "var(--destructive, #90080F)",
-                      color: "white",
-                      fontFamily: "Inter",
-                      fontSize: "14px",
-                      fontStyle: "normal",
-                      fontWeight: "700",
-                      lineHeight: "normal",
-                      letterSpacing: "0.07px",
-
-                      border: "none",
-                      cursor:
-                        selectedSessions.length > 0 ? "pointer" : "not-allowed",
-                      opacity: selectedSessions.length > 0 ? 1 : 0.6,
-                    }}
-                    onClick={() => {
-                      if (selectedSessions.length > 0) {
-                        openCancelModal();
-                      }
-                    }}
-                    disabled={selectedSessions.length === 0}
-                  >
-                    {/* <Box
-                      bgColor={"white"}
-                      borderRadius={"100%"}
-                      padding={0}
-                      margin={0}
-                    > */}
-                    <SessionsCancelIcon /> {/* </Box> */}
-                    {selectOption === "Select all"
-                      ? "All"
-                      : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
-                  </button>
-                )}
+                      setSelectedSessions(
+                        filteredAndSortedSessions?.map((s) => s.id) || []
+                      );
+                    } else if (selectedSessions.length === 0) {
+                      // Nothing selected — exit selection mode
+                      setIsSelected(false);
+                    } else {
+                      // Some or all selected — deselect all, stay in mode
+                      setSelectedSessions([]);
+                    }
+                  }}
+                  sx={{
+                    "& .chakra-checkbox__control": {
+                      width: "18px",
+                      height: "18px",
+                      _checked: {
+                        backgroundColor: "#90080F",
+                        borderColor: "#90080F",
+                      },
+                      _indeterminate: {
+                        backgroundColor: "#90080F",
+                        borderColor: "#90080F",
+                      },
+                    },
+                  }}
+                />
 
                 <SessionFilter
                   sessions={sessions}
@@ -1412,7 +1275,44 @@ export const Sessions = ({
                 </Button>
               </Flex>
 
-              <Flex alignItems="flex-end">
+              <Flex alignItems="flex-end" gap="8px">
+                {/* Cancel button - only shows when isSelected is true */}
+                {isSelected && (
+                  <button
+                    style={{
+                      display: "flex",
+                      height: "40px",
+                      padding: "0px 16px",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "4px",
+                      borderRadius: "6px",
+                      background: "var(--destructive, #90080F)",
+                      color: "white",
+                      fontFamily: "Inter",
+                      fontSize: "14px",
+                      fontStyle: "normal",
+                      fontWeight: "700",
+                      lineHeight: "normal",
+                      letterSpacing: "0.07px",
+                      border: "none",
+                      cursor:
+                        selectedSessions.length > 0 ? "pointer" : "not-allowed",
+                      opacity: selectedSessions.length > 0 ? 1 : 0.6,
+                    }}
+                    onClick={() => {
+                      if (selectedSessions.length > 0) {
+                        openCancelModal();
+                      }
+                    }}
+                    disabled={selectedSessions.length === 0}
+                  >
+                    <SessionsCancelIcon />
+                    {selectedSessions.length === filteredAndSortedSessions?.length && filteredAndSortedSessions?.length > 0
+                      ? "Cancel All"
+                      : `Cancel${selectedSessions.length > 0 ? ` ${selectedSessions.length}` : ""}`}
+                  </button>
+                )}
                 <Button
                   height="40px"
                   width={"156px"}
