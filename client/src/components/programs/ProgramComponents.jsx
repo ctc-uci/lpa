@@ -723,8 +723,8 @@ export const ProgramSummary = ({
                               >
                                 {roomData.name}
                               </Text>
-                              <DollarBill />
-                              <Text
+                              {/* <DollarBill /> */}
+                              {/* <Text
                                 color="#2D3748"
                                 fontWeight="500"
                                 fontSize={"14px"}
@@ -732,7 +732,7 @@ export const ProgramSummary = ({
                               >
                                 {roomData.rate ? `$${roomData.rate}` : "-.--"}
                               </Text>
-                              <Text color="gray.600">/ hour</Text>
+                              <Text color="gray.600">/ hour</Text> */}
                             </Flex>
                           )
                         )
