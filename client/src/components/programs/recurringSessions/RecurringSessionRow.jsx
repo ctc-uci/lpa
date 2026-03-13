@@ -29,6 +29,7 @@ export const RecurringSessionRow = ({
   handleChangeSessionField,
   onDeleteRowModalOpen,
   setRowToDelete,
+  handleDeleteRow,
   isRecurring,
   recurringFrequency,
   handleAddException,
@@ -66,11 +67,13 @@ export const RecurringSessionRow = ({
           color="#2D3748"
           cursor="pointer"
           onClick={() => {
-            onDeleteRowModalOpen();
-            setRowToDelete({
-              type: isRecurring ? "recurring" : "single",
-              index,
-            });
+            const isEmpty = !session.weekday && !session.startTime && !session.endTime && !session.roomId;
+            if (isEmpty) {
+              handleDeleteRow("recurring", index);
+            } else {
+              onDeleteRowModalOpen();
+              setRowToDelete({ type: "recurring", index });
+            }
           }}
         />
       </Flex>

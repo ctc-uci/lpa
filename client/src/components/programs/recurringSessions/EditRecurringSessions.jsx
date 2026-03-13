@@ -44,6 +44,17 @@ import { PreviewSession } from "./PreviewSession";
 import { RecurringSessionRow } from "./RecurringSessionRow";
 import { generateRecurringSessions, createNewSessions, updateSessions, deleteSessions } from "../utils";
 
+const hasRequiredFields = (session) => {
+  const { frequency, weekday, dayOfMonth, weekDayOccurrence, dayOfWeek, startTime, endTime, roomId } = session;
+  if (!startTime || !endTime || !roomId) return false;
+  switch (frequency) {
+    case "week": return !!weekday;
+    case "monthDate": return !!dayOfMonth;
+    case "monthWeekday": return !!weekDayOccurrence && !!dayOfWeek;
+    default: return true;
+  }
+};
+
 const isNthWeekdayOfMonth = (date, nth, weekday) => {
   const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const targetDay = weekdays.indexOf(weekday.toLowerCase());
@@ -182,8 +193,7 @@ export const EditRecurringSessions = () => {
             (s) => s.recurringId !== recurringSession.id
           );
 
-          const { weekday, startTime, endTime, roomId } = recurringSession;
-          if (startDate && endDate && weekday && startTime && endTime && roomId) {
+          if (startDate && endDate && hasRequiredFields(recurringSession)) {
             const generatedSessions = generateRecurringSessions(
               { ...recurringSession },
               startDate,
@@ -311,10 +321,9 @@ export const EditRecurringSessions = () => {
         i === rowIndex ? updater(session) : session
       );
       const recurringSession = updatedRecurring[rowIndex];
-      const { weekday, startTime, endTime, roomId } = recurringSession;
       setAllSessions((allPrev) => {
         let updatedSessions = allPrev.filter((s) => s.recurringId !== recurringSession.id);
-        if (startDate && endDate && weekday && startTime && endTime && roomId) {
+        if (startDate && endDate && hasRequiredFields(recurringSession)) {
           const generated = generateRecurringSessions({ ...recurringSession }, startDate, endDate);
           const filtered = generated.filter((s) => {
             const d = new Date(s.date);
@@ -531,7 +540,7 @@ export const EditRecurringSessions = () => {
 
   useEffect(() => {
     newSessions.recurring.forEach((session, index) => {
-      handleChangeSessionField("recurring", index, "weekday", session.weekday);
+      handleChangeSessionField("recurring", index, "startTime", session.startTime);
     });
   }, [startDate, endDate]);
 
@@ -642,6 +651,7 @@ export const EditRecurringSessions = () => {
           handleChangeSessionField={handleChangeSessionField}
           onDeleteRowModalOpen={onDeleteRowModalOpen}
           setRowToDelete={setRowToDelete}
+          handleDeleteRow={handleDeleteRow}
           isRecurring={isRecurring}
           recurringFrequency={recurringFrequency}
           handleAddException={handleAddException}
@@ -754,11 +764,13 @@ export const EditRecurringSessions = () => {
               color="#2D3748"
               cursor="pointer"
               onClick={() => {
-                onDeleteRowModalOpen();
-                setRowToDelete({
-                  type: isRecurring ? "recurring" : "single",
-                  index,
-                });
+                const isEmpty = !session.date && !session.startTime && !session.endTime && !session.roomId;
+                if (isEmpty) {
+                  handleDeleteRow("single", index);
+                } else {
+                  onDeleteRowModalOpen();
+                  setRowToDelete({ type: "single", index });
+                }
               }}
             />
           </Flex>
