@@ -1223,6 +1223,8 @@ export const Sessions = ({
                       },
                     },
                   }}
+                  ml="22px"
+                  mr="12px"
                 />
 
                 <SessionFilter
@@ -1484,7 +1486,7 @@ export const Sessions = ({
                     currentPageSessions.map((session) => (
                       <Tr key={session.id}>
                         {isSelected && (
-                          <Td width="50px">
+                          <Td width="70px" mr="24px">
                             <Checkbox
                               isChecked={selectedSessions.includes(session.id)}
                               onChange={() =>
