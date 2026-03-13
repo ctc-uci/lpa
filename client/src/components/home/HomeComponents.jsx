@@ -595,7 +595,7 @@ export const ProgramsTable = () => {
           width="100%"
           padding="0"
           overflowY="auto"
-          maxHeight="60vh"
+          maxHeight="75vh"
         >
           <Table
             variant="simple"

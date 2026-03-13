@@ -1306,7 +1306,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
         className="invoices-table__container"
         width="100%"
       >
-        <TableContainer padding="0" overflowY="auto" maxHeight="60vh" sx={{ "& thead th": { position: "sticky", top: 0, zIndex: 1, bg: "white" } }}>
+        <TableContainer padding="0" overflowY="auto" maxHeight="75vh" sx={{ "& thead th": { position: "sticky", top: 0, zIndex: 1, bg: "white" } }}>
           <Table
             className="invoices-table__table"
             width="100%"

@@ -492,7 +492,7 @@ export const ArchivedPrograms = () => {
                 searchQuery={searchQuery}
               />
             </Flex>
-            <TableContainer>
+            <TableContainer overflowY="auto" maxHeight="75vh" sx={{ "& thead th": { position: "sticky", top: 0, zIndex: 1, bg: "white" } }}>
               <Table
                 variant="unstyled"
                 zIndex={3}
