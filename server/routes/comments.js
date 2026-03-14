@@ -499,9 +499,6 @@ commentsRouter.post("/", async (req, res) => {
     } = req.body;
 
     const currentDatetime = datetime || new Date().toISOString();
-    console.log(
-      `Processing comment for invoice_id: ${invoice_id}, adjustment_type: ${adjustment_type}`
-    );
 
     // Insert new comment
     const inserted_row = await db.query(
