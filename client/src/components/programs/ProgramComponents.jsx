@@ -1479,9 +1479,9 @@ export const Sessions = ({
                 <Tbody>
                   {currentPageSessions.length > 0 ? (
                     currentPageSessions.map((session) => (
-                      <Tr key={session.id}>
-                        {isSelected && (
-                          <Td width="1%" px="17px">
+                      <Tr key={session.id} height="62.27px">
+                        <Td width="1%" px="17px">
+                          {isSelected && (
                             <Checkbox
                               isChecked={selectedSessions.includes(session.id)}
                               onChange={() =>
@@ -1504,8 +1504,8 @@ export const Sessions = ({
                                   },
                               }}
                             />
-                          </Td>
-                        )}
+                          )}
+                        </Td>
 
                         {!isArchived ? (
                           <Td>
@@ -1641,7 +1641,7 @@ export const Sessions = ({
                           </Box>
                         </Td>
                         <Td>
-                          <Menu>
+                          {!isSelected && <Menu>
                             <MenuButton
                               as={IconButton}
                               height={"30px"}
@@ -1713,7 +1713,7 @@ export const Sessions = ({
                                 </Text>
                               </MenuItem>
                             </MenuList>
-                          </Menu>
+                          </Menu>}
                         </Td>
                       </Tr>
                     ))

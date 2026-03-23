@@ -190,23 +190,30 @@ const InvoiceStats = ({
     });
   };
 
+  const [isLoadingPrevious, setIsLoadingPrevious] = useState(false);
+
   const navigateToPreviousInvoice = async () => {
-    const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
-    const eventId = currentInvoiceResponse.data[0].eventId;
-    const previousInvoices = await backend.get(`/invoices/previousInvoices/${id}?event_id=${eventId}`);
-    if (previousInvoices.data.length === 0) {
-      toast({
-        title: "No previous invoices",
-        description: "There are no previous invoices for this event",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom-right",
-      });
-      return;
+    setIsLoadingPrevious(true);
+    try {
+      const currentInvoiceResponse = await backend.get(`/invoices/${id}`);
+      const eventId = currentInvoiceResponse.data[0].eventId;
+      const previousInvoices = await backend.get(`/invoices/previousInvoices/${id}?event_id=${eventId}`);
+      if (previousInvoices.data.length === 0) {
+        toast({
+          title: "No previous invoices",
+          description: "There are no previous invoices for this event",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+        return;
+      }
+      const previousInvoiceId = previousInvoices.data[previousInvoices.data.length - 1].id;
+      navigate(`/invoices/${previousInvoiceId}`);
+    } finally {
+      setIsLoadingPrevious(false);
     }
-    const previousInvoiceId = previousInvoices.data[0].id;
-    navigate(`/invoices/${previousInvoiceId}`);
   };
   
 
@@ -309,6 +316,8 @@ const InvoiceStats = ({
               fontSize={"14px"}
               fontFamily={"Inter"}
               onClick={navigateToPreviousInvoice}
+              isLoading={isLoadingPrevious}
+              loadingText="Loading..."
             >
               View Previous Invoice
             </Button>

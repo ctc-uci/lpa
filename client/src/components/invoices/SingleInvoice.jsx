@@ -81,6 +81,9 @@ export const SingleInvoice = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
+      setSessions([]);
+      setSummary([]);
       try {
         // Get current invoice
         const currentInvoiceResponse = await backend.get(`/invoices/${id}`);

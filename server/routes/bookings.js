@@ -11,11 +11,10 @@ const ensureInvoiceExists = async (bookingDate, eventId) => {
   // Safe to call every time you create or modify a booking to ensure there is always an invoice
   //   for the month of the booking
 
-  // NOTE: Invoices will not be created for past months
   const invoice = await db.query(`
     -- Create a temp table with the start and end date of the month of the booking
     with date_calculations as (
-      select 
+      select
         date_trunc('month', $1::date) as start_date,
         (date_trunc('month', $1::date) + INTERVAL '1 month - 1 day')::date as end_date
     )
@@ -26,13 +25,11 @@ const ensureInvoiceExists = async (bookingDate, eventId) => {
     from date_calculations
     where not exists (
       -- Check if the invoice already exists
-      select 1 from invoices 
+      select 1 from invoices
         where event_id = $2
         AND start_date = (select start_date from date_calculations)
         AND end_date = (select end_date from date_calculations)
-    )
-    -- Dont create invoices for past months
-    AND (select start_date from date_calculations) >= date_trunc('month', CURRENT_DATE);
+    );
     `, [bookingDate, eventId]);
   if (invoice.length === 0) {
     return false;
