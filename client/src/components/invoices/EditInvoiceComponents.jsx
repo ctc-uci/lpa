@@ -67,6 +67,7 @@ import {
 import { useSessionStore } from "../../stores/useSessionStore";
 import { useSummaryStore } from "../../stores/useSummaryStore";
 import { useDeletedIdsStore } from "../../stores/useDeletedIdsStore";
+import { HourglassIcon } from "../../assets/EditInvoiceIcons";
 
 const getGeneratedDate = (comments = [], invoice = null, includeDay = true) => {
   if (comments.length > 0) {
@@ -706,6 +707,23 @@ const StatementComments = ({
                     whiteSpace="nowrap"
                   >
                     <Flex align="center">
+                      <HourglassIcon
+                        width={compactView ? "8" : "18"}
+                        height={compactView ? "10" : "18"}
+                      />
+                      <Text
+                        marginLeft="4px"
+                        color="#718096"
+                      >
+                        Hours
+                      </Text>
+                    </Flex>
+                  </Th>
+                  <Th
+                    fontSize={compactView ? "6" : "12px"}
+                    whiteSpace="nowrap"
+                  >
+                    <Flex align="center">
                       <EditDocumentIcon
                         width={compactView ? "8" : "16"}
                         height={compactView ? "10" : undefined}
@@ -846,6 +864,24 @@ const StatementComments = ({
                                 <Text>-</Text>
                                 <Text>{formatTimeString(session.endTime)}</Text>
                               </Flex>
+                            </Td>
+
+                            {/* Hours */}
+                            <Td
+                              py={compactView ? 0 : 4}
+                              fontSize={compactView ? "6.38" : "sm"}
+                              borderBottom={
+                                session.comments.length > 0 ? "none" : undefined
+                              }
+                              whiteSpace="nowrap"
+                            >
+                              {(() => {
+                                const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+                                const start = toMin(session.startTime.substring(0, 5));
+                                const end = toMin(session.endTime.substring(0, 5));
+                                const hrs = ((end <= start ? end + 24 * 60 : end) - start) / 60;
+                                return `${hrs % 1 === 0 ? hrs : hrs.toFixed(2)} hr${hrs !== 1 ? "s" : ""}`;
+                              })()}
                             </Td>
 
                             <Td

@@ -144,6 +144,23 @@ export const CancelIcon = ({ width = "16", height = "16" }) => {
   );
 };
 
+export const HourglassIcon = ({ width = "16", height = "16" }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      {/* Solid hourglass silhouette */}
+      <path d="M5 2h14v2l-5.5 8L19 20v2H5v-2l5.5-8L5 4V2z" fill="#718096"/>
+      {/* White accent in upper half to show half-empty */}
+      <path d="M9 5l3 4.5L15 5H9z" fill="white"/>
+    </svg>
+  );
+};
+
 export const BookWithBookmarkIcon = ({ width = "16", height = "16" }) => {
   return (
     <svg
