@@ -695,7 +695,7 @@ const InvoiceTable = ({ sessions, summary }) => {
                       session.endTime,
                       calculateSummaryTotal(session?.rate, summary?.adjustmentValues),
                       session.adjustmentValues
-                    )}/hr
+                    )}
                   </Text>
                 </View>
               </View>
