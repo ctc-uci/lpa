@@ -552,6 +552,25 @@ const InvoiceTable = ({ sessions, summary }) => {
             >
               <Svg
                 xmlns="http://www.w3.org/2000/svg"
+                width="10"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <Path d="M5 2h14v2l-5.5 8L19 20v2H5v-2l5.5-8L5 4V2z" fill="#718096"/>
+                <Path d="M9 5l3 4.5L15 5H9z" fill="white"/>
+              </Svg>
+              <Text style={{ fontSize: 7, fontWeight: 600, color: "#718096" }}>
+                Hours
+              </Text>
+            </View>
+          </View>
+          <View style={tableStyles.tableCol}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+            >
+              <Svg
+                xmlns="http://www.w3.org/2000/svg"
                 width="12"
                 height="12"
                 viewBox="0 0 16 20"
@@ -645,6 +664,17 @@ const InvoiceTable = ({ sessions, summary }) => {
                   <Text style={{ fontSize: 7 }}>
                     {formatTimeString(session.startTime)} -{" "}
                     {formatTimeString(session.endTime)}
+                  </Text>
+                </View>
+                <View style={{ ...tableStyles.tableCol }}>
+                  <Text style={{ fontSize: 7 }}>
+                    {(() => {
+                      const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+                      const start = toMin(session.startTime.substring(0, 5));
+                      const end = toMin(session.endTime.substring(0, 5));
+                      const hrs = ((end <= start ? end + 24 * 60 : end) - start) / 60;
+                      return `${hrs % 1 === 0 ? hrs : hrs.toFixed(2)} hr${hrs !== 1 ? "s" : ""}`;
+                    })()}
                   </Text>
                 </View>
                 <View
