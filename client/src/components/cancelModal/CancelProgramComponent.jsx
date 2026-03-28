@@ -75,7 +75,7 @@ export const CancelProgram = ({
 
   const handleProgramArchive = useCallback(async () => {
     try {
-      await archiveProgram(backend, id, cancelReason);
+      await archiveProgram(backend, id);
       if (setPrograms) {
         setPrograms((prev) => prev.filter((p) => p.id !== id));
       }
@@ -220,16 +220,7 @@ export const CancelProgram = ({
               <Text>
                 {selectedAction === "Archive" ? (
                   <>
-                    {type.toLowerCase() === "program" ? (
-                      <>
-                        The total costs for all sessions within 2 weeks will be added as a fee to the current invoice. This invoice will not be shown until the program is unarchived.
-                      </>
-                    ) : (
-                      <>
-                        The cancellation fee deadline for this {type.toLowerCase()} is
-                        Thu. 1/2/2025.
-                      </>
-                    )}
+                    The program and all its sessions will be archived. No fees will be charged.
                   </>
                 ) : (
                   <>
@@ -238,27 +229,6 @@ export const CancelProgram = ({
                 )}
               </Text>
             </Flex>
-          </Box>
-          <Box mt={4}>
-            {selectedAction === "Archive" && (
-              <>
-                <Text
-                  fontWeight="medium"
-                  className="cancelModalCancelReason"
-                >
-                  Reason for Cancellation:
-                </Text>
-                <Textarea
-                  bg="transparent"
-                  size="md"
-                  borderRadius="md"
-                  onChange={(e) => {
-                    setCancelReason(e.target.value);
-                    // console.log(cancelReason);
-                    }}
-                />
-              </>
-            )}
           </Box>
           <Box
             mt={4}

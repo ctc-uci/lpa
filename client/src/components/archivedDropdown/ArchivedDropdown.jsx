@@ -66,8 +66,6 @@ export const ArchivedDropdown = ({
       // Create a new program
       const newEventData = { ...originalEvent.data[0] };
       delete newEventData.id; // Remove the original ID
-      newEventData.name = `${originalEvent.data[0].name}`;
-      newEventData.description = `${originalEvent.data[0].description}`;
       newEventData.archived = false; // Ensure the new event is not archived
       const newEvent = await backend.post("/events", newEventData);
       // console.log("New event created:", newEvent.data.id);

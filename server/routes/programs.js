@@ -1,9 +1,7 @@
 import express, { Router } from "express";
-import axios from "axios";
 
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
-import { cancelProgramFeeCalculation } from "./utils/feeCalculation";
 const programsRouter = Router();
 programsRouter.use(express.json());
 
@@ -135,62 +133,10 @@ programsRouter.delete("/:id", async (req, res) => {
 });
 
 programsRouter.post("/archive/:eventId", async (req, res) => {
-  // Archives a program, all of its sessions, and adds a fee to the current invoice
+  // Archives a program and all of its sessions
 
   try {
     const { eventId } = req.params;
-    const { reason, firebaseUid } = req.body;
-
-    // if (reason === null || reason === undefined) {
-    //   reason = "";
-    // }
-
-    // Calculate the total cost of the program
-    const totalCost = await cancelProgramFeeCalculation(db, eventId);
-
-    // Get current invoice
-    const invoice = await db.query(`
-      SELECT id FROM invoices
-      WHERE event_id = $1
-      ORDER BY start_date DESC
-      LIMIT 1
-      `, [eventId]);
-
-    const invoiceId = invoice[0].id;
-    if (invoiceId === undefined) {
-      res.status(500).json({result: "error while finding invoice"});
-    }
-
-    // Get the user id from the firebase uid
-    const user = await db.query(`
-      SELECT id FROM users
-      WHERE firebase_uid = $1
-      `, [firebaseUid]);
-    const userId = user[0].id;
-    if (userId === undefined) {
-      res.status(500).json({result: "error while finding user"});
-    }
-
-    // THE FOLLOWING IS NOT A GOOD WAY TO DO THIS.
-    // I will fix this later if there is time...
-
-    // Make HTTP request to comments endpoint
-    // This handles updating invoice status to paid or partial
-    if (totalCost > 0 || reason !== "") {
-      const commentResponse = await axios.post(`${req.protocol}://${req.get('host')}/comments`, {
-        user_id: userId,
-        invoice_id: invoiceId,
-        datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        comment: reason,
-        adjustment_type: "total",
-        adjustment_value: totalCost
-      });
-    
-      if (commentResponse.status !== 200) {
-        console.log(commentResponse.data, commentResponse.status);
-        return res.status(500).json({result: "error while creating comment"});
-      }
-    }
 
     // Archive the program
     const program = await db.query(`
@@ -201,7 +147,7 @@ programsRouter.post("/archive/:eventId", async (req, res) => {
       RETURNING *;
       `, [eventId]);
     if (program.length === 0) {
-      res.status(500).json({result: "error while archiving program"});
+      return res.status(500).json({result: "error while archiving program"});
     }
 
     // Archive the bookings

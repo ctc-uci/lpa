@@ -1,27 +1,15 @@
 import { getCurrentUser } from "./auth/firebase";
 import { batchDeleteBookings, batchUpdateBookings } from "./calendar";
 
-export const archiveProgram = async (backend, programId, cancelReason) => {
-  // Get the current user
-  const currentUser = await getCurrentUser();
-  const firebaseUid = currentUser.uid;
-
-  if (!firebaseUid) {
-    throw new Error("No logged in user");
-  }
-
+export const archiveProgram = async (backend, programId) => {
   // Get all bookings
   const bookings = await backend.get(`/bookings/event/${programId}`);
   const event = await backend.get(`/events/${programId}`);
   const eventName = event.data[0].name;
   const eventDescription = event.data[0].description;
 
-  // Archive the program
-  //   This also adds a fee to the current invoice
-  const result = await backend.post(`/programs/archive/${programId}`, {
-    reason: cancelReason,
-    firebaseUid: firebaseUid
-  });
+  // Archive the program and all its sessions
+  const result = await backend.post(`/programs/archive/${programId}`);
 
   if (result.status !== 200) {
     throw new Error("Failed to archive program");
