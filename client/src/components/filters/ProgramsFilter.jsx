@@ -258,7 +258,7 @@ export const ProgramFilter = ({ programs, setFilteredPrograms }) => {
         />
         <ClientsFilter
           clientsList={clients}
-          value={filters.instructor}
+          value={filters.payee}
           onChange={updateFilter}
           type="payee"
         />
