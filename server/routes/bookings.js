@@ -55,6 +55,10 @@ const deleteOrphanedInvoicesForEventMonth = async (eventId, dateInMonth) => {
           AND b.archived = false
           AND b.date >= date_trunc('month', $2::date)::date
           AND b.date <= (date_trunc('month', $2::date) + INTERVAL '1 month - 1 day')::date
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM comments c
+        WHERE c.invoice_id = i.id
       );
     `,
     [eventId, dateInMonth]
@@ -419,7 +423,7 @@ bookingsRouter.put("/:id", async (req, res) => {
       const newEventId = data[0]?.event_id;
       await ensureInvoiceExists(newDate, newEventId);
 
-      if (oldDate && (oldDate !== newDate || oldEventId !== newEventId)) {
+      if (oldDate && (String(oldDate) !== String(newDate) || oldEventId !== newEventId)) {
         await deleteOrphanedInvoicesForEventMonth(oldEventId, oldDate);
       }
 

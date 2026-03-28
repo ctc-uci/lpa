@@ -6,7 +6,6 @@ import {
   DateFilter,
   EmailFilter,
   InvoiceStatusFilter,
-  SeasonFilter,
 } from "./FilterComponents";
 import { FilterContainer } from "./FilterContainer";
 
@@ -31,7 +30,6 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
     status: "all",
     startDate: null,
     endDate: null,
-    season: "all",
     email: "all",
     payee: [],
     instructor: [],
@@ -58,12 +56,6 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         if (filters.endDate && invoiceDateOnly > filters.endDate) return false;
         return true;
       });
-    }
-
-    if (filters.season !== "all") {
-      filtered = filtered.filter(
-        (invoice) => invoice.season === filters.season
-      );
     }
 
     if (filters.status !== "all") {
@@ -112,7 +104,6 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
       status: "all",
       startDate: null,
       endDate: null,
-      season: "all",
       email: "all",
       payee: [],
       instructor: [],
@@ -139,11 +130,6 @@ export const InvoiceFilter = ({ invoices, setFilteredInvoices }) => {
         endDate={filters.endDate}
         onChange={updateFilter}
       />
-      <SeasonFilter
-        value={filters.season}
-        onChange={updateFilter}
-      />
-
       <EmailFilter
         value={filters.email}
         onChange={updateFilter}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -134,34 +134,24 @@ export const CancelSessionModal = ({
       const pastDeadline = isPastDeadline(session.date);
       const waived = waivedFees[session.id] ?? !pastDeadline;
 
-      if (waived && selectedAction === "Delete") {
-        await backend.delete(`/bookings/${session.id}`);
-      } else if (waived && selectedAction === "Archive") {
-        await backend.put(`/bookings/${session.id}`, {
-          archived: true,
-        });
-      } else {
-        const invoiceData = await backend.get(`/invoices/event/${session.eventId}`);
-        const invoice = invoiceData.data?.[0];
-        if (!invoice) {
-          console.warn("This session cannot be archived/deleted because no invoice exists. The session;s data may have been inputted manually with an invalid eventID.")
-        }
-        const roomData = await backend.get(`rooms/${session.roomId}`);
-        const room = roomData.data[0];
-        let programAdjustments = { data: [] };
-        if (invoice) {
-          programAdjustments = await backend.get(`/comments/program-invoice/${session.eventId}/${invoice.id}`);
-        }
+      const invoiceData = await backend.get(`/invoices/event/${session.eventId}`, {
+        params: { date: session.date },
+      });
+      const invoice = invoiceData.data?.[0];
 
-        const allInvoiceComments = await backend.get(`/comments/invoice/${invoice.id}`);
-        let sessionAdjustments = [];
-        if (allInvoiceComments.data.length !== 0) {
-          sessionAdjustments = allInvoiceComments.data.filter(comment => comment.bookingId === session.id);
-        }
+      if (invoice) {
+        let finalCost = 0;
 
-        let modifiedRate = parseFloat(room.rate);
+        if (!waived) {
+          const roomData = await backend.get(`rooms/${session.roomId}`);
+          const room = roomData.data[0];
+          const programAdjustments = await backend.get(`/comments/program-invoice/${session.eventId}/${invoice.id}`);
 
-        if (programAdjustments.data.length !== 0) {
+          const allInvoiceComments = await backend.get(`/comments/invoice/${invoice.id}`);
+          const sessionAdjustments = allInvoiceComments.data.filter(comment => comment.bookingId === session.id);
+
+          let modifiedRate = parseFloat(room.rate);
+
           for (const adj of programAdjustments.data) {
             if (adj.adjustmentType === "rate_flat") {
               modifiedRate += Number(adj.adjustmentValue);
@@ -169,47 +159,43 @@ export const CancelSessionModal = ({
               modifiedRate *= 1 + Number(adj.adjustmentValue) / 100;
             }
           }
-        }
 
-        if (sessionAdjustments.length !== 0) {
-          for (const adj of sessionAdjustments.data) {
+          for (const adj of sessionAdjustments) {
             if (adj.adjustmentType === "rate_flat") {
               modifiedRate += Number(adj.adjustmentValue);
             } else if (adj.adjustmentType === "rate_percent") {
               modifiedRate *= 1 + Number(adj.adjustmentValue) / 100;
             }
           }
+
+          const start = new Date(`1970-01-01T${session.startTime}:00`);
+          const end = new Date(`1970-01-01T${session.endTime}:00`);
+          const duration = (end - start) / (1000 * 60 * 60);
+          const baseCost = modifiedRate * duration;
+
+          const totalAdds = sessionAdjustments
+            .filter(adj => adj.adjustmentType === "total")
+            .reduce((acc, curr) => acc + Number(curr.adjustmentValue), 0);
+
+          finalCost = Math.abs(baseCost + totalAdds);
         }
 
-        const start = new Date(`1970-01-01T${session.startTime}:00`);
-        const end = new Date(`1970-01-01T${session.endTime}:00`);
-        const duration = (end - start) / (1000 * 60 * 60);
-        const baseCost = modifiedRate * duration;
-
-        const totalAdds = sessionAdjustments
-          .filter(adj => adj.adjustment_type === "total")
-          .reduce((acc, curr) => acc + Number(curr.adjustment_value), 0);
-
-        const finalCost = baseCost + totalAdds;
-        const comment = {
+        await backend.post("/comments", {
           user_id: userId,
-          session_id: session.id,
           invoice_id: invoice.id,
           datetime: new Date(),
-          comment: `Cancellation fee for ${formatSessionDateShort(session.date)}. ${cancellationReason}`,
+          comment: `Cancellation fee for ${formatSessionDateShort(session.date)}${cancellationReason ? `. ${cancellationReason}` : ""}`,
           adjustment_type: "total",
           adjustment_value: finalCost,
-        };
+        });
+      } else {
+        console.warn("No invoice found for session — cancellation row not added.");
+      }
 
-        await backend.post("/comments", comment);
-
-        if (selectedAction === "Archive") {
-          await backend.put(`/bookings/${session.id}`, {
-            archived: true,
-          });
-        } else if (selectedAction === "Delete") {
-          await backend.delete(`/bookings/${session.id}`);
-        }
+      if (selectedAction === "Archive") {
+        await backend.put(`/bookings/${session.id}`, { archived: true });
+      } else if (selectedAction === "Delete") {
+        await backend.delete(`/bookings/${session.id}`);
       }
     }
     await refreshSessions();
@@ -263,12 +249,6 @@ export const CancelSessionModal = ({
                   </Text>
                 )}
 
-                {/* Past deadline notice */}
-                {pastDeadlineCount > 0 && (
-                  <Text fontSize="sm" color="gray.600">
-                    The cancellation fee deadlines (2 weeks prior) have passed for {pastDeadlineCount} session{pastDeadlineCount > 1 ? "s" : ""}.
-                  </Text>
-                )}
 
                 {/* Waive Fee */}
                 <Box>
@@ -290,18 +270,20 @@ export const CancelSessionModal = ({
                       })
                       .map((session) => {
                         const pastDeadline = isPastDeadline(session.date);
+                        const isWaived = waivedFees[session.id] ?? !pastDeadline;
                         return (
                           <Flex key={session.id} justify="space-between" align="center" py={1} px={2}>
-                            <Text
-                              fontSize="sm"
-                              color={(waivedFees[session.id] ?? !pastDeadline) ? "gray.500" : "gray.800"}
-                            >
-                              {getSessionDayOfWeekLong(session.date)} {formatSessionDateShort(session.date)}
-                            </Text>
+                            <Box>
+                              <Text fontSize="sm" color="gray.800">
+                                {getSessionDayOfWeekLong(session.date)} {formatSessionDateShort(session.date)}
+                              </Text>
+                              <Text fontSize="xs" color={isWaived ? "green.500" : "red.500"}>
+                                {isWaived ? "Fee waived" : "Fee charged"}
+                              </Text>
+                            </Box>
                             <Checkbox
-                              isChecked={waivedFees[session.id] ?? !pastDeadline}
+                              isChecked={isWaived}
                               onChange={() => handleWaiveFee(session.id)}
-                              isDisabled={false}
                               sx={checkboxSx}
                             />
                           </Flex>
@@ -309,6 +291,8 @@ export const CancelSessionModal = ({
                       })}
                   </Box>
                 </Box>
+
+                
 
                 {/* Reason */}
                 <Box>
@@ -362,23 +346,26 @@ export const CancelSessionModal = ({
                 )}
 
                 {/* Waive Fee */}
-                {selectedSessions.length > 0 && (
-                  <Flex align="center" justify="space-between">
-                    <Box>
-                      <Text {...labelStyle}>Waive Fee</Text>
-                      {isPastDeadline(selectedSessions[0].date) && (
-                        <Text fontSize="xs" color="gray.500" mt={0.5}>
-                          Cancellation deadline has passed
+                {selectedSessions.length > 0 && (() => {
+                  const session = selectedSessions[0];
+                  const pastDeadline = isPastDeadline(session.date);
+                  const isWaived = waivedFees[session.id] ?? !pastDeadline;
+                  return (
+                    <Flex align="center" justify="space-between">
+                      <Box>
+                        <Text {...labelStyle}>Waive Fee</Text>
+                        <Text fontSize="xs" color={isWaived ? "green.500" : "red.500"} mt={0.5}>
+                          {isWaived ? "Fee waived" : "Fee charged"}
                         </Text>
-                      )}
-                    </Box>
-                    <Checkbox
-                      isChecked={waivedFees[selectedSessions[0].id] ?? !isPastDeadline(selectedSessions[0].date)}
-                      onChange={() => handleWaiveFee(selectedSessions[0].id)}
-                      sx={checkboxSx}
-                    />
-                  </Flex>
-                )}
+                      </Box>
+                      <Checkbox
+                        isChecked={isWaived}
+                        onChange={() => handleWaiveFee(session.id)}
+                        sx={checkboxSx}
+                      />
+                    </Flex>
+                  );
+                })()}
 
                 {/* Reason */}
                 <Box>
@@ -426,3 +413,107 @@ export const CancelSessionModal = ({
 };
 
 export default CancelSessionModal;
+
+export const UncancelSessionModal = ({ isOpen, onClose, selectedSessions = [], setSelectedSessions, onConfirm }) => {
+  const { backend } = useBackendContext();
+  const [cancellationFees, setCancellationFees] = useState([]);
+  const [removeFee, setRemoveFee] = useState(true);
+
+  useEffect(() => {
+    if (!isOpen || selectedSessions.length === 0) return;
+    const fetchFees = async () => {
+      const allFees = [];
+      for (const session of selectedSessions) {
+        const invoiceData = await backend.get(`/invoices/event/${session.eventId}`, {
+          params: { date: session.date },
+        });
+        const invoice = invoiceData.data?.[0];
+        if (!invoice) continue;
+        const res = await backend.get(`/comments/invoice/summary/${invoice.id}`);
+        const dateLabel = formatSessionDateShort(session.date);
+        const fees = (res.data || [])
+          .flatMap((group) => group.total || [])
+          .filter((c) => c.comment?.startsWith(`Cancellation fee for ${dateLabel}`));
+        allFees.push(...fees);
+      }
+      setCancellationFees(allFees);
+      setRemoveFee(allFees.length > 0);
+    };
+    fetchFees();
+  }, [isOpen, selectedSessions]);
+
+  const handleConfirm = async () => {
+    if (selectedSessions.length === 0) return;
+    if (removeFee && cancellationFees.length > 0) {
+      await Promise.all(cancellationFees.map((fee) => backend.delete(`/comments/${fee.id}`)));
+    }
+    await Promise.all(
+      selectedSessions.map((session) => backend.put(`/bookings/${session.id}`, { archived: false }))
+    );
+    setSelectedSessions([]);
+    onClose();
+    if (onConfirm) onConfirm();
+  };
+
+  const isMultiple = selectedSessions.length > 1;
+  const totalFeeAmount = cancellationFees.reduce((sum, f) => sum + Number(f.value ?? f.adjustmentValue), 0);
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
+      <ModalOverlay />
+      <ModalContent borderRadius="md">
+        <ModalHeader>
+          {isMultiple ? `Uncancel ${selectedSessions.length} Sessions?` : "Uncancel Session?"}
+          {!isMultiple && selectedSessions[0] && (
+            <Text fontSize="sm" fontWeight="normal" color="gray.600" mt={1}>
+              {getSessionDayOfWeekLong(selectedSessions[0].date)} {formatSessionDateShort(selectedSessions[0].date)}
+            </Text>
+          )}
+        </ModalHeader>
+        <ModalBody>
+          <Flex direction="column" gap={4}>
+            {cancellationFees.length > 0 ? (
+              <Flex align="center" justify="space-between">
+                <Box>
+                  <Text {...labelStyle}>Remove Cancellation Fee{isMultiple ? "s" : ""}</Text>
+                  <Text fontSize="xs" color="gray.500" mt={0.5}>
+                    ${totalFeeAmount.toFixed(2)} will be removed from the invoice
+                  </Text>
+                </Box>
+                <Checkbox
+                  isChecked={removeFee}
+                  onChange={() => setRemoveFee((prev) => !prev)}
+                  sx={checkboxSx}
+                />
+              </Flex>
+            ) : (
+              <Text fontSize="sm" color="gray.500" fontStyle="italic">
+                No cancellation fee{isMultiple ? "s" : ""} found on the invoice for {isMultiple ? "these sessions" : "this session"}.
+              </Text>
+            )}
+          </Flex>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            onClick={onClose}
+            mr={3}
+            variant="outline"
+            color="gray.600"
+            borderRadius="30px"
+            fontWeight="normal"
+          >
+            Exit
+          </Button>
+          <Button
+            bg="#0C824D"
+            color="white"
+            borderRadius="30px"
+            onClick={handleConfirm}
+          >
+            Uncancel
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};

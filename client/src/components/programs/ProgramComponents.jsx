@@ -106,7 +106,7 @@ import { EditCancelPopup } from "../cancelModal/EditCancelPopup";
 import { SessionFilter } from "../filters/SessionsFilter";
 import { DeleteRowModal } from "../popups/DeleteRowModal";
 import DateSortingModal from "../sorting/DateFilter";
-import { CancelSessionModal } from "./CancelSessionModal";
+import { CancelSessionModal, UncancelSessionModal } from "./CancelSessionModal";
 import { DateRange } from "./DateRange";
 import { WeeklyRepeatingSchedule } from "./WeeklyRepeatingSchedule";
 import { deleteSessions, parseSessionDate, formatSessionDateWithWeekday } from "./utils";
@@ -899,6 +899,11 @@ export const Sessions = ({
     onOpen: deleteModalOnOpen,
     onClose: deleteModalOnClose,
   } = useDisclosure();
+  const {
+    isOpen: uncancelModalIsOpen,
+    onOpen: uncancelModalOnOpen,
+    onClose: uncancelModalOnClose,
+  } = useDisclosure();
 
   const handleConfirmCancel = async (action, reason, waivedFees) => {
     // Create an array of session IDs
@@ -1245,42 +1250,72 @@ export const Sessions = ({
               </Flex>
 
               <Flex alignItems="flex-end" gap="8px">
-                {/* Cancel button - only shows when isSelected is true */}
-                {isSelected && (
-                  <button
-                    style={{
-                      display: "flex",
-                      height: "40px",
-                      padding: "0px 16px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "4px",
-                      borderRadius: "6px",
-                      background: "var(--destructive, #90080F)",
-                      color: "white",
-                      fontFamily: "Inter",
-                      fontSize: "14px",
-                      fontStyle: "normal",
-                      fontWeight: "700",
-                      lineHeight: "normal",
-                      letterSpacing: "0.07px",
-                      border: "none",
-                      cursor: selectedSessions.length > 0 ? "pointer" : "not-allowed",
-                      opacity: selectedSessions.length > 0 ? 1 : 0.6,
-                    }}
-                    onClick={() => {
-                      if (selectedSessions.length > 0) {
-                        openCancelModal();
-                      }
-                    }}
-                    disabled={selectedSessions.length === 0}
-                  >
-                    <SessionsCancelIcon />
-                    {selectedSessions.length === filteredAndSortedSessions?.filter((s) => !s.archived).length && filteredAndSortedSessions?.filter((s) => !s.archived).length > 0
-                      ? "Cancel All Sessions"
-                      : `Cancel${selectedSessions.length > 0 ? ` (${selectedSessions.length})` : ""}`}
-                  </button>
-                )}
+                {/* Cancel / Uncancel buttons - only show when isSelected is true */}
+                {isSelected && (() => {
+                  const nonArchivedSelected = selectedSessions.filter((id) => sessionMap[id] && !sessionMap[id].archived);
+                  const archivedSelected = selectedSessions.filter((id) => sessionMap[id]?.archived);
+                  const allNonArchived = filteredAndSortedSessions?.filter((s) => !s.archived) || [];
+                  return (
+                    <>
+                      {nonArchivedSelected.length > 0 && (
+                        <button
+                          style={{
+                            display: "flex",
+                            height: "40px",
+                            padding: "0px 16px",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            gap: "4px",
+                            borderRadius: "6px",
+                            background: "var(--destructive, #90080F)",
+                            color: "white",
+                            fontFamily: "Inter",
+                            fontSize: "14px",
+                            fontStyle: "normal",
+                            fontWeight: "700",
+                            lineHeight: "normal",
+                            letterSpacing: "0.07px",
+                            border: "none",
+                            cursor: "pointer",
+                          }}
+                          onClick={openCancelModal}
+                        >
+                          <SessionsCancelIcon />
+                          {nonArchivedSelected.length === allNonArchived.length && allNonArchived.length > 0
+                            ? "Cancel All Sessions"
+                            : `Cancel (${nonArchivedSelected.length})`}
+                        </button>
+                      )}
+                      {archivedSelected.length > 0 && (
+                        <button
+                          style={{
+                            display: "flex",
+                            height: "40px",
+                            padding: "0px 16px",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            gap: "4px",
+                            borderRadius: "6px",
+                            background: "#0C824D",
+                            color: "white",
+                            fontFamily: "Inter",
+                            fontSize: "14px",
+                            fontStyle: "normal",
+                            fontWeight: "700",
+                            lineHeight: "normal",
+                            letterSpacing: "0.07px",
+                            border: "none",
+                            cursor: "pointer",
+                          }}
+                          onClick={uncancelModalOnOpen}
+                        >
+                          <ReactivateIcon color="white" />
+                          {`Uncancel (${archivedSelected.length})`}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
                 <Button
                   height="40px"
                   width={"156px"}
@@ -1485,7 +1520,6 @@ export const Sessions = ({
                         <Td width="1%" px="17px">
                           {isSelected && (
                             <Checkbox
-                              isDisabled={session.archived}
                               isChecked={selectedSessions.includes(session.id)}
                               onChange={() =>
                                 handleSessionSelection(session.id)
@@ -1789,11 +1823,20 @@ export const Sessions = ({
             onClose={closeCancelModal}
             selectedSessions={selectedSessions
               .map((id) => sessionMap[id])
-              .filter(Boolean)}
+              .filter((s) => s && !s.archived)}
             setSelectedSessions={setSelectedSessions}
             onConfirm={handleConfirmCancel}
             eventType={selectedSessions.length === 1 ? "Session" : "Sessions"}
             refreshSessions={refreshSessions}
+          />
+          <UncancelSessionModal
+            isOpen={uncancelModalIsOpen}
+            onClose={uncancelModalOnClose}
+            selectedSessions={selectedSessions
+              .map((id) => sessionMap[id])
+              .filter((s) => s?.archived)}
+            setSelectedSessions={setSelectedSessions}
+            onConfirm={refreshSessions}
           />
         </CardBody>
       </Card>
