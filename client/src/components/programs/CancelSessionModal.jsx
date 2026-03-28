@@ -362,16 +362,18 @@ export const CancelSessionModal = ({
                 )}
 
                 {/* Waive Fee */}
-                {selectedSessions.length > 0 && isPastDeadline(selectedSessions[0].date) && (
+                {selectedSessions.length > 0 && (
                   <Flex align="center" justify="space-between">
                     <Box>
                       <Text {...labelStyle}>Waive Fee</Text>
-                      <Text fontSize="xs" color="gray.500" mt={0.5}>
-                        Cancellation deadline has passed
-                      </Text>
+                      {isPastDeadline(selectedSessions[0].date) && (
+                        <Text fontSize="xs" color="gray.500" mt={0.5}>
+                          Cancellation deadline has passed
+                        </Text>
+                      )}
                     </Box>
                     <Checkbox
-                      isChecked={waivedFees[selectedSessions[0].id] || false}
+                      isChecked={waivedFees[selectedSessions[0].id] ?? !isPastDeadline(selectedSessions[0].date)}
                       onChange={() => handleWaiveFee(selectedSessions[0].id)}
                       sx={checkboxSx}
                     />

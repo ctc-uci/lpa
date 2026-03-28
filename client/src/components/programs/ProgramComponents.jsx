@@ -320,15 +320,22 @@ export const ProgramSummary = ({
     const fetchData = async () => {
       try {
         const invoiceResponse = await backend.get(`/invoices/event/${id}`)
-        // Get the invoice with the most recent start_date
         if (invoiceResponse.data && invoiceResponse.data.length > 0) {
-          const mostRecentInvoice = invoiceResponse.data.reduce((latest, current) => {
-            const latestDate = new Date(latest.startDate);
-            const currentDate = new Date(current.startDate);
-            return currentDate > latestDate ? current : latest;
+          const now = new Date();
+          const currentMonthInvoice = invoiceResponse.data.find((inv) => {
+            const d = new Date(inv.startDate);
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
           });
-          
-          setInvoiceId(mostRecentInvoice.id);
+
+          if (currentMonthInvoice) {
+            setInvoiceId(currentMonthInvoice.id);
+          } else {
+            // Fall back to most recent if no invoice for current month
+            const mostRecentInvoice = invoiceResponse.data.reduce((latest, current) => {
+              return new Date(current.startDate) > new Date(latest.startDate) ? current : latest;
+            });
+            setInvoiceId(mostRecentInvoice.id);
+          }
         }
       } catch (err) {
         console.error("Error fetching bookings:", err);
@@ -1258,8 +1265,7 @@ export const Sessions = ({
                       lineHeight: "normal",
                       letterSpacing: "0.07px",
                       border: "none",
-                      cursor:
-                        selectedSessions.length > 0 ? "pointer" : "not-allowed",
+                      cursor: selectedSessions.length > 0 ? "pointer" : "not-allowed",
                       opacity: selectedSessions.length > 0 ? 1 : 0.6,
                     }}
                     onClick={() => {
