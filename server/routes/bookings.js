@@ -334,7 +334,6 @@ bookingsRouter.delete("/batch", async (req, res) => {
 });
 
 bookingsRouter.put("/batch", async (req, res) => {
-  console.log("BOOKINGS: ", req.body);
   try {
     const { bookings } = req.body;
 

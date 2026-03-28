@@ -1270,7 +1270,7 @@ export const Sessions = ({
                     disabled={selectedSessions.length === 0}
                   >
                     <SessionsCancelIcon />
-                    {selectedSessions.length === filteredAndSortedSessions?.length && filteredAndSortedSessions?.length > 0
+                    {selectedSessions.length === filteredAndSortedSessions?.filter((s) => !s.archived).length && filteredAndSortedSessions?.filter((s) => !s.archived).length > 0
                       ? "Cancel All Sessions"
                       : `Cancel${selectedSessions.length > 0 ? ` (${selectedSessions.length})` : ""}`}
                   </button>
@@ -1312,14 +1312,14 @@ export const Sessions = ({
                     <Th width="1%" px="16px">
                       <Checkbox
                         isChecked={
-                          filteredAndSortedSessions?.length > 0 &&
-                          filteredAndSortedSessions.every((s) =>
+                          filteredAndSortedSessions?.filter((s) => !s.archived).length > 0 &&
+                          filteredAndSortedSessions.filter((s) => !s.archived).every((s) =>
                             selectedSessions.includes(s.id)
                           )
                         }
                         isIndeterminate={
                           selectedSessions.length > 0 &&
-                          !filteredAndSortedSessions?.every((s) =>
+                          !filteredAndSortedSessions?.filter((s) => !s.archived).every((s) =>
                             selectedSessions.includes(s.id)
                           )
                         }
@@ -1327,7 +1327,7 @@ export const Sessions = ({
                           if (!isSelected) {
                             setIsSelected(true);
                             setSelectedSessions(
-                              filteredAndSortedSessions?.map((s) => s.id) || []
+                              filteredAndSortedSessions?.filter((s) => !s.archived).map((s) => s.id) || []
                             );
                           } else if (selectedSessions.length === 0) {
                             setIsSelected(false);
@@ -1345,21 +1345,17 @@ export const Sessions = ({
                         }}
                       />
                     </Th>
-                    {!isArchived ? (
-                      <Th>
-                        <Text
-                          textTransform="none"
-                          color="#767778"
-                          fontSize="12px"
-                          fontStyle="normal"
-                          fontFamily={"Inter"}
-                        >
-                          STATUS
-                        </Text>
-                      </Th>
-                    ) : (
-                      <div></div>
-                    )}
+                    <Th>
+                      <Text
+                        textTransform="none"
+                        color="#767778"
+                        fontSize="12px"
+                        fontStyle="normal"
+                        fontFamily={"Inter"}
+                      >
+                        STATUS
+                      </Text>
+                    </Th>
                     <Th>
                       <Box
                         display="flex"
@@ -1483,6 +1479,7 @@ export const Sessions = ({
                         <Td width="1%" px="17px">
                           {isSelected && (
                             <Checkbox
+                              isDisabled={session.archived}
                               isChecked={selectedSessions.includes(session.id)}
                               onChange={() =>
                                 handleSessionSelection(session.id)
@@ -1507,27 +1504,25 @@ export const Sessions = ({
                           )}
                         </Td>
 
-                        {!isArchived ? (
-                          <Td>
+                        <Td>
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                          >
                             <Box
-                              display="flex"
-                              justifyContent="center"
-                            >
-                              <Box
-                                height="14px"
-                                width="14px"
-                                borderRadius="50%"
-                                bg={
-                                  hasTimePassed(session.date)
-                                    ? "#DAB434"
-                                    : "#0C824D"
-                                }
-                              ></Box>
-                            </Box>
-                          </Td>
-                        ) : (
-                          <div></div>
-                        )}
+                              height="14px"
+                              width="14px"
+                              borderRadius="50%"
+                              bg={
+                                session.archived
+                                  ? "#E53E3E"
+                                  : hasTimePassed(session.date)
+                                  ? "#DAB434"
+                                  : "#0C824D"
+                              }
+                            ></Box>
+                          </Box>
+                        </Td>
                         <Td>
                           <Box
                             display="flex"

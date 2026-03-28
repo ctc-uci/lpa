@@ -25,6 +25,71 @@ import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import { getCurrentUser } from "../../utils/auth/firebase";
 import { parseSessionDate, formatSessionDateShort, getSessionDayOfWeekLong } from "./utils";
 
+const labelStyle = {
+  fontSize: "sm",
+  fontWeight: "semibold",
+  color: "gray.600",
+};
+
+const ActionMenu = ({ selectedAction, selectedIcon, handleSelect }) => (
+  <Menu>
+    <MenuButton
+      as={Button}
+      rightIcon={<ChevronDownIcon />}
+      bg="#F0F1F4"
+      variant="outline"
+      width="150px"
+      justifyContent="space-between"
+    >
+      <Flex align="center">
+        {typeof selectedIcon === 'function' ? (
+          <Icon as={selectedIcon} mr={2} boxSize={4} />
+        ) : (
+          selectedIcon
+        )}
+        <Text>{selectedAction}</Text>
+      </Flex>
+    </MenuButton>
+    <MenuList>
+      <MenuItem
+        icon={
+          <Box display="inline-flex" alignItems="center">
+            <Icon as={ArchiveIcon} boxSize={4} />
+          </Box>
+        }
+        onClick={() => handleSelect("Archive", ArchiveIcon)}
+        display="flex"
+        alignItems="center"
+      >
+        Archive
+      </MenuItem>
+      <MenuItem
+        icon={<DeleteIcon />}
+        onClick={() => handleSelect("Delete", DeleteIcon)}
+      >
+        Delete
+      </MenuItem>
+    </MenuList>
+  </Menu>
+);
+
+const checkboxSx = {
+  ".chakra-checkbox__control": {
+    borderColor: "#A0AEC0",
+    backgroundColor: "#FFFFFF",
+    _checked: {
+      backgroundColor: "#3182CE",
+      borderColor: "#3182CE",
+    },
+    _hover: {
+      backgroundColor: "#2B6CB0",
+      borderColor: "#2B6CB0",
+    },
+  },
+  ".chakra-checkbox__icon": {
+    svg: { fill: "#FFFFFF" },
+  },
+};
 
 export const CancelSessionModal = ({
   isOpen,
@@ -32,7 +97,7 @@ export const CancelSessionModal = ({
   selectedSessions = [],
   setSelectedSessions,
   onConfirm,
-  eventType = "Session", // Default value
+  eventType = "Session",
   refreshSessions
 }) => {
   const { backend } = useBackendContext();
@@ -53,7 +118,6 @@ export const CancelSessionModal = ({
     });
   };
 
-
   const handleConfirmAndClose = async () => {
     const currentFirebaseUser = await getCurrentUser();
     const firebaseUid = currentFirebaseUser?.uid;
@@ -68,12 +132,11 @@ export const CancelSessionModal = ({
 
     for (const session of selectedSessions) {
       const pastDeadline = isPastDeadline(session.date);
-      const waived = waivedFees[session.id];
+      const waived = waivedFees[session.id] ?? !pastDeadline;
 
-      if ((!pastDeadline || waived) && selectedAction === "Delete") {
-        // Fee is waived / session is deleted
+      if (waived && selectedAction === "Delete") {
         await backend.delete(`/bookings/${session.id}`);
-      } else if ((!pastDeadline || waived) && selectedAction === "Archive") {
+      } else if (waived && selectedAction === "Archive") {
         await backend.put(`/bookings/${session.id}`, {
           archived: true,
         });
@@ -85,23 +148,19 @@ export const CancelSessionModal = ({
         }
         const roomData = await backend.get(`rooms/${session.roomId}`);
         const room = roomData.data[0];
-        // Check if invoice exists before calling backend for program Adjustments
         let programAdjustments = { data: [] };
         if (invoice) {
           programAdjustments = await backend.get(`/comments/program-invoice/${session.eventId}/${invoice.id}`);
         }
 
         const allInvoiceComments = await backend.get(`/comments/invoice/${invoice.id}`);
-        // Filter allInvoiceComments to get only those matching booking_id
         let sessionAdjustments = [];
         if (allInvoiceComments.data.length !== 0) {
           sessionAdjustments = allInvoiceComments.data.filter(comment => comment.bookingId === session.id);
         }
 
-        // Variable that will keep track of the final room rate after adjustments are applied
         let modifiedRate = parseFloat(room.rate);
 
-        // Apply program adjustments
         if (programAdjustments.data.length !== 0) {
           for (const adj of programAdjustments.data) {
             if (adj.adjustmentType === "rate_flat") {
@@ -112,7 +171,6 @@ export const CancelSessionModal = ({
           }
         }
 
-        // Apply session adjustments
         if (sessionAdjustments.length !== 0) {
           for (const adj of sessionAdjustments.data) {
             if (adj.adjustmentType === "rate_flat") {
@@ -123,10 +181,9 @@ export const CancelSessionModal = ({
           }
         }
 
-        // Calculate by duration
         const start = new Date(`1970-01-01T${session.startTime}:00`);
         const end = new Date(`1970-01-01T${session.endTime}:00`);
-        const duration = (end - start) / (1000 * 60 * 60); // in hours
+        const duration = (end - start) / (1000 * 60 * 60);
         const baseCost = modifiedRate * duration;
 
         const totalAdds = sessionAdjustments
@@ -139,14 +196,13 @@ export const CancelSessionModal = ({
           session_id: session.id,
           invoice_id: invoice.id,
           datetime: new Date(),
-          comment: `Cancellation adjustment for ${formatSessionDateShort(session.date)}. ${cancellationReason}`,
+          comment: `Cancellation fee for ${formatSessionDateShort(session.date)}. ${cancellationReason}`,
           adjustment_type: "total",
           adjustment_value: finalCost,
         };
 
         await backend.post("/comments", comment);
 
-        // Set based on action
         if (selectedAction === "Archive") {
           await backend.put(`/bookings/${session.id}`, {
             archived: true,
@@ -154,30 +210,24 @@ export const CancelSessionModal = ({
         } else if (selectedAction === "Delete") {
           await backend.delete(`/bookings/${session.id}`);
         }
-
       }
     }
-    // Refresh sessions so the table updates
     await refreshSessions();
-    // Set selectedSessions back to 0
     setSelectedSessions([]);
     onClose();
   };
 
-  // Determine if a session is past the cancellation deadline (2 weeks prior)
   const isPastDeadline = (isoString) => {
     const sessionDate = parseSessionDate(isoString);
     if (!sessionDate) return false;
     const today = new Date();
     const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000;
     const deadlineDate = new Date(sessionDate.getTime() - twoWeeksInMs);
-
     return today > deadlineDate;
   };
 
   const isMultipleSelection = selectedSessions.length > 1;
 
-  // Count sessions past deadline
   const pastDeadlineCount = selectedSessions.filter(session =>
     isPastDeadline(session.date)
   ).length;
@@ -187,200 +237,163 @@ export const CancelSessionModal = ({
       <ModalOverlay />
       <ModalContent borderRadius="md">
         {isMultipleSelection ? (
-          // Multiple sessions selected
           <>
-            <ModalHeader>
-              Cancel {selectedSessions.length} sessions?
-            </ModalHeader>
+            <ModalHeader>Cancel {selectedSessions.length} sessions?</ModalHeader>
             <ModalBody>
-              {pastDeadlineCount > 0 && (
-                <Text mb={4}>
-                  The cancellation fee deadlines (2 weeks prior) have passed for {pastDeadlineCount} sessions.
-                </Text>
-              )}
+              <Flex direction="column" gap={4}>
 
-              <Box display="flex" justifyContent="flex-end" alignItems="center" gap="24px" alignSelf="stretch">
-                <Text>Waive Fee</Text>
-              </Box>
-              <Box
-                maxH="90px"
-                overflowY="auto"
-                pr={2}
-                mb={4}
-              >
-                {selectedSessions
-                  .slice() // Copy to avoid mutating original
-                  .sort((a, b) => {
-                    const aIsPast = isPastDeadline(a.date);
-                    const bIsPast = isPastDeadline(b.date);
-                    return bIsPast - aIsPast; // Show sessions with past deadline first
-                  })
-                  .map((session) => {
-                    const pastDeadline = isPastDeadline(session.date);
-                    return (
-                      <Flex key={session.id} justify="space-between" align="center" mb={2} px={2}>
-                        <Text color={!pastDeadline || waivedFees[session.id] ? "gray.500" : "black"}>
-                          {getSessionDayOfWeekLong(session.date)} {formatSessionDateShort(session.date)}
-                        </Text>
+                {/* Action */}
+                <Box>
+                  <Text {...labelStyle} mb={2}>Action</Text>
+                  <ActionMenu
+                    selectedAction={selectedAction}
+                    selectedIcon={selectedIcon}
+                    handleSelect={handleSelect}
+                  />
+                </Box>
 
-                        <Checkbox
-                          isChecked={
-                            pastDeadline
-                              ? waivedFees[session.id] || false
-                              : true
-                          }
-                          onChange={() => pastDeadline && handleWaiveFee(session.id)}
-                          marginRight="13px"
-                          isDisabled={false}
-                          sx={{
-                            ".chakra-checkbox__control": {
-                              borderColor: "#A0AEC0",
-                              backgroundColor: "#FFFFFF",
-                              _checked: {
-                                backgroundColor: "#A0AEC0",
-                                borderColor: "#A0AEC0",
-                              },
-                              _hover: {
-                                backgroundColor: "#A0AEC0",
-                                borderColor: "#A0AEC0",
-                              },
-                            },
-                            ".chakra-checkbox__icon": {
-                              svg: {
-                                fill: "#FFFFFF",
-                              },
-                            },
-                          }}
-                        />
-                      </Flex>
-                    );
-                  })}
-              </Box>
+                {/* Action description */}
+                {selectedAction === "Delete" ? (
+                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
+                    Deleted sessions will no longer appear in the sessions table.
+                  </Text>
+                ) : (
+                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
+                    Archived sessions will remain visible in the sessions table with a cancelled status.
+                  </Text>
+                )}
 
-              <Box mt={6}>
-                <Text mb={2} fontWeight="medium">Reason for cancellation:</Text>
-                <Textarea
-                  value={cancellationReason}
-                  onChange={(e) => setCancellationReason(e.target.value)}
-                  size="md"
-                  bg="#F8F9FA"
-                  borderRadius="md"
-                  resize="vertical"
-                  minH="100px"
-                />
-              </Box>
+                {/* Past deadline notice */}
+                {pastDeadlineCount > 0 && (
+                  <Text fontSize="sm" color="gray.600">
+                    The cancellation fee deadlines (2 weeks prior) have passed for {pastDeadlineCount} session{pastDeadlineCount > 1 ? "s" : ""}.
+                  </Text>
+                )}
 
-              <Box mt={4} display="flex" justifyContent="flex-end">
-                <Menu>
-                  <MenuButton
-                    as={Button}
-                    rightIcon={<ChevronDownIcon />}
-                    bg="#F0F1F4"
-                    variant="outline"
-                    width="150px"
-                    justifyContent="space-between"
+                {/* Waive Fee */}
+                <Box>
+                  <Text {...labelStyle} mb={2}>Waive Fee</Text>
+                  <Box
+                    maxH="120px"
+                    overflowY="auto"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    borderRadius="md"
+                    p={2}
                   >
-                    <Flex align="center">
-                      {typeof selectedIcon === 'function' ? (
-                        <Icon as={selectedIcon} mr={2} boxSize={4} />
-                      ) : (
-                        selectedIcon
-                      )}
-                      <Text>{selectedAction}</Text>
-                    </Flex>
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem
-                      icon={
-                        <Box display="inline-flex" alignItems="center">
-                          <Icon as={ArchiveIcon} boxSize={4} />
-                        </Box>
-                      }
-                      onClick={() => handleSelect("Archive", ArchiveIcon)}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      Archive
-                    </MenuItem>
-                    <MenuItem
-                      icon={<DeleteIcon />}
-                      onClick={() => handleSelect("Delete", DeleteIcon)}
-                    >
-                      Delete
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-              </Box>
+                    {selectedSessions
+                      .slice()
+                      .sort((a, b) => {
+                        const aIsPast = isPastDeadline(a.date);
+                        const bIsPast = isPastDeadline(b.date);
+                        return bIsPast - aIsPast;
+                      })
+                      .map((session) => {
+                        const pastDeadline = isPastDeadline(session.date);
+                        return (
+                          <Flex key={session.id} justify="space-between" align="center" py={1} px={2}>
+                            <Text
+                              fontSize="sm"
+                              color={(waivedFees[session.id] ?? !pastDeadline) ? "gray.500" : "gray.800"}
+                            >
+                              {getSessionDayOfWeekLong(session.date)} {formatSessionDateShort(session.date)}
+                            </Text>
+                            <Checkbox
+                              isChecked={waivedFees[session.id] ?? !pastDeadline}
+                              onChange={() => handleWaiveFee(session.id)}
+                              isDisabled={false}
+                              sx={checkboxSx}
+                            />
+                          </Flex>
+                        );
+                      })}
+                  </Box>
+                </Box>
+
+                {/* Reason */}
+                <Box>
+                  <Text {...labelStyle} mb={2}>Reason for cancellation</Text>
+                  <Textarea
+                    value={cancellationReason}
+                    onChange={(e) => setCancellationReason(e.target.value)}
+                    size="md"
+                    bg="#F8F9FA"
+                    borderRadius="md"
+                    resize="vertical"
+                    minH="100px"
+                  />
+                </Box>
+
+              </Flex>
             </ModalBody>
           </>
         ) : (
-          // Single session selected
           <>
             <ModalHeader>
-              Cancel {eventType}?
-            </ModalHeader>
-            <ModalBody>
+              Cancel Session?
               {selectedSessions.length > 0 && (
-                <Text mb={4}>
-                  The cancellation fee deadline for this {eventType.toLowerCase()} is {formatSessionDateShort(selectedSessions[0].date)}.
+                <Text fontSize="sm" fontWeight="normal" color="gray.600" mt={1}>
+                  {getSessionDayOfWeekLong(selectedSessions[0].date)} {formatSessionDateShort(selectedSessions[0].date)}
                 </Text>
               )}
+            </ModalHeader>
+            <ModalBody>
+              <Flex direction="column" gap={4}>
 
-              <Box>
-                <Text mb={2} fontWeight="medium">Reason for cancellation:</Text>
-                <Textarea
-                  placeholder="Enter reason for cancellation..."
-                  value={cancellationReason}
-                  onChange={(e) => setCancellationReason(e.target.value)}
-                  size="md"
-                  bg="#F8F9FA"
-                  borderRadius="md"
-                  resize="vertical"
-                  minH="100px"
-                />
-              </Box>
+                {/* Action */}
+                <Box>
+                  <Text {...labelStyle} mb={2}>Action</Text>
+                  <ActionMenu
+                    selectedAction={selectedAction}
+                    selectedIcon={selectedIcon}
+                    handleSelect={handleSelect}
+                  />
+                </Box>
 
-              <Box mt={4} display="flex" justifyContent="flex-end">
-                <Menu>
-                  <MenuButton
-                    as={Button}
-                    rightIcon={<ChevronDownIcon />}
-                    bg="#F0F1F4"
-                    variant="outline"
-                    width="150px"
-                    justifyContent="space-between"
-                  >
-                    <Flex align="center">
-                      {typeof selectedIcon === 'function' ? (
-                        <Icon as={selectedIcon} mr={2} boxSize={4} />
-                      ) : (
-                        selectedIcon
-                      )}
-                      <Text>{selectedAction}</Text>
-                    </Flex>
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem
-                      icon={
-                        <Box display="inline-flex" alignItems="center">
-                          <Icon as={ArchiveIcon} boxSize={4} />
-                        </Box>
-                      }
-                      onClick={() => handleSelect("Archive", ArchiveIcon)}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      Archive
-                    </MenuItem>
-                    <MenuItem
-                      icon={<DeleteIcon />}
-                      onClick={() => handleSelect("Delete", DeleteIcon)}
-                    >
-                      Delete
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-              </Box>
+                {/* Action description */}
+                {selectedAction === "Delete" ? (
+                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
+                    Deleted sessions will no longer appear in the sessions table.
+                  </Text>
+                ) : (
+                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
+                    Archived sessions will remain visible in the sessions table with a cancelled status.
+                  </Text>
+                )}
+
+                {/* Waive Fee */}
+                {selectedSessions.length > 0 && isPastDeadline(selectedSessions[0].date) && (
+                  <Flex align="center" justify="space-between">
+                    <Box>
+                      <Text {...labelStyle}>Waive Fee</Text>
+                      <Text fontSize="xs" color="gray.500" mt={0.5}>
+                        Cancellation deadline has passed
+                      </Text>
+                    </Box>
+                    <Checkbox
+                      isChecked={waivedFees[selectedSessions[0].id] || false}
+                      onChange={() => handleWaiveFee(selectedSessions[0].id)}
+                      sx={checkboxSx}
+                    />
+                  </Flex>
+                )}
+
+                {/* Reason */}
+                <Box>
+                  <Text {...labelStyle} mb={2}>Reason for cancellation</Text>
+                  <Textarea
+                    placeholder="Enter reason for cancellation..."
+                    value={cancellationReason}
+                    onChange={(e) => setCancellationReason(e.target.value)}
+                    size="md"
+                    bg="#F8F9FA"
+                    borderRadius="md"
+                    resize="vertical"
+                    minH="100px"
+                  />
+                </Box>
+
+              </Flex>
             </ModalBody>
           </>
         )}
@@ -400,7 +413,7 @@ export const CancelSessionModal = ({
             bg="#90080F"
             color="white"
             borderRadius="30px"
-            onClick={handleConfirmAndClose} // Use the new handler that calls onConfirm and onClose
+            onClick={handleConfirmAndClose}
           >
             Confirm
           </Button>

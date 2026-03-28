@@ -1369,7 +1369,7 @@ const StatementComments = ({
                 <Tr py={compactView ? 0 : 4}>
                   <Td
                     textAlign="right"
-                    colSpan={5}
+                    colSpan={6}
                     fontWeight="bold"
                     fontSize={compactView ? "6.38" : "sm"}
                   >
@@ -1378,7 +1378,7 @@ const StatementComments = ({
                   <Td
                     borderBottom="none"
                     py={compactView ? "0" : "8"}
-                    textAlign="center"
+                    textAlign="right"
                     fontSize={compactView ? "6.38" : "sm"}
                   >
                     {`$ ${calculateSubtotal(sessions)}`}

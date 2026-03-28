@@ -120,11 +120,7 @@ export const Program = () => {
       const sessionsResponse = await backend.get(`bookings/byEvent/${id}`);
       const sessionsData = sessionsResponse.data;
 
-      // Only get activeSessions
-      const activeSessions = sessionsData.filter(
-        (session) => session.archived === false || archivedStatus
-      );
-      setSessions(activeSessions);
+      setSessions(sessionsData);
 
       const uniqueRoomIds = [
         ...new Set(sessionsData.map((session) => session.roomId)),
