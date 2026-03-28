@@ -38,7 +38,7 @@ const EditPencilIcon = React.memo(() => (
   />
 ));
 
-export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
+export const EditCancelPopup = ({ handleEdit, handleDeactivate, handleCancelAll, id }) => {
   return (
     <Menu>
       <MenuButton
@@ -85,7 +85,7 @@ export const EditCancelPopup = ({ handleEdit, handleDeactivate, id }) => {
           </Text>
         </MenuItem>
         <MenuItem
-          onClick={() => handleDeactivate(id)}
+          onClick={() => handleCancelAll ? handleCancelAll() : handleDeactivate(id)}
           style={{
             display: "flex",
             width: "131px",

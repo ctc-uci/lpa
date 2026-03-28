@@ -276,6 +276,7 @@ export const Program = () => {
             instructors={instructors}
             payees={payees}
             rooms={roomNames}
+            refreshSessions={getSessions}
           />
         )}
         {Object.values(infoLoaded).every(Boolean) && (

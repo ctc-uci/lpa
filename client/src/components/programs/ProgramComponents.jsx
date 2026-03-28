@@ -153,10 +153,12 @@ export const ProgramSummary = ({
   instructors,
   payees,
   rooms,
+  refreshSessions,
 }) => {
   const { backend } = useBackendContext();
   const navigate = useNavigate();
   const [programToDelete, setProgramToDelete] = useState(null);
+  const [cancelAllSessions, setCancelAllSessions] = useState([]);
   const payeeEmails = (payees || [])
     .map((person) => person?.clientEmail)
     .filter(Boolean);
@@ -164,6 +166,11 @@ export const ProgramSummary = ({
     isOpen: modalIsOpen,
     onOpen: modalOnOpen,
     onClose: modalOnClose,
+  } = useDisclosure();
+  const {
+    isOpen: cancelAllModalIsOpen,
+    onOpen: cancelAllModalOnOpen,
+    onClose: cancelAllModalOnClose,
   } = useDisclosure();
 
   const displayNames = instructors
@@ -255,6 +262,12 @@ export const ProgramSummary = ({
   const handleDeactivate = () => {
     setProgramToDelete(program[0]?.id);
     onOpen();
+  };
+
+  const handleCancelAll = () => {
+    const nonArchived = (sessions || []).filter((s) => !s.archived);
+    setCancelAllSessions(nonArchived);
+    cancelAllModalOnOpen();
   };
 
   const handleArchive = async () => {
@@ -448,6 +461,7 @@ export const ProgramSummary = ({
                   <EditCancelPopup
                     handleEdit={handleEdit}
                     handleDeactivate={handleDeactivate}
+                    handleCancelAll={handleCancelAll}
                     id={program[0].id}
                   />
                 ) : (
@@ -510,6 +524,16 @@ export const ProgramSummary = ({
                 </Modal>
               </Flex>
             </Flex>
+
+            <CancelSessionModal
+              isOpen={cancelAllModalIsOpen}
+              onClose={cancelAllModalOnClose}
+              selectedSessions={cancelAllSessions}
+              setSelectedSessions={setCancelAllSessions}
+              onConfirm={() => {}}
+              eventType="Sessions"
+              refreshSessions={refreshSessions || (() => {})}
+            />
 
             <Stack
               spacing={6}

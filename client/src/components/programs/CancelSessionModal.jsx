@@ -264,9 +264,9 @@ export const CancelSessionModal = ({
                     {selectedSessions
                       .slice()
                       .sort((a, b) => {
-                        const aIsPast = isPastDeadline(a.date);
-                        const bIsPast = isPastDeadline(b.date);
-                        return bIsPast - aIsPast;
+                        const dateA = parseSessionDate(a.date)?.getTime() ?? 0;
+                        const dateB = parseSessionDate(b.date)?.getTime() ?? 0;
+                        return dateA - dateB;
                       })
                       .map((session) => {
                         const pastDeadline = isPastDeadline(session.date);
