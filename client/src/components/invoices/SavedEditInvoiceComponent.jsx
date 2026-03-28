@@ -661,7 +661,7 @@ const SavedStatementComments = ({
                             key={`text-${session.id || "unknown"}-${index}-${textIndex}`}
                           >
                             <Td
-                              colSpan={6}
+                              colSpan={7}
                               pl={4}
                               color="gray.600"
                               py={compactView ? 2 : 6}
@@ -698,7 +698,7 @@ const SavedStatementComments = ({
                                 })()}
                             </Td>
                             <Td
-                              colSpan={4}
+                              colSpan={5}
                               fontSize={compactView ? "6" : "sm"}
                               py={compactView ? "0" : "6"}
                             >
@@ -745,7 +745,7 @@ const SavedStatementComments = ({
               <Tr py={compactView ? 0 : 4}>
                 <Td
                   textAlign="right"
-                  colSpan={5}
+                  colSpan={6}
                   fontWeight="bold"
                   fontSize={compactView ? "6.38" : "sm"}
                 >

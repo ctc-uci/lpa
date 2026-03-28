@@ -1065,7 +1065,7 @@ const StatementComments = ({
                                 `${index}-${commentIndex}` ? (
                                 <Tr key={`comment-edit-${comment?.id ?? commentIndex}`}>
                                   <Td
-                                    colSpan={6}
+                                    colSpan={7}
                                     py={2}
                                   >
                                     <Input
@@ -1101,7 +1101,7 @@ const StatementComments = ({
                               ) : (
                                 <Tr key={`comment-view-${comment?.id ?? commentIndex}`}>
                                   <Td
-                                    colSpan={6}
+                                    colSpan={7}
                                     py={2}
                                     textAlign="left"
                                     fontSize="sm"
@@ -1158,7 +1158,7 @@ const StatementComments = ({
                           {activeCommentId === index && (
                             <Tr key={`new-comment-row-${sessionKey}`}>
                               <Td
-                                colSpan={6}
+                                colSpan={7}
                                 py={2}
                               >
                                 <Flex alignItems="center" gap={4}>
@@ -1204,7 +1204,7 @@ const StatementComments = ({
                               return (
                                 <Tr key={`total-edit-${total?.id ?? totalIndex}`} ref={editRowRef}>
                                   <Td
-                                    colSpan={6}
+                                    colSpan={7}
                                     py={2}
                                   >
                                     <Flex
@@ -1308,7 +1308,7 @@ const StatementComments = ({
                                     })()}
                                   </Td>
                                   <Td
-                                    colSpan={4}
+                                    colSpan={5}
                                   >
                                     {session.total[totalIndex]?.comment}
                                   </Td>
@@ -1357,7 +1357,7 @@ const StatementComments = ({
                 ) : (
                   <Tr py="4">
                     <Td
-                      colSpan={6}
+                      colSpan={7}
                       textAlign="center"
                       fontSize={compactView && "8.509px"}
                     >
