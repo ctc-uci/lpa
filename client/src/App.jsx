@@ -96,15 +96,15 @@ const App = () => {
                   path="/resetpassword/success"
                   element={<ResetPasswordSuccess />}
                 />
-                <Route
+                {/* <Route
                   path="/dashboard"
                   element={<ProtectedRoute element={<Dashboard />} />}
-                />
+                /> */}
 
-                <Route
+                {/* <Route
                   path="/playground"
                   element={<Playground />}
-                />
+                /> */}
 
                 {/* ADMIN ONLY oh my goodness! */}
                 <Route
@@ -273,7 +273,7 @@ const App = () => {
                     />
                   }
                 />
-
+{/* 
                 <Route
                   path="/pdftest"
                   element={
@@ -281,7 +281,7 @@ const App = () => {
                       element={<TestPDFViewer id={45} />}
                     />
                   }
-                />
+                /> */}
               </Routes>
             </Router>
           </RoleProvider>
