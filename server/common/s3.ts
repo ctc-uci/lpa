@@ -58,7 +58,6 @@ const uploadPDF = async (file: Buffer) => {
   if (response.ok) {
     // The URL where your PDF is now accessible (remove the query parameters)
     fileURL = uploadURL.split('?')[0] || "";
-    console.log('PDF uploaded successfully to:', fileURL);
   } else {
     console.error('Failed to upload PDF:', response.statusText);
     throw new Error('Failed to upload PDF');
