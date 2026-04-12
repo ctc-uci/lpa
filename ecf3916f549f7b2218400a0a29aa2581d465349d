@@ -1,0 +1,27 @@
+client/package.json
+  4619b32c820f3910 24,27
+server/package.json
+  4619b32c820f3910 29
+package.json
+  4619b32c820f3910 43-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "ecf3916f549f7b2218400a0a29aa2581d465349d",
+  "prompts": {
+    "4619b32c820f3910": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d3a3b0a-ec34-416a-9209-62e715e6d217",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu",
+      "messages": [],
+      "total_additions": 80,
+      "total_deletions": 77,
+      "accepted_lines": 30,
+      "overriden_lines": 0
+    }
+  }
+}
