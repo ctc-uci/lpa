@@ -2,7 +2,8 @@
 
 import crypto from "crypto";
 
-import aws from "aws-sdk";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const region =
   process.env.NODE_ENV === "development"
@@ -18,11 +19,12 @@ const secretAccessKey =
     : process.env.PROD_S3_SECRET_ACCESS_KEY;
 
 // initialize a S3 instance
-const s3 = new aws.S3({
+const s3 = new S3Client({
   region,
-  accessKeyId,
-  secretAccessKey,
-  signatureVersion: "v4",
+  credentials: {
+    accessKeyId: accessKeyId!,
+    secretAccessKey: secretAccessKey!,
+  },
 });
 
 const getS3UploadURL = async () => {
@@ -30,14 +32,13 @@ const getS3UploadURL = async () => {
   const fileName = crypto.randomBytes(16).toString("hex");
 
   // set up s3 params
-  const params = {
+  const command = new PutObjectCommand({
     Bucket: process.env.S3_BUCKET_NAME,
     Key: fileName,
-    Expires: 60,
-  };
+  });
 
   // get a s3 upload url
-  const uploadURL = s3.getSignedUrl("putObject", params);
+  const uploadURL = await getSignedUrl(s3, command, { expiresIn: 60 });
 
   return uploadURL;
 };
