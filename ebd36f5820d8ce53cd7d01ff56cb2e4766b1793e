@@ -1,0 +1,33 @@
+package.json
+  4619b32c820f3910 45
+.gitignore
+  4619b32c820f3910 8-10
+server/package.json
+  4619b32c820f3910 19-21,32
+client/patches/@firebase+auth+1.13.0.patch
+  4619b32c820f3910 1-34
+client/package.json
+  4619b32c820f3910 27,48,56
+server/common/s3.ts
+  4619b32c820f3910 5-6,22,24-27,35,38,41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "ebd36f5820d8ce53cd7d01ff56cb2e4766b1793e",
+  "prompts": {
+    "4619b32c820f3910": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d3a3b0a-ec34-416a-9209-62e715e6d217",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu",
+      "messages": [],
+      "total_additions": 117,
+      "total_deletions": 64,
+      "accepted_lines": 82,
+      "overriden_lines": 0
+    }
+  }
+}
