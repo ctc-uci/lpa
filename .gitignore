@@ -21,6 +21,9 @@ build/
 dist/
 dist-ssr
 
+## TypeScript incremental build cache
+*.tsbuildinfo
+
 ## CDK output.
 cdk.out/
 

@@ -1641,11 +1641,6 @@
   resolved "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.27.7.tgz"
   integrity sha512-5lckdqeuBPlKUwvoCXIgI2D9/ABmPq3Rdp7IfL70393YgaASt7tbju3Ac+ePVi3KDH6N2RqePfHnXkaDtY9fkw==
 
-"@esbuild/darwin-arm64@0.28.0":
-  version "0.28.0"
-  resolved "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.28.0.tgz"
-  integrity sha512-0T+A9WZm+bZ84nZBtk1ckYsOvyA3x7e2Acj1KdVfV4/2tdG4fzUp91YHx+GArWLtwqp77pBXVCPn2We7Letr0Q==
-
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.4.0":
   version "4.4.0"
   resolved "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz"
@@ -1797,12 +1792,12 @@
     "@firebase/util" "1.15.0"
     tslib "^2.1.0"
 
-"@firebase/app-types@0.9.2", "@firebase/app-types@0.x":
+"@firebase/app-types@0.9.2":
   version "0.9.2"
   resolved "https://registry.npmjs.org/@firebase/app-types/-/app-types-0.9.2.tgz"
   integrity sha512-oMEZ1TDlBz479lmABwWsWjzHwheQKiAgnuKxE0pz0IXCVx7/rtlkx1fQ6GfgK24WCrxDKMplZrT50Kh04iMbXQ==
 
-"@firebase/app-types@0.9.4":
+"@firebase/app-types@0.9.4", "@firebase/app-types@0.x":
   version "0.9.4"
   resolved "https://registry.npmjs.org/@firebase/app-types/-/app-types-0.9.4.tgz"
   integrity sha512-crX9TA5SVYZwLPG7/R16IsH8FLlgkPXjJUVhsVpHVDSqJiq3D/NuFTM5ctxGTExXAOeIn//69tQw47CPerM8MQ==
@@ -2155,14 +2150,14 @@
     "@firebase/util" "1.15.0"
     tslib "^2.1.0"
 
-"@firebase/util@1.10.0", "@firebase/util@1.x":
+"@firebase/util@1.10.0":
   version "1.10.0"
   resolved "https://registry.npmjs.org/@firebase/util/-/util-1.10.0.tgz"
   integrity sha512-xKtx4A668icQqoANRxyDLBLz51TAbDP9KRfpbKGxiCAW346d0BeJe5vN6/hKxxmWwnZ0mautyv39JxviwwQMOQ==
   dependencies:
     tslib "^2.1.0"
 
-"@firebase/util@1.15.0":
+"@firebase/util@1.15.0", "@firebase/util@1.x":
   version "1.15.0"
   resolved "https://registry.npmjs.org/@firebase/util/-/util-1.15.0.tgz"
   integrity sha512-AmWf3cHAOMbrCPG4xdPKQaj5iHnyYfyLKZxwz+Xf55bqKbpAmcYifB4jQinT2W9XhDRHISOoPyBOariJpCG6FA==
@@ -2240,7 +2235,17 @@
     "@grpc/proto-loader" "^0.7.8"
     "@types/node" ">=12.12.47"
 
-"@grpc/proto-loader@^0.7.13", "@grpc/proto-loader@^0.7.8":
+"@grpc/proto-loader@^0.7.13":
+  version "0.7.13"
+  resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.7.13.tgz"
+  integrity sha512-AiXO/bfe9bmxBjxxtYxFAXGZvMaN5s8kO+jBHAJCON8rJoB5YS/D6X7ZNc6XQkuHNmyl4CYaMI1fJ/Gn27RGGw==
+  dependencies:
+    lodash.camelcase "^4.3.0"
+    long "^5.0.0"
+    protobufjs "^7.2.5"
+    yargs "^17.7.2"
+
+"@grpc/proto-loader@^0.7.8":
   version "0.7.13"
   resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.7.13.tgz"
   integrity sha512-AiXO/bfe9bmxBjxxtYxFAXGZvMaN5s8kO+jBHAJCON8rJoB5YS/D6X7ZNc6XQkuHNmyl4CYaMI1fJ/Gn27RGGw==
@@ -2322,6 +2327,12 @@
   integrity sha512-y+x3H1xBZd38n10NZF/rEBlvDOOMQ6LKUTHqr8R9VkJ+mmQOYtJFxIlkkK8fZrtOiL6VixbOBWMbZGBdal3Z1g==
   dependencies:
     sparse-bitfield "^3.0.3"
+
+"@noble/ciphers@^1.0.0":
+  version "1.3.0"
+
+"@noble/hashes@^1.6.0":
+  version "1.8.0"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -2681,14 +2692,14 @@
   resolved "https://registry.npmjs.org/@react-email/text/-/text-0.0.11.tgz"
   integrity sha512-a7nl/2KLpRHOYx75YbYZpWspUbX1DFY7JIZbOv5x0QU8SvwDbJt+Hm01vG34PffFyYvHEXrc6Qnip2RTjljNjg==
 
-"@react-pdf/fns@3.1.2":
-  version "3.1.2"
+"@react-pdf/fns@3.1.3":
+  version "3.1.3"
 
-"@react-pdf/font@^4.0.4":
-  version "4.0.4"
+"@react-pdf/font@^4.0.6":
+  version "4.0.6"
   dependencies:
-    "@react-pdf/pdfkit" "^4.1.0"
-    "@react-pdf/types" "^2.9.2"
+    "@react-pdf/pdfkit" "^5.0.0"
+    "@react-pdf/types" "^2.10.0"
     fontkit "^2.0.2"
     is-url "^1.2.4"
 
@@ -2698,28 +2709,30 @@
     "@react-pdf/png-js" "^3.0.0"
     jay-peg "^1.1.1"
 
-"@react-pdf/layout@^4.4.2":
-  version "4.4.2"
+"@react-pdf/layout@^4.5.1":
+  version "4.5.1"
   dependencies:
-    "@react-pdf/fns" "3.1.2"
+    "@react-pdf/fns" "3.1.3"
     "@react-pdf/image" "^3.0.4"
-    "@react-pdf/primitives" "^4.1.1"
-    "@react-pdf/stylesheet" "^6.1.2"
-    "@react-pdf/textkit" "^6.1.0"
-    "@react-pdf/types" "^2.9.2"
+    "@react-pdf/primitives" "^4.2.0"
+    "@react-pdf/stylesheet" "^6.1.4"
+    "@react-pdf/textkit" "^6.2.0"
+    "@react-pdf/types" "^2.10.0"
     emoji-regex-xs "^1.0.0"
     queue "^6.0.1"
     yoga-layout "^3.2.1"
 
-"@react-pdf/pdfkit@^4.1.0":
-  version "4.1.0"
+"@react-pdf/pdfkit@^5.0.0":
+  version "5.0.0"
   dependencies:
     "@babel/runtime" "^7.20.13"
+    "@noble/ciphers" "^1.0.0"
+    "@noble/hashes" "^1.6.0"
     "@react-pdf/png-js" "^3.0.0"
     browserify-zlib "^0.2.0"
-    crypto-js "^4.2.0"
     fontkit "^2.0.2"
     jay-peg "^1.1.1"
+    js-md5 "^0.8.3"
     linebreak "^1.1.0"
     vite-compatible-readable-stream "^3.6.1"
 
@@ -2728,8 +2741,8 @@
   dependencies:
     browserify-zlib "^0.2.0"
 
-"@react-pdf/primitives@^4.1.1":
-  version "4.1.1"
+"@react-pdf/primitives@^4.2.0":
+  version "4.2.0"
 
 "@react-pdf/reconciler@^2.0.0":
   version "2.0.0"
@@ -2737,14 +2750,14 @@
     object-assign "^4.1.1"
     scheduler "0.25.0-rc-603e6108-20241029"
 
-"@react-pdf/render@^4.3.2":
-  version "4.3.2"
+"@react-pdf/render@^4.4.1":
+  version "4.4.1"
   dependencies:
     "@babel/runtime" "^7.20.13"
-    "@react-pdf/fns" "3.1.2"
-    "@react-pdf/primitives" "^4.1.1"
-    "@react-pdf/textkit" "^6.1.0"
-    "@react-pdf/types" "^2.9.2"
+    "@react-pdf/fns" "3.1.3"
+    "@react-pdf/primitives" "^4.2.0"
+    "@react-pdf/textkit" "^6.2.0"
+    "@react-pdf/types" "^2.10.0"
     abs-svg-path "^0.1.1"
     color-string "^1.9.1"
     normalize-svg-path "^1.1.0"
@@ -2752,46 +2765,46 @@
     svg-arc-to-cubic-bezier "^3.2.0"
 
 "@react-pdf/renderer@^4.1.6":
-  version "4.3.2"
+  version "4.4.1"
   dependencies:
     "@babel/runtime" "^7.20.13"
-    "@react-pdf/fns" "3.1.2"
-    "@react-pdf/font" "^4.0.4"
-    "@react-pdf/layout" "^4.4.2"
-    "@react-pdf/pdfkit" "^4.1.0"
-    "@react-pdf/primitives" "^4.1.1"
+    "@react-pdf/fns" "3.1.3"
+    "@react-pdf/font" "^4.0.6"
+    "@react-pdf/layout" "^4.5.1"
+    "@react-pdf/pdfkit" "^5.0.0"
+    "@react-pdf/primitives" "^4.2.0"
     "@react-pdf/reconciler" "^2.0.0"
-    "@react-pdf/render" "^4.3.2"
-    "@react-pdf/types" "^2.9.2"
+    "@react-pdf/render" "^4.4.1"
+    "@react-pdf/types" "^2.10.0"
     events "^3.3.0"
     object-assign "^4.1.1"
     prop-types "^15.6.2"
     queue "^6.0.1"
 
-"@react-pdf/stylesheet@^6.1.2":
-  version "6.1.2"
+"@react-pdf/stylesheet@^6.1.4":
+  version "6.1.4"
   dependencies:
-    "@react-pdf/fns" "3.1.2"
-    "@react-pdf/types" "^2.9.2"
+    "@react-pdf/fns" "3.1.3"
+    "@react-pdf/types" "^2.10.0"
     color-string "^1.9.1"
     hsl-to-hex "^1.0.0"
     media-engine "^1.0.3"
     postcss-value-parser "^4.1.0"
 
-"@react-pdf/textkit@^6.1.0":
-  version "6.1.0"
+"@react-pdf/textkit@^6.2.0":
+  version "6.2.0"
   dependencies:
-    "@react-pdf/fns" "3.1.2"
+    "@react-pdf/fns" "3.1.3"
     bidi-js "^1.0.2"
     hyphen "^1.6.4"
     unicode-properties "^1.4.1"
 
-"@react-pdf/types@^2.9.2":
-  version "2.9.2"
+"@react-pdf/types@^2.10.0":
+  version "2.10.0"
   dependencies:
-    "@react-pdf/font" "^4.0.4"
-    "@react-pdf/primitives" "^4.1.1"
-    "@react-pdf/stylesheet" "^6.1.2"
+    "@react-pdf/font" "^4.0.6"
+    "@react-pdf/primitives" "^4.2.0"
+    "@react-pdf/stylesheet" "^6.1.4"
 
 "@remix-run/router@1.23.2":
   version "1.23.2"
@@ -3314,7 +3327,7 @@
     tslib "^2.6.2"
 
 "@swc/helpers@^0.5.12":
-  version "0.5.18"
+  version "0.5.21"
   dependencies:
     tslib "^2.8.0"
 
@@ -4253,9 +4266,6 @@ cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-crypto-js@^4.2.0:
-  version "4.2.0"
-
 css-box-model@1.2.1:
   version "1.2.1"
   resolved "https://registry.npmjs.org/css-box-model/-/css-box-model-1.2.1.tgz"
@@ -4481,39 +4491,7 @@ es-set-tostringtag@^2.1.0:
     has-tostringtag "^1.0.2"
     hasown "^2.0.2"
 
-"esbuild@^0.27.0 || ^0.28.0":
-  version "0.28.0"
-  resolved "https://registry.npmjs.org/esbuild/-/esbuild-0.28.0.tgz"
-  integrity sha512-sNR9MHpXSUV/XB4zmsFKN+QgVG82Cc7+/aaxJ8Adi8hyOac+EXptIp45QBPaVyX3N70664wRbTcLTOemCAnyqw==
-  optionalDependencies:
-    "@esbuild/aix-ppc64" "0.28.0"
-    "@esbuild/android-arm" "0.28.0"
-    "@esbuild/android-arm64" "0.28.0"
-    "@esbuild/android-x64" "0.28.0"
-    "@esbuild/darwin-arm64" "0.28.0"
-    "@esbuild/darwin-x64" "0.28.0"
-    "@esbuild/freebsd-arm64" "0.28.0"
-    "@esbuild/freebsd-x64" "0.28.0"
-    "@esbuild/linux-arm" "0.28.0"
-    "@esbuild/linux-arm64" "0.28.0"
-    "@esbuild/linux-ia32" "0.28.0"
-    "@esbuild/linux-loong64" "0.28.0"
-    "@esbuild/linux-mips64el" "0.28.0"
-    "@esbuild/linux-ppc64" "0.28.0"
-    "@esbuild/linux-riscv64" "0.28.0"
-    "@esbuild/linux-s390x" "0.28.0"
-    "@esbuild/linux-x64" "0.28.0"
-    "@esbuild/netbsd-arm64" "0.28.0"
-    "@esbuild/netbsd-x64" "0.28.0"
-    "@esbuild/openbsd-arm64" "0.28.0"
-    "@esbuild/openbsd-x64" "0.28.0"
-    "@esbuild/openharmony-arm64" "0.28.0"
-    "@esbuild/sunos-x64" "0.28.0"
-    "@esbuild/win32-arm64" "0.28.0"
-    "@esbuild/win32-ia32" "0.28.0"
-    "@esbuild/win32-x64" "0.28.0"
-
-esbuild@~0.27.0:
+"esbuild@^0.27.0 || ^0.28.0", esbuild@~0.27.0:
   version "0.27.7"
   resolved "https://registry.npmjs.org/esbuild/-/esbuild-0.27.7.tgz"
   integrity sha512-IxpibTjyVnmrIQo5aqNpCgoACA/dTKLTlhMHihVHhdkxKyPO1uBBthumT0rdHmcsk9uMonIWS0m4FljWzILh3w==
@@ -5111,16 +5089,6 @@ functional-red-black-tree@^1.0.1:
 gapi-script@^1.2.0:
   version "1.2.0"
 
-gaxios@^5.0.0:
-  version "5.1.3"
-  resolved "https://registry.npmjs.org/gaxios/-/gaxios-5.1.3.tgz"
-  integrity sha512-95hVgBRgEIRQQQHIbnxBXeHbW4TqFk4ZDJW7wmVtvYar72FdhRIo1UGOLS2eRAKCPEdPBWu+M7+A33D9CdX9rA==
-  dependencies:
-    extend "^3.0.2"
-    https-proxy-agent "^5.0.0"
-    is-stream "^2.0.0"
-    node-fetch "^2.6.9"
-
 gaxios@^6.0.0, gaxios@^6.0.2, gaxios@^6.1.1:
   version "6.7.1"
   resolved "https://registry.npmjs.org/gaxios/-/gaxios-6.7.1.tgz"
@@ -5132,15 +5100,7 @@ gaxios@^6.0.0, gaxios@^6.0.2, gaxios@^6.1.1:
     node-fetch "^2.6.9"
     uuid "^9.0.1"
 
-gcp-metadata@^5.2.0:
-  version "5.3.0"
-  resolved "https://registry.npmjs.org/gcp-metadata/-/gcp-metadata-5.3.0.tgz"
-  integrity sha512-FNTkdNEnBdlqF2oatizolQqNANMrcqJt6AAYt99B3y1aLLC8Hc5IOBb+ZnnzllodEEf6xMBp6wRcBbc16fa65w==
-  dependencies:
-    gaxios "^5.0.0"
-    json-bigint "^1.0.0"
-
-gcp-metadata@^6.1.0:
+gcp-metadata@^5.2.0, gcp-metadata@^6.1.0:
   version "6.1.0"
   resolved "https://registry.npmjs.org/gcp-metadata/-/gcp-metadata-6.1.0.tgz"
   integrity sha512-Jh/AIwwgaxan+7ZUUmRLCjtchyDiqh4KjBJ5tW3plBZb5iL/BPcso8A5DlzeD9qlw0duCamnNdpFjxwaT0KyKg==
@@ -5589,6 +5549,9 @@ jose@^4.14.6:
   version "4.15.9"
   resolved "https://registry.npmjs.org/jose/-/jose-4.15.9.tgz"
   integrity sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==
+
+js-md5@^0.8.3:
+  version "0.8.3"
 
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
@@ -7322,14 +7285,7 @@ supports-color@^7.1.0:
   dependencies:
     has-flag "^4.0.0"
 
-supports-color@^8.1.1:
-  version "8.1.1"
-  resolved "https://registry.npmjs.org/supports-color/-/supports-color-8.1.1.tgz"
-  integrity sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==
-  dependencies:
-    has-flag "^4.0.0"
-
-supports-color@8.1.1:
+supports-color@^8.1.1, supports-color@8.1.1:
   version "8.1.1"
   resolved "https://registry.npmjs.org/supports-color/-/supports-color-8.1.1.tgz"
   integrity sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==
@@ -7492,10 +7448,10 @@ typescript-eslint@^8.0.0, typescript-eslint@^8.1.0:
     "@typescript-eslint/parser" "8.1.0"
     "@typescript-eslint/utils" "8.1.0"
 
-typescript@^5.5.3:
-  version "5.5.4"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-5.5.4.tgz"
-  integrity sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==
+typescript@^5.9.3:
+  version "5.9.3"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz"
+  integrity sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==
 
 typescript@>=4.2.0, typescript@5.5.3:
   version "5.5.3"
@@ -7769,4 +7725,4 @@ zod@^3.23.8:
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
 
 zustand@^5.0.7:
-  version "5.0.11"
+  version "5.0.12"
