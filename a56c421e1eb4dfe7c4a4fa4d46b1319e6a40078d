@@ -1,0 +1,27 @@
+.github/workflows/client-dev-CD.yml
+  4619b32c820f3910 31-32
+.github/workflows/client-prod-CD.yml
+  4619b32c820f3910 31-32
+.github/workflows/run-checks.yml
+  4619b32c820f3910 16,19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "a56c421e1eb4dfe7c4a4fa4d46b1319e6a40078d",
+  "prompts": {
+    "4619b32c820f3910": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d3a3b0a-ec34-416a-9209-62e715e6d217",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu",
+      "messages": [],
+      "total_additions": 6,
+      "total_deletions": 2,
+      "accepted_lines": 40,
+      "overriden_lines": 0
+    }
+  }
+}
