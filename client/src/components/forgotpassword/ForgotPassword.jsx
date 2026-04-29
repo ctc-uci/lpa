@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import {
   Box,
   Button,
@@ -30,9 +32,16 @@ const forgotPasswordSchema = z.object({
 
 export const ForgotPassword = () => {
   const navigate = useNavigate();
-  const { resetPassword } = useAuthContext();
+  const { resetPassword, currentUser } = useAuthContext();
   const { backend } = useBackendContext();
   const toast = useToast();
+
+  useEffect(() => {
+    const expiration = localStorage.getItem("loginExpiration");
+    if (currentUser && expiration && new Date(expiration) > new Date()) {
+      navigate("/programs", { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   const {
     register,

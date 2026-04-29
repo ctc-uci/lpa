@@ -50,8 +50,15 @@ const signupSchema = z
 export const Signup = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const { signup, handleRedirectResult } = useAuthContext();
+  const { signup, handleRedirectResult, currentUser } = useAuthContext();
   const { backend } = useBackendContext();
+
+  useEffect(() => {
+    const expiration = localStorage.getItem("loginExpiration");
+    if (currentUser && expiration && new Date(expiration) > new Date()) {
+      navigate("/programs", { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [emailInUseError, setEmailInUseError] = useState("");

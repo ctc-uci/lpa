@@ -37,8 +37,15 @@ export const Login = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const { login } = useAuthContext();
+  const { login, currentUser } = useAuthContext();
   const { backend, user } = useBackendContext();
+
+  useEffect(() => {
+    const expiration = localStorage.getItem("loginExpiration");
+    if (currentUser && expiration && new Date(expiration) > new Date()) {
+      navigate("/programs", { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [credentialsError, setCredentialsError] = useState(false);

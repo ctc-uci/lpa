@@ -1,12 +1,27 @@
+import { useEffect } from "react";
+
 import { Box, Button, Heading, Text, VStack } from "@chakra-ui/react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import logo from "../../assets/logo/logo.png";
+import { useAuthContext } from "../../contexts/hooks/useAuthContext";
+import { useRoleContext } from "../../contexts/hooks/useRoleContext";
 
 import "./SignupRequested.css";
 
 export const SignupRequested = () => {
+  const navigate = useNavigate();
+  const { currentUser } = useAuthContext();
+  const { editPerms } = useRoleContext();
+
+  useEffect(() => {
+    const expiration = localStorage.getItem("loginExpiration");
+    if (currentUser && editPerms && expiration && new Date(expiration) > new Date()) {
+      navigate("/programs", { replace: true });
+    }
+  }, [currentUser, editPerms, navigate]);
+
   return (
     <div className="entry-page">
       <VStack

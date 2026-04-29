@@ -21,14 +21,15 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
 
   const [role, setRole] = useState<DbUserRole | undefined>();
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [editPerms, setEditPerms] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      setLoading(true);
       try {
         if (user) {
           const response = await backend.get(`/users/${user.uid}`);
-
 
           setRole((response.data as User[]).at(0)?.role);
           setEditPerms((response.data as User[]).at(0)?.editPerms ?? false);
@@ -42,6 +43,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         setEditPerms(false);
       } finally {
         setLoading(false);
+        setInitialLoad(false);
       }
     });
 
@@ -50,7 +52,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <RoleContext.Provider value={{ role, loading, editPerms }}>
-      {loading ? <Spinner /> : children}
+      {initialLoad ? <Spinner /> : children}
     </RoleContext.Provider>
   );
 };
