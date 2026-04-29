@@ -3,6 +3,7 @@ import multer from 'multer';
 const upload = multer({ storage: multer.memoryStorage() });
 
 import { transporter, emailSender } from "../common/transporter";
+import { db } from "../db/db-pgp";
 
 const emailRouter = Router();
 emailRouter.use(express.json());
@@ -30,18 +31,32 @@ async function sendEmail(to, subject, text, html, cc, bcc, attachments ) {
     return info;
 }
 
-emailRouter.post("/send", upload.single('pdfFile'), async (req, res) => {
+emailRouter.post("/send", upload.fields([{ name: "pdfFile" }, { name: "logoFile" }]), async (req, res) => {
   try {
     const to = req.body.to;
     const cc = req.body.cc ? req.body.cc : [];
     const bcc = req.body.bcc ? req.body.bcc : [];
     const { subject, text, html } = req.body;
 
-    const attachments = req.file ? [{
-      filename: req.file.originalname,
-      content: req.file.buffer,
-      contentType: 'application/pdf'
-    }] : [];
+    const pdfFile = req.files?.["pdfFile"]?.[0];
+    const logoFile = req.files?.["logoFile"]?.[0];
+
+    const attachments = [];
+    if (pdfFile) {
+      attachments.push({
+        filename: pdfFile.originalname,
+        content: pdfFile.buffer,
+        contentType: "application/pdf",
+      });
+    }
+    if (logoFile) {
+      attachments.push({
+        filename: "logo.png",
+        content: logoFile.buffer,
+        contentType: "image/png",
+        cid: "lapena-logo",
+      });
+    }
 
     const info = await sendEmail(to, subject, text, html, cc, bcc, attachments);
 
@@ -52,5 +67,32 @@ emailRouter.post("/send", upload.single('pdfFile'), async (req, res) => {
   }
 });
 
+
+emailRouter.get("/template", async (req, res) => {
+  try {
+    const template = await db.oneOrNone(`SELECT body FROM email_templates ORDER BY id LIMIT 1`);
+    res.status(200).json({ body: template ? template.body : "" });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+emailRouter.put("/template", async (req, res) => {
+  try {
+    const { body } = req.body;
+    if (!body && body !== "") {
+      return res.status(400).json({ error: "body is required" });
+    }
+    const existing = await db.oneOrNone(`SELECT id FROM email_templates ORDER BY id LIMIT 1`);
+    if (existing) {
+      await db.none(`UPDATE email_templates SET body = $1 WHERE id = $2`, [body, existing.id]);
+    } else {
+      await db.none(`INSERT INTO email_templates (body) VALUES ($1)`, [body]);
+    }
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
 export { emailRouter };

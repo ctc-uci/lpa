@@ -1,5 +1,6 @@
 import { pdf } from "@react-pdf/renderer";
 
+import logo from "../../assets/logo/logo.png";
 import { getPastDue } from "../../utils/pastDueCalc";
 import { InvoicePDFDocument } from "../invoices/InvoicePDFDocument.jsx";
 
@@ -69,6 +70,11 @@ export const sendEmail = async (
     if (blob) {
       const formData = new FormData();
       formData.append("pdfFile", blob, `${pdf_title}.pdf`);
+
+      const logoResponse = await fetch(logo);
+      const logoBlob = await logoResponse.blob();
+      formData.append("logoFile", logoBlob, "logo.png");
+
       const toString = Array.isArray(emails)
         ? emails.filter(Boolean).join(",")
         : emails || "";
@@ -82,7 +88,7 @@ export const sendEmail = async (
       formData.append("to", toString);
       formData.append("subject", title);
       formData.append("text", message);
-      formData.append("html", `<p>${message.replace(/\n/g, "<br />")}</p>`);
+      formData.append("html", `<p>${message.replace(/\n/g, "<br />")}</p><br /><img src="cid:lapena-logo" width="100" />`);
       formData.append("cc", ccString);
       formData.append("bcc", bccString);
 

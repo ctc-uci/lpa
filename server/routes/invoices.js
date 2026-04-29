@@ -560,8 +560,9 @@ invoicesRouter.put("/:id", async (req, res) => {
            start_date = COALESCE($2, start_date),
            end_date = COALESCE($3, end_date),
            is_sent = COALESCE($4, is_sent),
-           payment_status = COALESCE($5, payment_status)
-         WHERE id = $6
+           payment_status = COALESCE($5, payment_status),
+           custom_message = COALESCE($6, custom_message)
+         WHERE id = $7
          RETURNING *`,
       [
         invoiceData.eventId,
@@ -569,6 +570,7 @@ invoicesRouter.put("/:id", async (req, res) => {
         invoiceData.endDate,
         invoiceData.isSent,
         invoiceData.paymentStatus,
+        invoiceData.customMessage ?? null,
         id,
       ]
     );

@@ -20,10 +20,12 @@ import {
   TagCloseButton,
   TagLabel,
   Text,
+  Textarea,
 } from "@chakra-ui/react";
 
 import { useParams } from "react-router-dom";
 
+import { EditIcon } from "../../assets/EditIcon.jsx";
 import { EnvelopeIcon } from "../../assets/EnvelopeIcon.jsx";
 import IoPaperPlane from "../../assets/IoPaperPlane.svg";
 import logo from "../../assets/logo/logo.png";
@@ -75,6 +77,8 @@ export const EmailSidebar = ({
   const [allUsers, SetAllUsers] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [messageBody, setMessageBody] = useState("");
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
 
   const btnRef = useRef();
 
@@ -365,19 +369,47 @@ export const EmailSidebar = ({
     return regex.test(email);
   };
 
-  const message = `Hello,
+  useEffect(() => {
+    if (!isDrawerOpen) {
+      setIsEditingMessage(false);
+      return;
+    }
+    const customMsg = invoice?.data?.[0]?.customMessage;
+    if (customMsg) {
+      setMessageBody(customMsg);
+    } else {
+      backend
+        .get("/email/template")
+        .then((res) => setMessageBody(res.data.body))
+        .catch((err) => console.error("Failed to fetch email template:", err));
+    }
+  }, [isDrawerOpen]);
 
-    This is a friendly reminder regarding your upcoming payment. Please ensure that all the necessary details have been updated in our records for timely processing. If there are any changes or concerns regarding the payment, please don't hesitate to reach out to us.
+  const handleResetToDefault = async () => {
+    try {
+      await backend.put("/email/template", { body: messageBody });
+    } catch (err) {
+      console.error("Failed to save default template:", err);
+    }
+  };
 
-    Thank you for your cooperation. We truly appreciate your partnership. Should you have any questions or require further assistance, feel free to contact us.
+  const handleRevertToDefault = async () => {
+    try {
+      const res = await backend.get("/email/template");
+      setMessageBody(res.data.body);
+    } catch (err) {
+      console.error("Failed to fetch default template:", err);
+    }
+  };
 
-    Best Regards,
-
-    La Peña Team
-    classes@lapena.com
-    La Peña Cultural Center
-    3105 Shattuck Ave., Berkeley, CA 94705
-    lapena.org`;
+  const handleDoneEditing = async () => {
+    try {
+      await backend.put(`/invoices/${id}`, { customMessage: messageBody });
+    } catch (err) {
+      console.error("Failed to save invoice message:", err);
+    }
+    setIsEditingMessage(false);
+  };
 
   const handleSubtotalSum = (startTime, endTime, rate) => {
     if (!startTime || !endTime || !rate) return "0.00"; // Check if any required value is missing
@@ -468,6 +500,8 @@ export const EmailSidebar = ({
         ? selectedBcc.map((user) => user?.email).filter(Boolean)
         : [];
 
+      await backend.put(`/invoices/${id}`, { customMessage: messageBody });
+
       await sendSaveEmail(
         setLoading,
         setisConfirmModalOpen,
@@ -476,7 +510,7 @@ export const EmailSidebar = ({
         sessions,
         toEmails,
         title,
-        message,
+        messageBody,
         ccToEmails,
         bccToEmails,
         backend,
@@ -842,14 +876,69 @@ export const EmailSidebar = ({
             <Divider color="#E2E8F0" />
 
             <Stack mt="10">
-              <Text whiteSpace="pre-line">
-                {message}
-                <Image
-                  src={logo}
-                  w="100px"
-                  mt="4"
-                />
-              </Text>
+              {isEditingMessage ? (
+                <>
+                  <Textarea
+                    value={messageBody}
+                    onChange={(e) => setMessageBody(e.target.value)}
+                    minH="400px"
+                    resize="vertical"
+                    borderColor="#E2E8F0"
+                    _focus={{ borderColor: "#4441C8", boxShadow: "none" }}
+                  />
+                  <Flex
+                    justify="space-between"
+                    mt="1"
+                  >
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      color="#718096"
+                      onClick={handleRevertToDefault}
+                    >
+                      Revert to default
+                    </Button>
+                    <Flex gap="2">
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        color="#718096"
+                        onClick={handleDoneEditing}
+                      >
+                        Done
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        color="#4441C8"
+                        onClick={handleResetToDefault}
+                      >
+                        Save as default
+                      </Button>
+                    </Flex>
+                  </Flex>
+                </>
+              ) : (
+                <>
+                  <Text whiteSpace="pre-line">{messageBody}</Text>
+                  <Flex justify="flex-end">
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      color="#4441C8"
+                      leftIcon={<EditIcon color="#4441C8" />}
+                      onClick={() => setIsEditingMessage(true)}
+                    >
+                      Edit
+                    </Button>
+                  </Flex>
+                </>
+              )}
+              <Image
+                src={logo}
+                w="100px"
+                mt="2"
+              />
             </Stack>
 
             <Flex
