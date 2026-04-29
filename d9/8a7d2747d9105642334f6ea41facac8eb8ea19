@@ -1,0 +1,25 @@
+client/src/components/invoices/InvoiceComponents.jsx
+  a4ffc5751cce93c6 109,355,454-463
+client/src/components/invoices/SingleInvoice.jsx
+  a4ffc5751cce93c6 530-535
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "d98a7d2747d9105642334f6ea41facac8eb8ea19",
+  "prompts": {
+    "a4ffc5751cce93c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce801c19-ab20-4012-b248-b14110ed5002",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu",
+      "messages": [],
+      "total_additions": 18,
+      "total_deletions": 14,
+      "accepted_lines": 18,
+      "overriden_lines": 0
+    }
+  }
+}
