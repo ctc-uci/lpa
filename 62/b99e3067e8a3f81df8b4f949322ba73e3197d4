@@ -1,0 +1,31 @@
+server/db/schema/email_templates.sql
+  257231545e97df6d 1-22
+server/routes/invoices.js
+  257231545e97df6d 563-565,573
+client/src/components/email/EmailSidebar.jsx
+  257231545e97df6d 23,28,80-81,372-386,388-394,396-403,405-412,503-504,513,879-883,885-898,900-941
+server/routes/email.js
+  257231545e97df6d 6,34,41-59,71-97
+client/src/components/email/utils.jsx
+  257231545e97df6d 3,73-77,91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "62b99e3067e8a3f81df8b4f949322ba73e3197d4",
+  "prompts": {
+    "257231545e97df6d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b7edae85-0ec8-40d5-b465-61fcadcea42d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu",
+      "messages": [],
+      "total_additions": 252,
+      "total_deletions": 91,
+      "accepted_lines": 191,
+      "overriden_lines": 2
+    }
+  }
+}
