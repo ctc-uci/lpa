@@ -44,6 +44,7 @@ export const EmailSidebar = ({
   onClose,
   pdf_title,
   invoice,
+  onEmailSent,
 }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
@@ -515,7 +516,8 @@ export const EmailSidebar = ({
         bccToEmails,
         backend,
         id,
-        pdf_title
+        pdf_title,
+        onEmailSent
       );
     } catch (err) {
       console.error("Failed to prepare or send email:", err);

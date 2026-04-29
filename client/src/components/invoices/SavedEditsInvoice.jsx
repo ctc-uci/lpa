@@ -26,7 +26,7 @@ import Navbar from "../navbar/Navbar";
 import { InvoiceView } from "./InvoiceView";
 import { getPastDue } from "../../utils/pastDueCalc";
 
-const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName }) => {
+const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName, onEmailSent }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
 
@@ -97,6 +97,7 @@ const SavedInvoiceNavBar = ({ onBack, id, invoice, payees, programName }) => {
           payees={payees}
           pdf_title={`${programName.trim().split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate([], invoice?.data, false)} Invoice`}
           invoice={invoice}
+          onEmailSent={onEmailSent}
         />
       </HStack>
     </Flex>
@@ -244,6 +245,12 @@ export const SavedEdit = () => {
           payees={payees}
           programName={programName}
           sessions={sessions}
+          onEmailSent={() =>
+            setInvoice((prev) => ({
+              ...prev,
+              data: [{ ...prev.data[0], isSent: true }],
+            }))
+          }
         />
 
         <InvoiceView

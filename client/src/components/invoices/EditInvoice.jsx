@@ -51,6 +51,7 @@ const InvoiceNavBar = ({
   comments,
   invoice,
   programName,
+  onEmailSent,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -126,6 +127,7 @@ const InvoiceNavBar = ({
             payees={payees}
             pdf_title={`${programName.trim().split(" ").slice(0, 3).join(" ")}, ${getGeneratedDate([], invoice.data, false)} Invoice`}
             invoice={invoice}
+            onEmailSent={onEmailSent}
           />
         </HStack>
       </HStack>
@@ -642,6 +644,12 @@ export const EditInvoice = () => {
           comments={comments}
           invoice={invoice}
           programName={programName}
+          onEmailSent={() =>
+            setInvoice((prev) => ({
+              ...prev,
+              data: [{ ...prev.data[0], isSent: true }],
+            }))
+          }
         />
 
         {/* Alert Dialog */}

@@ -17,7 +17,8 @@ export const sendSaveEmail = async (
   bccEmails,
   backend,
   id,
-  pdf_title
+  pdf_title,
+  onEmailSent
 ) => {
   try {
     setLoading(true);
@@ -46,6 +47,8 @@ export const sendSaveEmail = async (
       bccEmails
     );
     await saveEmail(backend, blob, pdf_title, id);
+    await backend.put(`/invoices/${id}`, { isSent: true });
+    if (onEmailSent) onEmailSent();
 
     setisConfirmModalOpen(true);
   } catch (error) {
