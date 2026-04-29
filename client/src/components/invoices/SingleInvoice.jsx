@@ -527,6 +527,12 @@ export const SingleInvoice = () => {
                   hasUnsavedChanges={hasUnsavedChanges}
                   handleOtherButtonClick={handleOtherButtonClick}
                   handleSaveChanges={handleSaveChanges}
+                  onPaymentStatusChange={(newStatus) =>
+                    setInvoice((prev) => ({
+                      ...prev,
+                      data: [{ ...prev.data[0], paymentStatus: newStatus }],
+                    }))
+                  }
                   ref={invoicePaymentsRef}
                 ></InvoicePayments>
                 <EmailHistory emails={emails}></EmailHistory>

@@ -106,7 +106,7 @@ import { parseSessionDate, formatSessionDateShort, formatSessionDateWithWeekday 
 
 const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
   const isPaid = () => {
-    if (isSent && paymentStatus === "full") {
+    if (paymentStatus === "full") {
       return "Paid";
     }
     if (!isSent && new Date() < new Date(endDate) && paymentStatus !== "full") {
@@ -352,6 +352,7 @@ const InvoicePayments = forwardRef(
       setRemainingBalance,
       amountDue,
       handleOtherButtonClick,
+      onPaymentStatusChange,
     },
     ref
   ) => {
@@ -443,26 +444,23 @@ const InvoicePayments = forwardRef(
   const currentPageComments = comments ?? [];
 
   const updateRemainingBalance = async () => {
-    // Get updated comments
     const commentsResponse = await backend.get(
       "/comments/paidInvoices/" + id
     );
-    
-    // Update comments state with new data
     setComments(commentsResponse.data);
 
-    // // Calculate new remaining balance using updated comments
-    // const paidTotal = commentsResponse.data.reduce((acc, comment) => {
-    //   if (comment.adjustmentType === "paid") {
-    //     return acc + parseFloat(comment.adjustmentValue);
-    //   }
-    //   return acc;
-    // }, 0);
-
     const paidTotal = await getAllDue(backend, id);
-    
-    // const remainingBalanceCalculated = (amountDue - paidTotal) > 0 ? (amountDue - paidTotal) : 0.00;
     setRemainingBalance(paidTotal);
+
+    const [invoiceTotalRes, invoicePaidRes] = await Promise.all([
+      backend.get(`/invoices/total/${id}`),
+      backend.get(`/invoices/paid/${id}`),
+    ]);
+    const invoiceTotal = invoiceTotalRes.data.total ?? 0;
+    const invoicePaid = Number(invoicePaidRes.data.total) || 0;
+    const newStatus = invoicePaid >= invoiceTotal && invoiceTotal > 0 ? "full" : "none";
+    await backend.put(`/invoices/${id}`, { paymentStatus: newStatus });
+    if (onPaymentStatusChange) onPaymentStatusChange(newStatus);
   }
 
   const handleDeleteComment = async () => {
