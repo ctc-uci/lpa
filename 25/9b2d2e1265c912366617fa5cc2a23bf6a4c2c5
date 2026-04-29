@@ -1,0 +1,29 @@
+client/src/components/invoices/EditInvoice.jsx
+  a4ffc5751cce93c6 54,130,647-652
+client/src/components/email/utils.jsx
+  a4ffc5751cce93c6 20-21,50-51
+client/src/components/invoices/SavedEditsInvoice.jsx
+  a4ffc5751cce93c6 29,100,248-253
+client/src/components/email/EmailSidebar.jsx
+  a4ffc5751cce93c6 47,519-520
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "259b2d2e1265c912366617fa5cc2a23bf6a4c2c5",
+  "prompts": {
+    "a4ffc5751cce93c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce801c19-ab20-4012-b248-b14110ed5002",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu",
+      "messages": [],
+      "total_additions": 23,
+      "total_deletions": 3,
+      "accepted_lines": 23,
+      "overriden_lines": 0
+    }
+  }
+}
