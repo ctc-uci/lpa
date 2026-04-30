@@ -19,10 +19,10 @@ const SortingMenu = ({ options, onSortChange }) => {
         as={Button}
         variant="ghost"
         size="sm"
+        _hover={{ background: "transparent" }}
+        _active={{ background: "transparent" }}
+        _focus={{ background: "transparent" }}
         sx={{
-          _hover: { background: "transparent" },
-          _active: { background: "transparent" },
-          _focus: { background: "transparent" },
           marginLeft: "auto",
           marginRight: "-8px",
           width: "16px",

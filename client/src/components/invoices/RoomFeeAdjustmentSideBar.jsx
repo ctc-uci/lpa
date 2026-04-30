@@ -362,8 +362,8 @@ const RoomFeeAdjustmentSideBar = ({
                           }
                           variant="ghost"
                           size="xs"
-                          _hover="none"
-                          _active="none"
+                          _hover={{}}
+                          _active={{}}
                           onClick={() => handleNegativeClick(index)}
                         />
 
@@ -404,8 +404,8 @@ const RoomFeeAdjustmentSideBar = ({
                               <PlusOutlineIcon />
                             )
                           }
-                          _hover="none"
-                          _active="none"
+                          _hover={{}}
+                          _active={{}}
                           variant="ghost"
                           size="xs"
                           onClick={() => handlePositiveClick(index)}
@@ -416,7 +416,7 @@ const RoomFeeAdjustmentSideBar = ({
                         aria-label="Remove adjustment"
                         icon={<Icon as={CancelIcon} />}
                         variant="ghost"
-                        _hover="none"
+                        _hover={{}}
                         size="sm"
                         onClick={() => handleRemoveAdjustment(index)}
                       />
@@ -805,8 +805,8 @@ const SummaryFeeAdjustmentSideBar = ({
                           }
                           variant="ghost"
                           size="xs"
-                          _hover="none"
-                          _active="none"
+                          _hover={{}}
+                          _active={{}}
                           onClick={() => handleNegativeClick(index)}
                         />
 
@@ -847,8 +847,8 @@ const SummaryFeeAdjustmentSideBar = ({
                               <PlusOutlineIcon />
                             )
                           }
-                          _hover="none"
-                          _active="none"
+                          _hover={{}}
+                          _active={{}}
                           variant="ghost"
                           size="xs"
                           onClick={() => handlePositiveClick(index)}
@@ -858,7 +858,7 @@ const SummaryFeeAdjustmentSideBar = ({
                         aria-label="Remove adjustment"
                         icon={<Icon as={CancelIcon} />}
                         variant="ghost"
-                        _hover="none"
+                        _hover={{}}
                         size="sm"
                         onClick={() => handleRemoveAdjustment(index)}
                       />

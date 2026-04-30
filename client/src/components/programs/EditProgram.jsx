@@ -283,13 +283,9 @@ export const EditProgram = () => {
           <Button
             onClick={saveEventToSessions}
             isDisabled={!isFormValid()}
-            sx={{
-              backgroundColor: "#4441C8",
-              color: "white",
-              "&:hover": {
-                backgroundColor: "#312E8A",
-              },
-            }}
+            backgroundColor="#4441C8"
+            color="white"
+            _hover={{ backgroundColor: "#312E8A" }}
             rightIcon={<SessionsRightIcon />}
           >
             Edit Session Information
