@@ -1,0 +1,27 @@
+client/src/components/invoices/RoomFeeAdjustmentSideBar.jsx
+  c5393e3abfa2f85c 365-366,407-408,419,808-809,850-851,861
+client/src/components/programs/EditProgram.jsx
+  c5393e3abfa2f85c 286-288
+client/src/components/sorting/SortingMenu.jsx
+  c5393e3abfa2f85c 22-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "4546db43d16262ea1754ef5f6cef541c75ca390d",
+  "prompts": {
+    "c5393e3abfa2f85c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fdb3aee6-f8c4-4b9c-a100-258f6278e64c",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu",
+      "messages": [],
+      "total_additions": 16,
+      "total_deletions": 20,
+      "accepted_lines": 16,
+      "overriden_lines": 0
+    }
+  }
+}
