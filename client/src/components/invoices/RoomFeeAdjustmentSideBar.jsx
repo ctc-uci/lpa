@@ -41,6 +41,7 @@ import { useSessionStore } from "../../stores/useSessionStore";
 const RoomFeeAdjustmentSideBar = ({
   isOpen,
   onClose,
+  onResume,
   session = {},
   setSessions,
   sessionIndex,
@@ -51,6 +52,19 @@ const RoomFeeAdjustmentSideBar = ({
   const [tempSession, setTempSession] = useState(session || {});
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const cancelRef = useRef();
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+  const skipNextOpenSyncRef = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (skipNextOpenSyncRef.current) {
+      skipNextOpenSyncRef.current = false;
+      return;
+    }
+    const s = sessionRef.current;
+    setTempSession(s ? structuredClone(s) : {});
+  }, [isOpen]);
   const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
   const { setAdjustmentValue } = useSessionStore();
   const { summary, setSummary, summaryTotal, setSummaryTotal } = useSummaryStore();
@@ -214,14 +228,16 @@ const RoomFeeAdjustmentSideBar = ({
   const handleClose = () => {
     if (JSON.stringify(tempSession) !== JSON.stringify(session)) {
       setIsConfirmationOpen(true);
-    } else {
-      onClose();
+      skipNextOpenSyncRef.current = true;
     }
+    onClose();
   };
 
-  const handleConfirmClose = () => {
+  const handleDiscardUnsaved = () => {
+    const s = sessionRef.current;
+    setTempSession(s ? structuredClone(s) : {});
     setIsConfirmationOpen(false);
-    onClose();
+    skipNextOpenSyncRef.current = false;
   };
 
   const handleApply = () => {
@@ -498,7 +514,10 @@ const RoomFeeAdjustmentSideBar = ({
       <AlertDialog
         isOpen={isConfirmationOpen}
         leastDestructiveRef={cancelRef}
-        onClose={() => setIsConfirmationOpen(false)}
+        onClose={() => {
+          setIsConfirmationOpen(false);
+          onResume?.();
+        }}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
@@ -510,7 +529,7 @@ const RoomFeeAdjustmentSideBar = ({
             </AlertDialogHeader>
 
             <AlertDialogFooter>
-              <Button onClick={handleConfirmClose}>Don't Save</Button>
+              <Button onClick={handleDiscardUnsaved}>Don't Save</Button>
               <Button
                 bg="#4441C8"
                 color="white"
@@ -518,7 +537,8 @@ const RoomFeeAdjustmentSideBar = ({
                 ref={cancelRef}
                 onClick={() => {
                   handleApply();
-                  handleConfirmClose();
+                  setIsConfirmationOpen(false);
+                  skipNextOpenSyncRef.current = false;
                 }}
               >
                 Save
@@ -534,6 +554,7 @@ const RoomFeeAdjustmentSideBar = ({
 const SummaryFeeAdjustmentSideBar = ({
   isOpen,
   onClose,
+  onResume,
   subtotal = 0.0,
   session,
   summary,
@@ -544,8 +565,22 @@ const SummaryFeeAdjustmentSideBar = ({
   const cancelRef = useRef();
   const { deletedIds, setDeletedIds, addDeletedId } = useDeletedIdsStore();
   const { setAdjustmentValue } = useSummaryStore();
-  const [tempSummary, setTempSummary] = useState(summary);  
+  const [tempSummary, setTempSummary] = useState(summary);
   const [tempSummaryTotal, setTempSummaryTotal] = useState(0);
+  const summaryRef = useRef(summary);
+  summaryRef.current = summary;
+  const skipNextOpenSyncRef = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (skipNextOpenSyncRef.current) {
+      skipNextOpenSyncRef.current = false;
+      return;
+    }
+    const s = summaryRef.current;
+    if (!s) return;
+    setTempSummary(structuredClone(s));
+  }, [isOpen]);
 
   const calculateTempRate = (rate, adjustmentValues) => {
     if (!rate) return "0.00";
@@ -655,14 +690,16 @@ const SummaryFeeAdjustmentSideBar = ({
   const handleClose = () => {
     if (JSON.stringify(tempSummary) !== JSON.stringify(summary)) {
       setIsConfirmationOpen(true);
-    } else {
-      onClose();
+      skipNextOpenSyncRef.current = true;
     }
+    onClose();
   };
 
-  const handleConfirmClose = () => {
+  const handleDiscardUnsaved = () => {
+    const s = summaryRef.current;
+    if (s) setTempSummary(structuredClone(s));
     setIsConfirmationOpen(false);
-    onClose();
+    skipNextOpenSyncRef.current = false;
   };
 
   const handleApply = () => {
@@ -941,7 +978,10 @@ const SummaryFeeAdjustmentSideBar = ({
       <AlertDialog
         isOpen={isConfirmationOpen}
         leastDestructiveRef={cancelRef}
-        onClose={() => setIsConfirmationOpen(false)}
+        onClose={() => {
+          setIsConfirmationOpen(false);
+          onResume?.();
+        }}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
@@ -953,7 +993,7 @@ const SummaryFeeAdjustmentSideBar = ({
             </AlertDialogHeader>
 
             <AlertDialogFooter>
-              <Button onClick={handleConfirmClose}>Don't Save</Button>
+              <Button onClick={handleDiscardUnsaved}>Don't Save</Button>
               <Button
                 bg="#4441C8"
                 color="white"
@@ -961,7 +1001,8 @@ const SummaryFeeAdjustmentSideBar = ({
                 ref={cancelRef}
                 onClick={() => {
                   handleApply();
-                  handleConfirmClose();
+                  setIsConfirmationOpen(false);
+                  skipNextOpenSyncRef.current = false;
                 }}
               >
                 Save

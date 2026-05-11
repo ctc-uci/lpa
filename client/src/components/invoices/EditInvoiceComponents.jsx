@@ -988,6 +988,7 @@ const StatementComments = ({
                               <RoomFeeAdjustmentSideBar
                                 isOpen={activeRowId === index}
                                 onClose={() => setActiveRowId(null)}
+                                onResume={() => setActiveRowId(index)}
                                 userId={userId}
                                 session={session}
                                 sessions={sessions}
@@ -1634,7 +1635,6 @@ const InvoiceSummary = ({
                 <Td borderBottom="none">
                   <Flex gap={2} align="center">
                     <Button
-                      // onClose={() => setActiveRowId(null)}
                       leftIcon={<PencilIcon color="black" />}
                       colorScheme="gray"
                       borderRadius="md"
@@ -1647,7 +1647,6 @@ const InvoiceSummary = ({
                       Adjust
                     </Button>
                     <Button
-                      // onClose={() => setActiveRowId(null)}
                       leftIcon={<AddIcon color="black" />}
                       colorScheme="gray"
                       borderRadius="md"
@@ -1670,6 +1669,7 @@ const InvoiceSummary = ({
                       <SummaryFeeAdjustmentSideBar
                         isOpen={isOpen}
                         onClose={onClose}
+                        onResume={onOpen}
                         summary={summary?.[0]}
                         // setSummary={setSummary}
                         subtotal={subtotal}
