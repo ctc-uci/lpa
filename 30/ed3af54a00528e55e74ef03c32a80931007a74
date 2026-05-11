@@ -1,0 +1,32 @@
+client/src/components/invoices/RoomFeeAdjustmentSideBar.jsx
+  s_b494626d03ac4d::t_1fe7bfd7eb9410 532,540,996,1004
+  s_b494626d03ac4d::t_75adbd498156b2 231,240
+  s_b494626d03ac4d::t_cc81e51e4d71b9 693,702
+  s_b494626d03ac4d::t_975c016b0b7604 57,61-64
+  s_b494626d03ac4d::t_be0e498abde192 44,55-56,58-60,65-67
+  s_b494626d03ac4d::t_d5fcc6e7edd16e 233,236-238
+  s_b494626d03ac4d::t_26039dd8d34cb1 517-520,981-984
+  s_b494626d03ac4d::t_2ebd9876f23f12 557,568,570-571,573-575,580-583
+  s_b494626d03ac4d::t_859d43e4d2626a 695,698-700
+  s_b494626d03ac4d::t_eb562c9a98df01 541,1005
+  s_b494626d03ac4d::t_d5aa9e7ee7b93d 572,576-579
+client/src/components/invoices/EditInvoiceComponents.jsx
+  s_b494626d03ac4d::t_71a682bbca8082 1672
+  s_b494626d03ac4d::t_a77fe038701509 991
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "30ed3af54a00528e55e74ef03c32a80931007a74",
+  "prompts": {},
+  "sessions": {
+    "s_b494626d03ac4d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ccc23c4c-a5c8-4586-b72b-e6546ce092fb",
+        "model": "default"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
