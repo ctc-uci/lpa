@@ -127,7 +127,7 @@ const RoomFeeAdjustmentSideBar = ({
 
   const handleNegativeClick = (index) => {
     setTempSession((prev) => {
-      const newSession = JSON.parse(JSON.stringify(prev));
+      const newSession = structuredClone(prev);
       if (!newSession.adjustmentValues || !newSession.adjustmentValues[index]){
         return prev;
       }
@@ -148,7 +148,7 @@ const RoomFeeAdjustmentSideBar = ({
 
   const handlePositiveClick = (index) => {
     setTempSession((prev) => {
-      const newSession = JSON.parse(JSON.stringify(prev));
+      const newSession = structuredClone(prev);
       if (!newSession.adjustmentValues || !newSession.adjustmentValues[index])
         return prev;
 
@@ -168,7 +168,7 @@ const RoomFeeAdjustmentSideBar = ({
 
   const handleValueChange = (index, newValue, type) => {
     setTempSession((prev) => {
-      const newSession = JSON.parse(JSON.stringify(prev));
+      const newSession = structuredClone(prev);
       if (!newSession.adjustmentValues || !newSession.adjustmentValues[index])
         return prev;
 
@@ -572,7 +572,7 @@ const SummaryFeeAdjustmentSideBar = ({
 
   const handleNegativeClick = (index) => {
     setTempSummary((prev) => {
-      const newSummary = JSON.parse(JSON.stringify(prev));
+      const newSummary = structuredClone(prev);
       if (!newSummary.adjustmentValues || !newSummary.adjustmentValues[index])
         return prev;
 
@@ -592,7 +592,7 @@ const SummaryFeeAdjustmentSideBar = ({
 
   const handlePositiveClick = (index) => {
     setTempSummary((prev) => {
-      const newSummary = JSON.parse(JSON.stringify(prev));
+      const newSummary = structuredClone(prev);
       if (!newSummary.adjustmentValues || !newSummary.adjustmentValues[index])
         return prev;
 
@@ -612,7 +612,7 @@ const SummaryFeeAdjustmentSideBar = ({
 
   const handleValueChange = (index, newValue, type) => {
     setTempSummary((prev) => {
-      const newSummary = JSON.parse(JSON.stringify(prev));
+      const newSummary = structuredClone(prev);
       if (!newSummary.adjustmentValues || !newSummary.adjustmentValues[index])
         return prev;
 
