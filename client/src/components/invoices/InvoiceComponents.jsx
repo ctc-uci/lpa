@@ -381,6 +381,7 @@ const InvoicePayments = forwardRef(
     const [selectedComment, setSelectedComment] = useState(null);
     const [deleteID, setDeleteID] = useState(null);
 
+
     const { currentUser } = useAuthContext();
     const [uid, setUid] = useState(null);
     const [programName, setProgramName] = useState("");
@@ -527,6 +528,7 @@ const InvoicePayments = forwardRef(
   };
 
     const handleSaveComment = async () => {
+      if (!uid) return;
       setIsProcessing(true);
 
       try {
@@ -691,7 +693,7 @@ const InvoicePayments = forwardRef(
     const formattedDate = today.toISOString().split('T')[0];
     setEditDate(formattedDate);
     setAdjustValue("");
-    setEditID(null);
+
   };
 
     const handleButtonWhileUnsaved = (onContinue) => {
@@ -874,68 +876,6 @@ const InvoicePayments = forwardRef(
                 </Tr>
               )}
 
-              <Modal
-                isOpen={isOpen}
-                onClose={onClose}
-              >
-                <ModalOverlay />
-                <ModalContent>
-                  <ModalHeader
-                    color={"var(--Secondary-7, #4A5568)"}
-                    fontFamily={"Inter"}
-                    fontSize={"16px"}
-                    fontWeight={"700"}
-                    mt={"10px"}
-                  >
-                    Delete Payment for{" "}
-                    {selectedComment
-                      ? formatSessionDateShort(selectedComment.datetime)
-                      : ""}
-                    ?
-                  </ModalHeader>
-                  <ModalCloseButton />
-                  <ModalBody>
-                    <Text fontFamily={"Inter"}>
-                      This payment will be permanently deleted.
-                    </Text>
-                  </ModalBody>
-
-                  <ModalFooter
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    <Button
-                      variant="ghost"
-                      onClick={onClose}
-                      fontFamily={"Inter"}
-                      backgroundColor={"#EDF2F7"}
-                      fontSize={"14px"}
-                      fontWeight={"500"}
-                    >
-                      Exit
-                    </Button>
-                    <Button
-                      mr={3}
-                      ml={"12px"}
-                      _hover={{ backgroundColor: "#71060C" }}
-                      isLoading={isProcessing}
-                      backgroundColor={"#90080F"}
-                      fontFamily={"Inter"}
-                      fontSize={"14px"}
-                      fontWeight={"500"}
-                      borderRadius={"6px"}
-                      color={"white"}
-                      onClick={() => {
-                        handleDeleteComment();
-                      }}
-                    >
-                      Confirm
-                    </Button>
-                  </ModalFooter>
-                </ModalContent>
-              </Modal>
               {showInputRow && (
                 <Tr
                   alignItems="center"
@@ -1034,48 +974,109 @@ const InvoicePayments = forwardRef(
                 </Tr>
               )}
 
-              <Modal
-                isOpen={isCanceNewCommentOpen}
-                onClose={onCancelNewCommentClose}
-              >
-                <ModalOverlay />
-                <ModalContent>
-                  <ModalHeader
-                    color={"var(--Secondary-7, #4A5568)"}
-                    fontFamily={"Inter"}
-                    fontSize={"16px"}
-                    fontWeight={"700"}
-                    mt={"10px"}
-                  >
-                    Cancel payment?
-                  </ModalHeader>
-                  <ModalCloseButton />
-                  <ModalBody>
-                    <Text fontFamily={"Inter"}>
-                      This payment currently being added will be permanently
-                      deleted.
-                    </Text>
-                  </ModalBody>
-
-                  <ModalFooter
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                  <Button
-                    isLoading={isProcessing}
-                    onClick={() => {
-                      handleCancelNewComment();
-                    }}
-                  >
-                    Confirm
-                  </Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
           </Tbody>
         </Table>
+
+        <Modal
+          isOpen={isOpen}
+          onClose={onClose}
+        >
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader
+              color={"var(--Secondary-7, #4A5568)"}
+              fontFamily={"Inter"}
+              fontSize={"16px"}
+              fontWeight={"700"}
+              mt={"10px"}
+            >
+              Delete Payment for{" "}
+              {selectedComment
+                ? formatSessionDateShort(selectedComment.datetime)
+                : ""}
+              ?
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Text fontFamily={"Inter"}>
+                This payment will be permanently deleted.
+              </Text>
+            </ModalBody>
+            <ModalFooter
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Button
+                variant="ghost"
+                onClick={onClose}
+                fontFamily={"Inter"}
+                backgroundColor={"#EDF2F7"}
+                fontSize={"14px"}
+                fontWeight={"500"}
+              >
+                Exit
+              </Button>
+              <Button
+                mr={3}
+                ml={"12px"}
+                _hover={{ backgroundColor: "#71060C" }}
+                isLoading={isProcessing}
+                backgroundColor={"#90080F"}
+                fontFamily={"Inter"}
+                fontSize={"14px"}
+                fontWeight={"500"}
+                borderRadius={"6px"}
+                color={"white"}
+                onClick={() => {
+                  handleDeleteComment();
+                }}
+              >
+                Confirm
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        <Modal
+          isOpen={isCanceNewCommentOpen}
+          onClose={onCancelNewCommentClose}
+        >
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader
+              color={"var(--Secondary-7, #4A5568)"}
+              fontFamily={"Inter"}
+              fontSize={"16px"}
+              fontWeight={"700"}
+              mt={"10px"}
+            >
+              Cancel payment?
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Text fontFamily={"Inter"}>
+                This payment currently being added will be permanently deleted.
+              </Text>
+            </ModalBody>
+            <ModalFooter
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Button
+                isLoading={isProcessing}
+                onClick={() => {
+                  handleCancelNewComment();
+                }}
+              >
+                Confirm
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Flex>
       </Flex>
     );
