@@ -1,0 +1,20 @@
+client/src/components/invoices/RoomFeeAdjustmentSideBar.jsx
+  s_012361b270995c::t_10409a55988ffa 130,151,171
+  s_012361b270995c::t_85461ec574368a 575,595,615
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "b824dacf0ea272174388c92cd5fb84eda6fda9a7",
+  "prompts": {},
+  "sessions": {
+    "s_012361b270995c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1c533b5d-95dd-4e1e-8657-4f25c55be1af",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
