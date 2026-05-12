@@ -260,15 +260,13 @@ const InvoiceStats = ({
             </Text>
           )}
         </Box>
-
-        {/* amount due */}
         <Box h={7}>
           <Text
             fontWeight="700"
             fontSize="14px"
             color="#474849"
           >
-            Amount Due
+            Amount Past Due
           </Text>
         </Box>
         <Box h={7}>
@@ -472,6 +470,13 @@ const InvoicePayments = forwardRef(
         "/comments/paidInvoices/" + id
       );
       setComments(commentsResponse.data);
+      setShowEditRow(false);
+      setShowInputRow(false);
+      setHasUnsavedChanges(false);
+      setAdjustValue("--.--");
+      setRowValues({});
+      setRowDates({});
+      setValueEntered(false);
       onClose();
     } catch (error) {
       console.error("Error deleting:", error);
@@ -484,17 +489,9 @@ const InvoicePayments = forwardRef(
   
   const handleShowDelete = (comment) => {
     try {
-      if (hasUnsavedChanges) {
-        handleButtonWhileUnsaved(() => {
-          setSelectedComment(comment);
-          setDeleteID(comment.id);
-          onOpen();
-        });
-      } else {
-        setSelectedComment(comment);
-        setDeleteID(comment.id);
-        onOpen();
-      }
+      setSelectedComment(comment);
+      setDeleteID(comment.id);
+      onOpen();
     } catch (error) {
       console.error("Error showing modal:", error);
     }
