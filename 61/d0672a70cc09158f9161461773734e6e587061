@@ -1,0 +1,21 @@
+client/src/components/invoices/SingleInvoice.jsx
+  s_b494626d03ac4d::t_a9bc50047a8f92 413-417,420-421,423-424,433,438
+  s_b494626d03ac4d::t_0d2fc958232c25 343-348
+  s_b494626d03ac4d::t_6601a530ebab67 393
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "61d0672a70cc09158f9161461773734e6e587061",
+  "prompts": {},
+  "sessions": {
+    "s_b494626d03ac4d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ccc23c4c-a5c8-4586-b72b-e6546ce092fb",
+        "model": "default"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
