@@ -214,7 +214,7 @@ const InvoiceStats = ({
   roomRate,
   billingPeriod,
   amountDue,
-  remainingBalance
+  remainingBalance,
 }) => {
   const { backend } = useBackendContext();
   const { id } = useParams();
@@ -359,6 +359,7 @@ const InvoiceStats = ({
             </Button>
           </Flex>
         </Box>
+
       </Grid>
 
       {/* room rate section */}
@@ -1434,6 +1435,12 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                     <DateSortingModal onSortChange={onSortChange} />
                   </HStack>
                 </Th>
+                <Th
+                  paddingLeft="8px"
+                  paddingRight="8px"
+                >
+                  <Text>LAST PAYMENT</Text>
+                </Th>
                 {/* <Th
                   paddingLeft="8px"
                   paddingRight="8px"
@@ -1521,6 +1528,11 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       {formatSessionDateWithWeekday(invoice.endDate)}
                     </Td>
+                    <Td onClick={() => handleRowClick(invoice.id)}>
+                      {invoice.lastPaymentDate
+                        ? `$${Number(invoice.lastPaymentAmount).toFixed(2)} (${format(new Date(invoice.lastPaymentDate), "MM/dd/yy")})`
+                        : "—"}
+                    </Td>
                     {/* <Td>
                       <Flex ml="18px">
                         <PDFButtonInvoice onlyIcon={true} id={invoice.id} />
@@ -1545,7 +1557,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
               {currentInvoices.length === 0 && (
                 <Tr>
                   <Td
-                    colSpan={6}
+                    colSpan={7}
                     textAlign="center"
                     py={4}
                   >
@@ -1555,13 +1567,13 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
               )}
               {hasMore ? (
                 <Tr ref={sentinelRef}>
-                  <Td colSpan={6} textAlign="center" py={4}>
+                  <Td colSpan={7} textAlign="center" py={4}>
                     <Spinner size="sm" />
                   </Td>
                 </Tr>
               ) : (
                 <Tr ref={sentinelRef}>
-                  <Td colSpan={6} />
+                  <Td colSpan={7} />
                 </Tr>
               )}
             </Tbody>
