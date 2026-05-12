@@ -1,0 +1,20 @@
+client/src/utils/pastDueCalc.js
+  s_e8bcb085e87ff5::t_c41ce93a30854e 16
+  s_e8bcb085e87ff5::t_dbe7e1d0cca97b 44,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "104c9d1621d66c20458cea2184305d97dc713f71",
+  "prompts": {},
+  "sessions": {
+    "s_e8bcb085e87ff5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c75ee8f-2b81-431a-b5a5-75190693e3ce",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
