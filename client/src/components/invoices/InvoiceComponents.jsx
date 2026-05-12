@@ -1,7 +1,6 @@
 import {
   CalendarIcon,
   CheckCircleIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   DeleteIcon,
@@ -104,7 +103,16 @@ import { PDFButtonInvoice } from "./PDFButtonInvoice";
 import { getAllDue } from "../../utils/pastDueCalc";
 import { parseSessionDate, formatSessionDateShort, formatSessionDateWithWeekday } from "../programs/utils";
 
-const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
+const InvoiceTitle = ({
+  title,
+  isSent,
+  paymentStatus,
+  endDate,
+  onMarkAsSent,
+  onMarkAsNotSent,
+}) => {
+  const [sentStatusLoading, setSentStatusLoading] = useState(false);
+
   const isPaid = () => {
     if (paymentStatus === "full") {
       return "Paid";
@@ -113,6 +121,25 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
       return "Not Paid";
     }
     return "Past Due";
+  };
+
+  const canToggleSent =
+    (!isSent && Boolean(onMarkAsSent)) ||
+    (isSent && Boolean(onMarkAsNotSent));
+
+  const handleSentStatusClick = () => {
+    if (!canToggleSent || sentStatusLoading) return;
+    if (!isSent && onMarkAsSent) {
+      setSentStatusLoading(true);
+      void onMarkAsSent()
+        .catch(() => undefined)
+        .finally(() => setSentStatusLoading(false));
+    } else if (isSent && onMarkAsNotSent) {
+      setSentStatusLoading(true);
+      void onMarkAsNotSent()
+        .catch(() => undefined)
+        .finally(() => setSentStatusLoading(false));
+    }
   };
 
   return (
@@ -132,7 +159,6 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
       </Text>
 
       <Flex gap={2}>
-        {/* is sent button */}
         <Button
           fontSize={"15px"}
           fontWeight={"500"}
@@ -144,11 +170,22 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
           color={isSent ? "#38A169" : "#E53E3E"}
           variant="solid"
           _hover={{ bg: isSent ? "#F0FFF4" : "#FFF5F5" }}
+          cursor={canToggleSent ? "pointer" : "default"}
+          isLoading={sentStatusLoading}
+          onClick={canToggleSent ? handleSentStatusClick : undefined}
+          aria-label={
+            canToggleSent
+              ? isSent
+                ? "Mark invoice as email not sent"
+                : "Mark invoice as email sent"
+              : isSent
+                ? "Invoice email marked sent"
+                : "Invoice email not sent"
+          }
         >
-          {isSent ? "Sent" : "Not Sent"}
+          {isSent ? "Email Sent" : "Email Not Sent"}
         </Button>
 
-        {/* paymentStatus */}
         <Button
           fontSize={"15px"}
           fontWeight={"500"}
@@ -159,7 +196,8 @@ const InvoiceTitle = ({ title, isSent, paymentStatus, endDate }) => {
           backgroundColor={isPaid() === "Paid" ? "#F0FFF4" : "#FFF5F5"}
           color={isPaid() === "Paid" ? "#38A169" : "#E53E3E"}
           variant="solid"
-          _hover={{ bg: isSent ? "#F0FFF4" : "#FFF5F5" }}
+          cursor="default"
+          _hover={{ bg: isPaid() === "Paid" ? "#F0FFF4" : "#FFF5F5" }}
         >
           {isPaid() === "Paid"
             ? "Paid"

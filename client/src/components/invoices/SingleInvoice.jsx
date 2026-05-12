@@ -13,6 +13,7 @@ import {
   Spinner,
   Text,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 
 import { FaAngleLeft } from "react-icons/fa6";
@@ -42,6 +43,7 @@ export const SingleInvoice = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [total, setTotal] = useState(0);
   const [remainingBalance, setRemainingBalance] = useState(0);
@@ -319,6 +321,74 @@ export const SingleInvoice = () => {
     navigate(`/invoices/savededits/${id}`);
   };
 
+  const handleMarkInvoiceSent = useCallback(async () => {
+    try {
+      await backend.put(`/invoices/${id}`, { isSent: true });
+      setInvoice((prev) => {
+        if (!prev?.data?.[0]) return prev;
+        return {
+          ...prev,
+          data: [{ ...prev.data[0], isSent: true }],
+        };
+      });
+      toast({
+        title: "Invoice marked as sent",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+    } catch (error) {
+      console.error("Error marking invoice sent:", error);
+      toast({
+        title: "Could not update invoice",
+        description:
+          error?.response?.data?.error ||
+          error?.message ||
+          "Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+      throw error;
+    }
+  }, [backend, id, toast]);
+
+  const handleMarkInvoiceNotSent = useCallback(async () => {
+    try {
+      await backend.put(`/invoices/${id}`, { isSent: false });
+      setInvoice((prev) => {
+        if (!prev?.data?.[0]) return prev;
+        return {
+          ...prev,
+          data: [{ ...prev.data[0], isSent: false }],
+        };
+      });
+      toast({
+        title: "Invoice marked as not sent",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+    } catch (error) {
+      console.error("Error marking invoice not sent:", error);
+      toast({
+        title: "Could not update invoice",
+        description:
+          error?.response?.data?.error ||
+          error?.message ||
+          "Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+      throw error;
+    }
+  }, [backend, id, toast]);
+
   const handleSaveChanges = () => {
     if (pendingNavigation) {
       invoicePaymentsRef.current?.handleSaveComment();
@@ -467,6 +537,8 @@ export const SingleInvoice = () => {
               isSent={invoice?.data?.[0]?.isSent}
               paymentStatus={invoice?.data?.[0]?.paymentStatus}
               endDate={invoice?.data?.[0]?.endDate}
+              onMarkAsSent={handleMarkInvoiceSent}
+              onMarkAsNotSent={handleMarkInvoiceNotSent}
             ></InvoiceTitle>
 
             {/* buttons */}
