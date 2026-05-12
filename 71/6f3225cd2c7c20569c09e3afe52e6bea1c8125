@@ -1,0 +1,26 @@
+client/src/components/invoices/InvoiceComponents.jsx
+  s_e8bcb085e87ff5::t_bd789136356a6e 1531,1535
+  s_e8bcb085e87ff5::t_ee85f815a7f422 1532-1534
+  s_e8bcb085e87ff5::t_24702ada310d84 362
+  s_e8bcb085e87ff5::t_ca5c8d2135e44c 1560,1570,1576
+  s_e8bcb085e87ff5::t_5026b0a01b3a41 217
+  s_e8bcb085e87ff5::t_cd7c84333d41d9 1438-1443
+server/routes/invoicesAssignments.js
+  s_e8bcb085e87ff5::t_f723c802908774 11-12,17-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "716f3225cd2c7c20569c09e3afe52e6bea1c8125",
+  "prompts": {},
+  "sessions": {
+    "s_e8bcb085e87ff5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c75ee8f-2b81-431a-b5a5-75190693e3ce",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
