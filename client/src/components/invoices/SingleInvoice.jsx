@@ -26,7 +26,6 @@ import {
 
 import { useBackendContext } from "../../contexts/hooks/useBackendContext";
 import Navbar from "../navbar/Navbar";
-import { UnsavedChangesModal } from "../popups/UnsavedChangesModal";
 import { EmailHistory } from "./EmailHistory";
 import {
   InvoicePayments,
@@ -341,6 +340,12 @@ export const SingleInvoice = () => {
     }
   };
 
+  const handleUnsavedModalDismiss = () => {
+    closeModal();
+    setPendingNavigation(null);
+    setActionToContinue(null);
+  };
+
   const handleOtherButtonClick = useCallback((onContinueAction) => {
     setActionToContinue(() => onContinueAction);
     openModal();
@@ -385,7 +390,7 @@ export const SingleInvoice = () => {
         >
           <Modal
             isOpen={isModalOpen}
-            onClose={closeModal}
+            onClose={handleUnsavedModalDismiss}
           >
             <ModalOverlay />
             <ModalContent>
@@ -404,13 +409,19 @@ export const SingleInvoice = () => {
               >
                 <Button
                   onClick={() => {
-                    closeModal();
                     if (pendingNavigation) {
-                      pendingNavigation();
+                      const run = pendingNavigation;
+                      setPendingNavigation(null);
+                      setActionToContinue(null);
+                      closeModal();
+                      run();
                       setHasUnsavedChanges(false);
                     } else if (actionToContinue) {
-                      actionToContinue();
+                      const run = actionToContinue;
+                      setPendingNavigation(null);
                       setActionToContinue(null);
+                      closeModal();
+                      run();
                       setHasUnsavedChanges(false);
                     }
                   }}
@@ -419,11 +430,12 @@ export const SingleInvoice = () => {
                   fontSize="14px"
                   fontWeight="500"
                 >
-                  Don't Save
+                  Don&apos;t Save
                 </Button>
                 <Button
                   onClick={() => {
                     closeModal();
+                    setActionToContinue(null);
                     handleSaveChanges();
                   }}
                   backgroundColor="#4441C8"
