@@ -1,0 +1,19 @@
+client/src/components/invoices/InvoiceComponents.jsx
+  s_b494626d03ac4d::t_5f7d351a797027 179-184,186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "e9932e2a06c746dff91762470f36d0512f822790",
+  "prompts": {},
+  "sessions": {
+    "s_b494626d03ac4d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ccc23c4c-a5c8-4586-b72b-e6546ce092fb",
+        "model": "default"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
