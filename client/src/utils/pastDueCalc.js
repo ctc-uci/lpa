@@ -13,7 +13,7 @@ export const getPastDue = async (backend, id) => {
   const paidTotals = await Promise.all(
     previousInvoices.map(async (invoice) => {
       const paid = await backend.get(`/invoices/paid/${invoice.id}`);
-      return paid.data.total;
+      return Number(paid.data.total) || 0;
     })
   );
   const paidTotal = paidTotals.reduce((acc, paid) => acc + paid, 0);
@@ -41,13 +41,13 @@ export const getAllDue = async (backend, id) => {
     const paidTotals = await Promise.all(
         previousInvoices.map(async (invoice) => {
         const paid = await backend.get(`/invoices/paid/${invoice.id}`);
-        return paid.data.total;
+        return Number(paid.data.total) || 0;
         })
     );
     let paidTotal = paidTotals.reduce((acc, paid) => acc + paid, 0);
 
     const currentPaid = await backend.get(`/invoices/paid/${id}`);
-    paidTotal += currentPaid.data.total;
+    paidTotal += Number(currentPaid.data.total) || 0;
 
     const pastDue = (previousTotal - paidTotal) > 0 ? (previousTotal - paidTotal) : 0;
     return pastDue;
