@@ -1,0 +1,32 @@
+client/src/components/invoices/SingleInvoice.jsx
+  s_b494626d03ac4d::t_9e88c936f2946e 46
+  s_b494626d03ac4d::t_521cce392a1bb6 16
+  s_b494626d03ac4d::t_48e4232a2a9ddc 358-391
+  s_b494626d03ac4d::t_f744938ed0cac4 324-357
+  s_b494626d03ac4d::t_f217c716d05e8c 540
+  s_b494626d03ac4d::t_20ad8e6406dca2 541
+client/src/components/invoices/InvoiceComponents.jsx
+  s_b494626d03ac4d::t_78a933e08416c7 126-129,144
+  s_b494626d03ac4d::t_44ec286319cb90 143
+  s_b494626d03ac4d::t_9bb5218adcdd24 200
+  s_b494626d03ac4d::t_a2a7c851b91de4 173-184
+  s_b494626d03ac4d::t_efcffc46af2b77 106-113
+  s_b494626d03ac4d::t_8d2ed74add7918 114,130-142
+  s_b494626d03ac4d::t_6e96ffac6474f9 115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "62998f334ad655261eb286c90da4c61b0b290625",
+  "prompts": {},
+  "sessions": {
+    "s_b494626d03ac4d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ccc23c4c-a5c8-4586-b72b-e6546ce092fb",
+        "model": "default"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
