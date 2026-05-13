@@ -233,11 +233,14 @@ const InvoiceStats = ({
   const [isLoadingCurrent, setIsLoadingCurrent] = useState(false);
   const [hasNewerInvoice, setHasNewerInvoice] = useState(false);
   const [hasPreviousInvoice, setHasPreviousInvoice] = useState(false);
+  const [showCurrentMonthInvoiceNav, setShowCurrentMonthInvoiceNav] =
+    useState(false);
 
   const fetchInvoiceNavigationFlags = useCallback(async () => {
-    const [followingRes, invRes] = await Promise.all([
+    const [followingRes, invRes, currentMonthRes] = await Promise.all([
       backend.get(`/invoices/followingInvoices/${id}`),
       backend.get(`/invoices/${id}`),
+      backend.get(`/invoices/currentMonthInvoiceForEvent/${id}`),
     ]);
     const hasFollowing =
       Array.isArray(followingRes.data) && followingRes.data.length > 0;
@@ -250,24 +253,30 @@ const InvoiceStats = ({
       hasPrevious =
         Array.isArray(previousRes.data) && previousRes.data.length > 0;
     }
-    return { hasFollowing, hasPrevious };
+    const currentMonthInvoice = currentMonthRes.data?.[0];
+    const showCurrentMonth =
+      currentMonthInvoice != null &&
+      String(currentMonthInvoice.id) !== String(id);
+    return { hasFollowing, hasPrevious, showCurrentMonth };
   }, [backend, id]);
 
   useEffect(() => {
     let cancelled = false;
 
     fetchInvoiceNavigationFlags()
-      .then(({ hasFollowing, hasPrevious }) => {
+      .then(({ hasFollowing, hasPrevious, showCurrentMonth }) => {
         if (cancelled) {
           return;
         }
         setHasNewerInvoice(hasFollowing);
         setHasPreviousInvoice(hasPrevious);
+        setShowCurrentMonthInvoiceNav(showCurrentMonth);
       })
       .catch(() => {
         if (!cancelled) {
           setHasNewerInvoice(false);
           setHasPreviousInvoice(false);
+          setShowCurrentMonthInvoiceNav(false);
         }
       });
 
@@ -324,26 +333,29 @@ const InvoiceStats = ({
     }
   };
 
-  const navigateToCurrentInvoice = async () => {
+  const navigateToCurrentMonthInvoice = async () => {
     setIsLoadingCurrent(true);
     try {
-      const latestResponse = await backend.get(`/invoices/latestInvoiceForEvent/${id}`);
-      if (!latestResponse.data?.length) {
+      const res = await backend.get(
+        `/invoices/currentMonthInvoiceForEvent/${id}`
+      );
+      if (!res.data?.length) {
         toast({
-          title: "Unable to load current invoice",
-          description: "No invoice was found for this program",
-          status: "error",
+          title: "No invoice for this month",
+          description:
+            "This program has no invoice whose billing period includes the current calendar month.",
+          status: "info",
           duration: 5000,
           isClosable: true,
           position: "bottom-right",
         });
         return;
       }
-      const latestId = latestResponse.data[0].id;
-      if (String(latestId) === String(id)) {
+      const targetId = res.data[0].id;
+      if (String(targetId) === String(id)) {
         return;
       }
-      navigate(`/invoices/${latestId}`);
+      navigate(`/invoices/${targetId}`);
     } finally {
       setIsLoadingCurrent(false);
     }
@@ -400,7 +412,9 @@ const InvoiceStats = ({
                 N/A - N/A
               </Text>
             )}
-            {(hasPreviousInvoice || hasNewerInvoice) ? (
+            {(hasPreviousInvoice ||
+              hasNewerInvoice ||
+              showCurrentMonthInvoiceNav) ? (
               <Flex
                 gap={2}
                 alignItems="center"
@@ -423,34 +437,34 @@ const InvoiceStats = ({
                   />
                 ) : null}
                 {hasNewerInvoice ? (
-                  <>
-                    <IconButton
-                      aria-label="Open the next billing period’s invoice for this program"
-                      title="Same program: go to a newer billing period’s invoice"
-                      icon={<ChevronRightIcon boxSize={4} />}
-                      size="sm"
-                      height="28px"
-                      minW="28px"
-                      backgroundColor="#EDF2F7"
-                      color="#474849"
-                      _hover={{ backgroundColor: "#E2E8F0" }}
-                      onClick={navigateToFollowingInvoice}
-                      isLoading={isLoadingFollowing}
-                    />
-                    <IconButton
-                      aria-label="Open the latest billing period’s invoice for this program"
-                      title="Jump to this program’s most recent invoice (usually the current month)"
-                      icon={<CalendarIcon boxSize={4} />}
-                      size="sm"
-                      height="28px"
-                      minW="28px"
-                      backgroundColor="#EDF2F7"
-                      color="#474849"
-                      _hover={{ backgroundColor: "#E2E8F0" }}
-                      onClick={navigateToCurrentInvoice}
-                      isLoading={isLoadingCurrent}
-                    />
-                  </>
+                  <IconButton
+                    aria-label="Open the next billing period’s invoice for this program"
+                    title="Same program: go to a newer billing period’s invoice"
+                    icon={<ChevronRightIcon boxSize={4} />}
+                    size="sm"
+                    height="28px"
+                    minW="28px"
+                    backgroundColor="#EDF2F7"
+                    color="#474849"
+                    _hover={{ backgroundColor: "#E2E8F0" }}
+                    onClick={navigateToFollowingInvoice}
+                    isLoading={isLoadingFollowing}
+                  />
+                ) : null}
+                {showCurrentMonthInvoiceNav ? (
+                  <IconButton
+                    aria-label="Open this program’s invoice for the current calendar month"
+                    title="Jump to the invoice whose billing period includes this month"
+                    icon={<CalendarIcon boxSize={4} />}
+                    size="sm"
+                    height="28px"
+                    minW="28px"
+                    backgroundColor="#EDF2F7"
+                    color="#474849"
+                    _hover={{ backgroundColor: "#E2E8F0" }}
+                    onClick={navigateToCurrentMonthInvoice}
+                    isLoading={isLoadingCurrent}
+                  />
                 ) : null}
               </Flex>
             ) : null}

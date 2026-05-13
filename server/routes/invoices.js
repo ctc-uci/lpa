@@ -697,5 +697,26 @@ invoicesRouter.get("/latestInvoiceForEvent/:id", async (req, res) => {
   }
 });
 
+// Invoice for the same event whose billing period overlaps the current calendar month (server date)
+invoicesRouter.get("/currentMonthInvoiceForEvent/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const data = await db.query(
+      `SELECT * FROM invoices
+       WHERE event_id = (SELECT event_id FROM invoices WHERE id = $1)
+         AND start_date <= (date_trunc('month', CURRENT_DATE) + interval '1 month' - interval '1 day')::date
+         AND end_date >= date_trunc('month', CURRENT_DATE)::date
+       ORDER BY start_date DESC
+       LIMIT 1`,
+      [id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 
 export { invoicesRouter };
