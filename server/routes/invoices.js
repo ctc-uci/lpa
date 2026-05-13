@@ -659,5 +659,43 @@ invoicesRouter.get("/previousInvoices/:id", async (req, res) => {
   }
 });
 
+// Newer invoices for the same event (next billing period onward), ordered oldest-first
+invoicesRouter.get("/followingInvoices/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const data = await db.query(
+      `SELECT * FROM invoices
+       WHERE event_id = (SELECT event_id FROM invoices WHERE id = $1)
+       AND start_date > (SELECT start_date FROM invoices WHERE id = $1)
+       ORDER BY start_date ASC`,
+      [id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Latest billing-period invoice for the same event as the given invoice
+invoicesRouter.get("/latestInvoiceForEvent/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const data = await db.query(
+      `SELECT * FROM invoices
+       WHERE event_id = (SELECT event_id FROM invoices WHERE id = $1)
+       ORDER BY start_date DESC
+       LIMIT 1`,
+      [id]
+    );
+
+    res.status(200).json(keysToCamel(data));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 
 export { invoicesRouter };

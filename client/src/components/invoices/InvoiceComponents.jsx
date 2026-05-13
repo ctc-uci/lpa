@@ -229,6 +229,52 @@ const InvoiceStats = ({
   };
 
   const [isLoadingPrevious, setIsLoadingPrevious] = useState(false);
+  const [isLoadingFollowing, setIsLoadingFollowing] = useState(false);
+  const [isLoadingCurrent, setIsLoadingCurrent] = useState(false);
+  const [hasNewerInvoice, setHasNewerInvoice] = useState(false);
+  const [hasPreviousInvoice, setHasPreviousInvoice] = useState(false);
+
+  const fetchInvoiceNavigationFlags = useCallback(async () => {
+    const [followingRes, invRes] = await Promise.all([
+      backend.get(`/invoices/followingInvoices/${id}`),
+      backend.get(`/invoices/${id}`),
+    ]);
+    const hasFollowing =
+      Array.isArray(followingRes.data) && followingRes.data.length > 0;
+    const eventId = invRes.data?.[0]?.eventId;
+    let hasPrevious = false;
+    if (eventId) {
+      const previousRes = await backend.get(
+        `/invoices/previousInvoices/${id}?event_id=${eventId}`
+      );
+      hasPrevious =
+        Array.isArray(previousRes.data) && previousRes.data.length > 0;
+    }
+    return { hasFollowing, hasPrevious };
+  }, [backend, id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchInvoiceNavigationFlags()
+      .then(({ hasFollowing, hasPrevious }) => {
+        if (cancelled) {
+          return;
+        }
+        setHasNewerInvoice(hasFollowing);
+        setHasPreviousInvoice(hasPrevious);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setHasNewerInvoice(false);
+          setHasPreviousInvoice(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchInvoiceNavigationFlags]);
 
   const navigateToPreviousInvoice = async () => {
     setIsLoadingPrevious(true);
@@ -253,7 +299,55 @@ const InvoiceStats = ({
       setIsLoadingPrevious(false);
     }
   };
-  
+
+  const navigateToFollowingInvoice = async () => {
+    setIsLoadingFollowing(true);
+    try {
+      const followingInvoices = await backend.get(
+        `/invoices/followingInvoices/${id}`
+      );
+      if (followingInvoices.data.length === 0) {
+        toast({
+          title: "No following invoices",
+          description: "There is no newer invoice for this event after this period",
+          status: "info",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+        return;
+      }
+      const nextInvoiceId = followingInvoices.data[0].id;
+      navigate(`/invoices/${nextInvoiceId}`);
+    } finally {
+      setIsLoadingFollowing(false);
+    }
+  };
+
+  const navigateToCurrentInvoice = async () => {
+    setIsLoadingCurrent(true);
+    try {
+      const latestResponse = await backend.get(`/invoices/latestInvoiceForEvent/${id}`);
+      if (!latestResponse.data?.length) {
+        toast({
+          title: "Unable to load current invoice",
+          description: "No invoice was found for this program",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom-right",
+        });
+        return;
+      }
+      const latestId = latestResponse.data[0].id;
+      if (String(latestId) === String(id)) {
+        return;
+      }
+      navigate(`/invoices/${latestId}`);
+    } finally {
+      setIsLoadingCurrent(false);
+    }
+  };
 
   return (
     <Flex
@@ -266,7 +360,7 @@ const InvoiceStats = ({
       <Grid
         templateColumns="1fr 2fr"
         gap="16px 17px"
-        alignItems="end"
+        alignItems="start"
       >
         {/* billing period */}
         <Box h={7}>
@@ -278,25 +372,89 @@ const InvoiceStats = ({
             Billing Period
           </Text>
         </Box>
-        <Box h={7}>
-          {billingPeriod && billingPeriod["startDate"] ? (
-            <Text
-              color="#474849"
-              fontSize="14px"
-              fontWeight="500"
-            >
-              {formatDate(billingPeriod["startDate"])} -{" "}
-              {formatDate(billingPeriod["endDate"])}
-            </Text>
-          ) : (
-            <Text
-              color="#474849"
-              fontSize="14px"
-              fontWeight="500"
-            >
-              N/A - N/A
-            </Text>
-          )}
+        <Box>
+          <Flex
+            direction="row"
+            alignItems="center"
+            flexWrap="wrap"
+            columnGap={3}
+            rowGap={2}
+          >
+            {billingPeriod && billingPeriod["startDate"] ? (
+              <Text
+                color="#474849"
+                fontSize="14px"
+                fontWeight="500"
+                flexShrink={0}
+              >
+                {formatDate(billingPeriod["startDate"])} -{" "}
+                {formatDate(billingPeriod["endDate"])}
+              </Text>
+            ) : (
+              <Text
+                color="#474849"
+                fontSize="14px"
+                fontWeight="500"
+                flexShrink={0}
+              >
+                N/A - N/A
+              </Text>
+            )}
+            {(hasPreviousInvoice || hasNewerInvoice) ? (
+              <Flex
+                gap={2}
+                alignItems="center"
+                flexWrap="wrap"
+                flexShrink={0}
+              >
+                {hasPreviousInvoice ? (
+                  <IconButton
+                    aria-label="Open the previous billing period’s invoice for this program"
+                    title="Same program: go to an older billing period’s invoice"
+                    icon={<ChevronLeftIcon boxSize={4} />}
+                    size="sm"
+                    height="28px"
+                    minW="28px"
+                    backgroundColor="#EDF2F7"
+                    color="#474849"
+                    _hover={{ backgroundColor: "#E2E8F0" }}
+                    onClick={navigateToPreviousInvoice}
+                    isLoading={isLoadingPrevious}
+                  />
+                ) : null}
+                {hasNewerInvoice ? (
+                  <>
+                    <IconButton
+                      aria-label="Open the next billing period’s invoice for this program"
+                      title="Same program: go to a newer billing period’s invoice"
+                      icon={<ChevronRightIcon boxSize={4} />}
+                      size="sm"
+                      height="28px"
+                      minW="28px"
+                      backgroundColor="#EDF2F7"
+                      color="#474849"
+                      _hover={{ backgroundColor: "#E2E8F0" }}
+                      onClick={navigateToFollowingInvoice}
+                      isLoading={isLoadingFollowing}
+                    />
+                    <IconButton
+                      aria-label="Open the latest billing period’s invoice for this program"
+                      title="Jump to this program’s most recent invoice (usually the current month)"
+                      icon={<CalendarIcon boxSize={4} />}
+                      size="sm"
+                      height="28px"
+                      minW="28px"
+                      backgroundColor="#EDF2F7"
+                      color="#474849"
+                      _hover={{ backgroundColor: "#E2E8F0" }}
+                      onClick={navigateToCurrentInvoice}
+                      isLoading={isLoadingCurrent}
+                    />
+                  </>
+                ) : null}
+              </Flex>
+            ) : null}
+          </Flex>
         </Box>
         <Box h={7}>
           <Text
@@ -329,35 +487,13 @@ const InvoiceStats = ({
         </Box>
 
         <Box h={7}>
-          <Flex
-            gap={2}
-            alignItems="start"
+          <Text
+            color="#474849"
+            fontSize="14px"
+            fontWeight="500"
           >
-            <Text
-              color="#474849"
-              fontSize="14px"
-              fontWeight="500"
-            >
-              ${Number(remainingBalance).toFixed(2)}
-            </Text>
-            <Button
-              backgroundColor="#EDF2F7"
-              justifyContent={"center"}
-              alignItems={"center"}
-              padding={"15px 12px"}
-              marginLeft={"8px"}
-              height={"32px"}
-              gap={"4px"}
-              fontWeight={"500"}
-              fontSize={"14px"}
-              fontFamily={"Inter"}
-              onClick={navigateToPreviousInvoice}
-              isLoading={isLoadingPrevious}
-              loadingText="Loading..."
-            >
-              View Previous Invoice
-            </Button>
-          </Flex>
+            ${Number(remainingBalance).toFixed(2)}
+          </Text>
         </Box>
 
       </Grid>
