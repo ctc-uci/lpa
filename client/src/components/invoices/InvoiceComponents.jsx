@@ -680,11 +680,11 @@ const InvoicePayments = forwardRef(
       setRowDates({});
       setValueEntered(false);
       onClose();
+
+      await updateRemainingBalance();
     } catch (error) {
       console.error("Error deleting:", error);
-    }
-    finally {
-      updateRemainingBalance();
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -864,25 +864,14 @@ const InvoicePayments = forwardRef(
         setAdjustValue("--.--");
         setRowValues({});
         setRowDates({});
+
+        await updateRemainingBalance();
       } catch (error) {
         console.error("Error saving:", error);
+      } finally {
+        setIsProcessing(false);
       }
-
-      updateRemainingBalance();
-
-      // Reset UI state
-      setShowEditRow(false);
-      setShowInputRow(false);
-      setHasUnsavedChanges(false);
-      setIsProcessing(false);
-      setAdjustValue("--.--");
-      setRowValues({});
-      setRowDates({});
-    }  
-  //   } catch (error) {
-  //     console.error("Error saving:", error);
-  //   }
-  // };
+    };
 
   const handleAddComment = async () => {
     setShowInputRow(true);
