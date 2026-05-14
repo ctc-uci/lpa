@@ -1688,7 +1688,9 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       {invoice.lastPaymentDate
                         ? `$${Number(invoice.lastPaymentAmount).toFixed(2)} (${format(new Date(invoice.lastPaymentDate), "MM/dd/yy")})`
-                        : "—"}
+                        : invoice.coveredByPaymentDate
+                          ? `— (${format(new Date(invoice.coveredByPaymentDate), "MM/dd/yy")})`
+                          : "—"}
                     </Td>
                     {/* <Td>
                       <Flex ml="18px">

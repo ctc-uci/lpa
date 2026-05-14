@@ -1,14 +1,44 @@
 import express, { Router } from "express";
 import { db } from "../db/db-pgp";
 import { keysToCamel } from "../common/utils";
+import { loadEventAllocationMaps } from "./utils/invoicePaymentAllocation.js";
 
 const invoicesAssignments = Router();
 invoicesAssignments.use(express.json());
 
+const EPS = 0.005;
+
+/** Latest paid-comment datetime on another invoice in the same event (later period first, else earlier). */
+async function loadCoveragePaymentDatesByInvoice(db, eventId) {
+  const rows = await db.query(
+    `SELECT i.id AS invoice_id,
+      COALESCE(
+        (SELECT MAX(c.datetime)
+         FROM comments c
+         INNER JOIN invoices i2 ON i2.id = c.invoice_id
+         WHERE c.adjustment_type = 'paid'
+           AND i2.event_id = i.event_id
+           AND i2.id <> i.id
+           AND i2.start_date > i.start_date),
+        (SELECT MAX(c.datetime)
+         FROM comments c
+         INNER JOIN invoices i2 ON i2.id = c.invoice_id
+         WHERE c.adjustment_type = 'paid'
+           AND i2.event_id = i.event_id
+           AND i2.id <> i.id
+           AND i2.start_date < i.start_date)
+      ) AS coverage_payment_date
+     FROM invoices i
+     WHERE i.event_id = $1`,
+    [eventId]
+  );
+  return new Map(rows.map((r) => [r.invoice_id, r.coverage_payment_date]));
+}
+
 invoicesAssignments.get("/", async (req, res) => {
   try {
     const invoices = await db.query(
-      `SELECT invoices.id as id, events.name as event_name, invoices.is_sent, invoices.payment_status, clients.name, invoices.end_date, assignments.role,
+      `SELECT invoices.id as id, events.name as event_name, invoices.is_sent, invoices.payment_status, clients.name, invoices.end_date, invoices.start_date, invoices.event_id, assignments.role,
               lp.last_payment_date, lp.last_payment_amount
        FROM events
        JOIN invoices ON events.id = invoices.event_id
@@ -24,10 +54,37 @@ invoicesAssignments.get("/", async (req, res) => {
        WHERE events.archived = false;`,
     );
 
-    res.status(200).json(keysToCamel(invoices)); // Ensure you return `data.rows`
-  }
-  catch (err) {
-    res.status(500).send(err.message); // Fixed error response
+    const eventIds = [
+      ...new Set(invoices.map((r) => r.event_id).filter((eid) => eid !== null && eid !== undefined)),
+    ];
+
+    const perEvent = await Promise.all(
+      eventIds.map(async (eventId) => {
+        const [maps, coverageMap] = await Promise.all([
+          loadEventAllocationMaps(db, eventId),
+          loadCoveragePaymentDatesByInvoice(db, eventId),
+        ]);
+        return [eventId, { maps, coverageMap }];
+      })
+    );
+    const byEvent = new Map(perEvent);
+
+    const enriched = invoices.map((row) => {
+      let covered_by_payment_date = null;
+      const bundle = byEvent.get(row.event_id);
+      if (bundle && !row.last_payment_date) {
+        const raw = Number(bundle.maps.rawPaidById[row.id]) || 0;
+        const alloc = Number(bundle.maps.allocatedById[row.id]) || 0;
+        if (alloc > raw + EPS) {
+          covered_by_payment_date = bundle.coverageMap.get(row.id) ?? null;
+        }
+      }
+      return { ...row, covered_by_payment_date };
+    });
+
+    res.status(200).json(keysToCamel(enriched));
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 });
 

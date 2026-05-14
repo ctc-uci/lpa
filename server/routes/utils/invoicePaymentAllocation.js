@@ -55,7 +55,7 @@ export function paymentStatusFromAllocated(allocated, total) {
   return "none";
 }
 
-async function loadEventAllocationMaps(db, eventId) {
+export async function loadEventAllocationMaps(db, eventId) {
   const invoices = await db.query(
     `SELECT id, event_id, start_date FROM invoices
      WHERE event_id = $1
