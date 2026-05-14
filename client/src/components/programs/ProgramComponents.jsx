@@ -441,7 +441,11 @@ export const ProgramSummary = ({
                     <Button
                       leftIcon={<ExternalLinkIcon />}
                       aria-label="View invoice"
-                      onClick={() => navigate(`/invoices/${invoiceId}`)}
+                      onClick={() =>
+                        navigate(`/invoices/${invoiceId}`, {
+                          state: { fromProgram: true, programId: id },
+                        })
+                      }
                     >
                       View Invoice
                     </Button>

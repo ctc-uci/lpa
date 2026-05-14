@@ -18,7 +18,7 @@ import {
 
 import { FaAngleLeft } from "react-icons/fa6";
 import { FiExternalLink } from "react-icons/fi";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   TransformComponent,
   TransformWrapper,
@@ -38,11 +38,13 @@ import { PDFButtonInvoice } from "./PDFButtonInvoice";
 import { useSessionStore } from "../../stores/useSessionStore";
 import { useSummaryStore } from "../../stores/useSummaryStore";
 import { getPastDue, getAllDue } from "../../utils/pastDueCalc";
+import { parseSessionDate } from "../programs/utils";
 
 export const SingleInvoice = () => {
   const { id } = useParams();
   const { backend } = useBackendContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
 
   const [total, setTotal] = useState(0);
@@ -251,7 +253,27 @@ export const SingleInvoice = () => {
 
         // console.log("sessionResponse", sessionResponse.data)
         // console.log("sessionResponse", sessionResponse.data)
-        setSessions(sessionResponse.data);
+        const rawSessions = sessionResponse.data ?? [];
+        const sortedSessions = rawSessions.slice().sort((a, b) => {
+          const aDate = parseSessionDate(a?.bookingDate)?.getTime();
+          const bDate = parseSessionDate(b?.bookingDate)?.getTime();
+
+          const aValid = typeof aDate === "number" && !Number.isNaN(aDate);
+          const bValid = typeof bDate === "number" && !Number.isNaN(bDate);
+
+          if (aValid && bValid && aDate !== bDate) return aDate - bDate;
+          if (aValid && !bValid) return -1;
+          if (!aValid && bValid) return 1;
+
+          const aStart = a?.startTime?.slice(0, 5) || "";
+          const bStart = b?.startTime?.slice(0, 5) || "";
+          if (aStart && bStart && aStart !== bStart)
+            return aStart.localeCompare(bStart);
+
+          return (a?.order_index ?? 0) - (b?.order_index ?? 0);
+        });
+
+        setSessions(sortedSessions);
 
         const summaryResponse = await backend.get(
           `comments/invoice/summary/${id}`
@@ -410,6 +432,20 @@ export const SingleInvoice = () => {
     }
   };
 
+  const handleBackClick = () => {
+    const programId = location.state?.fromProgram
+      ? location.state.programId || invoice?.data?.[0]?.eventId
+      : null;
+    handleNavbarClick(programId ? `/programs/${programId}` : `/invoices`);
+  };
+
+  const handleViewProgramClick = () => {
+    const programId = invoice?.data?.[0]?.eventId;
+    if (programId) {
+      handleNavbarClick(`/programs/${programId}`);
+    }
+  };
+
   const handleUnsavedModalDismiss = () => {
     closeModal();
     setPendingNavigation(null);
@@ -526,20 +562,46 @@ export const SingleInvoice = () => {
             {/* back button */}
             <IconButton
               icon={<FaAngleLeft />}
-              onClick={() => handleNavbarClick(`/invoices`)}
+              onClick={handleBackClick}
               variant="link"
               color="#474849"
               fontSize="1.5em"
               mr={6}
             ></IconButton>
-            <InvoiceTitle
-              title={event ? event.name : "N/A"}
-              isSent={invoice?.data?.[0]?.isSent}
-              paymentStatus={invoice?.data?.[0]?.paymentStatus}
-              endDate={invoice?.data?.[0]?.endDate}
-              onMarkAsSent={handleMarkInvoiceSent}
-              onMarkAsNotSent={handleMarkInvoiceNotSent}
-            ></InvoiceTitle>
+            <Flex
+              direction="column"
+              gap="4px"
+            >
+              <InvoiceTitle
+                title={event ? event.name : "N/A"}
+                isSent={invoice?.data?.[0]?.isSent}
+                paymentStatus={invoice?.data?.[0]?.paymentStatus}
+                endDate={invoice?.data?.[0]?.endDate}
+                onMarkAsSent={handleMarkInvoiceSent}
+                onMarkAsNotSent={handleMarkInvoiceNotSent}
+              ></InvoiceTitle>
+              {invoice?.data?.[0]?.eventId && (
+                <Flex
+                  alignItems="center"
+                  gap="4px"
+                  fontFamily="Inter"
+                  fontSize="14px"
+                >
+                  <Text color="#718096">Program:</Text>
+                  <Button
+                    variant="link"
+                    color="#4441C8"
+                    fontSize="14px"
+                    fontWeight="600"
+                    height="auto"
+                    minWidth="auto"
+                    onClick={handleViewProgramClick}
+                  >
+                    View page
+                  </Button>
+                </Flex>
+              )}
+            </Flex>
 
             {/* buttons */}
             <Flex
