@@ -1689,7 +1689,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                       {invoice.lastPaymentDate ? (
                         `$${Number(invoice.lastPaymentAmount).toFixed(2)} (${format(new Date(invoice.lastPaymentDate), "MM/dd/yy")})`
                       ) : invoice.coveredByPaymentDate ? (
-                        `Covered (${format(new Date(invoice.coveredByPaymentDate), "MM/dd/yy")})`
+                        `Applied (${format(new Date(invoice.coveredByPaymentDate), "MM/dd/yy")})`
                       ) : (
                         "—"
                       )}
