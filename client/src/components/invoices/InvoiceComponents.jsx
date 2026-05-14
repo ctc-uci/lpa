@@ -550,6 +550,8 @@ const InvoicePayments = forwardRef(
       hasUnsavedChanges,
       setHasUnsavedChanges,
       setRemainingBalance,
+      /** When set, called after paid comments change to refresh past-due + remaining (single-invoice page). */
+      onBalancesRefresh,
       amountDue,
       handleOtherButtonClick,
       onPaymentStatusChange,
@@ -650,8 +652,12 @@ const InvoicePayments = forwardRef(
     );
     setComments(commentsResponse.data);
 
-    const paidTotal = await getAllDue(backend, id);
-    setRemainingBalance(paidTotal);
+    if (onBalancesRefresh) {
+      await onBalancesRefresh();
+    } else {
+      const paidTotal = await getAllDue(backend, id);
+      setRemainingBalance(paidTotal);
+    }
 
     const invoiceRes = await backend.get(`/invoices/${id}`);
     const newStatus = invoiceRes.data?.[0]?.paymentStatus ?? "none";

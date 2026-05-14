@@ -82,6 +82,17 @@ export const SingleInvoice = () => {
   const invoicePaymentsRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const refreshPaymentBalances = useCallback(async () => {
+    const [pastDueAmount, allDueAmount] = await Promise.all([
+      getPastDue(backend, id),
+      getAllDue(backend, id),
+    ]);
+    setTotal(pastDueAmount);
+    setSubtotal(pastDueAmount);
+    setPastDue(pastDueAmount);
+    setRemainingBalance(allDueAmount);
+  }, [backend, id]);
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -674,6 +685,7 @@ export const SingleInvoice = () => {
                   setComments={setComments}
                   setHasUnsavedChanges={setHasUnsavedChanges}
                   setRemainingBalance={setRemainingBalance}
+                  onBalancesRefresh={refreshPaymentBalances}
                   amountDue={total}
                   hasUnsavedChanges={hasUnsavedChanges}
                   handleOtherButtonClick={handleOtherButtonClick}
