@@ -1686,11 +1686,35 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                       {formatSessionDateWithWeekday(invoice.endDate)}
                     </Td>
                     <Td onClick={() => handleRowClick(invoice.id)}>
-                      {invoice.lastPaymentDate
-                        ? `$${Number(invoice.lastPaymentAmount).toFixed(2)} (${format(new Date(invoice.lastPaymentDate), "MM/dd/yy")})`
-                        : invoice.coveredByPaymentDate
-                          ? `— (${format(new Date(invoice.coveredByPaymentDate), "MM/dd/yy")})`
-                          : "—"}
+                      {invoice.lastPaymentDate ? (
+                        `$${Number(invoice.lastPaymentAmount).toFixed(2)} (${format(new Date(invoice.lastPaymentDate), "MM/dd/yy")})`
+                      ) : invoice.coveredByPaymentDate ? (
+                        <VStack
+                          align="flex-start"
+                          spacing={0}
+                        >
+                          <Text
+                            fontSize="11px"
+                            color="gray.600"
+                            fontWeight="500"
+                            lineHeight="short"
+                          >
+                            {invoice.coveredByPaymentSource === "later"
+                              ? "Paid on a later billing period"
+                              : invoice.coveredByPaymentSource === "earlier"
+                                ? "Paid on an earlier billing period"
+                                : "Covered from another billing period"}
+                          </Text>
+                          <Text
+                            fontSize="14px"
+                            color="#474849"
+                          >
+                            {format(new Date(invoice.coveredByPaymentDate), "MM/dd/yy")}
+                          </Text>
+                        </VStack>
+                      ) : (
+                        "—"
+                      )}
                     </Td>
                     {/* <Td>
                       <Flex ml="18px">

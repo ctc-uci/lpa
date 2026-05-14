@@ -117,7 +117,7 @@
 
 .invoices-table__table th:nth-child(6),
 .invoices-table__table td:nth-child(6) {
-  width: 120px !important;
+  width: 168px !important;
   padding-left: 8px !important;
   padding-right: 28px !important;
 }
