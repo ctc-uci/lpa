@@ -10,6 +10,7 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Spinner,
   Text,
   useToast,
   HStack,
@@ -41,6 +42,7 @@ const InvoicesDashboard = () => {
   const [relevantInvoices, setRelevantInvoices] = useState(true);
   const [sortKey, setSortKey] = useState("title");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [isLoading, setIsLoading] = useState(true);
 
   const [filter, setFilter] = useState({
     startDate: "",
@@ -150,6 +152,7 @@ const InvoicesDashboard = () => {
   };
 
   const refetchInvoices = useCallback(async () => {
+    setIsLoading(true);
     try {
       const invoicesResponse = await backend.get("/invoicesAssignments/");
       const groupedInvoices = invoicesResponse.data.reduce((acc, row) => {
@@ -194,6 +197,8 @@ const InvoicesDashboard = () => {
       }
     } catch (err) {
       console.log(err);
+    } finally {
+      setIsLoading(false);
     }
   }, [backend, relevantInvoices]);
 
@@ -316,6 +321,26 @@ const InvoicesDashboard = () => {
       }
     }
   }, [relevantInvoices, filterComponentResults]);
+
+  if (isLoading) {
+    return (
+      <Navbar>
+        <Flex
+          height="80vh"
+          width="100%"
+          alignItems="center"
+          justifyContent="center"
+          flexDirection="column"
+          gap="16px"
+        >
+          <Spinner size="xl" color="#4441C8" thickness="4px" speed="0.65s" />
+          <Text fontFamily="Inter" fontSize="16px" color="#767778">
+            Loading invoices...
+          </Text>
+        </Flex>
+      </Navbar>
+    );
+  }
 
   return (
     <Navbar>
