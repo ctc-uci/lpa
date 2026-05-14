@@ -1,0 +1,36 @@
+client/src/components/programs/ProgramComponents.jsx
+  s_fb197ac8ba5261::t_ac929ee10814c2 444-448
+client/src/components/invoices/SingleInvoice.jsx
+  s_fb197ac8ba5261::t_7303e01f0e0602 442-448
+  s_fb197ac8ba5261::t_e72e7f24a925f9 571-582,604
+  s_fb197ac8ba5261::t_6d9035cdbba683 435,440-441,565
+  s_fb197ac8ba5261::t_b9fcccb9c789ee 583-589,591-599,601-603
+  s_4cb8dabe7f1e72::t_a30d76e1a9e94a 41,256-276
+  s_fb197ac8ba5261::t_4e835676cdd9be 21,47,436-439
+  s_fb197ac8ba5261::t_daa4b52346e0db 590
+  s_fb197ac8ba5261::t_cbca46a6ad0710 600
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "4601ba9038c0cee2ca13a93b4e83ce603a31a2e7",
+  "prompts": {},
+  "sessions": {
+    "s_4cb8dabe7f1e72": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4bd1e8e4-6da7-4132-9a24-c72ac645dbed",
+        "model": "default"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    },
+    "s_fb197ac8ba5261": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4efdd411-9b4f-405c-8081-a3d5a341f189",
+        "model": "default"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
