@@ -86,9 +86,11 @@ async function loadEventAllocationMaps(db, eventId) {
   }
 
   const totalById = {};
-  for (const inv of invoices) {
-    totalById[inv.id] = await calculateInvoiceTotal(db, inv.id);
-  }
+  await Promise.all(
+    invoices.map(async (inv) => {
+      totalById[inv.id] = await calculateInvoiceTotal(db, inv.id);
+    })
+  );
 
   const { allocatedById } = computeRolledAllocations(invoices, rawPaidById, totalById);
 
@@ -124,5 +126,48 @@ export async function getAllocatedPaidBreakdownForInvoice(db, invoiceId) {
   return {
     allocated: allocatedById[invoiceId] ?? 0,
     rawOnInvoice: rawPaidById[invoiceId] ?? 0,
+  };
+}
+
+/**
+ * One-shot figures for the single-invoice UI: matches getPastDue / getAllDue client math
+ * using the same event allocation, plus current row payment_status (after server sync).
+ */
+export async function getSingleInvoiceBalanceFigures(db, invoiceId) {
+  const current = await db.oneOrNone(
+    `SELECT id, event_id, start_date, payment_status FROM invoices WHERE id = $1`,
+    [invoiceId]
+  );
+  if (!current) return null;
+
+  const previous = await db.query(
+    `SELECT id FROM invoices
+     WHERE event_id = $1 AND start_date < $2
+     ORDER BY start_date ASC, id ASC`,
+    [current.event_id, current.start_date]
+  );
+
+  const { totalById, allocatedById } = await loadEventAllocationMaps(db, current.event_id);
+
+  let previousTotal = 0;
+  let previousAllocated = 0;
+  for (const row of previous) {
+    previousTotal += Number(totalById[row.id]) || 0;
+    previousAllocated += Number(allocatedById[row.id]) || 0;
+  }
+
+  const currentTotal = Number(totalById[current.id]) || 0;
+  const currentAllocated = Number(allocatedById[current.id]) || 0;
+
+  const pastDue = Math.max(0, previousTotal - previousAllocated);
+  const remainingBalance = Math.max(
+    0,
+    previousTotal + currentTotal - previousAllocated - currentAllocated
+  );
+
+  return {
+    pastDue,
+    remainingBalance,
+    paymentStatus: current.payment_status,
   };
 }

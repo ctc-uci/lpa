@@ -52,3 +52,14 @@ export const getAllDue = async (backend, id) => {
     const pastDue = (previousTotal - paidTotal) > 0 ? (previousTotal - paidTotal) : 0;
     return pastDue;
 };
+
+/** One server round-trip: same figures as getPastDue + getAllDue + current payment_status. */
+export const getSingleInvoiceBalances = async (backend, id) => {
+  const res = await backend.get(`/invoices/singleInvoiceBalances/${id}`);
+  const d = res.data;
+  return {
+    pastDue: Number(d.pastDue) || 0,
+    remainingBalance: Number(d.remainingBalance) || 0,
+    paymentStatus: d.paymentStatus ?? "none",
+  };
+};

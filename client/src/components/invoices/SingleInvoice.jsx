@@ -37,7 +37,7 @@ import { InvoiceView } from "./InvoiceView";
 import { PDFButtonInvoice } from "./PDFButtonInvoice";
 import { useSessionStore } from "../../stores/useSessionStore";
 import { useSummaryStore } from "../../stores/useSummaryStore";
-import { getPastDue, getAllDue } from "../../utils/pastDueCalc";
+import { getSingleInvoiceBalances } from "../../utils/pastDueCalc";
 import { parseSessionDate } from "../programs/utils";
 
 export const SingleInvoice = () => {
@@ -83,14 +83,18 @@ export const SingleInvoice = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshPaymentBalances = useCallback(async () => {
-    const [pastDueAmount, allDueAmount] = await Promise.all([
-      getPastDue(backend, id),
-      getAllDue(backend, id),
-    ]);
-    setTotal(pastDueAmount);
-    setSubtotal(pastDueAmount);
-    setPastDue(pastDueAmount);
-    setRemainingBalance(allDueAmount);
+    const bal = await getSingleInvoiceBalances(backend, id);
+    setTotal(bal.pastDue);
+    setSubtotal(bal.pastDue);
+    setPastDue(bal.pastDue);
+    setRemainingBalance(bal.remainingBalance);
+    setInvoice((prev) => {
+      if (!prev?.data?.[0]) return prev;
+      return {
+        ...prev,
+        data: [{ ...prev.data[0], paymentStatus: bal.paymentStatus }],
+      };
+    });
   }, [backend, id]);
 
   useEffect(() => {
@@ -127,12 +131,18 @@ export const SingleInvoice = () => {
         // get invoice total
         // const invoiceTotalResponse = await backend.get(`/invoices/total/${id}`);
         // const total = invoiceTotalResponse.data.total;
-        const total = await getPastDue(backend, id);
-        setTotal(total);
-        setSubtotal(total);
-        setPastDue(total);
-
-        // // calculate sum of unpaid/remaining invoices
+        const bal = await getSingleInvoiceBalances(backend, id);
+        setTotal(bal.pastDue);
+        setSubtotal(bal.pastDue);
+        setPastDue(bal.pastDue);
+        setRemainingBalance(bal.remainingBalance);
+        setInvoice((prev) => {
+          if (!prev?.data?.[0]) return prev;
+          return {
+            ...prev,
+            data: [{ ...prev.data[0], paymentStatus: bal.paymentStatus }],
+          };
+        });
         // const unpaidInvoicesResponse = await backend.get(
         //   "/events/remaining/" + currentInvoiceResponse.data[0]["eventId"]
         // );
@@ -213,11 +223,6 @@ export const SingleInvoice = () => {
 
 //         // ==== END OF PAST DUE CALCULATION ====
 // =======
-
-        const paidTotal = await getAllDue(backend, id);
-
-        setRemainingBalance(paidTotal);
-// >>>>>>> main
 
         // get program name
         const programNameResponse = await backend.get(

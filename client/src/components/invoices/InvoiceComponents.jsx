@@ -647,17 +647,22 @@ const InvoicePayments = forwardRef(
   const currentPageComments = comments ?? [];
 
   const updateRemainingBalance = async () => {
+    if (onBalancesRefresh) {
+      const [commentsResponse] = await Promise.all([
+        backend.get("/comments/paidInvoices/" + id),
+        onBalancesRefresh(),
+      ]);
+      setComments(commentsResponse.data);
+      return;
+    }
+
     const commentsResponse = await backend.get(
       "/comments/paidInvoices/" + id
     );
     setComments(commentsResponse.data);
 
-    if (onBalancesRefresh) {
-      await onBalancesRefresh();
-    } else {
-      const paidTotal = await getAllDue(backend, id);
-      setRemainingBalance(paidTotal);
-    }
+    const paidTotal = await getAllDue(backend, id);
+    setRemainingBalance(paidTotal);
 
     const invoiceRes = await backend.get(`/invoices/${id}`);
     const newStatus = invoiceRes.data?.[0]?.paymentStatus ?? "none";

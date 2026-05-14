@@ -7,7 +7,7 @@ import { uploadPDF } from "../common/s3";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
 import { calculateInvoiceTotal } from "./utils/invoiceTotal.js";
-import { getAllocatedPaidBreakdownForInvoice } from "./utils/invoicePaymentAllocation.js";
+import { getAllocatedPaidBreakdownForInvoice, getSingleInvoiceBalanceFigures } from "./utils/invoicePaymentAllocation.js";
 
 
 const invoicesRouter = Router();
@@ -154,6 +154,25 @@ invoicesRouter.get("/neardue", async (req, res) => {
 
     const nearDueInvoices = await db.query(query, params);
     res.status(200).json(keysToCamel(nearDueInvoices));
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Past due, remaining balance, and payment_status in one response (single-invoice page)
+invoicesRouter.get("/singleInvoiceBalances/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id || id === "null" || id === "undefined" || isNaN(parseInt(id, 10))) {
+      return res.status(400).json({ error: "Invalid invoice ID" });
+    }
+
+    const data = await getSingleInvoiceBalanceFigures(db, id);
+    if (!data) {
+      return res.status(404).json({ error: "Invoice not found" });
+    }
+
+    res.status(200).json(keysToCamel(data));
   } catch (err) {
     res.status(500).send(err.message);
   }
