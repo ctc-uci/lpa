@@ -11,7 +11,8 @@
     "start": "tsx watch --clear-screen=false src/app.js",
     "lint": "eslint",
     "format": "npx prettier --write .",
-    "test": "node --test routes/utils/invoicePaymentAllocation.test.js"
+    "test": "node --test routes/utils/invoicePaymentAllocation.test.js",
+    "backfill:invoice-totals": "tsx scripts/backfillInvoiceTotals.js"
   },
   "lint-staged": {
     "*.js": "yarn run eslint"

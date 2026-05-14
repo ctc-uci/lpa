@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { db } from "../db/db-pgp";
 import { keysToCamel } from "../common/utils";
+import { resyncInvoiceTotalsAndPaymentStatusesForEvent } from "./utils/invoiceTotalSync.js";
 
 const roomsRouter = Router();
 roomsRouter.use(express.json());
@@ -72,6 +73,13 @@ roomsRouter.put("/:id", async (req, res) => {
     // Verify the Room is valid
     if (data.length === 0) {
       return res.status(404).send("Room not found");
+    }
+
+    if (rate !== undefined && rate !== null) {
+      const events = await db.query(`SELECT DISTINCT event_id FROM bookings WHERE room_id = $1`, [id]);
+      for (const row of events) {
+        await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, row.event_id);
+      }
     }
 
     res.status(200).json(keysToCamel(data));

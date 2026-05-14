@@ -11,23 +11,25 @@ const EPS = 0.005;
 /** Per invoice: latest paid-comment on another period (prefer later billing period, else earlier). */
 async function loadCoveragePaymentMetaByInvoice(db, eventId) {
   const rows = await db.query(
-    `SELECT i.id AS invoice_id,
-      (SELECT MAX(c.datetime)
+    `WITH inv AS (
+       SELECT id, event_id, start_date
+       FROM invoices
+       WHERE event_id = $1
+     ),
+     paid_by_inv AS (
+       SELECT c.invoice_id, MAX(c.datetime) AS last_paid_at
        FROM comments c
-       INNER JOIN invoices i2 ON i2.id = c.invoice_id
        WHERE c.adjustment_type = 'paid'
-         AND i2.event_id = i.event_id
-         AND i2.id <> i.id
-         AND i2.start_date > i.start_date) AS from_later,
-      (SELECT MAX(c.datetime)
-       FROM comments c
-       INNER JOIN invoices i2 ON i2.id = c.invoice_id
-       WHERE c.adjustment_type = 'paid'
-         AND i2.event_id = i.event_id
-         AND i2.id <> i.id
-         AND i2.start_date < i.start_date) AS from_earlier
-     FROM invoices i
-     WHERE i.event_id = $1`,
+         AND c.invoice_id IN (SELECT id FROM inv)
+       GROUP BY c.invoice_id
+     )
+     SELECT i.id AS invoice_id,
+       MAX(CASE WHEN j.start_date > i.start_date THEN p.last_paid_at END) AS from_later,
+       MAX(CASE WHEN j.start_date < i.start_date THEN p.last_paid_at END) AS from_earlier
+     FROM inv i
+     LEFT JOIN inv j ON j.id <> i.id
+     LEFT JOIN paid_by_inv p ON p.invoice_id = j.id
+     GROUP BY i.id`,
     [eventId]
   );
   return new Map(

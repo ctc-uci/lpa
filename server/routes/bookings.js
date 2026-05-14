@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { db } from "../db/db-pgp";
 import { keysToCamel } from "../common/utils";
+import { resyncInvoiceTotalsAndPaymentStatusesForEvent } from "./utils/invoiceTotalSync.js";
 
 const bookingsRouter = Router();
 bookingsRouter.use(express.json());
@@ -262,6 +263,8 @@ bookingsRouter.post("/", async (req, res) => {
 
     await ensureInvoiceExists(date, event_id);
 
+    await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, event_id);
+
     res.status(200).json(keysToCamel(data));
   } catch (err) {
     res.status(500).send(err.message);
@@ -280,6 +283,7 @@ bookingsRouter.post("/batch", async (req, res) => {
     }
 
     const ids = [];
+    const eventIds = new Set();
     for (const booking of bookings) {
       const { event_id, room_id, start_time, end_time, date, archived } = booking;
       const data = await db.query(
@@ -287,7 +291,12 @@ bookingsRouter.post("/batch", async (req, res) => {
         [ event_id, room_id, start_time, end_time, date, archived ]
       );
       await ensureInvoiceExists(date, event_id);
+      eventIds.add(event_id);
       ids.push(data[0].id);
+    }
+
+    for (const eid of eventIds) {
+      await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eid);
     }
 
     res.status(200).json({
@@ -323,8 +332,13 @@ bookingsRouter.delete("/batch", async (req, res) => {
       }
     }
 
+    const eventsToResync = new Set(deletedEventMonths.map((d) => d.eventId));
     for (const { eventId, date } of deletedEventMonths) {
       await deleteOrphanedInvoicesForEventMonth(eventId, date);
+    }
+
+    for (const eid of eventsToResync) {
+      if (eid != null) await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eid);
     }
 
     res.status(200).json({
@@ -350,6 +364,7 @@ bookingsRouter.put("/batch", async (req, res) => {
 
 
     const updatedIds = [];
+    const eventIdsToResync = new Set();
     for (const booking of bookings) {
       const { id, event_id, room_id, start_time, end_time, date, archived } = booking;
       const existing = await db.query(
@@ -377,7 +392,13 @@ bookingsRouter.put("/batch", async (req, res) => {
       if (oldDate && (String(oldDate) !== String(newDate) || oldEventId !== newEventId)) {
         await deleteOrphanedInvoicesForEventMonth(oldEventId, oldDate);
       }
+      if (oldEventId != null) eventIdsToResync.add(oldEventId);
+      if (newEventId != null) eventIdsToResync.add(newEventId);
       updatedIds.push(data[0].id);
+    }
+
+    for (const eid of eventIdsToResync) {
+      await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eid);
     }
 
     res.status(200).json({
@@ -427,6 +448,11 @@ bookingsRouter.put("/:id", async (req, res) => {
         await deleteOrphanedInvoicesForEventMonth(oldEventId, oldDate);
       }
 
+      const resyncIds = new Set([oldEventId, newEventId].filter((x) => x != null));
+      for (const eid of resyncIds) {
+        await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eid);
+      }
+
       res.status(200).json(keysToCamel(data));
     } catch (err) {
       res.status(500).send(err.message);
@@ -465,6 +491,9 @@ bookingsRouter.put("/event/:id", async (req, res) => {
 
       await ensureInvoiceExists(date, event_id);
 
+      const ev = data[0]?.event_id;
+      if (ev != null) await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, ev);
+
       res.status(200).json(keysToCamel(data));
     } catch (err) {
       res.status(500).send(err.message);
@@ -499,6 +528,8 @@ bookingsRouter.delete("/:id", async (req, res) => {
 
       await deleteOrphanedInvoicesForEventMonth(data[0].event_id, data[0].date);
 
+      await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, data[0].event_id);
+
       res.status(200).json({ result: 'success' });
     } catch (err) {
       res.status(500).send(err.message);
@@ -516,6 +547,8 @@ bookingsRouter.delete("/event/:id", async (req, res) => {
       if (!data) {
         return res.status(404).json({result: 'error'});
       }
+
+      await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, Number(id));
 
       res.status(200).json({result: 'success'});
     } catch (err) {
@@ -573,8 +606,14 @@ bookingsRouter.delete("/batch/delete", async (req, res) => {
 
     const data = await db.query(query, sessionIds);
 
+    const eventsToResync = new Set();
     for (const row of data) {
       await deleteOrphanedInvoicesForEventMonth(row.event_id, row.date);
+      if (row.event_id != null) eventsToResync.add(row.event_id);
+    }
+
+    for (const eid of eventsToResync) {
+      await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eid);
     }
 
     res.status(200).json({

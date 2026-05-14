@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.invoices
     end_date date NOT NULL,
     is_sent boolean NOT NULL DEFAULT false,
     payment_status payment NOT NULL DEFAULT 'none'::payment,
+    total_amount numeric(14, 2) NOT NULL DEFAULT 0,
     CONSTRAINT invoice_pkey PRIMARY KEY (id),
     CONSTRAINT event_id FOREIGN KEY (event_id)
         REFERENCES public.events (id) MATCH SIMPLE

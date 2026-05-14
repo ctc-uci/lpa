@@ -4,7 +4,12 @@ import express, { Router } from "express";
 
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp"; // TODO: replace this db with
-import { syncPaymentStatusesForInvoice } from "./utils/invoicePaymentAllocation.js";
+import { syncPaymentStatusesForEvent, syncPaymentStatusesForInvoice } from "./utils/invoicePaymentAllocation.js";
+import {
+  commentAdjustmentAffectsInvoiceTotal,
+  resolveEventIdForComment,
+  resyncInvoiceTotalsAndPaymentStatusesForEvent,
+} from "./utils/invoiceTotalSync.js";
 
 
 const commentsRouter = Router();
@@ -425,6 +430,7 @@ commentsRouter.get("/booking/:id", async (req, res) => {
 commentsRouter.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const old = await db.oneOrNone(`SELECT * FROM comments WHERE id = $1`, [id]);
     const {
       user_id,
       booking_id,
@@ -477,8 +483,29 @@ commentsRouter.put("/:id", async (req, res) => {
     }
 
     const updated = data[0];
-    if (updated.adjustment_type === "paid" && updated.invoice_id) {
-      await syncPaymentStatusesForInvoice(db, updated.invoice_id);
+    const eventIds = new Set();
+    for (const row of [old, updated]) {
+      if (!row) continue;
+      const ev = await resolveEventIdForComment(db, row.invoice_id, row.booking_id);
+      if (ev != null) eventIds.add(ev);
+    }
+
+    const financial =
+      old &&
+      (commentAdjustmentAffectsInvoiceTotal(old.adjustment_type) ||
+        commentAdjustmentAffectsInvoiceTotal(updated.adjustment_type) ||
+        Number(old.adjustment_value) !== Number(updated.adjustment_value) ||
+        old.invoice_id !== updated.invoice_id ||
+        old.booking_id !== updated.booking_id);
+
+    if (financial) {
+      for (const eid of eventIds) {
+        await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eid);
+      }
+    } else if (updated.adjustment_type === "paid" || (old && old.adjustment_type === "paid")) {
+      for (const eid of eventIds) {
+        await syncPaymentStatusesForEvent(db, eid);
+      }
     }
 
     res.status(200).json(keysToCamel(data));
@@ -516,7 +543,10 @@ commentsRouter.post("/", async (req, res) => {
       ]
     );
 
-    if (adjustment_type === "paid" && invoice_id) {
+    const eventId = await resolveEventIdForComment(db, invoice_id, booking_id ?? null);
+    if (eventId && commentAdjustmentAffectsInvoiceTotal(adjustment_type)) {
+      await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eventId);
+    } else if (adjustment_type === "paid" && invoice_id) {
       await syncPaymentStatusesForInvoice(db, invoice_id);
     }
 
@@ -542,8 +572,12 @@ commentsRouter.delete("/:id", async (req, res) => {
       return res.status(404).json({ result: "error" });
     }
 
-    if (comment[0].adjustment_type === "paid" && comment[0].invoice_id) {
-      await syncPaymentStatusesForInvoice(db, comment[0].invoice_id);
+    const deleted = comment[0];
+    const eventId = await resolveEventIdForComment(db, deleted.invoice_id, deleted.booking_id);
+    if (eventId && commentAdjustmentAffectsInvoiceTotal(deleted.adjustment_type)) {
+      await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eventId);
+    } else if (deleted.adjustment_type === "paid" && deleted.invoice_id) {
+      await syncPaymentStatusesForInvoice(db, deleted.invoice_id);
     }
 
     res.status(200).json({ result: "success", deletedComment: comment });
@@ -568,16 +602,25 @@ commentsRouter.delete("/booking/:id", async (req, res) => {
       return res.status(404).json({ result: "error" });
     }
 
-    // Check if any of the deleted comments were payments
-    const paymentComments = comments.filter(
-      (c) => c.adjustment_type === "paid"
-    );
-
-    // Get unique invoice IDs from payment comments
-    const invoiceIds = [...new Set(paymentComments.map((c) => c.invoice_id))];
-
-    for (const invoice_id of invoiceIds) {
-      await syncPaymentStatusesForInvoice(db, invoice_id);
+    const eventsNeedingTotals = new Set();
+    const paymentInvoiceIds = new Set();
+    for (const c of comments) {
+      if (commentAdjustmentAffectsInvoiceTotal(c.adjustment_type)) {
+        const ev = await resolveEventIdForComment(db, c.invoice_id, c.booking_id);
+        if (ev != null) eventsNeedingTotals.add(ev);
+      }
+      if (c.adjustment_type === "paid" && c.invoice_id) {
+        paymentInvoiceIds.add(c.invoice_id);
+      }
+    }
+    if (eventsNeedingTotals.size > 0) {
+      for (const eid of eventsNeedingTotals) {
+        await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eid);
+      }
+    } else if (paymentInvoiceIds.size > 0) {
+      for (const invoice_id of paymentInvoiceIds) {
+        await syncPaymentStatusesForInvoice(db, invoice_id);
+      }
     }
 
     res.status(200).json({ result: "success", deletedComments: comments });

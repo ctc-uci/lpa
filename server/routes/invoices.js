@@ -6,8 +6,11 @@ import multer from "multer";
 import { uploadPDF } from "../common/s3";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
-import { calculateInvoiceTotal } from "./utils/invoiceTotal.js";
 import { getAllocatedPaidBreakdownForInvoice, getSingleInvoiceBalanceFigures } from "./utils/invoicePaymentAllocation.js";
+import {
+  resyncInvoiceTotalsAndPaymentStatusesForEvent,
+  syncStoredInvoiceTotal,
+} from "./utils/invoiceTotalSync.js";
 
 
 const invoicesRouter = Router();
@@ -399,13 +402,17 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
 invoicesRouter.get("/total/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const { refresh } = req.query;
 
     const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [id]);
     if (!invoiceRes || invoiceRes.length === 0) {
       return res.status(404).json({ error: "Invoice not found" });
     }
 
-    const totalCost = await calculateInvoiceTotal(db, id);
+    let totalCost = Number(invoiceRes[0].total_amount) || 0;
+    if (refresh === "1" || refresh === "true") {
+      totalCost = await syncStoredInvoiceTotal(db, id);
+    }
 
     res.status(200).json(keysToCamel({ total: totalCost }));
   } catch (err) {
@@ -455,6 +462,8 @@ invoicesRouter.post("/", async (req, res) => {
       ]
     );
 
+    await syncStoredInvoiceTotal(db, result.id);
+
     res.status(201).json(result.id);
   } catch (err) {
     res.status(500).send(err.message);
@@ -469,6 +478,11 @@ invoicesRouter.put("/:id", async (req, res) => {
     if (!invoiceData) {
       return res.status(400).json({ error: "Invoice data is required" });
     }
+
+    const before = await db.oneOrNone(
+      `SELECT event_id, start_date, end_date FROM invoices WHERE id = $1`,
+      [id]
+    );
 
     const result = await db.oneOrNone(
       `UPDATE invoices
@@ -494,6 +508,18 @@ invoicesRouter.put("/:id", async (req, res) => {
 
     if (!result) {
       return res.status(404).json({ error: "Invoice not found" });
+    }
+
+    if (
+      before &&
+      (before.event_id !== result.event_id ||
+        String(before.start_date) !== String(result.start_date) ||
+        String(before.end_date) !== String(result.end_date))
+    ) {
+      const eventIds = new Set([result.event_id, before.event_id].filter(Boolean));
+      for (const eid of eventIds) {
+        await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, eid);
+      }
     }
 
     res.status(200).json(keysToCamel(result));

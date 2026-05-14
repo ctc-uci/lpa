@@ -21,7 +21,6 @@
  * the raw sum of payments on that invoice_id alone.
  */
 
-import { calculateInvoiceTotal } from "./invoiceTotal.js";
 
 /**
  * @param {Array<{ id: number, start_date?: string }>} invoicesOrdered
@@ -57,7 +56,7 @@ export function paymentStatusFromAllocated(allocated, total) {
 
 export async function loadEventAllocationMaps(db, eventId) {
   const invoices = await db.query(
-    `SELECT id, event_id, start_date FROM invoices
+    `SELECT id, event_id, start_date, total_amount FROM invoices
      WHERE event_id = $1
      ORDER BY start_date ASC, id ASC`,
     [eventId]
@@ -86,11 +85,9 @@ export async function loadEventAllocationMaps(db, eventId) {
   }
 
   const totalById = {};
-  await Promise.all(
-    invoices.map(async (inv) => {
-      totalById[inv.id] = await calculateInvoiceTotal(db, inv.id);
-    })
-  );
+  for (const inv of invoices) {
+    totalById[inv.id] = Number(inv.total_amount) || 0;
+  }
 
   const { allocatedById } = computeRolledAllocations(invoices, rawPaidById, totalById);
 
