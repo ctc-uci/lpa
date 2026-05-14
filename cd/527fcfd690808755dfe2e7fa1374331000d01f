@@ -1,0 +1,19 @@
+client/src/contexts/hooks/useInvoiceSessions.ts
+  s_4cb8dabe7f1e72::t_a3e65fdb776008 5,22-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "cd527fcfd690808755dfe2e7fa1374331000d01f",
+  "prompts": {},
+  "sessions": {
+    "s_4cb8dabe7f1e72": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4bd1e8e4-6da7-4132-9a24-c72ac645dbed",
+        "model": "default"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
