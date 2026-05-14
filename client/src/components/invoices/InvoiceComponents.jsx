@@ -1689,29 +1689,35 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                       {invoice.lastPaymentDate ? (
                         `$${Number(invoice.lastPaymentAmount).toFixed(2)} (${format(new Date(invoice.lastPaymentDate), "MM/dd/yy")})`
                       ) : invoice.coveredByPaymentDate ? (
-                        <VStack
-                          align="flex-start"
-                          spacing={0}
+                        <Text
+                          fontSize="14px"
+                          lineHeight="short"
+                          whiteSpace="nowrap"
                         >
                           <Text
-                            fontSize="11px"
+                            as="span"
                             color="gray.600"
                             fontWeight="500"
-                            lineHeight="short"
                           >
                             {invoice.coveredByPaymentSource === "later"
-                              ? "Paid on a later billing period"
+                              ? "Later period"
                               : invoice.coveredByPaymentSource === "earlier"
-                                ? "Paid on an earlier billing period"
-                                : "Covered from another billing period"}
+                                ? "Earlier period"
+                                : "Other period"}
                           </Text>
                           <Text
-                            fontSize="14px"
+                            as="span"
+                            color="gray.500"
+                          >
+                            {" · "}
+                          </Text>
+                          <Text
+                            as="span"
                             color="#474849"
                           >
                             {format(new Date(invoice.coveredByPaymentDate), "MM/dd/yy")}
                           </Text>
-                        </VStack>
+                        </Text>
                       ) : (
                         "—"
                       )}
