@@ -1594,7 +1594,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                 </Th>
                 <Th
                   paddingLeft="8px"
-                  paddingRight="8px"
+                  paddingRight="28px"
                 >
                   <Text>LAST PAYMENT</Text>
                 </Th>
@@ -1604,7 +1604,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                 >
                   <Text>DOWNLOADS</Text>
                 </Th> */}
-                <Th>{/* Blank for edit button dropdown */}</Th>
+                <Th paddingLeft="12px">{/* Blank for edit button dropdown */}</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -1685,7 +1685,10 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                     <Td onClick={() => handleRowClick(invoice.id)}>
                       {formatSessionDateWithWeekday(invoice.endDate)}
                     </Td>
-                    <Td onClick={() => handleRowClick(invoice.id)}>
+                    <Td
+                      paddingRight="28px"
+                      onClick={() => handleRowClick(invoice.id)}
+                    >
                       {invoice.lastPaymentDate
                         ? `$${Number(invoice.lastPaymentAmount).toFixed(2)} (${format(new Date(invoice.lastPaymentDate), "MM/dd/yy")})`
                         : "—"}
@@ -1695,7 +1698,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                         <PDFButtonInvoice onlyIcon={true} id={invoice.id} />
                       </Flex>
                     </Td> */}
-                    <td>
+                    <td style={{ paddingLeft: "12px" }}>
                       <Flex
                         width="100%"
                         justify="center"
