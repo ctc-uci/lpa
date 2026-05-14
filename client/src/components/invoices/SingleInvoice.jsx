@@ -577,6 +577,11 @@ export const SingleInvoice = () => {
                 isSent={invoice?.data?.[0]?.isSent}
                 paymentStatus={invoice?.data?.[0]?.paymentStatus}
                 endDate={invoice?.data?.[0]?.endDate}
+                amountOwedThroughThisPeriod={
+                  typeof remainingBalance === "number"
+                    ? remainingBalance
+                    : undefined
+                }
                 onMarkAsSent={handleMarkInvoiceSent}
                 onMarkAsNotSent={handleMarkInvoiceNotSent}
               ></InvoiceTitle>

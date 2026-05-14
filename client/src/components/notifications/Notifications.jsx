@@ -243,7 +243,7 @@ export const Notifications = () => {
                 ...invoice,
                 eventName: eventRes.data[0]?.name || "Unknown Event",
                 total: totalRes.data.total,
-                paid: paidRes.data.paid,
+                paid: paidRes.data.total ?? paidRes.data.paid,
                 description: getDescription(invoice.payStatus, payersRes.data),
                 dueTime,
               };

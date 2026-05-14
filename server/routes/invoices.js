@@ -6,6 +6,8 @@ import multer from "multer";
 import { uploadPDF } from "../common/s3";
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
+import { calculateInvoiceTotal } from "./utils/invoiceTotal.js";
+import { getAllocatedPaidBreakdownForInvoice } from "./utils/invoicePaymentAllocation.js";
 
 
 const invoicesRouter = Router();
@@ -359,24 +361,17 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    let result = await db.oneOrNone(
-      `SELECT SUM(c.adjustment_value)
-      FROM invoices i
-      JOIN comments c ON c.invoice_id = i.id
-      WHERE i.id = $1 AND c.adjustment_type = 'paid';
-      `,
-      [id]
-    );
-
-    if (!result) {
+    const breakdown = await getAllocatedPaidBreakdownForInvoice(db, id);
+    if (!breakdown) {
       return res.status(404).json({ error: "Invoice not found" });
     }
 
-    result = {
-      total: result.sum,
-    };
-
-    res.status(200).json(keysToCamel(result));
+    res.status(200).json(
+      keysToCamel({
+        total: breakdown.allocated,
+        rawPaymentsOnInvoice: breakdown.rawOnInvoice,
+      })
+    );
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -384,113 +379,16 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
 
 invoicesRouter.get("/total/:id", async (req, res) => {
   try {
-    const { id } = req.params; //invoice id
+    const { id } = req.params;
 
-    const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [
-      id,
-    ]);
-    const invoice = invoiceRes[0];
+    const invoiceRes = await db.query("SELECT * FROM invoices WHERE id = $1", [id]);
+    if (!invoiceRes || invoiceRes.length === 0) {
+      return res.status(404).json({ error: "Invoice not found" });
+    }
 
-    // Use the event_id from the invoice record.
-    const eventRes = await db.query("SELECT * FROM events WHERE id = $1", [
-      invoice.event_id,
-    ]);
-    const event = eventRes[0];
+    const totalCost = await calculateInvoiceTotal(db, id);
 
-    // I made a change here for invoice_id
-    const comments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id IS NULL AND invoice_id = $1",
-      [id]
-    );
-
-    const bookings = await db.query(
-      "SELECT * FROM bookings WHERE event_id = $1 AND date BETWEEN $2 AND $3",
-      [event.id, invoice.start_date, invoice.end_date]
-    );
-
-    // I made a change here for invoice_id
-    const totalAdjustments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type = 'total' AND invoice_id = $1 AND booking_id IS NOT NULL",
-      [id]
-    );
-
-    const invoiceTotalAdjustments = await db.query(
-      "SELECT * FROM comments WHERE adjustment_type = 'total' AND invoice_id = $1 AND booking_id IS NULL",
-      [id]
-    );
-
-    const bookingCosts = await Promise.all(
-      bookings.map(async (booking) => {
-        const roomRateBooking = await db.query(
-          "SELECT rooms.name, rooms.rate FROM rooms JOIN bookings ON rooms.id = bookings.room_id WHERE bookings.id = $1",
-          [booking.id]
-        );
-
-        if (!roomRateBooking.length) return 0; // if room not found, cost is 0
-
-        let totalRate = Number(roomRateBooking[0].rate);
-
-        comments.forEach((adj) => {
-          if (adj.adjustment_type === "rate_percent") {
-            totalRate *= 1 + Number(adj.adjustment_value) / 100;
-          } else if (adj.adjustment_type === "rate_flat") {
-            totalRate += Number(adj.adjustment_value);
-          }
-        });
-
-        // I made a change here for invoice_id
-        const commentsBooking = await db.query(
-          "SELECT * FROM comments WHERE adjustment_type IN ('rate_flat', 'rate_percent') AND booking_id = $1 AND invoice_id = $2",
-          [booking.id, id]
-        );
-
-        commentsBooking.forEach((adj) => {
-          if (adj.adjustment_type === "rate_percent") {
-            totalRate *= 1 + Number(adj.adjustment_value) / 100;
-          } else if (adj.adjustment_type === "rate_flat") {
-            totalRate += Number(adj.adjustment_value);
-          }
-        });
-
-        // Calculate booking duration in hours.
-        const startTime = new Date(
-          `1970-01-01T${booking.start_time.substring(0, booking.start_time.length - 3)}Z`
-        );
-        const endTime = new Date(
-          `1970-01-01T${booking.end_time.substring(0, booking.start_time.length - 3)}Z`
-        );
-        const durationHours = (endTime - startTime) / (1000 * 60 * 60);
-
-        // Calculate booking cost.
-        let bookingCost = totalRate * durationHours;
-
-        // Apply 'total' adjustments specific to this booking
-        totalAdjustments.forEach((comment) => {
-          if (comment.booking_id === booking.id) {
-            bookingCost += Number(comment.adjustment_value);
-          }
-        });
-
-        return bookingCost;
-      })
-    );
-
-    let totalCost = bookingCosts.reduce((acc, cost) => acc + cost, 0);
-
-    // Apply 'total' adjustments that do not have a booking_id (global adjustments)
-    totalAdjustments.forEach((comment) => {
-      if (!comment.booking_id) {
-        totalCost += Number(comment.adjustment_value);
-      }
-    });
-
-    totalCost += invoiceTotalAdjustments.reduce((acc, comment) => acc + Number(comment.adjustment_value), 0);
-
-    const result = {
-      total: totalCost,
-    };
-
-    res.status(200).json(keysToCamel(result));
+    res.status(200).json(keysToCamel({ total: totalCost }));
   } catch (err) {
     res.status(500).send(err.message);
   }

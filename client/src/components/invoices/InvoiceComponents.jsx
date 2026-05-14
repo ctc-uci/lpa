@@ -108,6 +108,13 @@ const InvoiceTitle = ({
   isSent,
   paymentStatus,
   endDate,
+  /**
+   * When set (single-invoice page), same figure as stats "Remaining Balance":
+   * amount still owed for this period plus all prior invoices for the program.
+   * If <= 0, badge shows Paid even when this row's payment_status is not full
+   * (e.g. earlier invoice overpaid).
+   */
+  amountOwedThroughThisPeriod,
   onMarkAsSent,
   onMarkAsNotSent,
 }) => {
@@ -115,6 +122,12 @@ const InvoiceTitle = ({
 
   const isPaid = () => {
     if (paymentStatus === "full") {
+      return "Paid";
+    }
+    if (
+      typeof amountOwedThroughThisPeriod === "number" &&
+      amountOwedThroughThisPeriod <= 0
+    ) {
       return "Paid";
     }
     if (!isSent && new Date() < new Date(endDate) && paymentStatus !== "full") {
@@ -640,14 +653,8 @@ const InvoicePayments = forwardRef(
     const paidTotal = await getAllDue(backend, id);
     setRemainingBalance(paidTotal);
 
-    const [invoiceTotalRes, invoicePaidRes] = await Promise.all([
-      backend.get(`/invoices/total/${id}`),
-      backend.get(`/invoices/paid/${id}`),
-    ]);
-    const invoiceTotal = invoiceTotalRes.data.total ?? 0;
-    const invoicePaid = Number(invoicePaidRes.data.total) || 0;
-    const newStatus = invoicePaid >= invoiceTotal && invoiceTotal > 0 ? "full" : "none";
-    await backend.put(`/invoices/${id}`, { paymentStatus: newStatus });
+    const invoiceRes = await backend.get(`/invoices/${id}`);
+    const newStatus = invoiceRes.data?.[0]?.paymentStatus ?? "none";
     if (onPaymentStatusChange) onPaymentStatusChange(newStatus);
   }
 

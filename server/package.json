@@ -10,7 +10,8 @@
   "scripts": {
     "start": "tsx watch --clear-screen=false src/app.js",
     "lint": "eslint",
-    "format": "npx prettier --write ."
+    "format": "npx prettier --write .",
+    "test": "node --test routes/utils/invoicePaymentAllocation.test.js"
   },
   "lint-staged": {
     "*.js": "yarn run eslint"
