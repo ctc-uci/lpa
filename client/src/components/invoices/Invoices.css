@@ -117,15 +117,15 @@
 
 .invoices-table__table th:nth-child(6),
 .invoices-table__table td:nth-child(6) {
-  width: 90px !important;
+  width: 120px !important;
   padding-left: 8px !important;
-  padding-right: 8px !important;
+  padding-right: 28px !important;
 }
 
 .invoices-table__table th:nth-child(7),
 .invoices-table__table td:nth-child(7) {
   width: 100px !important;
-  padding-left: 8px !important;
+  padding-left: 20px !important;
   padding-right: 8px !important;
 }
 
