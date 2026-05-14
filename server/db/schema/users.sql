@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.users
     first_name character varying(256) COLLATE pg_catalog."default" NOT NULL,
     last_name character varying(256) COLLATE pg_catalog."default" NOT NULL,
     edit_perms boolean NOT NULL DEFAULT false,
+    google_calendar_refresh_token text COLLATE pg_catalog."default",
     CONSTRAINT user_pkey PRIMARY KEY (id),
     CONSTRAINT email UNIQUE (email),
     CONSTRAINT firebase_uid UNIQUE (firebase_uid)

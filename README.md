@@ -38,6 +38,17 @@ Payment notifications alert admins about upcoming and overdue payments, showing 
 ## Learn More
 To learn more about this project, please read our [Project Overview](https://medium.com/@committhechange.uci/project-overview-la-peña-cultural-center-53f2fa5ddb34) on Medium!
 
+## Google Calendar — server OAuth (optional)
+
+For production-style OAuth, the API can store **Google refresh tokens only on the server** (never the client secret or refresh token in the browser). Short-lived access tokens are issued with `grant_type=refresh_token` at `https://oauth2.googleapis.com/token` and cached in memory per user on the server until shortly before `expires_in`.
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), create or select an OAuth **Client ID** of type **Web application**. Under **Authorized redirect URIs**, add the exact URL users return to after consent (for example `http://localhost:3000/oauth/google-calendar/callback` in development). The same string must be set as `VITE_GOOGLE_OAUTH_REDIRECT_URI` on the server.
+2. Run the SQL migration `server/db/migrations/20260514_add_google_calendar_refresh_token.sql` against Postgres (adds nullable `google_calendar_refresh_token` on `users`).
+3. Set server env vars: `VITE_GOOGLE_OAUTH_CLIENT_ID`, `VITE_GOOGLE_OAUTH_CLIENT_SECRET`, `VITE_GOOGLE_OAUTH_REDIRECT_URI`, and preferably `VITE_GOOGLE_OAUTH_STATE_SECRET` (HMAC for OAuth `state`). Keep these in **server** `.env` only (never in the Vite client env file, or secrets would ship to the browser). Do not log refresh tokens or the client secret.
+4. Set client `VITE_GOOGLE_CALENDAR_USE_BACKEND=true` and ensure `VITE_DEV_BACKEND_HOSTNAME` / `VITE_PROD_BACKEND_HOSTNAME` match your API origin. Calendar API calls use `GET /google-calendar/access-token` with `credentials: 'include'`; the SPA route `/oauth/google-calendar/callback` must match your registered redirect URI.
+
+With the flag off, the app keeps using Google Identity Services in the browser (existing behavior).
+
 ## Project setup steps from NPO Project Template:
 <details>
   <summary>Project setup</summary>

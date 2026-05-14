@@ -34,6 +34,7 @@ import { ResetPassword } from "./components/resetpassword/ResetPassword";
 import { ResetPasswordSuccess } from "./components/resetpassword/ResetPasswordSuccess";
 import { MyAccount } from "./components/settings/MyAccount";
 import { GoogleCalendar } from "./components/settings/GoogleCalendar";
+import { GoogleCalendarOAuthCallback } from "./components/settings/GoogleCalendarOAuthCallback";
 import { Settings } from "./components/settings/Settings";
 import { Signup } from "./components/signup/Signup";
 import { SignupRequested } from "./components/signup/SignupRequested";
@@ -238,6 +239,15 @@ const App = () => {
                   element={
                     <ProtectedRoute
                       element={<GoogleCalendar />}
+                      allowedRoles={["admin"]}
+                    />
+                  }
+                />
+                <Route
+                  path="/oauth/google-calendar/callback"
+                  element={
+                    <ProtectedRoute
+                      element={<GoogleCalendarOAuthCallback />}
                       allowedRoles={["admin"]}
                     />
                   }

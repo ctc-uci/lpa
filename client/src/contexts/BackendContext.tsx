@@ -4,7 +4,12 @@ import axios, { AxiosInstance } from "axios";
 
 import { authInterceptor } from "../utils/auth/authInterceptor";
 
-const baseURL = import.meta.env.VITE_NODE_ENV === "development" ? import.meta.env.VITE_DEV_BACKEND_HOSTNAME : import.meta.env.VITE_PROD_BACKEND_HOSTNAME;
+const rawBaseURL =
+  import.meta.env.VITE_NODE_ENV === "development"
+    ? import.meta.env.VITE_DEV_BACKEND_HOSTNAME
+    : import.meta.env.VITE_PROD_BACKEND_HOSTNAME;
+
+const baseURL = String(rawBaseURL ?? "").replace(/\/+$/, "");
 
 interface BackendContextProps {
   backend: AxiosInstance;

@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 
+import { getCurrentUser, refreshToken } from "./auth/firebase";
+
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const GOOGLE_CALENDAR_SCOPES = [
   "openid",
@@ -8,6 +10,20 @@ const GOOGLE_CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/calendar.readonly",
 ].join(" ");
+
+const USE_BACKEND_GOOGLE =
+  import.meta.env.VITE_GOOGLE_CALENDAR_USE_BACKEND === "true";
+
+const getBackendBaseUrl = () => {
+  const raw =
+    import.meta.env.VITE_NODE_ENV === "development"
+      ? import.meta.env.VITE_DEV_BACKEND_HOSTNAME
+      : import.meta.env.VITE_PROD_BACKEND_HOSTNAME;
+  if (!raw) return "";
+  return String(raw).replace(/\/+$/, "");
+};
+
+export { getBackendBaseUrl };
 
 export const SELECTED_CALENDAR_KEY = "lpa_selected_calendar";
 export const EVENT_ID_PREFIX = "lpa";
@@ -25,7 +41,13 @@ let accessToken = null;
 let tokenExpiresAt = 0;
 let initializationPromise = null;
 let pendingTokenRequest = null;
+/** When using server-stored refresh tokens, reflects DB row only (not access token validity). */
+let backendConnected = false;
 const authListeners = new Set();
+
+const resetCalendarInitialization = () => {
+  initializationPromise = null;
+};
 
 // Load token from localStorage on module initialization
 const loadTokenFromStorage = () => {
@@ -77,8 +99,12 @@ const clearTokenStorage = () => {
 loadTokenFromStorage();
 
 // Define isSignedIn early so it can be used in notifyAuthListeners
-const isSignedInImpl = () =>
-  Boolean(accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt);
+const isSignedInImpl = () => {
+  if (USE_BACKEND_GOOGLE) {
+    return Boolean(backendConnected);
+  }
+  return Boolean(accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt);
+};
 
 const notifyAuthListeners = () => {
   const signedIn = isSignedInImpl();
@@ -89,6 +115,44 @@ const notifyAuthListeners = () => {
       console.error("Auth listener failed", error);
     }
   });
+};
+
+/**
+ * Server `verifyToken` reads the `accessToken` cookie. That cookie is set by
+ * `refreshToken()` (Firebase ID token), which axios's interceptor runs on 401 —
+ * but Calendar uses `fetch`, so we refresh the cookie here before Google routes.
+ */
+const ensureFirebaseSessionCookie = async () => {
+  if (!isBrowser || !USE_BACKEND_GOOGLE) return;
+  try {
+    const user = await getCurrentUser();
+    if (user) {
+      await refreshToken();
+    }
+  } catch (error) {
+    console.warn("Could not sync Firebase session cookie for Calendar API", error);
+  }
+};
+
+const refreshBackendCalendarStatus = async () => {
+  if (!isBrowser || !USE_BACKEND_GOOGLE) return;
+  const base = getBackendBaseUrl();
+  if (!base) return;
+  try {
+    await ensureFirebaseSessionCookie();
+    const res = await fetch(`${base}/google-calendar/status`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      backendConnected = false;
+      return;
+    }
+    const data = await res.json();
+    backendConnected = Boolean(data.connected);
+    notifyAuthListeners();
+  } catch {
+    backendConnected = false;
+  }
 };
 
 const clearAccessToken = () => {
@@ -175,7 +239,102 @@ const initTokenClient = () => {
   });
 };
 
+const requestBackendAccessToken = (interactive) => {
+  if (pendingTokenRequest) {
+    return pendingTokenRequest;
+  }
+
+  pendingTokenRequest = (async () => {
+    const base = getBackendBaseUrl();
+    if (!base) {
+      throw new Error(
+        "Missing backend URL. Set VITE_DEV_BACKEND_HOSTNAME / VITE_PROD_BACKEND_HOSTNAME."
+      );
+    }
+
+    const fetchAccessToken = () =>
+      fetch(`${base}/google-calendar/access-token`, {
+        credentials: "include",
+      });
+
+    await ensureFirebaseSessionCookie();
+    let res = await fetchAccessToken();
+
+    if (!res.ok && res.status === 400) {
+      const raw = await res.text();
+      if (raw.includes("@verifyToken")) {
+        await refreshToken();
+        res = await fetchAccessToken();
+      }
+    }
+
+    if (res.ok) {
+      const data = await res.json();
+      accessToken = data.accessToken;
+      tokenExpiresAt = data.expiresAt;
+      saveTokenToStorage(accessToken, tokenExpiresAt);
+      notifyAuthListeners();
+      return accessToken;
+    }
+
+    let errMsg = "Google Calendar access failed";
+    try {
+      const clone = res.clone();
+      const body = await clone.json();
+      errMsg = body.message || errMsg;
+    } catch {
+      try {
+        errMsg = (await res.text()) || errMsg;
+      } catch {
+        /* ignore */
+      }
+    }
+
+    if ((res.status === 400 || res.status === 401) && interactive) {
+      await ensureFirebaseSessionCookie();
+      let authRes = await fetch(
+        `${base}/google-calendar/oauth/authorize-url`,
+        { credentials: "include" }
+      );
+      if (!authRes.ok) {
+        let raw = await authRes.text();
+        if (authRes.status === 400 && raw.includes("@verifyToken")) {
+          await refreshToken();
+          authRes = await fetch(`${base}/google-calendar/oauth/authorize-url`, {
+            credentials: "include",
+          });
+          if (!authRes.ok) {
+            raw = await authRes.text();
+          }
+        }
+        if (!authRes.ok) {
+          throw markAuthError(new Error("Could not start Google authorization."));
+        }
+      }
+      const { url } = await authRes.json();
+      pendingTokenRequest = null;
+      window.location.assign(url);
+      return new Promise(() => {
+        /* redirect in progress */
+      });
+    }
+
+    if (res.status === 400 || res.status === 401) {
+      throw markAuthError(new Error(errMsg));
+    }
+    throw new Error(errMsg);
+  })().finally(() => {
+    pendingTokenRequest = null;
+  });
+
+  return pendingTokenRequest;
+};
+
 const requestAccessToken = (interactive) => {
+  if (USE_BACKEND_GOOGLE) {
+    return requestBackendAccessToken(interactive);
+  }
+
   if (!tokenClient) {
     throw new Error("Token client not initialized");
   }
@@ -304,7 +463,7 @@ const googleApiRequest = async (
 
 export const initializeGoogleCalendar = async (options = {}) => {
   const { skipSilentAuth = false } = options;
-  
+
   if (initializationPromise) {
     return initializationPromise;
   }
@@ -316,6 +475,27 @@ export const initializeGoogleCalendar = async (options = {}) => {
   }
 
   initializationPromise = (async () => {
+    if (USE_BACKEND_GOOGLE) {
+      const base = getBackendBaseUrl();
+      if (!base) {
+        throw new Error(
+          "Missing backend URL. Set VITE_DEV_BACKEND_HOSTNAME / VITE_PROD_BACKEND_HOSTNAME."
+        );
+      }
+      tokenClient = { mode: "backend" };
+      await refreshBackendCalendarStatus();
+      if (!skipSilentAuth) {
+        try {
+          await ensureAccessToken({ interactive: false });
+        } catch (error) {
+          if (!isAuthError(error)) {
+            console.error("Silent Google Calendar token fetch failed", error);
+          }
+        }
+      }
+      return tokenClient;
+    }
+
     await loadGoogleIdentityScript();
     initTokenClient();
 
@@ -330,6 +510,7 @@ export const initializeGoogleCalendar = async (options = {}) => {
         }
       }
     }
+    return tokenClient;
   })();
 
   await initializationPromise;
@@ -337,6 +518,40 @@ export const initializeGoogleCalendar = async (options = {}) => {
 };
 
 export const signIn = async () => {
+  if (USE_BACKEND_GOOGLE) {
+    await ensureFirebaseSessionCookie();
+    await initializeGoogleCalendar({ skipSilentAuth: true });
+    const base = getBackendBaseUrl();
+    let res = await fetch(`${base}/google-calendar/oauth/authorize-url`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      let errBody = await res.text();
+      if (res.status === 400 && errBody.includes("@verifyToken")) {
+        await refreshToken();
+        res = await fetch(`${base}/google-calendar/oauth/authorize-url`, {
+          credentials: "include",
+        });
+        if (!res.ok) {
+          errBody = await res.text();
+        }
+      }
+      if (!res.ok) {
+        let msg = errBody.trim() || "Could not start Google authorization.";
+        try {
+          const j = JSON.parse(errBody);
+          if (j?.message) msg = j.message;
+        } catch {
+          /* plain-text error */
+        }
+        throw new Error(msg);
+      }
+    }
+    const { url } = await res.json();
+    window.location.assign(url);
+    return true;
+  }
+
   await initializeGoogleCalendar();
   try {
     await ensureAccessToken({ interactive: true });
@@ -352,6 +567,25 @@ export const signIn = async () => {
 };
 
 export const signOut = async () => {
+  if (USE_BACKEND_GOOGLE) {
+    const base = getBackendBaseUrl();
+    try {
+      await ensureFirebaseSessionCookie();
+      await fetch(`${base}/google-calendar/connect`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.warn("Failed to disconnect Google Calendar", error);
+    } finally {
+      clearAccessToken();
+      backendConnected = false;
+      resetCalendarInitialization();
+      notifyAuthListeners();
+    }
+    return;
+  }
+
   if (!accessToken) {
     return;
   }
@@ -368,6 +602,7 @@ export const signOut = async () => {
     console.warn("Failed to revoke Google token", error);
   } finally {
     clearAccessToken();
+    resetCalendarInitialization();
     notifyAuthListeners();
   }
 };
@@ -608,7 +843,10 @@ const executeBatch = async (items, operation) => {
 };
 
 export const batchInsertBookings = async (bookings) => {
-  // Check if user is signed in before attempting sync
+  // Load connection state (backend) / token client (GIS) before isSignedIn —
+  // backend mode sets backendConnected inside initializeGoogleCalendar.
+  await initializeGoogleCalendar({ skipSilentAuth: true });
+
   if (!isSignedIn()) {
     return {
       total: bookings.length,
@@ -622,7 +860,6 @@ export const batchInsertBookings = async (bookings) => {
     };
   }
 
-  await initializeGoogleCalendar({ skipSilentAuth: true });
   const calendarId = ensureCalendarSelected();
 
   if (!Array.isArray(bookings) || bookings.length === 0) {
@@ -652,7 +889,8 @@ export const batchInsertBookings = async (bookings) => {
 };
 
 export const batchUpdateBookings = async (bookings) => {
-  // Check if user is signed in before attempting sync
+  await initializeGoogleCalendar({ skipSilentAuth: true });
+
   if (!isSignedIn()) {
     return {
       total: bookings.length,
@@ -667,7 +905,6 @@ export const batchUpdateBookings = async (bookings) => {
     };
   }
 
-  await initializeGoogleCalendar({ skipSilentAuth: true });
   const calendarId = ensureCalendarSelected();
 
   if (!Array.isArray(bookings) || bookings.length === 0) {
@@ -733,7 +970,8 @@ export const batchUpdateBookings = async (bookings) => {
 };
 
 export const batchDeleteBookings = async (bookings) => {
-  // Check if user is signed in before attempting sync
+  await initializeGoogleCalendar({ skipSilentAuth: true });
+
   if (!isSignedIn()) {
     return {
       total: bookings.length,
@@ -748,7 +986,6 @@ export const batchDeleteBookings = async (bookings) => {
     };
   }
 
-  await initializeGoogleCalendar({ skipSilentAuth: true });
   const calendarId = ensureCalendarSelected();
 
   if (!Array.isArray(bookings) || bookings.length === 0) {
