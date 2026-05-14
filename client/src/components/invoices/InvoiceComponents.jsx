@@ -1689,35 +1689,7 @@ function InvoicesTable({ filteredInvoices, isPaidColor, sortKey, sortOrder, onSo
                       {invoice.lastPaymentDate ? (
                         `$${Number(invoice.lastPaymentAmount).toFixed(2)} (${format(new Date(invoice.lastPaymentDate), "MM/dd/yy")})`
                       ) : invoice.coveredByPaymentDate ? (
-                        <Text
-                          fontSize="14px"
-                          lineHeight="short"
-                          whiteSpace="nowrap"
-                        >
-                          <Text
-                            as="span"
-                            color="gray.600"
-                            fontWeight="500"
-                          >
-                            {invoice.coveredByPaymentSource === "later"
-                              ? "Later period"
-                              : invoice.coveredByPaymentSource === "earlier"
-                                ? "Earlier period"
-                                : "Other period"}
-                          </Text>
-                          <Text
-                            as="span"
-                            color="gray.500"
-                          >
-                            {" · "}
-                          </Text>
-                          <Text
-                            as="span"
-                            color="#474849"
-                          >
-                            {format(new Date(invoice.coveredByPaymentDate), "MM/dd/yy")}
-                          </Text>
-                        </Text>
+                        `Covered (${format(new Date(invoice.coveredByPaymentDate), "MM/dd/yy")})`
                       ) : (
                         "—"
                       )}
