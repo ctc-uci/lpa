@@ -268,7 +268,8 @@ const InvoiceStats = ({
     }
     const currentMonthInvoice = currentMonthRes.data?.[0];
     const showCurrentMonth =
-      currentMonthInvoice != null &&
+      currentMonthInvoice !== null &&
+      currentMonthInvoice !== undefined &&
       String(currentMonthInvoice.id) !== String(id);
     return { hasFollowing, hasPrevious, showCurrentMonth };
   }, [backend, id]);
