@@ -1,0 +1,41 @@
+server/routes/comments.js
+  s_86e73fb090c81b::t_da2207119cd799 449
+client/src/components/invoices/InvoiceComponents.jsx
+  s_86e73fb090c81b::t_4d321bbc6e4e90 1025-1030
+  s_86e73fb090c81b::t_1723b4670809f2 1131-1148,1150,1152
+  s_86e73fb090c81b::t_26bdc1f87f9844 1017,1020
+  s_86e73fb090c81b::t_07f3342fbb4a39 831
+  s_86e73fb090c81b::t_7b1da54951bd55 959
+  s_86e73fb090c81b::t_0f7486ebea5539 801
+  s_86e73fb090c81b::t_db186ac050403c 589-590
+  s_86e73fb090c81b::t_5f91e8c3038886 1328-1339
+  s_86e73fb090c81b::t_c8f08e5f265a66 756
+  s_86e73fb090c81b::t_b32d3bfe324d7e 1261
+  s_86e73fb090c81b::t_b6a933f73aa330 1040
+  s_86e73fb090c81b::t_e7abf5b6e4e382 7
+  s_86e73fb090c81b::t_163f575b8dbd81 547-563
+  s_86e73fb090c81b::t_9ecf097d555d50 852-865
+  s_86e73fb090c81b::t_134ae90f8a0807 960
+  s_86e73fb090c81b::t_3dc803d324677e 1042
+  s_86e73fb090c81b::t_ba5d3818063bc4 1201-1223
+  s_86e73fb090c81b::t_457d73328bf905 616-710
+  s_86e73fb090c81b::t_088ce202907b2e 826,832,836
+  s_86e73fb090c81b::t_e0c0ac09b6ed76 884-885
+  s_86e73fb090c81b::t_e404d1a28d0910 877-883,886-897,902-903
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "118a7579dd4da62fde5bcfd3490bf74edba18c1a",
+  "prompts": {},
+  "sessions": {
+    "s_86e73fb090c81b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b1576b2c-59b9-4cad-84c0-92e2661bbb6a",
+        "model": "composer-2.5"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
