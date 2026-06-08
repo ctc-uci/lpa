@@ -1,0 +1,23 @@
+client/src/components/popups/DeleteSessionConfirmationModal.jsx
+  s_c638db1a7c1acb::t_c97b420bfd21c5 23-24,31-43
+  s_c638db1a7c1acb::t_3963bffc0496c1 58
+client/src/components/programs/recurringSessions/EditRecurringSessions.jsx
+  s_c638db1a7c1acb::t_07844205fbefce 936
+  s_c638db1a7c1acb::t_acec5ad3d1eca0 444-445,447-449
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "f4b48e2ecf1390dc753282a4ec280001a6ca9c31",
+  "prompts": {},
+  "sessions": {
+    "s_c638db1a7c1acb": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "277b7771-6348-4ade-ace6-6113721d281a",
+        "model": "composer-2.5"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
