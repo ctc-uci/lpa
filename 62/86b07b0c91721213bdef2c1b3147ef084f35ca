@@ -1,0 +1,28 @@
+client/src/components/programs/recurringSessions/EditRecurringSessions.jsx
+  s_63da8d7ec92005::t_819b95820a2796 131-140,143-147,149-154,157-162,165,168,174,179-183
+  s_63da8d7ec92005::t_7a70123fd6266c 570
+  s_63da8d7ec92005::t_a5731ec2bcf8c8 141-142,148,155-156
+  s_63da8d7ec92005::t_dc4eea65ed6508 519-526
+  s_63da8d7ec92005::t_4f946de8b5b2b6 45
+  s_63da8d7ec92005::t_1ff3170ae1c932 114-115,117-118
+client/src/components/programs/utils.d.ts
+  s_63da8d7ec92005::t_5219df67c4dcdf 11-28
+client/src/components/programs/utils.js
+  s_63da8d7ec92005::t_27917c43d3541b 58-154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "6286b07b0c91721213bdef2c1b3147ef084f35ca",
+  "prompts": {},
+  "sessions": {
+    "s_63da8d7ec92005": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d19d2bd2-38ca-4b77-9402-ab56c77a491c",
+        "model": "composer-2.5"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
