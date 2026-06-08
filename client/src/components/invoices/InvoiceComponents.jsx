@@ -4,6 +4,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   DeleteIcon,
+  WarningIcon,
 } from "@chakra-ui/icons";
 import React, {
   forwardRef,
@@ -543,6 +544,23 @@ const InvoiceStats = ({
   );
 };
 
+const formatPaymentDateForInput = (value) => {
+  const date = parseSessionDate(value);
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const paymentDateInputToIso = (dateStr) => {
+  if (!dateStr) return new Date().toISOString();
+  const dateOnly = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+  return new Date(`${dateOnly}T12:00:00`).toISOString();
+};
+
+const getLocalDateInputValue = () => formatPaymentDateForInput(new Date());
+
 const InvoicePayments = forwardRef(
   (
     {
@@ -566,9 +584,10 @@ const InvoicePayments = forwardRef(
     const [adjustValue, setAdjustValue] = useState("--.--");
     const [showInputRow, setShowInputRow] = useState(false);
     const [showEditRow, setShowEditRow] = useState(false);
-    const [valueEntered, setValueEntered] = useState(false);
     const [rowValues, setRowValues] = useState({});
     const [rowDates, setRowDates] = useState({});
+    const [rowComments, setRowComments] = useState({});
+    const [newPaymentComment, setNewPaymentComment] = useState("");
     const {
       isOpen: isOpen,
       onOpen: onOpen,
@@ -593,6 +612,101 @@ const InvoicePayments = forwardRef(
     const [editDate, setEditDate] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
     const toast = useToast();
+
+    const showPaymentErrorToast = (title, message) => {
+      toast({
+        position: "bottom-right",
+        duration: 5000,
+        isClosable: true,
+        render: () => (
+          <HStack
+            bg="red.100"
+            p={4}
+            borderRadius="md"
+            boxShadow="md"
+            borderLeft="6px solid"
+            borderColor="red.500"
+            spacing={3}
+            align="center"
+          >
+            <Icon
+              as={WarningIcon}
+              color="red.600"
+              boxSize={5}
+            />
+            <VStack
+              align="left"
+              spacing={0}
+            >
+              <Text
+                color="#2D3748"
+                fontFamily="Inter"
+                fontSize="16px"
+                fontStyle="normal"
+                fontWeight={700}
+                lineHeight="normal"
+                letterSpacing="0.08px"
+              >
+                {title}
+              </Text>
+              <Text fontSize="sm">{message}</Text>
+            </VStack>
+          </HStack>
+        ),
+      });
+    };
+
+    const validateNewPayment = () => {
+      if (!editDate) {
+        showPaymentErrorToast(
+          "Payment date required",
+          "Please select a payment date before saving."
+        );
+        return false;
+      }
+
+      const amount = parseFloat(adjustValue);
+      if (
+        adjustValue === "" ||
+        adjustValue === "--.--" ||
+        isNaN(amount) ||
+        amount <= 0
+      ) {
+        showPaymentErrorToast(
+          "Payment amount required",
+          "Please enter a valid payment amount before saving."
+        );
+        return false;
+      }
+
+      return true;
+    };
+
+    const validateEditPayments = () => {
+      for (const comment of comments) {
+        const date =
+          rowDates[comment.id] ?? formatPaymentDateForInput(comment.datetime);
+        if (!date) {
+          showPaymentErrorToast(
+            "Payment date required",
+            "Please select a date for each payment before saving."
+          );
+          return false;
+        }
+
+        const value = rowValues[comment.id];
+        const amount = parseFloat(value);
+        if (value === "" || value === undefined || isNaN(amount) || amount <= 0) {
+          showPaymentErrorToast(
+            "Payment amount required",
+            "Please enter a valid amount for each payment before saving."
+          );
+          return false;
+        }
+      }
+
+      return true;
+    };
 
     comments = comments.filter(comment => comment.adjustmentType === "paid");
 
@@ -639,7 +753,7 @@ const InvoicePayments = forwardRef(
       setIsProcessing(false);
       setShowInputRow(false);
       setAdjustValue("--.--");
-      setValueEntered(false);
+      setNewPaymentComment("");
       setHasUnsavedChanges(false);
       onCancelNewCommentClose();
       setIsProcessing(false);
@@ -684,7 +798,7 @@ const InvoicePayments = forwardRef(
       setAdjustValue("--.--");
       setRowValues({});
       setRowDates({});
-      setValueEntered(false);
+      setRowComments({});
       onClose();
 
       await updateRemainingBalance();
@@ -709,16 +823,18 @@ const InvoicePayments = forwardRef(
     const doEdit = () => {
       const initialRowValues = {};
       const initialRowDates = {};
+      const initialRowComments = {};
       comments.forEach((comment) => {
         initialRowValues[comment.id] = comment.adjustmentValue
           ? Number(comment.adjustmentValue).toFixed(2)
           : "";
-        initialRowDates[comment.id] = comment.datetime;
+        initialRowDates[comment.id] = formatPaymentDateForInput(comment.datetime);
+        initialRowComments[comment.id] = comment.comment ?? "";
       });
       setRowValues(initialRowValues);
       setRowDates(initialRowDates);
+      setRowComments(initialRowComments);
       setShowEditRow(true);
-      setValueEntered(true);
       setHasUnsavedChanges(true);
     };
     try {
@@ -733,7 +849,20 @@ const InvoicePayments = forwardRef(
   };
 
     const handleSaveComment = async () => {
-      if (!uid) return;
+      if (!uid) {
+        showPaymentErrorToast(
+          "Unable to save payment",
+          "Your user account could not be verified. Please try again."
+        );
+        return;
+      }
+
+      if (showEditRow) {
+        if (!validateEditPayments()) return;
+      } else if (!validateNewPayment()) {
+        return;
+      }
+
       setIsProcessing(true);
 
       try {
@@ -745,14 +874,33 @@ const InvoicePayments = forwardRef(
               if (!originalComment) return;
               const newValue = parseFloat(value);
               if (isNaN(newValue)) return;
-              const dateObj = new Date(rowDates[commentId] || originalComment.datetime);
-              dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+
+              const originalDate = formatPaymentDateForInput(originalComment.datetime);
+              const newDate = rowDates[commentId] ?? originalDate;
+              const originalCommentText = originalComment.comment ?? "";
+              const newCommentText =
+                rowComments[commentId] ?? originalCommentText;
+              const originalAmount =
+                originalComment.adjustmentValue !== null &&
+                originalComment.adjustmentValue !== undefined
+                  ? Number(originalComment.adjustmentValue)
+                  : NaN;
+
+              if (
+                newDate === originalDate &&
+                newCommentText === originalCommentText &&
+                !isNaN(originalAmount) &&
+                newValue === originalAmount
+              ) {
+                return;
+              }
+
               await backend.put("/comments/" + commentId, {
                 user_id: uid,
                 invoice_id: id,
                 booking_id: null,
-                datetime: dateObj.toISOString(),
-                comment: "",
+                datetime: paymentDateInputToIso(newDate),
+                comment: newCommentText,
                 adjustment_type: "paid",
                 adjustment_value: newValue,
               });
@@ -803,15 +951,13 @@ const InvoicePayments = forwardRef(
             ),
           });
         } else {
-          const editDateObj = new Date(editDate);
-          editDateObj.setMinutes(editDateObj.getMinutes() + editDateObj.getTimezoneOffset());
           const adjustmentValue = parseFloat(adjustValue);
           await backend.post("/comments/", {
             user_id: uid,
             invoice_id: id,
             booking_id: null,
-            datetime: editDateObj.toISOString(),
-            comment: "",
+            datetime: paymentDateInputToIso(editDate),
+            comment: newPaymentComment,
             adjustment_type: "paid",
             adjustment_value: Number(adjustmentValue),
           });
@@ -868,12 +1014,20 @@ const InvoicePayments = forwardRef(
         setShowInputRow(false);
         setHasUnsavedChanges(false);
         setAdjustValue("--.--");
+        setNewPaymentComment("");
         setRowValues({});
         setRowDates({});
+        setRowComments({});
 
         await updateRemainingBalance();
       } catch (error) {
         console.error("Error saving:", error);
+        showPaymentErrorToast(
+          "Failed to save payment",
+          error.response?.data?.message ||
+            error.message ||
+            "Something went wrong. Please try again."
+        );
       } finally {
         setIsProcessing(false);
       }
@@ -883,11 +1037,9 @@ const InvoicePayments = forwardRef(
     setShowInputRow(true);
     setHasUnsavedChanges(true);
     // Set today's date in YYYY-MM-DD format for the date input
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    setEditDate(formattedDate);
+    setEditDate(getLocalDateInputValue());
     setAdjustValue("");
-
+    setNewPaymentComment("");
   };
 
     const handleButtonWhileUnsaved = (onContinue) => {
@@ -942,7 +1094,6 @@ const InvoicePayments = forwardRef(
             <Button
               isLoading={isProcessing}
               onClick={handleSaveComment}
-              disabled={!valueEntered}
             >
               Save
             </Button>
@@ -977,9 +1128,28 @@ const InvoicePayments = forwardRef(
                       paddingInlineStart="8px"
                       paddingInlineEnd="8px"
                     >
+                      {showEditRow ? (
+                        <Input
+                          type="date"
+                          fontSize="14px"
+                          padding="5px"
+                          width="95px"
+                          value={
+                            rowDates[comment.id] ??
+                            formatPaymentDateForInput(comment.datetime)
+                          }
+                          onChange={(e) => {
+                            setRowDates((prev) => ({
+                              ...prev,
+                              [comment.id]: e.target.value,
+                            }));
+                          }}
+                        />
+                      ) : (
                         <Text>
-                          {format(new Date(comment.datetime), "EEE. M/d/yy")}
+                          {formatSessionDateWithWeekday(comment.datetime)}
                         </Text>
+                      )}
                     </Td>
                     <Td
                       fontSize="14px"
@@ -1013,7 +1183,6 @@ const InvoicePayments = forwardRef(
                               const value = e.target.value;
                               if (value === '' || /^-?\d*\.?\d{0,2}$/.test(value)) {
                                 setRowValues((prev) => ({ ...prev, [comment.id]: value }));
-                                setValueEntered(true);
                               }
                             }}
                             onBlur={(e) => {
@@ -1026,6 +1195,30 @@ const InvoicePayments = forwardRef(
                         `$${Number(comment.adjustmentValue).toFixed(2)}`
                       ) : (
                         "N/A"
+                      )}
+                    </Td>
+                    <Td
+                      fontSize="14px"
+                      paddingInlineStart="8px"
+                      paddingInlineEnd="8px"
+                    >
+                      {showEditRow ? (
+                        <Input
+                          type="text"
+                          placeholder="Add a comment..."
+                          value={rowComments[comment.id] ?? ""}
+                          fontSize="14px"
+                          onChange={(e) => {
+                            setRowComments((prev) => ({
+                              ...prev,
+                              [comment.id]: e.target.value,
+                            }));
+                          }}
+                        />
+                      ) : comment.comment ? (
+                        comment.comment
+                      ) : (
+                        <Text color="gray.400">—</Text>
                       )}
                     </Td>
                     <Td
@@ -1065,7 +1258,7 @@ const InvoicePayments = forwardRef(
               ) : (
                 <Tr>
                   {!showInputRow && (
-                    <Td colSpan={3}>No comments available.</Td>
+                    <Td colSpan={4}>No comments available.</Td>
                   )}
                 </Tr>
               )}
@@ -1122,7 +1315,6 @@ const InvoicePayments = forwardRef(
                           const value = e.target.value;
                           if (value === '' || /^-?\d*\.?\d{0,2}$/.test(value)) {
                             setAdjustValue(value);
-                            setValueEntered(true);
                           }
                         }}
                         onBlur={(e) => {
@@ -1131,6 +1323,19 @@ const InvoicePayments = forwardRef(
                         }}
                       />
                     </Flex>
+                  </Td>
+                  <Td
+                    fontSize="14px"
+                    paddingInlineStart="8px"
+                    paddingInlineEnd="8px"
+                  >
+                    <Input
+                      type="text"
+                      placeholder="Add a comment..."
+                      value={newPaymentComment}
+                      fontSize="14px"
+                      onChange={(e) => setNewPaymentComment(e.target.value)}
+                    />
                   </Td>
                   <Td
                     textAlign="right"

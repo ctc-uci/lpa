@@ -446,7 +446,7 @@ commentsRouter.put("/:id", async (req, res) => {
     if (booking_id) fields.push(`booking_id = $(booking_id)`);
     if (invoice_id) fields.push(`invoice_id = $(invoice_id)`);
     if (datetime) fields.push(`datetime = $(datetime)`);
-    if (comment) fields.push(`comment = $(comment)`);
+    if (comment !== undefined) fields.push(`comment = $(comment)`);
     if (adjustment_type) fields.push(`adjustment_type = $(adjustment_type)`);
     if (adjustment_value) fields.push(`adjustment_value = $(adjustment_value)`);
 
