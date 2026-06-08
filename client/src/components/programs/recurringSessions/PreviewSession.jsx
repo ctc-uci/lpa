@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
@@ -65,6 +65,7 @@ export const PreviewSession = ({
   const [sortedSessions, setSortedSessions] = useState([]);
   const [isSelected, setIsSelected] = useState(false);
   const [selectedSessions, setSelectedSessions] = useState([]);
+  const prevNewSessionsKeyRef = useRef("");
 
   // pagination controls
   const itemsPerPage = 5;
@@ -121,6 +122,22 @@ export const PreviewSession = ({
       });
 
     setSortedSessions(sorted);
+
+    const pageCount = Math.max(1, Math.ceil(sorted.length / itemsPerPage));
+    const newSessionsKey = sorted
+      .filter((s) => s.isNew)
+      .map((s) => `${s.recurringId ?? s.id}-${s.date}`)
+      .join(",");
+
+    if (newSessionsKey && newSessionsKey !== prevNewSessionsKeyRef.current) {
+      const firstNewIndex = sorted.findIndex((s) => s.isNew);
+      if (firstNewIndex !== -1) {
+        setCurrentPage(Math.floor(firstNewIndex / itemsPerPage) + 1);
+      }
+    } else {
+      setCurrentPage((prev) => Math.min(prev, pageCount));
+    }
+    prevNewSessionsKeyRef.current = newSessionsKey;
   }, [allSessions, sortOrder]);
 
   return (
