@@ -55,6 +55,103 @@ export const getSessionDayOfWeekLong = (dateString) => {
   return date.toLocaleDateString("en-US", { weekday: "long" });
 };
 
+const WEEKDAY_ORDER = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+export const normalizeSessionTime = (timeString) => {
+  if (!timeString) return "";
+  const parts = String(timeString).split(":");
+  if (parts.length < 2) return "";
+  return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
+};
+
+/**
+ * Derives recurring session defaults from existing bookings, using the same
+ * "usual times" logic as WeeklyRepeatingSchedule (most common day/time slots).
+ */
+export const deriveUsualSessionDefaults = (sessions) => {
+  const validSessions = (sessions || []).filter(
+    (session) => session.date && !session.archived && !session.isDeleted
+  );
+
+  if (validSessions.length === 0) return [];
+
+  const patternCounts = new Map();
+  let maxCount = 0;
+
+  for (const session of validSessions) {
+    const weekday = getSessionDayOfWeekLong(session.date);
+    if (!weekday) continue;
+
+    const startTime = normalizeSessionTime(session.startTime);
+    const endTime = normalizeSessionTime(session.endTime);
+    const roomId = session.roomId;
+    if (!startTime || !endTime || !roomId) continue;
+
+    const key = `${weekday}|${startTime}|${endTime}|${roomId}`;
+    const existing = patternCounts.get(key);
+    if (existing) {
+      existing.count += 1;
+      if (existing.count > maxCount) maxCount = existing.count;
+    } else {
+      patternCounts.set(key, {
+        weekday,
+        startTime,
+        endTime,
+        roomId,
+        frequency: "week",
+        count: 1,
+      });
+      if (maxCount < 1) maxCount = 1;
+    }
+  }
+
+  const usualPatterns = [...patternCounts.values()].filter(
+    (pattern) => pattern.count >= maxCount - 2
+  );
+
+  usualPatterns.sort(
+    (a, b) =>
+      WEEKDAY_ORDER.indexOf(a.weekday) - WEEKDAY_ORDER.indexOf(b.weekday)
+  );
+
+  return usualPatterns.map(
+    ({ weekday, startTime, endTime, roomId, frequency }) => ({
+      weekday,
+      startTime,
+      endTime,
+      roomId,
+      frequency,
+    })
+  );
+};
+
+export const createRecurringSessionRow = (defaults, frequency, id) => ({
+  id: id ?? Date.now(),
+  frequency: defaults?.frequency ?? frequency ?? "week",
+  weekday: defaults?.weekday ?? "",
+  startTime: defaults?.startTime ?? "",
+  endTime: defaults?.endTime ?? "",
+  roomId: defaults?.roomId ?? "",
+  archived: false,
+  exceptions: [],
+});
+
+export const createSingleSessionRow = (defaults) => ({
+  date: "",
+  startTime: defaults?.startTime ?? "",
+  endTime: defaults?.endTime ?? "",
+  roomId: defaults?.roomId ?? "",
+  archived: false,
+});
+
 export const generateRecurringSessions = (
   recurringSession,
   startDate,

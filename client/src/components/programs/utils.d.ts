@@ -8,6 +8,24 @@ export function formatSessionDateWithWeekday(dateString: unknown): string;
 
 export function getSessionDayOfWeekLong(dateString: unknown): string;
 
+export function normalizeSessionTime(timeString: unknown): string;
+
+export function deriveUsualSessionDefaults(sessions: unknown): Array<{
+  weekday: string;
+  startTime: string;
+  endTime: string;
+  roomId: unknown;
+  frequency: string;
+}>;
+
+export function createRecurringSessionRow(
+  defaults: unknown,
+  frequency: string,
+  id?: number
+): unknown;
+
+export function createSingleSessionRow(defaults: unknown): unknown;
+
 export function generateRecurringSessions(
   recurringSession: unknown,
   startDate: string,

@@ -42,7 +42,7 @@ import { SaveSessionModal } from "../../popups/SaveSessionModal";
 import { UnsavedChangesModal } from "../../popups/UnsavedChangesModal";
 import { PreviewSession } from "./PreviewSession";
 import { RecurringSessionRow } from "./RecurringSessionRow";
-import { generateRecurringSessions, createNewSessions, updateSessions, deleteSessions } from "../utils";
+import { generateRecurringSessions, createNewSessions, updateSessions, deleteSessions, deriveUsualSessionDefaults, createRecurringSessionRow, createSingleSessionRow } from "../utils";
 
 const hasRequiredFields = (session) => {
   const { frequency, weekday, dayOfMonth, weekDayOccurrence, dayOfWeek, startTime, endTime, roomId } = session;
@@ -111,20 +111,11 @@ export const EditRecurringSessions = () => {
 
   // States for new sessions
   const [recurringFrequency, setRecurringFrequency] = useState("week");
+  const usualDefaultsRef = useRef([]);
+  const [usualDefaultsApplied, setUsualDefaultsApplied] = useState(false);
   const [newSessions, setNewSessions] = useState({
-    single: [
-      { date: "", startTime: "", endTime: "", roomId: "", archived: false },
-    ],
-    recurring: [
-      {
-        id: Date.now(), // Just a unique id
-        frequency: recurringFrequency,
-        startTime: "",
-        endTime: "",
-        roomId: "",
-        archived: false,
-      },
-    ],
+    single: [createSingleSessionRow()],
+    recurring: [createRecurringSessionRow(null, "week", Date.now())],
   });
 
   // States for general information
@@ -137,33 +128,59 @@ export const EditRecurringSessions = () => {
   const onSortChange = (_, order) => {
     setSortOrder(order);
   }
+
+  const getUsualDefault = (index) => {
+    const defaults = usualDefaultsRef.current;
+    if (!defaults.length) return null;
+    return defaults[index] ?? defaults[0];
+  };
+
+  const applyUsualDefaultsToNewSessions = (prev, defaults) => {
+    if (!defaults.length) return prev;
+
+    const defaultFrequency = defaults[0].frequency ?? recurringFrequency;
+
+    return {
+      single: prev.single.map((row, index) => {
+        const isEmpty =
+          !row.date && !row.startTime && !row.endTime && !row.roomId;
+        if (!isEmpty) return row;
+        return createSingleSessionRow(defaults[index] ?? defaults[0]);
+      }),
+      recurring: prev.recurring.map((row, index) => {
+        const isEmpty =
+          !row.weekday && !row.startTime && !row.endTime && !row.roomId;
+        if (!isEmpty) return row;
+        return createRecurringSessionRow(
+          defaults[index] ?? defaults[0],
+          defaultFrequency,
+          row.id
+        );
+      }),
+    };
+  };
+
   // TODO: allow duplicate sessions? what if a single session is added on a recurring day?
   const handleAddSingleRow = () => {
+    const nextIndex = newSessions.single.length;
     setNewSessions((prev) => ({
       ...prev,
-      single: [
-        ...prev.single,
-        { date: "", startTime: "", endTime: "", roomId: "", archived: false },
-      ],
+      single: [...prev.single, createSingleSessionRow(getUsualDefault(nextIndex))],
     }));
     setChangeMade(true);
   };
 
   const handleAddRecurringRow = () => {
+    const nextIndex = newSessions.recurring.length;
     setNewSessions((prev) => ({
       ...prev,
       recurring: [
         ...prev.recurring,
-        {
-          id: Date.now(), // Just a unique id
-          frequency: recurringFrequency,
-          weekday: "",
-          startTime: "",
-          endTime: "",
-          roomId: "",
-          archived: false,
-          exceptions: [],
-        },
+        createRecurringSessionRow(
+          getUsualDefault(nextIndex),
+          recurringFrequency,
+          Date.now()
+        ),
       ],
     }));
     setChangeMade(true);
@@ -499,6 +516,14 @@ export const EditRecurringSessions = () => {
         const merged = [...prevSessions, ...newSessions];
         if (originalSessionsRef.current === null) {
           originalSessionsRef.current = merged.map((s) => ({ ...s }));
+
+          const defaults = deriveUsualSessionDefaults(merged);
+          usualDefaultsRef.current = defaults;
+          if (defaults.length > 0) {
+            setRecurringFrequency(defaults[0].frequency);
+            setNewSessions((prev) => applyUsualDefaultsToNewSessions(prev, defaults));
+            setUsualDefaultsApplied(true);
+          }
         }
         return merged;
       });
@@ -542,7 +567,7 @@ export const EditRecurringSessions = () => {
     newSessions.recurring.forEach((session, index) => {
       handleChangeSessionField("recurring", index, "startTime", session.startTime);
     });
-  }, [startDate, endDate]);
+  }, [startDate, endDate, usualDefaultsApplied]);
 
   const addRecurring = (
     <>
