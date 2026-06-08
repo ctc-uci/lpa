@@ -1,0 +1,21 @@
+client/src/components/programs/recurringSessions/PreviewSession.jsx
+  s_6904f85e3c59e7::t_34f554fb95282e 68
+  s_6904f85e3c59e7::t_ff46da885a312e 125-140
+  s_6904f85e3c59e7::t_9bac8351730598 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "7e7a3cf7bbcfce6e731e997fb5f47bb50d7c2708",
+  "prompts": {},
+  "sessions": {
+    "s_6904f85e3c59e7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "80d71cdd-b02a-4a68-917b-868eb4873dc7",
+        "model": "composer-2.5"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
