@@ -20,16 +20,27 @@ export const DeleteSessionConfirmationModal = ({
   isNewSession,
   id,
   setPrograms,
-  programs
+  programs,
+  onConfirmDelete,
 }) => {
   const toast = useToast();
   const { backend } = useBackendContext();
 
   const onDelete = useCallback(async () => {
     try {
-      if (setPrograms) {
-        // console.log("ID is: " + id);
-        setPrograms((prev) => prev.map((p) => p.id === id ? { ...p, isDeleted: true } : p));
+      if (onConfirmDelete) {
+        onConfirmDelete(id);
+      } else if (setPrograms) {
+        setPrograms((prev) => {
+          const sessionToDelete = prev.find((p) => p.id === id);
+          if (!sessionToDelete) return prev;
+          if (sessionToDelete.isNew) {
+            return prev.filter((p) => p.id !== id);
+          }
+          return prev.map((p) =>
+            p.id === id ? { ...p, isDeleted: true } : p
+          );
+        });
       }
     } catch (error) {
       console.error("Failed to delete booking:", error);
@@ -44,7 +55,7 @@ export const DeleteSessionConfirmationModal = ({
       });
     }
     onClose();
-  }, [backend, toast, id, onClose]);
+  }, [backend, toast, id, onClose, onConfirmDelete, setPrograms]);
 
   return (
     <Modal

@@ -441,10 +441,12 @@ export const EditRecurringSessions = () => {
       // await backend.delete("bookings/event/" + id);
       // console.log("allSessions: ", allSessions);
 
-      // Handle new sessions
-      const newSessions = allSessions.filter((s) => s.isNew);
+      // Handle new sessions (exclude preview-deleted rows; they were never persisted)
+      const newSessions = allSessions.filter((s) => s.isNew && !s.isDeleted);
       const updatedSessions = allSessions.filter((s) => s.isUpdated);
-      const deletedSessions = allSessions.filter((s) => s.isDeleted);
+      const deletedSessions = allSessions.filter(
+        (s) => s.isDeleted && !s.isNew
+      );
 
       // console.log("newSessions: ", newSessions);
       // console.log("updatedSessions: ", updatedSessions);
@@ -927,12 +929,11 @@ export const EditRecurringSessions = () => {
         type={"Session"}
       /> */}
       <DeleteSessionConfirmationModal
-        setPrograms={setAllSessions}
         isOpen={isDeleteSessionModalOpen}
         onClose={onDeleteSessionClose}
         date={deleteSessionDate}
         id={deleteSessionId}
-        programs={allSessions}
+        onConfirmDelete={handleDeleteSession}
       />
       <Box style={{ width: "100%", padding: "20px 20px 20px 20px" }}>
         <Flex
