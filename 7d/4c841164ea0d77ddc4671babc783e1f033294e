@@ -1,0 +1,37 @@
+client/src/components/clientsearch/EmailDropdown.jsx
+  s_01f2cc99af753e::t_ea967c74f0728d 68-71,74-83
+  s_01f2cc99af753e::t_a2f509887dbf2b 157-160
+  s_01f2cc99af753e::t_d0b170f6ce39cb 144-147
+client/src/components/email/RecipientField.jsx
+  s_01f2cc99af753e::t_8f5151be68cec6 1-88
+client/src/components/email/EmailSidebar.jsx
+  s_01f2cc99af753e::t_7cd43317a043ee 102,112-114,132
+  s_01f2cc99af753e::t_95e960ff974449 261-266
+  s_01f2cc99af753e::t_409cb38c08bf41 168
+  s_01f2cc99af753e::t_dfb679354c42c4 19
+  s_01f2cc99af753e::t_249cacd89547db 289-291,293-297
+  s_01f2cc99af753e::t_2939f3e3fc3398 327-329
+  s_01f2cc99af753e::t_2082b3ba6758d5 33-39,56-61,83-99,104,117-118,120-125,127,131,134-137,139-159,161-167,169,171,173-175,184,194,238,248,250,258-260,292,301-306,314,323,331,347,354-357,367,382,384-401,485-488,490
+  s_01f2cc99af753e::t_99b0b22bd09dca 68-72
+  s_01f2cc99af753e::t_d2f34c49e1119b 42-43
+  s_01f2cc99af753e::t_cc19377338764c 50
+client/src/components/email/utils.jsx
+  s_01f2cc99af753e::t_ad89e56bbdaf1d 25-36
+  s_01f2cc99af753e::t_cd59f2dc689b58 6-24,84,100-101,103-135,139-140,142-147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "7d4c841164ea0d77ddc4671babc783e1f033294e",
+  "prompts": {},
+  "sessions": {
+    "s_01f2cc99af753e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "255a73a9-c445-43dd-91a6-37cbfe779b8b",
+        "model": "default"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
