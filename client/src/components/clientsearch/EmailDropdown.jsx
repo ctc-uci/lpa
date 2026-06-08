@@ -65,12 +65,22 @@ export const EmailDropdown = ({
                 if (
                   user &&
                   selectedUsers &&
-                  !selectedUsers.some((u) => u.id === user.id)
+                  !selectedUsers.some(
+                    (u) =>
+                      u?.email?.toLowerCase() === user.email?.toLowerCase()
+                  )
                 ) {
                   setSelectedUsers((prevItems) => [...(prevItems || []), user]);
-                }
-                else {
-                  setSelectedUsers((prevItems) => [...(prevItems || []), {email: searchTerm}]);
+                } else if (
+                  !selectedUsers?.some(
+                    (u) =>
+                      u?.email?.toLowerCase() === searchTerm.trim().toLowerCase()
+                  )
+                ) {
+                  setSelectedUsers((prevItems) => [
+                    ...(prevItems || []),
+                    { email: searchTerm.trim() },
+                  ]);
                 }
                 setSearchTerm("");
                 setSearchedUsers([]);
@@ -131,7 +141,10 @@ export const EmailDropdown = ({
               (user) =>
                 user &&
                 user.email &&
-                !selectedUsers.some((u) => u.id === user.id) // 👈 filter here
+                !selectedUsers.some(
+                  (u) =>
+                    u?.email?.toLowerCase() === user.email?.toLowerCase()
+                )
             ).map(
             (user) =>
               user &&
@@ -141,7 +154,10 @@ export const EmailDropdown = ({
                   onClick={() => {
                     if (
                       selectedUsers &&
-                      !selectedUsers.some((u) => u.id === user.id)
+                      !selectedUsers.some(
+                        (u) =>
+                          u?.email?.toLowerCase() === user.email?.toLowerCase()
+                      )
                     ) {
                       setSelectedUsers((prevItems) => [...(prevItems || []), user]);
                     }
