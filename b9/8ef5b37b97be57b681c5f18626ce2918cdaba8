@@ -1,0 +1,48 @@
+server/routes/invoices.js
+  s_062adcf8d5c002::t_2b8e32ed9b3809 395
+  s_062adcf8d5c002::t_77d865e006eee2 396-397
+  s_062adcf8d5c002::t_746ed5ef8efd05 579-584
+client/src/components/notifications/Notifications.jsx
+  s_062adcf8d5c002::t_61cc9a1bff386c 135,137-139
+  s_062adcf8d5c002::t_e951e5d15d4654 113,115,124,132
+server/routes/utils/invoicePaymentAllocation.js
+  s_062adcf8d5c002::t_d41d04c837e960 121-127,131-132,151,154-156
+  s_062adcf8d5c002::t_7307f91e9ab54d 128-130,133-150,157-158
+server/src/app.js
+  s_062adcf8d5c002::t_1fe14e01d3928e 21
+  s_062adcf8d5c002::t_251e58d1d81542 66,70
+  s_062adcf8d5c002::t_f8d7235c4eac76 19-20
+  s_062adcf8d5c002::t_f3685680a19b2e 62-65,67-69,71-74
+client/src/components/invoices/InvoiceComponents.jsx
+  s_062adcf8d5c002::t_7ee5768e522761 1312,1314-1315
+  s_062adcf8d5c002::t_0437fe42e4e50a 614
+  s_062adcf8d5c002::t_d61526e7b9de63 784
+  s_062adcf8d5c002::t_a92b737ff20f79 1296
+  s_062adcf8d5c002::t_37961c060f6340 1311,1313,1333,1335
+  s_062adcf8d5c002::t_772d50059fa503 615
+  s_062adcf8d5c002::t_c1e820bcc334e6 737
+  s_062adcf8d5c002::t_3f56d316bee9f9 616-617
+  s_062adcf8d5c002::t_83fd8dc4df0371 738-739
+  s_062adcf8d5c002::t_21805ffa80a591 1334,1336-1337
+  s_062adcf8d5c002::t_fa4b3bd84dc2c9 731-736,740-744,764-765
+  s_062adcf8d5c002::t_5a608e92626e1d 1114-1135
+server/routes/programs.js
+  s_062adcf8d5c002::t_850b6eb6c45cc8 5
+  s_062adcf8d5c002::t_0abd86a673314b 111-112,114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "b98ef5b37b97be57b681c5f18626ce2918cdaba8",
+  "prompts": {},
+  "sessions": {
+    "s_062adcf8d5c002": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d086dd19-1b45-4579-8a6d-831047c8a498",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Brendan Lieu <brendanlieu05@gmail.com>"
+    }
+  }
+}
