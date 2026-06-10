@@ -611,6 +611,10 @@ const InvoicePayments = forwardRef(
     const [invoiceYear, setInvoiceYear] = useState("");
     const [editDate, setEditDate] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [carriedForward, setCarriedForward] = useState(0);
+    const [carrySource, setCarrySource] = useState(null);
+    const [carryPastMonths, setCarryPastMonths] = useState([]);
+    const [carryFutureMonths, setCarryFutureMonths] = useState([]);
     const toast = useToast();
 
     const showPaymentErrorToast = (title, message) => {
@@ -724,6 +728,20 @@ const InvoicePayments = forwardRef(
       fetchUid();
     }, [backend, currentUser]);
 
+    const fetchCarriedForward = useCallback(async () => {
+      try {
+        const res = await backend.get(`/invoices/paid/${id}`);
+        const allocated = Number(res.data?.total) || 0;
+        const raw = Number(res.data?.rawPaymentsOnInvoice) || 0;
+        setCarriedForward(Math.max(0, allocated - raw));
+        setCarrySource(res.data?.carrySource ?? null);
+        setCarryPastMonths(res.data?.pastMonths ?? []);
+        setCarryFutureMonths(res.data?.futureMonths ?? []);
+      } catch (err) {
+        console.error("Error fetching carried forward:", err);
+      }
+    }, [backend, id]);
+
     useEffect(() => {
       const fetchData = async () => {
         try {
@@ -743,7 +761,8 @@ const InvoicePayments = forwardRef(
         }
       };
       fetchData();
-    }, [backend, id]);
+      fetchCarriedForward();
+    }, [backend, id, fetchCarriedForward]);
 
     useImperativeHandle(ref, () => ({
       handleSaveComment: handleSaveComment,
@@ -762,6 +781,7 @@ const InvoicePayments = forwardRef(
   const currentPageComments = comments ?? [];
 
   const updateRemainingBalance = async () => {
+    fetchCarriedForward();
     if (onBalancesRefresh) {
       const [commentsResponse] = await Promise.all([
         backend.get("/comments/paidInvoices/" + id),
@@ -1091,12 +1111,28 @@ const InvoicePayments = forwardRef(
               </Button>
             </Flex>
           ) : (
-            <Button
-              isLoading={isProcessing}
-              onClick={handleSaveComment}
-            >
-              Save
-            </Button>
+            <Flex gap="8px">
+              <Button
+                onClick={handleCancelNewComment}
+                isDisabled={isProcessing}
+                backgroundColor="#EDF2F7"
+                color="#2D3748"
+                fontSize="14px"
+                fontWeight="500"
+                height="40px"
+                padding="0px 16px"
+              >
+                Cancel
+              </Button>
+              <Button
+                isLoading={isProcessing}
+                onClick={handleSaveComment}
+                height="40px"
+                padding="0px 16px"
+              >
+                Save
+              </Button>
+            </Flex>
           )}
         </Flex>
 
@@ -1257,9 +1293,50 @@ const InvoicePayments = forwardRef(
                   ))
               ) : (
                 <Tr>
-                  {!showInputRow && (
+                  {!showInputRow && !carriedForward && (
                     <Td colSpan={4}>No comments available.</Td>
                   )}
+                </Tr>
+              )}
+
+              {carriedForward > 0 && !showEditRow && (
+                <Tr>
+                  <Td
+                    fontSize="14px"
+                    paddingInlineStart="8px"
+                    paddingInlineEnd="8px"
+                    color="#718096"
+                    fontStyle="italic"
+                  >
+                    {carrySource === "future"
+                      ? carryFutureMonths[0] ?? ""
+                      : carrySource === "both"
+                        ? carryPastMonths[carryPastMonths.length - 1] ?? ""
+                        : carryPastMonths[carryPastMonths.length - 1] ?? ""}
+                  </Td>
+                  <Td
+                    fontSize="14px"
+                    color="#0C824D"
+                    fontWeight="700"
+                    paddingInlineStart="8px"
+                    paddingInlineEnd="8px"
+                  >
+                    ${carriedForward.toFixed(2)}
+                  </Td>
+                  <Td
+                    fontSize="14px"
+                    paddingInlineStart="8px"
+                    paddingInlineEnd="8px"
+                    color="#718096"
+                    fontStyle="italic"
+                  >
+                    {carrySource === "future"
+                      ? "Payment from future billing period applied here"
+                      : carrySource === "both"
+                        ? "Applied from payments across billing periods"
+                        : "Carried forward from previous billing period"}
+                  </Td>
+                  <Td width="1%" paddingInlineStart="4px" paddingInlineEnd="4px" />
                 </Tr>
               )}
 

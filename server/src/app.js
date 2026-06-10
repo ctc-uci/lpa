@@ -16,6 +16,9 @@ import { invoicesRouter } from "../routes/invoices";
 import { programsRouter } from "../routes/programs";
 import { invoicesAssignments } from "../routes/invoicesAssignments"
 import { emailRouter } from "../routes/email";
+import { db } from "../db/db-pgp";
+import { syncPaymentStatusesForEvent } from "../routes/utils/invoicePaymentAllocation";
+import { resyncInvoiceTotalsAndPaymentStatusesForEvent } from "../routes/utils/invoiceTotalSync";
 
 dotenv.config();
 
@@ -56,6 +59,19 @@ app.use("/assignments", assignmentsRouter)
 app.use("/programs", programsRouter);
 app.use("/invoicesAssignments", invoicesAssignments)
 app.use("/email", emailRouter)
+app.post("/admin/resync-payment-statuses", async (req, res) => {
+  try {
+    const events = await db.query(`SELECT id FROM events WHERE archived = false`);
+    for (const event of events) {
+      await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, event.id);
+    }
+    res.status(200).json({ resynced: events.length });
+  } catch (err) {
+    console.error("Manual resync failed:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(SERVER_PORT, () => {
   console.info(`Server listening on ${SERVER_PORT}`);
 });

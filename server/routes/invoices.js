@@ -392,6 +392,9 @@ invoicesRouter.get("/paid/:id", async (req, res) => {
       keysToCamel({
         total: breakdown.allocated,
         rawPaymentsOnInvoice: breakdown.rawOnInvoice,
+        carrySource: breakdown.carrySource,
+        pastMonths: breakdown.pastMonths,
+        futureMonths: breakdown.futureMonths,
       })
     );
   } catch (err) {
@@ -420,25 +423,6 @@ invoicesRouter.get("/total/:id", async (req, res) => {
   }
 });
 
-invoicesRouter.get("/previousInvoices/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const previousInvoices = await db.query(`
-      SELECT * FROM invoices
-      WHERE start_date < (
-        SELECT start_date FROM invoices
-        WHERE id = $1
-      )
-      AND event_id = (
-        SELECT event_id FROM invoices
-        WHERE id = $1
-      )`, [id]);
-
-    res.status(200).json(keysToCamel(previousInvoices));
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
 
 invoicesRouter.post("/", async (req, res) => {
   try {
@@ -592,8 +576,12 @@ invoicesRouter.get("/previousInvoices/:id", async (req, res) => {
     const { event_id } = req.query;
 
     // Get previous invoices from database
-    const data = await db.query("SELECT * FROM invoices WHERE event_id = $1 AND start_date < (SELECT start_date FROM invoices WHERE id = $2) AND payment_status <> 'full' ORDER BY start_date DESC", 
-      [event_id, id]
+    const data = await db.query(
+      `SELECT * FROM invoices
+       WHERE event_id = COALESCE($1::int, (SELECT event_id FROM invoices WHERE id = $2))
+       AND start_date < (SELECT start_date FROM invoices WHERE id = $2)
+       ORDER BY start_date ASC`,
+      [event_id ?? null, id]
     );
 
     res.status(200).json(keysToCamel(data));

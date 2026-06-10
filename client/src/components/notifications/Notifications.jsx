@@ -110,9 +110,9 @@ export const Notifications = () => {
     };
   }, []);
 
-  const getDescription = (payStatus, payers) => {
+  const getDescription = (payStatus, payers, paymentStatus) => {
     if (!payers || !payers.length) {
-      return getBaseDescription(payStatus, "unknown recipients");
+      return getBaseDescription(payStatus, "unknown recipients", paymentStatus);
     }
 
     const instructorNames = payers
@@ -121,7 +121,7 @@ export const Notifications = () => {
       .filter((name) => name && name.trim() !== "");
 
     if (instructorNames.length === 0) {
-      return getBaseDescription(payStatus, "unknown recipients");
+      return getBaseDescription(payStatus, "unknown recipients", paymentStatus);
     }
 
     const formattedNames =
@@ -129,12 +129,14 @@ export const Notifications = () => {
         ? instructorNames[0]
         : `${instructorNames.slice(0, -1).join(", ")}, and ${instructorNames[instructorNames.length - 1]}`;
 
-    return getBaseDescription(payStatus, formattedNames);
+    return getBaseDescription(payStatus, formattedNames, paymentStatus);
   };
 
-  const getBaseDescription = (payStatus, names) => {
+  const getBaseDescription = (payStatus, names, paymentStatus) => {
     if (payStatus === "overdue") {
-      return `Payment not recorded 5 days or more since the payment deadline for `;
+      return paymentStatus === "partial"
+        ? `Partial payment recorded, balance still outstanding for `
+        : `Payment not recorded 5 days or more since the payment deadline for `;
     } else if (payStatus === "neardue") {
       return `Email has not been sent to ${names} 1 week before the payment deadline for `;
     } else {
@@ -244,7 +246,7 @@ export const Notifications = () => {
                 eventName: eventRes.data[0]?.name || "Unknown Event",
                 total: totalRes.data.total,
                 paid: paidRes.data.total ?? paidRes.data.paid,
-                description: getDescription(invoice.payStatus, payersRes.data),
+                description: getDescription(invoice.payStatus, payersRes.data, invoice.paymentStatus),
                 dueTime,
               };
             } catch (err) {

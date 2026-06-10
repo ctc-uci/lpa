@@ -2,6 +2,7 @@ import express, { Router } from "express";
 
 import { keysToCamel } from "../common/utils";
 import { db } from "../db/db-pgp";
+import { resyncInvoiceTotalsAndPaymentStatusesForEvent } from "./utils/invoiceTotalSync.js";
 const programsRouter = Router();
 programsRouter.use(express.json());
 
@@ -107,9 +108,10 @@ programsRouter.put("/updateSessionArchive/:id", async (req, res) => {
       RETURNING *;
       `,
       [id, archived]
-  );
+    );
+    await resyncInvoiceTotalsAndPaymentStatusesForEvent(db, id);
     res.status(200).json(keysToCamel(data));
-   } catch (err) {
+  } catch (err) {
     res.status(500).send(err.message);
   }
 });

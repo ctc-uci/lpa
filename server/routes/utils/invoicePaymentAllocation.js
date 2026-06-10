@@ -118,11 +118,44 @@ export async function getAllocatedPaidBreakdownForInvoice(db, invoiceId) {
   const inv = await db.oneOrNone(`SELECT id, event_id FROM invoices WHERE id = $1`, [invoiceId]);
   if (!inv) return null;
 
-  const { rawPaidById, allocatedById } = await loadEventAllocationMaps(db, inv.event_id);
+  const { invoices, rawPaidById, allocatedById } = await loadEventAllocationMaps(db, inv.event_id);
+
+  const allocated = allocatedById[invoiceId] ?? 0;
+  const rawOnInvoice = rawPaidById[invoiceId] ?? 0;
+  const carriedFromOther = Math.max(0, allocated - rawOnInvoice);
+
+  let carrySource = null;
+  let pastMonths = [];
+  let futureMonths = [];
+
+  if (carriedFromOther > 0) {
+    const currentIdx = invoices.findIndex((i) => i.id === parseInt(invoiceId, 10));
+    const toMonthLabel = (startDate) => {
+      const d = new Date(startDate);
+      return d.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+    };
+
+    pastMonths = invoices
+      .slice(0, currentIdx)
+      .filter((i) => (rawPaidById[i.id] || 0) > 0)
+      .map((i) => toMonthLabel(i.start_date));
+
+    futureMonths = invoices
+      .slice(currentIdx + 1)
+      .filter((i) => (rawPaidById[i.id] || 0) > 0)
+      .map((i) => toMonthLabel(i.start_date));
+
+    if (pastMonths.length > 0 && futureMonths.length > 0) carrySource = "both";
+    else if (futureMonths.length > 0) carrySource = "future";
+    else if (pastMonths.length > 0) carrySource = "past";
+  }
 
   return {
-    allocated: allocatedById[invoiceId] ?? 0,
-    rawOnInvoice: rawPaidById[invoiceId] ?? 0,
+    allocated,
+    rawOnInvoice,
+    carrySource,
+    pastMonths,
+    futureMonths,
   };
 }
 
